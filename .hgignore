@@ -1,0 +1,7 @@
+syntax: glob
+
+Debug/*
+.*.swp
+CMakeFiles/*
+cmake_install.cmake
+Makefile
