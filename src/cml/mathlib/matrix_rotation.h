@@ -953,15 +953,16 @@ void matrix_to_euler(
 /** Convenience function to return a 3D vector containing the Euler angles
  * in the requested order.
  */
-template < class MatT, typename Real > vector< Real, fixed<3> >
+template < class MatT > vector< typename MatT::value_type, fixed<3> >
 matrix_to_euler(
     const MatT& m,
     EulerOrder order,
-    Real tolerance = epsilon<Real>::placeholder())
+    const typename MatT::value_type&
+        tolerance = epsilon<typename MatT::value_type>::placeholder())
 {
-  Real e0, e1, e2;
+  typename MatT::value_type e0, e1, e2;
   matrix_to_euler(m, e0, e1, e2, order, tolerance);
-  return vector< Real, fixed<3> >(e0, e1, e2);
+  return vector< typename MatT::value_type, fixed<3> >(e0, e1, e2);
 }
 
 /** Convert a 2D rotation matrix to a rotation angle */

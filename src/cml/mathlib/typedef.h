@@ -88,7 +88,6 @@ typedef matrix< int,    fixed<3,4>, col_basis, col_major > matrix34i_c;
 typedef matrix< float,  fixed<3,4>, col_basis, col_major > matrix34f_c;
 typedef matrix< double, fixed<3,4>, col_basis, col_major > matrix34d_c;
 
-typedef matrix< double, fixed<6,6> > matrix66d;
 
 /* quaternions */
 typedef quaternion<float, fixed<>,vector_first,negative_cross>

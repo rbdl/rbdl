@@ -51,10 +51,12 @@ class vector< Element, external<Size> >
     /* For integration into the expression template code: */
     typedef vector<typename cml::remove_const<Element>::type,
             fixed<Size> > temporary_type;
-    typedef typename temporary_type::subvector_type subvector_type;
     /* Note: this ensures that an external vector is copied into the proper
      * temporary; external<> temporaries are not allowed.
      */
+
+    /* The type for a vector in one lower dimension: */
+    typedef typename temporary_type::subvector_type subvector_type;
 
     /* Standard: */
     typedef typename array_type::value_type value_type;
@@ -140,6 +142,17 @@ class vector< Element, external<Size> >
         }
     }
 
+    /** Return a subvector by removing element i.
+     *
+     * @internal This is horribly inefficient...
+     */
+    subvector_type subvector(size_t i) const {
+        subvector_type s;
+        for(size_t m = 0, n = 0; m < this->size(); ++ m)
+            if(m != i) s[n++] = (*this)[m];
+        return s;
+    };
+
 
   public:
 
@@ -194,6 +207,9 @@ class vector< Element, external<> >
     /* Note: this ensures that an external vector is copied into the proper
      * temporary; external<> temporaries are not allowed.
      */
+
+    /* The type for a vector in one lower dimension: */
+    typedef typename temporary_type::subvector_type subvector_type;
 
     /* Standard: */
     typedef typename array_type::value_type value_type;
@@ -275,6 +291,17 @@ class vector< Element, external<> >
             (*this)[i] = random_real(min,max);
         }
     }
+
+    /** Return a subvector by removing element i.
+     *
+     * @internal This is horribly inefficient...
+     */
+    subvector_type subvector(size_t i) const {
+        subvector_type s; s.resize(this->size()-1);
+        for(size_t m = 0, n = 0; m < this->size(); ++ m)
+            if(m != i) s[n++] = (*this)[m];
+        return s;
+    };
 
 
   public:

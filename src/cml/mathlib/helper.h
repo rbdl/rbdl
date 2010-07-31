@@ -73,7 +73,7 @@ enum AxisOrder {
     axis_order_yzx = euler_order_yzx, // 0x04 [0100]
     axis_order_yxz = euler_order_yxz, // 0x06 [0110]
     axis_order_zxy = euler_order_zxy, // 0x08 [1000]
-    axis_order_zyx = euler_order_zyx, // 0x0A [1010]
+    axis_order_zyx = euler_order_zyx  // 0x0A [1010]
 };
 
 namespace detail {
@@ -114,7 +114,7 @@ inline AxisOrder swap_axis_order(AxisOrder order)
 
 enum AxisOrder2D {
     axis_order_xy = axis_order_xyz, // 0x00 [0000]
-    axis_order_yx = axis_order_yxz, // 0x06 [0110]
+    axis_order_yx = axis_order_yxz  // 0x06 [0110]
 };
 
 namespace detail {

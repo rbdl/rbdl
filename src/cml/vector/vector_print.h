@@ -21,7 +21,8 @@ namespace cml {
 template<typename E, class AT > inline std::ostream&
 operator<<(std::ostream& os, const vector<E,AT>& v)
 {
-    for (size_t i = 0; i < v.size(); ++i) {
+    os << v[0];
+    for (size_t i = 1; i < v.size(); ++i) {
         os << " " << v[i];
     }
     return os;
@@ -31,7 +32,8 @@ operator<<(std::ostream& os, const vector<E,AT>& v)
 template< class XprT > inline std::ostream&
 operator<<(std::ostream& os, const et::VectorXpr<XprT>& v)
 {
-    for (size_t i = 0; i < v.size(); ++i) {
+    os << v[0];
+    for (size_t i = 1; i < v.size(); ++i) {
         os << " " << v[i];
     }
     return os;

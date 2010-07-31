@@ -47,7 +47,12 @@ class vector< Element, fixed<Size> >
 
     /* For integration into the expression template code: */
     typedef vector_type temporary_type;
+
+    /* The type for a vector in one lower dimension: */
     typedef vector< Element, fixed<Size-1> > subvector_type;
+
+    /* The type for a vector in one higher dimension: */
+    typedef vector< Element, fixed<Size+1> > supervector_type;
 
     /* Standard: */
     typedef typename array_type::value_type value_type;
@@ -157,8 +162,6 @@ class vector< Element, fixed<Size> >
     CML_CONSTRUCT_VEC_2(/**/)
     CML_CONSTRUCT_VEC_3(/**/)
     CML_CONSTRUCT_VEC_4(/**/)
-    CML_CONSTRUCT_VEC_5(/**/)
-    CML_CONSTRUCT_VEC_6(/**/)
 
     CML_CONSTRUCT_FROM_SUBVEC(/**/)
 
@@ -170,8 +173,6 @@ class vector< Element, fixed<Size> >
     CML_ASSIGN_VEC_2
     CML_ASSIGN_VEC_3
     CML_ASSIGN_VEC_4
-    CML_ASSIGN_VEC_5
-    CML_ASSIGN_VEC_6
 
     CML_VEC_ASSIGN_FROM_VECTYPE
 

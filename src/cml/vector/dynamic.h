@@ -46,6 +46,9 @@ class vector< Element, dynamic<Alloc> >
     /* For integration into the expression template code: */
     typedef vector_type temporary_type;
 
+    /* The type for a vector in one lower dimension: */
+    typedef vector_type subvector_type;
+
     /* Standard: */
     typedef typename array_type::value_type value_type;
     typedef typename array_type::reference reference;
@@ -126,6 +129,17 @@ class vector< Element, dynamic<Alloc> >
             (*this)[i] = cml::random_real(min,max);
         }
     }
+
+    /** Return a subvector by removing element i.
+     *
+     * @internal This is horribly inefficient...
+     */
+    subvector_type subvector(size_t i) const {
+        subvector_type s; s.resize(this->size()-1);
+        for(size_t m = 0, n = 0; m < this->size(); ++ m)
+            if(m != i) s[n++] = (*this)[m];
+        return s;
+    };
 
 
   public:

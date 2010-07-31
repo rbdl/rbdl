@@ -215,8 +215,6 @@ class matrix<Element,fixed<Rows,Cols>,BasisOrient,Layout>
     CML_CONSTRUCT_MAT_22
     CML_CONSTRUCT_MAT_33
     CML_CONSTRUCT_MAT_44
-    CML_CONSTRUCT_MAT_55
-    CML_CONSTRUCT_MAT_66
 
     CML_MAT_COPY_FROM_FIXED_ARRAY(
             array_type::array_rows, array_type::array_cols)
@@ -228,8 +226,6 @@ class matrix<Element,fixed<Rows,Cols>,BasisOrient,Layout>
     CML_ASSIGN_MAT_22
     CML_ASSIGN_MAT_33
     CML_ASSIGN_MAT_44
-    CML_ASSIGN_MAT_55
-    CML_ASSIGN_MAT_66
 
     CML_MAT_ASSIGN_FROM_MATTYPE
 

@@ -544,7 +544,8 @@ matrix_look_at(
 
     identity_transform(m);
 
-    value_type s = handedness == left_handed ? 1 : -1;
+    value_type s = handedness == left_handed ?
+        static_cast<value_type>(1) : static_cast<value_type>(-1);
     vector_type z = s * normalize(target - eye);
     vector_type x = unit_cross(up,z);
     vector_type y = cross(z,x);

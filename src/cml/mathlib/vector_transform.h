@@ -73,6 +73,26 @@ transform_vector_4D(const MatT& m, const VecT& v) {
     return detail::transform_vector_4D(m,v,typename MatT::basis_orient());
 }
 
+/** Apply a homogeneous (e.g. perspective) transform to a 3D point. */
+template < class MatT, class VecT > TEMP_VEC3
+transform_point_4D(const MatT& m, const VecT& v)
+{
+    typedef TEMP_VEC3 vector_type;
+    typedef typename TEMP_VEC3::coordinate_type coordinate_type;
+
+    /* Checking */
+    detail::CheckMatHomogeneous3D(m);
+    detail::CheckVec3(v);
+
+    /* Compute the 4D point: */
+    TEMP_VEC4 v4 = transform_vector_4D(
+      m, TEMP_VEC4(v[0], v[1], v[2], coordinate_type(1)));
+
+    /* Return the projected point: */
+    coordinate_type w = v4[3];
+    return vector_type(v4[0]/w, v4[1]/w, v4[2]/w);
+}
+
 /** Apply a 3D affine transform to a 3D point */
 template < class MatT, class VecT > TEMP_VEC3
 transform_point(const MatT& m, const VecT& v)
