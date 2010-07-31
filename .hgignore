@@ -5,3 +5,5 @@ Debug/*
 CMakeFiles/*
 cmake_install.cmake
 Makefile
+tags
+*.log
