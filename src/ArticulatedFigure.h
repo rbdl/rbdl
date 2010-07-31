@@ -29,6 +29,18 @@ struct Joint {
 		mJointCenter (0., 0., 0.),
 		mJointAxis (0., 0., 0.),
 		mJointType (JointTypeUndefined) {};
+	Joint (const Joint &joint) :
+		mJointCenter (joint.mJointCenter),
+		mJointAxis (joint.mJointAxis),
+		mJointType (joint.mJointType) {};
+	Joint& operator= (const Joint &joint) {
+		if (this != &joint) {
+			mJointCenter = joint.mJointCenter;
+			mJointAxis = joint.mJointAxis;
+			mJointType = joint.mJointType;
+		}
+		return *this;
+	}
 
 	/// \brief The joint center in the predecessors frame
 	Vector3d mJointCenter;
@@ -48,6 +60,10 @@ struct ArticulatedFigure {
 	std::vector<SpatialMatrix> mJointTransform;
 	/// \brief The spatial inertia of body i
 	std::vector<SpatialMatrix> mSpatialInertia;
+	/// \brief The axes of the joints
+	std::vector<SpatialVector> mSpatialJointAxes;
+	/// \brief The spatial velocity of all bodies
+	std::vector<SpatialVector> mSpatialVelocities;
 
 	/// \brief The joint position
 	std::vector<double> q;
@@ -69,6 +85,9 @@ struct ArticulatedFigure {
 
 	void Init ();
 	void AddBody (const unsigned int parent_id, const Joint &joint, const Body &body);
+	SpatialMatrix JointComputeTransform (const unsigned int joint_index);
+	SpatialVector JointComputeVelocity (const unsigned int body_index);
+
 	void CalcVelocities ();
 };
 

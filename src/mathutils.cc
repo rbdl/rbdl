@@ -91,3 +91,44 @@ inline void MatrixCopy (const Matrix3d &result, Matrix3d &src) {
 	src = result;
 }
 
+Matrix3d VectorCrossMatrix (const Vector3d &vector) {
+	return Matrix3d (
+			         0, -vector[2],  vector[1],
+			 vector[2],          0, -vector[0],
+			-vector[1],  vector[0], 0);
+}
+
+void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix) {
+	assert (row < 2 && col < 2);
+	
+	dest(row*3,col*3) = matrix(0,0);
+	dest(row*3,col*3 + 1) = matrix(0,1);
+	dest(row*3,col*3 + 2) = matrix(0,2);
+
+	dest(row*3 + 1,col*3) = matrix(1,0);
+	dest(row*3 + 1,col*3 + 1) = matrix(1,1);
+	dest(row*3 + 1,col*3 + 2) = matrix(1,2);
+
+	dest(row*3 + 2,col*3) = matrix(2,0);
+	dest(row*3 + 2,col*3 + 1) = matrix(2,1);
+	dest(row*3 + 2,col*3 + 2) = matrix(2,2);
+}
+
+bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a, const SpatialMatrix &matrix_b, double epsilon) {
+	assert (epsilon >= 0.);
+	unsigned int i, j;
+
+	for (i = 0; i < 6; i++) {
+		for (j = 0; j < 6; j++) {
+			if (fabs(matrix_a(i,j) - matrix_b(i,j)) >= epsilon) {
+				std::cerr << "Expected:" 
+					<< std::endl << matrix_a << std::endl
+					<< "but was" << std::endl 
+					<< matrix_b << std::endl;
+				return false;
+			}
+		}
+	}
+
+	return true;
+}

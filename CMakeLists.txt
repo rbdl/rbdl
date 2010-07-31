@@ -16,6 +16,6 @@ ADD_SUBDIRECTORY ( tests )
 
 ADD_LIBRARY ( simbs 
 	src/mathutils.cc
-	#	src/Body.cc
 	src/ArticulatedFigure.cc
+	src/Logging.cc
 	)
