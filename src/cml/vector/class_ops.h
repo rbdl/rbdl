@@ -78,6 +78,46 @@ set(                                                                    \
     return *this;                                                       \
 }
 
+/** Create a vector from 5 values. */
+#define CML_ASSIGN_VEC_5                                                \
+vector_type&                                                            \
+set(                                                                    \
+        ELEMENT_ARG_TYPE e0,                                            \
+        ELEMENT_ARG_TYPE e1,                                            \
+        ELEMENT_ARG_TYPE e2,                                            \
+        ELEMENT_ARG_TYPE e3,                                            \
+        ELEMENT_ARG_TYPE e4                                             \
+        )                                                               \
+{                                                                       \
+    _DO_VECTOR_SET_RESIZE(5);                                           \
+    /* This is overkill, but simplifies size checking: */               \
+    value_type v[] = {e0,e1,e2,e3,e4};                                  \
+    typedef et::OpAssign<Element,Element> OpT;                          \
+    cml::vector< const value_type, external<5> > src(v);                \
+    et::UnrollAssignment<OpT>(*this,src);                               \
+    return *this;                                                       \
+}
+
+/** Create a vector from 6 values. */
+#define CML_ASSIGN_VEC_6                                                \
+vector_type&                                                            \
+set(                                                                    \
+        ELEMENT_ARG_TYPE e0,                                            \
+        ELEMENT_ARG_TYPE e1,                                            \
+        ELEMENT_ARG_TYPE e2,                                            \
+        ELEMENT_ARG_TYPE e3,                                            \
+        ELEMENT_ARG_TYPE e4,                                            \
+        ELEMENT_ARG_TYPE e5                                             \
+        )                                                               \
+{                                                                       \
+    _DO_VECTOR_SET_RESIZE(6);                                           \
+    /* This is overkill, but simplifies size checking: */               \
+    value_type v[] = {e0,e1,e2,e3,e4,e5};                               \
+    typedef et::OpAssign<Element,Element> OpT;                          \
+    cml::vector< const value_type, external<6> > src(v);                \
+    et::UnrollAssignment<OpT>(*this,src);                               \
+    return *this;                                                       \
+}
 
 /** Create a vector from 2 values. */
 #define CML_CONSTRUCT_VEC_2(_add_)                                      \
@@ -106,6 +146,33 @@ vector(                                                                 \
         ) _add_                                                         \
 {                                                                       \
     set(e0,e1,e2,e3);                                                   \
+}
+
+/** Create a vector from 5 values. */
+#define CML_CONSTRUCT_VEC_5(_add_)                                      \
+vector(                                                                 \
+        ELEMENT_ARG_TYPE e0,                                            \
+        ELEMENT_ARG_TYPE e1,                                            \
+        ELEMENT_ARG_TYPE e2,                                            \
+        ELEMENT_ARG_TYPE e3,                                            \
+        ELEMENT_ARG_TYPE e4                                             \
+        ) _add_                                                         \
+{                                                                       \
+    set(e0,e1,e2,e3,e4);                                                \
+}
+
+/** Create a vector from 6 values. */
+#define CML_CONSTRUCT_VEC_6(_add_)                                      \
+vector(                                                                 \
+        ELEMENT_ARG_TYPE e0,                                            \
+        ELEMENT_ARG_TYPE e1,                                            \
+        ELEMENT_ARG_TYPE e2,                                            \
+        ELEMENT_ARG_TYPE e3,                                            \
+        ELEMENT_ARG_TYPE e4,                                            \
+        ELEMENT_ARG_TYPE e5                                             \
+        ) _add_                                                         \
+{                                                                       \
+    set(e0,e1,e2,e3,e4,e5);                                             \
 }
 
 /** Create a (fixed-size) N vector from an N-1-vector and a scalar. */

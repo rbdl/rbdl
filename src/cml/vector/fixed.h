@@ -157,6 +157,8 @@ class vector< Element, fixed<Size> >
     CML_CONSTRUCT_VEC_2(/**/)
     CML_CONSTRUCT_VEC_3(/**/)
     CML_CONSTRUCT_VEC_4(/**/)
+    CML_CONSTRUCT_VEC_5(/**/)
+    CML_CONSTRUCT_VEC_6(/**/)
 
     CML_CONSTRUCT_FROM_SUBVEC(/**/)
 
@@ -168,6 +170,8 @@ class vector< Element, fixed<Size> >
     CML_ASSIGN_VEC_2
     CML_ASSIGN_VEC_3
     CML_ASSIGN_VEC_4
+    CML_ASSIGN_VEC_5
+    CML_ASSIGN_VEC_6
 
     CML_VEC_ASSIGN_FROM_VECTYPE
 

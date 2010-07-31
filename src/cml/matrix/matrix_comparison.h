@@ -31,17 +31,17 @@ template<typename E1, class AT1, typename L1,                           \
          typename E2, class AT2, typename L2, typename BO>              \
 inline bool                                                             \
 _op_ (                                                                  \
-        const matrix<E1,AT1,L1,BO>& left,                               \
-        const matrix<E2,AT2,L2,BO>& right)                              \
+        const matrix<E1,AT1,BO,L1>& left,                               \
+        const matrix<E2,AT2,BO,L2>& right)                              \
 {                                                                       \
     return detail::matrix_##_order_ (left, right, _OpT_ <E1,E2>());     \
 }
 
 #define CML_MAT_MATXPR_ORDER(_order_, _op_, _OpT_)                      \
-template<typename E, class AT, typename L, typename BO, class XprT>     \
+template<typename E, class AT, typename BO, typename L, class XprT>     \
 inline bool                                                             \
 _op_ (                                                                  \
-        const matrix<E,AT,L,BO>& left,                                  \
+        const matrix<E,AT,BO,L>& left,                                  \
         MATXPR_ARG_TYPE right)                                          \
 {                                                                       \
     return detail::matrix_##_order_ (left, right,                       \
@@ -49,11 +49,11 @@ _op_ (                                                                  \
 }
 
 #define CML_MATXPR_MAT_ORDER(_order_, _op_, _OpT_)                      \
-template<class XprT, typename E, class AT, typename L, typename BO>     \
+template<class XprT, typename E, class AT, typename BO, typename L>     \
 inline bool                                                             \
 _op_ (                                                                  \
         MATXPR_ARG_TYPE left,                                           \
-        const matrix<E,AT,L,BO>& right)                                 \
+        const matrix<E,AT,BO,L>& right)                                 \
 {                                                                       \
     return detail::matrix_##_order_ (left, right,                       \
             _OpT_ <typename XprT::value_type, E>());                    \
@@ -205,39 +205,39 @@ matrix_total_order(const LeftT& left, const RightT& right, OpT)
 
 }
 
-} // namespace cml
-
 /* XXX There is a better way to handle these with operator traits... */
 
-CML_MAT_VEC_ORDER(       total_order, operator==, et::OpEqual)
+CML_MAT_MAT_ORDER(       total_order, operator==, et::OpEqual)
 CML_MATXPR_MAT_ORDER(    total_order, operator==, et::OpEqual)
 CML_MAT_MATXPR_ORDER(    total_order, operator==, et::OpEqual)
-CML_MATXPR_VECXPR_ORDER( total_order, operator==, et::OpEqual)
+CML_MATXPR_MATXPR_ORDER( total_order, operator==, et::OpEqual)
 
-CML_MAT_VEC_ORDER(       weak_order, operator!=, et::OpNotEqual)
+CML_MAT_MAT_ORDER(       weak_order, operator!=, et::OpNotEqual)
 CML_MATXPR_MAT_ORDER(    weak_order, operator!=, et::OpNotEqual)
 CML_MAT_MATXPR_ORDER(    weak_order, operator!=, et::OpNotEqual)
-CML_MATXPR_VECXPR_ORDER( weak_order, operator!=, et::OpNotEqual)
+CML_MATXPR_MATXPR_ORDER( weak_order, operator!=, et::OpNotEqual)
 
-CML_MAT_VEC_ORDER(       weak_order, operator<, et::OpLess)
+CML_MAT_MAT_ORDER(       weak_order, operator<, et::OpLess)
 CML_MATXPR_MAT_ORDER(    weak_order, operator<, et::OpLess)
 CML_MAT_MATXPR_ORDER(    weak_order, operator<, et::OpLess)
-CML_MATXPR_VECXPR_ORDER( weak_order, operator<, et::OpLess)
+CML_MATXPR_MATXPR_ORDER( weak_order, operator<, et::OpLess)
 
-CML_MAT_VEC_ORDER(       weak_order, operator>, et::OpGreater)
+CML_MAT_MAT_ORDER(       weak_order, operator>, et::OpGreater)
 CML_MATXPR_MAT_ORDER(    weak_order, operator>, et::OpGreater)
 CML_MAT_MATXPR_ORDER(    weak_order, operator>, et::OpGreater)
-CML_MATXPR_VECXPR_ORDER( weak_order, operator>, et::OpGreater)
+CML_MATXPR_MATXPR_ORDER( weak_order, operator>, et::OpGreater)
 
-CML_MAT_VEC_ORDER(       total_order, operator<=, et::OpLessEqual)
+CML_MAT_MAT_ORDER(       total_order, operator<=, et::OpLessEqual)
 CML_MATXPR_MAT_ORDER(    total_order, operator<=, et::OpLessEqual)
 CML_MAT_MATXPR_ORDER(    total_order, operator<=, et::OpLessEqual)
-CML_MATXPR_VECXPR_ORDER( total_order, operator<=, et::OpLessEqual)
+CML_MATXPR_MATXPR_ORDER( total_order, operator<=, et::OpLessEqual)
 
-CML_MAT_VEC_ORDER(       total_order, operator>=, et::OpGreaterEqual)
+CML_MAT_MAT_ORDER(       total_order, operator>=, et::OpGreaterEqual)
 CML_MATXPR_MAT_ORDER(    total_order, operator>=, et::OpGreaterEqual)
 CML_MAT_MATXPR_ORDER(    total_order, operator>=, et::OpGreaterEqual)
-CML_MATXPR_VECXPR_ORDER( total_order, operator>=, et::OpGreaterEqual)
+CML_MATXPR_MATXPR_ORDER( total_order, operator>=, et::OpGreaterEqual)
+
+} // namespace cml
 
 #endif
 
