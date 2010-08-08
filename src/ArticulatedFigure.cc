@@ -6,148 +6,155 @@
 #include "ArticulatedFigure.h"
 #include "Logging.h"
 
-void ArticulatedFigure::Init() {
+void Model::Init() {
 	Body root_body;
-
-	mParentId.push_back(0);
-	mBodies.push_back(root_body);
-
-	SpatialMatrix root_inertia (SpatialMatrixIdentity);
-	mSpatialInertia.push_back(root_inertia);
-
-	Matrix3d orientation (Matrix3dIdentity);
-	mBodyOrientation.push_back(orientation);
-
-	Vector3d position (0, 0, 0);
-	mBodyPosition.push_back(position);
-
-	Vector3d velocity (0., 0., 0.);
-	mBodyVelocity.push_back(velocity);
-
-	SpatialMatrix joint_transform;
-	joint_transform.zero();
-
-	mJointTransform.push_back(joint_transform);
-
 	Joint root_joint;
-	mJoints.push_back(root_joint);
 
-	SpatialVector root_joint_axes;
-	root_joint_axes.zero();
-	mSpatialJointAxes.push_back (root_joint_axes);
+	Vector3d zero_position (0., 0., 0.);
+	SpatialVector zero_spatial (0., 0., 0., 0., 0., 0.);
 
-	SpatialVector root_spatial_velocity;
-	root_spatial_velocity.zero();
+	// structural information
+	lambda.push_back(0.);
 
-	mSpatialVelocities.push_back(root_spatial_velocity);
-}
-
-void ArticulatedFigure::AddBody (const unsigned int parent_id, const Joint &joint, const Body &body) {
-	assert (mParentId.size() > 0);
-	assert (joint.mJointType != JointTypeUndefined);
-
-	mParentId.push_back(parent_id);
-
-	// Compute Spatial Inertia of the body
-	SpatialMatrix spatial_inertia = SpatialMatrixIdentity;
-	mSpatialInertia.push_back(spatial_inertia);
-
-	// Allocate memory for the spatial joint axes
-	SpatialVector spatial_joint_axes;
-	spatial_joint_axes.zero();
-	if (joint.mJointType == JointTypeRevolute) {
-		spatial_joint_axes[0] = joint.mJointAxis[0];
-		spatial_joint_axes[1] = joint.mJointAxis[1];
-		spatial_joint_axes[2] = joint.mJointAxis[2];
-	}
-	mSpatialJointAxes.push_back (spatial_joint_axes);
-
-	// Allocate memory for the spatial velocity
-	SpatialVector body_spatial_velocity;
-	body_spatial_velocity.zero();
-	mSpatialVelocities.push_back(body_spatial_velocity);
-
-	// Joint
-	mJoints.push_back(joint);
-	mJointType.push_back(joint.mJointType);
-
-	// Build the joint transform spatial matrix
-	SpatialMatrix joint_transform (SpatialMatrixIdentity);
-	Matrix3d joint_center_cross (VectorCrossMatrix(joint.mJointCenter));
-	joint_center_cross *= -1.;
-	SpatialMatrixSetSubmatrix(joint_transform, 1, 0, joint_center_cross);	
-
-	mJointTransform.push_back(joint_transform);
-
-	// joint positions, velocities, etc.
+	// state information
 	q.push_back(0.);
 	qdot.push_back(0.);
 	qddot.push_back(0.);
 	tau.push_back(0.);
+	v.push_back(zero_spatial);
 
-	// general body information
-	mBodies.push_back(body);
+	// Joints
+	mJoints.push_back(root_joint);
+	S.push_back (zero_spatial);
+	
+	// Dynamic variables
+	mSpatialInertia.push_back(SpatialMatrixIdentity);
 
-	Matrix3d body_orientation (Matrix3dIdentity);
-	mBodyOrientation.push_back(body_orientation);
+	// Bodies
+	X_lambda.push_back(SpatialMatrixIdentity);
+	X_base.push_back(SpatialMatrixIdentity);
 
-	Vector3d body_position (Vector3dZero);
-	mBodyPosition.push_back(body_position);
-
-	Vector3d body_velocity (Vector3dZero);
-	mBodyVelocity.push_back(body_velocity);
+	mBodies.push_back(root_body);
+	mBodyOrientation.push_back(Matrix3dIdentity);
 }
 
-SpatialMatrix ArticulatedFigure::JointComputeTransform (const unsigned int joint_index) {
-	Joint joint = mJoints.at(joint_index);
-
-	assert (joint_index > 0);
+void Model::AddBody (const unsigned int parent_id, const Joint &joint, const Body &body) {
+	assert (lambda.size() > 0);
 	assert (joint.mJointType != JointTypeUndefined);
 
-	SpatialMatrix result (SpatialMatrixIdentity);
+	// structural information
+	lambda.push_back(parent_id);
 
-	if (joint.mJointType == JointTypeRevolute) {
-		assert (joint.mJointAxis == Vector3d(0., 0., 1.));
+	// state information
+	q.push_back(0.);
+	qdot.push_back(0.);
+	qddot.push_back(0.);
+	tau.push_back(0.);
+	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 
-		Matrix3d rotation_matrix;
-		cml::matrix_rotation_euler(rotation_matrix, q.at(joint_index - 1), 0., 0., cml::euler_order_zyx);
+	// Joints
+	mJoints.push_back(joint);
+	S.push_back (joint.mJointAxis);
 
-		SpatialMatrixSetSubmatrix (result, 0, 0, rotation_matrix);
-		SpatialMatrixSetSubmatrix (result, 1, 1, rotation_matrix);
+	// Dynamic variables
+	mSpatialInertia.push_back(body.mSpatiaInertia);
+
+	// Bodies
+	X_lambda.push_back(SpatialMatrixIdentity);
+	X_base.push_back(SpatialMatrixIdentity);
+	mBodies.push_back(body);
+	mBodyOrientation.push_back(Matrix3dIdentity);
+}
+
+void jcalc (
+		const Model &model,
+		const unsigned int &joint_id,
+		SpatialMatrix &XJ,
+		SpatialVector &v_i,
+		const double &q,
+		const double &qdot
+		) {
+	// exception if we calculate it for the root body
+	assert (joint_id > 0);
+
+	Joint joint = model.mJoints[joint_id];
+
+	// Calculate the spatial joint velocity
+	v_i = model.S.at(joint_id);
+
+	if (joint.mJointType == JointTypeFixed) {
+		XJ = SpatialMatrixIdentity;
+		v_i.zero();
+
+		return;
+	} else if (joint.mJointType == JointTypeRevolute) {
+		// Only z-rotations supported so far!
+		assert (
+				joint.mJointAxis[0] == 0.
+				&& joint.mJointAxis[1] == 0.
+				&& joint.mJointAxis[2] == 1.
+				);
+
+		XJ = Xrotz (q);
+	} else {
+		// Only revolute joints supported so far
+		assert (0);
 	}
 
-	return result;
+	v_i *= qdot;
 }
 
-SpatialVector ArticulatedFigure::JointComputeVelocity (const unsigned int body_index) {
-	Joint joint = mJoints[body_index];
-	
-	if (body_index == 0)
-		return mSpatialVelocities[0];
-
-	return mSpatialJointAxes.at(body_index) * qdot.at(body_index - 1);
-}
-
-void ArticulatedFigure::CalcVelocities() {
+void ForwardDynamics (
+		Model &model,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &Tau,
+		std::vector<double> &QDDot
+		) {
 	SpatialVector result;
 	result.zero();
 
-	// Reset the velocity of the root body
-	mSpatialVelocities.at(0).zero();
-
 	unsigned int i;
+	
+	// Copy state values from the input to the variables in model
+	assert (model.q.size() == Q.size() + 1);
+	assert (model.qdot.size() == QDot.size() + 1);
+	assert (model.qddot.size() == QDDot.size() + 1);
+	assert (model.tau.size() == Tau.size() + 1);
 
-	for (i = 1; i < mBodies.size(); i++) {
-		SpatialMatrix X_j (JointComputeTransform(i));
+	for (i = 0; i < Q.size(); i++) {
+		model.q.at(i+1) = Q.at(i);
+		model.qdot.at(i+1) = QDot.at(i);
+		model.qddot.at(i+1) = QDDot.at(i);
+		model.tau.at(i+1) = Tau.at(i);
+	}
+
+	// Reset the velocity of the root body
+	model.v[0].zero();
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		SpatialMatrix X_j;
+		SpatialVector v_j;
+		Joint joint = model.mJoints.at(i);
+		unsigned int lambda = model.lambda.at(i);
+
+		jcalc (model, i, X_j, v_j, model.q.at(i), model.qdot.at(i));
+		SpatialMatrix X_T (joint.mJointTransform);
+		LOG << "X_T (" << i << "):" << std::endl << X_T << std::endl;
+
+		model.X_lambda.at(i) = X_j * X_T;
+
+		if (lambda != 0)
+			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+
 		LOG << "X_j (" << i << "):" << std::endl << X_j << std::endl;
-		SpatialVector v_j (JointComputeVelocity (i));
-		LOG << "v_j: " << std::endl << v_j << std::endl;
+		LOG << "v_" << i << ":" << std::endl << v_j << std::endl;
+		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
+		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
+		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda.at(i) << std::endl;
 
-		X_j = X_j * mJointTransform.at(i);
-		LOG << "^i X i-1" << std::endl << X_j << std::endl;
-
-		mSpatialVelocities.at(i) = X_j *mSpatialVelocities.at(i-1) + v_j;
-		LOG << "SpatialVelocities (" << i << "): " << mSpatialVelocities.at(i) << std::endl;
+		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_j;
+		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
 	}
 }
 

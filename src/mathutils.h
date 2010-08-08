@@ -27,5 +27,11 @@ Matrix3d VectorCrossMatrix (const Vector3d &vector);
 void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix);
 
 bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a, const SpatialMatrix &matrix_b, double epsilon);
+bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVector &vector_b, double epsilon);
+
+SpatialMatrix Xtrans (const Vector3d &displacement);
+SpatialMatrix Xrotz (const double &zrot);
+SpatialMatrix Xroty (const double &yrot);
+SpatialMatrix Xrotx (const double &xrot);
 
 #endif /* _MATHUTILS_H */

@@ -3,6 +3,7 @@
 
 #include <cmlwrapper.h>
 #include <vector>
+#include <assert.h>
 
 enum JointType {
 	JointTypeUndefined = 0,
@@ -14,11 +15,32 @@ enum JointType {
 /** \brief Describes all properties of a single body */
 struct Body {
 	Body() :
-		mInertia (1., 1., 1.),
+		mSpatiaInertia (
+				0., 0., 0., 0., 0., 0.,	
+				0., 0., 0., 0., 0., 0.,	
+				0., 0., 0., 0., 0., 0.,	
+				0., 0., 0., 0., 0., 0.,	
+				0., 0., 0., 0., 0., 0.,	
+				0., 0., 0., 0., 0., 0.
+				),
 		mCenterOfMass (0., 0., 0.),
 		mMass (1.) {};
+	Body(const Body &body) :
+		mSpatiaInertia (body.mSpatiaInertia),
+		mCenterOfMass (body.mCenterOfMass),
+		mMass (body.mMass) {};
+	Body& operator= (const Body &body) {
+		if (this != &body) {
+			mSpatiaInertia = body.mSpatiaInertia;
+			mCenterOfMass = body.mCenterOfMass;
+			mMass = body.mMass;
+		}
 
-	Vector3d mInertia;
+		return *this;
+	}
+	~Body() {};
+
+	SpatialMatrix mSpatiaInertia;
 	Vector3d mCenterOfMass;
 	double mMass;
 };
@@ -26,46 +48,100 @@ struct Body {
 /** \brief Describes a joint relative to the predecessor body */
 struct Joint {
 	Joint() :
-		mJointCenter (0., 0., 0.),
-		mJointAxis (0., 0., 0.),
+		mJointTransform (
+				1., 0., 0., 0., 0., 0.,
+				0., 1., 0., 0., 0., 0.,
+				0., 0., 1., 0., 0., 0.,
+				0., 0., 0., 1., 0., 0.,
+				0., 0., 0., 0., 1., 0.,
+				0., 0., 0., 0., 0., 1.
+				),
+		mJointAxis (
+				0., 0., 0.,
+				0., 0., 0.
+				),
 		mJointType (JointTypeUndefined) {};
 	Joint (const Joint &joint) :
-		mJointCenter (joint.mJointCenter),
+		mJointTransform (joint.mJointTransform),
 		mJointAxis (joint.mJointAxis),
 		mJointType (joint.mJointType) {};
 	Joint& operator= (const Joint &joint) {
 		if (this != &joint) {
-			mJointCenter = joint.mJointCenter;
+			mJointTransform = joint.mJointTransform;
 			mJointAxis = joint.mJointAxis;
 			mJointType = joint.mJointType;
 		}
 		return *this;
 	}
 
-	/// \brief The joint center in the predecessors frame
-	Vector3d mJointCenter;
-	/// \brief The axis of the joint
-	Vector3d mJointAxis;
+	// Special Constructors
+	Joint (
+			const JointType joint_type,
+			const Vector3d &joint_axis,
+			const Vector3d &parent_translation
+			) {
+		// Some assertions, as we concentrate on simple cases
+
+		// Only rotation around the Z-axis
+		assert ( joint_type == JointTypeRevolute || joint_type == JointTypeFixed
+				);
+		mJointType = joint_type;
+
+		if (joint_type == JointTypeRevolute) {
+			assert (joint_axis[0] == 0.
+				&& joint_axis[1] == 0.
+				&& joint_axis[2] == 1.);
+
+			mJointTransform = Xtrans(parent_translation * -1.);
+			mJointAxis.set (
+					joint_axis[0],
+					joint_axis[1], 
+					joint_axis[2], 
+					0., 0., 0.
+					);
+		} else if (joint_type == JointTypeFixed) {
+			mJointTransform = Xtrans(parent_translation * -1.);
+			mJointAxis.set (
+					joint_axis[0],
+					joint_axis[1], 
+					joint_axis[2], 
+					0., 0., 0.
+					);
+			mJointAxis.set (0., 0., 0., 0., 0., 0.);
+		}
+	}
+
+	/// \brief The transformation from the parents origin to the joint center (fixed in the parents frame!)
+	SpatialMatrix mJointTransform;
+	/// \brief The spatial axis of the joint
+	SpatialVector mJointAxis;
 	/// \brief Type of joint (rotational or prismatic)
 	JointType mJointType;
 };
 
-/** \brief Contains all information of the model */
-struct ArticulatedFigure {
-	/// \brief The id of the parents body
-	std::vector<unsigned int> mParentId;
-	/// \brief Type of joint i that connects body (i-1) with body i
-	std::vector<JointType> mJointType;
-	/// \brief The center of the joint that connects body (i-1) with body i in the predecessors frame
-	std::vector<SpatialMatrix> mJointTransform;
-	/// \brief The spatial inertia of body i
-	std::vector<SpatialMatrix> mSpatialInertia;
-	/// \brief The axes of the joints
-	std::vector<SpatialVector> mSpatialJointAxes;
-	/// \brief The spatial velocity of all bodies
-	std::vector<SpatialVector> mSpatialVelocities;
+/** \brief Contains all information of the model
+ *
+ */
+struct Model {
+	// Structural information
 
-	/// \brief The joint position
+	/// \brief The id of the parents body
+	std::vector<unsigned int> lambda;
+
+	// State information
+
+	/** \brief The joint position
+	 * 
+	 * Warning: to have an easier numbering in the algorithm the state vector
+	 * has NDOF + 1 elements. However element with index 0 is not used!
+	 * 
+	 * q[0] - unused
+	 * q[1] - joint 1
+	 * q[2] - joint 2
+	 * ...
+	 * q[NDOF] - joint NDOF
+	 *
+	 */
 	std::vector<double> q;
 	/// \brief The joint velocity
 	std::vector<double> qdot;
@@ -73,22 +149,63 @@ struct ArticulatedFigure {
 	std::vector<double> qddot;
 	/// \brief The force / torque applied at joint i
 	std::vector<double> tau;
+	/// \brief The spatial velocity of body i
+	std::vector<SpatialVector> v;
+
+	////////////////////////////////////
+	// Joints\t
 
 	/// \brief All joints
 	std::vector<Joint> mJoints;
+	/// \brief The joint axis for joint i
+	std::vector<SpatialVector> S;
 
-	/// \brief All bodies
+	////////////////////////////////////
+	// Dynamics variables
+	
+	/// \brief The spatial inertia of body i
+	std::vector<SpatialMatrix> mSpatialInertia;
+
+	////////////////////////////////////
+	// Bodies
+
+	/// \brief Transformation from the parent body to the current body
+	std::vector<SpatialMatrix> X_lambda;
+	/// \brief Transformation from the base to bodies reference frame
+	std::vector<SpatialMatrix> X_base;
+
+	/** \brief All bodies 0 ... N_B, including the base
+	 * mBodies[0] - base body
+	 * mBodies[1] - 1st movable body
+	 * ...
+	 * mBodies[N_B] - N_Bth movable body
+	 */
 	std::vector<Body> mBodies;
 	std::vector<Matrix3d> mBodyOrientation;
-	std::vector<Vector3d> mBodyPosition;
-	std::vector<Vector3d> mBodyVelocity;
 
 	void Init ();
-	void AddBody (const unsigned int parent_id, const Joint &joint, const Body &body);
-	SpatialMatrix JointComputeTransform (const unsigned int joint_index);
-	SpatialVector JointComputeVelocity (const unsigned int body_index);
-
-	void CalcVelocities ();
+	void AddBody (
+			const unsigned int parent_id,
+			const Joint &joint,
+			const Body &body
+			);
 };
+
+void jcalc (
+		const Model &model,
+		const unsigned int &joint_id,
+		SpatialMatrix &XJ,
+		SpatialVector &v_i,
+		const double &q,
+		const double &qdot
+		);
+
+void ForwardDynamics (
+		Model &model,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &Tau,
+		std::vector<double> &QDDot
+		);
 
 #endif /* ARTICULATEDFIGURE_H */

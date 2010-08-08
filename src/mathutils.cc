@@ -132,3 +132,77 @@ bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a, const SpatialMa
 
 	return true;
 }
+
+bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVector &vector_b, double epsilon) {
+	assert (epsilon >= 0.);
+	unsigned int i, j;
+
+	for (i = 0; i < 6; i++) {
+		if (fabs(vector_a[i] - vector_b[i]) >= epsilon) {
+			std::cerr << "Expected:" 
+				<< std::endl << vector_a << std::endl
+				<< "but was" << std::endl 
+				<< vector_b << std::endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+SpatialMatrix Xtrans (const Vector3d &r) {
+	return SpatialMatrix (
+			   1.,    0.,    0.,  0.,  0.,  0.,
+			   0.,    1.,    0.,  0.,  0.,  0.,
+			   0.,    0.,    1.,  0.,  0.,  0.,
+			   0., -r[2],  r[1],  1.,  0.,  0.,
+			 r[2],    0., -r[0],  0.,  1.,  0.,
+			-r[1],  r[0],    0.,  0.,  0.,  1.
+			);
+}
+
+SpatialMatrix Xrotx (const double &xrot) {
+	double s, c;
+	s = sin (xrot);
+	c = cos (xrot);
+
+	return SpatialMatrix(
+			   1.,    0.,    0.,  0.,  0.,  0.,
+			   0.,     c,    -s,  0.,  0.,  0.,
+			   0.,     s,     c,  0.,  0.,  0.,
+			   0.,    0.,    0.,  1.,  0.,  0.,
+			   0.,    0.,    0.,  0.,   c,  -s,
+			   0.,    0.,    0.,  0.,   s,   c
+			);
+}
+
+SpatialMatrix Xroty (const double &yrot) {
+	double s, c;
+	s = sin (yrot);
+	c = cos (yrot);
+
+	return SpatialMatrix(
+			    c,    0.,    -s,  0.,  0.,  0.,
+			   0.,     1,    0.,  0.,  0.,  0.,
+			    s,    0.,     c,  0.,  0.,  0.,
+			   0.,    0.,    0.,   c,  0.,  -s,
+			   0.,    0.,    0.,  0.,  1.,  0.,
+			   0.,    0.,    0.,   s,  0.,   c
+			);
+}
+
+SpatialMatrix Xrotz (const double &zrot) {
+	double s, c;
+	s = sin (zrot);
+	c = cos (zrot);
+
+	return SpatialMatrix(
+			    c,    -s,    0.,  0.,  0.,  0.,
+			    s,     c,    0.,  0.,  0.,  0.,
+			   0.,    0.,    1.,  0.,  0.,  0.,
+			   0.,    0.,    0.,   c,  -s,  0.,
+			   0.,    0.,    0.,   s,   c,  0.,
+			   0.,    0.,    0.,  0.,  0.,  1.
+			);
+}
+
