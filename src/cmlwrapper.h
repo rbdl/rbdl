@@ -10,7 +10,12 @@ typedef cml::matrix<double, cml::dynamic<> > cmlMatrix;
 typedef cml::vector<double, cml::fixed<3> > Vector3d;
 typedef cml::matrix<double, cml::fixed<3,3> > Matrix3d;
 
-typedef cml::vector<double, cml::fixed<6> > SpatialVector;
-typedef cml::matrix<double, cml::fixed<6,6> > SpatialMatrix;
+#include "spatialalgebra.h"
+
+typedef SpatialAlgebra::SpatialVector SpatialVector;
+typedef SpatialAlgebra::SpatialMatrix SpatialMatrix;
+
+//typedef cml::vector<double, cml::fixed<6> > SpatialVector;
+//typedef cml::matrix<double, cml::fixed<6,6> > SpatialMatrix;
 
 #endif /* __CMLWRAPPER_H */
