@@ -2,6 +2,7 @@
 #define SPATIALALGEBRA_H
 
 #include <sstream>
+#include <assert.h>
 
 namespace SpatialAlgebra {
 
@@ -493,6 +494,63 @@ inline std::ostream& operator<<(std::ostream& output, const SpatialMatrix &matri
 		<< matrix(5,3) << " " << matrix(5,4) << " " << matrix(5,5) << " ]" << std::endl;
 
 	return output;
+}
+
+inline SpatialVector operator*(const double& val, const SpatialVector &vec) {
+	return SpatialVector (
+			vec[0] * val,
+			vec[1] * val,
+			vec[2] * val,
+			vec[3] * val,
+			vec[4] * val,
+			vec[5] * val
+			);
+}
+
+inline SpatialMatrix operator*(const double& val, const SpatialMatrix &mat) {
+	return SpatialMatrix (
+			mat(0,0) * val,
+			mat(0,1) * val,
+			mat(0,2) * val,
+			mat(0,3) * val,
+			mat(0,4) * val,
+			mat(0,5) * val,
+
+			mat(1,0) * val,
+			mat(1,1) * val,
+			mat(1,2) * val,
+			mat(1,3) * val,
+			mat(1,4) * val,
+			mat(1,5) * val,
+
+			mat(2,0) * val,
+			mat(2,1) * val,
+			mat(2,2) * val,
+			mat(2,3) * val,
+			mat(2,4) * val,
+			mat(2,5) * val,
+
+			mat(3,0) * val,
+			mat(3,1) * val,
+			mat(3,2) * val,
+			mat(3,3) * val,
+			mat(3,4) * val,
+			mat(3,5) * val,
+
+			mat(4,0) * val,
+			mat(4,1) * val,
+			mat(4,2) * val,
+			mat(4,3) * val,
+			mat(4,4) * val,
+			mat(4,5) * val,
+
+			mat(5,0) * val,
+			mat(5,1) * val,
+			mat(5,2) * val,
+			mat(5,3) * val,
+			mat(5,4) * val,
+			mat(5,5) * val
+			);
 }
 
 // Functions of SpatialVector that are dependent on the declaration of
