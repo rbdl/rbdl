@@ -143,6 +143,28 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
 }
 
+/// \brief Checks the multiplication of a SpatialMatrix with a SpatialVector
+TEST(TestSpatialMatrixTimesSpatialVector) {
+	SpatialMatrix s_matrix (
+			1., 0., 0., 0., 0., 7.,
+			0., 2., 0., 0., 8., 0.,
+			0., 0., 3., 9., 0., 0.,
+			0., 0., 6., 4., 0., 0.,
+			0., 5., 0., 0., 5., 0.,
+			4., 0., 0., 0., 0., 6.
+			);
+	SpatialVector s_vector (
+			1., 2., 3., 4., 5., 6.
+			);
+
+	SpatialVector result;
+	result = s_matrix * s_vector;
+
+	SpatialVector test_result (
+			43., 44., 45., 34., 35., 40.
+			);
+	CHECK_EQUAL (test_result, result);
+}
 
 TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
 	ClearLogOutput();

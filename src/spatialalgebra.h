@@ -127,9 +127,8 @@ class SpatialVector {
 		}
 
 		// ToDo
-		SpatialVector cross(const SpatialVector &vector) const {
-		}
-	
+		inline SpatialMatrix cross(const SpatialVector &vector) const;
+			
 	private:
 		double mData[6];
 };
@@ -448,6 +447,8 @@ class SpatialMatrix {
 				
 			return result;
 		}
+
+		// Operators with SpatialVectors
 		SpatialVector operator*(const SpatialVector &vector) {
 			SpatialVector result;
 			result.zero();
@@ -455,7 +456,7 @@ class SpatialMatrix {
 			unsigned i,j;
 			for (i = 0; i < 6; i++) {
 				for (j = 0; j < 6; j++) {
-					result[i] = mData[i * 6 + j] * vector[j];
+					result[i] += mData[i * 6 + j] * vector[j];
 				}
 			}
 
@@ -492,6 +493,21 @@ inline std::ostream& operator<<(std::ostream& output, const SpatialMatrix &matri
 		<< matrix(5,3) << " " << matrix(5,4) << " " << matrix(5,5) << " ]" << std::endl;
 
 	return output;
+}
+
+// Functions of SpatialVector that are dependent on the declaration of
+// SpatialMatrix.
+SpatialMatrix SpatialVector::cross(const SpatialVector &vector) const
+{
+	assert (0);
+	return SpatialMatrix (
+		 0,  0,  0,  0,  0,  0,
+		 0,  0,  0,  0,  0,  0,
+		 0,  0,  0,  0,  0,  0,
+		 0,  0,  0,  0,  0,  0,
+		 0,  0,  0,  0,  0,  0,
+		 0,  0,  0,  0,  0,  0
+		);
 }
 
 }
