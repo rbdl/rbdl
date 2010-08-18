@@ -22,13 +22,19 @@ void Model::Init() {
 	qddot.push_back(0.);
 	tau.push_back(0.);
 	v.push_back(zero_spatial);
+	a.push_back(zero_spatial);
 
 	// Joints
 	mJoints.push_back(root_joint);
 	S.push_back (zero_spatial);
 	
 	// Dynamic variables
-	mSpatialInertia.push_back(SpatialMatrixIdentity);
+	c.push_back(zero_spatial);
+	IA.push_back(SpatialMatrixIdentity);
+	pA.push_back(zero_spatial);
+	U.push_back(zero_spatial);
+	d.push_back(0.);
+	u.push_back(0.);
 
 	// Bodies
 	X_lambda.push_back(SpatialMatrixIdentity);
@@ -51,13 +57,19 @@ void Model::AddBody (const unsigned int parent_id, const Joint &joint, const Bod
 	qddot.push_back(0.);
 	tau.push_back(0.);
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
+	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 
 	// Joints
 	mJoints.push_back(joint);
 	S.push_back (joint.mJointAxis);
 
 	// Dynamic variables
-	mSpatialInertia.push_back(body.mSpatiaInertia);
+	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
+	IA.push_back(body.mSpatialInertia);
+	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
+	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
+	d.push_back(0.);
+	u.push_back(0.);
 
 	// Bodies
 	X_lambda.push_back(SpatialMatrixIdentity);
@@ -70,7 +82,9 @@ void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
 		SpatialMatrix &XJ,
+		SpatialVector &S,
 		SpatialVector &v_i,
+		SpatialVector &c_i,
 		const double &q,
 		const double &qdot
 		) {
@@ -81,6 +95,13 @@ void jcalc (
 
 	// Calculate the spatial joint velocity
 	v_i = model.S.at(joint_id);
+
+	// Set the joint axis
+	S = joint.mJointAxis;
+
+	// the velocity dependent spatial acceleration is != 0 only for rhenomic
+	// constraints (see RBDA, p. 55)
+	c_i.zero();
 
 	if (joint.mJointType == JointTypeFixed) {
 		XJ = SpatialMatrixIdentity;
@@ -133,28 +154,70 @@ void ForwardDynamics (
 	model.v[0].zero();
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		SpatialMatrix X_j;
-		SpatialVector v_j;
+		SpatialMatrix X_J;
+		SpatialVector v_J;
+		SpatialVector c_J;
 		Joint joint = model.mJoints.at(i);
 		unsigned int lambda = model.lambda.at(i);
 
-		jcalc (model, i, X_j, v_j, model.q.at(i), model.qdot.at(i));
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
 		SpatialMatrix X_T (joint.mJointTransform);
 		LOG << "X_T (" << i << "):" << std::endl << X_T << std::endl;
 
-		model.X_lambda.at(i) = X_j * X_T;
+		model.X_lambda.at(i) = X_J * X_T;
 
 		if (lambda != 0)
 			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
 
-		LOG << "X_j (" << i << "):" << std::endl << X_j << std::endl;
-		LOG << "v_" << i << ":" << std::endl << v_j << std::endl;
+		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
+		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
 		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
 		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda.at(i) << std::endl;
 
-		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_j;
+		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
 		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
+
+		model.c.at(i) = c_J + model.v.at(i).cross() * v_J;
+		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
+
+		// todo: external forces are ignored so far:
+		model.pA.at(i) = model.v.at(i).cross().transpose() * model.IA.at(i) * model.v.at(i);
 	}
+
+	for (i = model.mBodies.size() - 1; i > 0; i--) {
+		std::cout << model.IA[i] << std::endl;
+
+		model.U[i] = model.IA[i] * model.S[i];
+		model.d[i] = model.S[i] * model.U[i];
+		model.u[i] = model.tau[i] - model.S[i] * model.pA[i];
+
+		if (model.d[i] == 0. || model.u[i] == 0.) {
+			std::cerr << "Warning d[i] or u[i] == 0.!" << std::endl;
+			continue;
+		}
+
+		unsigned int lambda = model.lambda.at(i);
+		if (lambda != 0) {
+			SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
+			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
+
+			SpatialMatrix X_lambda = model.X_lambda[i];
+			model.IA[lambda] = model.IA[lambda] + (X_lambda.inverse().transpose() / model.d[i]) * X_lambda;
+			model.pA[lambda] = model.pA[lambda] + X_lambda.inverse().transpose() * pa;
+		}
+	}
+
+	model.a.at(0) = SpatialVector (0., 0., 0., 0., -9.81, 0.);
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int lambda = model.lambda.at(i);
+		SpatialMatrix X_lambda = model.X_lambda.at(i);
+
+		SpatialVector ad = X_lambda * model.a.at(lambda) + model.c.at(i);
+		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * ad);
+		model.a[i] = ad + model.S[i] * model.qddot[i];
+	}
+
 }
 

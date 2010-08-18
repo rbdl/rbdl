@@ -4,6 +4,7 @@
 #include <cmlwrapper.h>
 #include <vector>
 #include <assert.h>
+#include <iostream>
 
 enum JointType {
 	JointTypeUndefined = 0,
@@ -15,7 +16,7 @@ enum JointType {
 /** \brief Describes all properties of a single body */
 struct Body {
 	Body() :
-		mSpatiaInertia (
+		mSpatialInertia (
 				0., 0., 0., 0., 0., 0.,	
 				0., 0., 0., 0., 0., 0.,	
 				0., 0., 0., 0., 0., 0.,	
@@ -24,23 +25,49 @@ struct Body {
 				0., 0., 0., 0., 0., 0.
 				),
 		mCenterOfMass (0., 0., 0.),
-		mMass (1.) {};
+		mMass (1.) { };
 	Body(const Body &body) :
-		mSpatiaInertia (body.mSpatiaInertia),
+		mSpatialInertia (body.mSpatialInertia),
 		mCenterOfMass (body.mCenterOfMass),
 		mMass (body.mMass) {};
 	Body& operator= (const Body &body) {
 		if (this != &body) {
-			mSpatiaInertia = body.mSpatiaInertia;
+			mSpatialInertia = body.mSpatialInertia;
 			mCenterOfMass = body.mCenterOfMass;
 			mMass = body.mMass;
 		}
-
-		return *this;
 	}
+	Body(const double &mass,
+			const Vector3d &com,
+			const Vector3d &gyration_radii) :
+		mMass (mass),
+		mCenterOfMass(com) {
+			Matrix3d com_cross (
+					0., -com[1],  com[2],
+					com[1],      0., -com[0],
+					-com[2],  com[0],      0.
+					);
+			Matrix3d parallel_axis;
+			parallel_axis = mass * com_cross * cml::transpose(com_cross);
+
+			Vector3d gr (gyration_radii);
+			Matrix3d pa (parallel_axis);
+			Matrix3d mcc = mass * com_cross;
+			Matrix3d mccT = transpose(mcc);
+
+			mSpatialInertia.set (
+					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
+					pa(1, 0), gr[1] + pa(1, 1), pa(1, 2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
+					pa(2, 0), pa(2, 1), gr[2] + pa(2, 2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
+					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
+					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
+					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
+					);
+		}
+
 	~Body() {};
 
-	SpatialMatrix mSpatiaInertia;
+	SpatialMatrix mSpatialInertia;
 	Vector3d mCenterOfMass;
 	double mMass;
 };
@@ -151,6 +178,8 @@ struct Model {
 	std::vector<double> tau;
 	/// \brief The spatial velocity of body i
 	std::vector<SpatialVector> v;
+	/// \brief The spatial acceleration of body i
+	std::vector<SpatialVector> a;
 
 	////////////////////////////////////
 	// Joints\t
@@ -162,9 +191,20 @@ struct Model {
 
 	////////////////////////////////////
 	// Dynamics variables
-	
+
+	/// \brief The velocity dependent spatial acceleration
+	std::vector<SpatialVector> c;
 	/// \brief The spatial inertia of body i
-	std::vector<SpatialMatrix> mSpatialInertia;
+	std::vector<SpatialMatrix> IA;
+	/// \brief The spatial bias force
+	std::vector<SpatialVector> pA;
+	/// \brief Temporary variable U_i (RBDA p. 130)
+	std::vector<SpatialVector> U;
+	/// \brief Temporary variable D_i (RBDA p. 130)
+	std::vector<double> d;
+	/// \brief Temporary variable u (RBDA p. 130)
+	std::vector<double> u;
+
 
 	////////////////////////////////////
 	// Bodies
@@ -195,7 +235,9 @@ void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
 		SpatialMatrix &XJ,
+		SpatialVector &S,
 		SpatialVector &v_i,
+		SpatialVector &c_i,
 		const double &q,
 		const double &qdot
 		);

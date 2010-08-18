@@ -106,6 +106,16 @@ class SpatialVector {
 			mData[4] /= scalar;
 			mData[5] /= scalar;
 		};
+		SpatialVector operator/(const double& val) {
+			return SpatialVector (
+					mData[0] / val,
+					mData[1] / val,
+					mData[2] / val,
+					mData[3] / val,
+					mData[4] / val,
+					mData[5] / val
+					);
+		}
 
 		// Operators with other spatial vectors
 		SpatialVector operator+(const SpatialVector &vector) const {
@@ -127,8 +137,35 @@ class SpatialVector {
 			mData[5] += vector.mData[5];
 		}
 
-		// ToDo
-		inline SpatialMatrix cross(const SpatialVector &vector) const;
+		SpatialVector operator-(const SpatialVector &vector) const {
+			return SpatialVector(
+					mData[0] - vector.mData[0],
+					mData[1] - vector.mData[1],
+					mData[2] - vector.mData[2],
+					mData[3] - vector.mData[3],
+					mData[4] - vector.mData[4],
+					mData[5] - vector.mData[5]
+					);
+		}
+		void operator-=(const SpatialVector &vector) {
+			mData[0] -= vector.mData[0];
+			mData[1] -= vector.mData[1];
+			mData[2] -= vector.mData[2];
+			mData[3] -= vector.mData[3];
+			mData[4] -= vector.mData[4];
+			mData[5] -= vector.mData[5];
+		}
+		double operator*(const SpatialVector &vector) {
+			return mData[0] * vector.mData[0]
+				+ mData[1] * vector.mData[1] 
+				+ mData[2] * vector.mData[2] 
+				+ mData[3] * vector.mData[3] 
+				+ mData[4] * vector.mData[4] 
+				+ mData[5] * vector.mData[5];
+		}
+		inline SpatialMatrix outer_product(const SpatialVector &vector) const;
+
+		inline SpatialMatrix cross() const;
 			
 	private:
 		double mData[6];
@@ -382,6 +419,51 @@ class SpatialMatrix {
 			for (unsigned int i = 0; i < 36; i++)
 				mData[i] /= scalar;
 		}
+		SpatialMatrix operator/(const double& val) const {
+			return SpatialMatrix (
+					mData[0 * 6 + 0] / val,
+					mData[0 * 6 + 1] / val,
+					mData[0 * 6 + 2] / val,
+					mData[0 * 6 + 3] / val,
+					mData[0 * 6 + 4] / val,
+					mData[0 * 6 + 5] / val,
+
+					mData[1 * 6 + 0] / val,
+					mData[1 * 6 + 1] / val,
+					mData[1 * 6 + 2] / val,
+					mData[1 * 6 + 3] / val,
+					mData[1 * 6 + 4] / val,
+					mData[1 * 6 + 5] / val,
+
+					mData[2 * 6 + 0] / val,
+					mData[2 * 6 + 1] / val,
+					mData[2 * 6 + 2] / val,
+					mData[2 * 6 + 3] / val,
+					mData[2 * 6 + 4] / val,
+					mData[2 * 6 + 5] / val,
+
+					mData[3 * 6 + 0] / val,
+					mData[3 * 6 + 1] / val,
+					mData[3 * 6 + 2] / val,
+					mData[3 * 6 + 3] / val,
+					mData[3 * 6 + 4] / val,
+					mData[3 * 6 + 5] / val,
+
+					mData[4 * 6 + 0] / val,
+					mData[4 * 6 + 1] / val,
+					mData[4 * 6 + 2] / val,
+					mData[4 * 6 + 3] / val,
+					mData[4 * 6 + 4] / val,
+					mData[4 * 6 + 5] / val,
+
+					mData[5 * 6 + 0] / val,
+					mData[5 * 6 + 1] / val,
+					mData[52] / val,
+					mData[53] / val,
+					mData[54] / val,
+					mData[55] / val
+						);
+		}
 
 		// Operators with other spatial matrices
 		SpatialMatrix operator+(const SpatialMatrix &matrix) const {
@@ -433,6 +515,55 @@ class SpatialMatrix {
 			for (unsigned int i = 0; i < 36; i++)
 				mData[i] += matrix.mData[i];
 		}
+		SpatialMatrix operator-(const SpatialMatrix &matrix) const {
+			return SpatialMatrix(
+					mData[0] - matrix.mData[0],
+					mData[1] - matrix.mData[1],
+					mData[2] - matrix.mData[2],
+					mData[3] - matrix.mData[3],
+					mData[4] - matrix.mData[4],
+					mData[5] - matrix.mData[5],
+
+					mData[6 + 0] - matrix.mData[6 + 0],
+					mData[6 + 1] - matrix.mData[6 + 1],
+					mData[6 + 2] - matrix.mData[6 + 2],
+					mData[6 + 3] - matrix.mData[6 + 3],
+					mData[6 + 4] - matrix.mData[6 + 4],
+					mData[6 + 5] - matrix.mData[6 + 5],
+
+					mData[12 + 0] - matrix.mData[12 + 0],
+					mData[12 + 1] - matrix.mData[12 + 1],
+					mData[12 + 2] - matrix.mData[12 + 2],
+					mData[12 + 3] - matrix.mData[12 + 3],
+					mData[12 + 4] - matrix.mData[12 + 4],
+					mData[12 + 5] - matrix.mData[12 + 5],
+
+					mData[18 + 0] - matrix.mData[18 + 0],
+					mData[18 + 1] - matrix.mData[18 + 1],
+					mData[18 + 2] - matrix.mData[18 + 2],
+					mData[18 + 3] - matrix.mData[18 + 3],
+					mData[18 + 4] - matrix.mData[18 + 4],
+					mData[18 + 5] - matrix.mData[18 + 5],
+
+					mData[24 + 0] - matrix.mData[24 + 0],
+					mData[24 + 1] - matrix.mData[24 + 1],
+					mData[24 + 2] - matrix.mData[24 + 2],
+					mData[24 + 3] - matrix.mData[24 + 3],
+					mData[24 + 4] - matrix.mData[24 + 4],
+					mData[24 + 5] - matrix.mData[24 + 5],
+
+					mData[30 + 0] - matrix.mData[30 + 0],
+					mData[30 + 1] - matrix.mData[30 + 1],
+					mData[30 + 2] - matrix.mData[30 + 2],
+					mData[30 + 3] - matrix.mData[30 + 3],
+					mData[30 + 4] - matrix.mData[30 + 4],
+					mData[30 + 5] - matrix.mData[30 + 5]
+					);
+		}
+		void operator-=(const SpatialMatrix &matrix) {
+			for (unsigned int i = 0; i < 36; i++)
+				mData[i] -= matrix.mData[i];
+		}
 		SpatialMatrix operator*(const SpatialMatrix &matrix) {
 			SpatialMatrix result;
 			result.zero();
@@ -462,6 +593,23 @@ class SpatialMatrix {
 			}
 
 			return result;
+		}
+
+		// Special operators
+		SpatialMatrix transpose() {
+			return SpatialMatrix (
+					mData[0 * 6 + 0], mData[0 * 6 + 1], mData[0 * 6 + 2], mData[3 * 6 + 0], mData[4 * 6 + 0], mData[5 * 6 + 0],
+					mData[1 * 6 + 0], mData[1 * 6 + 1], mData[1 * 6 + 2], mData[3 * 6 + 1], mData[4 * 6 + 1], mData[5 * 6 + 1],
+					mData[2 * 6 + 0], mData[2 * 6 + 1], mData[2 * 6 + 2], mData[3 * 6 + 2], mData[4 * 6 + 2], mData[5 * 6 + 2],
+					mData[0 * 6 + 3], mData[1 * 6 + 3], mData[2 * 6 + 3], mData[3 * 6 + 3], mData[3 * 6 + 4], mData[3 * 6 + 5],
+					mData[0 * 6 + 4], mData[1 * 6 + 4], mData[2 * 6 + 4], mData[4 * 6 + 3], mData[4 * 6 + 4], mData[4 * 6 + 5],
+					mData[0 * 6 + 5], mData[1 * 6 + 5], mData[2 * 6 + 5], mData[5 * 6 + 3], mData[5 * 6 + 4], mData[5 * 6 + 5]
+					);
+		}
+
+		SpatialMatrix inverse() {
+			return SpatialMatrix (
+					);
 		}
 
 	private:
@@ -555,17 +703,27 @@ inline SpatialMatrix operator*(const double& val, const SpatialMatrix &mat) {
 
 // Functions of SpatialVector that are dependent on the declaration of
 // SpatialMatrix.
-SpatialMatrix SpatialVector::cross(const SpatialVector &vector) const
+SpatialMatrix SpatialVector::cross() const
 {
-	assert (0);
 	return SpatialMatrix (
-		 0,  0,  0,  0,  0,  0,
-		 0,  0,  0,  0,  0,  0,
-		 0,  0,  0,  0,  0,  0,
-		 0,  0,  0,  0,  0,  0,
-		 0,  0,  0,  0,  0,  0,
-		 0,  0,  0,  0,  0,  0
+		        0,  -mData[1],  mData[2],         0,          0,         0,
+		 mData[1],          0, -mData[0],         0,          0,         0, 
+		-mData[2],   mData[0],         0,         0,          0,         0,
+		        0,  -mData[4],  mData[5],         0,  -mData[1],  mData[2],
+		 mData[4],          0, -mData[3],  mData[1],          0, -mData[0],
+		-mData[5],   mData[3],         0, -mData[2],   mData[0],         0
 		);
+}
+
+inline SpatialMatrix SpatialVector::outer_product(const SpatialVector &vec) const {
+	return SpatialMatrix (
+			mData[0] * vec[0], mData[0] * vec[1], mData[0] * vec[2], mData[0] * vec[3], mData[0] * vec[4], mData[0] * vec[5],
+			mData[1] * vec[0], mData[1] * vec[1], mData[1] * vec[2], mData[1] * vec[3], mData[1] * vec[4], mData[1] * vec[5],
+			mData[2] * vec[0], mData[2] * vec[1], mData[2] * vec[2], mData[2] * vec[3], mData[2] * vec[4], mData[2] * vec[5],
+			mData[3] * vec[0], mData[3] * vec[1], mData[3] * vec[2], mData[3] * vec[3], mData[3] * vec[4], mData[3] * vec[5],
+			mData[4] * vec[0], mData[4] * vec[1], mData[4] * vec[2], mData[4] * vec[3], mData[4] * vec[4], mData[4] * vec[5],
+			mData[5] * vec[0], mData[5] * vec[1], mData[5] * vec[2], mData[5] * vec[3], mData[5] * vec[4], mData[5] * vec[5]
+			);
 }
 
 }

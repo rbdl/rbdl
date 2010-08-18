@@ -11,6 +11,7 @@ using namespace std;
 
 struct ModelFixture {
 	ModelFixture () {
+		ClearLogOutput();
 		model = new Model;
 		model->Init();
 	}
@@ -28,11 +29,17 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 	CHECK_EQUAL (1, model->qddot.size());
 	CHECK_EQUAL (1, model->tau.size());
 	CHECK_EQUAL (1, model->v.size());
+	CHECK_EQUAL (1, model->a.size());
 	
 	CHECK_EQUAL (1, model->mJoints.size());
 	CHECK_EQUAL (1, model->S.size());
 
-	CHECK_EQUAL (1, model->mSpatialInertia.size());
+	CHECK_EQUAL (1, model->c.size());
+	CHECK_EQUAL (1, model->IA.size());
+	CHECK_EQUAL (1, model->pA.size());
+	CHECK_EQUAL (1, model->U.size());
+	CHECK_EQUAL (1, model->d.size());
+	CHECK_EQUAL (1, model->u.size());
 	
 	CHECK_EQUAL (1, model->X_lambda.size());
 	CHECK_EQUAL (1, model->X_base.size());
@@ -58,11 +65,17 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2, model->qddot.size());
 	CHECK_EQUAL (2, model->tau.size());
 	CHECK_EQUAL (2, model->v.size());
+	CHECK_EQUAL (2, model->a.size());
 	
 	CHECK_EQUAL (2, model->mJoints.size());
 	CHECK_EQUAL (2, model->S.size());
 
-	CHECK_EQUAL (2, model->mSpatialInertia.size());
+	CHECK_EQUAL (2, model->c.size());
+	CHECK_EQUAL (2, model->IA.size());
+	CHECK_EQUAL (2, model->pA.size());
+	CHECK_EQUAL (2, model->U.size());
+	CHECK_EQUAL (2, model->d.size());
+	CHECK_EQUAL (2, model->u.size());
 	
 	CHECK_EQUAL (2, model->X_lambda.size());
 	CHECK_EQUAL (2, model->X_base.size());
@@ -109,9 +122,11 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	model->AddBody(0, joint, body);
 
 	SpatialMatrix X_j;
+	SpatialVector S;
 	SpatialVector v_j;
+	SpatialVector c;
 
-	jcalc (*model, 1, X_j, v_j, 0., 1.);
+	jcalc (*model, 1, X_j, S, v_j, c, 0., 1.);
 
 	SpatialMatrix test_matrix (
 			1.,  0.,  0.,  0.,  0.,  0.,
@@ -124,11 +139,15 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	SpatialVector test_vector (
 			0., 0., 1., 0., 0., 0.
 			);
+	SpatialVector test_joint_axis (
+			0., 0., 1., 0., 0., 0.
+			);
 
 	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j, 1.0e-16));
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
+	CHECK_EQUAL (test_joint_axis, S);
 
-	jcalc (*model, 1, X_j, v_j, M_PI * 0.5, 1.);
+	jcalc (*model, 1, X_j, S, v_j, c, M_PI * 0.5, 1.);
 
 	test_matrix.set (
 			0., -1.,  0.,  0.,  0.,  0.,
@@ -141,19 +160,18 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
 	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j, 1.0e-16));
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
+	CHECK_EQUAL (test_joint_axis, S);
 }
 
 TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
-	ClearLogOutput();
-
-	Body body;
+	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint (
 			JointTypeRevolute,
 			Vector3d (0., 0., 1.),
 			Vector3d (0., 0., 0.)
 			);
 
-	Body endeffector;
+	Body endeffector (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint fixed_joint (
 			JointTypeFixed,
 			Vector3d (0., 0., 0.),
@@ -188,6 +206,47 @@ TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
 	spatial_body_velocity.set (0., 0., -1., 0., -1., 0.);
 	CHECK_EQUAL (spatial_body_velocity, model->v.at(2));
 	// std::cout << LogOutput.str() << std::endl;
-	ClearLogOutput();
-
 }
+
+TEST_FIXTURE(ModelFixture, TestCalcDynamicSimple) {
+	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (0., 0., 0.)
+			);
+
+	Body endeffector (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint fixed_joint (
+			JointTypeFixed,
+			Vector3d (0., 0., 0.),
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(0, joint, body);
+	model->AddBody(1, fixed_joint, endeffector);
+
+	std::vector<double> Q;
+	std::vector<double> QDot;
+	std::vector<double> QDDot;
+	std::vector<double> Tau;
+
+	// Initialization of the input vectors
+	Q.push_back(0.); Q.push_back(0.);
+	QDot.push_back(0.); QDot.push_back(0.);
+	QDDot.push_back(0.); QDDot.push_back(0.);
+	Tau.push_back(0.); Tau.push_back(0.);
+
+	QDot.at(0) = 1.;
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	cout << "qddot[0] = " << model->qddot[0] << endl;
+	cout << "qddot[1] = " << model->qddot[1] << endl;
+	cout << "qddot[2] = " << model->qddot[2] << endl;
+
+	cout << "a[0] = " << model->a[0] << endl;
+	cout << "a[1] = " << model->a[1] << endl;
+	cout << "a[2] = " << model->a[2] << endl;
+}
+
+
