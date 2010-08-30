@@ -596,19 +596,33 @@ class SpatialMatrix {
 		}
 
 		// Special operators
+		
+		// regular transpose of a 6 dimensional matrix
 		SpatialMatrix transpose() {
 			return SpatialMatrix (
+					mData[0 * 6 + 0], mData[1 * 6 + 0], mData[2 * 6 + 0], mData[3 * 6 + 0], mData[4 * 6 + 0], mData[5 * 6 + 0],
+					mData[0 * 6 + 1], mData[1 * 6 + 1], mData[2 * 6 + 1], mData[3 * 6 + 1], mData[4 * 6 + 1], mData[5 * 6 + 1],
+					mData[0 * 6 + 2], mData[1 * 6 + 2], mData[2 * 6 + 2], mData[3 * 6 + 2], mData[4 * 6 + 2], mData[5 * 6 + 2],
+					mData[0 * 6 + 3], mData[1 * 6 + 3], mData[2 * 6 + 3], mData[3 * 6 + 3], mData[4 * 6 + 3], mData[5 * 6 + 3],
+					mData[0 * 6 + 4], mData[1 * 6 + 4], mData[2 * 6 + 4], mData[3 * 6 + 4], mData[4 * 6 + 4], mData[5 * 6 + 4],
+					mData[0 * 6 + 5], mData[1 * 6 + 5], mData[2 * 6 + 5], mData[3 * 6 + 5], mData[4 * 6 + 5], mData[5 * 6 + 5]
+					);
+		}
+
+		// if the matrix represents {}^BX_A then thes function returns {}^BX_A^* in RBDA
+		SpatialMatrix conjugate() {
+			SpatialMatrix transp (this->transpose());
+			return SpatialMatrix (transp.inverse());
+		}
+
+		SpatialMatrix inverse() {
+				return SpatialMatrix (
 					mData[0 * 6 + 0], mData[0 * 6 + 1], mData[0 * 6 + 2], mData[3 * 6 + 0], mData[4 * 6 + 0], mData[5 * 6 + 0],
 					mData[1 * 6 + 0], mData[1 * 6 + 1], mData[1 * 6 + 2], mData[3 * 6 + 1], mData[4 * 6 + 1], mData[5 * 6 + 1],
 					mData[2 * 6 + 0], mData[2 * 6 + 1], mData[2 * 6 + 2], mData[3 * 6 + 2], mData[4 * 6 + 2], mData[5 * 6 + 2],
 					mData[0 * 6 + 3], mData[1 * 6 + 3], mData[2 * 6 + 3], mData[3 * 6 + 3], mData[3 * 6 + 4], mData[3 * 6 + 5],
 					mData[0 * 6 + 4], mData[1 * 6 + 4], mData[2 * 6 + 4], mData[4 * 6 + 3], mData[4 * 6 + 4], mData[4 * 6 + 5],
 					mData[0 * 6 + 5], mData[1 * 6 + 5], mData[2 * 6 + 5], mData[5 * 6 + 3], mData[5 * 6 + 4], mData[5 * 6 + 5]
-					);
-		}
-
-		SpatialMatrix inverse() {
-			return SpatialMatrix (
 					);
 		}
 
@@ -706,12 +720,12 @@ inline SpatialMatrix operator*(const double& val, const SpatialMatrix &mat) {
 SpatialMatrix SpatialVector::cross() const
 {
 	return SpatialMatrix (
-		        0,  -mData[1],  mData[2],         0,          0,         0,
-		 mData[1],          0, -mData[0],         0,          0,         0, 
-		-mData[2],   mData[0],         0,         0,          0,         0,
-		        0,  -mData[4],  mData[5],         0,  -mData[1],  mData[2],
-		 mData[4],          0, -mData[3],  mData[1],          0, -mData[0],
-		-mData[5],   mData[3],         0, -mData[2],   mData[0],         0
+		        0,  -mData[2],  mData[1],         0,          0,         0,
+		 mData[2],          0, -mData[0],         0,          0,         0, 
+		-mData[1],   mData[0],         0,         0,          0,         0,
+		        0,  -mData[5],  mData[4],         0,  -mData[2],  mData[1],
+		 mData[5],          0, -mData[3],  mData[2],          0, -mData[0],
+		-mData[4],   mData[3],         0, -mData[1],   mData[0],         0
 		);
 }
 

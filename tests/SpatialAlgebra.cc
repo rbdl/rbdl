@@ -95,4 +95,25 @@ TEST(TestSpatialMatrixTimesSpatialMatrix) {
 	CHECK_EQUAL (test_result, result);
 }
 
+TEST(TestSpatialVectorCross) {
+	SpatialVector s_vec (1., 2., 3., 4., 5., 6.);
+	
+	SpatialMatrix test_cross (
+			 0., -3.,  2.,  0.,  0.,  0.,
+			 3.,  0., -1.,  0.,  0.,  0.,
+			-2.,  1.,  0.,  0.,  0.,  0.,
+			 0., -6.,  5.,  0., -3.,  2.,
+			 6.,  0., -4.,  3.,  0., -1.,
+			-5.,  4.,  0., -2.,  1.,  0.
+			);
+
+	SpatialMatrix s_vec_cross (s_vec.cross());
+	CHECK_EQUAL (test_cross, s_vec_cross);
+
+	SpatialMatrix s_vec_cross_conj (s_vec_cross.conjugate());
+	SpatialMatrix test_conj = -1. * s_vec.cross().transpose();
+
+	CHECK_EQUAL (test_conj, s_vec_cross_conj);
+
+}
 

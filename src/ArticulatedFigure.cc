@@ -211,10 +211,10 @@ void ForwardDynamics (
 	model.a.at(0) = SpatialVector (0., 0., 0., 0., -9.81, 0.);
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		unsigned int lambda = model.lambda.at(i);
-		SpatialMatrix X_lambda = model.X_lambda.at(i);
+		unsigned int lambda = model.lambda[i];
+		SpatialMatrix X_lambda = model.X_lambda[i];
 
-		SpatialVector ad = X_lambda * model.a.at(lambda) + model.c.at(i);
+		SpatialVector ad = X_lambda * model.a.at(lambda) + model.c[i];
 		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * ad);
 		model.a[i] = ad + model.S[i] * model.qddot[i];
 	}
