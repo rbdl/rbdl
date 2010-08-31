@@ -618,15 +618,19 @@ class SpatialMatrix {
 			return invs.transpose();
 		}
 
+		/** \brief Returns the inverse of a transformation 
+		 *
+		 * Each of the four 3x3 blocks is transposed.
+		 */
 		SpatialMatrix inverse() {
 				return SpatialMatrix (
 					mData[0 * 6 + 0], mData[1 * 6 + 0], mData[2 * 6 + 0], mData[0 * 6 + 3], mData[1 * 6 + 3], mData[2 * 6 + 3],
 					mData[0 * 6 + 1], mData[1 * 6 + 1], mData[2 * 6 + 1], mData[0 * 6 + 4], mData[1 * 6 + 4], mData[2 * 6 + 4],
 					mData[0 * 6 + 2], mData[1 * 6 + 2], mData[2 * 6 + 2], mData[0 * 6 + 5], mData[1 * 6 + 5], mData[2 * 6 + 5],
 
-					mData[0 * 6 + 0], mData[1 * 6 + 0], mData[2 * 6 + 0], mData[3 * 6 + 3], mData[4 * 6 + 3], mData[5 * 6 + 3],
-					mData[0 * 6 + 1], mData[1 * 6 + 1], mData[2 * 6 + 1], mData[3 * 6 + 4], mData[4 * 6 + 4], mData[5 * 6 + 4],
-					mData[0 * 6 + 2], mData[1 * 6 + 2], mData[2 * 6 + 2], mData[3 * 6 + 5], mData[4 * 6 + 5], mData[5 * 6 + 5]
+					mData[3 * 6 + 0], mData[4 * 6 + 0], mData[5 * 6 + 0], mData[3 * 6 + 3], mData[4 * 6 + 3], mData[5 * 6 + 3],
+					mData[3 * 6 + 1], mData[4 * 6 + 1], mData[5 * 6 + 1], mData[3 * 6 + 4], mData[4 * 6 + 4], mData[5 * 6 + 4],
+					mData[3 * 6 + 2], mData[4 * 6 + 2], mData[5 * 6 + 2], mData[3 * 6 + 5], mData[4 * 6 + 5], mData[5 * 6 + 5]
 					);
 		}
 
