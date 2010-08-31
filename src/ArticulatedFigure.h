@@ -5,6 +5,7 @@
 #include <vector>
 #include <assert.h>
 #include <iostream>
+#include "Logging.h"
 
 enum JointType {
 	JointTypeUndefined = 0,
@@ -43,12 +44,14 @@ struct Body {
 		mMass (mass),
 		mCenterOfMass(com) {
 			Matrix3d com_cross (
-					0., -com[1],  com[2],
-					com[1],      0., -com[0],
-					-com[2],  com[0],      0.
+					0., -com[2],  com[1],
+					com[2],      0., -com[0],
+					-com[1],  com[0],      0.
 					);
 			Matrix3d parallel_axis;
 			parallel_axis = mass * com_cross * cml::transpose(com_cross);
+
+			LOG << "parrallel axis = " << parallel_axis << std::endl;
 
 			Vector3d gr (gyration_radii);
 			Matrix3d pa (parallel_axis);
