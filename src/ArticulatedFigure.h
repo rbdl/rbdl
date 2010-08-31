@@ -38,6 +38,16 @@ struct Body {
 			mMass = body.mMass;
 		}
 	}
+	/** \brief Constructs a body out of the given parameters
+	 *
+	 * This constructor eases the construction of a new body as all the required
+	 * parameters can simply be specified as parameters to the constructor.
+	 * These are then used to generate the spatial inertia matrix.
+	 *
+	 * \param mass the mass of the body
+	 * \param com  the position of the center of mass in the bodies coordinates
+	 * \param gyration_radii the radii of gyration at the center of mass of the body
+	 */
 	Body(const double &mass,
 			const Vector3d &com,
 			const Vector3d &gyration_radii) :
@@ -104,7 +114,15 @@ struct Joint {
 		return *this;
 	}
 
-	// Special Constructors
+	/** \brief Constructs a joint from the given cartesian parameters
+	 *
+	 * This constructor creates all the required spatial values for the given
+	 * cartesian parameters.
+	 *
+	 * \param joint_type whether the joint is revolute or prismatic
+	 * \param joint_axis the axis of rotation or translation
+	 * \param parent_translation the position of the joint center in the parent bodies coordinates.
+	 */
 	Joint (
 			const JointType joint_type,
 			const Vector3d &joint_axis,
@@ -152,6 +170,18 @@ struct Joint {
 
 /** \brief Contains all information of the model
  *
+ * This class contains all information required to perform the forward
+ * dynamics calculation. The variables in this class are also used for storage
+ * of temporary values. It is designed for use of the Composite Rigid Body
+ * Algorithm and follows the numbering as described in Featherstones book.
+ *
+ * An important note is that body 0 is the root body and the moving bodies
+ * start at index 1. Additionally the vectors for the states q, qdot, etc.
+ * have #bodies + 1 entries where always the first entry (e.g. q[0]) contains
+ * the value for the root body. Thus the numbering might be confusing as q[1]
+ * holds the position variable of the first degree of freedom. This numbering
+ * scheme is very benefial in terms of readability of the code as the
+ * resulting code is very similar to the pseudo-code in the RBDA book.
  */
 struct Model {
 	// Structural information
@@ -235,13 +265,24 @@ struct Model {
 			);
 };
 
+/** \brief Computes the joint variables 
+ *
+ * \param model    the rigid body model
+ * \param joint_id the id of the joint we are interested in (output)
+ * \param XJ       the joint transformation (output)
+ * \param S        motion subspace of the joint (output)
+ * \param v_J      joint velocity (output)
+ * \param c_J      joint acceleration for rhenomic joints (output)
+ * \param q        joint state variable
+ * \param qdot     joint velocity variable
+ */
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
 		SpatialMatrix &XJ,
 		SpatialVector &S,
-		SpatialVector &v_i,
-		SpatialVector &c_i,
+		SpatialVector &v_J,
+		SpatialVector &c_J,
 		const double &q,
 		const double &qdot
 		);

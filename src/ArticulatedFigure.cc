@@ -83,8 +83,8 @@ void jcalc (
 		const unsigned int &joint_id,
 		SpatialMatrix &XJ,
 		SpatialVector &S,
-		SpatialVector &v_i,
-		SpatialVector &c_i,
+		SpatialVector &v_J,
+		SpatialVector &c_J,
 		const double &q,
 		const double &qdot
 		) {
@@ -94,18 +94,18 @@ void jcalc (
 	Joint joint = model.mJoints[joint_id];
 
 	// Calculate the spatial joint velocity
-	v_i = model.S.at(joint_id);
+	v_J = model.S.at(joint_id);
 
 	// Set the joint axis
 	S = joint.mJointAxis;
 
 	// the velocity dependent spatial acceleration is != 0 only for rhenomic
 	// constraints (see RBDA, p. 55)
-	c_i.zero();
+	c_J.zero();
 
 	if (joint.mJointType == JointTypeFixed) {
 		XJ = SpatialMatrixIdentity;
-		v_i.zero();
+		v_J.zero();
 
 		return;
 	} else if (joint.mJointType == JointTypeRevolute) {
@@ -125,7 +125,7 @@ void jcalc (
 		assert (0);
 	}
 
-	v_i *= qdot;
+	v_J *= qdot;
 }
 
 void ForwardDynamics (
