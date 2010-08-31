@@ -134,6 +134,7 @@ void ForwardDynamics (
 		) {
 	SpatialVector result;
 	result.zero();
+	SpatialVector gravity (0., 0., 0., 0., -9.81, 0.);
 
 	unsigned int i;
 	
@@ -185,15 +186,32 @@ void ForwardDynamics (
 		model.pA.at(i) = model.v.at(i).cross().transpose() * model.IA.at(i) * model.v.at(i);
 	}
 
-	for (i = model.mBodies.size() - 1; i > 0; i--) {
-		std::cout << model.IA[i] << std::endl;
+// ClearLogOutput();
 
+	LOG << "Xup= " << model.X_lambda[1] << std::endl;
+	LOG << "Xup2 " << model.X_lambda[2] << std::endl;
+
+	LOG << "v  = " << model.v[1] << std::endl;
+	LOG << "v2 = " << model.v[2] << std::endl;
+
+	LOG << "IA = " << model.IA[1] << std::endl;
+	LOG << "IA2= " << model.IA[2] << std::endl;
+
+	LOG << "pA = " << model.pA[1] << std::endl;
+	LOG << "pA2= " << model.pA[2] << std::endl;
+
+	LOG << "S  = " << model.S[1] << std::endl;
+	LOG << "S2 = " << model.S[2] << std::endl;
+
+	LOG << std::endl;
+
+	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		model.U[i] = model.IA[i] * model.S[i];
 		model.d[i] = model.S[i] * model.U[i];
 		model.u[i] = model.tau[i] - model.S[i] * model.pA[i];
 
-		if (model.d[i] == 0. || model.u[i] == 0.) {
-			std::cerr << "Warning d[i] or u[i] == 0.!" << std::endl;
+		if (model.d[i] == 0. ) {
+			std::cerr << "Warning d[i] == 0.!" << std::endl;
 			continue;
 		}
 
@@ -203,21 +221,45 @@ void ForwardDynamics (
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
 			SpatialMatrix X_lambda = model.X_lambda[i];
-			model.IA[lambda] = model.IA[lambda] + (X_lambda.inverse().transpose() / model.d[i]) * X_lambda;
-			model.pA[lambda] = model.pA[lambda] + X_lambda.inverse().transpose() * pa;
+			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
+			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
 		}
 	}
 
-	model.a.at(0) = SpatialVector (0., 0., 0., 0., -9.81, 0.);
+//	ClearLogOutput();
+
+	if (model.mBodies.size() == 3) {
+		LOG << "U  = " << model.U[1] << std::endl;
+		LOG << "d  = " << model.d[1] << std::endl;
+		LOG << "u  = " << model.u[1] << std::endl;
+		LOG << std::endl;
+
+		LOG << "U  = " << model.U[2] << std::endl;
+		LOG << "d  = " << model.d[2] << std::endl;
+		LOG << "u  = " << model.u[2] << std::endl;
+		LOG << "IA1= " << model.IA[1] << std::endl;
+		LOG << "IA2= " << model.IA[2] << std::endl;
+		LOG << std::endl;
+		LOG << "pA1= " << model.pA[1] << std::endl;
+		LOG << "pA2= " << model.pA[2] << std::endl;
+	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
-		SpatialVector ad = X_lambda * model.a.at(lambda) + model.c[i];
-		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * ad);
-		model.a[i] = ad + model.S[i] * model.qddot[i];
+		if (lambda == 0)
+			model.a[i] = X_lambda * gravity * (-1.) + model.c[i];
+		else {
+			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
+		}
+
+		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * model.a[i]);
+		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
 	}
 
+	for (i = 1; i < model.mBodies.size(); i++) {
+		QDDot[i - 1] = model.qddot[i];
+	}
 }
 

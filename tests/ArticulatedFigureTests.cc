@@ -9,6 +9,8 @@
 
 using namespace std;
 
+const double TEST_PREC = 1.0e-14;
+
 struct ModelFixture {
 	ModelFixture () {
 		ClearLogOutput();
@@ -208,7 +210,7 @@ TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
 	// std::cout << LogOutput.str() << std::endl;
 }
 
-TEST_FIXTURE(ModelFixture, TestCalcDynamicSimple) {
+TEST_FIXTURE(ModelFixture, TestCalcDynamicSingleChain) {
 	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint (
 			JointTypeRevolute,
@@ -216,15 +218,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSimple) {
 			Vector3d (0., 0., 0.)
 			);
 
-	Body endeffector (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint fixed_joint (
-			JointTypeFixed,
-			Vector3d (0., 0., 0.),
-			Vector3d (1., 0., 0.)
-			);
-
 	model->AddBody(0, joint, body);
-	model->AddBody(1, fixed_joint, endeffector);
 
 	std::vector<double> Q;
 	std::vector<double> QDot;
@@ -232,21 +226,146 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSimple) {
 	std::vector<double> Tau;
 
 	// Initialization of the input vectors
-	Q.push_back(0.); Q.push_back(0.);
-	QDot.push_back(0.); QDot.push_back(0.);
-	QDDot.push_back(0.); QDDot.push_back(0.);
-	Tau.push_back(0.); Tau.push_back(0.);
+	Q.push_back(0.);
+	QDot.push_back(0.);
+	QDDot.push_back(0.);
+	Tau.push_back(0.);
 
-	QDot.at(0) = 1.;
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
-	cout << "qddot[0] = " << model->qddot[0] << endl;
-	cout << "qddot[1] = " << model->qddot[1] << endl;
-	cout << "qddot[2] = " << model->qddot[2] << endl;
+	int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
 
-	cout << "a[0] = " << model->a[0] << endl;
-	cout << "a[1] = " << model->a[1] << endl;
-	cout << "a[2] = " << model->a[2] << endl;
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	CHECK_EQUAL (-4.905, QDDot[0]);
+}
+
+TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain) {
+	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_a (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (0., 0., 0.)
+			);
+
+	model->AddBody(0, joint_a, body_a);
+
+	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(1, joint_b, body_b);
+
+	std::vector<double> Q;
+	std::vector<double> QDot;
+	std::vector<double> QDDot;
+	std::vector<double> Tau;
+
+	// Initialization of the input vectors
+	Q.push_back(0.);
+	QDot.push_back(0.);
+	QDDot.push_back(0.);
+	Tau.push_back(0.);
+
+	Q.push_back(0.);
+	QDot.push_back(0.);
+	QDDot.push_back(0.);
+	Tau.push_back(0.);
+
+//	cout << "--- Double Chain ---" << endl;
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	//	cout << LogOutput.str() << endl;
+	
+	CHECK_CLOSE (-5.88600000000000E+00, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 3.92400000000000E+00, QDDot[1], TEST_PREC);
+}
+
+TEST_FIXTURE(ModelFixture, TestCalcDynamicTripleChain) {
+	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_a (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (0., 0., 0.)
+			);
+
+	model->AddBody(0, joint_a, body_a);
+
+	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(1, joint_b, body_b);
+
+	Body body_c (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_c (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(2, joint_c, body_c);
+
+	std::vector<double> Q;
+	std::vector<double> QDot;
+	std::vector<double> QDDot;
+	std::vector<double> Tau;
+
+	// Initialization of the input vectors
+	Q.push_back(0.);
+	QDot.push_back(0.);
+	QDDot.push_back(0.);
+	Tau.push_back(0.);
+
+	Q.push_back(0.);
+	QDot.push_back(0.);
+	QDDot.push_back(0.);
+	Tau.push_back(0.);
+
+	Q.push_back(0.);
+	QDot.push_back(0.);
+	QDDot.push_back(0.);
+	Tau.push_back(0.);
+
+	// cout << "--- Triple Chain ---" << endl;
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	// cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE (-6.03692307692308E+00, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 3.77307692307692E+00, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( 1.50923076923077E+00, QDDot[2], TEST_PREC);
 }
 
 

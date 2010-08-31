@@ -617,12 +617,13 @@ class SpatialMatrix {
 
 		SpatialMatrix inverse() {
 				return SpatialMatrix (
-					mData[0 * 6 + 0], mData[0 * 6 + 1], mData[0 * 6 + 2], mData[3 * 6 + 0], mData[4 * 6 + 0], mData[5 * 6 + 0],
-					mData[1 * 6 + 0], mData[1 * 6 + 1], mData[1 * 6 + 2], mData[3 * 6 + 1], mData[4 * 6 + 1], mData[5 * 6 + 1],
-					mData[2 * 6 + 0], mData[2 * 6 + 1], mData[2 * 6 + 2], mData[3 * 6 + 2], mData[4 * 6 + 2], mData[5 * 6 + 2],
-					mData[0 * 6 + 3], mData[1 * 6 + 3], mData[2 * 6 + 3], mData[3 * 6 + 3], mData[3 * 6 + 4], mData[3 * 6 + 5],
-					mData[0 * 6 + 4], mData[1 * 6 + 4], mData[2 * 6 + 4], mData[4 * 6 + 3], mData[4 * 6 + 4], mData[4 * 6 + 5],
-					mData[0 * 6 + 5], mData[1 * 6 + 5], mData[2 * 6 + 5], mData[5 * 6 + 3], mData[5 * 6 + 4], mData[5 * 6 + 5]
+					mData[0 * 6 + 0], mData[1 * 6 + 0], mData[2 * 6 + 0], mData[0 * 6 + 3], mData[1 * 6 + 3], mData[2 * 6 + 3],
+					mData[0 * 6 + 1], mData[1 * 6 + 1], mData[2 * 6 + 1], mData[0 * 6 + 4], mData[1 * 6 + 4], mData[2 * 6 + 4],
+					mData[0 * 6 + 2], mData[1 * 6 + 2], mData[2 * 6 + 2], mData[0 * 6 + 5], mData[1 * 6 + 5], mData[2 * 6 + 5],
+
+					mData[0 * 6 + 0], mData[1 * 6 + 0], mData[2 * 6 + 0], mData[3 * 6 + 3], mData[4 * 6 + 3], mData[5 * 6 + 3],
+					mData[0 * 6 + 1], mData[1 * 6 + 1], mData[2 * 6 + 1], mData[3 * 6 + 4], mData[4 * 6 + 4], mData[5 * 6 + 4],
+					mData[0 * 6 + 2], mData[1 * 6 + 2], mData[2 * 6 + 2], mData[3 * 6 + 5], mData[4 * 6 + 5], mData[5 * 6 + 5]
 					);
 		}
 
@@ -637,6 +638,7 @@ inline std::ostream& operator<<(std::ostream& output, const SpatialVector &vecto
 }
 
 inline std::ostream& operator<<(std::ostream& output, const SpatialMatrix &matrix) {
+	output << std::endl;
 	output << "[ " <<matrix(0,0) << " " << matrix(0,1) << " " << matrix(0,2) << " "
 		<< matrix(0,3) << " " << matrix(0,4) << " " << matrix(0,5) << " ]" << std::endl;
 
