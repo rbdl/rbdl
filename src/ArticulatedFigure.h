@@ -115,9 +115,9 @@ struct Joint {
 		mJointType = joint_type;
 
 		if (joint_type == JointTypeRevolute) {
-			assert (joint_axis[0] == 0.
-				&& joint_axis[1] == 0.
-				&& joint_axis[2] == 1.);
+			assert ( joint_axis == Vector3d (1., 0., 0.)
+					|| joint_axis == Vector3d (0., 1., 0.)
+					|| joint_axis == Vector3d (0., 0., 1.));
 
 			mJointTransform = Xtrans(parent_translation * -1.);
 			mJointAxis.set (
@@ -126,6 +126,7 @@ struct Joint {
 					joint_axis[2], 
 					0., 0., 0.
 					);
+
 		} else if (joint_type == JointTypeFixed) {
 			mJointTransform = Xtrans(parent_translation * -1.);
 			mJointAxis.set (

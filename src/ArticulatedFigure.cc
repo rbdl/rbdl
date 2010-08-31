@@ -109,14 +109,17 @@ void jcalc (
 
 		return;
 	} else if (joint.mJointType == JointTypeRevolute) {
-		// Only z-rotations supported so far!
-		assert (
-				joint.mJointAxis[0] == 0.
-				&& joint.mJointAxis[1] == 0.
-				&& joint.mJointAxis[2] == 1.
-				);
+		// Only rotations around coordinate axes are supported so far!
+		if (S == SpatialVector(1., 0., 0., 0., 0., 0.)) {
+			XJ = Xrotx (q);
+		} else if (S == SpatialVector(0., 1., 0., 0., 0., 0.)) {
+			XJ = Xroty (q);
+		} else if (S == SpatialVector(0., 0., 1., 0., 0., 0.)) {
+			XJ = Xrotz (q);
+		} else {
+			assert (0 && !"Invalid joint axis!");
+		}
 
-		XJ = Xrotz (q);
 	} else {
 		// Only revolute joints supported so far
 		assert (0);
@@ -170,14 +173,16 @@ void ForwardDynamics (
 		if (lambda != 0)
 			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
 
+		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
+
+		/*
 		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
 		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
 		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
 		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda.at(i) << std::endl;
-
-		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
 		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
+		*/
 
 		model.c.at(i) = c_J + model.v.at(i).cross() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
@@ -188,20 +193,23 @@ void ForwardDynamics (
 
 // ClearLogOutput();
 
-	LOG << "Xup= " << model.X_lambda[1] << std::endl;
-	LOG << "Xup2 " << model.X_lambda[2] << std::endl;
+	LOG << "--- first loop ---" << std::endl;
 
-	LOG << "v  = " << model.v[1] << std::endl;
-	LOG << "v2 = " << model.v[2] << std::endl;
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "Xup[" << i << "] = " << model.X_lambda[i] << std::endl;
+	}
 
-	LOG << "IA = " << model.IA[1] << std::endl;
-	LOG << "IA2= " << model.IA[2] << std::endl;
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "v[" << i << "]   = " << model.v[i] << std::endl;
+	}
 
-	LOG << "pA = " << model.pA[1] << std::endl;
-	LOG << "pA2= " << model.pA[2] << std::endl;
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
+	}
 
-	LOG << "S  = " << model.S[1] << std::endl;
-	LOG << "S2 = " << model.S[2] << std::endl;
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
+	}
 
 	LOG << std::endl;
 
@@ -228,20 +236,25 @@ void ForwardDynamics (
 
 //	ClearLogOutput();
 
-	if (model.mBodies.size() == 3) {
-		LOG << "U  = " << model.U[1] << std::endl;
-		LOG << "d  = " << model.d[1] << std::endl;
-		LOG << "u  = " << model.u[1] << std::endl;
-		LOG << std::endl;
+	LOG << "--- second loop ---" << std::endl;
 
-		LOG << "U  = " << model.U[2] << std::endl;
-		LOG << "d  = " << model.d[2] << std::endl;
-		LOG << "u  = " << model.u[2] << std::endl;
-		LOG << "IA1= " << model.IA[1] << std::endl;
-		LOG << "IA2= " << model.IA[2] << std::endl;
-		LOG << std::endl;
-		LOG << "pA1= " << model.pA[1] << std::endl;
-		LOG << "pA2= " << model.pA[2] << std::endl;
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "U[" << i << "]   = " << model.U[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "d[" << i << "]   = " << model.d[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "u[" << i << "]   = " << model.u[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
+	}
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
