@@ -152,16 +152,16 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	jcalc (*model, 1, X_j, S, v_j, c, M_PI * 0.5, 1.);
 
 	test_matrix.set (
-			0., -1.,  0.,  0.,  0.,  0.,
-			1.,  0.,  0.,  0.,  0.,  0.,
+			0.,  1.,  0.,  0.,  0.,  0.,
+		 -1.,  0.,  0.,  0.,  0.,  0.,
 			0.,  0.,  1.,  0.,  0.,  0.,
-			0.,  0.,  0.,  0., -1.,  0.,
-			0.,  0.,  0.,  1.,  0.,  0.,
+			0.,  0.,  0.,  0.,  1.,  0.,
+			0.,  0.,  0., -1.,  0.,  0.,
 			0.,  0.,  0.,  0.,  0.,  1.
 			);
 
-	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j, 1.0e-16));
-	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
+	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j, TEST_PREC));
+	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, TEST_PREC));
 	CHECK_EQUAL (test_joint_axis, S);
 }
 

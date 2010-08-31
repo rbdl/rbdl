@@ -611,8 +611,11 @@ class SpatialMatrix {
 
 		// if the matrix represents {}^BX_A then thes function returns {}^BX_A^* in RBDA
 		SpatialMatrix conjugate() {
-			SpatialMatrix transp (this->transpose());
-			return SpatialMatrix (transp.inverse());
+//			SpatialMatrix transp (this->transpose());
+//			return SpatialMatrix (transp.inverse());
+
+			SpatialMatrix invs (this->inverse());
+			return invs.transpose();
 		}
 
 		SpatialMatrix inverse() {
