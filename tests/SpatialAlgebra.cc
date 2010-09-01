@@ -4,6 +4,7 @@
 
 #include "spatialalgebra.h"
 
+using namespace std;
 using namespace SpatialAlgebra;
 
 /// \brief Checks the multiplication of a SpatialMatrix with a SpatialVector
@@ -138,3 +139,19 @@ TEST(TestSpatialVectorCross) {
 	CHECK_EQUAL (test_conj, s_vec_cross_conj);
 }
 
+TEST(TestSpatialLinSolve) {
+	SpatialVector b (1, 2, 0, 1, 1, 1);
+	SpatialMatrix A (
+			1., 2., 3., 0., 0., 0.,
+			3., 4., 5., 0., 0., 0.,
+			6., 7., 7., 0., 0., 0.,
+			0., 0., 0., 1., 0., 0.,
+			0., 0., 0., 0., 1., 0.,
+			0., 0., 0., 0., 0., 1.
+			);
+
+	SpatialVector x = SpatialLinSolve (A, b);
+	SpatialVector x_test (3.5, -6.5, 3.5, 1, 1, 1);
+
+	CHECK_EQUAL (x_test, x);
+}

@@ -189,6 +189,9 @@ struct Model {
 	/// \brief The id of the parents body
 	std::vector<unsigned int> lambda;
 
+	/// \brief true if the body has a floating base
+	bool floating_base;
+
 	// State information
 
 	/** \brief The joint position
@@ -238,7 +241,6 @@ struct Model {
 	std::vector<double> d;
 	/// \brief Temporary variable u (RBDA p. 130)
 	std::vector<double> u;
-
 
 	////////////////////////////////////
 	// Bodies

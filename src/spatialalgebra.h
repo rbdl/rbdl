@@ -749,6 +749,33 @@ inline SpatialMatrix SpatialVector::outer_product(const SpatialVector &vec) cons
 			);
 }
 
+inline SpatialVector SpatialLinSolve (SpatialMatrix A, SpatialVector b) {
+	SpatialVector x(0., 0., 0., 0., 0., 0.);
+	
+	int i,j;
+	for (j = 0; j < 6; j++) {
+		for (i = j + 1; i < 6; i++) {
+			double d = A(i,j)/A(j,j);
+
+			b[i] -= b[j] * d;
+
+			int k;
+			for (k = j; k < 6; k++) {
+				A(i,k) -= A(j,k) * d;
+			}
+		}
+	}
+
+	for (i = 5; i >= 0; i--) {
+		for (j = i + 1; j < 6; j++) {
+			x[i] += A(i,j) * x(j);
+		}
+		x[i] = (b[i] - x[i]) / A(i,i);
+	}
+
+	return x;
+}
+
 }
 
 #endif /* SPATIALALGEBRA_H */
