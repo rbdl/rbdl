@@ -34,4 +34,17 @@ SpatialMatrix Xrotz (const double &zrot);
 SpatialMatrix Xroty (const double &yrot);
 SpatialMatrix Xrotx (const double &xrot);
 
+SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler);
+
+inline std::ostream& operator<<(std::ostream& output, const std::vector<double> &val) {
+	int i;
+	for (i = 0; i < val.size(); i++)
+		output << val.at(i) << " ";
+
+	output << std::endl;
+
+	return output;
+}
+
+
 #endif /* _MATHUTILS_H */

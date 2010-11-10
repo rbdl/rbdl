@@ -206,3 +206,6 @@ SpatialMatrix Xrotz (const double &zrot) {
 			);
 }
 
+SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler) {
+	return Xtrans(displacement) * Xrotz(zyx_euler[0]) * Xroty(zyx_euler[1]) * Xrotx(zyx_euler[2]);
+}

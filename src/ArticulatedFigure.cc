@@ -316,14 +316,16 @@ void ForwardDynamicsFloatingBase (
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
 		const std::vector<double> &Tau,
+		const SpatialMatrix &X_B,
 		const SpatialVector &v_B,
 		const SpatialVector &f_B,
-		const SpatialVector &a_B,
+		SpatialVector &a_B,
 		std::vector<double> &QDDot
 		)
 {
 	SpatialVector result;
 	result.zero();
+
 	SpatialVector gravity (0., 0., 0., 0., -9.81, 0.);
 
 	unsigned int i;
@@ -393,11 +395,11 @@ void ForwardDynamicsFloatingBase (
 		LOG << "v[" << i << "]   = " << model.v[i] << std::endl;
 	}
 
-	for (i = 1; i < model.mBodies.size(); i++) {
+	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
 	}
 
-	for (i = 1; i < model.mBodies.size(); i++) {
+	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
 	}
 
@@ -414,14 +416,12 @@ void ForwardDynamicsFloatingBase (
 		}
 
 		unsigned int lambda = model.lambda.at(i);
-		if (lambda != 0) {
-			SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
-			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
+		SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
+		SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
-			SpatialMatrix X_lambda = model.X_lambda[i];
-			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
-			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
-		}
+		SpatialMatrix X_lambda = model.X_lambda[i];
+		model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
+		model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
 	}
 
 //	ClearLogOutput();
@@ -447,16 +447,13 @@ void ForwardDynamicsFloatingBase (
 		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
 	}
 
+	model.a[0] = SpatialLinSolve (model.IA[0], model.pA[0]) * -1.;
+
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
-		if (lambda == 0)
-			model.a[i] = X_lambda * gravity * (-1.) + model.c[i];
-		else {
-			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
-		}
-
+		model.a[i] = X_lambda * model.a[lambda] + model.c[i];
 		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * model.a[i]);
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
 	}
@@ -464,5 +461,9 @@ void ForwardDynamicsFloatingBase (
 	for (i = 1; i < model.mBodies.size(); i++) {
 		QDDot[i - 1] = model.qddot[i];
 	}
+
+	model.a[0] += X_B * gravity;
+
+	a_B = model.a[0];
 }
 

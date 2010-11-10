@@ -521,8 +521,210 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSimpleTree3D) {
 	CHECK_CLOSE ( 5.30579766536965E+00, QDDot[4], TEST_PREC);
 }
 
-TEST_FIXTURE(ModelFixture, TestCalcFloatSimple) {
-	Body floating_base (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseSimple) {
+	model->floating_base = true;
 
-	model->SetFloatingBody(floating_base);
+	Body base(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (0., 0., 0.)
+			);
+
+	model->SetFloatingBody(base);
+	std::vector<double> Q (0, 0.);
+	std::vector<double> QDot (0, 0.);
+	std::vector<double> QDDot (0, 0.);
+	std::vector<double> Tau (0, 0.);
+
+	Vector3d pos_B(0., 0., 0.);
+	Vector3d rot_B(0., 0., 0.);
+
+	SpatialMatrix X_B (XtransRotZYXEuler(pos_B, rot_B));
+	SpatialVector v_B(0., 0., 0., 0., 0., 0.);
+	SpatialVector f_B(0., 0., 0., 0., 0., 0.);
+	SpatialVector a_B(0., 0., 0., 0., 0., 0.);
+
+	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+
+	int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
+	}
+
+//	std::cout << LogOutput.str() << std::endl;
+
+	CHECK_CLOSE ( 0.0000, a_B[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_B[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_B[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_B[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, a_B[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_B[5], TEST_PREC);
+
+	// We rotate the base... let's see what happens...
+	rot_B[0] = 0.8;
+	X_B = XtransRotZYXEuler(pos_B, rot_B);
+	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	SpatialVector a_world = X_B.inverse() * a_B;
+
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
+	}
+
+//	std::cout << LogOutput.str() << std::endl;
+
+	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, a_world[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
 }
+
+/*
+TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseDouble) {
+	model->floating_base = true;
+
+	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (0., 0., 0.)
+			);
+
+	model->AddBody(0, joint, body);
+
+	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(1, joint_b, body_b);
+
+	// Initialization of the input vectors
+	std::vector<double> Q (6 + 1, 0.);
+	std::vector<double> QDot (6 + 1, 0.);
+	std::vector<double> QDDot (6 + 1, 0.);
+	std::vector<double> Tau (6 + 1, 0.);
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+//	std::cout << LogOutput.str() << std::endl;
+
+	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, QDDot[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
+}
+
+TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseTriple) {
+	model->floating_base = true;
+
+	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (0., 0., 0.)
+			);
+
+	model->AddBody(0, joint, body);
+
+	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(1, joint_b, body_b);
+
+	Body body_c (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_c (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.),
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(2, joint_c, body_c);
+
+	// Initialization of the input vectors
+	std::vector<double> Q (6 + 2, 0.);
+	std::vector<double> QDot (6 + 2, 0.);
+	std::vector<double> QDDot (6 + 2, 0.);
+	std::vector<double> Tau (6 + 2, 0.);
+
+	ClearLogOutput();
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	std::cout << LogOutput.str() << std::endl;
+
+	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, QDDot[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[7], TEST_PREC);
+
+	// Some values for Tau
+	ClearLogOutput();
+
+	Tau[5] = 1.;
+	Tau[6] = 2.;
+	Tau[7] = 3.;
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	std::cout << LogOutput.str() << std::endl;
+
+	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, QDDot[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[7], TEST_PREC);
+}
+*/

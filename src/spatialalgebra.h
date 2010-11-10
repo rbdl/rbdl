@@ -155,7 +155,7 @@ class SpatialVector {
 			mData[4] -= vector.mData[4];
 			mData[5] -= vector.mData[5];
 		}
-		double operator*(const SpatialVector &vector) {
+		double operator*(const SpatialVector &vector) const {
 			return mData[0] * vector.mData[0]
 				+ mData[1] * vector.mData[1] 
 				+ mData[2] * vector.mData[2] 
@@ -581,7 +581,7 @@ class SpatialMatrix {
 		}
 
 		// Operators with SpatialVectors
-		SpatialVector operator*(const SpatialVector &vector) {
+		SpatialVector operator*(const SpatialVector &vector) const {
 			SpatialVector result;
 			result.zero();
 

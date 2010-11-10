@@ -191,6 +191,10 @@ struct Model {
 
 	/// \brief true if the body has a floating base
 	bool floating_base;
+	/// \brief the cartestian translation of the base
+	Vector3d base_translation;
+	/// \brief the rotation of the base in ZYX-Euler angles
+	Vector3d base_rotation;
 
 	// State information
 
@@ -292,6 +296,14 @@ void jcalc (
 		const double &qdot
 		);
 
+/** \brief Computes forward dynamics for models with a fixed base
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param QDDot accelerations of the internals joints (output)
+ */
 void ForwardDynamics (
 		Model &model,
 		const std::vector<double> &Q,
@@ -306,9 +318,10 @@ void ForwardDynamics (
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param v_B   velocity of the base
- * \param f_B   forces acting on the base
- * \param a_B   accelerations of the base (output)
+ * \param X_B   transformation into base coordinates
+ * \param v_B   velocity of the base (in base coordinates)
+ * \param f_B   forces acting on the base (in base coordinates)
+ * \param a_B   accelerations of the base (output, in base coordinates)
  * \param QDDot accelerations of the internals joints (output)
  */
 void ForwardDynamicsFloatingBase (
@@ -316,9 +329,10 @@ void ForwardDynamicsFloatingBase (
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
 		const std::vector<double> &Tau,
+		const SpatialMatrix &X_B,
 		const SpatialVector &v_B,
 		const SpatialVector &f_B,
-		const SpatialVector &a_B,
+		SpatialVector &a_B,
 		std::vector<double> &QDDot
 		);
 

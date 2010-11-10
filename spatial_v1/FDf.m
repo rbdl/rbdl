@@ -32,12 +32,13 @@ end
 external_force = ( nargin > 6 && length(f_ext) > 0 );
 
 vfb = Xfb * vfb;
+model.NB
 
 NBR = model.NB - 6;			% NB & parent array for Rest of model
-parentR = model.parent(7:model.NB) - 6;
+parentR = model.parent(7:model.NB) - 6
 
 for i = 1:NBR
-  [ XJ, S{i} ] = jcalc( model.pitch(i+6), q(i) );
+  [ XJ, S{i} ] = jcalc( model.pitch(i+6), q(i), model.jaxis{i+6} );
   vJ = S{i}*qd(i);
   Xup{i} = XJ * model.Xtree{i+6};
   if parentR(i) == 0
@@ -53,18 +54,35 @@ for i = 1:NBR
   end
 end
 
-IAfb = model.I{6};
-pAfb = crf(vfb) * IAfb * vfb;
+IAfb = model.I{6}
+pAfb = crf(vfb) * IAfb * vfb
+
+IA
+pA
+
 if external_force && length(f_ext{6}) > 0
   pAfb = pAfb - f_ext{6};
 end
 
+disp ("---- second loop ----");
 for i = NBR:-1:1
   U{i} = IA{i} * S{i};
   d{i} = S{i}' * U{i};
   u{i} = tau(i) - S{i}'*pA{i};
+	trau = tau(i) 
+
   Ia = IA{i} - U{i}/d{i}*U{i}';
   pa = pA{i} + Ia*c{i} + U{i} * u{i}/d{i};
+
+	U
+	d
+	u
+	Ia
+	pa
+
+	i
+	parentR(i)
+
   if parentR(i) == 0
     IAfb = IAfb + Xup{i}' * Ia * Xup{i};
     pAfb = pAfb + Xup{i}' * pa;

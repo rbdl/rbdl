@@ -29,6 +29,13 @@ fbmodel.NB = model.NB + 5;
 
 fbmodel.pitch(1:6) = [inf,inf,inf,0,0,0];
 fbmodel.pitch(7:fbmodel.NB) = model.pitch(2:model.NB);
+fbmodel.jaxis{1} = [1 0 0]';
+fbmodel.jaxis{2} = [0 1 0]';
+fbmodel.jaxis{3} = [0 0 1]';
+fbmodel.jaxis{4} = [1 0 0]';
+fbmodel.jaxis{5} = [0 1 0]';
+fbmodel.jaxis{6} = [0 0 1]';
+fbmodel.jaxis(7:fbmodel.NB) = model.jaxis(2:model.NB);
 
 fbmodel.parent(1:6) = [0 1 2 3 4 5];
 fbmodel.parent(7:fbmodel.NB) = model.parent(2:model.NB) + 5;
@@ -55,5 +62,5 @@ end
 fbmodel.appearance{1} = model.appearance{1};
 
 for i = 6:fbmodel.NB
-  fbmodel.appearance{i+1} = model.appearance{i-4};
+	fbmodel.appearance{i+1} = model.appearance{i-5};
 end
