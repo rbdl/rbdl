@@ -521,3 +521,8 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSimpleTree3D) {
 	CHECK_CLOSE ( 5.30579766536965E+00, QDDot[4], TEST_PREC);
 }
 
+TEST_FIXTURE(ModelFixture, TestCalcFloatSimple) {
+	Body floating_base (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+
+	model->SetFloatingBody(floating_base);
+}

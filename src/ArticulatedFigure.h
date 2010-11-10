@@ -265,6 +265,9 @@ struct Model {
 			const Joint &joint,
 			const Body &body
 			);
+	void SetFloatingBody (
+			const Body &body
+			);
 };
 
 /** \brief Computes the joint variables 
@@ -294,6 +297,28 @@ void ForwardDynamics (
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
 		const std::vector<double> &Tau,
+		std::vector<double> &QDDot
+		);
+
+/** \brief Computes forward dynamics for models with a floating base
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param v_B   velocity of the base
+ * \param f_B   forces acting on the base
+ * \param a_B   accelerations of the base (output)
+ * \param QDDot accelerations of the internals joints (output)
+ */
+void ForwardDynamicsFloatingBase (
+		Model &model,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &Tau,
+		const SpatialVector &v_B,
+		const SpatialVector &f_B,
+		const SpatialVector &a_B,
 		std::vector<double> &QDDot
 		);
 

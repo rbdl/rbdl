@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <limits>
 #include <assert.h>
 
 #include "mathutils.h"
@@ -88,6 +88,22 @@ void Model::AddBody (const unsigned int parent_id, const Joint &joint, const Bod
 	mBodyOrientation.push_back(Matrix3dIdentity);
 }
 
+void Model::SetFloatingBody (const Body &body) {
+	assert (lambda.size() >= 0);
+
+	// mark the model such that we know it interprets body 0 as floating base
+	floating_base = true;
+
+	// parent is the maximum possible value to mark it as having no parent
+	lambda.at(0) = std::numeric_limits<unsigned int>::max();
+
+	// Bodies
+	X_lambda.at(0) = SpatialMatrixIdentity;
+	X_base.at(0) = SpatialMatrixIdentity;
+	mBodies.at(0) = body;
+	mBodyOrientation.at(0) = Matrix3dIdentity;
+}
+
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
@@ -146,7 +162,11 @@ void ForwardDynamics (
 		std::vector<double> &QDDot
 		) {
 	if (model.floating_base) {
-		ForwardDynamicsFloatingBase(model, Q, QDot, Tau, QDDot);
+		// in this case the appropriate function has to be called, see
+		// ForwardDynamicsFloatingBase
+		assert (0);
+
+		// ForwardDynamicsFloatingBase(model, Q, QDot, Tau, QDDot);
 		return;
 	}
 
@@ -296,10 +316,12 @@ void ForwardDynamicsFloatingBase (
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
 		const std::vector<double> &Tau,
+		const SpatialVector &v_B,
+		const SpatialVector &f_B,
+		const SpatialVector &a_B,
 		std::vector<double> &QDDot
-		) {
-	assert (0);
-
+		)
+{
 	SpatialVector result;
 	result.zero();
 	SpatialVector gravity (0., 0., 0., 0., -9.81, 0.);
@@ -307,10 +329,10 @@ void ForwardDynamicsFloatingBase (
 	unsigned int i;
 	
 	// Copy state values from the input to the variables in model
-	assert (model.q.size() == Q.size() + 1 + 6);
-	assert (model.qdot.size() == QDot.size() + 1 + 6);
-	assert (model.qddot.size() == QDDot.size() + 1 + 6);
-	assert (model.tau.size() == Tau.size() + 1 + 6);
+	assert (model.q.size() == Q.size() + 1);
+	assert (model.qdot.size() == QDot.size() + 1);
+	assert (model.qddot.size() == QDDot.size() + 1);
+	assert (model.tau.size() == Tau.size() + 1);
 
 	for (i = 0; i < Q.size(); i++) {
 		model.q.at(i+1) = Q.at(i);
@@ -320,7 +342,7 @@ void ForwardDynamicsFloatingBase (
 	}
 
 	// Reset the velocity of the root body
-	model.v[0] = SpatialVector(Q[0], Q[1], Q[2], Q[3], Q[4], Q[5]);
+	model.v[0].zero();
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		SpatialMatrix X_J;
@@ -356,10 +378,10 @@ void ForwardDynamicsFloatingBase (
 		model.pA.at(i) = model.v.at(i).cross().transpose() * model.IA.at(i) * model.v.at(i);
 	}
 
-	model.IA[0] = SpatialMatrixIdentity;
-	model.pA[0] = model.v[0].cross().conjugate() * model.IA[0] * model.v[0] - gravity;
-
 // ClearLogOutput();
+
+	model.IA[0] = model.mBodies[0].mSpatialInertia;
+	model.pA[0] = v_B.cross().conjugate() * model.IA[0] * v_B - f_B;
 
 	LOG << "--- first loop ---" << std::endl;
 
@@ -392,12 +414,14 @@ void ForwardDynamicsFloatingBase (
 		}
 
 		unsigned int lambda = model.lambda.at(i);
-		SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
-		SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
+		if (lambda != 0) {
+			SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
+			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
-		SpatialMatrix X_lambda = model.X_lambda[i];
-		model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
-		model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
+			SpatialMatrix X_lambda = model.X_lambda[i];
+			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
+			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
+		}
 	}
 
 //	ClearLogOutput();
@@ -416,14 +440,12 @@ void ForwardDynamicsFloatingBase (
 		LOG << "u[" << i << "]   = " << model.u[i] << std::endl;
 	}
 
-	for (i = 0; i < model.mBodies.size(); i++) {
+	for (i = 1; i < model.mBodies.size(); i++) {
 		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
 	}
-	for (i = 0; i < model.mBodies.size(); i++) {
+	for (i = 1; i < model.mBodies.size(); i++) {
 		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
 	}
-
-	// model.a[0] = 
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
