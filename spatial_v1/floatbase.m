@@ -59,8 +59,8 @@ for i = 1:fbmodel.NB
   end
 end
 
-fbmodel.appearance{1} = model.appearance{1};
-
-for i = 6:fbmodel.NB
-	fbmodel.appearance{i+1} = model.appearance{i-5};
-end
+% fbmodel.appearance{1} = model.appearance{1};
+% 
+% for i = 6:fbmodel.NB
+% 	fbmodel.appearance{i+1} = model.appearance{i-5};
+% end

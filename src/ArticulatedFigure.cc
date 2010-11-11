@@ -54,7 +54,7 @@ void Model::Init() {
 	mBodyOrientation.push_back(Matrix3dIdentity);
 }
 
-void Model::AddBody (const unsigned int parent_id, const Joint &joint, const Body &body) {
+unsigned int Model::AddBody (const unsigned int parent_id, const Joint &joint, const Body &body) {
 	assert (lambda.size() > 0);
 	assert (joint.mJointType != JointTypeUndefined);
 
@@ -86,6 +86,8 @@ void Model::AddBody (const unsigned int parent_id, const Joint &joint, const Bod
 	X_base.push_back(SpatialMatrixIdentity);
 	mBodies.push_back(body);
 	mBodyOrientation.push_back(Matrix3dIdentity);
+
+	return q.size();
 }
 
 void Model::SetFloatingBody (const Body &body) {
@@ -425,6 +427,7 @@ void ForwardDynamicsFloatingBase (
 	}
 
 //	ClearLogOutput();
+	model.a[0] = SpatialLinSolve(model.IA[0], model.pA[0]) * 1.;
 
 	LOG << "--- second loop ---" << std::endl;
 

@@ -57,8 +57,8 @@ end
 IAfb = model.I{6}
 pAfb = crf(vfb) * IAfb * vfb
 
-IA
-pA
+% IA
+% pA
 
 if external_force && length(f_ext{6}) > 0
   pAfb = pAfb - f_ext{6};
@@ -103,5 +103,5 @@ for i = 1:NBR
   qdd(i,1) = (u{i} - U{i}'*a{i})/d{i};
   a{i} = a{i} + S{i}*qdd(i);
 end
-
+accel = qdd
 afb = Xfb \ afb + a_grav;		% true flt base accn in ref coords

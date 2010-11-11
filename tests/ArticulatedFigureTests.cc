@@ -58,7 +58,10 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 			Vector3d(0., 0., 0.)
 			);
 
-	model->AddBody(0, joint, body); 
+	unsigned int body_id = 0;
+	body_id = model->AddBody(0, joint, body); 
+
+	CHECK_EQUAL (1, body_id);
 
 	CHECK_EQUAL (2, model->lambda.size());
 
@@ -525,13 +528,9 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseSimple) {
 	model->floating_base = true;
 
 	Body base(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
-			);
 
 	model->SetFloatingBody(base);
+
 	std::vector<double> Q (0, 0.);
 	std::vector<double> QDot (0, 0.);
 	std::vector<double> QDDot (0, 0.);
@@ -589,35 +588,169 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseSimple) {
 	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
 }
 
-/*
 TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseDouble) {
 	model->floating_base = true;
 
-	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint joint (
+	// floating base
+	Body base(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	model->SetFloatingBody(base);
+
+	// body_a
+	Body body_a (1., Vector3d (1., 0., 0), Vector3d (1., 1., 1.));
+	Joint joint_a (
 			JointTypeRevolute,
 			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
+			Vector3d (2., 0., 0.)
 			);
 
-	model->AddBody(0, joint, body);
+	model->AddBody(0, joint_a, body_a);
 
-	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint joint_b (
+	std::vector<double> Q (1, 0.);
+	std::vector<double> QDot (1, 0.);
+	std::vector<double> QDDot (1, 0.);
+	std::vector<double> Tau (1, 0.);
+
+	Vector3d pos_B(0., 0., 0.);
+	Vector3d rot_B(0., 0., 0.);
+
+	SpatialMatrix X_B (XtransRotZYXEuler(pos_B, rot_B));
+	SpatialVector v_B(0., 0., 0., 0., 0., 0.);
+	SpatialVector f_B(0., 0., 0., 0., 0., 0.);
+	SpatialVector a_B(0., 0., 0., 0., 0., 0.);
+	SpatialVector a_world(0., 0., 0., 0., 0., 0.);
+
+	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+
+	int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
+	}
+
+//	std::cout << LogOutput.str() << std::endl;
+
+	CHECK_CLOSE ( 0.0000, a_B[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_B[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_B[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_B[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, a_B[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_B[5], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
+
+	// We rotate the base... let's see what happens...
+	rot_B[0] = 0.8;
+	X_B = XtransRotZYXEuler(pos_B, rot_B);
+	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	a_world = X_B.inverse() * a_B;
+
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
+	}
+
+//	std::cout << LogOutput.str() << std::endl;
+
+	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, a_world[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
+
+	// We apply a torqe let's see what happens...
+	rot_B[0] = 0.0;
+	X_B = XtransRotZYXEuler(pos_B, rot_B);
+
+	Tau[0] = 1.;
+
+	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	a_world = X_B.inverse() * a_B;
+
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
+	}
+
+//	std::cout << LogOutput.str() << std::endl;
+
+	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
+	CHECK_CLOSE (-1.0000, a_world[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
+	CHECK_CLOSE (-8.8100, a_world[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
+	CHECK_CLOSE ( 2.0000, QDDot[0],   TEST_PREC);
+}
+
+TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
+	Body base (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+
+	model->SetFloatingBody(base);
+
+	Body body_2 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	Joint joint_2 (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
+			Vector3d (0., 1., 0.),
 			Vector3d (1., 0., 0.)
 			);
 
-	model->AddBody(1, joint_b, body_b);
+	unsigned int body_2_id = model->AddBody(0, joint_2, body_2);
+
+	Body body_3 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+	Joint joint_3 (
+			JointTypeRevolute,
+			Vector3d (1., 0., 0.),
+			Vector3d (0., 1., 0.)
+			);
+
+	unsigned int body_3_id = model->AddBody(body_2_id, joint_3, body_3);
+
+	Body body_4 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	Joint joint_4 (
+			JointTypeRevolute,
+			Vector3d (0., 1., 0.),
+			Vector3d (-0.5, 0., 0.)
+			);
+
+	unsigned int body_4_id = model->AddBody(0, joint_4, body_4);
+
+	Body body_5 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+	Joint joint_5 (
+			JointTypeRevolute,
+			Vector3d (1., 0., 0.),
+			Vector3d (0., -0.5, 0.)
+			);
+
+	unsigned int body_5_id = model->AddBody(body_4_id, joint_5, body_5);
 
 	// Initialization of the input vectors
-	std::vector<double> Q (6 + 1, 0.);
-	std::vector<double> QDot (6 + 1, 0.);
-	std::vector<double> QDDot (6 + 1, 0.);
-	std::vector<double> Tau (6 + 1, 0.);
+	std::vector<double> Q (4, 0.);
+	std::vector<double> QDot (4, 0.);
+	std::vector<double> QDDot (4, 0.);
+	std::vector<double> Tau (4, 0.);
 
-	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+	// Initializing of the base frame and its velocity, etc.
+	Vector3d pos_B(0., 0., 0.);
+	Vector3d rot_B(0., 0., 0.);
+
+	SpatialMatrix X_B (XtransRotZYXEuler(pos_B, rot_B));
+	SpatialVector v_B(0., 0., 0., 0., 0., 0.);
+	SpatialVector f_B(0., 0., 0., 0., 0., 0.);
+	SpatialVector a_B(0., 0., 0., 0., 0., 0.);
+	SpatialVector a_world (0., 0., 0., 0., 0., 0.);
+
+	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	a_world = X_B.inverse() * a_B;
 
 	int i;
 	for (i = 0; i < QDDot.size(); i++) {
@@ -628,17 +761,52 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseDouble) {
 		LOG << "a[" << i << "]     = " << model->a[i] << endl;
 	}
 
-//	std::cout << LogOutput.str() << std::endl;
+	// cout << LogOutput.str() << endl;
+	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, a_world[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
 
 	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, QDDot[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
+
+	/* with torques applied everywhere */
+	Tau[1] = 1.;
+	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	a_world = X_B.inverse() * a_B;
+
+	ClearLogOutput();
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	cout << LogOutput.str() << endl;
+/*
+	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
+	CHECK_CLOSE (-9.8100, a_world[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
+
+	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
+*/	
 }
 
+
+/*
 TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseTriple) {
 	model->floating_base = true;
 

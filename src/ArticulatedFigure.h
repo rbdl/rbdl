@@ -196,6 +196,9 @@ struct Model {
 	/// \brief the rotation of the base in ZYX-Euler angles
 	Vector3d base_rotation;
 
+	/// \brief the cartesian vector of the gravity
+	Vector3d gravity;
+
 	// State information
 
 	/** \brief The joint position
@@ -263,8 +266,17 @@ struct Model {
 	std::vector<Body> mBodies;
 	std::vector<Matrix3d> mBodyOrientation;
 
+	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
-	void AddBody (
+	/** \brief Connects a given body to the model
+	 *
+	 * \param parent_id id of the parend body
+	 * \param joint     specification for the joint that describes the connection
+	 * \param body      specification of the body itself
+	 *
+	 * \returns id of the added body
+	 */
+	unsigned int AddBody (
 			const unsigned int parent_id,
 			const Joint &joint,
 			const Body &body
