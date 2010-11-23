@@ -37,6 +37,7 @@ void Model::Init() {
 	// Joints
 	mJoints.push_back(root_joint);
 	S.push_back (zero_spatial);
+	X_T.push_back(SpatialMatrixIdentity);
 	
 	// Dynamic variables
 	c.push_back(zero_spatial);
@@ -54,7 +55,10 @@ void Model::Init() {
 	mBodyOrientation.push_back(Matrix3dIdentity);
 }
 
-unsigned int Model::AddBody (const unsigned int parent_id, const Joint &joint, const Body &body) {
+unsigned int Model::AddBody (const unsigned int parent_id,
+		const SpatialMatrix &joint_frame,
+		const Joint &joint,
+		const Body &body) {
 	assert (lambda.size() > 0);
 	assert (joint.mJointType != JointTypeUndefined);
 
@@ -72,6 +76,9 @@ unsigned int Model::AddBody (const unsigned int parent_id, const Joint &joint, c
 	// Joints
 	mJoints.push_back(joint);
 	S.push_back (joint.mJointAxis);
+	// we have to invert the transformation as it is later always used from the
+	// child bodies perspective.
+	X_T.push_back(joint_frame.inverse());
 
 	// Dynamic variables
 	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
@@ -202,10 +209,10 @@ void ForwardDynamics (
 		unsigned int lambda = model.lambda.at(i);
 
 		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
-		SpatialMatrix X_T (joint.mJointTransform);
-		LOG << "X_T (" << i << "):" << std::endl << X_T << std::endl;
+//		SpatialMatrix X_T (joint.mJointTransform);
+		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
 
-		model.X_lambda.at(i) = X_J * X_T;
+		model.X_lambda.at(i) = X_J * model.X_T.at(i);
 
 		if (lambda != 0)
 			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
@@ -358,10 +365,10 @@ void ForwardDynamicsFloatingBase (
 		unsigned int lambda = model.lambda.at(i);
 
 		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
-		SpatialMatrix X_T (joint.mJointTransform);
-//		LOG << "X_T (" << i << "):" << std::endl << X_T << std::endl;
+//		SpatialMatrix X_T (joint.mJointTransform);
+//		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
 
-		model.X_lambda.at(i) = X_J * X_T;
+		model.X_lambda.at(i) = X_J * model.X_T.at(i);
 
 		if (lambda != 0) 
 			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);

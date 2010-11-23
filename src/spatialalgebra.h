@@ -623,7 +623,7 @@ class SpatialMatrix {
 		 *
 		 * Each of the four 3x3 blocks is transposed.
 		 */
-		SpatialMatrix inverse() {
+		SpatialMatrix inverse() const {
 				return SpatialMatrix (
 					mData[0 * 6 + 0], mData[1 * 6 + 0], mData[2 * 6 + 0], mData[0 * 6 + 3], mData[1 * 6 + 3], mData[2 * 6 + 3],
 					mData[0 * 6 + 1], mData[1 * 6 + 1], mData[2 * 6 + 1], mData[0 * 6 + 4], mData[1 * 6 + 4], mData[2 * 6 + 4],

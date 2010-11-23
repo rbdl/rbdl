@@ -88,26 +88,16 @@ struct Body {
 /** \brief Describes a joint relative to the predecessor body */
 struct Joint {
 	Joint() :
-		mJointTransform (
-				1., 0., 0., 0., 0., 0.,
-				0., 1., 0., 0., 0., 0.,
-				0., 0., 1., 0., 0., 0.,
-				0., 0., 0., 1., 0., 0.,
-				0., 0., 0., 0., 1., 0.,
-				0., 0., 0., 0., 0., 1.
-				),
 		mJointAxis (
 				0., 0., 0.,
 				0., 0., 0.
 				),
 		mJointType (JointTypeUndefined) {};
 	Joint (const Joint &joint) :
-		mJointTransform (joint.mJointTransform),
 		mJointAxis (joint.mJointAxis),
 		mJointType (joint.mJointType) {};
 	Joint& operator= (const Joint &joint) {
 		if (this != &joint) {
-			mJointTransform = joint.mJointTransform;
 			mJointAxis = joint.mJointAxis;
 			mJointType = joint.mJointType;
 		}
@@ -125,8 +115,7 @@ struct Joint {
 	 */
 	Joint (
 			const JointType joint_type,
-			const Vector3d &joint_axis,
-			const Vector3d &parent_translation
+			const Vector3d &joint_axis
 			) {
 		// Some assertions, as we concentrate on simple cases
 
@@ -140,7 +129,6 @@ struct Joint {
 					|| joint_axis == Vector3d (0., 1., 0.)
 					|| joint_axis == Vector3d (0., 0., 1.));
 
-			mJointTransform = Xtrans(parent_translation * -1.);
 			mJointAxis.set (
 					joint_axis[0],
 					joint_axis[1], 
@@ -149,7 +137,6 @@ struct Joint {
 					);
 
 		} else if (joint_type == JointTypeFixed) {
-			mJointTransform = Xtrans(parent_translation * -1.);
 			mJointAxis.set (
 					joint_axis[0],
 					joint_axis[1], 
@@ -160,8 +147,6 @@ struct Joint {
 		}
 	}
 
-	/// \brief The transformation from the parents origin to the joint center (fixed in the parents frame!)
-	SpatialMatrix mJointTransform;
 	/// \brief The spatial axis of the joint
 	SpatialVector mJointAxis;
 	/// \brief Type of joint (rotational or prismatic)
@@ -232,6 +217,8 @@ struct Model {
 	std::vector<Joint> mJoints;
 	/// \brief The joint axis for joint i
 	std::vector<SpatialVector> S;
+	/// \brief Transformations from the parent body to the frame of the joint
+	std::vector<SpatialMatrix> X_T;
 
 	////////////////////////////////////
 	// Dynamics variables
@@ -270,14 +257,17 @@ struct Model {
 	void Init ();
 	/** \brief Connects a given body to the model
 	 *
-	 * \param parent_id id of the parend body
-	 * \param joint     specification for the joint that describes the connection
-	 * \param body      specification of the body itself
+	 * \param parent_id   id of the parend body
+	 * \param joint_frame the transformation from the parent frame to the origin
+	 *                    of the joint frame (represents X_T in RBDA)
+	 * \param joint       specification for the joint that describes the connection
+	 * \param body        specification of the body itself
 	 *
 	 * \returns id of the added body
 	 */
 	unsigned int AddBody (
 			const unsigned int parent_id,
+			const SpatialMatrix &joint_frame,
 			const Joint &joint,
 			const Body &body
 			);

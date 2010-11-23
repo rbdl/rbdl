@@ -54,12 +54,11 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	Body body;
 	Joint joint (
 			JointTypeRevolute,
-			Vector3d(0., 0., 1.),
-			Vector3d(0., 0., 0.)
+			Vector3d(0., 0., 1.)
 			);
 
 	unsigned int body_id = 0;
-	body_id = model->AddBody(0, joint, body); 
+	body_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
 	CHECK_EQUAL (1, body_id);
 	CHECK_EQUAL (2, model->lambda.size());
@@ -93,24 +92,13 @@ TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
 	Body body;
 	Joint joint (
 		JointTypeRevolute,
-		Vector3d(0., 0., 1.),
-		Vector3d(3., 7., 4.)
+		Vector3d(0., 0., 1.)
 		);
 
-	model->AddBody(0, joint, body); 
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
 	SpatialVector spatial_joint_axis(0., 0., 1., 0., 0., 0.);
 	CHECK_EQUAL (spatial_joint_axis, joint.mJointAxis);
-
-	SpatialMatrix joint_transform(
-			1.,  0.,  0.,  0.,  0.,  0.,
-			0.,  1.,  0.,  0.,  0.,  0.,
-			0.,  0.,  1.,  0.,  0.,  0.,
-			0.,  4., -7.,  1.,  0.,  0.,
-		 -4.,  0.,  3.,  0.,  1.,  0.,
-			7., -3.,  0.,  0.,  0.,  1.
-			);
-	CHECK_EQUAL (joint_transform, joint.mJointTransform);
 
 	// \Todo: Dynamic properties
 }
@@ -119,11 +107,10 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	Body body;
 	Joint joint (
 		JointTypeRevolute,
-		Vector3d(0., 0., 1.),
-		Vector3d(1., 0., 0.)
+		Vector3d(0., 0., 1.)
 		);
 
-	model->AddBody(0, joint, body);
+	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint, body);
 
 	SpatialMatrix X_j;
 	SpatialVector S;
@@ -171,19 +158,17 @@ TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
 	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
 	Body endeffector (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint fixed_joint (
 			JointTypeFixed,
-			Vector3d (0., 0., 0.),
-			Vector3d (1., 0., 0.)
+			Vector3d (0., 0., 0.)
 			);
 
-	model->AddBody(0, joint, body);
-	model->AddBody(1, fixed_joint, endeffector);
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), fixed_joint, endeffector);
 
 	std::vector<double> Q;
 	std::vector<double> QDot;
@@ -216,11 +201,10 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSingleChain) {
 	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(0, joint, body);
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
 
 	std::vector<double> Q;
 	std::vector<double> QDot;
@@ -251,20 +235,18 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain) {
 	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_a (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(0, joint_a, body_a);
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
 	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_b (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (1., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(1, joint_b, body_b);
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 	std::vector<double> Q;
 	std::vector<double> QDot;
@@ -305,29 +287,26 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTripleChain) {
 	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_a (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(0, joint_a, body_a);
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
 	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_b (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (1., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(1, joint_b, body_b);
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 	Body body_c (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_c (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (1., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(2, joint_c, body_c);
+	model->AddBody(2, Xtrans(Vector3d(1., 0., 0.)), joint_c, body_c);
 
 	std::vector<double> Q;
 	std::vector<double> QDot;
@@ -374,20 +353,18 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain3D) {
 	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_a (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(0, joint_a, body_a);
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
 	Body body_b (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 	Joint joint_b (
 			JointTypeRevolute,
-			Vector3d (0., 1., 0.),
-			Vector3d (1., 0., 0.)
+			Vector3d (0., 1., 0.)
 			);
 
-	model->AddBody(1, joint_b, body_b);
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 	std::vector<double> Q;
 	std::vector<double> QDot;
@@ -428,47 +405,42 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSimpleTree3D) {
 	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_a (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(0, joint_a, body_a);
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
 	Body body_b1 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 	Joint joint_b1 (
 			JointTypeRevolute,
-			Vector3d (0., 1., 0.),
-			Vector3d (1., 0., 0.)
+			Vector3d (0., 1., 0.)
 			);
 
-	model->AddBody(1, joint_b1, body_b1);
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b1, body_b1);
 
 	Body body_c1 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
 	Joint joint_c1 (
 			JointTypeRevolute,
-			Vector3d (1., 0., 0.),
-			Vector3d (0., 1., 0.)
+			Vector3d (1., 0., 0.)
 			);
 
-	model->AddBody(2, joint_c1, body_c1);
+	model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c1, body_c1);
 
 	Body body_b2 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 	Joint joint_b2 (
 			JointTypeRevolute,
-			Vector3d (0., 1., 0.),
-			Vector3d (-0.5, 0., 0.)
+			Vector3d (0., 1., 0.)
 			);
 
-	model->AddBody(1, joint_b2, body_b2);
+	model->AddBody(1, Xtrans(Vector3d(-0.5, 0., 0.)), joint_b2, body_b2);
 
 	Body body_c2 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
 	Joint joint_c2 (
 			JointTypeRevolute,
-			Vector3d (1., 0., 0.),
-			Vector3d (0., -0.5, 0.)
+			Vector3d (1., 0., 0.)
 			);
 
-	model->AddBody(4, joint_c2, body_c2);
+	model->AddBody(4, Xtrans(Vector3d(0., -0.5, 0.)), joint_c2, body_c2);
 
 	std::vector<double> Q;
 	std::vector<double> QDot;
@@ -598,11 +570,10 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseDouble) {
 	Body body_a (1., Vector3d (1., 0., 0), Vector3d (1., 1., 1.));
 	Joint joint_a (
 			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (2., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(0, joint_a, body_a);
+	model->AddBody(0, Xtrans(Vector3d(2., 0., 0.)), joint_a, body_a);
 
 	std::vector<double> Q (1, 0.);
 	std::vector<double> QDot (1, 0.);
@@ -702,53 +673,49 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 	Body body_2 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 	Joint joint_2 (
 			JointTypeRevolute,
-			Vector3d (0., 1., 0.),
-			Vector3d (1., 0., 0.)
+			Vector3d (0., 1., 0.)
 			);
 	unsigned int body_2_id;
 
 	Body body_3 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
 	Joint joint_3 (
 			JointTypeRevolute,
-			Vector3d (1., 0., 0.),
-			Vector3d (0., 1., 0.)
+			Vector3d (1., 0., 0.)
 			);
 	unsigned int body_3_id;
 
 	Body body_4 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 	Joint joint_4 (
 			JointTypeRevolute,
-			Vector3d (0., 1., 0.),
-			Vector3d (-0.5, 0., 0.)
+			Vector3d (0., 1., 0.)
 			);
 	unsigned int body_4_id;
 
 	Body body_5 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
 	Joint joint_5 (
 			JointTypeRevolute,
-			Vector3d (1., 0., 0.),
-			Vector3d (0., -0.5, 0.)
+			Vector3d (1., 0., 0.)
 			);
 	unsigned int body_5_id;
 
 	if (remaining_bodies > 0) {
 		remaining_bodies --;
-		body_2_id = model->AddBody(0, joint_2, body_2);
+		body_2_id = model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_2, body_2);
 	}
 
 	if (remaining_bodies > 0) {
 		remaining_bodies --;
-		body_3_id = model->AddBody(body_2_id, joint_3, body_3);
+		body_3_id = model->AddBody(body_2_id, Xtrans(Vector3d(0., 1., 0.)), joint_3, body_3);
 	}
 
 	if (remaining_bodies > 0) {
 		remaining_bodies --;
-		body_4_id = model->AddBody(0, joint_4, body_4);
+		body_4_id = model->AddBody(0, Xtrans(Vector3d(-0.5, 0., 0.)), joint_4, body_4);
 	}
 
 	if (remaining_bodies > 0) {
 		remaining_bodies--;
-		body_5_id = model->AddBody(body_4_id, joint_5, body_5);
+		body_5_id = model->AddBody(body_4_id, Xtrans(Vector3d(0., -0.5, 0.)), joint_5, body_5);
 	}
 
 	// Initialization of the input vectors
@@ -830,4 +797,3 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 	CHECK_CLOSE (  2.776147518813740e+00, QDDot[3], TEST_PREC);
 
 }
-
