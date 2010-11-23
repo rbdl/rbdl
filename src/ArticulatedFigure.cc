@@ -346,7 +346,8 @@ void ForwardDynamicsFloatingBase (
 	}
 
 	// Reset the velocity of the root body
-	model.v[0].zero();
+	model.v[0] = v_B;
+	model.X_lambda[0] = X_B;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		SpatialMatrix X_J;
@@ -361,7 +362,7 @@ void ForwardDynamicsFloatingBase (
 
 		model.X_lambda.at(i) = X_J * X_T;
 
-		if (lambda != 0)
+//		if (lambda != 0) 
 			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
 
 		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;

@@ -52,12 +52,12 @@ CoM = [0 0 1];
 Icm = diag([1 1 1]);
 model.I{5} = mcI(mass, CoM, Icm);
 
-floatmodel = floatbase(model);
+floatmodel = floatbase(model)
 
 q = zeros(nb,1);
 qd = zeros(nb,1);
 tau = zeros(nb,1);
-%tau(2) = 1
+tau(1) = 1
 %tau = [1, 1, 1, 1, 1, 1];
 %q(1) = pi * 0.5;
 %qd(1) = 10;

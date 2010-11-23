@@ -61,8 +61,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	unsigned int body_id = 0;
 	body_id = model->AddBody(0, joint, body); 
 
-	CHECK_EQUAL (1, body_id);
-
+	CHECK_EQUAL (2, body_id);
 	CHECK_EQUAL (2, model->lambda.size());
 
 	CHECK_EQUAL (2, model->q.size());
@@ -774,16 +773,22 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
 
+	ClearLogOutput();
+
 	/* with torques applied everywhere */
-	Tau[1] = 1.;
+	Tau[0] = 1.;
 	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 	a_world = X_B.inverse() * a_B;
 
-	ClearLogOutput();
 
 	for (i = 0; i < model->a.size(); i++) {
 		LOG << "a[" << i << "]     = " << model->a[i] << endl;
 	}
+
+	for (i = 0; i < 6; i++) {
+		LOG << "a_world[" << i << "]     = " << a_world[i] << endl;
+	}
+
 
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
@@ -804,7 +809,6 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
 */	
 }
-
 
 /*
 TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseTriple) {
