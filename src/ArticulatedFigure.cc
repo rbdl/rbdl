@@ -87,7 +87,7 @@ unsigned int Model::AddBody (const unsigned int parent_id, const Joint &joint, c
 	mBodies.push_back(body);
 	mBodyOrientation.push_back(Matrix3dIdentity);
 
-	return q.size();
+	return q.size() - 1;
 }
 
 void Model::SetFloatingBody (const Body &body) {
@@ -221,11 +221,11 @@ void ForwardDynamics (
 		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
 		*/
 
-		model.c.at(i) = c_J + model.v.at(i).cross() * v_J;
+		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
 
 		// todo: external forces are ignored so far:
-		model.pA.at(i) = model.v.at(i).cross().transpose() * model.IA.at(i) * model.v.at(i);
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i);
 	}
 
 // ClearLogOutput();
@@ -348,6 +348,7 @@ void ForwardDynamicsFloatingBase (
 	// Reset the velocity of the root body
 	model.v[0] = v_B;
 	model.X_lambda[0] = X_B;
+	model.X_base[0] = X_B;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		SpatialMatrix X_J;
@@ -358,11 +359,11 @@ void ForwardDynamicsFloatingBase (
 
 		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
 		SpatialMatrix X_T (joint.mJointTransform);
-		LOG << "X_T (" << i << "):" << std::endl << X_T << std::endl;
+//		LOG << "X_T (" << i << "):" << std::endl << X_T << std::endl;
 
 		model.X_lambda.at(i) = X_J * X_T;
 
-//		if (lambda != 0) 
+		if (lambda != 0) 
 			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
 
 		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
@@ -376,17 +377,17 @@ void ForwardDynamicsFloatingBase (
 		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
 		*/
 
-		model.c.at(i) = c_J + model.v.at(i).cross() * v_J;
+		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
 
 		// todo: external forces are ignored so far:
-		model.pA.at(i) = model.v.at(i).cross().transpose() * model.IA.at(i) * model.v.at(i);
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i);
 	}
 
 // ClearLogOutput();
 
 	model.IA[0] = model.mBodies[0].mSpatialInertia;
-	model.pA[0] = v_B.cross().conjugate() * model.IA[0] * v_B - f_B;
+	model.pA[0] = v_B.crossf() * model.IA[0] * v_B - f_B;
 
 	LOG << "--- first loop ---" << std::endl;
 

@@ -130,13 +130,13 @@ TEST(TestSpatialVectorCross) {
 			-5.,  4.,  0., -2.,  1.,  0.
 			);
 
-	SpatialMatrix s_vec_cross (s_vec.cross());
+	SpatialMatrix s_vec_cross (s_vec.crossm());
 	CHECK_EQUAL (test_cross, s_vec_cross);
 
-	SpatialMatrix s_vec_cross_conj (s_vec_cross.conjugate());
-	SpatialMatrix test_conj = -1. * s_vec.cross().transpose();
+	SpatialMatrix s_vec_crossf (s_vec.crossf());
+	SpatialMatrix test_crossf = -1. * s_vec.crossm().transpose();
 
-	CHECK_EQUAL (test_conj, s_vec_cross_conj);
+	CHECK_EQUAL (test_crossf, s_vec_crossf);
 }
 
 TEST(TestSpatialLinSolve) {

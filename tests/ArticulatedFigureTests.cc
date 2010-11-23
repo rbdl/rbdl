@@ -61,7 +61,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	unsigned int body_id = 0;
 	body_id = model->AddBody(0, joint, body); 
 
-	CHECK_EQUAL (2, body_id);
+	CHECK_EQUAL (1, body_id);
 	CHECK_EQUAL (2, model->lambda.size());
 
 	CHECK_EQUAL (2, model->q.size());
@@ -692,9 +692,12 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseDouble) {
 }
 
 TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
-	Body base (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	int number_of_bodies = 5;
+	int remaining_bodies = number_of_bodies;
 
+	Body base (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	model->SetFloatingBody(base);
+	remaining_bodies --;
 
 	Body body_2 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 	Joint joint_2 (
@@ -702,8 +705,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 			Vector3d (0., 1., 0.),
 			Vector3d (1., 0., 0.)
 			);
-
-	unsigned int body_2_id = model->AddBody(0, joint_2, body_2);
+	unsigned int body_2_id;
 
 	Body body_3 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
 	Joint joint_3 (
@@ -711,8 +713,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 			Vector3d (1., 0., 0.),
 			Vector3d (0., 1., 0.)
 			);
-
-	unsigned int body_3_id = model->AddBody(body_2_id, joint_3, body_3);
+	unsigned int body_3_id;
 
 	Body body_4 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 	Joint joint_4 (
@@ -720,8 +721,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 			Vector3d (0., 1., 0.),
 			Vector3d (-0.5, 0., 0.)
 			);
-
-	unsigned int body_4_id = model->AddBody(0, joint_4, body_4);
+	unsigned int body_4_id;
 
 	Body body_5 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
 	Joint joint_5 (
@@ -729,14 +729,33 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 			Vector3d (1., 0., 0.),
 			Vector3d (0., -0.5, 0.)
 			);
+	unsigned int body_5_id;
 
-	unsigned int body_5_id = model->AddBody(body_4_id, joint_5, body_5);
+	if (remaining_bodies > 0) {
+		remaining_bodies --;
+		body_2_id = model->AddBody(0, joint_2, body_2);
+	}
+
+	if (remaining_bodies > 0) {
+		remaining_bodies --;
+		body_3_id = model->AddBody(body_2_id, joint_3, body_3);
+	}
+
+	if (remaining_bodies > 0) {
+		remaining_bodies --;
+		body_4_id = model->AddBody(0, joint_4, body_4);
+	}
+
+	if (remaining_bodies > 0) {
+		remaining_bodies--;
+		body_5_id = model->AddBody(body_4_id, joint_5, body_5);
+	}
 
 	// Initialization of the input vectors
-	std::vector<double> Q (4, 0.);
-	std::vector<double> QDot (4, 0.);
-	std::vector<double> QDDot (4, 0.);
-	std::vector<double> Tau (4, 0.);
+	std::vector<double> Q (number_of_bodies - 1, 0.);
+	std::vector<double> QDot (number_of_bodies - 1, 0.);
+	std::vector<double> QDDot (number_of_bodies - 1, 0.);
+	std::vector<double> Tau (number_of_bodies - 1, 0.);
 
 	// Initializing of the base frame and its velocity, etc.
 	Vector3d pos_B(0., 0., 0.);
@@ -747,6 +766,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 	SpatialVector f_B(0., 0., 0., 0., 0., 0.);
 	SpatialVector a_B(0., 0., 0., 0., 0., 0.);
 	SpatialVector a_world (0., 0., 0., 0., 0., 0.);
+
 
 	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 	a_world = X_B.inverse() * a_B;
@@ -776,10 +796,11 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 	ClearLogOutput();
 
 	/* with torques applied everywhere */
-	Tau[0] = 1.;
+	v_B = SpatialVector (1., 1., 1., 1., 1., 1.);
+	a_B.zero();
+	Tau = std::vector<double> (number_of_bodies - 1, 1.);
 	ForwardDynamicsFloatingBase(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 	a_world = X_B.inverse() * a_B;
-
 
 	for (i = 0; i < model->a.size(); i++) {
 		LOG << "a[" << i << "]     = " << model->a[i] << endl;
@@ -794,109 +815,19 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTree3DFloat) {
 		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
-	cout << LogOutput.str() << endl;
-/*
-	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, a_world[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
+	// cout << LogOutput.str() << endl;
 
-	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-*/	
+	CHECK_CLOSE ( -1.100348432055749e+00, a_world[0], TEST_PREC);
+	CHECK_CLOSE (  3.310104529616725e-01, a_world[1], TEST_PREC);
+	CHECK_CLOSE ( -1.750380517503806e-01, a_world[2], TEST_PREC);
+	CHECK_CLOSE ( -2.480974124809741e-01, a_world[3], TEST_PREC);
+	CHECK_CLOSE ( -9.045920852359210e+00, a_world[4], TEST_PREC);
+	CHECK_CLOSE (  5.825783972125437e-01, a_world[5], TEST_PREC);
+
+	CHECK_CLOSE (  2.667600061519204e-02, QDDot[0], TEST_PREC);
+	CHECK_CLOSE (  1.894868980000955e+00, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( -3.858049735096177e-01, QDDot[2], TEST_PREC);
+	CHECK_CLOSE (  2.776147518813740e+00, QDDot[3], TEST_PREC);
+
 }
 
-/*
-TEST_FIXTURE(ModelFixture, TestCalcDynamicFloatingBaseTriple) {
-	model->floating_base = true;
-
-	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (0., 0., 0.)
-			);
-
-	model->AddBody(0, joint, body);
-
-	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint joint_b (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (1., 0., 0.)
-			);
-
-	model->AddBody(1, joint_b, body_b);
-
-	Body body_c (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint joint_c (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.),
-			Vector3d (1., 0., 0.)
-			);
-
-	model->AddBody(2, joint_c, body_c);
-
-	// Initialization of the input vectors
-	std::vector<double> Q (6 + 2, 0.);
-	std::vector<double> QDot (6 + 2, 0.);
-	std::vector<double> QDDot (6 + 2, 0.);
-	std::vector<double> Tau (6 + 2, 0.);
-
-	ClearLogOutput();
-
-	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
-
-	int i;
-	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
-	}
-
-	for (i = 0; i < model->a.size(); i++) {
-		LOG << "a[" << i << "]     = " << model->a[i] << endl;
-	}
-
-	std::cout << LogOutput.str() << std::endl;
-
-	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, QDDot[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[7], TEST_PREC);
-
-	// Some values for Tau
-	ClearLogOutput();
-
-	Tau[5] = 1.;
-	Tau[6] = 2.;
-	Tau[7] = 3.;
-
-	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
-
-	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
-	}
-
-	for (i = 0; i < model->a.size(); i++) {
-		LOG << "a[" << i << "]     = " << model->a[i] << endl;
-	}
-
-	std::cout << LogOutput.str() << std::endl;
-
-	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, QDDot[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[7], TEST_PREC);
-}
-*/

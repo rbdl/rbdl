@@ -37,6 +37,8 @@ model.NB
 NBR = model.NB - 6;			% NB & parent array for Rest of model
 parentR = model.parent(7:model.NB) - 6
 
+disp(" --- first loop ---");
+
 for i = 1:NBR
   [ XJ, S{i} ] = jcalc( model.pitch(i+6), q(i), model.jaxis{i+6} );
   vJ = S{i}*qd(i);
@@ -54,34 +56,39 @@ for i = 1:NBR
   end
 end
 
-IAfb = model.I{6}
-pAfb = crf(vfb) * IAfb * vfb
-
-% IA
-% pA
-
 if external_force && length(f_ext{6}) > 0
   pAfb = pAfb - f_ext{6};
 end
+
+IAfb = model.I{6}
+pAfb = crf(vfb) * IAfb * vfb
+
+disp("v = ");
+disp(v);
+
+disp("IAfb = ");
+disp(IAfb);
+disp("IA = ");
+disp (IA);
+
+disp ("pAfb = ");
+disp (pAfb);
+disp("pA = ");
+disp (pA);
+
+disp("S = ");
+disp (S);
+% IA
+% pA
 
 disp ("---- second loop ----");
 for i = NBR:-1:1
   U{i} = IA{i} * S{i};
   d{i} = S{i}' * U{i};
   u{i} = tau(i) - S{i}'*pA{i};
-	trau = tau(i) 
 
   Ia = IA{i} - U{i}/d{i}*U{i}';
   pa = pA{i} + Ia*c{i} + U{i} * u{i}/d{i};
-
-	U
-	d
-	u
-	Ia
-	pa
-
-	i
-	parentR(i)
 
   if parentR(i) == 0
     IAfb = IAfb + Xup{i}' * Ia * Xup{i};
@@ -94,6 +101,15 @@ end
 
 afb = - IAfb \ pAfb;			% floating base accn without gravity
 
+disp("U =");
+disp(U);
+disp("d =");
+disp(d);
+disp("u =");
+disp(u);
+
+disp(" --- third loop ---");
+
 for i = 1:NBR
   if parentR(i) == 0
     a{i} = Xup{i} * afb + c{i};
@@ -103,5 +119,15 @@ for i = 1:NBR
   qdd(i,1) = (u{i} - U{i}'*a{i})/d{i};
   a{i} = a{i} + S{i}*qdd(i);
 end
+
+disp("a = ");
+a
+
+disp("Xup = ");
+Xup
+
+disp("v = ");
+v
+
 accel = qdd
 afb = Xfb \ afb + a_grav;		% true flt base accn in ref coords
