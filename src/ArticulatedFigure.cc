@@ -208,6 +208,8 @@ void ForwardDynamics (
 
 		if (lambda != 0)
 			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+		else
+			model.X_base.at(i) = model.X_lambda.at(i);
 
 		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
 
@@ -470,3 +472,196 @@ void ForwardDynamicsFloatingBase (
 
 	a_B = model.a[0];
 }
+
+void CalcPointVelocity (
+		Model &model,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &Tau,
+		std::vector<double> &QDDot,
+		unsigned int body_id,
+		const Vector3d &point_position,
+		Vector3d &point_velocity
+	) {
+	if (model.floating_base) {
+		// in this case the appropriate function has to be called, see
+		// ForwardDynamicsFloatingBase
+		assert (0);
+
+		// ForwardDynamicsFloatingBase(model, Q, QDot, Tau, QDDot);
+		return;
+	}
+
+	SpatialVector result;
+	result.zero();
+	SpatialVector gravity (0., 0., 0., 0., -9.81, 0.);
+
+	unsigned int i;
+	
+	// Copy state values from the input to the variables in model
+	assert (model.q.size() == Q.size() + 1);
+	assert (model.qdot.size() == QDot.size() + 1);
+	assert (model.qddot.size() == QDDot.size() + 1);
+	assert (model.tau.size() == Tau.size() + 1);
+
+	for (i = 0; i < Q.size(); i++) {
+		model.q.at(i+1) = Q.at(i);
+		model.qdot.at(i+1) = QDot.at(i);
+		model.qddot.at(i+1) = QDDot.at(i);
+		model.tau.at(i+1) = Tau.at(i);
+	}
+
+	// Reset the velocity of the root body
+	model.v[0].zero();
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		SpatialMatrix X_J;
+		SpatialVector v_J;
+		SpatialVector c_J;
+		Joint joint = model.mJoints.at(i);
+		unsigned int lambda = model.lambda.at(i);
+
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
+//		SpatialMatrix X_T (joint.mJointTransform);
+		LOG << "q(" << i << "):" << model.q.at(i) << std::endl;
+
+		model.X_lambda.at(i) = X_J * model.X_T.at(i);
+
+		if (lambda != 0)
+			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+		else
+			model.X_base.at(i) = model.X_lambda.at(i);
+
+		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
+		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
+		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
+
+		/*
+		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
+		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
+		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
+		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
+		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda.at(i) << std::endl;
+		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
+		*/
+
+		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
+		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
+
+		// todo: external forces are ignored so far:
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i);
+	}
+
+// ClearLogOutput();
+
+	LOG << "--- first loop ---" << std::endl;
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "Xup[" << i << "] = " << model.X_lambda[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "v[" << i << "]   = " << model.v[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
+	}
+
+	LOG << std::endl;
+
+	for (i = model.mBodies.size() - 1; i > 0; i--) {
+		model.U[i] = model.IA[i] * model.S[i];
+		model.d[i] = model.S[i] * model.U[i];
+		model.u[i] = model.tau[i] - model.S[i] * model.pA[i];
+
+		if (model.d[i] == 0. ) {
+			std::cerr << "Warning d[i] == 0.!" << std::endl;
+			continue;
+		}
+
+		unsigned int lambda = model.lambda.at(i);
+		if (lambda != 0) {
+			SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
+			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
+
+			SpatialMatrix X_lambda = model.X_lambda[i];
+			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
+			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
+		}
+	}
+
+//	ClearLogOutput();
+
+	LOG << "--- second loop ---" << std::endl;
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "U[" << i << "]   = " << model.U[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "d[" << i << "]   = " << model.d[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "u[" << i << "]   = " << model.u[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
+	}
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int lambda = model.lambda[i];
+		SpatialMatrix X_lambda = model.X_lambda[i];
+
+		if (lambda == 0)
+			model.a[i] = X_lambda * gravity * (-1.) + model.c[i];
+		else {
+			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
+		}
+
+		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * model.a[i]);
+		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		QDDot[i - 1] = model.qddot[i];
+	}
+
+	SpatialVector body_velocity (model.v[body_id]);
+	Vector3d body_rot_velocity (body_velocity[0], body_velocity[1], body_velocity[2]);
+	Vector3d body_lin_velocity (body_velocity[3], body_velocity[4], body_velocity[5]);
+
+	SpatialMatrix X_body (model.X_base[body_id]);
+	Matrix3d body_rotation (
+			model.X_base[body_id](0,0), model.X_base[body_id](0,1), model.X_base[body_id](0,2), 
+			model.X_base[body_id](1,0), model.X_base[body_id](1,1), model.X_base[body_id](1,2), 
+			model.X_base[body_id](2,0), model.X_base[body_id](2,1), model.X_base[body_id](2,2)
+			);
+	Vector3d body_translation (
+			- model.X_base[body_id](4, 2),
+			  model.X_base[body_id](3, 2),
+			- model.X_base[body_id](3, 1)
+			);
+	LOG << "body_transf  = " << model.X_base[body_id] << std::endl;
+	LOG << "body_rotation= " << std::endl << body_rotation << std::endl;
+	LOG << "body_tranlat = " << body_translation << std::endl;
+	LOG << "body_rot_vel = " << body_rot_velocity << std::endl;
+	LOG << "body_lin_vel = " << body_lin_velocity << std::endl;
+
+	Vector3d point_abs_pos = -body_translation + body_rotation.transpose() * point_position;
+	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
+	point_velocity = body_lin_velocity + cross (body_rot_velocity, point_abs_pos);
+
+	LOG << "point_vel    = " << point_velocity << std::endl;
+}
+
+
