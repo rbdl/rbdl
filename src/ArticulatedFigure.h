@@ -7,14 +7,24 @@
 #include <iostream>
 #include "Logging.h"
 
+/** \brief General types of joints
+ *
+ * \todo add prismatic joints
+ * \todo add proper fixed joint handling
+ */
 enum JointType {
 	JointTypeUndefined = 0,
 	JointTypeFixed,
-	JointTypeRevolute,
-	JointTypePrismatic
+	JointTypeRevolute
 };
 
-/** \brief Describes all properties of a single body */
+/** \brief Describes all properties of a single body 
+ *
+ * A Body contains information about mass, the location of its center of mass,
+ * and the ineria tensor in the center of mass. This class is used to use the
+ * given information and transform it such that it can directly be used by the
+ * spatial algebra.
+ */
 struct Body {
 	Body() :
 		mSpatialInertia (
@@ -80,12 +90,19 @@ struct Body {
 
 	~Body() {};
 
+	/// \brief The spatial inertia that contains both mass and inertia information
 	SpatialMatrix mSpatialInertia;
+	/// \brief The position of the center of mass in body coordinates
 	Vector3d mCenterOfMass;
+	/// \brief The mass of the body
 	double mMass;
 };
 
-/** \brief Describes a joint relative to the predecessor body */
+/** \brief Describes a joint relative to the predecessor body 
+ *
+ * This class contains all information required for one single joint. This
+ * contains the joint type and the axis of the joint.
+ */
 struct Joint {
 	Joint() :
 		mJointAxis (
@@ -111,7 +128,6 @@ struct Joint {
 	 *
 	 * \param joint_type whether the joint is revolute or prismatic
 	 * \param joint_axis the axis of rotation or translation
-	 * \param parent_translation the position of the joint center in the parent bodies coordinates.
 	 */
 	Joint (
 			const JointType joint_type,
@@ -151,6 +167,35 @@ struct Joint {
 	SpatialVector mJointAxis;
 	/// \brief Type of joint (rotational or prismatic)
 	JointType mJointType;
+};
+
+/** \brief Class that contains information for an body-environment contact
+ */
+struct Contact {
+	Contact() :
+		mBodyId (0),
+		mPoint (0., 0., 0.)
+	{}
+	Contact (const Contact &contact):
+		mBodyId(contact.mBodyId),
+		mPoint(contact.mPoint)
+	{}
+	Contact& operator= (const Contact &contact) {
+		if (this != &contact) {
+			mBodyId = contact.mBodyId;
+			mPoint = contact.mPoint;
+		}
+		return *this;
+	}
+	~Contact() {};
+
+	Contact (const unsigned int &body_id, const Vector3d &point) :
+		mBodyId(body_id),
+		mPoint(point)
+	{ }
+
+	unsigned int mBodyId;
+	Vector3d mPoint;
 };
 
 /** \brief Contains all information of the model
@@ -253,6 +298,9 @@ struct Model {
 	std::vector<Body> mBodies;
 	std::vector<Matrix3d> mBodyOrientation;
 
+	/** \brief All contacts */
+	std::vector<Contact> mContacts;
+
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 	/** \brief Connects a given body to the model
@@ -273,6 +321,10 @@ struct Model {
 			);
 	void SetFloatingBody (
 			const Body &body
+			);
+	unsigned int AddContact (
+			const unsigned int body_id,
+			const Vector3d &contact_point
 			);
 };
 

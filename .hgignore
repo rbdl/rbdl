@@ -1,5 +1,6 @@
 syntax: glob
 
+doc/*
 Debug/*
 .*.swp
 CMakeFiles/*

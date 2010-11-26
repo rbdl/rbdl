@@ -4,12 +4,14 @@
 #include <sstream>
 #include <assert.h>
 
+/** \brief Namespace for all the spatial algebra quantities
+ */
 namespace SpatialAlgebra {
 
 class SpatialVector;
 class SpatialMatrix;
 
-/** \brief Vector class
+/** \brief Vector class for spatial vectors (both motion and force vectors)
  */
 class SpatialVector {
 	public:
@@ -172,7 +174,7 @@ class SpatialVector {
 		double mData[6];
 };
 
-/** \brief Matrix class
+/** \brief Matrix class for spatial matrices (both spatial transformations and inertias)
  */
 class SpatialMatrix {
 	public:
@@ -758,6 +760,15 @@ inline SpatialMatrix SpatialVector::outer_product(const SpatialVector &vec) cons
 			);
 }
 
+/** \brief Solves a 6D linear system of equations by using elimination of variables
+ *
+ * Computes the solution x of a 6D system of linear equations of the form Ax = b.
+ *
+ * \param A Spatial matrix that describes the left hand matrix
+ * \param b Spatial vector that is the right hand side
+ *
+ * \returns solution x
+ */
 inline SpatialVector SpatialLinSolve (SpatialMatrix A, SpatialVector b) {
 	SpatialVector x(0., 0., 0., 0., 0., 0.);
 	

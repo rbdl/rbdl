@@ -6,14 +6,6 @@
 #include "ArticulatedFigure.h"
 #include "Logging.h"
 
-void ForwardDynamicsFloatingBase (
-		Model &model,
-		const std::vector<double> &Q,
-		const std::vector<double> &QDot,
-		const std::vector<double> &Tau,
-		std::vector<double> &QDDot
-		);
-
 void Model::Init() {
 	floating_base = false;
 
@@ -478,4 +470,3 @@ void ForwardDynamicsFloatingBase (
 
 	a_B = model.a[0];
 }
-
