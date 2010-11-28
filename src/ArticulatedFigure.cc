@@ -647,17 +647,18 @@ void CalcPointVelocity (
 			model.X_base[body_id](2,0), model.X_base[body_id](2,1), model.X_base[body_id](2,2)
 			);
 	Vector3d body_translation (
-			- model.X_base[body_id](4, 2),
-			  model.X_base[body_id](3, 2),
-			- model.X_base[body_id](3, 1)
+			  model.X_base[body_id](4, 2),
+			- model.X_base[body_id](3, 2),
+			  model.X_base[body_id](3, 1)
 			);
+	LOG << "body_index   = " << body_id << std::endl;
 	LOG << "body_transf  = " << model.X_base[body_id] << std::endl;
 	LOG << "body_rotation= " << std::endl << body_rotation << std::endl;
 	LOG << "body_tranlat = " << body_translation << std::endl;
 	LOG << "body_rot_vel = " << body_rot_velocity << std::endl;
 	LOG << "body_lin_vel = " << body_lin_velocity << std::endl;
 
-	Vector3d point_abs_pos = -body_translation + body_rotation.transpose() * point_position;
+	Vector3d point_abs_pos = body_translation + body_rotation.transpose() * point_position;
 	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
 	point_velocity = body_lin_velocity + cross (body_rot_velocity, point_abs_pos);
 

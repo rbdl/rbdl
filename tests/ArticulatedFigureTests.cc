@@ -876,6 +876,23 @@ TEST_FIXTURE(ModelFixture, TestCalcPointVelocity) {
 	CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
 	CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
+
+	/*
+	// rotated second joint, point at third body
+	ClearLogOutput();
+	body_id = 3;
+	Q = std::vector<double>(3, 0.);
+	QDot = std::vector<double>(3, 0.);
+	QDot[0] = 1.;
+	point_position.set(1., 0., 0.);
+	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, body_id, point_position, point_velocity);
+
+	cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
+	CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
+	CHECK_CLOSE(-2., point_velocity[2], TEST_PREC);
+	*/
 }
 
 
