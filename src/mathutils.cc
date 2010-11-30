@@ -5,6 +5,8 @@
 #include <iostream>
 #include <assert.h>
 
+using namespace SpatialAlgebra;
+
 Vector3d Vector3dZero (0., 0., 0.);
 Matrix3d Matrix3dIdentity (
 		1., 0., 0.,

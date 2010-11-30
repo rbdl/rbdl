@@ -91,7 +91,7 @@ struct Body {
 	~Body() {};
 
 	/// \brief The spatial inertia that contains both mass and inertia information
-	SpatialMatrix mSpatialInertia;
+	SpatialAlgebra::SpatialMatrix mSpatialInertia;
 	/// \brief The position of the center of mass in body coordinates
 	Vector3d mCenterOfMass;
 	/// \brief The mass of the body
@@ -164,7 +164,7 @@ struct Joint {
 	}
 
 	/// \brief The spatial axis of the joint
-	SpatialVector mJointAxis;
+	SpatialAlgebra::SpatialVector mJointAxis;
 	/// \brief Type of joint (rotational or prismatic)
 	JointType mJointType;
 };
@@ -251,9 +251,9 @@ struct Model {
 	/// \brief The force / torque applied at joint i
 	std::vector<double> tau;
 	/// \brief The spatial velocity of body i
-	std::vector<SpatialVector> v;
+	std::vector<SpatialAlgebra::SpatialVector> v;
 	/// \brief The spatial acceleration of body i
-	std::vector<SpatialVector> a;
+	std::vector<SpatialAlgebra::SpatialVector> a;
 
 	////////////////////////////////////
 	// Joints\t
@@ -261,21 +261,21 @@ struct Model {
 	/// \brief All joints
 	std::vector<Joint> mJoints;
 	/// \brief The joint axis for joint i
-	std::vector<SpatialVector> S;
+	std::vector<SpatialAlgebra::SpatialVector> S;
 	/// \brief Transformations from the parent body to the frame of the joint
-	std::vector<SpatialMatrix> X_T;
+	std::vector<SpatialAlgebra::SpatialMatrix> X_T;
 
 	////////////////////////////////////
 	// Dynamics variables
 
 	/// \brief The velocity dependent spatial acceleration
-	std::vector<SpatialVector> c;
+	std::vector<SpatialAlgebra::SpatialVector> c;
 	/// \brief The spatial inertia of body i
-	std::vector<SpatialMatrix> IA;
+	std::vector<SpatialAlgebra::SpatialMatrix> IA;
 	/// \brief The spatial bias force
-	std::vector<SpatialVector> pA;
+	std::vector<SpatialAlgebra::SpatialVector> pA;
 	/// \brief Temporary variable U_i (RBDA p. 130)
-	std::vector<SpatialVector> U;
+	std::vector<SpatialAlgebra::SpatialVector> U;
 	/// \brief Temporary variable D_i (RBDA p. 130)
 	std::vector<double> d;
 	/// \brief Temporary variable u (RBDA p. 130)
@@ -285,9 +285,9 @@ struct Model {
 	// Bodies
 
 	/// \brief Transformation from the parent body to the current body
-	std::vector<SpatialMatrix> X_lambda;
+	std::vector<SpatialAlgebra::SpatialMatrix> X_lambda;
 	/// \brief Transformation from the base to bodies reference frame
-	std::vector<SpatialMatrix> X_base;
+	std::vector<SpatialAlgebra::SpatialMatrix> X_base;
 
 	/** \brief All bodies 0 ... N_B, including the base
 	 * mBodies[0] - base body
@@ -315,7 +315,7 @@ struct Model {
 	 */
 	unsigned int AddBody (
 			const unsigned int parent_id,
-			const SpatialMatrix &joint_frame,
+			const SpatialAlgebra::SpatialMatrix &joint_frame,
 			const Joint &joint,
 			const Body &body
 			);
@@ -342,10 +342,10 @@ struct Model {
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
-		SpatialMatrix &XJ,
-		SpatialVector &S,
-		SpatialVector &v_J,
-		SpatialVector &c_J,
+		SpatialAlgebra::SpatialMatrix &XJ,
+		SpatialAlgebra::SpatialVector &S,
+		SpatialAlgebra::SpatialVector &v_J,
+		SpatialAlgebra::SpatialVector &c_J,
 		const double &q,
 		const double &qdot
 		);
@@ -383,10 +383,10 @@ void ForwardDynamicsFloatingBase (
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
 		const std::vector<double> &Tau,
-		const SpatialMatrix &X_B,
-		const SpatialVector &v_B,
-		const SpatialVector &f_B,
-		SpatialVector &a_B,
+		const SpatialAlgebra::SpatialMatrix &X_B,
+		const SpatialAlgebra::SpatialVector &v_B,
+		const SpatialAlgebra::SpatialVector &f_B,
+		SpatialAlgebra::SpatialVector &a_B,
 		std::vector<double> &QDDot
 		);
 

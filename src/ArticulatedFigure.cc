@@ -6,6 +6,8 @@
 #include "ArticulatedFigure.h"
 #include "Logging.h"
 
+using namespace SpatialAlgebra;
+
 void Model::Init() {
 	floating_base = false;
 
@@ -152,7 +154,7 @@ void jcalc (
 		assert (0);
 	}
 
-	v_J *= qdot;
+	v_J = S * qdot;
 }
 
 void ForwardDynamics (
@@ -514,6 +516,9 @@ void CalcPointVelocity (
 	// Reset the velocity of the root body
 	model.v[0].zero();
 
+	// this will contain the global velocities of the bodies
+	std::vector<SpatialVector> global_velocities (model.mBodies.size() + 1, SpatialVector(0., 0., 0., 0., 0., 0.));
+
 	for (i = 1; i < model.mBodies.size(); i++) {
 		SpatialMatrix X_J;
 		SpatialVector v_J;
@@ -532,9 +537,12 @@ void CalcPointVelocity (
 		else
 			model.X_base.at(i) = model.X_lambda.at(i);
 
-		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
-		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
+		LOG << "X_J (" << i << "):" << X_J << std::endl;
+		LOG << "v_J (" << i << "):" << v_J << std::endl;
+		LOG << "X_base (" << i << "):" << model.X_base.at(i) << std::endl;
 		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
+		global_velocities.at(i) = global_velocities.at(lambda) + model.X_base.at(i).inverse() * v_J;
+		LOG << "^0v (" << i << "): " << global_velocities.at(i) << std::endl;
 
 		/*
 		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
@@ -574,69 +582,8 @@ void CalcPointVelocity (
 
 	LOG << std::endl;
 
-	for (i = model.mBodies.size() - 1; i > 0; i--) {
-		model.U[i] = model.IA[i] * model.S[i];
-		model.d[i] = model.S[i] * model.U[i];
-		model.u[i] = model.tau[i] - model.S[i] * model.pA[i];
-
-		if (model.d[i] == 0. ) {
-			std::cerr << "Warning d[i] == 0.!" << std::endl;
-			continue;
-		}
-
-		unsigned int lambda = model.lambda.at(i);
-		if (lambda != 0) {
-			SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
-			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
-
-			SpatialMatrix X_lambda = model.X_lambda[i];
-			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
-			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
-		}
-	}
-
-//	ClearLogOutput();
-
-	LOG << "--- second loop ---" << std::endl;
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "U[" << i << "]   = " << model.U[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "d[" << i << "]   = " << model.d[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "u[" << i << "]   = " << model.u[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
-	}
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		unsigned int lambda = model.lambda[i];
-		SpatialMatrix X_lambda = model.X_lambda[i];
-
-		if (lambda == 0)
-			model.a[i] = X_lambda * gravity * (-1.) + model.c[i];
-		else {
-			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
-		}
-
-		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * model.a[i]);
-		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		QDDot[i - 1] = model.qddot[i];
-	}
-
 	SpatialVector body_velocity (model.v[body_id]);
+	body_velocity = global_velocities.at(body_id);
 	Vector3d body_rot_velocity (body_velocity[0], body_velocity[1], body_velocity[2]);
 	Vector3d body_lin_velocity (body_velocity[3], body_velocity[4], body_velocity[5]);
 
@@ -651,7 +598,12 @@ void CalcPointVelocity (
 			- model.X_base[body_id](3, 2),
 			  model.X_base[body_id](3, 1)
 			);
+
+	body_rotation = model.X_base[body_id].get_rotation();
+	body_translation = -model.X_base[body_id].get_translation();
+
 	LOG << "body_index   = " << body_id << std::endl;
+	LOG << "global_velo  = " << global_velocities.at(body_id) << std::endl;
 	LOG << "body_transf  = " << model.X_base[body_id] << std::endl;
 	LOG << "body_rotation= " << std::endl << body_rotation << std::endl;
 	LOG << "body_tranlat = " << body_translation << std::endl;

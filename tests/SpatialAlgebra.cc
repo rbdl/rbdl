@@ -118,6 +118,44 @@ TEST(TestSpatialMatrixInverse) {
 	CHECK_EQUAL (test_inv, s_matrix.inverse());
 }
 
+TEST(TestSpatialMatrixGetRotation) {
+	SpatialMatrix spatial_transform (
+			 1.,  2.,  3.,  0.,  0.,  0.,
+			 4.,  5.,  6.,  0.,  0.,  0.,
+			 7.,  8.,  9.,  0.,  0.,  0.,
+			 0.,  0.,  0.,  0.,  0.,  0.,
+			 0.,  0.,  0.,  0.,  0.,  0.,
+			 0.,  0.,  0.,  0.,  0.,  0.
+			);
+
+	Matrix3d rotation = spatial_transform.get_rotation();
+	Matrix3d test_result (
+			1., 2., 3.,
+			4., 5., 6.,
+			7., 8., 9.
+			);
+
+	CHECK_EQUAL( test_result, rotation);
+}
+
+TEST(TestSpatialMatrixGetTranslation) {
+	SpatialMatrix spatial_transform (
+			 0.,  0.,  0.,  0.,  0.,  0.,
+			 0.,  0.,  0.,  0.,  0.,  0.,
+			 0.,  0.,  0.,  0.,  0.,  0.,
+			 0., -3.,  2.,  0.,  0.,  0.,
+			 0.,  0., -1.,  0.,  0.,  0.,
+			 0.,  0.,  0.,  0.,  0.,  0.
+			);
+
+	Vector3d translation = spatial_transform.get_translation();
+	Vector3d test_result (
+			1., 2., 3.
+			);
+
+	CHECK_EQUAL( test_result, translation);
+}
+
 TEST(TestSpatialVectorCross) {
 	SpatialVector s_vec (1., 2., 3., 4., 5., 6.);
 	

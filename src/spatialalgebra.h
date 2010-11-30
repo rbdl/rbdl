@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <assert.h>
+#include "cmlwrapper.h"
 
 /** \brief Namespace for all the spatial algebra quantities
  */
@@ -634,6 +635,28 @@ class SpatialMatrix {
 					mData[3 * 6 + 0], mData[4 * 6 + 0], mData[5 * 6 + 0], mData[3 * 6 + 3], mData[4 * 6 + 3], mData[5 * 6 + 3],
 					mData[3 * 6 + 1], mData[4 * 6 + 1], mData[5 * 6 + 1], mData[3 * 6 + 4], mData[4 * 6 + 4], mData[5 * 6 + 4],
 					mData[3 * 6 + 2], mData[4 * 6 + 2], mData[5 * 6 + 2], mData[3 * 6 + 5], mData[4 * 6 + 5], mData[5 * 6 + 5]
+					);
+		}
+
+		/** \brief Returns the rotation part of the transformation (top left part
+		 *
+		 */
+		Matrix3d get_rotation() const {
+			return Matrix3d (
+					mData[0],  mData[1],  mData[2],
+					mData[6],  mData[7],  mData[8],
+					mData[12], mData[13], mData[14]
+					);
+		}
+
+		/** \brief Returns the translation that is described by the bottom left part
+		 *
+		 * \todo How can we make sure the matrix is a motion
+		 * \todo transformation matrix?
+		 */
+		Vector3d get_translation() const {
+			return Vector3d (
+					-mData[26], mData[20], -mData[19]
 					);
 		}
 

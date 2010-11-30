@@ -8,6 +8,7 @@
 #include "Logging.h"
 
 using namespace std;
+using namespace SpatialAlgebra;
 
 const double TEST_PREC = 1.0e-14;
 
@@ -814,10 +815,10 @@ TEST_FIXTURE(ModelFixture, TestCalcPointVelocity) {
 
 	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
-	Body body_c (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+	Body body_c (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_c (
 			JointTypeRevolute,
-			Vector3d (1., 0., 0.)
+			Vector3d (0., 0., 1.)
 			);
 
 	model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
@@ -871,28 +872,39 @@ TEST_FIXTURE(ModelFixture, TestCalcPointVelocity) {
 	point_position.set(1., 0., 0.);
 	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, body_id, point_position, point_velocity);
 
-	cout << LogOutput.str() << endl;
+//	cout << LogOutput.str() << endl;
 
 	CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
 	CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
 
-	/*
-	// rotated second joint, point at third body
+	// also rotate the first joint and take a point that is
+	// on the X direction
 	ClearLogOutput();
-	body_id = 3;
-	Q = std::vector<double>(3, 0.);
-	QDot = std::vector<double>(3, 0.);
+
 	QDot[0] = 1.;
-	point_position.set(1., 0., 0.);
+	point_position.set(1., -1., 0.);
+	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, body_id, point_position, point_velocity);
+
+//	cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
+	CHECK_CLOSE( 2., point_velocity[1], TEST_PREC);
+	CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
+
+	// perform the previous test with the first joint rotated by pi/2
+	// upwards 
+	ClearLogOutput();
+
+	Q[0] = M_PI * 0.5;
+	point_position.set(1., -1., 0.);
 	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, body_id, point_position, point_velocity);
 
 	cout << LogOutput.str() << endl;
 
-	CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
+	CHECK_CLOSE(-2., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
-	CHECK_CLOSE(-2., point_velocity[2], TEST_PREC);
-	*/
+	CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
 }
 
 
