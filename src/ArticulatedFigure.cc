@@ -600,6 +600,7 @@ void CalcPointVelocity (
 			);
 
 	body_rotation = model.X_base[body_id].get_rotation();
+//	body_translation = body_rotation.transpose() * model.X_base[body_id].get_translation() * -1.;
 	body_translation = -model.X_base[body_id].get_translation();
 
 	LOG << "body_index   = " << body_id << std::endl;
