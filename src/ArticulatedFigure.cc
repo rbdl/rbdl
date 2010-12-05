@@ -599,9 +599,10 @@ void CalcPointVelocity (
 			  model.X_base[body_id](3, 1)
 			);
 
-	body_rotation = model.X_base[body_id].get_rotation();
-//	body_translation = body_rotation.transpose() * model.X_base[body_id].get_translation() * -1.;
-	body_translation = -model.X_base[body_id].get_translation();
+	// \todo document and explain what happens here (e.g. from where to where
+	// \todo the mappings are (global->local, and so on)
+	body_rotation = model.X_base[body_id].get_rotation().transpose();
+	body_translation = body_rotation * model.X_base[body_id].get_translation() * -1.;
 
 	LOG << "body_index   = " << body_id << std::endl;
 	LOG << "global_velo  = " << global_velocities.at(body_id) << std::endl;
@@ -611,7 +612,7 @@ void CalcPointVelocity (
 	LOG << "body_rot_vel = " << body_rot_velocity << std::endl;
 	LOG << "body_lin_vel = " << body_lin_velocity << std::endl;
 
-	Vector3d point_abs_pos = body_translation + body_rotation.transpose() * point_position;
+	Vector3d point_abs_pos = body_translation + body_rotation * point_position;
 	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
 	point_velocity = body_lin_velocity + cross (body_rot_velocity, point_abs_pos);
 

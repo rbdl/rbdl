@@ -133,20 +133,22 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBaseXAxis) {
 	CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
 }
 
-/*
 TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseXAxis) {
 	// perform the previous test with the first joint rotated by pi/2
 	// upwards 
 	ClearLogOutput();
 
-	Q[0] = M_PI * 0.5;
+	ref_body_id = 3;
 	point_position.set(1., -1., 0.);
+
+	Q[0] = M_PI * 0.5;
+	QDot[0] = 1.;
+	QDot[1] = 1.;
 	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, ref_body_id, point_position, point_velocity);
 
-	cout << LogOutput.str() << endl;
+//	cout << LogOutput.str() << endl;
 
 	CHECK_CLOSE(-2., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
 	CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
 }
-*/
