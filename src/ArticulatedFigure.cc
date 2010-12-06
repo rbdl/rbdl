@@ -479,8 +479,6 @@ void CalcPointVelocity (
 		Model &model,
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
-		const std::vector<double> &Tau,
-		std::vector<double> &QDDot,
 		unsigned int body_id,
 		const Vector3d &point_position,
 		Vector3d &point_velocity
@@ -494,23 +492,15 @@ void CalcPointVelocity (
 		return;
 	}
 
-	SpatialVector result;
-	result.zero();
-	SpatialVector gravity (0., 0., 0., 0., -9.81, 0.);
-
 	unsigned int i;
 	
 	// Copy state values from the input to the variables in model
 	assert (model.q.size() == Q.size() + 1);
 	assert (model.qdot.size() == QDot.size() + 1);
-	assert (model.qddot.size() == QDDot.size() + 1);
-	assert (model.tau.size() == Tau.size() + 1);
 
 	for (i = 0; i < Q.size(); i++) {
 		model.q.at(i+1) = Q.at(i);
 		model.qdot.at(i+1) = QDot.at(i);
-		model.qddot.at(i+1) = QDDot.at(i);
-		model.tau.at(i+1) = Tau.at(i);
 	}
 
 	// Reset the velocity of the root body
@@ -527,7 +517,6 @@ void CalcPointVelocity (
 		unsigned int lambda = model.lambda.at(i);
 
 		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
-//		SpatialMatrix X_T (joint.mJointTransform);
 		LOG << "q(" << i << "):" << model.q.at(i) << std::endl;
 
 		model.X_lambda.at(i) = X_J * model.X_T.at(i);
@@ -543,41 +532,6 @@ void CalcPointVelocity (
 		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
 		global_velocities.at(i) = global_velocities.at(lambda) + model.X_base.at(i).inverse() * v_J;
 		LOG << "^0v (" << i << "): " << global_velocities.at(i) << std::endl;
-
-		/*
-		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
-		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
-		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
-		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
-		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda.at(i) << std::endl;
-		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
-		*/
-
-		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
-		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
-
-		// todo: external forces are ignored so far:
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i);
-	}
-
-// ClearLogOutput();
-
-	LOG << "--- first loop ---" << std::endl;
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "Xup[" << i << "] = " << model.X_lambda[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "v[" << i << "]   = " << model.v[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
 	}
 
 	LOG << std::endl;
@@ -588,20 +542,17 @@ void CalcPointVelocity (
 	Vector3d body_lin_velocity (body_velocity[3], body_velocity[4], body_velocity[5]);
 
 	SpatialMatrix X_body (model.X_base[body_id]);
-	Matrix3d body_rotation (
-			model.X_base[body_id](0,0), model.X_base[body_id](0,1), model.X_base[body_id](0,2), 
-			model.X_base[body_id](1,0), model.X_base[body_id](1,1), model.X_base[body_id](1,2), 
-			model.X_base[body_id](2,0), model.X_base[body_id](2,1), model.X_base[body_id](2,2)
-			);
-	Vector3d body_translation (
-			  model.X_base[body_id](4, 2),
-			- model.X_base[body_id](3, 2),
-			  model.X_base[body_id](3, 1)
-			);
+	Matrix3d body_rotation;
+	Vector3d body_translation;
 
-	// \todo document and explain what happens here (e.g. from where to where
-	// \todo the mappings are (global->local, and so on)
+	// we now compute the transformation from the local to the global frame of
+	// the body. We split this up into the translation and rotation of the body
+	
+	// the rotation is the transpose of the rotation part (upper left) of
+	// X_base[i].
 	body_rotation = model.X_base[body_id].get_rotation().transpose();
+	// the translation is the bottom left part which still has to be transformed
+	// into a global translation
 	body_translation = body_rotation * model.X_base[body_id].get_translation() * -1.;
 
 	LOG << "body_index   = " << body_id << std::endl;
@@ -618,5 +569,3 @@ void CalcPointVelocity (
 
 	LOG << "point_vel    = " << point_velocity << std::endl;
 }
-
-

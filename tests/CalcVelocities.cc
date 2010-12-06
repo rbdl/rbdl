@@ -44,8 +44,6 @@ struct ModelVelocitiesFixture {
 
 		Q = std::vector<double> (3, 0.);
 		QDot = std::vector<double> (3, 0.);
-		QDDot = std::vector<double> (3, 0.);
-		Tau = std::vector<double> (3, 0.);
 
 		point_position.zero();
 		point_velocity.zero();
@@ -65,8 +63,6 @@ struct ModelVelocitiesFixture {
 
 	std::vector<double> Q;
 	std::vector<double> QDot;
-	std::vector<double> QDDot;
-	std::vector<double> Tau;
 
 	Vector3d point_position, point_velocity;
 };
@@ -75,7 +71,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointSimple) {
 	ref_body_id = 1;
 	QDot[0] = 1.;
 	point_position.set(1., 0., 0.);
-	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, ref_body_id, point_position, point_velocity);
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
 
 	CHECK_CLOSE(0., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE(1., point_velocity[1], TEST_PREC);
@@ -92,7 +88,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseSimple) {
 	Q[0] = M_PI * 0.5;
 	QDot[0] = 1.;
 	point_position.set(1., 0., 0.);
-	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, ref_body_id, point_position, point_velocity);
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
 
 	CHECK_CLOSE(-1., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
@@ -107,7 +103,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBodyB) {
 	ref_body_id = 3;
 	QDot[1] = 1.;
 	point_position.set(1., 0., 0.);
-	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, ref_body_id, point_position, point_velocity);
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
 
 //	cout << LogOutput.str() << endl;
 
@@ -124,7 +120,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBaseXAxis) {
 	QDot[0] = 1.;
 	QDot[1] = 1.;
 	point_position.set(1., -1., 0.);
-	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, ref_body_id, point_position, point_velocity);
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
 
 //	cout << LogOutput.str() << endl;
 
@@ -144,7 +140,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseXAxis) {
 	Q[0] = M_PI * 0.5;
 	QDot[0] = 1.;
 	QDot[1] = 1.;
-	CalcPointVelocity(*model, Q, QDot, Tau, QDDot, ref_body_id, point_position, point_velocity);
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
 
 //	cout << LogOutput.str() << endl;
 

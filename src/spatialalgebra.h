@@ -653,6 +653,15 @@ class SpatialMatrix {
 		 *
 		 * \todo How can we make sure the matrix is a motion
 		 * \todo transformation matrix?
+		 *
+		 * This computes the r vector from the matrix
+		 *
+		 *   ( R   0 )
+		 *   ( rx  R )
+		 *
+		 * \note Please note that this vector is already oriented to the local space. If
+		 * \note one wants to compute the origin of the global body frame one has to
+		 * \note compute: - R^T * r
 		 */
 		Vector3d get_translation() const {
 			return Vector3d (

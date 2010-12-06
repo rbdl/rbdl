@@ -390,20 +390,19 @@ void ForwardDynamicsFloatingBase (
 		std::vector<double> &QDDot
 		);
 
-/** \brief Computes forward dynamics for models with a fixed base
+/** \brief Computes the velocity of a point on a body 
  *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param QDDot accelerations of the internals joints (output)
+ * \param model   rigid body model
+ * \param Q       state vector of the internal joints
+ * \param QDot    velocity vector of the internal joints
+ * \param body_id the id of the body
+ * \param point_position the position of the point in body-local data
+ * \param point_velocity cartesian velocity of the point in global frame (output)
  */
 void CalcPointVelocity (
 		Model &model,
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
-		const std::vector<double> &Tau,
-		std::vector<double> &QDDot,
 		unsigned int body_id,
 		const Vector3d &point_position,
 		Vector3d &point_velocity
