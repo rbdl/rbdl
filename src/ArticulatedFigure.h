@@ -408,5 +408,24 @@ void CalcPointVelocity (
 		Vector3d &point_velocity
 		);
 
+/** \brief Computes the acceleration of a point on a body 
+ *
+ * \param model   rigid body model
+ * \param Q       state vector of the internal joints
+ * \param QDot    velocity vector of the internal joints
+ * \param QDDot    velocity vector of the internal joints
+ * \param body_id the id of the body
+ * \param point_position the position of the point in body-local data
+ * \param point_acceleration cartesian velocity of the point in global frame (output)
+ */
+void CalcPointAcceleration (
+		Model &model,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &QDDot,
+		unsigned int body_id,
+		const Vector3d &point_position,
+		Vector3d &point_acceleration
+		);
 
 #endif /* ARTICULATEDFIGURE_H */

@@ -12,6 +12,7 @@ SET ( TESTS_SRCS
 	BodyTests.cc
 	ArticulatedFigureTests.cc
 	CalcVelocities.cc
+	CalcAccelerations.cc
 	)
 
 FIND_PACKAGE (UnitTest++ REQUIRED)

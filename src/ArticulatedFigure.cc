@@ -569,3 +569,175 @@ void CalcPointVelocity (
 
 	LOG << "point_vel    = " << point_velocity << std::endl;
 }
+
+void CalcPointAcceleration (
+		Model &model,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &QDDot,
+		unsigned int body_id,
+		const Vector3d &point_position,
+		Vector3d &point_acceleration
+		)
+{
+	if (model.floating_base) {
+		// in this case the appropriate function has to be called, see
+		// ForwardDynamicsFloatingBase
+		assert (0);
+
+		// ForwardDynamicsFloatingBase(model, Q, QDot, Tau, QDDot);
+		return;
+	}
+
+	unsigned int i;
+	
+	// Copy state values from the input to the variables in model
+	assert (model.q.size() == Q.size() + 1);
+	assert (model.qdot.size() == QDot.size() + 1);
+	assert (model.qddot.size() == QDDot.size() + 1);
+
+	for (i = 0; i < Q.size(); i++) {
+		model.q.at(i+1) = Q.at(i);
+		model.qdot.at(i+1) = QDot.at(i);
+		model.qddot.at(i+1) = QDDot.at(i);
+	}
+
+	// Reset the velocity of the root body
+	model.v[0].zero();
+	model.a[0].zero();
+
+	// this will contain the global accelerations of the bodies
+	std::vector<SpatialVector> global_accelerations (
+			model.mBodies.size() + 1,
+			SpatialVector(0., 0., 0., 0., 0., 0.)
+			);
+	
+	// this will contain the global velocities of the bodies
+	std::vector<SpatialVector> global_velocities (
+			model.mBodies.size() + 1,
+			SpatialVector(0., 0., 0., 0., 0., 0.)
+			);
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		SpatialMatrix X_J;
+		SpatialVector v_J;
+		SpatialVector c_J;
+		Joint joint = model.mJoints.at(i);
+		unsigned int lambda = model.lambda.at(i);
+
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
+		LOG << "q(" << i << "):" << model.q.at(i) << std::endl;
+
+		model.X_lambda.at(i) = X_J * model.X_T.at(i);
+
+		if (lambda != 0)
+			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+		else
+			model.X_base.at(i) = model.X_lambda.at(i);
+
+		LOG << "X_J (" << i << "):" << X_J << std::endl;
+		LOG << "v_J (" << i << "):" << v_J << std::endl;
+		LOG << "X_base (" << i << "):" << model.X_base.at(i) << std::endl;
+		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
+
+		// we need to compute the global velocities as they may contribute to the
+		// acceleration (e.g. in rotational motions where there is always an
+		// acceleration towards the center
+		global_velocities.at(i) = global_velocities.at(lambda) + model.X_base.at(i).inverse() * v_J;
+		LOG << "^0v (" << i << "): " << global_velocities.at(i) << std::endl;
+
+		// v_J = S_i * qdot
+	global_accelerations.at(i) = global_accelerations.at(lambda) + model.X_base.at(i).inverse() * model.S.at(i) * model.qddot[i];
+		LOG << "^0a (" << i << "): " << global_accelerations.at(i) << std::endl;
+
+		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+	}
+
+	LOG << std::endl;
+
+	SpatialMatrix X_body (model.X_base[body_id]);
+	Matrix3d body_rotation;
+	Vector3d body_translation;
+
+	// we now compute the transformation from the local to the global frame of
+	// the body. We split this up into the translation and rotation of the body
+	
+	// the rotation is the transpose of the rotation part (upper left) of
+	// X_base[i].
+	body_rotation = model.X_base[body_id].get_rotation().transpose();
+	// the translation is the bottom left part which still has to be transformed
+	// into a global translation
+	body_translation = body_rotation * model.X_base[body_id].get_translation() * -1.;
+
+	LOG << "body_transf  = " << model.X_base[body_id] << std::endl;
+	LOG << "body_rotation= " << std::endl << body_rotation << std::endl;
+	LOG << "body_tranlat = " << body_translation << std::endl;
+
+	// computation of the global position of the point
+	Vector3d point_abs_pos = body_translation + body_rotation * point_position;
+	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
+
+	// here we split the spatial velocity into its 3D counterparts
+	SpatialVector body_velocity (model.v[body_id]);
+	body_velocity = global_velocities.at(body_id);
+	Vector3d body_rot_velocity (
+			body_velocity[0],
+			body_velocity[1],
+			body_velocity[2]
+			);
+	Vector3d body_lin_velocity (
+			body_velocity[3],
+			body_velocity[4],
+			body_velocity[5]
+			);
+
+	// computation of the global linear and rotational velocity
+	Vector3d point_global_velocity = body_lin_velocity + cross (body_rot_velocity, point_abs_pos);
+	LOG << "point_gl_vel = " << point_global_velocity << std::endl;
+
+	// here we split the spatial acceleration into its 3D counterparts
+	SpatialVector body_acceleration (model.a[body_id]);
+	LOG << "body_acceleration = " << body_acceleration << std::endl;
+	body_acceleration = global_accelerations.at(body_id);
+
+	LOG << "global_acce  = " << global_accelerations.at(body_id) << std::endl;
+
+	Vector3d body_rot_acceleration (
+			body_acceleration[0],
+			body_acceleration[1],
+			body_acceleration[2]
+			);
+	Vector3d body_lin_acceleration (
+			body_acceleration[3], 
+			body_acceleration[4], 
+			body_acceleration[5]
+			);
+
+	LOG << "body_rot_acc = " << body_rot_acceleration << std::endl;
+	LOG << "body_lin_acc = " << body_lin_acceleration << std::endl;
+
+	SpatialVector rdot (0., 0., 0.,
+			point_global_velocity[0],
+			point_global_velocity[1],
+			point_global_velocity[2]
+			);
+
+	LOG << "rdot = " << rdot << std::endl;
+	LOG << "body_velocity = " << body_velocity << std::endl;
+	SpatialVector spatial_accel = body_acceleration + rdot.crossm() * body_velocity;
+	point_acceleration = body_lin_acceleration + cross (body_rot_acceleration, point_global_velocity);
+
+	Vector3d screw_accel (
+			spatial_accel[3],
+			spatial_accel[4],
+			spatial_accel[5]
+			);
+
+	LOG << "point_accel_std    = " << point_acceleration << std::endl;
+	LOG << "point_accel_scrw   = " << screw_accel << std::endl;
+
+	LOG << "returning scrw accel" << std::endl;
+	point_acceleration = screw_accel;
+}
+
+
