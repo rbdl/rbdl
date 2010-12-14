@@ -61,11 +61,11 @@ end
 
 disp("second")
 
-U{2} = U{2}
-d{2} = d{2}
-u{2} = u{2}
-IA{1} = IA{1}
-pA{1} = pA{1}
+% U{2} = U{2}
+% d{2} = d{2}
+% u{2} = u{2}
+% IA{1} = IA{1}
+% pA{1} = pA{1}
 
 for i = 1:model.NB
   if model.parent(i) == 0

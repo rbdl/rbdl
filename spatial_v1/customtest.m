@@ -1,6 +1,6 @@
 function qdd = customtest()
 
-nb = 3;
+nb = 1;
 bf = 0;
 skew = 0;
 taper = 0;

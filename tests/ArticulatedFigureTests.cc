@@ -232,6 +232,40 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSingleChain) {
 	CHECK_EQUAL (-4.905, QDDot[0]);
 }
 
+TEST_FIXTURE(ModelFixture, TestCalcDynamicSpatialInertiaSingleChain) {
+	Body body(1., Vector3d (1.5, 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
+
+	std::vector<double> Q;
+	std::vector<double> QDot;
+	std::vector<double> QDDot;
+	std::vector<double> Tau;
+
+	// Initialization of the input vectors
+	Q.push_back(0.);
+	QDot.push_back(0.);
+	QDDot.push_back(0.);
+	Tau.push_back(0.);
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	CHECK_EQUAL (-4.905, QDDot[0]);
+}
+
 TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain) {
 	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint_a (
