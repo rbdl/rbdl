@@ -1,4 +1,4 @@
-PROJECT (FEATHERSTONE)
+PROJECT (ABA)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
@@ -14,7 +14,7 @@ SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
 
 ADD_SUBDIRECTORY ( tests )
 
-ADD_LIBRARY ( simbs 
+ADD_LIBRARY ( aba 
 	src/mathutils.cc
 	src/ArticulatedFigure.cc
 	src/Logging.cc
