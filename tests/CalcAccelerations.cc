@@ -18,6 +18,17 @@ struct ModelAccelerationsFixture {
 		model = new Model;
 		model->Init();
 
+		/* Basically a model like this, where X are the Center of Masses
+		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
+		 *
+		 *      Y
+		 *      *---* Z
+		 *      |
+		 *      |
+		 *  Z   |
+		 *  O---*
+		 */
+
 		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 		joint_a = Joint(
 				JointTypeRevolute,
@@ -34,7 +45,7 @@ struct ModelAccelerationsFixture {
 
 		body_b_id = model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
-		body_c = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
 		joint_c = Joint (
 				JointTypeRevolute,
 				Vector3d (0., 0., 1.)
@@ -75,13 +86,30 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimple) {
 	point_position.set(1., 0., 0.);
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-	cout << LogOutput.str() << endl;
+	// cout << LogOutput.str() << endl;
 
 	CHECK_CLOSE(0., point_acceleration[0], TEST_PREC);
 	CHECK_CLOSE(1., point_acceleration[1], TEST_PREC);
 	CHECK_CLOSE(0., point_acceleration[2], TEST_PREC);
 
-	LOG << "Point accel = " << point_acceleration << endl;
+	// LOG << "Point accel = " << point_acceleration << endl;
+}
+
+TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimpleRotated) {
+	Q[0] = 0.5 * M_PI;
+
+	ref_body_id = 1;
+	QDDot[0] = 1.;
+	point_position.set(1., 0., 0.);
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+
+	// cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE(-1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE( 0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE( 0., point_acceleration[2], TEST_PREC);
+
+	// LOG << "Point accel = " << point_acceleration << endl;
 }
 
 TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotation) {
@@ -90,37 +118,44 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotation) {
 	point_position.set(1., 0., 0.);
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-	// cout << LogOutput.str() << endl;
+//	cout << LogOutput.str() << endl;
 
-	CHECK_CLOSE(1., point_acceleration[0], TEST_PREC);
-	CHECK_CLOSE(0., point_acceleration[1], TEST_PREC);
-	CHECK_CLOSE(0., point_acceleration[2], TEST_PREC);
+	CHECK_CLOSE(-1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE( 0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE( 0., point_acceleration[2], TEST_PREC);
+
+	ClearLogOutput();
 
 	// if we are on the other side we should have the opposite value
 	point_position.set(-1., 0., 0.);
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-	// cout << LogOutput.str() << endl;
+//	cout << LogOutput.str() << endl;
 
-	CHECK_CLOSE(-1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE( 1., point_acceleration[0], TEST_PREC);
 	CHECK_CLOSE( 0., point_acceleration[1], TEST_PREC);
 	CHECK_CLOSE( 0., point_acceleration[2], TEST_PREC);
 }
 
-/*
 TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotatedBaseSimple) {
 	// rotated first joint
 
 	ref_body_id = 1;
 	Q[0] = M_PI * 0.5;
-	QDDot[0] = 1.;
+	QDot[0] = 1.;
 	point_position.set(1., 0., 0.);
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-	CHECK_CLOSE(-1., point_acceleration[0], TEST_PREC);
-	CHECK_CLOSE( 0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE( 0., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(-1., point_acceleration[1], TEST_PREC);
 	CHECK_CLOSE( 0., point_acceleration[2], TEST_PREC);
 
+	point_position.set(-1., 0., 0.);
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+
+	CHECK_CLOSE( 0., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE( 1., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE( 0., point_acceleration[2], TEST_PREC);
 //	cout << LogOutput.str() << endl;
 }
 
@@ -129,16 +164,43 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotatingBodyB) {
 	
 	ref_body_id = 3;
 	QDot[1] = 1.;
-	point_position.set(1., 0., 0.);
-	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_acceleration);
+	point_position.set(1., 0., 0.); 
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-//	cout << LogOutput.str() << endl;
+	// cout << LogOutput.str() << endl;
 
-	CHECK_CLOSE( 0., point_acceleration[0], TEST_PREC);
-	CHECK_CLOSE( 0., point_acceleration[1], TEST_PREC);
-	CHECK_CLOSE(-1., point_acceleration[2], TEST_PREC);
+	CHECK_CLOSE( -1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(  0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE(  0., point_acceleration[2], TEST_PREC);
+
+	// move it a bit further up (acceleration should stay the same)
+	point_position.set(1., 1., 0.); 
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+
+	// cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE( -1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(  0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE(  0., point_acceleration[2], TEST_PREC);
 }
 
+TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointBodyOrigin) {
+	// rotating second joint, point at third body
+	
+	QDot[0] = 1.;
+
+	ref_body_id = body_b_id;
+	point_position.set(0., 0., 0.); 
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+
+	// cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE( -1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(  0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE(  0., point_acceleration[2], TEST_PREC);
+}
+
+/*
 TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotatingBaseXAxis) {
 	// also rotate the first joint and take a point that is
 	// on the X direction

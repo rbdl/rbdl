@@ -148,3 +148,22 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseXAxis) {
 	CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
 	CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
 }
+
+TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointBodyOrigin) {
+	// Checks whether the computation is also correct for points at the origin
+	// of a body
+
+	ref_body_id = body_b_id;
+	point_position.set(0., 0., 0.);
+
+	Q[0] = 0.;
+	QDot[0] = 1.;
+	
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
+
+	// cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
+	CHECK_CLOSE( 1., point_velocity[1], TEST_PREC);
+	CHECK_CLOSE( 0., point_velocity[2], TEST_PREC);
+}

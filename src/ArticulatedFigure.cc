@@ -647,7 +647,7 @@ void CalcPointAcceleration (
 		LOG << "^0v (" << i << "): " << global_velocities.at(i) << std::endl;
 
 		// v_J = S_i * qdot
-	global_accelerations.at(i) = global_accelerations.at(lambda) + model.X_base.at(i).inverse() * model.S.at(i) * model.qddot[i];
+		global_accelerations.at(i) = global_accelerations.at(lambda) + model.X_base.at(i).inverse() * model.S.at(i) * model.qddot[i];
 		LOG << "^0a (" << i << "): " << global_accelerations.at(i) << std::endl;
 
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
@@ -736,8 +736,16 @@ void CalcPointAcceleration (
 	LOG << "point_accel_std    = " << point_acceleration << std::endl;
 	LOG << "point_accel_scrw   = " << screw_accel << std::endl;
 
-	LOG << "returning scrw accel" << std::endl;
-	point_acceleration = screw_accel;
+	SpatialVector res = body_acceleration - rdot.crossm() * body_velocity;
+
+	LOG << "res = " << res << std::endl;
+
+	point_acceleration.set (res[3], res[4], res[5]);
+
+	Vector3d std_accel = cross (body_rot_acceleration, point_abs_pos);
+	point_acceleration += std_accel;
+
+	LOG << "returning " << point_acceleration <<  std::endl;
 }
 
 
