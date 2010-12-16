@@ -233,7 +233,8 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSingleChain) {
 }
 
 TEST_FIXTURE(ModelFixture, TestCalcDynamicSpatialInertiaSingleChain) {
-	Body body(1., Vector3d (1.5, 0., 0.), Vector3d (1., 1., 1.));
+	// This function checks the value for a non-trivial spatial inertia
+	Body body(1., Vector3d (1.5, 1., 1.), Vector3d (1., 2., 3.));
 	Joint joint (
 			JointTypeRevolute,
 			Vector3d (0., 0., 1.)
@@ -263,7 +264,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSpatialInertiaSingleChain) {
 		LOG << "a[" << i << "]     = " << model->a[i] << endl;
 	}
 
-	CHECK_EQUAL (-4.905, QDDot[0]);
+	CHECK_EQUAL (-2.3544, QDDot[0]);
 }
 
 TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain) {
