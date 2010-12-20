@@ -21,12 +21,13 @@ struct ModelAccelerationsFixture {
 		/* Basically a model like this, where X are the Center of Masses
 		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
 		 *
-		 *      Y
-		 *      *---* Z
+		 *      Z
+		 *      *---* 
 		 *      |
 		 *      |
 		 *  Z   |
 		 *  O---*
+		 *      Y
 		 */
 
 		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
@@ -103,7 +104,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimpleRotated) {
 	point_position.set(1., 0., 0.);
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-	// cout << LogOutput.str() << endl;
+	cout << LogOutput.str() << endl;
 
 	CHECK_CLOSE(-1., point_acceleration[0], TEST_PREC);
 	CHECK_CLOSE( 0., point_acceleration[1], TEST_PREC);

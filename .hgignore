@@ -1,6 +1,8 @@
 syntax: glob
 
-doc/*
+doc/html/*
+doc/notes/*.aux
+doc/notes/*.pdf
 Debug/*
 Release/*
 .*.swp

@@ -1,0 +1,192 @@
+%        File: computation_notes.tex
+%     Created: Mon Dec 20 02:00 PM 2010 C
+% Last Change: Mon Dec 20 02:00 PM 2010 C
+%
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+\newcommand{\Spa}[1]{\mathbf{\hat{#1}}}
+\newcommand{\Nspa}[1]{\mathbf{\underline{#1}}}
+\newcommand{\Vec}[1]{\mathbf{#1}}
+
+\begin{document}
+
+\section{Computation of the velocity of a point on a rigid body using spatial
+algebra}
+
+The ABA computes automatically the spatial velocity of body $i$ in the
+reference frame of the body such that computation of joint velocities are
+easier. Now we want to compute the (linear) velocity in base coordinates of a
+point $\Vec{p}$ that is attached to body $i$ with body coordinates
+${}^i\Vec{r}_p$, i.e. we want to compute ${}^0 \Vec{\dot{r}}_p = {}^0
+\Vec{r}_p$.
+
+First of all we compute the spatial velocities ${}^0\Spa{v}$ of all bodies in
+base coordinates (which can be done during the first loop of the ABA):
+
+\begin{equation}
+	{}^0\Spa{v}_i = {}^0\Spa{v}_{\lambda(i)} + {}^{0}\Spa{X}_{i} \Spa{v}_{Ji}
+\end{equation}
+
+where $\Spa{v}_{Ji} = \Spa{S}_i \dot{q}_i $ which is the velocity that is
+propagated by joint $i$ from body $\lambda(i)$ to body $i$ along joint axis
+$\Spa{S}_i$ (see also RBDA p. 80).
+
+This is now the velocity of the body $i$ in base coordinates. What is now left
+todo is to transform this velocity into the velocity of the point $\Vec{p}$.
+Before we can do that we have to compute the coordinates of $P$ in base
+coordinates which can be done by:
+
+\begin{equation}
+	{}^0\Vec{r}_p = {}^0 \Vec{r}_i + {}^0\Vec{R}_i {}^i \Vec{r}_p
+\end{equation}
+
+for which ${}^0 \Vec{r}_i$ is the origin of the bodies in base coordinates and
+${}^0 \Vec{R}_i$ the orientation of the base relative to the body.
+
+Now we can compute the velocity of point $\Vec{r}_p$ with the following
+formulation:
+\begin{equation}
+	{}^0\Spa{v}_p = \textit{xlt}({}^0\Vec{r}_p) {}^0\Spa{v}_i =
+	\left[
+	\begin{array}{cc}
+		\Vec{1} & 0 \\
+		-{}^0\Vec{r}_p \times & \Vec{1}
+	\end{array}
+	\right]
+	{}^0\Spa{v}_i
+\end{equation}
+
+By doing so, the linear part of the spatial velocity ${}^0\Spa{v}_p$ has the
+following entries:
+\begin{equation}
+	{}^0\Spa{v}_p = \left[
+	\begin{array}{c}
+		\Nspa{\omega} \\
+		-{}^0\Nspa{r}_p \times \Nspa{\omega} + {}^0 \Nspa{\Vec{v}}_i
+	\end{array}
+	\right]
+	=
+	\left[
+	\begin{array}{c}
+		\Nspa{\omega} \\
+		{}^0 \Nspa{\Vec{v}}_i + \Nspa{\omega} \times {}^0 \Nspa{r}_p
+	\end{array}
+	\right]
+\end{equation}
+
+For which the bottom line is the term for linear velocity in the standard 3D
+notation.
+
+\section{Computation of the acceleration of a point on a rigid body using
+spatial algebra}
+
+The acceleration of a point depends on three quantities: the position of the
+point, velocity of the body and the acceleration of the body. We therefore
+assume that we already computed the velocity as described in the previous
+section.
+
+To compute the acceleration of a point we have to compute the spatial acceleration of a
+body in base coordinates, similar to the velocity computation:
+\begin{equation}
+	{}^0\Spa{a}_i = {}^0\Spa{a}_{\lambda(i)} + {}^{0}\Spa{X}_{i} \Spa{a}_{Ji}
+\end{equation}
+for which $\Spa{a}_{Ji} = \Spa{S}_i \ddot{q}_i$.
+
+With this we can compute the acceleration of point $\Vec{p}$ by:
+
+\begin{eqnarray}
+	{}^0\Spa{a}_p & = &{}^0\Spa{v}_i \times^ * \left( xlt\left({}^0\Vec{r}_p\right)
+	{}^0\Spa{v}_i \right) + xlt({}^0\Vec{r}_p) {}^0\Spa{a}_i \\
+	& = & \left[
+	\begin{array}{cc}
+		\Nspa{\omega}_i \times & \Nspa{v}_i \times \\
+		\Vec{0} & \Nspa{\omega}_i \times
+	\end{array}
+	\right]
+	\left[
+	\begin{array}{cc}
+		\Vec{1} & \Vec{0} \\
+		-\Nspa{r}_p \times & \Vec{1}
+	\end{array}
+	\right]
+	\left[
+	\begin{array}{c}
+		\Nspa{\omega}_i \\
+		\Nspa{v}_i
+	\end{array}
+	\right]
+	+
+	\left[
+	\begin{array}{cc}
+		\Vec{1} & \Vec{0} \\
+		- \Nspa{r}_p \times & \Vec{1}
+	\end{array}
+	\right]
+	\left[
+	\begin{array}{c}
+		\Nspa{\dot{\omega}}_i \\
+		\Nspa{a}_i
+	\end{array}
+	\right]
+	\\
+	& = & \left[
+	\begin{array}{cc}
+		\Nspa{\omega}_i \times & \Nspa{v}_i \times \\
+		\Vec{0} & \Nspa{\omega}_i \times
+	\end{array}
+	\right]
+	\left[
+	\begin{array}{c}
+		\Nspa{\omega}_i \\
+		\Nspa{v}_p
+	\end{array}
+	\right]
+	+
+	\left[
+	\begin{array}{c}
+		\Nspa{\dot{\omega}}_i \\
+		\Nspa{a}_i + \Nspa{\dot{\omega}}_i \times \Nspa{r}_p
+	\end{array}
+	\right]
+	\\
+	& = & \left[
+	\begin{array}{c}
+		\Nspa{v}_i \times \Nspa{v}_p \\
+		\Nspa{\omega}_i \times \Nspa{v}_p
+	\end{array}
+	\right]
+	+
+	\left[
+	\begin{array}{c}
+		\Nspa{\dot{\omega}}_i \\
+		\Nspa{a}_i + \Nspa{\dot{\omega}}_i \times \Nspa{r}_p
+	\end{array}
+	\right]
+\end{eqnarray}
+
+Looking again at the components of the rotational and translational part of
+the combined 6D vector reveals the following (after some re-ordering):
+
+\begin{equation}
+	{}^0\Nspa{a}_p = \Nspa{a}_i +
+	\Nspa{\dot{\omega}}_i
+	\times
+	{}^0\Nspa{r}_p
+	+
+	\Nspa{\omega}_i \times \Nspa{v}_p
+	\label{}
+\end{equation}
+
+We shall derive this equation with standard 3D notation. Assuming we have the
+velocity of point $\Vec{p}$ given as ${}^0\Vec{v}_p = {}^0\Vec{v}_i + \Vec{\omega}_i
+\times {}^0\Vec{r}_p$. Taking the derivative gives us:
+\begin{eqnarray}
+	\frac{d}{dt} {}^0 \Vec{v}_p & = & {}^0 \Vec{a}_i + \Vec{\dot{\omega}}_i \times
+	{}^0 \Vec{r}_p + \Vec{\omega}_i \times {}^0 \Vec{ v}_p
+	\label{}
+\end{eqnarray}
+as both $\Vec{\omega}$ and ${}^0\Vec{r}_p$ can change over time. The
+expression we get is exactly what we found for the translational part of our 6D vector.
+
+\end{document}

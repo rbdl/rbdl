@@ -536,18 +536,12 @@ void CalcPointVelocity (
 
 	LOG << std::endl;
 
-	SpatialVector body_velocity (model.v[body_id]);
-	body_velocity = global_velocities.at(body_id);
-	Vector3d body_rot_velocity (body_velocity[0], body_velocity[1], body_velocity[2]);
-	Vector3d body_lin_velocity (body_velocity[3], body_velocity[4], body_velocity[5]);
-
-	SpatialMatrix X_body (model.X_base[body_id]);
+	// First we need the rotation and translation of the body to compute the
+	// global position of the point we are interested in
+	// global position
 	Matrix3d body_rotation;
 	Vector3d body_translation;
 
-	// we now compute the transformation from the local to the global frame of
-	// the body. We split this up into the translation and rotation of the body
-	
 	// the rotation is the transpose of the rotation part (upper left) of
 	// X_base[i].
 	body_rotation = model.X_base[body_id].get_rotation().transpose();
@@ -555,19 +549,21 @@ void CalcPointVelocity (
 	// into a global translation
 	body_translation = body_rotation * model.X_base[body_id].get_translation() * -1.;
 
+	Vector3d point_abs_pos = body_translation + body_rotation * point_position;
+
 	LOG << "body_index   = " << body_id << std::endl;
 	LOG << "global_velo  = " << global_velocities.at(body_id) << std::endl;
 	LOG << "body_transf  = " << model.X_base[body_id] << std::endl;
 	LOG << "body_rotation= " << std::endl << body_rotation << std::endl;
 	LOG << "body_tranlat = " << body_translation << std::endl;
-	LOG << "body_rot_vel = " << body_rot_velocity << std::endl;
-	LOG << "body_lin_vel = " << body_lin_velocity << std::endl;
-
-	Vector3d point_abs_pos = body_translation + body_rotation * point_position;
 	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
-	point_velocity = body_lin_velocity + cross (body_rot_velocity, point_abs_pos);
 
-	LOG << "point_vel    = " << point_velocity << std::endl;
+	// Now we can compute the spatial velocity at the given point
+	SpatialVector body_global_velocity (global_velocities.at(body_id));
+	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos * -1.) * body_global_velocity;
+
+	point_velocity.set (point_spatial_velocity[3], point_spatial_velocity[4], point_spatial_velocity[5]);
+	LOG << "point_velocity = " << point_velocity << std::endl;
 }
 
 void CalcPointAcceleration (
@@ -655,97 +651,35 @@ void CalcPointAcceleration (
 
 	LOG << std::endl;
 
-	SpatialMatrix X_body (model.X_base[body_id]);
-	Matrix3d body_rotation;
-	Vector3d body_translation;
-
 	// we now compute the transformation from the local to the global frame of
 	// the body. We split this up into the translation and rotation of the body
 	
 	// the rotation is the transpose of the rotation part (upper left) of
 	// X_base[i].
-	body_rotation = model.X_base[body_id].get_rotation().transpose();
+	Matrix3d body_rotation (model.X_base[body_id].get_rotation().transpose());
 	// the translation is the bottom left part which still has to be transformed
 	// into a global translation
-	body_translation = body_rotation * model.X_base[body_id].get_translation() * -1.;
-
-	LOG << "body_transf  = " << model.X_base[body_id] << std::endl;
-	LOG << "body_rotation= " << std::endl << body_rotation << std::endl;
-	LOG << "body_tranlat = " << body_translation << std::endl;
+	Vector3d body_translation (body_rotation * model.X_base[body_id].get_translation() * -1.);
 
 	// computation of the global position of the point
 	Vector3d point_abs_pos = body_translation + body_rotation * point_position;
 	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
 
-	// here we split the spatial velocity into its 3D counterparts
-	SpatialVector body_velocity (model.v[body_id]);
-	body_velocity = global_velocities.at(body_id);
-	Vector3d body_rot_velocity (
-			body_velocity[0],
-			body_velocity[1],
-			body_velocity[2]
-			);
-	Vector3d body_lin_velocity (
-			body_velocity[3],
-			body_velocity[4],
-			body_velocity[5]
-			);
+	// The whole computation looks in formulae like the following:
+	SpatialVector body_global_velocity (global_velocities.at(body_id));
+	SpatialVector body_global_acceleration (global_accelerations.at(body_id));
+	SpatialMatrix point_transform (Xtrans (-point_abs_pos));
 
-	// computation of the global linear and rotational velocity
-	Vector3d point_global_velocity = body_lin_velocity + cross (body_rot_velocity, point_abs_pos);
-	LOG << "point_gl_vel = " << point_global_velocity << std::endl;
+	// The derivation for this formula can be found in
+	// doc/notes/point_velocity_acceleration.tex
+	SpatialVector first = body_global_velocity.crossf() * (point_transform * body_global_velocity);
+	SpatialVector second = point_transform * body_global_acceleration;
+	SpatialVector point_spatial_accel = first + second;
 
-	// here we split the spatial acceleration into its 3D counterparts
-	SpatialVector body_acceleration (model.a[body_id]);
-	LOG << "body_acceleration = " << body_acceleration << std::endl;
-	body_acceleration = global_accelerations.at(body_id);
-
-	LOG << "global_acce  = " << global_accelerations.at(body_id) << std::endl;
-
-	Vector3d body_rot_acceleration (
-			body_acceleration[0],
-			body_acceleration[1],
-			body_acceleration[2]
-			);
-	Vector3d body_lin_acceleration (
-			body_acceleration[3], 
-			body_acceleration[4], 
-			body_acceleration[5]
-			);
-
-	LOG << "body_rot_acc = " << body_rot_acceleration << std::endl;
-	LOG << "body_lin_acc = " << body_lin_acceleration << std::endl;
-
-	SpatialVector rdot (0., 0., 0.,
-			point_global_velocity[0],
-			point_global_velocity[1],
-			point_global_velocity[2]
-			);
-
-	LOG << "rdot = " << rdot << std::endl;
-	LOG << "body_velocity = " << body_velocity << std::endl;
-	SpatialVector spatial_accel = body_acceleration + rdot.crossm() * body_velocity;
-	point_acceleration = body_lin_acceleration + cross (body_rot_acceleration, point_global_velocity);
-
-	Vector3d screw_accel (
-			spatial_accel[3],
-			spatial_accel[4],
-			spatial_accel[5]
-			);
-
-	LOG << "point_accel_std    = " << point_acceleration << std::endl;
-	LOG << "point_accel_scrw   = " << screw_accel << std::endl;
-
-	SpatialVector res = body_acceleration - rdot.crossm() * body_velocity;
-
-	LOG << "res = " << res << std::endl;
-
-	point_acceleration.set (res[3], res[4], res[5]);
-
-	Vector3d std_accel = cross (body_rot_acceleration, point_abs_pos);
-	point_acceleration += std_accel;
-
-	LOG << "returning " << point_acceleration <<  std::endl;
+	LOG << "first = " << first << std::endl;
+	LOG << "scnd  = " << second << std::endl;
+	LOG << "point_spatial_accel = " << point_spatial_accel << std::endl;
+	
+	point_acceleration.set (point_spatial_accel[3], point_spatial_accel[4], point_spatial_accel[5]);
+	LOG << "point_acceleration = " << point_acceleration <<  std::endl;
 }
-
-

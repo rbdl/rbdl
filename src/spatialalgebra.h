@@ -638,6 +638,46 @@ class SpatialMatrix {
 					);
 		}
 
+		/** \brief Returns the upper left 3x3 matrix of the spatial matrix
+		 */
+		Matrix3d get_upper_left() const {
+			return Matrix3d (
+					mData[0],  mData[1],  mData[2],
+					mData[6],  mData[7],  mData[8],
+					mData[12], mData[13], mData[14]
+					);
+		}
+
+		/** \brief Returns the upper right 3x3 matrix of the spatial matrix
+		 */
+		Matrix3d get_upper_right() const {
+			return Matrix3d (
+					mData[3],  mData[4],  mData[5],
+					mData[9],  mData[10],  mData[11],
+					mData[15], mData[16],  mData[17]
+					);
+		}
+
+		/** \brief Returns the lower left 3x3 matrix of the spatial matrix
+		 */
+		Matrix3d get_lower_left() const {
+			return Matrix3d (
+					mData[18],  mData[19],  mData[20],
+					mData[24],  mData[25],  mData[26],
+					mData[30],  mData[31],  mData[32]
+					);
+		}
+
+		/** \brief Returns the lower right 3x3 matrix of the spatial matrix
+		 */
+		Matrix3d get_lower_right() const {
+			return Matrix3d (
+					mData[21],  mData[22],  mData[23],
+					mData[27],  mData[28],  mData[29],
+					mData[33],  mData[34],  mData[35]
+					);
+		}
+
 		/** \brief Returns the rotation part of the transformation (top left part
 		 *
 		 */
