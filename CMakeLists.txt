@@ -19,3 +19,9 @@ ADD_LIBRARY ( aba
 	src/ArticulatedFigure.cc
 	src/Logging.cc
 	)
+
+OPTION (ENABLE_LOGGING "Enable logging (major impact on performance!)" OFF)
+
+IF ( ENABLE_LOGGING )
+	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_LOGGING" )
+ENDIF ( ENABLE_LOGGING )

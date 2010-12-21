@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#ifdef NO_LOGGING
+#ifndef ENABLE_LOGGING
 	#define LOG if (false) LogOutput 
 #else
 	#define LOG LogOutput
