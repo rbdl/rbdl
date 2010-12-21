@@ -17,8 +17,12 @@ ADD_SUBDIRECTORY ( gui )
 
 ADD_LIBRARY ( aba 
 	src/mathutils.cc
-	src/ArticulatedFigure.cc
 	src/Logging.cc
+	src/Body.cc
+	src/Joint.cc
+	src/Model.cc
+	src/Kinematics.cc
+	src/Dynamics.cc
 	)
 
 OPTION (ENABLE_LOGGING "Enable logging (major impact on performance!)" OFF)

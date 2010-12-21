@@ -3,9 +3,9 @@
 #include <iostream>
 
 #include "mathutils.h"
-#include "Body.h"
-#include "ArticulatedFigure.h"
 #include "Logging.h"
+
+#include "Model.h"
 
 using namespace std;
 using namespace SpatialAlgebra;

@@ -1,5 +1,5 @@
-#ifndef ARTICULATEDFIGURE_H
-#define ARTICULATEDFIGURE_H
+#ifndef _MODEL_H
+#define _MODEL_H
 
 #include <cmlwrapper.h>
 #include <vector>
@@ -7,196 +7,8 @@
 #include <iostream>
 #include "Logging.h"
 
-/** \brief General types of joints
- *
- * \todo add prismatic joints
- * \todo add proper fixed joint handling
- */
-enum JointType {
-	JointTypeUndefined = 0,
-	JointTypeFixed,
-	JointTypeRevolute
-};
-
-/** \brief Describes all properties of a single body 
- *
- * A Body contains information about mass, the location of its center of mass,
- * and the ineria tensor in the center of mass. This class is used to use the
- * given information and transform it such that it can directly be used by the
- * spatial algebra.
- */
-struct Body {
-	Body() :
-		mSpatialInertia (
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.
-				),
-		mCenterOfMass (0., 0., 0.),
-		mMass (1.) { };
-	Body(const Body &body) :
-		mSpatialInertia (body.mSpatialInertia),
-		mCenterOfMass (body.mCenterOfMass),
-		mMass (body.mMass) {};
-	Body& operator= (const Body &body) {
-		if (this != &body) {
-			mSpatialInertia = body.mSpatialInertia;
-			mCenterOfMass = body.mCenterOfMass;
-			mMass = body.mMass;
-		}
-	}
-	/** \brief Constructs a body out of the given parameters
-	 *
-	 * This constructor eases the construction of a new body as all the required
-	 * parameters can simply be specified as parameters to the constructor.
-	 * These are then used to generate the spatial inertia matrix.
-	 *
-	 * \param mass the mass of the body
-	 * \param com  the position of the center of mass in the bodies coordinates
-	 * \param gyration_radii the radii of gyration at the center of mass of the body
-	 */
-	Body(const double &mass,
-			const Vector3d &com,
-			const Vector3d &gyration_radii) :
-		mMass (mass),
-		mCenterOfMass(com) {
-			Matrix3d com_cross (
-					0., -com[2],  com[1],
-					com[2],      0., -com[0],
-					-com[1],  com[0],      0.
-					);
-			Matrix3d parallel_axis;
-			parallel_axis = mass * com_cross * cml::transpose(com_cross);
-
-			LOG << "parrallel axis = " << parallel_axis << std::endl;
-
-			Vector3d gr (gyration_radii);
-			Matrix3d pa (parallel_axis);
-			Matrix3d mcc = mass * com_cross;
-			Matrix3d mccT = transpose(mcc);
-
-			mSpatialInertia.set (
-					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
-					pa(1, 0), gr[1] + pa(1, 1), pa(1, 2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
-					pa(2, 0), pa(2, 1), gr[2] + pa(2, 2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
-					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
-					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
-					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
-					);
-		}
-
-	~Body() {};
-
-	/// \brief The spatial inertia that contains both mass and inertia information
-	SpatialAlgebra::SpatialMatrix mSpatialInertia;
-	/// \brief The position of the center of mass in body coordinates
-	Vector3d mCenterOfMass;
-	/// \brief The mass of the body
-	double mMass;
-};
-
-/** \brief Describes a joint relative to the predecessor body 
- *
- * This class contains all information required for one single joint. This
- * contains the joint type and the axis of the joint.
- */
-struct Joint {
-	Joint() :
-		mJointAxis (
-				0., 0., 0.,
-				0., 0., 0.
-				),
-		mJointType (JointTypeUndefined) {};
-	Joint (const Joint &joint) :
-		mJointAxis (joint.mJointAxis),
-		mJointType (joint.mJointType) {};
-	Joint& operator= (const Joint &joint) {
-		if (this != &joint) {
-			mJointAxis = joint.mJointAxis;
-			mJointType = joint.mJointType;
-		}
-		return *this;
-	}
-
-	/** \brief Constructs a joint from the given cartesian parameters
-	 *
-	 * This constructor creates all the required spatial values for the given
-	 * cartesian parameters.
-	 *
-	 * \param joint_type whether the joint is revolute or prismatic
-	 * \param joint_axis the axis of rotation or translation
-	 */
-	Joint (
-			const JointType joint_type,
-			const Vector3d &joint_axis
-			) {
-		// Some assertions, as we concentrate on simple cases
-
-		// Only rotation around the Z-axis
-		assert ( joint_type == JointTypeRevolute || joint_type == JointTypeFixed
-				);
-		mJointType = joint_type;
-
-		if (joint_type == JointTypeRevolute) {
-			assert ( joint_axis == Vector3d (1., 0., 0.)
-					|| joint_axis == Vector3d (0., 1., 0.)
-					|| joint_axis == Vector3d (0., 0., 1.));
-
-			mJointAxis.set (
-					joint_axis[0],
-					joint_axis[1], 
-					joint_axis[2], 
-					0., 0., 0.
-					);
-
-		} else if (joint_type == JointTypeFixed) {
-			mJointAxis.set (
-					joint_axis[0],
-					joint_axis[1], 
-					joint_axis[2], 
-					0., 0., 0.
-					);
-			mJointAxis.set (0., 0., 0., 0., 0., 0.);
-		}
-	}
-
-	/// \brief The spatial axis of the joint
-	SpatialAlgebra::SpatialVector mJointAxis;
-	/// \brief Type of joint (rotational or prismatic)
-	JointType mJointType;
-};
-
-/** \brief Class that contains information for an body-environment contact
- */
-struct Contact {
-	Contact() :
-		mBodyId (0),
-		mPoint (0., 0., 0.)
-	{}
-	Contact (const Contact &contact):
-		mBodyId(contact.mBodyId),
-		mPoint(contact.mPoint)
-	{}
-	Contact& operator= (const Contact &contact) {
-		if (this != &contact) {
-			mBodyId = contact.mBodyId;
-			mPoint = contact.mPoint;
-		}
-		return *this;
-	}
-	~Contact() {};
-
-	Contact (const unsigned int &body_id, const Vector3d &point) :
-		mBodyId(body_id),
-		mPoint(point)
-	{ }
-
-	unsigned int mBodyId;
-	Vector3d mPoint;
-};
+#include "Joint.h"
+#include "Body.h"
 
 /** \brief Contains all information of the model
  *
@@ -297,9 +109,6 @@ struct Model {
 	 */
 	std::vector<Body> mBodies;
 	std::vector<Matrix3d> mBodyOrientation;
-
-	/** \brief All contacts */
-	std::vector<Contact> mContacts;
 
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
@@ -428,4 +237,4 @@ void CalcPointAcceleration (
 		Vector3d &point_acceleration
 		);
 
-#endif /* ARTICULATEDFIGURE_H */
+#endif /* _MODEL_H */
