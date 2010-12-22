@@ -35,6 +35,7 @@ IF ( QT_FOUND )
 		src/qtmain.cc
 		src/abaQtApp.cc
 		src/glwidget.cc
+		src/modeldrawing.cc
 		)
 
 	QT4_WRAP_CPP ( abaQtApp_MOC_SRCS

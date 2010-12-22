@@ -45,6 +45,8 @@
 #include <QGLWidget>
 #include <QVector3D>
 
+#include "Model.h"
+
 class GLWidget : public QGLWidget
 {
 	Q_OBJECT
@@ -75,6 +77,8 @@ class GLWidget : public QGLWidget
 		QVector3D poi;
 		QVector3D eye;
 		QVector3D up;
+
+		Model *mModel;
 };
 
 #endif

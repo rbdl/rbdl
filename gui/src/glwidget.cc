@@ -51,6 +51,14 @@
 #include "glwidget.h"
 #include <GL/glu.h>
 
+#include "mathutils.h"
+
+#include "Body.h"
+#include "Joint.h"
+#include "Dynamics.h"
+
+#include "modeldrawing.h"
+
 using namespace std;
 
 GLWidget::GLWidget(QWidget *parent)
@@ -60,9 +68,9 @@ GLWidget::GLWidget(QWidget *parent)
 	poi.setY(0.);
 	poi.setZ(0.);
 
-	eye.setX(2.);
+	eye.setX(4.);
 	eye.setY(1.);
-	eye.setZ(2.);
+	eye.setZ(4.);
 
 	QVector3D los = poi - eye;
 	r = los.length();
@@ -74,6 +82,37 @@ GLWidget::GLWidget(QWidget *parent)
 	qDebug () << theta;
 	qDebug () << phi;
 	*/
+
+	mModel = new Model();
+	mModel->Init();
+
+	unsigned int body_a_id, body_b_id, body_c_id, ref_body_id;
+	Body body_a, body_b, body_c;
+	Joint joint_a, joint_b, joint_c;
+
+	body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	joint_a = Joint(
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	body_a_id = mModel->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+
+	body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	joint_b = Joint (
+			JointTypeRevolute,
+			Vector3d (0., 1., 0.)
+			);
+
+	body_b_id = mModel->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+
+	body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+	joint_c = Joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	body_c_id = mModel->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
 	setFocusPolicy(Qt::StrongFocus);
 }
@@ -142,20 +181,23 @@ void GLWidget::paintGL() {
 
 	updateCamera();
 
-	glLineWidth (1.);
-	glBegin (GL_LINES);
-	glColor3f (1., 0., 0.);
-	glVertex3f (0., 0., 0.);
-	glVertex3f (1., 0., 0.);
-	glColor3f (0., 1., 0.);
-	glVertex3f (0., 0., 0.);
-	glVertex3f (0., 1., 0.);
-	glColor3f (0., 0., 1.);
-	glVertex3f (0., 0., 0.);
-	glVertex3f (0., 0., 1.);
-	glEnd();
+	std::vector<double> Q;
+	std::vector<double> QDot;
+	std::vector<double> QDDot;
+	std::vector<double> Tau;
 
-	swapBuffers();
+	Q = std::vector<double> (3, 0.);
+	QDot = std::vector<double> (3, 0.);
+	QDDot = std::vector<double> (3, 0.);
+	Tau = std::vector<double> (3, 0.);
+
+	Q[1] = 0.9;
+	//Q[0] = -0.3;
+
+	ForwardDynamics (*mModel, Q, QDot, Tau, QDDot);
+
+	draw_model (mModel);
+//	swapBuffers();
 }
 
 void GLWidget::resizeGL(int width, int height)
