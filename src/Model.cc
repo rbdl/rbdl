@@ -110,3 +110,9 @@ void Model::SetFloatingBody (const Body &body) {
 	mBodyOrientation.at(0) = Matrix3dIdentity;
 }
 
+Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
+	assert (body_id > 0 && body_id < mBodies.size());
+	Matrix3d rotation = X_base[body_id].get_rotation().transpose();
+	return rotation * X_base[body_id].get_translation() * -1.;
+}
+

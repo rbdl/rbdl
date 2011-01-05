@@ -13,17 +13,19 @@
 /** \brief Contains all information of the model
  *
  * This class contains all information required to perform the forward
- * dynamics calculation. The variables in this class are also used for storage
- * of temporary values. It is designed for use of the Composite Rigid Body
- * Algorithm and follows the numbering as described in Featherstones book.
+ * dynamics calculation. The variables in this class are also used for
+ * storage of temporary values. It is designed for use of the Composite
+ * Rigid Body Algorithm and follows the numbering as described in
+ * Featherstones book.
  *
  * An important note is that body 0 is the root body and the moving bodies
  * start at index 1. Additionally the vectors for the states q, qdot, etc.
- * have #bodies + 1 entries where always the first entry (e.g. q[0]) contains
- * the value for the root body. Thus the numbering might be confusing as q[1]
- * holds the position variable of the first degree of freedom. This numbering
- * scheme is very benefial in terms of readability of the code as the
- * resulting code is very similar to the pseudo-code in the RBDA book.
+ * have #bodies + 1 entries where always the first entry (e.g. q[0])
+ * contains the value for the root body. Thus the numbering might be
+ * confusing as q[1] holds the position variable of the first degree of
+ * freedom. This numbering scheme is very benefial in terms of readability
+ * of the code as the resulting code is very similar to the pseudo-code in
+ * the RBDA book.
  */
 struct Model {
 	// Structural information
@@ -48,11 +50,7 @@ struct Model {
 	 * Warning: to have an easier numbering in the algorithm the state vector
 	 * has NDOF + 1 elements. However element with index 0 is not used!
 	 * 
-	 * q[0] - unused
-	 * q[1] - joint 1
-	 * q[2] - joint 2
-	 * ...
-	 * q[NDOF] - joint NDOF
+	 * q[0] - unused q[1] - joint 1 q[2] - joint 2 ...  q[NDOF] - joint NDOF
 	 *
 	 */
 	std::vector<double> q;
@@ -135,6 +133,7 @@ struct Model {
 			const unsigned int body_id,
 			const Vector3d &contact_point
 			);
+	Vector3d GetBodyOrigin (const unsigned int body_id);
 };
 
 /** \brief Computes the joint variables 

@@ -55,7 +55,6 @@ void ForwardDynamics (
 		unsigned int lambda = model.lambda.at(i);
 
 		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
-//		SpatialMatrix X_T (joint.mJointTransform);
 		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
 
 		model.X_lambda.at(i) = X_J * model.X_T.at(i);
@@ -86,6 +85,10 @@ void ForwardDynamics (
 // ClearLogOutput();
 
 	LOG << "--- first loop ---" << std::endl;
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "X_base[" << i << "] = " << model.X_base[i] << std::endl;
+	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		LOG << "Xup[" << i << "] = " << model.X_lambda[i] << std::endl;
