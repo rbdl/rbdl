@@ -4,6 +4,7 @@
 %
 \documentclass[a4paper]{article}
 \usepackage[utf8]{inputenc}
+\usepackage{graphicx}
 
 \newcommand{\Spa}[1]{\mathbf{\hat{#1}}}
 \newcommand{\Nspa}[1]{\mathbf{\underline{#1}}}
@@ -178,6 +179,7 @@ the combined 6D vector reveals the following (after some re-ordering):
 	\label{}
 \end{equation}
 
+
 We shall derive this equation with standard 3D notation. Assuming we have the
 velocity of point $\Vec{p}$ given as ${}^0\Vec{v}_p = {}^0\Vec{v}_i + \Vec{\omega}_i
 \times {}^0\Vec{r}_p$. Taking the derivative gives us:
@@ -188,5 +190,7 @@ velocity of point $\Vec{p}$ given as ${}^0\Vec{v}_p = {}^0\Vec{v}_i + \Vec{\omeg
 \end{eqnarray}
 as both $\Vec{\omega}$ and ${}^0\Vec{r}_p$ can change over time. The
 expression we get is exactly what we found for the translational part of our 6D vector.
+
+\includegraphics[width=0.9\textwidth]{acceleration_visualization}
 
 \end{document}
