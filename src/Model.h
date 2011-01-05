@@ -32,6 +32,8 @@ struct Model {
 
 	/// \brief The id of the parents body
 	std::vector<unsigned int> lambda;
+	/// \brief Contains the ids of all the children of a given body
+	std::vector<std::vector<unsigned int> >mu;
 
 	/// \brief true if the body has a floating base
 	bool floating_base;
