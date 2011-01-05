@@ -47,16 +47,14 @@
 #include <iostream>
 #include <cmath>
 
+#include <sys/time.h>
+#include <ctime>
+
 #include <assert.h>
 #include "glwidget.h"
 #include <GL/glu.h>
 
-#include "mathutils.h"
-
-#include "Body.h"
-#include "Joint.h"
-#include "Dynamics.h"
-
+#include "modelstate.h"
 #include "modeldrawing.h"
 #include "glprimitives.h"
 
@@ -73,10 +71,7 @@ GLWidget::GLWidget(QWidget *parent)
 	eye.setY(1.);
 	eye.setZ(4.);
 
-	QVector3D los = poi - eye;
-	r = los.length();
-	theta = acos (-los.y() / r);
-	phi = atan (los.z() / los.x());
+	updateSphericalCoordinates();
 
 	/*
 	qDebug () << r;
@@ -84,43 +79,37 @@ GLWidget::GLWidget(QWidget *parent)
 	qDebug () << phi;
 	*/
 
-	mModel = new Model();
-	mModel->Init();
+	model_init();
 
-	unsigned int body_a_id, body_b_id, body_c_id, ref_body_id;
-	Body body_a, body_b, body_c;
-	Joint joint_a, joint_b, joint_c;
-
-	body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	joint_a = Joint(
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-
-	body_a_id = mModel->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
-
-	body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-	joint_b = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 1., 0.)
-			);
-
-	body_b_id = mModel->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
-
-	body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
-	joint_c = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-
-	body_c_id = mModel->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+	delta_time_sec = -1.;
 
 	setFocusPolicy(Qt::StrongFocus);
+	setMouseTracking(true);
 }
 
 GLWidget::~GLWidget() {
 	makeCurrent();
 	glprimitives_destroy();
+}
+
+void GLWidget::update_timer() {
+	struct timeval clock_value;
+	gettimeofday (&clock_value, NULL);
+
+	unsigned int clock_time = clock_value.tv_sec * 1000. + clock_value.tv_usec * 1.0e-3;
+
+	if (delta_time_sec < 0.) {
+		delta_time_sec = 0.;
+		application_time_msec = 0.;
+		first_frame_msec = clock_time;
+
+		return;
+	}
+
+	unsigned int last_frame_time_msec = application_time_msec;
+	application_time_msec = clock_time - first_frame_msec;
+
+	delta_time_sec = static_cast<double>(application_time_msec - last_frame_time_msec) * 1.0e-3;
 }
 
 QSize GLWidget::minimumSizeHint() const
@@ -167,12 +156,15 @@ void GLWidget::initializeGL()
 	glEnable(GL_LIGHT0);
 }
 
+void GLWidget::updateSphericalCoordinates() {
+	QVector3D los = poi - eye;
+	r = los.length();
+	theta = acos (-los.y() / r);
+	phi = atan (los.z() / los.x());
+}
+
 void GLWidget::updateCamera() {
 	// update the camera
-	poi.setX(0.);
-	poi.setY(0.);
-	poi.setZ(0.);
-
 	float s_theta, c_theta, s_phi, c_phi;
 	s_theta = sin (theta);
 	c_theta = cos (theta);
@@ -183,9 +175,14 @@ void GLWidget::updateCamera() {
 	eye.setY(r * c_theta);
 	eye.setZ(r * s_theta * s_phi);
 
-	up.setX(0.);
-	up.setY(1.);
-	up.setZ(0.);
+	eye += poi;
+
+	QVector3D right (-s_phi, 0., c_phi);
+
+	QVector3D eye_normalized (eye);
+	eye_normalized.normalize();
+
+	up = QVector3D::crossProduct (right, eye_normalized);
 
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity();
@@ -196,6 +193,7 @@ void GLWidget::updateCamera() {
 }
 
 void GLWidget::paintGL() {
+	update_timer();
 	glClearColor (0.3, 0.3, 0.3, 1.);
 
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -205,24 +203,8 @@ void GLWidget::paintGL() {
 
 	updateCamera();
 
-	std::vector<double> Q;
-	std::vector<double> QDot;
-	std::vector<double> QDDot;
-	std::vector<double> Tau;
-
-	Q = std::vector<double> (3, 0.);
-	QDot = std::vector<double> (3, 0.);
-	QDDot = std::vector<double> (3, 0.);
-	Tau = std::vector<double> (3, 0.);
-
-	//Q[1] = 0.9;
-	Q[0] = 0.;
-	Q[1] = 0.3;
-	Q[2] = 0.3;
-
-	ForwardDynamics (*mModel, Q, QDot, Tau, QDDot);
-
-	draw_model (mModel);
+	model_update (delta_time_sec);
+	draw_model (model_get());
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -256,11 +238,25 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 	int dx = event->x() - lastMousePos.x();
 	int dy = event->y() - lastMousePos.y();
 
-	phi += 0.01 * dx;
-	theta -= 0.01 * dy;
+	if (event->buttons().testFlag(Qt::LeftButton)) {
+		// rotate
+		phi += 0.01 * dx;
+		theta -= 0.01 * dy;
 
-	theta = std::max(theta, 0.01f);
-	theta = std::min(theta, static_cast<float>(M_PI * 0.99));
+		theta = std::max(theta, 0.01f);
+		theta = std::min(theta, static_cast<float>(M_PI * 0.99));
+	} else if (event->buttons().testFlag(Qt::MiddleButton)) {
+		// move
+		QVector3D eye_normalized (eye);
+		eye_normalized.normalize();
+		QVector3D right = QVector3D::crossProduct (up, eye_normalized) * -1.;
+		poi += right * dx * 0.01 + up * dy * 0.01;
+		eye += right * dx * 0.01 + up * dy * 0.01;
+	} else if (event->buttons().testFlag(Qt::RightButton)) {
+		// zoom
+		r += 0.05 * dy;
+		r = std::max (0.01f, r);
+	}
 
 	lastMousePos = event->pos();
 

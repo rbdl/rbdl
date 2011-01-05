@@ -74,10 +74,12 @@ void check_opengl_error (const char* file, int line) {
 void glprimitives_init () {
 	// initialize VBO for the cube
 	glGenBuffers(BufferIndexLast, BufferNames);
+	/*
 	std::cout << "PositionBuffer = " << BufferNames[BufferIndexCubePosition] << std::endl;
 	std::cout << "ColorBuffer = " << BufferNames[BufferIndexCubeColor] << std::endl;
 	std::cout << "IndexBuffer = " << BufferNames[BufferIndexCubeIndex] << std::endl;
 	std::cout << "NormalBuffer = " << BufferNames[BufferIndexCubeNormal] << std::endl;
+	*/
 	check_opengl_error (__FILE__, __LINE__);
 
 	// Vertices
@@ -103,8 +105,6 @@ void glprimitives_init () {
 	check_opengl_error (__FILE__, __LINE__);
 	glBufferData (GL_ARRAY_BUFFER, cube_normal_size, cube_normal_data, GL_STATIC_DRAW);
 	check_opengl_error (__FILE__, __LINE__);
-	
-	std::cout << "glprimitives initialized" << std::endl;
 }
 
 void glprimitives_destroy () {
@@ -143,10 +143,4 @@ void glprimitives_cube () {
 	glDisable(GL_COLOR_MATERIAL);
 
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
-
-	static bool passed = false;
-	if (!passed) {
-		std::cout << "passed once" << std::endl;
-		passed = true;
-	}
 }

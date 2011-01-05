@@ -34,6 +34,7 @@ IF ( QT_FOUND )
 		src/abaQtApp.cc
 		src/glwidget.cc
 		src/modeldrawing.cc
+		src/modelstate.cc
 		src/glprimitives.cc
 		)
 

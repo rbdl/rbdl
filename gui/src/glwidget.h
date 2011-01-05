@@ -45,8 +45,6 @@
 #include <QGLWidget>
 #include <QVector3D>
 
-#include "Model.h"
-
 class GLWidget : public QGLWidget
 {
 	Q_OBJECT
@@ -59,6 +57,8 @@ class GLWidget : public QGLWidget
 		QSize sizeHint() const;
 
 	protected:
+		void update_timer();
+
 		void initializeGL();
 		void paintGL();
 		void resizeGL(int width, int height);
@@ -67,18 +67,24 @@ class GLWidget : public QGLWidget
 		void mouseMoveEvent(QMouseEvent *event);
 
 	private:
+		void updateSphericalCoordinates();
 		void updateCamera();
 
 		QPoint lastMousePos;
+		// azimuth
 		float phi;
+		// the elevation angle
 		float theta;
+		// radius
 		float r;
 
 		QVector3D poi;
 		QVector3D eye;
 		QVector3D up;
 
-		Model *mModel;
+		unsigned int application_time_msec;
+		unsigned int first_frame_msec;
+		double delta_time_sec;
 };
 
 #endif
