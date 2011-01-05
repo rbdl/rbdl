@@ -112,7 +112,25 @@ void Model::SetFloatingBody (const Body &body) {
 
 Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 	assert (body_id > 0 && body_id < mBodies.size());
-	Matrix3d rotation = X_base[body_id].get_rotation().transpose();
-	return rotation * X_base[body_id].get_translation() * -1.;
+
+	// We use the information from the X_base vector. In the upper left 3x3
+	// matrix contains the orientation as a 3x3 matrix. The lower left 3x3
+	// matrix is the matrix form of the cross product of the origin
+	// coordinate vector, however in body coordinates. We have to rotate it
+	// by its orientation to be able to retrieve the bodies origin
+	// coordinates in base coordinates. 
+	Matrix3d upper_left = X_base[body_id].get_upper_left().transpose();
+	Matrix3d rx = upper_left * X_base[body_id].get_lower_left();
+
+	return Vector3d (rx(1,2), -rx(0,2), rx(0,1));
+}
+
+Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
+	assert (body_id > 0 && body_id < mBodies.size());
+
+	// We use the information from the X_base vector. In the upper left 3x3
+	// matrix contains the orientation as a 3x3 matrix which we are asking
+	// for.
+	return X_base[body_id].get_upper_left();
 }
 

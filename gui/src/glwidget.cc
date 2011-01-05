@@ -216,7 +216,9 @@ void GLWidget::paintGL() {
 	Tau = std::vector<double> (3, 0.);
 
 	//Q[1] = 0.9;
-	Q[0] = 0.3;
+	Q[0] = 0.;
+	Q[1] = 0.3;
+	Q[2] = 0.3;
 
 	ForwardDynamics (*mModel, Q, QDot, Tau, QDDot);
 

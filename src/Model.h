@@ -112,7 +112,7 @@ struct Model {
 	void Init ();
 	/** \brief Connects a given body to the model
 	 *
-	 * \param parent_id   id of the parend body
+	 * \param parent_id   id of the parent body
 	 * \param joint_frame the transformation from the parent frame to the origin
 	 *                    of the joint frame (represents X_T in RBDA)
 	 * \param joint       specification for the joint that describes the connection
@@ -133,7 +133,24 @@ struct Model {
 			const unsigned int body_id,
 			const Vector3d &contact_point
 			);
+
+	/** \brief Returns the 3D coordinate vector of the origin of a given body
+	 *  \brief in base coordinates
+	 *
+	 *  \param body_id id of the body of intrest
+	 *  
+	 *  \returns 3D coordinate vector of the origin of the body in base
+	 *  \returns coordinates
+	 */
 	Vector3d GetBodyOrigin (const unsigned int body_id);
+	/** \brief Returns the orientation of a given body as 3x3 matrix
+	 *
+	 *  \param body_id id of the body of intrest
+	 *
+	 *  \returns A 3x3 matrix that contains the rotation from base
+	 *  \returns orientation to body orientation
+	 */
+	Matrix3d GetBodyWorldOrientation (const unsigned int body_id);
 };
 
 /** \brief Computes the joint variables 

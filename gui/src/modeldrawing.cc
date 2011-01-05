@@ -34,9 +34,8 @@ void draw_model (Model* model) {
 	for (i = 1; i < model->q.size(); i++) {
 		// Draw only bodies with masses
 		if (model->mBodies[i].mMass != 0) {
-			Matrix3d rotation = model->X_base[i].get_rotation().transpose();
-			Vector3d translation = rotation * model->X_base[i].get_translation() * -1.;
-			rotation = rotation.transpose();
+			Matrix3d rotation = model->GetBodyWorldOrientation(i);
+			Vector3d translation = model->GetBodyOrigin(i);
 			
 			std::ostringstream model_X;
 			model_X << model->X_base[i];
