@@ -58,6 +58,7 @@
 #include "Dynamics.h"
 
 #include "modeldrawing.h"
+#include "glprimitives.h"
 
 using namespace std;
 
@@ -117,6 +118,11 @@ GLWidget::GLWidget(QWidget *parent)
 	setFocusPolicy(Qt::StrongFocus);
 }
 
+GLWidget::~GLWidget() {
+	makeCurrent();
+	glprimitives_destroy();
+}
+
 QSize GLWidget::minimumSizeHint() const
 {
     return QSize(50, 50);
@@ -141,6 +147,24 @@ void GLWidget::initializeGL()
 
 	glMatrixMode (GL_MODELVIEW);
 	glLoadIdentity();
+
+	// initialize the glprimitives (cubes, etc.)
+	glprimitives_init();
+
+	// initialize lights
+	GLfloat light_ka[] = { 0.2f, 0.2f, 0.2f, 1.0f};
+	GLfloat light_kd[] = { 0.7f, 0.7f, 0.7f, 1.0f};
+	GLfloat light_ks[] = { 1.0f, 1.0f, 1.0f, 1.0f};
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ka);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_kd);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_ks);
+
+	GLfloat light_pos[4] = {20.0f, 20.0f, 20.0f, 1.0f};
+	glLightfv (GL_LIGHT0, GL_POSITION, light_pos);
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
 }
 
 void GLWidget::updateCamera() {
@@ -191,13 +215,12 @@ void GLWidget::paintGL() {
 	QDDot = std::vector<double> (3, 0.);
 	Tau = std::vector<double> (3, 0.);
 
-	Q[1] = 0.9;
-	//Q[0] = -0.3;
+	//Q[1] = 0.9;
+	Q[0] = 0.3;
 
 	ForwardDynamics (*mModel, Q, QDot, Tau, QDDot);
 
 	draw_model (mModel);
-//	swapBuffers();
 }
 
 void GLWidget::resizeGL(int width, int height)

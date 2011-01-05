@@ -53,7 +53,7 @@ class GLWidget : public QGLWidget
 
 	public:
 		GLWidget(QWidget *parent = 0);
-		~GLWidget() { makeCurrent(); }
+		~GLWidget();
 
 		QSize minimumSizeHint() const;
 		QSize sizeHint() const;
