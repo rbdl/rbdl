@@ -569,8 +569,14 @@ class SpatialMatrix {
 				mData[i] -= matrix.mData[i];
 		}
 		SpatialMatrix operator*(const SpatialMatrix &matrix) {
-			SpatialMatrix result;
-			result.zero();
+			SpatialMatrix result (
+					0., 0., 0., 0., 0., 0.,
+					0., 0., 0., 0., 0., 0.,
+					0., 0., 0., 0., 0., 0.,
+					0., 0., 0., 0., 0., 0.,
+					0., 0., 0., 0., 0., 0.,
+					0., 0., 0., 0., 0., 0.
+					);
 
 			unsigned int i,j, k;
 			for (i = 0; i < 6; i++) {
@@ -586,8 +592,9 @@ class SpatialMatrix {
 
 		// Operators with SpatialVectors
 		SpatialVector operator*(const SpatialVector &vector) const {
-			SpatialVector result;
-			result.zero();
+			SpatialVector result (
+					0., 0., 0., 0., 0., 0.
+					);
 
 			unsigned i,j;
 			for (i = 0; i < 6; i++) {
