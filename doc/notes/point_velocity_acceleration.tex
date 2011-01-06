@@ -87,84 +87,71 @@ point, velocity of the body and the acceleration of the body. We therefore
 assume that we already computed the velocity as described in the previous
 section.
 
-To compute the acceleration of a point we have to compute the spatial acceleration of a
-body in base coordinates, similar to the velocity computation:
+To compute the acceleration of a point we have to compute the spatial
+acceleration of a body in base coordinates. This can be expressed as:
 \begin{equation}
-	{}^0\Spa{a}_i = {}^0\Spa{a}_{\lambda(i)} + {}^{0}\Spa{X}_{i} \Spa{a}_{Ji}
+	{}^0\Spa{a}_i = {}^0\Spa{a}_{\lambda(i)}
+	+ {}^{0}\Spa{X}_{i} \Spa{a}_{Ji}
 \end{equation}
-for which $\Spa{a}_{Ji} = \Spa{S}_i \ddot{q}_i$.
+for which $\Spa{a}_{Ji} = \Spa{S}_i \ddot{q}_i + \dot{\Spa{S}}_i \dot{q}_i$.
+The last term can be written as: $\dot{\Spa{S}} = \Spa{v}_i \times \Spa{S}_i$.
 
-With this we can compute the acceleration of point $\Vec{p}$ by:
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[width=0.9\textwidth]{acceleration_visualization}
+	\end{center}
+	\caption{Visualization of the acceleration of a point}
+	\label{fig:acceleration_visualization}
+\end{figure}
 
-\begin{eqnarray}
-	{}^0\Spa{a}_p & = &{}^0\Spa{v}_i \times^ * \left( xlt\left({}^0\Vec{r}_p\right)
-	{}^0\Spa{v}_i \right) + xlt({}^0\Vec{r}_p) {}^0\Spa{a}_i \\
-	& = & \left[
+There are three coordinate systems involved in the computation of the
+acceleration of point p which are shown in figure
+\ref{fig:acceleration_visualization}. The \emph{base coordinate system} which
+is the global reference frame, \emph{link $i$ coordinate system} which is the
+coordinate system of body $i$, and the \emph{point coordinate system} that is
+locate at the current position of $p$ and has the same orientation as the base
+coordinate system.
+
+First of all we build the transformation from the body coordinate system to
+the pointcoordinate system:
+\begin{equation}
+	{^p}\Vec{X}_i =
+	\left[
 	\begin{array}{cc}
-		\Nspa{\omega}_i \times & \Nspa{v}_i \times \\
-		\Vec{0} & \Nspa{\omega}_i \times
+		{^0}\Vec{E}_i & \Vec{0} \\
+		\Vec{0} & {^0}\Vec{E}_i
 	\end{array}
 	\right]
 	\left[
 	\begin{array}{cc}
 		\Vec{1} & \Vec{0} \\
-		-\Nspa{r}_p \times & \Vec{1}
+		{^i}\Nspa{r}_p \times & \Vec{1}
 	\end{array}
-	\right]
+	\right].
+\end{equation}
+This can now be used to express the velocity and acceleration of the body at
+the point p:
+\begin{equation}
+	{^p}\Spa{v}_i = {^p}\Vec{X}_i \Spa{v}_i
+\end{equation}
+\begin{equation}
+	{^p}\Spa{a}_i = {^p}\Vec{X}_i \Spa{a}_i
+\end{equation}
+
+To now retrieve the \emph{classical acceleration}. It is expressed in a
+coordinate frame that has a pure linear velocity of ${^0}\Nspa{\dot{p}}$.
+\begin{equation}
+	{^p}\Spa{a}'_i = {^p}\Spa{a}_i + 
 	\left[
 	\begin{array}{c}
-		\Nspa{\omega}_i \\
-		\Nspa{v}_i
+		\Vec{0}\\
+		{^0}\Nspa{\omega}_i \times {^0}\Nspa{\dot{p}}
 	\end{array}
 	\right]
-	+
-	\left[
-	\begin{array}{cc}
-		\Vec{1} & \Vec{0} \\
-		- \Nspa{r}_p \times & \Vec{1}
-	\end{array}
-	\right]
-	\left[
-	\begin{array}{c}
-		\Nspa{\dot{\omega}}_i \\
-		\Nspa{a}_i
-	\end{array}
-	\right]
-	\\
-	& = & \left[
-	\begin{array}{cc}
-		\Nspa{\omega}_i \times & \Nspa{v}_i \times \\
-		\Vec{0} & \Nspa{\omega}_i \times
-	\end{array}
-	\right]
-	\left[
-	\begin{array}{c}
-		\Nspa{\omega}_i \\
-		\Nspa{v}_p
-	\end{array}
-	\right]
-	+
-	\left[
-	\begin{array}{c}
-		\Nspa{\dot{\omega}}_i \\
-		\Nspa{a}_i + \Nspa{\dot{\omega}}_i \times \Nspa{r}_p
-	\end{array}
-	\right]
-	\\
-	& = & \left[
-	\begin{array}{c}
-		\Nspa{v}_i \times \Nspa{v}_p \\
-		\Nspa{\omega}_i \times \Nspa{v}_p
-	\end{array}
-	\right]
-	+
-	\left[
-	\begin{array}{c}
-		\Nspa{\dot{\omega}}_i \\
-		\Nspa{a}_i + \Nspa{\dot{\omega}}_i \times \Nspa{r}_p
-	\end{array}
-	\right]
-\end{eqnarray}
+\end{equation}
+
+The linear part of this vector is then the acceleration of the point in base
+coordinates.
 
 Looking again at the components of the rotational and translational part of
 the combined 6D vector reveals the following (after some re-ordering):
@@ -179,18 +166,17 @@ the combined 6D vector reveals the following (after some re-ordering):
 	\label{}
 \end{equation}
 
-
 We shall derive this equation with standard 3D notation. Assuming we have the
-velocity of point $\Vec{p}$ given as ${}^0\Vec{v}_p = {}^0\Vec{v}_i + \Vec{\omega}_i
-\times {}^0\Vec{r}_p$. Taking the derivative gives us:
+velocity of point $\Vec{p}$ given as ${}^0\Vec{v}_p = {}^0\Vec{v}_i +
+\Vec{\omega}_i \times {}^0\Vec{r}_p$. Taking the derivative gives us:
 \begin{eqnarray}
 	\frac{d}{dt} {}^0 \Vec{v}_p & = & {}^0 \Vec{a}_i + \Vec{\dot{\omega}}_i \times
 	{}^0 \Vec{r}_p + \Vec{\omega}_i \times {}^0 \Vec{ v}_p
 	\label{}
 \end{eqnarray}
 as both $\Vec{\omega}$ and ${}^0\Vec{r}_p$ can change over time. The
-expression we get is exactly what we found for the translational part of our 6D vector.
+expression we get is exactly what we found for the translational part of our
+6D vector.
 
-\includegraphics[width=0.9\textwidth]{acceleration_visualization}
 
 \end{document}
