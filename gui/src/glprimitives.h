@@ -5,5 +5,7 @@ void glprimitives_init ();
 void glprimitives_destroy ();
 
 void glprimitives_cube ();
+void glprimitives_disc ();
+void glprimitives_torus ();
 
 #endif /* _GLPRIMITIVES_H */

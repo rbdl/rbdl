@@ -60,11 +60,13 @@
 
 using namespace std;
 
+static bool update_simulation = false;
+
 GLWidget::GLWidget(QWidget *parent)
     : QGLWidget(parent)
 {
 	poi.setX(0.);
-	poi.setY(0.);
+	poi.setY(-0.4);
 	poi.setZ(0.);
 
 	eye.setX(4.);
@@ -203,7 +205,9 @@ void GLWidget::paintGL() {
 
 	updateCamera();
 
-	model_update (delta_time_sec);
+	if (update_simulation)
+		model_update (delta_time_sec);
+
 	draw_model (model_get());
 }
 
@@ -226,6 +230,11 @@ void GLWidget::resizeGL(int width, int height)
 	gluPerspective (fov, (GLfloat) width / (GLfloat) height, 0.005, 200);
 
 	glMatrixMode (GL_MODELVIEW);
+}
+
+void GLWidget::keyPressEvent(QKeyEvent* event) {
+	if (event->key() == Qt::Key_Return)
+		update_simulation = true;
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)

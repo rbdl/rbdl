@@ -63,6 +63,7 @@ class GLWidget : public QGLWidget
 		void paintGL();
 		void resizeGL(int width, int height);
 
+		void keyPressEvent (QKeyEvent* event);
 		void mousePressEvent(QMouseEvent *event);
 		void mouseMoveEvent(QMouseEvent *event);
 

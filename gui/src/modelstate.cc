@@ -7,9 +7,9 @@
 #include "Model.h"
 
 static Model* model = NULL;
-static unsigned int body_a_id, body_b_id, body_c_id, ref_body_id;
-static Body body_a, body_b, body_c;
-static Joint joint_a, joint_b, joint_c;
+static unsigned int body_a_id, body_b_id, body_c_id, body_d_id, ref_body_id;
+static Body body_a, body_b, body_c, body_d;
+static Joint joint_a, joint_b, joint_c, joint_d;
 
 std::vector<double> Q;
 std::vector<double> QDot;
@@ -19,7 +19,7 @@ std::vector<double> Tau;
 void model_init () {
 	model = new Model();
 	model->Init();
-	body_a = Body (1., Vector3d (0.5, 0., 0.), Vector3d (1., 1., 1.));
+	body_a = Body (1., Vector3d (0.5, 0., 0.0), Vector3d (1., 1., 1.));
 	joint_a = Joint(
 			JointTypeRevolute,
 			Vector3d (0., 0., 1.)
@@ -33,15 +33,23 @@ void model_init () {
 			Vector3d (0., 0., 1.)
 			);
 
-	body_b_id = model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+	body_b_id = model->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
-	body_c = Body (1., Vector3d (0.5, 0., 0.), Vector3d (1., 1., 1.));
+	body_c = Body (0., Vector3d (0.5, 0., 0.), Vector3d (1., 1., 1.));
 	joint_c = Joint (
 			JointTypeRevolute,
 			Vector3d (0., 0., 1.)
 			);
 
-	body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+	body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+
+	body_d = Body (1., Vector3d (0.5, 0., 0.2), Vector3d (1., 1., 1.));
+	joint_d = Joint (
+			JointTypeRevolute,
+			Vector3d (1., 0., 0.)
+			);
+
+	body_d_id = model->AddBody(body_c_id, Xtrans(Vector3d(0., 0., 0.)), joint_d, body_d);
 
 	Q = std::vector<double> (model->mBodies.size() - 1, 0.);
 	QDot = std::vector<double> (model->mBodies.size() - 1, 0.);
