@@ -96,7 +96,11 @@ void CalcPointVelocity (
 	SpatialVector body_global_velocity (global_velocities.at(body_id));
 	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos * -1.) * body_global_velocity;
 
-	point_velocity.set (point_spatial_velocity[3], point_spatial_velocity[4], point_spatial_velocity[5]);
+	point_velocity.set (
+			point_spatial_velocity[3],
+			point_spatial_velocity[4],
+			point_spatial_velocity[5]
+			);
 	LOG << "point_velocity = " << point_velocity << std::endl;
 }
 
@@ -202,18 +206,45 @@ void CalcPointAcceleration (
 	// The whole computation looks in formulae like the following:
 	SpatialVector body_global_velocity (global_velocities.at(body_id));
 	SpatialVector body_global_acceleration (global_accelerations.at(body_id));
-	SpatialMatrix point_transform (Xtrans (-point_abs_pos));
+	// new method
+	SpatialMatrix point_trans = model.X_base[body_id];
 
-	// The derivation for this formula can be found in
-	// doc/notes/point_velocity_acceleration.tex
-	SpatialVector first = body_global_velocity.crossf() * (point_transform * body_global_velocity);
-	SpatialVector second = point_transform * body_global_acceleration;
-	SpatialVector point_spatial_accel = first + second;
+	unsigned int j;
+	for (i = 3; i < 6; i++) {
+		for (j = 0; j < 3; j++) {
+			point_trans(i,j) = 0.;
+		}
+	};
+	LOG << "point_trans.            = " << point_trans << std::endl;
+	point_trans.transpose();
+	LOG << "point_trans.transpose() = " << point_trans << std::endl;
+	point_trans = point_trans * Xtrans (point_position);
 
-	LOG << "first = " << first << std::endl;
-	LOG << "scnd  = " << second << std::endl;
-	LOG << "point_spatial_accel = " << point_spatial_accel << std::endl;
-	
-	point_acceleration.set (point_spatial_accel[3], point_spatial_accel[4], point_spatial_accel[5]);
-	LOG << "point_acceleration = " << point_acceleration <<  std::endl;
+	SpatialVector pvi = point_trans * model.v[body_id];
+	SpatialVector pai = point_trans * model.a[body_id];
+
+	Vector3d omega (
+			body_global_velocity[0],
+			body_global_velocity[1],
+			body_global_velocity[2]
+			);
+	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos * -1.) * body_global_velocity;
+	Vector3d point_velocity (
+			point_spatial_velocity[3],
+			point_spatial_velocity[4],
+			point_spatial_velocity[5]
+			);
+//	CalcPointVelocity (model, Q, QDot, body_id, point_position, point_velocity);
+
+	Vector3d bottom = cml::cross(omega, point_velocity);
+	SpatialVector other (0., 0., 0.,
+			bottom[0], bottom[1], bottom[2]);
+
+	LOG << "pai pre = " << pai << std::endl;
+	LOG << "other   = " << other << std::endl;
+	pai += other;
+	LOG << "pai pos = " << pai << std::endl;
+	point_acceleration.set(pai[3], pai[4], pai[5]);
+	LOG << "point_acceleration new = " << point_acceleration << std::endl;
 }
+

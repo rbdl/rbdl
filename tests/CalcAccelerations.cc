@@ -82,12 +82,12 @@ struct ModelAccelerationsFixture {
 };
 
 TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimple) {
-	ref_body_id = 1;
 	QDDot[0] = 1.;
+	ref_body_id = body_a_id;
 	point_position.set(1., 0., 0.);
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-	// cout << LogOutput.str() << endl;
+	cout << LogOutput.str() << endl;
 
 	CHECK_CLOSE(0., point_acceleration[0], TEST_PREC);
 	CHECK_CLOSE(1., point_acceleration[1], TEST_PREC);
@@ -99,7 +99,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimple) {
 TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimpleRotated) {
 	Q[0] = 0.5 * M_PI;
 
-	ref_body_id = 1;
+	ref_body_id = body_a_id;
 	QDDot[0] = 1.;
 	point_position.set(1., 0., 0.);
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
