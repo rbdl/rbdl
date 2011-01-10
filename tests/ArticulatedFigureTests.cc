@@ -6,6 +6,7 @@
 #include "Logging.h"
 
 #include "Model.h"
+#include "Dynamics_stdvec.h"
 
 using namespace std;
 using namespace SpatialAlgebra;

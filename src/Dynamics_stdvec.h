@@ -19,10 +19,10 @@
  */
 void ForwardDynamics (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		cmlVector &QDDot
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &Tau,
+		std::vector<double> &QDDot
 		);
 
 /** \brief Computes forward dynamics for models with a floating base
@@ -39,14 +39,14 @@ void ForwardDynamics (
  */
 void ForwardDynamicsFloatingBase (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &Tau,
 		const SpatialAlgebra::SpatialMatrix &X_B,
 		const SpatialAlgebra::SpatialVector &v_B,
 		const SpatialAlgebra::SpatialVector &f_B,
 		SpatialAlgebra::SpatialVector &a_B,
-		cmlVector &QDDot
+		std::vector<double> &QDDot
 		);
 
 #endif /* _DYNAMICS_H */

@@ -7,7 +7,95 @@
 
 #include "Model.h"
 
+#include "Dynamics_stdvec.h"
+
 using namespace SpatialAlgebra;
+
+/** \brief Computes forward dynamics for models with a fixed base
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param QDDot accelerations of the internals joints (output)
+ */
+void ForwardDynamics (
+		Model &model,
+		const cmlVector &Q,
+		const cmlVector &QDot,
+		const cmlVector &Tau,
+		cmlVector &QDDot
+		) {
+	std::vector<double> Q_stdvec (Q.size());
+	std::vector<double> QDot_stdvec (QDot.size());
+	std::vector<double> QDDot_stdvec (QDDot.size());
+	std::vector<double> Tau_stdvec (Tau.size());
+
+	unsigned int i;
+	for (i = 0; i < Q.size(); i++)
+		Q_stdvec[i] = Q[i];
+
+	for (i = 0; i < QDot.size(); i++)
+		QDot_stdvec[i] = QDot[i];
+
+	for (i = 0; i < QDDot.size(); i++)
+		QDDot_stdvec[i] = QDDot[i];
+
+	for (i = 0; i < Tau.size(); i++)
+		Tau_stdvec[i] = Tau[i];
+
+	ForwardDynamics (model, Q_stdvec, QDot_stdvec, Tau_stdvec, QDDot_stdvec);
+
+	for (i = 0; i < QDDot.size(); i++)
+		QDDot[i] = QDDot_stdvec[i];
+}
+
+/** \brief Computes forward dynamics for models with a floating base
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param X_B   transformation into base coordinates
+ * \param v_B   velocity of the base (in base coordinates)
+ * \param f_B   forces acting on the base (in base coordinates)
+ * \param a_B   accelerations of the base (output, in base coordinates)
+ * \param QDDot accelerations of the internals joints (output)
+ */
+void ForwardDynamicsFloatingBase (
+		Model &model,
+		const cmlVector &Q,
+		const cmlVector &QDot,
+		const cmlVector &Tau,
+		const SpatialAlgebra::SpatialMatrix &X_B,
+		const SpatialAlgebra::SpatialVector &v_B,
+		const SpatialAlgebra::SpatialVector &f_B,
+		SpatialAlgebra::SpatialVector &a_B,
+		cmlVector &QDDot
+		) {
+	std::vector<double> Q_stdvec (Q.size());
+	std::vector<double> QDot_stdvec (QDot.size());
+	std::vector<double> QDDot_stdvec (QDDot.size());
+	std::vector<double> Tau_stdvec (Tau.size());
+
+	unsigned int i;
+	for (i = 0; i < Q.size(); i++)
+		Q_stdvec[i] = Q[i];
+
+	for (i = 0; i < QDot.size(); i++)
+		QDot_stdvec[i] = QDot[i];
+
+	for (i = 0; i < QDDot.size(); i++)
+		QDDot_stdvec[i] = QDDot[i];
+
+	for (i = 0; i < Tau.size(); i++)
+		Tau_stdvec[i] = Tau[i];
+
+	ForwardDynamicsFloatingBase (model, Q_stdvec, QDot_stdvec, Tau_stdvec, X_B, v_B, f_B, a_B, QDDot_stdvec);
+
+	for (i = 0; i < QDDot.size(); i++)
+		QDDot[i] = QDDot_stdvec[i];
+}
 
 void ForwardDynamics (
 		Model &model,

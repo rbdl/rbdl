@@ -5,6 +5,7 @@
 
 #include "mathutils.h"
 #include "Model.h"
+#include "Dynamics_stdvec.h"
 
 static Model* model = NULL;
 static unsigned int body_a_id, body_b_id, body_c_id, body_d_id, ref_body_id;
