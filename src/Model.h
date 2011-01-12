@@ -3,12 +3,14 @@
 
 #include <cmlwrapper.h>
 #include <vector>
+#include <map>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
 
 #include "Joint.h"
 #include "Body.h"
+#include "Contacts.h"
 
 /** \brief Contains all information of the model
  *
@@ -37,6 +39,9 @@ struct Model {
 
 	/// \brief true if the body has a floating base
 	bool floating_base;
+	/// \brief true if contact information in mContactInfoMap should be used
+	bool use_contacts;
+
 	/// \brief the cartestian translation of the base
 	Vector3d base_translation;
 	/// \brief the rotation of the base in ZYX-Euler angles
@@ -108,7 +113,14 @@ struct Model {
 	 * mBodies[N_B] - N_Bth movable body
 	 */
 	std::vector<Body> mBodies;
-	std::vector<Matrix3d> mBodyOrientation;
+
+	////////////////////////////////////
+	// Contact Data
+	
+	/// \brief Contains for each body all the contact constraint information
+	typedef std::map<unsigned int, std::vector<ContactInfo> > ContactMap;
+	typedef std::map<unsigned int, std::vector<ContactInfo> >::iterator ContactMapIter;
+	ContactMap mContactInfoMap;
 
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
@@ -133,8 +145,20 @@ struct Model {
 			);
 	unsigned int AddContact (
 			const unsigned int body_id,
-			const Vector3d &contact_point
-			);
+			const Vector3d &contact_point,
+			const Vector3d &contact_normal
+			) {
+		assert (mBodies.size() > body_id);
+		ContactMapIter contact_iter = mContactInfoMap.find (body_id);
+		if (contact_iter == mContactInfoMap.end()) {
+			mContactInfoMap[body_id] = std::vector<ContactInfo> ();
+			contact_iter = mContactInfoMap.find(body_id);
+		}
+	
+		ContactInfo contact_info (body_id, contact_point, contact_normal);
+
+		contact_iter->second.push_back (contact_info);
+	}
 
 	/** \brief Returns the 3D coordinate vector of the origin of a given body
 	 *  \brief in base coordinates

@@ -417,3 +417,25 @@ void ForwardDynamicsFloatingBase (
 
 	a_B = model.a[0];
 }
+
+void ForwardDynamicsContacts (
+		Model &model,
+		const cmlVector &Q,
+		const cmlVector &QDot,
+		const cmlVector &Tau,
+		cmlVector &QDDot
+		) {
+
+	// so far we only allow one constraint
+	unsigned int contact_count = 0;
+
+	Model::ContactMapIter iter = model.mContactInfoMap.begin();
+	while (iter != model.mContactInfoMap.end()) {
+		contact_count = iter->second.size();
+		iter++;
+	}
+
+	assert (contact_count == 1);
+}
+
+

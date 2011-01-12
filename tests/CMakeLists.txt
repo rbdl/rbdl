@@ -14,6 +14,7 @@ SET ( TESTS_SRCS
 	CalcVelocities.cc
 	CalcAccelerations.cc
 	Kinematics.cc
+	Contacts.cc
 	)
 
 FIND_PACKAGE (UnitTest++)

@@ -49,4 +49,21 @@ void ForwardDynamicsFloatingBase (
 		cmlVector &QDDot
 		);
 
+/** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param QDDot accelerations of the internals joints (output)
+ */
+void ForwardDynamicsContacts (
+		Model &model,
+		const cmlVector &Q,
+		const cmlVector &QDot,
+		const cmlVector &Tau,
+		cmlVector &QDDot
+		);
+
+
 #endif /* _DYNAMICS_H */

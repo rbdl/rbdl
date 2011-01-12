@@ -48,8 +48,6 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 	CHECK_EQUAL (1, model->X_lambda.size());
 	CHECK_EQUAL (1, model->X_base.size());
 	CHECK_EQUAL (1, model->mBodies.size());
-
-	CHECK_EQUAL (1, model->mBodyOrientation.size());
 }
 
 TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {

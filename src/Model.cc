@@ -50,7 +50,6 @@ void Model::Init() {
 	X_base.push_back(SpatialMatrixIdentity);
 
 	mBodies.push_back(root_body);
-	mBodyOrientation.push_back(Matrix3dIdentity);
 }
 
 unsigned int Model::AddBody (const unsigned int parent_id,
@@ -92,7 +91,6 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	X_lambda.push_back(SpatialMatrixIdentity);
 	X_base.push_back(SpatialMatrixIdentity);
 	mBodies.push_back(body);
-	mBodyOrientation.push_back(Matrix3dIdentity);
 
 	return q.size() - 1;
 }
@@ -110,7 +108,6 @@ void Model::SetFloatingBody (const Body &body) {
 	X_lambda.at(0) = SpatialMatrixIdentity;
 	X_base.at(0) = SpatialMatrixIdentity;
 	mBodies.at(0) = body;
-	mBodyOrientation.at(0) = Matrix3dIdentity;
 }
 
 Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
