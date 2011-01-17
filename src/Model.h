@@ -97,6 +97,8 @@ struct Model {
 	std::vector<double> d;
 	/// \brief Temporary variable u (RBDA p. 130)
 	std::vector<double> u;
+	/// \brief Forces acting on the body (in base coordinates)
+	std::vector<SpatialAlgebra::SpatialVector> f_ext;
 
 	////////////////////////////////////
 	// Bodies

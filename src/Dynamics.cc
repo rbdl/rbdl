@@ -8,6 +8,7 @@
 #include "Model.h"
 
 #include "Dynamics_stdvec.h"
+#include "Kinematics.h"
 
 using namespace SpatialAlgebra;
 
@@ -67,10 +68,10 @@ void ForwardDynamicsFloatingBase (
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &Tau,
-		const SpatialAlgebra::SpatialMatrix &X_B,
-		const SpatialAlgebra::SpatialVector &v_B,
-		const SpatialAlgebra::SpatialVector &f_B,
-		SpatialAlgebra::SpatialVector &a_B,
+		const SpatialMatrix &X_B,
+		const SpatialVector &v_B,
+		const SpatialVector &f_B,
+		SpatialVector &a_B,
 		cmlVector &QDDot
 		) {
 	std::vector<double> Q_stdvec (Q.size());
@@ -115,7 +116,8 @@ void ForwardDynamics (
 
 	SpatialVector result;
 	result.zero();
-	SpatialVector gravity (0., 0., 0., 0., -9.81, 0.);
+
+	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	unsigned int i;
 	
@@ -166,8 +168,7 @@ void ForwardDynamics (
 		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
 
-		// todo: external forces are ignored so far:
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i);
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].conjugate() * model.f_ext.at(i);
 	}
 
 // ClearLogOutput();
@@ -245,7 +246,7 @@ void ForwardDynamics (
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
 		if (lambda == 0)
-			model.a[i] = X_lambda * gravity * (-1.) + model.c[i];
+			model.a[i] = X_lambda * spatial_gravity * (-1.) + model.c[i];
 		else {
 			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
 		}
@@ -274,7 +275,7 @@ void ForwardDynamicsFloatingBase (
 	SpatialVector result;
 	result.zero();
 
-	SpatialVector gravity (0., 0., 0., 0., -9.81, 0.);
+	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	unsigned int i;
 	
@@ -326,8 +327,7 @@ void ForwardDynamicsFloatingBase (
 		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
 
-		// todo: external forces are ignored so far:
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i);
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].conjugate() * model.f_ext.at(i);
 	}
 
 // ClearLogOutput();
@@ -413,7 +413,7 @@ void ForwardDynamicsFloatingBase (
 		QDDot[i - 1] = model.qddot[i];
 	}
 
-	model.a[0] += X_B * gravity;
+	model.a[0] += X_B * spatial_gravity;
 
 	a_B = model.a[0];
 }
@@ -428,14 +428,105 @@ void ForwardDynamicsContacts (
 
 	// so far we only allow one constraint
 	unsigned int contact_count = 0;
+	ContactInfo contact_info;
 
 	Model::ContactMapIter iter = model.mContactInfoMap.begin();
 	while (iter != model.mContactInfoMap.end()) {
 		contact_count = iter->second.size();
+
+		if (contact_count == 1)
+			contact_info = iter->second[0];
+
 		iter++;
 	}
 
 	assert (contact_count == 1);
+
+	// Steps to perform the contact algorithm suggested by Kokkevis and
+	// Metaxas
+	//
+	// 1. Set external forces at P to zero and compute link accelerations and
+	// compute a^0_P (the magnitude of the acceleration of P) and evaluate
+	// C^0
+	//
+	// 2. Apply a unit force at P and compute a^1_P (the magnitude of the
+	// resulting acceleration) and compute the net effect a^e_P of f^1.
+	//
+	// 3. Compute the required constraint force.
+	
+	// Step one, compute the standard forward dynamics without external
+	// forces at P.
+	
+	// Step 1:
+	
+	// save current external forces:
+	std::vector<SpatialVector> current_f_ext (model.f_ext);
+	std::vector<SpatialVector> zero_f_ext (model.f_ext.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
+
+	model.f_ext = zero_f_ext;
+
+	// compute forward dynamics with zero external forces
+	cmlVector QDDot_zero_ext (QDDot);
+	{
+		SUPPRESS_LOGGING
+		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
+	}
+
+	// compute point accelerations
+	Vector3d point_accel;
+	{
+		SUPPRESS_LOGGING
+		CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_accel);
+	}
+
+	// evaluate a0 and C0
+	double a0 = cml::dot(contact_info.normal,point_accel);
+	double C0 = a0 - 0.;
+
+	LOG << "a0 = " << a0 << std::endl;
+
+	// Step 2:
+	
+	// Compute the test force
+	SpatialVector test_force (0., 0., 0., contact_info.normal[0], contact_info.normal[1], contact_info.normal[2]);
+	// transform the test force from the point coordinates to base
+	// coordinates
+	SpatialVector spatial_point_pos (0., 0., 0., contact_info.point[0], contact_info.point[1], contact_info.point[2]);
+	spatial_point_pos = model.X_base[contact_info.body_id].inverse() * spatial_point_pos;
+	Vector3d contact_point_position (spatial_point_pos[3], spatial_point_pos[4], spatial_point_pos[5]);
+	SpatialVector test_force_base = Xtrans (contact_point_position).conjugate() * test_force;
+
+	LOG << "point_position  = " << contact_point_position << std::endl; 
+	LOG << "test_force_base = " << test_force_base << std::endl;
+
+	// apply the test force
+	model.f_ext[contact_info.body_id] = test_force_base;
+	cmlVector QDDot_test_ext (QDDot);
+	{
+		SUPPRESS_LOGGING
+		ForwardDynamics (model, Q, QDot, Tau, QDDot_test_ext);
+	}
+
+	// compute point accelerations after the test force
+	Vector3d point_test_accel;
+	{
+		SUPPRESS_LOGGING
+		CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_test_accel);
+	}
+
+	// evaluate a0 and C0
+	double ae = cml::dot(contact_info.normal,point_test_accel);
+
+	assert (fabs (ae) > 1.0e-6);
+	double fc = -C0 / ae;
+	LOG << "ae = " << ae << std::endl;
+	LOG << "fc = " << fc << std::endl;
+
+	model.f_ext[contact_info.body_id] *= fc;
+	{
+		SUPPRESS_LOGGING
+		ForwardDynamics (model, Q, QDot, Tau, QDDot);
+	}
 }
 
 

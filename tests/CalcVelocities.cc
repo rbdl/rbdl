@@ -6,7 +6,7 @@
 #include "Logging.h"
 
 #include "Model.h"
-#include "Kinematics.h"
+#include "Kinematics_stdvec.h"
 
 using namespace std;
 using namespace SpatialAlgebra;

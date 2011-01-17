@@ -18,6 +18,7 @@ struct ModelFixture {
 		ClearLogOutput();
 		model = new Model;
 		model->Init();
+		model->gravity.set (0., -9.81, 0.);
 	}
 	~ModelFixture () {
 		delete model;
@@ -44,6 +45,7 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 	CHECK_EQUAL (1, model->U.size());
 	CHECK_EQUAL (1, model->d.size());
 	CHECK_EQUAL (1, model->u.size());
+	CHECK_EQUAL (1, model->f_ext.size());
 	
 	CHECK_EQUAL (1, model->X_lambda.size());
 	CHECK_EQUAL (1, model->X_base.size());
@@ -79,6 +81,12 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2, model->U.size());
 	CHECK_EQUAL (2, model->d.size());
 	CHECK_EQUAL (2, model->u.size());
+	CHECK_EQUAL (2, model->f_ext.size());
+
+	SpatialVector spatial_zero;
+	spatial_zero.zero();
+	CHECK_EQUAL (spatial_zero, model->f_ext.at(0));
+	CHECK_EQUAL (spatial_zero, model->f_ext.at(1));
 	
 	CHECK_EQUAL (2, model->X_lambda.size());
 	CHECK_EQUAL (2, model->X_base.size());

@@ -1,5 +1,5 @@
-#ifndef _KINEMATICS_H
-#define _KINEMATICS_H
+#ifndef _KINEMATICS_STDVEC_H
+#define _KINEMATICS_STDVEC_H
 
 #include <cmlwrapper.h>
 #include <vector>
@@ -18,8 +18,8 @@
  */
 void CalcPointVelocity (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
 		unsigned int body_id,
 		const Vector3d &point_position,
 		Vector3d &point_velocity
@@ -37,12 +37,12 @@ void CalcPointVelocity (
  */
 void CalcPointAcceleration (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &QDDot,
+		const std::vector<double> &Q,
+		const std::vector<double> &QDot,
+		const std::vector<double> &QDDot,
 		unsigned int body_id,
 		const Vector3d &point_position,
 		Vector3d &point_acceleration
 		);
 
-#endif /* _KINEMATICS_H */
+#endif /* _KINEMATICS_STDVEC_H */

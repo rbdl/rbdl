@@ -6,7 +6,7 @@
 #include "Logging.h"
 
 #include "Model.h"
-#include "Kinematics.h"
+#include "Kinematics_stdvec.h"
 
 using namespace std;
 using namespace SpatialAlgebra;
@@ -88,7 +88,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimple) {
 	point_position.set(1., 0., 0.);
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-	cout << LogOutput.str() << endl;
+//	cout << LogOutput.str() << endl;
 
 	CHECK_CLOSE(0., point_acceleration[0], TEST_PREC);
 	CHECK_CLOSE(1., point_acceleration[1], TEST_PREC);

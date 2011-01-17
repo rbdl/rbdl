@@ -44,6 +44,7 @@ void Model::Init() {
 	U.push_back(zero_spatial);
 	d.push_back(0.);
 	u.push_back(0.);
+	f_ext.push_back (zero_spatial);
 
 	// Bodies
 	X_lambda.push_back(SpatialMatrixIdentity);
@@ -86,6 +87,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	d.push_back(0.);
 	u.push_back(0.);
+	f_ext.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 
 	// Bodies
 	X_lambda.push_back(SpatialMatrixIdentity);
