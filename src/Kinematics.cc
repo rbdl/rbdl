@@ -161,7 +161,7 @@ void CalcPointVelocity (
 
 	// Now we can compute the spatial velocity at the given point
 	SpatialVector body_global_velocity (global_velocities.at(body_id));
-	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos * -1.) * body_global_velocity;
+	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos) * body_global_velocity;
 
 	point_velocity.set (
 			point_spatial_velocity[3],
@@ -272,7 +272,7 @@ void CalcPointAccelerationOld (
 	// The whole computation looks in formulae like the following:
 	SpatialVector body_global_velocity (global_velocities.at(body_id));
 	SpatialVector body_global_acceleration (global_accelerations.at(body_id));
-	SpatialMatrix point_transform (Xtrans (-point_abs_pos));
+	SpatialMatrix point_transform (Xtrans (point_abs_pos));
 
 	// The derivation for this formula can be found in
 	// doc/notes/point_velocity_acceleration.tex
@@ -415,7 +415,7 @@ void CalcPointAcceleration (
 			body_global_velocity[1],
 			body_global_velocity[2]
 			);
-	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos * -1.) * body_global_velocity;
+	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos) * body_global_velocity;
 	Vector3d point_velocity (
 			point_spatial_velocity[3],
 			point_spatial_velocity[4],

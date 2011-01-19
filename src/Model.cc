@@ -78,7 +78,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	S.push_back (joint.mJointAxis);
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.
-	X_T.push_back(joint_frame.inverse());
+	X_T.push_back(joint_frame);
 
 	// Dynamic variables
 	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
