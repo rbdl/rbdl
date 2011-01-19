@@ -609,7 +609,7 @@ class SpatialMatrix {
 		// Special operators
 		
 		// regular transpose of a 6 dimensional matrix
-		SpatialMatrix transpose() {
+		SpatialMatrix transpose() const {
 			return SpatialMatrix (
 					mData[0 * 6 + 0], mData[1 * 6 + 0], mData[2 * 6 + 0], mData[3 * 6 + 0], mData[4 * 6 + 0], mData[5 * 6 + 0],
 					mData[0 * 6 + 1], mData[1 * 6 + 1], mData[2 * 6 + 1], mData[3 * 6 + 1], mData[4 * 6 + 1], mData[5 * 6 + 1],
@@ -625,8 +625,27 @@ class SpatialMatrix {
 //			SpatialMatrix transp (this->transpose());
 //			return SpatialMatrix (transp.inverse());
 
-			SpatialMatrix invs (this->inverse());
-			return invs.transpose();
+			return this->transpose();
+
+
+//			SpatialMatrix invs (this->inverse());
+//			return invs.transpose();
+
+			/*
+			SpatialMatrix result (*this);
+			// swap lower left with upper right
+			Matrix3d upper_right = get_upper_right();
+			unsigned int i;
+			unsigned int j;
+			for (i = 0; i < 3; i++) {
+				for (j = 0; j < 3; j++) {
+					result(i, j + 3) = this->operator()(i+3, j);
+					result(i+3,j) = upper_right (i,j);
+				}
+			}
+
+			return result;
+			*/
 		}
 
 		/** \brief Returns the inverse of a transformation 

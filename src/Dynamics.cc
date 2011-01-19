@@ -213,8 +213,8 @@ void ForwardDynamics (
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
 			SpatialMatrix X_lambda = model.X_lambda[i];
-			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
-			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
+			model.IA[lambda] = model.IA[lambda] + X_lambda.conjugate() * Ia * X_lambda;
+			model.pA[lambda] = model.pA[lambda] + X_lambda.conjugate() * pa;
 		}
 	}
 
@@ -370,8 +370,8 @@ void ForwardDynamicsFloatingBase (
 		SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
 		SpatialMatrix X_lambda = model.X_lambda[i];
-		model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
-		model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
+		model.IA[lambda] = model.IA[lambda] + X_lambda.conjugate() * Ia * X_lambda;
+		model.pA[lambda] = model.pA[lambda] + X_lambda.conjugate() * pa;
 	}
 
 //	ClearLogOutput();
@@ -468,16 +468,19 @@ void ForwardDynamicsContacts (
 	// compute forward dynamics with zero external forces
 	cmlVector QDDot_zero_ext (QDDot);
 	{
-		SUPPRESS_LOGGING
+//		SUPPRESS_LOGGING;
+		LOG << " -------- ZERO_EXT ------" << std::endl;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
 	}
 
 	// compute point accelerations
 	Vector3d point_accel;
 	{
-		SUPPRESS_LOGGING
+		SUPPRESS_LOGGING;
 		CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_accel);
 	}
+
+	LOG << "point_accel    = " << point_accel << std::endl;
 
 	// evaluate a0 and C0
 	double a0 = cml::dot(contact_info.normal,point_accel);
@@ -491,11 +494,14 @@ void ForwardDynamicsContacts (
 	SpatialVector test_force (0., 0., 0., contact_info.normal[0], contact_info.normal[1], contact_info.normal[2]);
 	// transform the test force from the point coordinates to base
 	// coordinates
-	SpatialVector spatial_point_pos (0., 0., 0., contact_info.point[0], contact_info.point[1], contact_info.point[2]);
-	spatial_point_pos = model.X_base[contact_info.body_id].inverse() * spatial_point_pos;
-	Vector3d contact_point_position (spatial_point_pos[3], spatial_point_pos[4], spatial_point_pos[5]);
-	SpatialVector test_force_base = Xtrans (contact_point_position).conjugate() * test_force;
+	Matrix3d body_rotation = model.X_base[contact_info.body_id].get_rotation().transpose();
+	Vector3d body_position = model.X_base[contact_info.body_id].get_translation() * -1.; 
+	Vector3d contact_point_position = body_position + body_rotation * contact_info.point;
 
+	SpatialVector test_force_base = Xtrans (contact_point_position).transpose() * test_force;
+
+	LOG << "body_id         = " << contact_info.body_id << std::endl;
+	LOG << "body_position   = " << body_position << std::endl;
 	LOG << "point_position  = " << contact_point_position << std::endl; 
 	LOG << "test_force_base = " << test_force_base << std::endl;
 
@@ -503,17 +509,19 @@ void ForwardDynamicsContacts (
 	model.f_ext[contact_info.body_id] = test_force_base;
 	cmlVector QDDot_test_ext (QDDot);
 	{
-		SUPPRESS_LOGGING
+//		SUPPRESS_LOGGING;
+		LOG << "-------- TEST_EXT ------" << std::endl;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_test_ext);
 	}
 
 	// compute point accelerations after the test force
 	Vector3d point_test_accel;
 	{
-		SUPPRESS_LOGGING
+		SUPPRESS_LOGGING;
 		CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_test_accel);
 	}
 
+	LOG << "point_test_accel= " << point_test_accel << std::endl;
 	// evaluate a0 and C0
 	double ae = cml::dot(contact_info.normal,point_test_accel);
 
@@ -524,7 +532,8 @@ void ForwardDynamicsContacts (
 
 	model.f_ext[contact_info.body_id] *= fc;
 	{
-		SUPPRESS_LOGGING
+	//	SUPPRESS_LOGGING;
+		LOG << "-------- APPLY_EXT ------" << std::endl;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot);
 	}
 }

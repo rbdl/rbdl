@@ -112,7 +112,8 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 
 	Vector3d point_accel;
 	{
-		SUPPRESS_LOGGING
+//		SUPPRESS_LOGGING;
+			_NoLogging nolog;
 		CalcPointAcceleration (*model, Q, QDot, QDDot, body_id, contact_point, point_accel);
 	}
 	cout << "point accel pre  = " << point_accel << endl;
@@ -120,6 +121,7 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 	ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
 	{
 		SUPPRESS_LOGGING
+		_NoLogging nolog;
 		CalcPointAcceleration (*model, Q, QDot, QDDot, body_id, contact_point, point_accel);
 	}
 	cout << LogOutput.str() << endl;

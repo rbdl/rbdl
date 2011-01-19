@@ -96,6 +96,34 @@ TEST(TestSpatialMatrixTimesSpatialMatrix) {
 	CHECK_EQUAL (test_result, result);
 }
 
+/// \brief Checks the conjugate method
+//
+// This method computes a spatial force transformation from a spatial
+// motion transformation and vice versa
+TEST(TestSpatialMatrixTransformConjugate) {
+	SpatialMatrix s_matrix (
+			 1.,  2.,  3.,  4.,  5.,  6.,
+			 7.,  8.,  9., 10., 11., 12.,
+			13., 14., 15., 16., 17., 18.,
+			19., 20., 21., 22., 23., 24.,
+			25., 26., 27., 28., 29., 30.,
+			31., 32., 33., 34., 35., 36.
+			);
+	
+	SpatialMatrix result;
+	result = s_matrix.conjugate();
+
+	SpatialMatrix test_result_matrix (
+			 1.,  2.,  3., 19., 20., 21.,
+			 7.,  8.,  9., 25., 26., 27.,
+			13., 14., 15., 31., 32., 33.,
+			 4.,  5.,  6., 22., 23., 24.,
+			10., 11., 12., 28., 29., 30.,
+			16., 17., 18., 34., 35., 36.);
+		
+	CHECK_EQUAL (test_result_matrix, result);
+}
+
 TEST(TestSpatialMatrixInverse) {
 	SpatialMatrix s_matrix (
 			0, 1, 2, 0, 1, 2,

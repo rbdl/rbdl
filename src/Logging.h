@@ -10,7 +10,7 @@ class _NoLogging;
 	#define SUPPRESS_LOGGING ;
 #else
 	#define LOG LogOutput
-	#define SUPPRESS_LOGGING _NoLogging _nolog;
+	#define SUPPRESS_LOGGING _NoLogging _nolog
 #endif
 
 extern std::ostringstream LogOutput;

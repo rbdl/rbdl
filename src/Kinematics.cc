@@ -288,7 +288,6 @@ void CalcPointAccelerationOld (
 	LOG << "point_acceleration = " << point_acceleration <<  std::endl;
 }
 
-
 void CalcPointAcceleration (
 		Model &model,
 		const cmlVector &Q,
