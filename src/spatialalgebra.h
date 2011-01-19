@@ -837,7 +837,7 @@ SpatialMatrix SpatialVector::crossm() const
 // SpatialMatrix.
 SpatialMatrix SpatialVector::crossf() const
 {
-	return this->crossm().transpose() * -1.;
+	return this->crossm().adjoint();
 }
 
 

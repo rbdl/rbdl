@@ -329,7 +329,7 @@ void ForwardDynamicsFloatingBase (
 		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
 
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].adjoint() * model.f_ext.at(i);
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].transpose() * model.f_ext.at(i);
 	}
 
 // ClearLogOutput();
@@ -446,6 +446,10 @@ void ForwardDynamicsContacts (
 
 	assert (contact_count == 1);
 
+	LOG << "Contact body   = " << contact_info.body_id << std::endl;
+	LOG << "Contact point  = " << contact_info.point << std::endl;
+	LOG << "Contact normal = " << contact_info.normal << std::endl;
+
 	// Steps to perform the contact algorithm suggested by Kokkevis and
 	// Metaxas
 	//
@@ -472,7 +476,7 @@ void ForwardDynamicsContacts (
 	// compute forward dynamics with zero external forces
 	cmlVector QDDot_zero_ext (QDDot);
 	{
-//		SUPPRESS_LOGGING;
+		SUPPRESS_LOGGING;
 		LOG << " -------- ZERO_EXT ------" << std::endl;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
 	}
@@ -502,7 +506,7 @@ void ForwardDynamicsContacts (
 	Vector3d body_position = model.X_base[contact_info.body_id].get_translation() * -1.; 
 	Vector3d contact_point_position = body_position + body_rotation * contact_info.point;
 
-	SpatialVector test_force_base = Xtrans (contact_point_position).transpose() * test_force;
+	SpatialVector test_force_base = Xtrans (contact_point_position * -1.).adjoint() * test_force;
 
 	LOG << "body_id         = " << contact_info.body_id << std::endl;
 	LOG << "body_position   = " << body_position << std::endl;
@@ -513,7 +517,7 @@ void ForwardDynamicsContacts (
 	model.f_ext[contact_info.body_id] = test_force_base;
 	cmlVector QDDot_test_ext (QDDot);
 	{
-//		SUPPRESS_LOGGING;
+		SUPPRESS_LOGGING;
 		LOG << "-------- TEST_EXT ------" << std::endl;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_test_ext);
 	}
@@ -522,21 +526,21 @@ void ForwardDynamicsContacts (
 	Vector3d point_test_accel;
 	{
 		SUPPRESS_LOGGING;
-		CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_test_accel);
+		CalcPointAcceleration (model, Q, QDot, QDDot_test_ext, contact_info.body_id, contact_info.point, point_test_accel);
 	}
 
 	LOG << "point_test_accel= " << point_test_accel << std::endl;
 	// evaluate a0 and C0
-	double ae = cml::dot(contact_info.normal,point_test_accel);
+	double ae = cml::dot(contact_info.normal,point_test_accel) - a0;
 
 	assert (fabs (ae) > 1.0e-6);
-	double fc = -C0 / ae;
+	double fc = (-C0 / ae);
 	LOG << "ae = " << ae << std::endl;
 	LOG << "fc = " << fc << std::endl;
 
 	model.f_ext[contact_info.body_id] *= fc;
 	{
-	//	SUPPRESS_LOGGING;
+		SUPPRESS_LOGGING;
 		LOG << "-------- APPLY_EXT ------" << std::endl;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot);
 	}
