@@ -96,11 +96,11 @@ TEST(TestSpatialMatrixTimesSpatialMatrix) {
 	CHECK_EQUAL (test_result, result);
 }
 
-/// \brief Checks the conjugate method
+/// \brief Checks the adjoint method
 //
 // This method computes a spatial force transformation from a spatial
 // motion transformation and vice versa
-TEST(TestSpatialMatrixTransformConjugate) {
+TEST(TestSpatialMatrixTransformAdjoint) {
 	SpatialMatrix s_matrix (
 			 1.,  2.,  3.,  4.,  5.,  6.,
 			 7.,  8.,  9., 10., 11., 12.,
@@ -111,7 +111,7 @@ TEST(TestSpatialMatrixTransformConjugate) {
 			);
 	
 	SpatialMatrix result;
-	result = s_matrix.conjugate();
+	result = s_matrix.adjoint();
 
 	SpatialMatrix test_result_matrix (
 			 1.,  2.,  3., 19., 20., 21.,

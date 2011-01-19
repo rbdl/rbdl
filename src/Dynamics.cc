@@ -168,7 +168,7 @@ void ForwardDynamics (
 		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
 
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].conjugate() * model.f_ext.at(i);
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].adjoint() * model.f_ext.at(i);
 	}
 
 // ClearLogOutput();
@@ -213,8 +213,10 @@ void ForwardDynamics (
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
 			SpatialMatrix X_lambda = model.X_lambda[i];
-			model.IA[lambda] = model.IA[lambda] + X_lambda.conjugate() * Ia * X_lambda;
-			model.pA[lambda] = model.pA[lambda] + X_lambda.conjugate() * pa;
+
+			// note: X_lambda.inverse().adjoint() = X_lambda.transpose()
+			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
+			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
 		}
 	}
 
@@ -327,7 +329,7 @@ void ForwardDynamicsFloatingBase (
 		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
 
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].conjugate() * model.f_ext.at(i);
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].adjoint() * model.f_ext.at(i);
 	}
 
 // ClearLogOutput();
@@ -370,8 +372,10 @@ void ForwardDynamicsFloatingBase (
 		SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
 		SpatialMatrix X_lambda = model.X_lambda[i];
-		model.IA[lambda] = model.IA[lambda] + X_lambda.conjugate() * Ia * X_lambda;
-		model.pA[lambda] = model.pA[lambda] + X_lambda.conjugate() * pa;
+
+		// note: X_lambda.inverse().adjoint() = X_lambda.transpose()
+		model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
+		model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
 	}
 
 //	ClearLogOutput();

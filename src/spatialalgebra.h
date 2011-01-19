@@ -620,19 +620,14 @@ class SpatialMatrix {
 					);
 		}
 
-		// if the matrix represents {}^BX_A then thes function returns {}^BX_A^* in RBDA
-		SpatialMatrix conjugate() const {
-//			SpatialMatrix transp (this->transpose());
-//			return SpatialMatrix (transp.inverse());
-
-			return this->transpose();
-
-
-//			SpatialMatrix invs (this->inverse());
-//			return invs.transpose();
-
-			/*
+		/** \brief Computes the adjoint matrix of a spatial transformation
+		 *
+		 * For a given transformation {}^BX_A it computes {}^B^*_{X} as in RBDA
+		 * p. 22 by swapping the lower left with the upper right 3x3 matrix.
+		 */
+		SpatialMatrix adjoint() const {
 			SpatialMatrix result (*this);
+
 			// swap lower left with upper right
 			Matrix3d upper_right = get_upper_right();
 			unsigned int i;
@@ -645,7 +640,6 @@ class SpatialMatrix {
 			}
 
 			return result;
-			*/
 		}
 
 		/** \brief Returns the inverse of a transformation 
