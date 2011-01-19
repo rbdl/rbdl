@@ -136,3 +136,10 @@ Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
 	return X_base[body_id].get_upper_left();
 }
 
+Vector3d Model::GetBodyPointPosition (const unsigned int body_id, const Vector3d &body_point) {
+	Matrix3d body_rotation = this->X_base[body_id].get_rotation().transpose();
+	Vector3d body_position = this->X_base[body_id].get_translation() * -1.; 
+	return body_position + body_rotation * body_point;
+}
+
+

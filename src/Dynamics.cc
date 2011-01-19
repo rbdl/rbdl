@@ -502,15 +502,11 @@ void ForwardDynamicsContacts (
 	SpatialVector test_force (0., 0., 0., contact_info.normal[0], contact_info.normal[1], contact_info.normal[2]);
 	// transform the test force from the point coordinates to base
 	// coordinates
-	Matrix3d body_rotation = model.X_base[contact_info.body_id].get_rotation().transpose();
-	Vector3d body_position = model.X_base[contact_info.body_id].get_translation() * -1.; 
-	Vector3d contact_point_position = body_position + body_rotation * contact_info.point;
+	Vector3d contact_point_position = model.GetBodyPointPosition(contact_info.body_id, contact_info.point);
 
 	SpatialVector test_force_base = Xtrans (contact_point_position * -1.).adjoint() * test_force;
 
 	LOG << "body_id         = " << contact_info.body_id << std::endl;
-	LOG << "body_position   = " << body_position << std::endl;
-	LOG << "point_position  = " << contact_point_position << std::endl; 
 	LOG << "test_force_base = " << test_force_base << std::endl;
 
 	// apply the test force

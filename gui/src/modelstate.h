@@ -5,7 +5,7 @@
 class Model;
 
 void model_init ();
-void model_update (const double delta_time);
+void model_update (double delta_time);
 Model* model_get();
 void model_destroy ();
 

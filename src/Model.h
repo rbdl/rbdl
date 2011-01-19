@@ -25,7 +25,7 @@
  * have #bodies + 1 entries where always the first entry (e.g. q[0])
  * contains the value for the root body. Thus the numbering might be
  * confusing as q[1] holds the position variable of the first degree of
- * freedom. This numbering scheme is very benefial in terms of readability
+ * freedom. This numbering scheme is very beneficial in terms of readability
  * of the code as the resulting code is very similar to the pseudo-code in
  * the RBDA book.
  */
@@ -126,7 +126,25 @@ struct Model {
 
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
+
 	/** \brief Connects a given body to the model
+	 *
+	 * When adding a body there are basically informations required:
+	 * - what kind of body will be added?
+	 * - where is the new body to be added?
+	 * - by what kind of joint should the body be added?
+	 *
+	 * The first information "what kind of body will be added" is contained
+	 * in the Body class that is given as a parameter.
+	 *
+	 * The question "where is the new body to be added?" is split up in two
+	 * parts: first the parent (or successor) body to which it is added and
+	 * second the transformation to the origin of the joint that connects the
+	 * two bodies. With these two informations one specifies the relative
+	 * positions of the bodies when the joint is in neutral position.gk
+	 *
+	 * The last question "by what kind of joint should the body be added?" is
+	 * again simply contained in the Joint class.
 	 *
 	 * \param parent_id   id of the parent body
 	 * \param joint_frame the transformation from the parent frame to the origin
@@ -179,6 +197,16 @@ struct Model {
 	 *  \returns orientation to body orientation
 	 */
 	Matrix3d GetBodyWorldOrientation (const unsigned int body_id);
+
+	/** \brief Returns the base coordinates of a point given in body coordinates
+	 *
+	 * \param body_id id of the body for which the point coordinates are
+	 * expressed
+	 * \param body_point coordinates of the point in body coordinates
+	 *
+	 * \returns a 3-D vector with the point coordinates in base coordinates
+	 */
+	Vector3d GetBodyPointPosition (const unsigned int body_id, const Vector3d &body_point);
 };
 
 /** \brief Computes the joint variables 
