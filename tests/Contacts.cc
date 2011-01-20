@@ -127,3 +127,67 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 
 	CHECK_CLOSE(0., cml::dot(point_accel, contact_normal), TEST_PREC);
 }
+
+TEST_FIXTURE(ContactsFixture, TestContactSimpleMoving) {
+	model->AddContact(body_id, contact_point, contact_normal);
+	QDot[0] = -0.3;
+	QDot[1] = 0.4;
+
+	Vector3d point_accel_pre;
+	{
+		_NoLogging nolog;
+		CalcPointAcceleration (*model, Q, QDot, QDDot, body_id, contact_point, point_accel_pre);
+	}
+	LOG << "point accel pre  = " << point_accel_pre << endl;
+
+	Vector3d point_accel_post;
+	ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
+	{
+		_NoLogging nolog;
+		CalcPointAcceleration (*model, Q, QDot, QDDot, body_id, contact_point, point_accel_post);
+	}
+//	cout << LogOutput.str() << endl;
+	LOG << "point accel post = " << point_accel_post << endl;
+
+	Vector3d point_accel_delta = point_accel_post - point_accel_pre;
+	double accel_value = cml::dot(point_accel_delta, contact_normal);
+	LOG << scientific << "Accel value = " << accel_value << endl;
+
+	CHECK_CLOSE(0., accel_value, TEST_PREC);
+}
+
+TEST_FIXTURE(ContactsFixture, TestContactSimpleAccelerating) {
+	model->AddContact(body_id, contact_point, contact_normal);
+
+	QDot[0] = -0.3;
+	QDot[1] = 0.4;
+	QDDot[0] = 2.;
+	QDDot[1] = -2.;
+	QDDot[2] = -1.5;
+
+	Vector3d point_accel_pre;
+	{
+		_NoLogging nolog;
+		CalcPointAcceleration (*model, Q, QDot, QDDot, body_id, contact_point, point_accel_pre);
+	}
+	cout << "point accel pre  = " << point_accel_pre << endl;
+
+	Vector3d point_accel_post;
+	ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
+	
+	{
+	//	_NoLogging nolog;
+		CalcPointAcceleration (*model, Q, QDot, QDDot, body_id, contact_point, point_accel_post);
+	}
+
+	Vector3d point_accel_delta = point_accel_post - point_accel_pre;
+	double accel_value = cml::dot(point_accel_delta, contact_normal);
+
+	cout << LogOutput.str();
+
+	cout << "point accel post = " << point_accel_post << endl;
+
+	cout << scientific << "Accel value = " << accel_value << endl;
+
+	CHECK_CLOSE(0., accel_value, TEST_PREC);
+}

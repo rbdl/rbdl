@@ -9,6 +9,7 @@
 \newcommand{\Spa}[1]{\mathbf{\hat{#1}}}
 \newcommand{\Nspa}[1]{\mathbf{\underline{#1}}}
 \newcommand{\Vec}[1]{\mathbf{#1}}
+\newcommand{\figref}[1]{\figurename~\ref{#1}}
 
 \begin{document}
 
@@ -105,15 +106,15 @@ The last term can be written as: $\dot{\Spa{S}} = \Spa{v}_i \times \Spa{S}_i$.
 \end{figure}
 
 There are three coordinate systems involved in the computation of the
-acceleration of point p which are shown in figure
-\ref{fig:acceleration_visualization}. The \emph{base coordinate system} which
-is the global reference frame, \emph{link $i$ coordinate system} which is the
-coordinate system of body $i$, and the \emph{point coordinate system} that is
-locate at the current position of $p$ and has the same orientation as the base
-coordinate system.
+acceleration of point p which are shown in
+\figref{fig:acceleration_visualization}. The \emph{base coordinate system}
+which is the global reference frame, \emph{link $i$ coordinate system}
+which is the coordinate system of body $i$, and the \emph{point coordinate
+system} that is locate at the current position of $p$ and has the same
+orientation as the base coordinate system.
 
 First of all we build the transformation from the body coordinate system to
-the pointcoordinate system:
+the point coordinate system:
 \begin{equation}
 	{^p}\Vec{X}_i =
 	\left[
@@ -125,7 +126,7 @@ the pointcoordinate system:
 	\left[
 	\begin{array}{cc}
 		\Vec{1} & \Vec{0} \\
-		{^i}\Nspa{r}_p \times & \Vec{1}
+		-{^i}\Nspa{r}_p \times & \Vec{1}
 	\end{array}
 	\right].
 \end{equation}
@@ -138,7 +139,7 @@ the point p:
 	{^p}\Spa{a}_i = {^p}\Vec{X}_i \Spa{a}_i
 \end{equation}
 
-To now retrieve the \emph{classical acceleration}. It is expressed in a
+We now want to retrieve the \emph{classical acceleration}. It is expressed in a
 coordinate frame that has a pure linear velocity of ${^0}\Nspa{\dot{p}}$.
 \begin{equation}
 	{^p}\Spa{a}'_i = {^p}\Spa{a}_i + 

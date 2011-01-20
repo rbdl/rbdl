@@ -529,7 +529,8 @@ void ForwardDynamicsContacts (
 	// evaluate a0 and C0
 	double ae = cml::dot(contact_info.normal,point_test_accel) - a0;
 
-	assert (fabs (ae) > 1.0e-6);
+  LOG << "fabs(ae) = " << std::scientific << fabs(ae) << std::endl;
+	assert (fabs (ae) > 1.0e-14);
 	double fc = (-C0 / ae);
 	LOG << "ae = " << ae << std::endl;
 	LOG << "fc = " << fc << std::endl;

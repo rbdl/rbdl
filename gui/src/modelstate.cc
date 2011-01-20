@@ -104,7 +104,7 @@ void model_init () {
 void model_update_contact (double delta_time) {
 	ForwardDynamicsContacts (*model, Q, QDot, Tau, QDDot);
 
-	delta_time *= 1.0e-1;
+	delta_time *= 1.0e-0;
 	int i;
 	for (i = 0; i < Q.size(); i++) {
 		Q[i] += delta_time * QDot[i];
@@ -120,7 +120,10 @@ void model_update_contact (double delta_time) {
 }
 
 void model_update (double delta_time) {
-	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+	model_update_contact (delta_time);
+	return;
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
 	int i;
 	for (i = 0; i < Q.size(); i++) {

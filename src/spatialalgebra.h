@@ -256,6 +256,63 @@ class SpatialMatrix {
 			mData[30 + 4] = v54;
 			mData[30 + 5] = v55;
 		};
+		SpatialMatrix(const Matrix3d &upper_left,
+				const Matrix3d &upper_right,
+				const Matrix3d &lower_left,
+				const Matrix3d &lower_right) {
+			// upper left
+			mData[0] = upper_left(0,0);
+			mData[1] = upper_left(0,1);
+			mData[2] = upper_left(0,2);
+
+			mData[6 + 0] = upper_left(1,0);
+			mData[6 + 1] = upper_left(1,1);
+			mData[6 + 2] = upper_left(1,2);
+			
+			mData[12 + 0] = upper_left(2,0);
+			mData[12 + 1] = upper_left(2,1);
+			mData[12 + 2] = upper_left(2,2);
+
+			// upper right 
+			mData[3] = upper_right(0,0);
+			mData[4] = upper_right(0,1);
+			mData[5] = upper_right(0,2);
+
+			mData[6 + 3] = upper_right(1,0);
+			mData[6 + 4] = upper_right(1,1);
+			mData[6 + 5] = upper_right(1,2);
+			
+			mData[12 + 3] = upper_right(2,0);
+			mData[12 + 4] = upper_right(2,1);
+			mData[12 + 5] = upper_right(2,2);
+
+			// lower left
+			mData[18 + 0] = lower_left(0,0);
+			mData[18 + 1] = lower_left(0,1);
+			mData[18 + 2] = lower_left(0,2);
+
+			mData[24 + 0] = lower_left(1,0);
+			mData[24 + 1] = lower_left(1,1);
+			mData[24 + 2] = lower_left(1,2);
+			
+			mData[30 + 0] = lower_left(2,0);
+			mData[30 + 1] = lower_left(2,1);
+			mData[30 + 2] = lower_left(2,2);
+
+			// lower right 
+			mData[18 + 3] = lower_right(0,0);
+			mData[18 + 4] = lower_right(0,1);
+			mData[18 + 5] = lower_right(0,2);
+
+			mData[24 + 3] = lower_right(1,0);
+			mData[24 + 4] = lower_right(1,1);
+			mData[24 + 5] = lower_right(1,2);
+			
+			mData[30 + 3] = lower_right(2,0);
+			mData[30 + 4] = lower_right(2,1);
+			mData[30 + 5] = lower_right(2,2);
+
+		}
 
 		// comparison
 		bool operator==(const SpatialMatrix &matrix) const {
@@ -286,23 +343,23 @@ class SpatialMatrix {
 		};
 		
 		void set(
-				const double &v00, const double &v01, const double &v02,
-				const double &v03, const double &v04, const double &v05,
+				const double v00, const double v01, const double v02,
+				const double v03, const double v04, const double v05,
 
-				const double &v10, const double &v11, const double &v12,
-				const double &v13, const double &v14, const double &v15,
+				const double v10, const double v11, const double v12,
+				const double v13, const double v14, const double v15,
 
-				const double &v20, const double &v21, const double &v22,
-				const double &v23, const double &v24, const double &v25,
+				const double v20, const double v21, const double v22,
+				const double v23, const double v24, const double v25,
 
-				const double &v30, const double &v31, const double &v32,
-				const double &v33, const double &v34, const double &v35,
+				const double v30, const double v31, const double v32,
+				const double v33, const double v34, const double v35,
 
-				const double &v40, const double &v41, const double &v42,
-				const double &v43, const double &v44, const double &v45,
+				const double v40, const double v41, const double v42,
+				const double v43, const double v44, const double v45,
 
-				const double &v50, const double &v51, const double &v52,
-				const double &v53, const double &v54, const double &v55
+				const double v50, const double v51, const double v52,
+				const double v53, const double v54, const double v55
 				) {
 			mData[0] = v00;
 			mData[1] = v01;
