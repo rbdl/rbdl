@@ -24,6 +24,23 @@ unsigned int contact_body_id;
 Vector3d contact_point;
 Vector3d contact_normal;
 
+typedef cmlVector (rhs_func) (double, const cmlVector&);
+
+cmlVector rk4_integrator (double t, double h, cmlVector &y0, rhs_func func) {
+	cmlVector k1 (y0.size());
+	cmlVector k2 (y0.size());
+	cmlVector k3 (y0.size());
+	cmlVector k4 (y0.size());
+
+	k1 = func (t, y0);
+	k2 = func (t + 0.5 * h, y0 + h * 0.5 * k1);
+	k3 = func (t + 0.5 * h, y0 + h * 0.5 * k2);
+	k4 = func (t + h, y0 + h * k3);
+
+	return y0 + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6.; 
+}
+
+
 void model_init () {
 	model = new Model;
 	model->Init();
@@ -81,7 +98,7 @@ void model_init () {
 	Tau.zero();
 
 	contact_body_id = body_c_id;
-	contact_point.set (0., 0., 0.);
+	contact_point.set (1., 0., 0.);
 	contact_normal.set (0., 1., 0.);
 
 	model->AddContact(contact_body_id, contact_point, contact_normal);
@@ -91,8 +108,73 @@ void model_init () {
 	model_update (0.);
 }
 
+cmlVector rhs_contact (double t, const cmlVector &y) {
+	unsigned int i;
+	unsigned int size = Q.size();
+
+	cmlVector q (size);
+	cmlVector qdot (size);
+	cmlVector qddot (size);
+
+	for (i = 0; i < size; i++) {
+		q[i] = y[i];
+		qdot[i] = y[i + size];
+	}
+
+	ForwardDynamicsContacts (*model, q, qdot, Tau, qddot);
+
+	cmlVector res (size * 2);
+	for (i = 0; i < size; i++) {
+		res[i] = qdot[i];
+		res[i + size] = qddot[i];
+	}
+
+	return res;
+}
+
+cmlVector rhs_normal (double t, const cmlVector &y) {
+	unsigned int i;
+	unsigned int size = Q.size();
+
+	cmlVector q (size);
+	cmlVector qdot (size);
+	cmlVector qddot (size);
+
+	for (i = 0; i < size; i++) {
+		q[i] = y[i];
+		qdot[i] = y[i + size];
+	}
+
+	ForwardDynamics (*model, q, qdot, Tau, qddot);
+
+	cmlVector res (size * 2);
+	for (i = 0; i < size; i++) {
+		res[i] = qdot[i];
+		res[i + size] = qddot[i];
+	}
+
+	return res;
+}
+
+
 void model_update_contact (double delta_time) {
-	ForwardDynamicsContacts (*model, Q, QDot, Tau, QDDot);
+	unsigned int size = Q.size();
+	unsigned int i;
+	
+	cmlVector y (size * 2);
+
+	for (i = 0; i < size; i++) {
+		y[i] = Q[i];
+		y[i + size] = QDot[i];
+	}
+
+	cmlVector ynew (size * 2);
+	ynew = rk4_integrator (0., delta_time, y, rhs_contact);
+
+	for (i = 0; i < size; i++) {
+		Q[i] += ynew[i];
+		QDot[i] += ynew[i + size];
+	}
 
 	Vector3d point_accel;
 	CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
@@ -105,28 +187,28 @@ void model_update_contact (double delta_time) {
 	qDebug() << "accel =" << cml::dot(point_accel, contact_normal) 
 		<< " point_accel =" << point_accel[0] << point_accel[1] << point_accel[2]
 		<< " point_veloc =" << point_velocity[0] << point_velocity[1] << point_velocity[2];
-
-	
-	// << "state = " << Q[0] << Q[1] << Q[2] << "vel = " << QDot[0] << QDot[1] << QDot[2];
-
-	delta_time *= 1.0e-1;
-	int i;
-	for (i = 0; i < Q.size(); i++) {
-		Q[i] += delta_time * QDot[i];
-		QDot[i] += delta_time * QDDot[i];
-	}
 }
 
 void model_update (double delta_time) {
-	model_update_contact (delta_time);
-	return;
+//	model_update_contact (delta_time);
+//	return;
 
-	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+	unsigned int size = Q.size();
+	unsigned int i;
+	
+	cmlVector y (size * 2);
 
-	int i;
-	for (i = 0; i < Q.size(); i++) {
-		Q[i] += delta_time * QDot[i];
-		QDot[i] += delta_time * QDDot[i];
+	for (i = 0; i < size; i++) {
+		y[i] = Q[i];
+		y[i + size] = QDot[i];
+	}
+
+	cmlVector ynew (size * 2);
+	ynew = rk4_integrator (0., delta_time, y, rhs_normal);
+
+	for (i = 0; i < size; i++) {
+		Q[i] = ynew[i];
+		QDot[i] = ynew[i + size];
 	}
 }
 

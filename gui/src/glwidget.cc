@@ -233,8 +233,12 @@ void GLWidget::resizeGL(int width, int height)
 }
 
 void GLWidget::keyPressEvent(QKeyEvent* event) {
-	if (event->key() == Qt::Key_Return)
-		update_simulation = true;
+	if (event->key() == Qt::Key_Return) {
+		if (!update_simulation)
+			update_simulation = true;
+		else 
+			update_simulation = false;
+	}
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
