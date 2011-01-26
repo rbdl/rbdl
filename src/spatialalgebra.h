@@ -51,6 +51,10 @@ class SpatialVector {
 			return true;
 		}
 
+		bool operator!=(const SpatialVector &vector) const {
+			return !this->operator==(vector);
+		}
+
 		// access operators
 		const double& operator[](const unsigned int &index) const {
 			assert (index	>= 0 && index < 6);
@@ -944,6 +948,8 @@ inline SpatialVector SpatialLinSolve (SpatialMatrix A, SpatialVector b) {
 
 	return x;
 }
+
+const SpatialVector SpatialVectorZero (0., 0., 0., 0., 0., 0.);
 
 }
 

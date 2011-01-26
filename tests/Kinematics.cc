@@ -163,3 +163,76 @@ TEST_FIXTURE(KinematicsFixture, TestPositionBodyBRotatedNeg45Deg) {
 	CHECK_ARRAY_CLOSE (Vector3d (1., 1., 0.),model->GetBodyOrigin(body_c_id), 3, TEST_PREC );
 	CHECK_ARRAY_CLOSE (Vector3d (1 + 0.707106781186547, 1., -0.707106781186547), model->GetBodyOrigin(body_d_id), 3, TEST_PREC );
 }
+
+TEST_FIXTURE(KinematicsFixture, TestGetBodyPointPosition) {
+	// We call ForwardDynamics() as it updates the spatial transformation
+	// matrices
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (1., 2., 0.),
+			model->GetBodyPointPosition(body_c_id, Vector3d (0., 1., 0.)),
+			3, TEST_PREC
+			);
+}
+
+TEST_FIXTURE(KinematicsFixture, TestGetBodyPointPositionRotated) {
+	Q[2] = 0.5 * M_PI;
+
+	// We call ForwardDynamics() as it updates the spatial transformation
+	// matrices
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (1., 1., 0.),
+			model->GetBodyOrigin(body_c_id),
+			3, TEST_PREC
+			);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (0., 1., 0.),
+			model->GetBodyPointPosition(body_c_id, Vector3d (0., 1., 0.)),
+			3, TEST_PREC
+			);
+
+	// Rotate the other way round
+	Q[2] = -0.5 * M_PI;
+
+	// We call ForwardDynamics() as it updates the spatial transformation
+	// matrices
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (1., 1., 0.),
+			model->GetBodyOrigin(body_c_id),
+			3, TEST_PREC
+			);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (2., 1., 0.),
+			model->GetBodyPointPosition(body_c_id, Vector3d (0., 1., 0.)),
+			3, TEST_PREC
+			);
+
+	// Rotate around the base
+	Q[0] = 0.5 * M_PI;
+	Q[2] = 0.;
+
+	// We call ForwardDynamics() as it updates the spatial transformation
+	// matrices
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (-1., 1., 0.),
+			model->GetBodyOrigin(body_c_id),
+			3, TEST_PREC
+			);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (-2., 1., 0.),
+			model->GetBodyPointPosition(body_c_id, Vector3d (0., 1., 0.)),
+			3, TEST_PREC
+			);
+
+//	cout << LogOutput.str() << endl;
+}

@@ -168,7 +168,12 @@ void ForwardDynamics (
 		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
 		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
 
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].adjoint() * model.f_ext.at(i);
+		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i);
+
+		if (model.f_ext.at(i) != SpatialVectorZero) {
+			LOG << "External force (" << i << ") = " << model.X_base[i].adjoint() * model.f_ext.at(i) << std::endl;
+			model.pA.at(i) -= model.X_base[i].adjoint() * model.f_ext.at(i);
+		}
 	}
 
 // ClearLogOutput();
@@ -446,10 +451,6 @@ void ForwardDynamicsContacts (
 
 	assert (contact_count == 1);
 
-	LOG << "Contact body   = " << contact_info.body_id << std::endl;
-	LOG << "Contact point  = " << contact_info.point << std::endl;
-	LOG << "Contact normal = " << contact_info.normal << std::endl;
-
 	// Steps to perform the contact algorithm suggested by Kokkevis and
 	// Metaxas
 	//
@@ -474,12 +475,20 @@ void ForwardDynamicsContacts (
 	model.f_ext = zero_f_ext;
 
 	// compute forward dynamics with zero external forces
+	LOG << " -------- ZERO_EXT ------" << std::endl;
 	cmlVector QDDot_zero_ext (QDDot);
 	{
 		SUPPRESS_LOGGING;
-		LOG << " -------- ZERO_EXT ------" << std::endl;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
 	}
+
+	LOG << "Contact body   = " << contact_info.body_id << std::endl;
+	LOG << "Contact point  = " << contact_info.point << std::endl;
+	LOG << "Contact normal = " << contact_info.normal << std::endl;
+	Vector3d contact_point_world;
+	LOG << "C body Orient  = " << std::endl <<  model.GetBodyWorldOrientation(contact_info.body_id) << std::endl;
+	LOG << "Contact world  = " << model.GetBodyPointPosition(contact_info.body_id, contact_info.point) << std::endl;
+	LOG << "Contact bodyO  = " << model.GetBodyOrigin(contact_info.body_id) << std::endl;
 
 	// compute point accelerations
 	Vector3d point_accel;
@@ -508,13 +517,14 @@ void ForwardDynamicsContacts (
 
 	LOG << "body_id         = " << contact_info.body_id << std::endl;
 	LOG << "test_force_base = " << test_force_base << std::endl;
+	LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id)).adjoint() * test_force_base << std::endl;
 
 	// apply the test force
 	model.f_ext[contact_info.body_id] = test_force_base;
 	cmlVector QDDot_test_ext (QDDot);
+	LOG << "-------- TEST_EXT ------" << std::endl;
 	{
-		SUPPRESS_LOGGING;
-		LOG << "-------- TEST_EXT ------" << std::endl;
+//		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_test_ext);
 	}
 
@@ -532,13 +542,14 @@ void ForwardDynamicsContacts (
   LOG << "fabs(ae) = " << std::scientific << fabs(ae) << std::endl;
 	assert (fabs (ae) > 1.0e-14);
 	double fc = (-C0 / ae);
+//	fc = 1.428423e1;
 	LOG << "ae = " << ae << std::endl;
 	LOG << "fc = " << fc << std::endl;
 
 	model.f_ext[contact_info.body_id] *= fc;
+	LOG << "-------- APPLY_EXT ------" << std::endl;
 	{
 		SUPPRESS_LOGGING;
-		LOG << "-------- APPLY_EXT ------" << std::endl;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot);
 	}
 }
