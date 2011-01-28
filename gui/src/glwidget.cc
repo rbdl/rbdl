@@ -205,6 +205,9 @@ void GLWidget::paintGL() {
 
 	updateCamera();
 
+	GLfloat light_pos[4] = {20.0f, 20.0f, 20.0f, 1.0f};
+	glLightfv (GL_LIGHT0, GL_POSITION, light_pos);
+
 	if (update_simulation)
 		model_update (delta_time_sec);
 
