@@ -434,6 +434,7 @@ void ForwardDynamicsContacts (
 		const cmlVector &Tau,
 		cmlVector &QDDot
 		) {
+	LOG << "-------- ForwardDynamicsContacts ------" << std::endl;
 
 	// so far we only allow one constraint
 	unsigned int contact_count = 0;
@@ -471,6 +472,7 @@ void ForwardDynamicsContacts (
 	// save current external forces:
 	std::vector<SpatialVector> current_f_ext (model.f_ext);
 	std::vector<SpatialVector> zero_f_ext (model.f_ext.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
+	Vector3d gravity_backup = model.gravity;
 
 	model.f_ext = zero_f_ext;
 
@@ -497,6 +499,7 @@ void ForwardDynamicsContacts (
 		CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_accel);
 	}
 
+	LOG << "QDDot_zero_ext  = " << QDDot_zero_ext << std::endl;
 	LOG << "point_accel    = " << point_accel << std::endl;
 
 	// evaluate a0 and C0
@@ -509,6 +512,7 @@ void ForwardDynamicsContacts (
 	
 	// Compute the test force
 	SpatialVector test_force (0., 0., 0., contact_info.normal[0], contact_info.normal[1], contact_info.normal[2]);
+	test_force = test_force * (-8.840359e+00);
 	// transform the test force from the point coordinates to base
 	// coordinates
 	Vector3d contact_point_position = model.GetBodyPointPosition(contact_info.body_id, contact_info.point);
@@ -522,9 +526,10 @@ void ForwardDynamicsContacts (
 	// apply the test force
 	model.f_ext[contact_info.body_id] = test_force_base;
 	cmlVector QDDot_test_ext (QDDot);
+
 	LOG << "-------- TEST_EXT ------" << std::endl;
 	{
-//		SUPPRESS_LOGGING;
+		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_test_ext);
 	}
 
@@ -534,6 +539,8 @@ void ForwardDynamicsContacts (
 		SUPPRESS_LOGGING;
 		CalcPointAcceleration (model, Q, QDot, QDDot_test_ext, contact_info.body_id, contact_info.point, point_test_accel);
 	}
+
+	LOG << "QDDot_test_ext  = " << QDDot_test_ext << std::endl;
 
 	LOG << "point_test_accel= " << point_test_accel << std::endl;
 	// evaluate a0 and C0

@@ -151,28 +151,38 @@ struct ContactsFixture {
 TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 	model->AddContact(contact_body_id, contact_point, contact_normal);
 
+	/*
 	Q[0] = -0.2;
 	Q[3] = 0.2;
 	QDot[0] = 1.;
+	*/
+
+	Q[0] = 0.1;
+
 	{
 		_NoLogging nolog;
 		ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 	}
 
+	/*
 	SpatialVector ext_force_body (
 			0., 0., 0.,
 			0., 1.164439e+01, 0.
 			);
+			*/
 //	ext_force_body = Xtrans (
 
 	cout << "FDab no contact = " << QDDot << endl;
 
 	Vector3d point_accel;
 	{
-		_NoLogging nolog;
+//		_NoLogging nolog;
 		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
 	}
-	LOG << "point accel pre  = " << point_accel << endl;
+	cout << LogOutput.str() << endl;
+	LogOutput.str("");
+		
+	cout << "point accel pre  = " << point_accel << endl;
 
 	ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
 	{

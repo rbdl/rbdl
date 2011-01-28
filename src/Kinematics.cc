@@ -326,6 +326,14 @@ void CalcPointAcceleration (
 			frame_acceleration[2]
 			);
 
+	/*
+	point_spatial_velocity[0] = 0.;
+	point_spatial_velocity[1] = 0.;
+	point_spatial_velocity[2] = 0.;
+
+	spatial_frame_acceleration = point_spatial_velocity.crossm() * body_base_velocity;
+	*/
+
 	LOG << "pai = " << pai << std::endl;
 	SpatialVector point_spatial_acceleration = pai + spatial_frame_acceleration;
 	LOG << "point_spatial_acceleration = " << point_spatial_acceleration << std::endl;
