@@ -157,8 +157,12 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 	QDot[0] = 1.;
 	*/
 
-	Q[0] = 0.1;
-
+//	Q[0] = 0.1;
+	Q[0] = 0.2;
+	Q[3] = 0.6;
+	Tau[0] = 1.0;
+	Tau[1] = -5.0;
+	Tau[2] = 3.0;
 	{
 		_NoLogging nolog;
 		ForwardDynamics (*model, Q, QDot, Tau, QDDot);
