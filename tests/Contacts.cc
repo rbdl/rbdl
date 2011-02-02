@@ -151,13 +151,6 @@ struct ContactsFixture {
 TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 	model->AddContact(contact_body_id, contact_point, contact_normal);
 
-	/*
-	Q[0] = -0.2;
-	Q[3] = 0.2;
-	QDot[0] = 1.;
-	*/
-
-//	Q[0] = 0.1;
 	Q[0] = 0.2;
 	Q[3] = 0.6;
 	Tau[0] = 1.0;
@@ -168,37 +161,46 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 		ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 	}
 
-	/*
-	SpatialVector ext_force_body (
-			0., 0., 0.,
-			0., 1.164439e+01, 0.
-			);
-			*/
-//	ext_force_body = Xtrans (
+//	cout << "FDab no contact = " << QDDot << endl;
 
-	cout << "FDab no contact = " << QDDot << endl;
+	cmlVector humans_values (QDDot.size());
+	humans_values[0] =	-1.647101149402497e+00;
+	humans_values[1] =	-3.333333333333333e+00;
+	humans_values[2] =	1.500000000000000e+00;
+	humans_values[3] =	4.700721141799440e+00;
+	humans_values[4] =	3.598082426458145e+00;
+	humans_values[5] =	-1.022528511047732e+00;
+
+	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 
 	Vector3d point_accel;
 	{
 //		_NoLogging nolog;
 		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
 	}
-	cout << LogOutput.str() << endl;
-	LogOutput.str("");
+//	cout << LogOutput.str() << endl;
+//	LogOutput.str("");
 		
-	cout << "point accel pre  = " << point_accel << endl;
+//	cout << "point accel pre  = " << point_accel << endl;
 
 	ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
 	{
 		_NoLogging nolog;
 		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
 	}
-	cout << LogOutput.str() << endl;
-	cout  << "point accel post = " << point_accel << endl;
+//	cout << LogOutput.str() << endl;
+//	cout  << "point accel post = " << point_accel << endl;
 
-	cout << "QDDot Contact = " << QDDot << endl;
+//	cout << "QDDot Contact = " << QDDot << endl;
 
-//	CHECK_CLOSE(0., cml::dot(point_accel, contact_normal), TEST_PREC);
+	humans_values[0] = 5.681687528667114e-01;
+	humans_values[1] = -3.333333333333333e+00;
+	humans_values[2] = 1.500000000000000e+00;
+	humans_values[3] = 2.080750294369360e-01;
+	humans_values[4] = 3.598082426458145e+00;
+	humans_values[5] = -1.022528511047732e+00;
+
+	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
 
