@@ -78,8 +78,6 @@ void draw_model (Model* model) {
 	
 	unsigned int i;
 	for (i = 1; i < model->q.size(); i++) {
-		// Draw only bodies with masses
-//		if (model->mBodies[i].mMass != 0)
 		{
 			Matrix3d rotation = model->GetBodyWorldOrientation(i);
 			Vector3d translation = model->GetBodyOrigin(i);
@@ -104,21 +102,6 @@ void draw_model (Model* model) {
 				glTranslated (translation[0], translation[1], translation[2]);
 				glMultMatrixf(orientation);
 
-				// Draw a small coordinate system
-				glDisable(GL_LIGHTING);
-				glBegin (GL_LINES);
-				glColor3f (0.8, 0.2, 0.2);
-				glVertex3f (0., 0., 0.);
-				glVertex3f (1., 0., 0.);
-				glColor3f (0.2, 0.8, 0.2);
-				glVertex3f (0., 0., 0.);
-				glVertex3f (0., 1., 0.);
-				glColor3f (0.2, 0.2, 0.8);
-				glVertex3f (0., 0., 0.);
-				glVertex3f (0., 0., 1.);
-				glEnd();
-				glEnable(GL_LIGHTING);
-
 				// Draw the joint
 				/// \todo add visualizations for prismatic joints
 				glPushMatrix();
@@ -141,6 +124,21 @@ void draw_model (Model* model) {
 				//! \todo the body box is not well centered!
 				// Draw the body
 				if (model->mBodies[i].mMass != 0) {
+					// Draw a small coordinate system
+					glDisable(GL_LIGHTING);
+					glBegin (GL_LINES);
+					glColor3f (0.8, 0.2, 0.2);
+					glVertex3f (0., 0., 0.);
+					glVertex3f (1., 0., 0.);
+					glColor3f (0.2, 0.8, 0.2);
+					glVertex3f (0., 0., 0.);
+					glVertex3f (0., 1., 0.);
+					glColor3f (0.2, 0.2, 0.8);
+					glVertex3f (0., 0., 0.);
+					glVertex3f (0., 0., 1.);
+					glEnd();
+					glEnable(GL_LIGHTING);
+
 					Vector3d body_center, body_dimensions;
 					compute_body_center_and_dimensions (model, i, body_center, body_dimensions);
 
