@@ -120,9 +120,7 @@ struct Model {
 	// Contact Data
 	
 	/// \brief Contains for each body all the contact constraint information
-	typedef std::map<unsigned int, std::vector<ContactInfo> > ContactMap;
-	typedef std::map<unsigned int, std::vector<ContactInfo> >::iterator ContactMapIter;
-	ContactMap mContactInfoMap;
+	std::vector<ContactInfo> mContactInfos;
 
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
@@ -169,15 +167,7 @@ struct Model {
 			const Vector3d &contact_normal
 			) {
 		assert (mBodies.size() > body_id);
-		ContactMapIter contact_iter = mContactInfoMap.find (body_id);
-		if (contact_iter == mContactInfoMap.end()) {
-			mContactInfoMap[body_id] = std::vector<ContactInfo> ();
-			contact_iter = mContactInfoMap.find(body_id);
-		}
-	
-		ContactInfo contact_info (body_id, contact_point, contact_normal);
-
-		contact_iter->second.push_back (contact_info);
+		mContactInfos.push_back (ContactInfo (body_id, contact_point, contact_normal));
 	}
 
 	/** \brief Returns the 3D coordinate vector of the origin of a given body

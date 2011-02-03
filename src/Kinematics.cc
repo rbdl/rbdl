@@ -496,5 +496,6 @@ void CalcPointAcceleration (
 		)
 {
 	CalcPointAccelerationDirect (model, Q, QDot, QDDot, body_id, point_position, point_acceleration);
+//	CalcPointAccelerationFeatherstone (model, Q, QDot, QDDot, body_id, point_position, point_acceleration);
 }
 

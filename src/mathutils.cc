@@ -100,6 +100,38 @@ Matrix3d VectorCrossMatrix (const Vector3d &vector) {
 			-vector[1],  vector[0], 0);
 }
 
+bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
+	x.zero();
+
+	// We can only solve quadratic systems
+	assert (A.rows() == A.cols());
+
+	unsigned int n = A.rows();
+	
+	int i,j;
+	for (j = 0; j < n; j++) {
+		for (i = j + 1; i < n; i++) {
+			double d = A(i,j)/A(j,j);
+
+			b[i] -= b[j] * d;
+
+			int k;
+			for (k = j; k < n; k++) {
+				A(i,k) -= A(j,k) * d;
+			}
+		}
+	}
+
+	for (i = n - 1; i >= 0; i--) {
+		for (j = i + 1; j < n; j++) {
+			x[i] += A(i,j) * x[j];
+		}
+		x[i] = (b[i] - x[i]) / A(i,i);
+	}
+
+	return true;
+}
+
 void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix) {
 	assert (row < 2 && col < 2);
 	

@@ -437,20 +437,7 @@ void ForwardDynamicsContacts (
 	LOG << "-------- ForwardDynamicsContacts ------" << std::endl;
 
 	// so far we only allow one constraint
-	unsigned int contact_count = 0;
-	ContactInfo contact_info;
-
-	Model::ContactMapIter iter = model.mContactInfoMap.begin();
-	while (iter != model.mContactInfoMap.end()) {
-		contact_count = iter->second.size();
-
-		if (contact_count == 1)
-			contact_info = iter->second[0];
-
-		iter++;
-	}
-
-	assert (contact_count == 1);
+	unsigned int contact_count = model.mContactInfos.size();
 
 	// Steps to perform the contact algorithm suggested by Kokkevis and
 	// Metaxas
@@ -470,90 +457,117 @@ void ForwardDynamicsContacts (
 	// Step 1:
 	
 	// save current external forces:
+
+	cmlMatrix Ae;
+	Ae.resize(contact_count, contact_count);
+	cmlVector C0 (contact_count);
+
 	std::vector<SpatialVector> current_f_ext (model.f_ext);
 	std::vector<SpatialVector> zero_f_ext (model.f_ext.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
 	Vector3d gravity_backup = model.gravity;
 
 	model.f_ext = zero_f_ext;
 
-	// compute forward dynamics with zero external forces
-	LOG << " -------- ZERO_EXT ------" << std::endl;
+	LOG << "-------- ZERO_EXT ------" << std::endl;
 	cmlVector QDDot_zero_ext (QDDot);
 	{
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
 	}
 
-	LOG << "Contact body   = " << contact_info.body_id << std::endl;
-	LOG << "Contact point  = " << contact_info.point << std::endl;
-	LOG << "Contact normal = " << contact_info.normal << std::endl;
-	Vector3d contact_point_world;
-	LOG << "C body Orient  = " << std::endl <<  model.GetBodyWorldOrientation(contact_info.body_id) << std::endl;
-	LOG << "Contact world  = " << model.GetBodyPointPosition(contact_info.body_id, contact_info.point) << std::endl;
-	LOG << "Contact bodyO  = " << model.GetBodyOrigin(contact_info.body_id) << std::endl;
+	unsigned int ci;
+	for (ci = 0; ci < contact_count; ci++) {
+		ContactInfo contact_info = model.mContactInfos[ci];
+		// compute point accelerations
+		Vector3d point_accel;
+		{
+			SUPPRESS_LOGGING;
+			CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_accel);
+		}
 
-	// compute point accelerations
-	Vector3d point_accel;
-	{
-		SUPPRESS_LOGGING;
-		CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_accel);
+		// evaluate a0 and C0
+		double a0 = cml::dot(contact_info.normal,point_accel);
+
+		unsigned int cj;
+		for (cj = 0; cj < contact_count; cj++) {
+			Ae(ci, cj) = a0;
+		}
+
+		C0[ci] = - (a0 - 0.);
 	}
-
-	LOG << "QDDot_zero_ext  = " << QDDot_zero_ext << std::endl;
-	LOG << "point_accel    = " << point_accel << std::endl;
-
-	// evaluate a0 and C0
-	double a0 = cml::dot(contact_info.normal,point_accel);
-	double C0 = a0 - 0.;
-
-	LOG << "a0 = " << a0 << std::endl;
 
 	// Step 2:
-	
+	std::vector<SpatialVector> test_forces (contact_count);
+
+	unsigned int cj;
 	// Compute the test force
-	SpatialVector test_force (0., 0., 0., contact_info.normal[0], contact_info.normal[1], contact_info.normal[2]);
-	test_force = test_force * (-8.840359e+00);
-	// transform the test force from the point coordinates to base
-	// coordinates
-	Vector3d contact_point_position = model.GetBodyPointPosition(contact_info.body_id, contact_info.point);
+	for (cj = 0; cj < contact_count; cj++) {
+		ContactInfo contact_info = model.mContactInfos[cj];
+		SpatialVector test_force (0., 0., 0., contact_info.normal[0], contact_info.normal[1], contact_info.normal[2]);
 
-	SpatialVector test_force_base = Xtrans (contact_point_position * -1.).adjoint() * test_force;
+		// transform the test force from the point coordinates to base
+		// coordinates
+		Vector3d contact_point_position = model.GetBodyPointPosition(contact_info.body_id, contact_info.point);
 
-	LOG << "body_id         = " << contact_info.body_id << std::endl;
-	LOG << "test_force_base = " << test_force_base << std::endl;
-	LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id)).adjoint() * test_force_base << std::endl;
+		test_forces[cj] = Xtrans (contact_point_position * -1.).adjoint() * test_force;
+		LOG << "body_id         = " << contact_info.body_id << std::endl;
+		LOG << "test_force_base = " << test_forces[ci] << std::endl;
+		// LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id)).adjoint() * test_force_base << std::endl;
 
-	// apply the test force
-	model.f_ext[contact_info.body_id] = test_force_base;
-	cmlVector QDDot_test_ext (QDDot);
+		// apply the test force
+		model.f_ext[contact_info.body_id] = test_forces[cj];
+		cmlVector QDDot_test_ext (QDDot);
 
-	LOG << "-------- TEST_EXT ------" << std::endl;
-	{
-		SUPPRESS_LOGGING;
-		ForwardDynamics (model, Q, QDot, Tau, QDDot_test_ext);
+		LOG << "-------- TEST_EXT ------" << std::endl;
+		{
+			SUPPRESS_LOGGING;
+			ForwardDynamics (model, Q, QDot, Tau, QDDot_test_ext);
+		}
+		LOG << "QDDot_test_ext  = " << QDDot_test_ext << std::endl;
+
+		for (ci = 0; ci < contact_count; ci++) {
+			ContactInfo test_contact_info = model.mContactInfos[ci];
+			// compute point accelerations after the test force
+			Vector3d point_test_accel;
+			{
+				SUPPRESS_LOGGING;
+				CalcPointAcceleration (model, Q, QDot, QDDot_test_ext, test_contact_info.body_id, test_contact_info.point, point_test_accel);
+			}
+
+			// acceleration due to the test force
+			double a1j_i = cml::dot(test_contact_info.normal, point_test_accel);
+			LOG << "test_accel a1j_i = " << a1j_i - Ae(ci,cj) << std::endl;
+			Ae(ci,cj) = a1j_i - Ae(ci,cj);
+			LOG << "updating (" << ci << ", " << cj << ")" << std::endl;
+		}
+
+		// remove the test force
+		model.f_ext[contact_info.body_id] = SpatialVector (0., 0., 0., 0., 0., 0.);
+	}
+	
+	// solve the system!!!
+	cmlVector u (contact_count);
+
+	LOG << "Ae = " << std::endl << Ae << std::endl;
+	LOG << "C0 = " << C0 << std::endl;
+	LinSolveGaussElim (Ae, C0, u);
+	LOG << "u = " << u << std::endl;
+
+	model.f_ext = zero_f_ext;
+	for (ci = 0; ci < contact_count; ci++) {
+		ContactInfo contact_info = model.mContactInfos[ci];
+	
+		test_forces[ci] = test_forces[ci] * u[ci];
+		model.f_ext[contact_info.body_id] = test_forces[ci];
+		LOG << "f_ext[" << ci << "] = " << test_forces[ci] << std::endl;
+
+		/*
+		LOG.precision(15);
+		LOG << std::scientific;
+		LOG << "fc = " << u[ci] << " constraint force = " << model.f_ext[contact_info.body_id] << std::endl;
+		*/
 	}
 
-	// compute point accelerations after the test force
-	Vector3d point_test_accel;
-	{
-		SUPPRESS_LOGGING;
-		CalcPointAcceleration (model, Q, QDot, QDDot_test_ext, contact_info.body_id, contact_info.point, point_test_accel);
-	}
-
-	LOG << "QDDot_test_ext  = " << QDDot_test_ext << std::endl;
-
-	LOG << "point_test_accel= " << point_test_accel << std::endl;
-	// evaluate a0 and C0
-	double ae = cml::dot(contact_info.normal,point_test_accel) - a0;
-
-  LOG << "fabs(ae) = " << std::scientific << fabs(ae) << std::endl;
-	assert (fabs (ae) > 1.0e-14);
-	double fc = (-C0 / ae);
-//	fc = 1.428423e1;
-	LOG << "ae = " << ae << std::endl;
-	LOG << "fc = " << fc << std::endl;
-
-	model.f_ext[contact_info.body_id] *= fc;
 	LOG << "-------- APPLY_EXT ------" << std::endl;
 	{
 		SUPPRESS_LOGGING;
