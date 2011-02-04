@@ -461,6 +461,7 @@ void ForwardDynamicsContacts (
 	cmlMatrix Ae;
 	Ae.resize(contact_count, contact_count);
 	cmlVector C0 (contact_count);
+	cmlVector a0 (contact_count);
 
 	std::vector<SpatialVector> current_f_ext (model.f_ext);
 	std::vector<SpatialVector> zero_f_ext (model.f_ext.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
@@ -478,6 +479,7 @@ void ForwardDynamicsContacts (
 	unsigned int ci;
 	for (ci = 0; ci < contact_count; ci++) {
 		ContactInfo contact_info = model.mContactInfos[ci];
+		LOG << "Contact info " << ci << ": body = " << contact_info.body_id << std::endl;
 		// compute point accelerations
 		Vector3d point_accel;
 		{
@@ -486,14 +488,17 @@ void ForwardDynamicsContacts (
 		}
 
 		// evaluate a0 and C0
-		double a0 = cml::dot(contact_info.normal,point_accel);
+		double a0i = cml::dot(contact_info.normal,point_accel);
 
+		a0[ci] = a0i;
+/*
 		unsigned int cj;
 		for (cj = 0; cj < contact_count; cj++) {
 			Ae(ci, cj) = a0;
 		}
+		*/
 
-		C0[ci] = - (a0 - 0.);
+		C0[ci] = - (a0i - 0.);
 	}
 
 	// Step 2:
@@ -537,7 +542,7 @@ void ForwardDynamicsContacts (
 			// acceleration due to the test force
 			double a1j_i = cml::dot(test_contact_info.normal, point_test_accel);
 			LOG << "test_accel a1j_i = " << a1j_i - Ae(ci,cj) << std::endl;
-			Ae(ci,cj) = a1j_i - Ae(ci,cj);
+			Ae(ci,cj) = a1j_i - a0[ci];
 			LOG << "updating (" << ci << ", " << cj << ")" << std::endl;
 		}
 
@@ -551,21 +556,17 @@ void ForwardDynamicsContacts (
 	LOG << "Ae = " << std::endl << Ae << std::endl;
 	LOG << "C0 = " << C0 << std::endl;
 	LinSolveGaussElim (Ae, C0, u);
+
+	LOG.precision(15);
 	LOG << "u = " << u << std::endl;
 
-	model.f_ext = zero_f_ext;
+	model.f_ext = current_f_ext;
 	for (ci = 0; ci < contact_count; ci++) {
 		ContactInfo contact_info = model.mContactInfos[ci];
 	
 		test_forces[ci] = test_forces[ci] * u[ci];
-		model.f_ext[contact_info.body_id] = test_forces[ci];
-		LOG << "f_ext[" << ci << "] = " << test_forces[ci] << std::endl;
-
-		/*
-		LOG.precision(15);
-		LOG << std::scientific;
-		LOG << "fc = " << u[ci] << " constraint force = " << model.f_ext[contact_info.body_id] << std::endl;
-		*/
+		model.f_ext[contact_info.body_id] += test_forces[ci];
+		LOG << "f_ext[" << contact_info.body_id << "] = " << test_forces[ci] << std::endl;
 	}
 
 	LOG << "-------- APPLY_EXT ------" << std::endl;

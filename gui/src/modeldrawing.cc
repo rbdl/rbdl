@@ -121,10 +121,7 @@ void draw_model (Model* model) {
 					glprimitives_torus();
 				glPopMatrix ();
 
-				//! \todo the body box is not well centered!
-				// Draw the body
-				if (model->mBodies[i].mMass != 0) {
-					// Draw a small coordinate system
+				// Draw a small coordinate system
 					glDisable(GL_LIGHTING);
 					glBegin (GL_LINES);
 					glColor3f (0.8, 0.2, 0.2);
@@ -139,7 +136,11 @@ void draw_model (Model* model) {
 					glEnd();
 					glEnable(GL_LIGHTING);
 
-					Vector3d body_center, body_dimensions;
+
+				//! \todo the body box is not well centered!
+				// Draw the body
+				if (model->mBodies[i].mMass != 0) {
+						Vector3d body_center, body_dimensions;
 					compute_body_center_and_dimensions (model, i, body_center, body_dimensions);
 
 					glPushMatrix();

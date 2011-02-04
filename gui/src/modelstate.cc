@@ -163,7 +163,9 @@ void model_init () {
 	 *  Z   |
 	 *  O---*
 	 *      Y
+	 */
 
+	/*
 	body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	joint_a = Joint(
 			JointTypeRevolute,
@@ -187,7 +189,7 @@ void model_init () {
 			);
 
 	body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
-	 */
+	*/
 
 	// base body
 	base_rot_z = Body (
@@ -270,16 +272,17 @@ void model_init () {
 	Q[0] = 0.1;
 	Q[2] = 0.1;
 
+	/*
 	contact_body_id = child_rot_x_id;
 	contact_point.set (1., 0., 0.);
 	contact_normal.set (0., 1., 0.);
 
 	model->AddContact(contact_body_id, contact_point, contact_normal);
+	*/
 
 	// we call model_update once to update the internal variables for the
 	// state, etc.
-	ForwardDynamicsContacts (*model, Q, QDot, Tau, QDDot);
-
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 }
 
 cmlVector rhs_contact (double t, const cmlVector &y) {
