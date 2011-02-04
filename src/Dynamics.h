@@ -51,6 +51,10 @@ void ForwardDynamicsFloatingBase (
 
 /** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
  *
+ * The method used here is the one described by Kokkevis and Metaxas in the
+ * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
+ * published in Multibody System Dynamics Vol.2, 1998.
+ *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints

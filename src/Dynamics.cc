@@ -479,7 +479,7 @@ void ForwardDynamicsContacts (
 	unsigned int ci;
 	for (ci = 0; ci < contact_count; ci++) {
 		ContactInfo contact_info = model.mContactInfos[ci];
-		LOG << "Contact info " << ci << ": body = " << contact_info.body_id << std::endl;
+
 		// compute point accelerations
 		Vector3d point_accel;
 		{
@@ -491,13 +491,6 @@ void ForwardDynamicsContacts (
 		double a0i = cml::dot(contact_info.normal,point_accel);
 
 		a0[ci] = a0i;
-/*
-		unsigned int cj;
-		for (cj = 0; cj < contact_count; cj++) {
-			Ae(ci, cj) = a0;
-		}
-		*/
-
 		C0[ci] = - (a0i - 0.);
 	}
 
@@ -546,8 +539,8 @@ void ForwardDynamicsContacts (
 			LOG << "updating (" << ci << ", " << cj << ")" << std::endl;
 		}
 
-		// remove the test force
-		model.f_ext[contact_info.body_id] = SpatialVector (0., 0., 0., 0., 0., 0.);
+		// clear the test force
+		model.f_ext[contact_info.body_id].zero();
 	}
 	
 	// solve the system!!!
@@ -557,14 +550,16 @@ void ForwardDynamicsContacts (
 	LOG << "C0 = " << C0 << std::endl;
 	LinSolveGaussElim (Ae, C0, u);
 
-	LOG.precision(15);
 	LOG << "u = " << u << std::endl;
 
+	// compute and apply the constraint forces to the system
 	model.f_ext = current_f_ext;
 	for (ci = 0; ci < contact_count; ci++) {
 		ContactInfo contact_info = model.mContactInfos[ci];
 	
 		test_forces[ci] = test_forces[ci] * u[ci];
+		// it is important to *add* the constraint force as multiple forces
+		// might act on the same body
 		model.f_ext[contact_info.body_id] += test_forces[ci];
 		LOG << "f_ext[" << contact_info.body_id << "] = " << test_forces[ci] << std::endl;
 	}
@@ -575,5 +570,3 @@ void ForwardDynamicsContacts (
 		ForwardDynamics (model, Q, QDot, Tau, QDDot);
 	}
 }
-
-

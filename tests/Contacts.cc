@@ -248,12 +248,15 @@ TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
 	humans_values[4] = -6.079597431872865e-01;
 	humans_values[5] = -4.389578697923985e-01;
 
-	ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
-	cout << LogOutput.str() << endl;
-
 	Vector3d point_accel;
-	CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
-	cout << "Point Accel = " << point_accel << endl;
+	{
+		SUPPRESS_LOGGING;
+		ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
+		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
+	}
+//	cout << LogOutput.str() << endl;
+
+//	cout << "Point Accel = " << point_accel << endl;
 	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), point_accel.data(), 3, 1.0e-12);
 
 	/// \todo Warning: the precision of this test has been changed as
