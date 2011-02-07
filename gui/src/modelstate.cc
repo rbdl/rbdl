@@ -1,4 +1,5 @@
 #include <iostream>
+#include <limits>
 
 #include <QDebug>
 #include <assert.h>
@@ -75,6 +76,7 @@ cmlVector rk45_integrator (double t0, double tf, cmlVector &y0, rhs_func func, d
 
 //		cout << "error estimate = " << scientific << error_est << endl;
 
+		// if error is too big -> decrease stepsize
 		if (error_est > error) {
 //			s = sqrt (sqrt ( (error * h) / 2 * error_est) );
 			s = s * 0.5;
@@ -84,20 +86,26 @@ cmlVector rk45_integrator (double t0, double tf, cmlVector &y0, rhs_func func, d
 				h_min = h;
 				h_min_y = y;
 			}
-//			cout << "decreasing setting stepsize to " << s * (tf - t0) << endl;
+
+			if (h < sqrt(numeric_limits<double>::epsilon())) {
+				cerr << "Could not determine stepsize!" << endl;
+				assert(0);
+				abort();
+			}
+			cout << "decreasing setting stepsize to " << s * (tf - t0) << endl;
 		} else {
 			t = t + h;
 			y = rk5;
 			stepcount ++;
-//			cout << "success" << endl;
+			cout << "success (" << tf - t << " still to go..." << endl;
 
-			if (1.0e1 * error_est < error ) {
+			if (2.0e0 * error_est < error ) {
 				// increasing stepsize
 //				s = sqrt (sqrt ( (error * h) / 2 * error_est) );
 				s = 2.;
 				h = s*h;
 
-//				cout << "increasing setting stepsize to " << s * (tf - t0) << " t = " << t << endl;
+				cout << "increasing setting stepsize to " << s * (tf - t0) << " t = " << t << endl;
 			}	
 		}
 	}
@@ -123,6 +131,7 @@ cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, do
 	if (h > tf - t0)
 		h = tf - t0;
 
+	cout << "t0 = " << t0 << " tf = " << tf << " h = " << h << endl;
 	while (t < tf) {
 		k1 = func (t, y);
 		k2 = func (t + 0.5 * h, y + h * 0.5 * k1);
@@ -137,6 +146,7 @@ cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, do
 		}
 
 		stepcount ++;
+		cout << stepcount << " " << tf - t << endl;
 	}
 
 	cout << "stepcount = " << stepcount << endl;
@@ -147,7 +157,7 @@ void model_init () {
 	model = new Model;
 	model->Init();
 
-	model->gravity.set (0., -9.81, 0.);
+	model->gravity.set (0., -2.81, 0.);
 
 	/* Basically a model like this, where X are the Center of Masses
 	 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
@@ -270,15 +280,11 @@ void model_init () {
 	Tau.zero();
 
 	Q[0] = 0.1;
-	Q[2] = 0.1;
+	Q[1] = 0.1;
 
-	/*
 	contact_body_id = child_rot_x_id;
-	contact_point.set (1., 0., 0.);
+	contact_point.set (1., 1., 0.);
 	contact_normal.set (0., 1., 0.);
-
-	model->AddContact(contact_body_id, contact_point, contact_normal);
-	*/
 
 	// we call model_update once to update the internal variables for the
 	// state, etc.
@@ -293,12 +299,18 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 	cmlVector qdot (size);
 	cmlVector qddot (size);
 
+	std::vector<ContactInfo> contact_data;
+
+	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.)));
+	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.)));
+	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.)));
+
 	for (i = 0; i < size; i++) {
 		q[i] = y[i];
 		qdot[i] = y[i + size];
 	}
 
-	ForwardDynamicsContacts (*model, q, qdot, Tau, qddot);
+	ForwardDynamicsContacts (*model, q, qdot, Tau, contact_data, qddot);
 
 	cmlVector res (size * 2);
 	for (i = 0; i < size; i++) {
@@ -380,8 +392,9 @@ void model_update (double delta_time) {
 	}
 
 	cmlVector ynew (size * 2);
+//	delta_time = 0.02;
 //	ynew = rk45_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
-	ynew = rk4_integrator (0., delta_time, y, rhs_normal, delta_time);
+	ynew = rk4_integrator (0., delta_time, y, rhs_normal, 5.0e-1);
 
 	for (i = 0; i < size; i++) {
 		Q[i] = ynew[i];

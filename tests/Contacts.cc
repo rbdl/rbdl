@@ -146,10 +146,11 @@ struct ContactsFixture {
 	unsigned int contact_body_id;
 	Vector3d contact_point;
 	Vector3d contact_normal;
+	std::vector<ContactInfo> contact_data;
 };
 
 TEST_FIXTURE(ContactsFixture, TestContactSimple) {
-	model->AddContact(contact_body_id, contact_point, contact_normal);
+	contact_data.push_back (ContactInfo (contact_body_id, contact_point, contact_normal));
 
 	Q[0] = 0.2;
 	Q[3] = 0.6;
@@ -176,7 +177,7 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
 	}
 
-	ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
+	ForwardDynamicsContacts(*model, Q, QDot, Tau, contact_data, QDDot);
 	{
 		_NoLogging nolog;
 		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
@@ -193,7 +194,7 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 }
 
 TEST_FIXTURE(ContactsFixture, TestContactEulerSingularity) {
-	model->AddContact(contact_body_id, contact_point, contact_normal);
+	contact_data.push_back (ContactInfo (contact_body_id, contact_point, contact_normal));
 
 	Q[0] = 27.9045;
 	Q[1] = -0.439375;
@@ -228,9 +229,9 @@ TEST_FIXTURE(ContactsFixture, TestContactEulerSingularity) {
 }
 
 TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
-	model->AddContact(contact_body_id, contact_point, Vector3d (1., 0., 0.));
-	model->AddContact(contact_body_id, contact_point, Vector3d (0., 1., 0.));
-	model->AddContact(contact_body_id, contact_point, Vector3d (0., 0., 1.));
+	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.)));
+	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.)));
+	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.)));
 
 	cmlVector humans_values (QDDot.size());
 
@@ -251,7 +252,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
 	Vector3d point_accel;
 	{
 		SUPPRESS_LOGGING;
-		ForwardDynamicsContacts(*model, Q, QDot, Tau, QDDot);
+		ForwardDynamicsContacts(*model, Q, QDot, Tau, contact_data, QDDot);
 		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
 	}
 //	cout << LogOutput.str() << endl;
@@ -264,3 +265,35 @@ TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
 	// model state. However it is still quite close to the HuMAnS values.
 	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), 1.0e-12);
 }
+
+TEST_FIXTURE(ContactsFixture, TestContactImpulse) {
+	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.)));
+
+	cmlVector humans_values (QDDot.size());
+
+	QDot[0] = 0.1;
+	QDot[1] = -0.2;
+	QDot[2] = 0.1;
+
+	Vector3d point_velocity;
+	{
+		SUPPRESS_LOGGING;
+		CalcPointVelocity (*model, Q, QDot, contact_body_id, contact_point, point_velocity);
+	}
+
+	cout << "Point Velocity = " << point_velocity << endl;
+
+	cmlVector qdot_post (QDot.size());
+	ComputeContactImpulses (*model, Q, QDot, contact_data, qdot_post);
+	cout << LogOutput.str() << endl;
+
+	{
+		SUPPRESS_LOGGING;
+		CalcPointVelocity (*model, Q, qdot_post, contact_body_id, contact_point, point_velocity);
+	}
+
+	cout << "Point Velocity = " << point_velocity << endl;
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), point_velocity.data(), 3, TEST_PREC);
+}
+
+

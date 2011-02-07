@@ -6,7 +6,7 @@
 #include "Logging.h"
 
 #include "Model.h"
-
+#include "Contacts.h"
 #include "Dynamics_stdvec.h"
 #include "Kinematics.h"
 
@@ -427,17 +427,58 @@ void ForwardDynamicsFloatingBase (
 	a_B = model.a[0];
 }
 
-void ForwardDynamicsContacts (
+/*
+void ComputeContactAccelerations (
 		Model &model,
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &Tau,
-		cmlVector &QDDot
+		const std::vector<ContactInfo> &ContactData,
+		cmlMatrix &Ae,
+		cmlVector &C
 		) {
-	LOG << "-------- ForwardDynamicsContacts ------" << std::endl;
+
+	cmlVector a0 (contact_count);
+
+	LOG << "-------- ZERO_EXT ------" << std::endl;
+	cmlVector QDDot_zero_ext (QDot);
+	{
+		SUPPRESS_LOGGING;
+		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
+	}
+
+	unsigned int ci;
+	for (ci = 0; ci < contact_count; ci++) {
+		ContactInfo contact_info = ContactData[ci];
+
+		// compute point accelerations
+		Vector3d point_accel;
+		{
+			SUPPRESS_LOGGING;
+			CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_accel);
+		}
+
+		// evaluate a0 and C0
+		double a0i = cml::dot(contact_info.normal,point_accel);
+
+		a0[ci] = a0i;
+		C0[ci] = - (a0i - contact_info.acceleration);
+	}
+}
+*/
+
+void ComputeContactForces (
+		Model &model,
+		const cmlVector &Q,
+		const cmlVector &QDot,
+		const cmlVector &Tau,
+		const std::vector<ContactInfo> &ContactData,
+		std::vector<SpatialAlgebra::SpatialVector> &Fext
+		) {
+	LOG << "-------- ComputeContactForces ------" << std::endl;
 
 	// so far we only allow one constraint
-	unsigned int contact_count = model.mContactInfos.size();
+	unsigned int contact_count = ContactData.size();
 
 	// Steps to perform the contact algorithm suggested by Kokkevis and
 	// Metaxas
@@ -470,7 +511,7 @@ void ForwardDynamicsContacts (
 	model.f_ext = zero_f_ext;
 
 	LOG << "-------- ZERO_EXT ------" << std::endl;
-	cmlVector QDDot_zero_ext (QDDot);
+	cmlVector QDDot_zero_ext (QDot);
 	{
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
@@ -478,7 +519,7 @@ void ForwardDynamicsContacts (
 
 	unsigned int ci;
 	for (ci = 0; ci < contact_count; ci++) {
-		ContactInfo contact_info = model.mContactInfos[ci];
+		ContactInfo contact_info = ContactData[ci];
 
 		// compute point accelerations
 		Vector3d point_accel;
@@ -491,7 +532,7 @@ void ForwardDynamicsContacts (
 		double a0i = cml::dot(contact_info.normal,point_accel);
 
 		a0[ci] = a0i;
-		C0[ci] = - (a0i - 0.);
+		C0[ci] = - (a0i - contact_info.acceleration);
 	}
 
 	// Step 2:
@@ -500,7 +541,7 @@ void ForwardDynamicsContacts (
 	unsigned int cj;
 	// Compute the test force
 	for (cj = 0; cj < contact_count; cj++) {
-		ContactInfo contact_info = model.mContactInfos[cj];
+		ContactInfo contact_info = ContactData[cj];
 		SpatialVector test_force (0., 0., 0., contact_info.normal[0], contact_info.normal[1], contact_info.normal[2]);
 
 		// transform the test force from the point coordinates to base
@@ -514,7 +555,7 @@ void ForwardDynamicsContacts (
 
 		// apply the test force
 		model.f_ext[contact_info.body_id] = test_forces[cj];
-		cmlVector QDDot_test_ext (QDDot);
+		cmlVector QDDot_test_ext (QDot);
 
 		LOG << "-------- TEST_EXT ------" << std::endl;
 		{
@@ -524,7 +565,7 @@ void ForwardDynamicsContacts (
 		LOG << "QDDot_test_ext  = " << QDDot_test_ext << std::endl;
 
 		for (ci = 0; ci < contact_count; ci++) {
-			ContactInfo test_contact_info = model.mContactInfos[ci];
+			ContactInfo test_contact_info = ContactData[ci];
 			// compute point accelerations after the test force
 			Vector3d point_test_accel;
 			{
@@ -554,14 +595,40 @@ void ForwardDynamicsContacts (
 
 	// compute and apply the constraint forces to the system
 	model.f_ext = current_f_ext;
+
+	Fext = zero_f_ext;
+
 	for (ci = 0; ci < contact_count; ci++) {
-		ContactInfo contact_info = model.mContactInfos[ci];
+		ContactInfo contact_info = ContactData[ci];
 	
 		test_forces[ci] = test_forces[ci] * u[ci];
 		// it is important to *add* the constraint force as multiple forces
 		// might act on the same body
-		model.f_ext[contact_info.body_id] += test_forces[ci];
-		LOG << "f_ext[" << contact_info.body_id << "] = " << test_forces[ci] << std::endl;
+		Fext[contact_info.body_id] += test_forces[ci];
+		LOG << "test_forces[" << ci << "] = " << test_forces[ci] << std::endl;
+		LOG << "f_ext[" << contact_info.body_id << "] = " << Fext[contact_info.body_id] << std::endl;
+	}
+}
+
+void ForwardDynamicsContacts (
+		Model &model,
+		const cmlVector &Q,
+		const cmlVector &QDot,
+		const cmlVector &Tau,
+		const std::vector<ContactInfo> &ContactData,
+		cmlVector &QDDot
+		) {
+	LOG << "-------- ForwardDynamicsContacts ------" << std::endl;
+
+	std::vector<SpatialVector> contact_f_ext (model.f_ext.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
+
+	ComputeContactForces (model, Q, QDot, Tau, ContactData, contact_f_ext);
+
+	assert (contact_f_ext.size() == model.f_ext.size());
+
+	unsigned int i;
+	for (i = 0; i < model.f_ext.size(); i++) {
+		model.f_ext[i] += contact_f_ext[i];
 	}
 
 	LOG << "-------- APPLY_EXT ------" << std::endl;
@@ -570,3 +637,56 @@ void ForwardDynamicsContacts (
 		ForwardDynamics (model, Q, QDot, Tau, QDDot);
 	}
 }
+
+void ComputeContactImpulses (
+		Model &model,
+		const cmlVector &Q,
+		const cmlVector &QDotPre,
+		const std::vector<ContactInfo> &ContactData,
+		cmlVector &QDotPost
+		) {
+	std::vector<ContactInfo> ContactImpulseInfo;
+
+	unsigned int i;
+	for (i = 0; i < ContactData.size(); i++) {
+		ContactInfo contact_info (ContactData[i]);
+		Vector3d point_velocity;
+		CalcPointVelocity (model, Q, QDotPre, contact_info.body_id, contact_info.point, point_velocity);
+
+		ContactInfo x_velocity_info (contact_info);
+		x_velocity_info.normal.set (1., 0., 0.);
+		x_velocity_info.acceleration = 0. - point_velocity[0];
+		ContactImpulseInfo.push_back (x_velocity_info);
+
+		ContactInfo y_velocity_info (contact_info);
+		y_velocity_info.normal.set (0., 1., 0.);
+		y_velocity_info.acceleration = 0. - point_velocity[1];
+		ContactImpulseInfo.push_back (y_velocity_info);
+
+		ContactInfo z_velocity_info (contact_info);
+		z_velocity_info.normal.set (0., 0., 1.);
+		z_velocity_info.acceleration = 0. - point_velocity[2];
+		ContactImpulseInfo.push_back (z_velocity_info);
+	}
+
+	std::vector<SpatialVector> contact_f_ext;
+	cmlVector QDDotFext (QDotPre);
+	QDDotFext.zero();
+
+	cmlVector Tau_zero (QDDotFext);
+
+	ComputeContactForces (model, Q, QDotPre, Tau_zero, ContactImpulseInfo, contact_f_ext);
+
+	for (i = 0; i < model.f_ext.size(); i++) {
+		model.f_ext[i] += contact_f_ext[i];
+	}
+
+	LOG << "-------- APPLY_EXT ------" << std::endl;
+	{
+		SUPPRESS_LOGGING;
+		ForwardDynamics (model, Q, QDotPre, Tau_zero, QDDotFext);
+	}
+
+	QDotPost = QDotPre + QDDotFext;
+}
+

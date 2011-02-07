@@ -10,7 +10,6 @@
 
 #include "Joint.h"
 #include "Body.h"
-#include "Contacts.h"
 
 /** \brief Contains all information of the model
  *
@@ -39,8 +38,6 @@ struct Model {
 
 	/// \brief true if the body has a floating base
 	bool floating_base;
-	/// \brief true if contact information in mContactInfoMap should be used
-	bool use_contacts;
 
 	/// \brief the cartestian translation of the base
 	Vector3d base_translation;
@@ -116,12 +113,6 @@ struct Model {
 	 */
 	std::vector<Body> mBodies;
 
-	////////////////////////////////////
-	// Contact Data
-	
-	/// \brief Contains for each body all the contact constraint information
-	std::vector<ContactInfo> mContactInfos;
-
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 
@@ -161,15 +152,6 @@ struct Model {
 	void SetFloatingBody (
 			const Body &body
 			);
-	unsigned int AddContact (
-			const unsigned int body_id,
-			const Vector3d &contact_point,
-			const Vector3d &contact_normal
-			) {
-		assert (mBodies.size() > body_id);
-		mContactInfos.push_back (ContactInfo (body_id, contact_point, contact_normal));
-	}
-
 	/** \brief Returns the 3D coordinate vector of the origin of a given body
 	 *  \brief in base coordinates
 	 *
