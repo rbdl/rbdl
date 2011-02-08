@@ -520,6 +520,7 @@ void ComputeContactForces (
 	unsigned int ci;
 	for (ci = 0; ci < contact_count; ci++) {
 		ContactInfo contact_info = ContactData[ci];
+		LOG << "ContactData[" << ci << "].acceleration = " << contact_info.acceleration << std::endl;
 
 		// compute point accelerations
 		Vector3d point_accel;
@@ -672,21 +673,33 @@ void ComputeContactImpulses (
 	std::vector<SpatialVector> contact_f_ext;
 	cmlVector QDDotFext (QDotPre);
 	QDDotFext.zero();
-
 	cmlVector Tau_zero (QDDotFext);
 
 	ComputeContactForces (model, Q, QDotPre, Tau_zero, ContactImpulseInfo, contact_f_ext);
 
-	for (i = 0; i < model.f_ext.size(); i++) {
-		model.f_ext[i] += contact_f_ext[i];
-	}
-
-	LOG << "-------- APPLY_EXT ------" << std::endl;
+	// for debugging
 	{
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDotPre, Tau_zero, QDDotFext);
 	}
 
-	QDotPost = QDotPre + QDDotFext;
-}
+	for (i = 0; i < model.f_ext.size(); i++) {
+		model.f_ext[i] = contact_f_ext[i];
+		LOG << "f_ext[" << i << "] = " << model.f_ext[i] << std::endl;
+	}
 
+	LOG << "-------- APPLY_EXT ------" << std::endl;
+	cmlVector QDDotZeroFext (QDotPre.size());
+	{
+		SUPPRESS_LOGGING;
+		ForwardDynamics (model, Q, QDotPre, Tau_zero, QDDotZeroFext);
+	}
+
+	ContactInfo contact_info = ContactData[0]; 
+	Vector3d point_accel;
+	CalcPointAcceleration (model, Q, QDotPre, QDDotFext, contact_info.body_id, contact_info.point, point_accel);
+	LOG << "Point Accel = " << point_accel << std::endl;
+
+//	QDotPost = QDotPre - (QDDotZeroFext - QDDotFext);
+	QDotPost = QDotPre + (-QDDotZeroFext + QDDotFext);
+}

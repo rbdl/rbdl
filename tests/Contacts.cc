@@ -286,6 +286,7 @@ TEST_FIXTURE(ContactsFixture, TestContactImpulse) {
 	cmlVector qdot_post (QDot.size());
 	ComputeContactImpulses (*model, Q, QDot, contact_data, qdot_post);
 	cout << LogOutput.str() << endl;
+	cout << "QdotPost = " << qdot_post << endl;
 
 	{
 		SUPPRESS_LOGGING;
