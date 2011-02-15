@@ -1,6 +1,7 @@
 #include <mathutils.h>
 
-#include <math.h>
+#include <cmath>
+#include <limits>
 
 #include <iostream>
 #include <assert.h>
@@ -111,6 +112,7 @@ bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
 	int i,j;
 	for (j = 0; j < n; j++) {
 		for (i = j + 1; i < n; i++) {
+			assert (fabs(A(j,j)) > std::numeric_limits<double>::epsilon());
 			double d = A(i,j)/A(j,j);
 
 			b[i] -= b[j] * d;

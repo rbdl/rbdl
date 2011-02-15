@@ -271,6 +271,49 @@ TEST_FIXTURE(ContactsFixture, TestContactImpulse) {
 
 	cmlVector humans_values (QDDot.size());
 
+	/*
+	Q[0] = 0.2;
+	Q[1] = -0.5;
+	Q[2] = 0.1;
+	*/
+	QDot[0] = 0.1;
+	QDot[1] = -0.2;
+	QDot[2] = 0.1;
+
+	Vector3d point_velocity;
+	{
+		SUPPRESS_LOGGING;
+		CalcPointVelocity (*model, Q, QDot, contact_body_id, contact_point, point_velocity);
+	}
+
+	cout << "Point Velocity = " << point_velocity << endl;
+
+	cmlVector qdot_post (QDot.size());
+	ComputeContactImpulses (*model, Q, QDot, contact_data, qdot_post);
+	cout << LogOutput.str() << endl;
+	cout << "QdotPost = " << qdot_post << endl;
+
+	{
+		SUPPRESS_LOGGING;
+		CalcPointVelocity (*model, Q, qdot_post, contact_body_id, contact_point, point_velocity);
+	}
+
+	cout << "Point Velocity = " << point_velocity << endl;
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), point_velocity.data(), 3, TEST_PREC);
+}
+
+TEST_FIXTURE(ContactsFixture, TestContactImpulseRotated) {
+	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.)));
+
+	cmlVector humans_values (QDDot.size());
+
+	Q[0] = 0.2;
+	Q[1] = -0.5;
+	Q[2] = 0.1;
+	Q[3] = -0.4;
+	Q[4] = -0.1;
+	Q[5] = 0.4;
+
 	QDot[0] = 0.1;
 	QDot[1] = -0.2;
 	QDot[2] = 0.1;
