@@ -149,7 +149,11 @@ struct Model {
 			const Joint &joint,
 			const Body &body
 			);
-	void SetFloatingBody (
+	/** \brief Specifies the dynamical parameters of the first body and
+	 *  \brief assigns it a 6 DoF joint.
+	 *
+	 */
+	void SetFloatingBaseBody (
 			const Body &body
 			);
 	/** \brief Returns the 3D coordinate vector of the origin of a given body

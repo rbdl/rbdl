@@ -11,10 +11,11 @@ SET ( TESTS_SRCS
 	MathTests.cc
 	BodyTests.cc
 	ArticulatedFigureTests.cc
+	FloatingBaseTests.cc
 	CalcVelocities.cc
 	CalcAccelerations.cc
 	Kinematics.cc
-	Contacts.cc
+	#	Contacts.cc
 	)
 
 FIND_PACKAGE (UnitTest++)

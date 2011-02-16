@@ -1,5 +1,5 @@
-#ifndef _DYNAMICS_H
-#define _DYNAMICS_H
+#ifndef _DYNAMICS_STDVEC_H
+#define _DYNAMICS_STDVEC_H
 
 #include <cmlwrapper.h>
 #include <vector>
@@ -37,7 +37,7 @@ void ForwardDynamics (
  * \param a_B   accelerations of the base (output, in base coordinates)
  * \param QDDot accelerations of the internals joints (output)
  */
-void ForwardDynamicsFloatingBase (
+void ForwardDynamicsFloatingBaseExpl (
 		Model &model,
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
@@ -49,4 +49,4 @@ void ForwardDynamicsFloatingBase (
 		std::vector<double> &QDDot
 		);
 
-#endif /* _DYNAMICS_H */
+#endif /* _DYNAMICS_STDVEC_H */

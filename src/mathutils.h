@@ -99,5 +99,4 @@ inline std::ostream& operator<<(std::ostream& output, const std::vector<double> 
 	return output;
 }
 
-
 #endif /* _MATHUTILS_H */

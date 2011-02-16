@@ -7,6 +7,7 @@
 
 #include "Model.h"
 #include "Contacts.h"
+#include "Dynamics.h"
 #include "Dynamics_stdvec.h"
 #include "Kinematics.h"
 
@@ -68,6 +69,71 @@ void ForwardDynamicsFloatingBase (
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &Tau,
+		cmlVector &QDDot
+		) {
+	cmlVector q_expl (Q.size() - 6);
+	cmlVector qdot_expl (QDot.size() - 6);
+	cmlVector tau_expl (Tau.size() - 6);
+	cmlVector qddot_expl (QDDot.size() - 6);
+
+	LOG << "Q = " << Q << std::endl;
+	LOG << "QDot = " << QDot << std::endl;
+
+	SpatialMatrix X_B = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
+	SpatialVector v_B (QDot[0], QDot[1], QDot[2], QDot[3], QDot[4], QDot[5]);
+	SpatialVector f_B (Tau[0], Tau[1], Tau[2], Tau[3], Tau[4], Tau[5]);
+	SpatialVector a_B (0., 0., 0., 0., 0., 0.);
+
+	LOG << "X_B = " << X_B << std::endl;
+	LOG << "v_B = " << v_B << std::endl;
+	LOG << "Tau = " << Tau << std::endl;
+
+	unsigned int i;
+	for (i = 0; i < q_expl.size(); i++) {
+		q_expl[i] = Q[i + 6];
+	}
+	for (i = 0; i < qdot_expl.size(); i++) {
+		qdot_expl[i] = QDot[i + 6];
+	}
+
+	for (i = 0; i < tau_expl.size(); i++) {
+		tau_expl[i] = Tau[i + 6];
+	}
+	
+	ForwardDynamicsFloatingBaseExpl (model, q_expl, qdot_expl, tau_expl, X_B, v_B, f_B, a_B, qddot_expl);
+
+	LOG << "FloatingBaseExplRes = " << qddot_expl << std::endl;
+	LOG << "FloatingBaseExplRes a_B = " << a_B << std::endl;
+
+	// we have to transform the acceleration back to base coordinates
+	a_B = X_B.inverse() * a_B;
+
+	for (i = 0; i < 6; i++) {
+		QDDot[i] = a_B[i];
+	}
+
+	for (i = 0; i < qddot_expl.size(); i++) {
+		QDDot[i + 6] = qddot_expl[i];
+	}
+}
+
+/** \brief Computes forward dynamics for models with a floating base
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param X_B   transformation into base coordinates
+ * \param v_B   velocity of the base (in base coordinates)
+ * \param f_B   forces acting on the base (in base coordinates)
+ * \param a_B   accelerations of the base (output, in base coordinates)
+ * \param QDDot accelerations of the internals joints (output)
+ */
+void ForwardDynamicsFloatingBaseExpl (
+		Model &model,
+		const cmlVector &Q,
+		const cmlVector &QDot,
+		const cmlVector &Tau,
 		const SpatialMatrix &X_B,
 		const SpatialVector &v_B,
 		const SpatialVector &f_B,
@@ -92,7 +158,7 @@ void ForwardDynamicsFloatingBase (
 	for (i = 0; i < Tau.size(); i++)
 		Tau_stdvec[i] = Tau[i];
 
-	ForwardDynamicsFloatingBase (model, Q_stdvec, QDot_stdvec, Tau_stdvec, X_B, v_B, f_B, a_B, QDDot_stdvec);
+	ForwardDynamicsFloatingBaseExpl (model, Q_stdvec, QDot_stdvec, Tau_stdvec, X_B, v_B, f_B, a_B, QDDot_stdvec);
 
 	for (i = 0; i < QDDot.size(); i++)
 		QDDot[i] = QDDot_stdvec[i];
@@ -106,11 +172,29 @@ void ForwardDynamics (
 		std::vector<double> &QDDot
 		) {
 	if (model.floating_base) {
-		// in this case the appropriate function has to be called, see
-		// ForwardDynamicsFloatingBase
-		assert (0);
+		cmlVector q (Q.size());
+		cmlVector qdot (QDot.size());
+		cmlVector qddot (QDDot.size());
+		cmlVector tau (Tau.size());
 
-		// ForwardDynamicsFloatingBase(model, Q, QDot, Tau, QDDot);
+		unsigned int i;
+		
+		for (i = 0; i < q.size(); i++) {
+			q[i] = Q[i];
+		}
+		for (i = 0; i < qdot.size(); i++) {
+			qdot[i] = QDot[i];
+		}
+		for (i = 0; i < tau.size(); i++) {
+			tau[i] = Tau[i];
+		}
+
+		ForwardDynamicsFloatingBase (model, q, qdot, tau, qddot);
+
+		for (i = 0; i < qddot.size(); i++) {
+			QDDot[i] = qddot[i];
+		}
+
 		return;
 	}
 
@@ -267,7 +351,7 @@ void ForwardDynamics (
 	}
 }
 
-void ForwardDynamicsFloatingBase (
+void ForwardDynamicsFloatingBaseExpl (
 		Model &model,
 		const std::vector<double> &Q,
 		const std::vector<double> &QDot,
@@ -426,46 +510,6 @@ void ForwardDynamicsFloatingBase (
 
 	a_B = model.a[0];
 }
-
-/*
-void ComputeContactAccelerations (
-		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		const std::vector<ContactInfo> &ContactData,
-		cmlMatrix &Ae,
-		cmlVector &C
-		) {
-
-	cmlVector a0 (contact_count);
-
-	LOG << "-------- ZERO_EXT ------" << std::endl;
-	cmlVector QDDot_zero_ext (QDot);
-	{
-		SUPPRESS_LOGGING;
-		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
-	}
-
-	unsigned int ci;
-	for (ci = 0; ci < contact_count; ci++) {
-		ContactInfo contact_info = ContactData[ci];
-
-		// compute point accelerations
-		Vector3d point_accel;
-		{
-			SUPPRESS_LOGGING;
-			CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_accel);
-		}
-
-		// evaluate a0 and C0
-		double a0i = cml::dot(contact_info.normal,point_accel);
-
-		a0[ci] = a0i;
-		C0[ci] = - (a0i - contact_info.acceleration);
-	}
-}
-*/
 
 void ComputeContactForces (
 		Model &model,

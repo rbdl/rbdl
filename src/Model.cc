@@ -97,7 +97,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	return q.size() - 1;
 }
 
-void Model::SetFloatingBody (const Body &body) {
+void Model::SetFloatingBaseBody (const Body &body) {
 	assert (lambda.size() >= 0);
 
 	// mark the model such that we know it interprets body 0 as floating base

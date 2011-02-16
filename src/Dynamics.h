@@ -9,7 +9,13 @@
 
 #include "Model.h"
 
-/** \brief Computes forward dynamics for models with a fixed base
+/** \brief Computes forward dynamics for a given model
+ *
+ * When the function Model::SetFloatingBaseBody() was called on a model,
+ * this function uses the function ForwardDynamicsFloatingBaseExpl() to
+ * compute the accelerations. In this case the first 6 entries of Q, QDot,
+ * Tau, and QDDot are first the translations and then the rotations of the
+ * floating base.
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
@@ -27,6 +33,10 @@ void ForwardDynamics (
 
 /** \brief Computes forward dynamics for models with a floating base
  *
+ * This method uses explicit information about the state of the floating
+ * base body, i.e., base transformation and velocities are specified as
+ * parameters to this function. See also ForwardDynamics().
+ *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
@@ -37,7 +47,7 @@ void ForwardDynamics (
  * \param a_B   accelerations of the base (output, in base coordinates)
  * \param QDDot accelerations of the internals joints (output)
  */
-void ForwardDynamicsFloatingBase (
+void ForwardDynamicsFloatingBaseExpl (
 		Model &model,
 		const cmlVector &Q,
 		const cmlVector &QDot,
