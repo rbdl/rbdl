@@ -7,14 +7,14 @@ LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../CMake )
 
 SET ( TESTS_SRCS
 	main.cc
-	SpatialAlgebra.cc
+	SpatialAlgebraTests.cc
 	MathTests.cc
 	BodyTests.cc
 	ArticulatedFigureTests.cc
 	FloatingBaseTests.cc
-	CalcVelocities.cc
-	CalcAccelerations.cc
-	Kinematics.cc
+	CalcVelocitiesTests.cc
+	CalcAccelerationsTests.cc
+	KinematicsTests.cc
 	#	Contacts.cc
 	)
 
