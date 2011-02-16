@@ -89,20 +89,22 @@ void ForwardDynamicsFloatingBase (
 	LOG << "Tau = " << Tau << std::endl;
 
 	unsigned int i;
-	for (i = 0; i < q_expl.size(); i++) {
-		q_expl[i] = Q[i + 6];
-	}
-	for (i = 0; i < qdot_expl.size(); i++) {
-		qdot_expl[i] = QDot[i + 6];
-	}
 
-	for (i = 0; i < tau_expl.size(); i++) {
-		tau_expl[i] = Tau[i + 6];
+	if (Q.size() > 6) {
+		for (i = 0; i < q_expl.size(); i++) {
+			q_expl[i] = Q[i + 6];
+		}
+		for (i = 0; i < qdot_expl.size(); i++) {
+			qdot_expl[i] = QDot[i + 6];
+		}
+
+		for (i = 0; i < tau_expl.size(); i++) {
+			tau_expl[i] = Tau[i + 6];
+		}
 	}
 	
 	ForwardDynamicsFloatingBaseExpl (model, q_expl, qdot_expl, tau_expl, X_B, v_B, f_B, a_B, qddot_expl);
 
-	LOG << "FloatingBaseExplRes = " << qddot_expl << std::endl;
 	LOG << "FloatingBaseExplRes a_B = " << a_B << std::endl;
 
 	// we have to transform the acceleration back to base coordinates
@@ -112,8 +114,10 @@ void ForwardDynamicsFloatingBase (
 		QDDot[i] = a_B[i];
 	}
 
-	for (i = 0; i < qddot_expl.size(); i++) {
-		QDDot[i + 6] = qddot_expl[i];
+	if (Q.size() > 6) {
+		for (i = 0; i < qddot_expl.size(); i++) {
+			QDDot[i + 6] = qddot_expl[i];
+		}
 	}
 }
 
@@ -203,7 +207,7 @@ void ForwardDynamics (
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	unsigned int i;
-	
+
 	// Copy state values from the input to the variables in model
 	assert (model.q.size() == Q.size() + 1);
 	assert (model.qdot.size() == QDot.size() + 1);

@@ -267,48 +267,34 @@ TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
 	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), 1.0e-12);
 }
 
-/*
 TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseSimple) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, contact_normal));
+	Model *float_model = new Model();
 
-	Q[0] = 0.2;
-	Q[3] = 0.6;
-	Tau[0] = 1.0;
-	Tau[1] = -5.0;
-	Tau[2] = 3.0;
-	{
-		_NoLogging nolog;
-		ForwardDynamics (*model, Q, QDot, Tau, QDDot);
-	}
+	float_model->Init();
+	float_model->gravity.set (0., -9.81, 0.);
 
-	cmlVector humans_values (QDDot.size());
-	humans_values[0] =	-1.647101149402497e+00;
-	humans_values[1] =	-3.333333333333333e+00;
-	humans_values[2] =	1.500000000000000e+00;
-	humans_values[3] =	4.700721141799440e+00;
-	humans_values[4] =	3.598082426458145e+00;
-	humans_values[5] =	-1.022528511047732e+00;
+	Body base_body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 
-	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), TEST_PREC);
+	float_model->SetFloatingBaseBody(base_body);
 
-	Vector3d point_accel;
-	{
-		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
-	}
+	cmlVector Q (6);
+	cmlVector QDot (6);
+	cmlVector QDDot (6);
+	cmlVector Tau (6);
 
-	ForwardDynamicsContacts(*model, Q, QDot, Tau, contact_data, QDDot);
-	{
-		_NoLogging nolog;
-		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
-	}
+	ContactInfo ground_x (0, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
+	ContactInfo ground_y (0, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
+	ContactInfo ground_z (0, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
 
-	humans_values[0] = 5.681687528667114e-01;
-	humans_values[1] = -3.333333333333333e+00;
-	humans_values[2] = 1.500000000000000e+00;
-	humans_values[3] = 2.080750294369360e-01;
-	humans_values[4] = 3.598082426458145e+00;
-	humans_values[5] = -1.022528511047732e+00;
+	contact_data.push_back (ground_y);
 
-	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), TEST_PREC);
+	ForwardDynamicsContacts (*float_model, Q, QDot, Tau, contact_data, QDDot);
+
+	cout << QDDot << std::endl;
+	cout << LogOutput.str() << endl;
+
+	cmlVector qddot_test (6);
+	qddot_test.zero();
+
+	CHECK_ARRAY_CLOSE (qddot_test.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
-*/

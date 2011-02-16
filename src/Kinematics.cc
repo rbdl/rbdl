@@ -357,15 +357,6 @@ void CalcPointAccelerationDirect (
 		Vector3d &point_acceleration
 		)
 {
-	if (model.floating_base) {
-		// in this case the appropriate function has to be called, see
-		// ForwardDynamicsFloatingBase
-		assert (0);
-
-		// ForwardDynamicsFloatingBase(model, Q, QDot, Tau, QDDot);
-		return;
-	}
-
 	unsigned int i;
 	
 	// Copy state values from the input to the variables in model
@@ -378,10 +369,17 @@ void CalcPointAccelerationDirect (
 		model.qdot.at(i+1) = QDot[i];
 		model.qddot.at(i+1) = QDDot[i];
 	}
-
-	// Reset the velocity of the root body
-	model.v[0].zero();
-	model.a[0].zero();
+	
+	if (model.floating_base) {
+		// in this case the appropriate function has to be called, see
+		// ForwardDynamicsFloatingBase
+		model.v[0].set (QDot[3], QDot[4], QDot[5], QDot[0], QDot[1], QDot[2]);
+		model.a[0].set (QDDot[3], QDDot[4], QDDot[5], QDDot[0], QDDot[1], QDDot[2]);
+	} else {
+		// Reset the velocity of the root body
+		model.v[0].zero();
+		model.a[0].zero();
+	}
 
 	// this will contain the global accelerations of the bodies
 	std::vector<SpatialVector> global_accelerations (
