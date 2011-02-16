@@ -9,6 +9,8 @@
 
 #include "Model.h"
 
+namespace RigidBodyDynamics {
+
 /** \brief Computes forward dynamics for a given model
  *
  * When the function Model::SetFloatingBaseBody() was called on a model,
@@ -35,7 +37,9 @@ void ForwardDynamics (
  *
  * This method uses explicit information about the state of the floating
  * base body, i.e., base transformation and velocities are specified as
- * parameters to this function. See also ForwardDynamics().
+ * parameters to this function. This function will be called by
+ * ForwardDynamics() when the flag Model::floating_base was set to true
+ * (e.g. as done when calling Model::SetFloatingBaseBody()).
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
@@ -128,5 +132,7 @@ void ComputeContactImpulses (
 		const std::vector<ContactInfo> &ContactData,
 		cmlVector &QDotPost
 		);
+
+}
 
 #endif /* _DYNAMICS_H */

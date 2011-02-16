@@ -9,6 +9,7 @@
 #include "Joint.h"
 
 using namespace SpatialAlgebra;
+namespace RigidBodyDynamics {
 
 void jcalc (
 		const Model &model,
@@ -58,4 +59,6 @@ void jcalc (
 	}
 
 	v_J = S * qdot;
+}
+
 }

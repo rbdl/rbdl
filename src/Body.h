@@ -7,6 +7,8 @@
 #include <iostream>
 #include "Logging.h"
 
+namespace RigidBodyDynamics {
+
 /** \brief Describes all properties of a single body 
  *
  * A Body contains information about mass, the location of its center of mass,
@@ -86,5 +88,7 @@ struct Body {
 	/// \brief The mass of the body
 	double mMass;
 };
+
+}
 
 #endif /* _BODY_H */

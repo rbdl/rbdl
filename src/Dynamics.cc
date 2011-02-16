@@ -13,8 +13,9 @@
 
 using namespace SpatialAlgebra;
 
-/** \brief Computes forward dynamics for models with a fixed base
- *
+namespace RigidBodyDynamics {
+
+/*
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
@@ -52,8 +53,7 @@ void ForwardDynamics (
 		QDDot[i] = QDDot_stdvec[i];
 }
 
-/** \brief Computes forward dynamics for models with a floating base
- *
+/*
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
@@ -117,8 +117,7 @@ void ForwardDynamicsFloatingBase (
 	}
 }
 
-/** \brief Computes forward dynamics for models with a floating base
- *
+/*
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
@@ -871,4 +870,6 @@ void ComputeContactImpulses (
 	LOG << "accelera 2 = " << point_accel << std::endl;
 	LOG << "velo     2 = " << point_velocity << std::endl;
 	QDotPost = QDotPre + QDDotFext;
+}
+
 }

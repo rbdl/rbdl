@@ -10,8 +10,9 @@
 
 using namespace SpatialAlgebra;
 
-/** \brief Computes the velocity of a point on a body 
- *
+namespace RigidBodyDynamics {
+
+/*
  * \param model   rigid body model
  * \param Q       state vector of the internal joints
  * \param QDot    velocity vector of the internal joints
@@ -40,8 +41,7 @@ void CalcPointVelocity (
 	CalcPointVelocity( model, cmlQ, cmlQDot, body_id, point_position, point_velocity);
 }
 
-/** \brief Computes the acceleration of a point on a body 
- *
+/*
  * \param model   rigid body model
  * \param Q       state vector of the internal joints
  * \param QDot    velocity vector of the internal joints
@@ -499,3 +499,4 @@ void CalcPointAcceleration (
 //	CalcPointAccelerationFeatherstone (model, Q, QDot, QDDot, body_id, point_position, point_acceleration);
 }
 
+}

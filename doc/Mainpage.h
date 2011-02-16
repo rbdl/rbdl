@@ -11,6 +11,9 @@
  * The library uses the configurable math library (which can be found here:
  * <a href="http://www.cmldev.net">http://www.cmldev.net</a>).
  *
+ * Documentation of the functions can be found at the documentation page of
+ * the namespace RigidBodyDynamics.
+ *
  * \section Example An Example
  * Here is a simple example how one can create a model and compute the
  * forward dynamics for it:

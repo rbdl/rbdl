@@ -10,6 +10,7 @@
 #include "Joint.h"
 
 using namespace SpatialAlgebra;
+using namespace RigidBodyDynamics;
 
 void Model::Init() {
 	floating_base = false;

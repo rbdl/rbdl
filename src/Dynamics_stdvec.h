@@ -9,6 +9,8 @@
 
 #include "Model.h"
 
+namespace RigidBodyDynamics {
+
 /** \brief Computes forward dynamics for models with a fixed base
  *
  * \param model rigid body model
@@ -48,5 +50,7 @@ void ForwardDynamicsFloatingBaseExpl (
 		SpatialAlgebra::SpatialVector &a_B,
 		std::vector<double> &QDDot
 		);
+
+}
 
 #endif /* _DYNAMICS_STDVEC_H */

@@ -9,6 +9,8 @@
 
 #include "glprimitives.h"
 
+using namespace RigidBodyDynamics;
+
 void compute_body_center_and_dimensions (Model* model, unsigned int body_id, Vector3d &body_center, Vector3d &body_dimensions) {
 	int j;
 

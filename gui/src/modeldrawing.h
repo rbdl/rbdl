@@ -3,7 +3,7 @@
 
 #include "Model.h"
 
-void draw_model (Model* model);
+void draw_model (RigidBodyDynamics::Model* model);
 
 #endif /* _MODELDRAWING_H */
 

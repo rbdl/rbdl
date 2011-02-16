@@ -11,13 +11,17 @@
 #include "Joint.h"
 #include "Body.h"
 
-/** \brief Contains all information of the model
+/** \brief Namespace for all structures of the RigidBodyDynamics library
+ */
+namespace RigidBodyDynamics {
+
+/** \brief Contains all information about the rigid body model
  *
  * This class contains all information required to perform the forward
  * dynamics calculation. The variables in this class are also used for
- * storage of temporary values. It is designed for use of the Composite
- * Rigid Body Algorithm and follows the numbering as described in
- * Featherstones book.
+ * storage of temporary values. It is designed for use of the Articulated
+ * Rigid Body Algorithm (which is implemented in ForwardDynamics()) and
+ * follows the numbering as described in Featherstones book.
  *
  * An important note is that body 0 is the root body and the moving bodies
  * start at index 1. Additionally the vectors for the states q, qdot, etc.
@@ -206,5 +210,7 @@ void jcalc (
 		const double &q,
 		const double &qdot
 		);
+
+}
 
 #endif /* _MODEL_H */

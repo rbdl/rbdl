@@ -13,6 +13,7 @@
 #include "Kinematics.h"
 
 using namespace std;
+using namespace RigidBodyDynamics;
 
 static Model* model = NULL;
 

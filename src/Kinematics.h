@@ -7,6 +7,8 @@
 #include <iostream>
 #include "Logging.h"
 
+namespace RigidBodyDynamics {
+
 /** \brief Computes the velocity of a point on a body 
  *
  * \param model   rigid body model
@@ -44,5 +46,7 @@ void CalcPointAcceleration (
 		const Vector3d &point_position,
 		Vector3d &point_acceleration
 		);
+
+}
 
 #endif /* _KINEMATICS_H */

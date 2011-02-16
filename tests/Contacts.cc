@@ -12,6 +12,7 @@
 
 using namespace std;
 using namespace SpatialAlgebra;
+using namespace RigidBodyDynamics;
 
 const double TEST_PREC = 1.0e-14;
 

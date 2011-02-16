@@ -3,6 +3,14 @@
 
 #include "cmlwrapper.h"
 
+namespace RigidBodyDynamics {
+
+/** \brief Structure that contains information about a one-dimensional
+ *  \brief contact constraint
+ *
+ *  This structure is also used to describe contact points that undergo an
+ *  impulse, see alse ComputeContactImpulses().
+ */
 struct ContactInfo {
 	ContactInfo() :
 		body_id (0),
@@ -42,6 +50,7 @@ struct ContactInfo {
 		acceleration (accel)
 	{	}
 
+	/// \brief The id of the body of which the motion is constrained
 	unsigned int body_id;
 	/// \brief Coordinate of the contact point in base coordinates
 	Vector3d point;
@@ -50,5 +59,7 @@ struct ContactInfo {
 	/// \brief Acceleration value of the constraint along the normal
 	double acceleration;
 };
+
+}
 
 #endif /* _CONTACTS_H */

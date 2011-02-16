@@ -9,6 +9,8 @@
 
 #include "Model.h"
 
+namespace RigidBodyDynamics {
+
 class Model;
 
 /** \brief General types of joints
@@ -115,5 +117,6 @@ void jcalc (
 		const double &qdot
 		);
 
+}
 
 #endif /* _JOINT_H */
