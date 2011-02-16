@@ -267,78 +267,48 @@ TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
 	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), 1.0e-12);
 }
 
-TEST_FIXTURE(ContactsFixture, TestContactImpulse) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.)));
-
-	cmlVector humans_values (QDDot.size());
-
-	/*
-	Q[0] = 0.2;
-	Q[1] = -0.5;
-	Q[2] = 0.1;
-	*/
-	QDot[0] = 0.1;
-	QDot[1] = -0.2;
-	QDot[2] = 0.1;
-
-	Vector3d point_velocity;
-	{
-		SUPPRESS_LOGGING;
-		CalcPointVelocity (*model, Q, QDot, contact_body_id, contact_point, point_velocity);
-	}
-
-	cout << "Point Velocity = " << point_velocity << endl;
-
-	cmlVector qdot_post (QDot.size());
-	ComputeContactImpulses (*model, Q, QDot, contact_data, qdot_post);
-	cout << LogOutput.str() << endl;
-	cout << "QdotPost = " << qdot_post << endl;
-
-	{
-		SUPPRESS_LOGGING;
-		CalcPointVelocity (*model, Q, qdot_post, contact_body_id, contact_point, point_velocity);
-	}
-
-	cout << "Point Velocity = " << point_velocity << endl;
-	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), point_velocity.data(), 3, TEST_PREC);
-}
-
-TEST_FIXTURE(ContactsFixture, TestContactImpulseRotated) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.)));
-
-	cmlVector humans_values (QDDot.size());
+/*
+TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseSimple) {
+	contact_data.push_back (ContactInfo (contact_body_id, contact_point, contact_normal));
 
 	Q[0] = 0.2;
-	Q[1] = -0.5;
-	Q[2] = 0.1;
-	Q[3] = -0.4;
-	Q[4] = -0.1;
-	Q[5] = 0.4;
-
-	QDot[0] = 0.1;
-	QDot[1] = -0.2;
-	QDot[2] = 0.1;
-
-	Vector3d point_velocity;
+	Q[3] = 0.6;
+	Tau[0] = 1.0;
+	Tau[1] = -5.0;
+	Tau[2] = 3.0;
 	{
-		SUPPRESS_LOGGING;
-		CalcPointVelocity (*model, Q, QDot, contact_body_id, contact_point, point_velocity);
+		_NoLogging nolog;
+		ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 	}
 
-	cout << "Point Velocity = " << point_velocity << endl;
+	cmlVector humans_values (QDDot.size());
+	humans_values[0] =	-1.647101149402497e+00;
+	humans_values[1] =	-3.333333333333333e+00;
+	humans_values[2] =	1.500000000000000e+00;
+	humans_values[3] =	4.700721141799440e+00;
+	humans_values[4] =	3.598082426458145e+00;
+	humans_values[5] =	-1.022528511047732e+00;
 
-	cmlVector qdot_post (QDot.size());
-	ComputeContactImpulses (*model, Q, QDot, contact_data, qdot_post);
-	cout << LogOutput.str() << endl;
-	cout << "QdotPost = " << qdot_post << endl;
+	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 
+	Vector3d point_accel;
 	{
-		SUPPRESS_LOGGING;
-		CalcPointVelocity (*model, Q, qdot_post, contact_body_id, contact_point, point_velocity);
+		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
 	}
 
-	cout << "Point Velocity = " << point_velocity << endl;
-	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), point_velocity.data(), 3, TEST_PREC);
+	ForwardDynamicsContacts(*model, Q, QDot, Tau, contact_data, QDDot);
+	{
+		_NoLogging nolog;
+		CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
+	}
+
+	humans_values[0] = 5.681687528667114e-01;
+	humans_values[1] = -3.333333333333333e+00;
+	humans_values[2] = 1.500000000000000e+00;
+	humans_values[3] = 2.080750294369360e-01;
+	humans_values[4] = 3.598082426458145e+00;
+	humans_values[5] = -1.022528511047732e+00;
+
+	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
-
-
+*/
