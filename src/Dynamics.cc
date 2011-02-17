@@ -80,8 +80,10 @@ void ForwardDynamicsFloatingBase (
 	LOG << "QDot = " << QDot << std::endl;
 
 	SpatialMatrix X_B = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
-	SpatialVector v_B (QDot[0], QDot[1], QDot[2], QDot[3], QDot[4], QDot[5]);
-	SpatialVector f_B (Tau[0], Tau[1], Tau[2], Tau[3], Tau[4], Tau[5]);
+
+	//
+	SpatialVector v_B (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
+	SpatialVector f_B (Tau[5], Tau[4], Tau[3], Tau[0], Tau[1], Tau[2]);
 	SpatialVector a_B (0., 0., 0., 0., 0., 0.);
 
 	LOG << "X_B = " << X_B << std::endl;
@@ -110,9 +112,12 @@ void ForwardDynamicsFloatingBase (
 	// we have to transform the acceleration back to base coordinates
 	a_B = X_B.inverse() * a_B;
 
-	for (i = 0; i < 6; i++) {
-		QDDot[i] = a_B[i];
-	}
+	QDDot[0] = a_B[5];
+	QDDot[1] = a_B[4];
+	QDDot[2] = a_B[3];
+	QDDot[3] = a_B[0];
+	QDDot[4] = a_B[1];
+	QDDot[5] = a_B[2];
 
 	if (Q.size() > 6) {
 		for (i = 0; i < qddot_expl.size(); i++) {
@@ -617,15 +622,16 @@ void ComputeContactForces (
 			// compute point accelerations after the test force
 			Vector3d point_test_accel;
 			{
-				SUPPRESS_LOGGING;
+//				SUPPRESS_LOGGING;
 				CalcPointAcceleration (model, Q, QDot, QDDot_test_ext, test_contact_info.body_id, test_contact_info.point, point_test_accel);
 			}
 
 			// acceleration due to the test force
 			double a1j_i = cml::dot(test_contact_info.normal, point_test_accel);
-			LOG << "test_accel a1j_i = " << a1j_i - Ae(ci,cj) << std::endl;
+			LOG << "test_accel a1j_i = " << a1j_i << std::endl;
+			LOG << "a0[ci] = " << a0[ci] << std::endl;
 			Ae(ci,cj) = a1j_i - a0[ci];
-			LOG << "updating (" << ci << ", " << cj << ")" << std::endl;
+			LOG << "updating (" << ci << ", " << cj << ") = " << Ae(ci,cj) << std::endl;
 		}
 
 		// clear the test force

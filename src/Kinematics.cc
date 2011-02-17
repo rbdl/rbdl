@@ -84,32 +84,46 @@ void CalcPointVelocity (
 		const Vector3d &point_position,
 		Vector3d &point_velocity
 	) {
-	if (model.floating_base) {
-		// in this case the appropriate function has to be called, see
-		// ForwardDynamicsFloatingBase
-		assert (0);
-
-		// ForwardDynamicsFloatingBase(model, Q, QDot, Tau, QDDot);
-		return;
-	}
-
 	unsigned int i;
-	
-	// Copy state values from the input to the variables in model
-	assert (model.q.size() == Q.size() + 1);
-	assert (model.qdot.size() == QDot.size() + 1);
-
-	for (i = 0; i < Q.size(); i++) {
-		model.q[i+1] = Q[i];
-		model.qdot[i+1] = QDot[i];
-	}
-
-	// Reset the velocity of the root body
-	model.v[0].zero();
 
 	// this will contain the global velocities of the bodies
-	std::vector<SpatialVector> global_velocities (model.mBodies.size() + 1, SpatialVector(0., 0., 0., 0., 0., 0.));
+	std::vector<SpatialVector> global_velocities (
+			model.mBodies.size() + 1,
+			SpatialVector(0., 0., 0., 0., 0., 0.)
+			);
 
+	if (model.floating_base) {
+		// set the transformation for the base body
+		model.X_base[0] = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
+		model.X_lambda[0] = model.X_base[0];
+
+		// in this case the appropriate function has to be called, see
+		// ForwardDynamicsFloatingBase
+		model.v[0].set (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
+		
+		global_velocities[0] = model.v[0];
+
+		if (model.mBodies.size() > 1) {
+			// Copy state values from the input to the variables in model
+			for (i = 1; i < model.mBodies.size(); i++) {
+				model.q.at(i) = Q[6 + i];
+				model.qdot.at(i) = QDot[6 + i];
+			}
+		}
+	} else {
+		assert (model.q.size() == Q.size() + 1);
+		assert (model.qdot.size() == QDot.size() + 1);
+
+		// Reset the velocity of the root body
+		model.v[0].zero();
+
+		// Copy state values from the input to the variables in model
+		for (i = 0; i < Q.size(); i++) {
+			model.q.at(i+1) = Q[i];
+			model.qdot.at(i+1) = QDot[i];
+		}
+	}
+	
 	for (i = 1; i < model.mBodies.size(); i++) {
 		SpatialMatrix X_J;
 		SpatialVector v_J;
@@ -359,15 +373,36 @@ void CalcPointAccelerationDirect (
 {
 	unsigned int i;
 
+	LOG << "-------- CalcPointAccelerationDirect --------" << std::endl;
+
+	LOG << "Q = " << Q << std::endl;
+	LOG << "QDot = " << QDot << std::endl;
+	LOG << "QDDot = " << QDDot << std::endl;
+
+	// this will contain the global accelerations of the bodies
+	std::vector<SpatialVector> global_accelerations (
+			model.mBodies.size() + 1,
+			SpatialVector(0., 0., 0., 0., 0., 0.)
+			);
+	
+	// this will contain the global velocities of the bodies
+	std::vector<SpatialVector> global_velocities (
+			model.mBodies.size() + 1,
+			SpatialVector(0., 0., 0., 0., 0., 0.)
+			);
+
 	if (model.floating_base) {
 		// set the transformation for the base body
 		model.X_base[0] = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
 		model.X_lambda[0] = model.X_base[0];
 
 		// in this case the appropriate function has to be called, see
-		// ForwardDynamicsFloatingBase
-		model.v[0].set (QDot[3], QDot[4], QDot[5], QDot[0], QDot[1], QDot[2]);
-		model.a[0].set (QDDot[3], QDDot[4], QDDot[5], QDDot[0], QDDot[1], QDDot[2]);
+		// ForwardDynamicsFloatingBase.
+		model.v[0].set (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
+		model.a[0].set (QDDot[5], QDDot[4], QDDot[3], QDDot[0], QDDot[1], QDDot[2]);
+		
+		global_velocities[0] = model.v[0];
+		global_accelerations[0] = model.a[0];
 
 		if (model.mBodies.size() > 1) {
 			// Copy state values from the input to the variables in model
@@ -393,18 +428,6 @@ void CalcPointAccelerationDirect (
 			model.qddot.at(i+1) = QDDot[i];
 		}
 	}
-
-	// this will contain the global accelerations of the bodies
-	std::vector<SpatialVector> global_accelerations (
-			model.mBodies.size() + 1,
-			SpatialVector(0., 0., 0., 0., 0., 0.)
-			);
-	
-	// this will contain the global velocities of the bodies
-	std::vector<SpatialVector> global_velocities (
-			model.mBodies.size() + 1,
-			SpatialVector(0., 0., 0., 0., 0., 0.)
-			);
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		SpatialMatrix X_J;

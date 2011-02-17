@@ -17,7 +17,13 @@ namespace RigidBodyDynamics {
  * this function uses the function ForwardDynamicsFloatingBaseExpl() to
  * compute the accelerations. In this case the first 6 entries of Q, QDot,
  * Tau, and QDDot are first the translations and then the rotations of the
- * floating base.
+ * floating base. The 6 DoF are ordered in the following way:
+ *   0: x translation
+ *   1: y translation
+ *   2: z translation
+ *   3: z rotation
+ *   4: y rotation
+ *   5: x rotation
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints

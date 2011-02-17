@@ -6,6 +6,7 @@
 #include "Logging.h"
 
 #include "Model.h"
+#include "Kinematics.h"
 #include "Dynamics_stdvec.h"
 
 using namespace std;
@@ -20,17 +21,18 @@ struct FloatingBaseFixture {
 		model = new Model;
 		model->Init();
 		model->gravity.set (0., -9.81, 0.);
+
+		base = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	}
 	~FloatingBaseFixture () {
 		delete model;
 	}
 	Model *model;
+	Body base;
 };
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 	model->floating_base = true;
-
-	Body base(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
 	model->SetFloatingBaseBody(base);
 
@@ -95,7 +97,6 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 	model->floating_base = true;
 
 	// floating base
-	Body base(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	model->SetFloatingBaseBody(base);
 
 	// body_a
@@ -196,10 +197,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 }
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
-	model->floating_base = true;
-
 	// floating base
-	Body base(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	model->SetFloatingBaseBody(base);
 
 	// body_a
@@ -239,10 +237,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 //	std::cout << LogOutput.str() << std::endl;
 
 	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
+	CHECK_CLOSE (-9.8100, QDDot[1], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, QDDot[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[4], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
 
@@ -261,10 +259,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 //	std::cout << LogOutput.str() << std::endl;
 
 	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
+	CHECK_CLOSE (-9.8100, QDDot[1], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, QDDot[4], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[4], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
 
@@ -290,10 +288,159 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 //	std::cout << LogOutput.str() << std::endl;
 
 	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[1], TEST_PREC);
-	CHECK_CLOSE (-1.0000, QDDot[2], TEST_PREC);
+	CHECK_CLOSE (-8.8100, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-	CHECK_CLOSE (-8.8100, QDDot[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
+	CHECK_CLOSE ( 0.0000, QDDot[4], TEST_PREC);
+	CHECK_CLOSE (-1.0000, QDDot[5], TEST_PREC);
 	CHECK_CLOSE ( 2.0000, QDDot[6], TEST_PREC);
 }
+
+TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
+	// floating base
+	model->SetFloatingBaseBody(base);
+
+	cmlVector Q;
+	cmlVector QDot;
+	cmlVector QDDot;
+	cmlVector Tau;
+
+	Q.resize(6);
+	QDot.resize(6);
+	QDDot.resize(6);
+	Tau.resize(6);
+
+	Q.zero();
+	QDot.zero();
+	QDDot.zero();
+	Tau.zero();
+
+	unsigned int ref_body_id = 0;
+
+	// first we calculate the velocity when moving along the X axis
+	QDot[0] = 1.;
+	Vector3d point_position(1., 0., 0.);
+	Vector3d point_velocity;
+
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
+
+	CHECK_CLOSE(1., point_velocity[0], TEST_PREC);
+	CHECK_CLOSE(0., point_velocity[1], TEST_PREC);
+	CHECK_CLOSE(0., point_velocity[2], TEST_PREC);
+
+	LOG << "Point velocity = " << point_velocity << endl;
+//	cout << LogOutput.str() << endl;
+
+	ClearLogOutput();
+
+	// Now we calculate the velocity when rotating around the Z axis
+	QDot[0] = 0.;
+	QDot[3] = 1.;
+
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
+
+	CHECK_CLOSE(0., point_velocity[0], TEST_PREC);
+	CHECK_CLOSE(1., point_velocity[1], TEST_PREC);
+	CHECK_CLOSE(0., point_velocity[2], TEST_PREC);
+
+	LOG << "Point velocity = " << point_velocity << endl;
+//	cout << LogOutput.str() << endl;
+	
+	// Now we calculate the velocity when rotating around the Z axis and the
+	// base is rotated around the z axis by 90 degrees 
+	ClearLogOutput();
+	Q[3] = M_PI * 0.5;
+	QDot[3] = 1.;
+
+	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
+
+	CHECK_CLOSE(-1., point_velocity[0], TEST_PREC);
+	CHECK_CLOSE(0., point_velocity[1], TEST_PREC);
+	CHECK_CLOSE(0., point_velocity[2], TEST_PREC);
+
+	LOG << "Point velocity = " << point_velocity << endl;
+//	cout << LogOutput.str() << endl;
+}
+
+TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseSimple) {
+	// floating base
+	model->SetFloatingBaseBody(base);
+
+	cmlVector Q;
+	cmlVector QDot;
+	cmlVector QDDot;
+	cmlVector Tau;
+
+	Q.resize(6);
+	QDot.resize(6);
+	QDDot.resize(6);
+	Tau.resize(6);
+
+	Q.zero();
+	QDot.zero();
+	QDDot.zero();
+	Tau.zero();
+
+	unsigned int ref_body_id = 0;
+
+	// first we calculate the velocity when moving along the X axis
+	QDDot[0] = 1.;
+	Vector3d point_position(1., 0., 0.);
+	Vector3d point_acceleration;
+
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+
+	CHECK_CLOSE(1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE(0., point_acceleration[2], TEST_PREC);
+
+	LOG << "Point acceleration = " << point_acceleration << endl;
+//	cout << LogOutput.str() << endl;
+
+	ClearLogOutput();
+
+	// Now we calculate the acceleration when rotating around the Z axis
+	QDDot[0] = 0.;
+	QDDot[3] = 1.;
+
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+
+	CHECK_CLOSE(0., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(1., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE(0., point_acceleration[2], TEST_PREC);
+
+	LOG << "Point acceleration = " << point_acceleration << endl;
+//	cout << LogOutput.str() << endl;
+	
+	// Now we calculate the acceleration when rotating around the Z axis and the
+	// base is rotated around the z axis by 90 degrees 
+	ClearLogOutput();
+	Q[3] = M_PI * 0.5;
+	QDDot[3] = 1.;
+
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+
+	CHECK_CLOSE(-1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE(0., point_acceleration[2], TEST_PREC);
+
+	LOG << "Point acceleration = " << point_acceleration << endl;
+//	cout << LogOutput.str() << endl;
+
+	// Now there is only a rotation around the Y axis so the point should
+	// accelerate towards the center
+	ClearLogOutput();
+	Q[0] = 0.;
+	QDDot[4] = 1.;
+
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+
+	CHECK_CLOSE(-1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(0., point_acceleration[1], TEST_PREC);
+	CHECK_CLOSE(0., point_acceleration[2], TEST_PREC);
+
+	LOG << "Point acceleration = " << point_acceleration << endl;
+//	cout << LogOutput.str() << endl;
+}
+
+
