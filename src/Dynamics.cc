@@ -598,7 +598,7 @@ void ComputeContactForces (
 
 		test_forces[cj] = Xtrans (contact_point_position * -1.).adjoint() * test_force;
 		LOG << "body_id         = " << contact_info.body_id << std::endl;
-		LOG << "test_force_base = " << test_forces[ci] << std::endl;
+		LOG << "test_force_base = " << test_forces[cj] << std::endl;
 		// LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id)).adjoint() * test_force_base << std::endl;
 
 		// apply the test force

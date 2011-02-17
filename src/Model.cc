@@ -114,7 +114,11 @@ void Model::SetFloatingBaseBody (const Body &body) {
 }
 
 Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
-	assert (body_id > 0 && body_id < mBodies.size());
+	if (floating_base) {
+		assert (body_id < mBodies.size());
+	} else {
+		assert (body_id > 0 && body_id < mBodies.size());
+	}
 
 	// We use the information from the X_base vector. In the upper left 3x3
 	// matrix contains the orientation as a 3x3 matrix. The lower left 3x3
@@ -129,7 +133,11 @@ Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 }
 
 Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
-	assert (body_id > 0 && body_id < mBodies.size());
+	if (floating_base) {
+		assert (body_id < mBodies.size());
+	} else {
+		assert (body_id > 0 && body_id < mBodies.size());
+	}
 
 	// We use the information from the X_base vector. In the upper left 3x3
 	// matrix contains the orientation as a 3x3 matrix which we are asking
@@ -145,5 +153,3 @@ Vector3d Model::GetBodyPointPosition (const unsigned int body_id, const Vector3d
 	LOG << "body position = " << body_position << std::endl;
 	return body_position + body_rotation * body_point;
 }
-
-

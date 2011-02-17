@@ -358,27 +358,40 @@ void CalcPointAccelerationDirect (
 		)
 {
 	unsigned int i;
-	
-	// Copy state values from the input to the variables in model
-	assert (model.q.size() == Q.size() + 1);
-	assert (model.qdot.size() == QDot.size() + 1);
-	assert (model.qddot.size() == QDDot.size() + 1);
 
-	for (i = 0; i < Q.size(); i++) {
-		model.q.at(i+1) = Q[i];
-		model.qdot.at(i+1) = QDot[i];
-		model.qddot.at(i+1) = QDDot[i];
-	}
-	
 	if (model.floating_base) {
+		// set the transformation for the base body
+		model.X_base[0] = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
+		model.X_lambda[0] = model.X_base[0];
+
 		// in this case the appropriate function has to be called, see
 		// ForwardDynamicsFloatingBase
 		model.v[0].set (QDot[3], QDot[4], QDot[5], QDot[0], QDot[1], QDot[2]);
 		model.a[0].set (QDDot[3], QDDot[4], QDDot[5], QDDot[0], QDDot[1], QDDot[2]);
+
+		if (model.mBodies.size() > 1) {
+			// Copy state values from the input to the variables in model
+			for (i = 1; i < model.mBodies.size(); i++) {
+				model.q.at(i) = Q[6 + i];
+				model.qdot.at(i) = QDot[6 + i];
+				model.qddot.at(i) = QDDot[6 + i];
+			}
+		}
 	} else {
+		assert (model.q.size() == Q.size() + 1);
+		assert (model.qdot.size() == QDot.size() + 1);
+		assert (model.qddot.size() == QDDot.size() + 1);
+
 		// Reset the velocity of the root body
 		model.v[0].zero();
 		model.a[0].zero();
+
+		// Copy state values from the input to the variables in model
+		for (i = 0; i < Q.size(); i++) {
+			model.q.at(i+1) = Q[i];
+			model.qdot.at(i+1) = QDot[i];
+			model.qddot.at(i+1) = QDDot[i];
+		}
 	}
 
 	// this will contain the global accelerations of the bodies
