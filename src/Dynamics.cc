@@ -83,8 +83,11 @@ void ForwardDynamicsFloatingBase (
 
 	//
 	SpatialVector v_B (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
-	SpatialVector f_B (Tau[5], Tau[4], Tau[3], Tau[0], Tau[1], Tau[2]);
 	SpatialVector a_B (0., 0., 0., 0., 0., 0.);
+
+	SpatialVector f_B (Tau[5], Tau[4], Tau[3], Tau[0], Tau[1], Tau[2]);
+	// we also have to add any external force onto 
+	f_B += model.f_ext[0];
 
 	LOG << "X_B = " << X_B << std::endl;
 	LOG << "v_B = " << v_B << std::endl;
@@ -622,7 +625,7 @@ void ComputeContactForces (
 			// compute point accelerations after the test force
 			Vector3d point_test_accel;
 			{
-//				SUPPRESS_LOGGING;
+				SUPPRESS_LOGGING;
 				CalcPointAcceleration (model, Q, QDot, QDDot_test_ext, test_contact_info.body_id, test_contact_info.point, point_test_accel);
 			}
 

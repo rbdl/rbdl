@@ -290,11 +290,71 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseSimple) {
 
 	ForwardDynamicsContacts (*float_model, Q, QDot, Tau, contact_data, QDDot);
 
-	cout << QDDot << std::endl;
-	cout << LogOutput.str() << endl;
+//	cout << QDDot << std::endl;
+//	cout << LogOutput.str() << endl;
 
 	cmlVector qddot_test (6);
 	qddot_test.zero();
+
+	CHECK_ARRAY_CLOSE (qddot_test.data(), QDDot.data(), QDDot.size(), TEST_PREC);
+}
+
+TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
+	Model *float_model = new Model();
+
+	float_model->Init();
+	float_model->gravity.set (0., -9.81, 0.);
+
+	Body base_body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+
+	float_model->SetFloatingBaseBody(base_body);
+
+	cmlVector Q (6);
+	cmlVector QDot (6);
+	cmlVector QDDot (6);
+	cmlVector Tau (6);
+
+	ContactInfo ground_x (0, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
+	ContactInfo ground_y (0, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
+	ContactInfo ground_z (0, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
+
+	contact_data.push_back (ground_x);
+	contact_data.push_back (ground_y);
+//	contact_data.push_back (ground_z);
+
+	// We want the body to rotate around its contact point which is located
+	// at (0, 0, 0). There it should have a negative unit rotation around the
+	// Z-axis (i.e. rolling along the X axis). The spatial velocity of the
+	// body at the contact point is therefore (0, 0, -1, 0, 0, 0).
+	SpatialVector velocity_ground (0., 0., -1., 0., 0., 0.);
+
+	// This has now to be transformed to body coordinates.
+	SpatialVector velocity_body = Xtrans (Vector3d (0., 1., 0.)) * velocity_ground;
+
+	// This has now to be shuffled such that it complies with the ordering of
+	// the DoF in the generalized velocity vector.
+	QDot[0] = velocity_body[5];
+	QDot[1] = velocity_body[4];
+	QDot[2] = velocity_body[3];
+	QDot[3] = velocity_body[2];
+	QDot[4] = velocity_body[1];
+	QDot[5] = velocity_body[0];
+
+	cout << "velocity_body = " << velocity_body << std::endl;
+	cout << "QDot = " << QDot << std::endl;
+
+	ForwardDynamicsContacts (*float_model, Q, QDot, Tau, contact_data, QDDot);
+
+	cout << LogOutput.str() << endl;
+	cout << "QDDot = " << QDDot << std::endl;
+
+	cmlVector qddot_test (6);
+	qddot_test[0] = 1.;
+	qddot_test[1] = 0.;
+	qddot_test[2] = 0.;
+	qddot_test[3] = 0.;
+	qddot_test[4] = 0.;
+	qddot_test[5] = 0.;
 
 	CHECK_ARRAY_CLOSE (qddot_test.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
