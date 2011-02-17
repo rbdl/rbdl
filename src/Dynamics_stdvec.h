@@ -11,7 +11,9 @@
 
 namespace RigidBodyDynamics {
 
-/** \brief Computes forward dynamics for models with a fixed base
+/** \brief [Deprecated] Computes forward dynamics for models with a fixed base
+ *
+ * \deprecated Use alternative function that uses cmlVectors as arguments.
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
@@ -27,7 +29,9 @@ void ForwardDynamics (
 		std::vector<double> &QDDot
 		);
 
-/** \brief Computes forward dynamics for models with a floating base
+/** \brief [Deprecated] Computes forward dynamics for models with a floating base
+ *
+ * \deprecated Use alternative function that uses cmlVectors as arguments.
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
@@ -50,7 +54,6 @@ void ForwardDynamicsFloatingBaseExpl (
 		SpatialAlgebra::SpatialVector &a_B,
 		std::vector<double> &QDDot
 		);
-
 }
 
 #endif /* _DYNAMICS_STDVEC_H */

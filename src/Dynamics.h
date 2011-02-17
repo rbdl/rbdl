@@ -126,10 +126,9 @@ void ForwardDynamicsContacts (
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
+ * \param QDotPre  generalized velocity before the collision
  * \param ContactData	a list of all contact points
- * \param QDDot accelerations of the internals joints (output)
+ * \param QDotPost generalized velocity after the collision
  */
 void ComputeContactImpulses (
 		Model &model,
@@ -138,7 +137,6 @@ void ComputeContactImpulses (
 		const std::vector<ContactInfo> &ContactData,
 		cmlVector &QDotPost
 		);
-
 }
 
 #endif /* _DYNAMICS_H */

@@ -9,7 +9,9 @@
 
 namespace RigidBodyDynamics {
 
-/** \brief Computes the velocity of a point on a body 
+/** \brief [Deprecated] Computes the velocity of a point on a body 
+ *
+ * \deprecated Use alternative function that uses cmlVectors as arguments.
  *
  * \param model   rigid body model
  * \param Q       state vector of the internal joints
@@ -27,7 +29,9 @@ void CalcPointVelocity (
 		Vector3d &point_velocity
 		);
 
-/** \brief Computes the acceleration of a point on a body 
+/** \brief [Deprecated] Computes the acceleration of a point on a body 
+ *
+ * \deprecated Use alternative function that uses cmlVectors as arguments.
  *
  * \param model   rigid body model
  * \param Q       state vector of the internal joints
@@ -46,7 +50,6 @@ void CalcPointAcceleration (
 		const Vector3d &point_position,
 		Vector3d &point_acceleration
 		);
-
 }
 
 #endif /* _KINEMATICS_STDVEC_H */
