@@ -305,7 +305,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	float_model->Init();
 	float_model->gravity.set (0., -9.81, 0.);
 
-	Body base_body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
 
 	float_model->SetFloatingBaseBody(base_body);
 
@@ -320,7 +320,9 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 
 	contact_data.push_back (ground_x);
 	contact_data.push_back (ground_y);
-//	contact_data.push_back (ground_z);
+	contact_data.push_back (ground_z);
+
+	Q[1] = 1.;
 
 	// We want the body to rotate around its contact point which is located
 	// at (0, 0, 0). There it should have a negative unit rotation around the
@@ -333,15 +335,44 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 
 	// This has now to be shuffled such that it complies with the ordering of
 	// the DoF in the generalized velocity vector.
-	QDot[0] = velocity_body[5];
+	QDot[0] = velocity_body[3];
 	QDot[1] = velocity_body[4];
-	QDot[2] = velocity_body[3];
+	QDot[2] = velocity_body[5];
 	QDot[3] = velocity_body[2];
 	QDot[4] = velocity_body[1];
 	QDot[5] = velocity_body[0];
 
 	cout << "velocity_body = " << velocity_body << std::endl;
 	cout << "QDot = " << QDot << std::endl;
+
+	{
+		SUPPRESS_LOGGING;
+		ForwardDynamics (*float_model, Q, QDot, Tau, QDDot);
+	}
+
+	Vector3d test_point;
+	{
+		SUPPRESS_LOGGING;
+		test_point = float_model->GetBodyPointPosition(contact_data[0].body_id, contact_data[0].point);
+	}
+	cout << "test_point = " << test_point << std::endl;
+	
+	Vector3d test_velocity;
+	{
+		SUPPRESS_LOGGING;
+		CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, contact_data[0].point, test_velocity);
+	}
+	cout << "test_velocity = " << test_velocity << std::endl;
+	
+	QDDot.zero();
+	QDDot[0] = 0.;
+	Vector3d test_accel;
+	{
+		SUPPRESS_LOGGING;
+		CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, contact_data[0].point, test_accel);
+	}
+
+	cout << "test_accel = " << test_accel << endl;
 
 	ForwardDynamicsContacts (*float_model, Q, QDot, Tau, contact_data, QDDot);
 
