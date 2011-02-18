@@ -1,5 +1,6 @@
 #include <mathutils.h>
 
+#include "stacktrace.h"
 #include <cmath>
 #include <limits>
 
@@ -114,7 +115,7 @@ bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
 	int i,j;
 	for (j = 0; j < n; j++) {
 		for (i = j + 1; i < n; i++) {
-			if (fabs(A(j,j) <= std::numeric_limits<double>::epsilon())) {
+			if (fabs(A(j,j)) <= std::numeric_limits<double>::epsilon()) {
 				std::cout << LogOutput.str() << std::endl;
 			}
 			assert (fabs(A(j,j)) > std::numeric_limits<double>::epsilon());
@@ -135,6 +136,89 @@ bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
 		}
 		x[i] = (b[i] - x[i]) / A(i,i);
 	}
+
+	return true;
+}
+
+bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
+	x.zero();
+
+	// We can only solve quadratic systems
+	assert (A.rows() == A.cols());
+
+	unsigned int n = A.rows();
+	unsigned int pi;
+
+	// the pivots
+	size_t *pivot = new size_t[n];
+
+	// temporary result vector which contains the pivoted result
+	cmlVector px(x);
+	
+	int i,j,k;
+
+	for (i = 0; i < n; i++)
+		pivot[i] = i;
+
+	for (j = 0; j < n; j++) {
+		pi = j;
+		double pv = fabs (A(j,pivot[j]));
+
+		// LOG << "j = " << j << " pv = " << pv << std::endl;
+		// find the pivot
+		for (k = j; k < n; k++) {
+			double pt = fabs (A(j,pivot[k]));
+			if (pt > pv) {
+				pv = pt;
+				pi = k;
+				unsigned int p_swap = pivot[j];
+				pivot[j] = pivot[pi];
+				pivot[pi] = p_swap;
+			//	LOG << "swap " << j << " with " << pi << std::endl;
+			//	LOG << "j = " << j << " pv = " << pv << std::endl;
+			}
+		}
+
+		for (i = j + 1; i < n; i++) {
+			if (fabs(A(j,pivot[j])) <= std::numeric_limits<double>::epsilon()) {
+				LOG << "Pivoting failed for matrix A = " << std::endl;
+				LOG << "A = " << std::endl << A << std::endl;
+//				LOG << "b = " << b << std::endl;
+				std::cout << LogOutput.str() << std::endl;
+			}
+			assert (fabs(A(j,pivot[j])) > std::numeric_limits<double>::epsilon());
+			double d = A(i,pivot[j])/A(j,pivot[j]);
+
+			b[i] -= b[j] * d;
+
+			int k;
+			for (k = j; k < n; k++) {
+				A(i,pivot[k]) -= A(j,pivot[k]) * d;
+			}
+		}
+	}
+
+	for (i = n - 1; i >= 0; i--) {
+		for (j = i + 1; j < n; j++) {
+			px[i] += A(i,pivot[j]) * px[j];
+		}
+		px[i] = (b[i] - px[i]) / A(i,pivot[i]);
+	}
+
+	// Unswapping
+	for (i = 0; i < n; i++) {
+		x[pivot[i]] = px[i];
+	}
+
+	/*
+	LOG << "A = " << std::endl << A << std::endl;
+	LOG << "b = " << b << std::endl;
+	LOG << "x = " << x << std::endl;
+	LOG << "pivot = " << pivot[0] << " " << pivot[1] << " " << pivot[2] << std::endl;
+	std::cout << LogOutput.str() << std::endl;
+	*/
+
+	delete[] pivot;
 
 	return true;
 }
