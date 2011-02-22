@@ -14,6 +14,7 @@
 
 using namespace std;
 using namespace RigidBodyDynamics;
+using namespace SpatialAlgebra;
 
 static Model* model = NULL;
 
@@ -38,6 +39,8 @@ cmlVector Tau;
 unsigned int contact_body_id;
 Vector3d contact_point;
 Vector3d contact_normal;
+
+std::vector<ContactInfo> contact_data;
 
 typedef cmlVector (rhs_func) (double, const cmlVector&);
 
@@ -132,7 +135,7 @@ cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, do
 	if (h > tf - t0)
 		h = tf - t0;
 
-	cout << "t0 = " << t0 << " tf = " << tf << " h = " << h << endl;
+//	cout << "t0 = " << t0 << " tf = " << tf << " h = " << h << endl;
 	while (t < tf) {
 		k1 = func (t, y);
 		k2 = func (t + 0.5 * h, y + h * 0.5 * k1);
@@ -147,10 +150,10 @@ cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, do
 		}
 
 		stepcount ++;
-		cout << stepcount << " " << tf - t << endl;
+//		cout << stepcount << " " << tf - t << endl;
 	}
 
-	cout << "stepcount = " << stepcount << endl;
+//	cout << "stepcount = " << stepcount << endl;
 	return y;
 }
 
@@ -160,132 +163,52 @@ void model_init () {
 
 	model->gravity.set (0., -2.81, 0.);
 
-	/* Basically a model like this, where X are the Center of Masses
-	 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
-	 *
-	 *                X
-	 *                *
-	 *              _/
-	 *            _/  (-Z)
-	 *      Z    /
-	 *      *---* 
-	 *      |
-	 *      |
-	 *  Z   |
-	 *  O---*
-	 *      Y
-	 */
-
-	/*
-	body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	joint_a = Joint(
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-
-	body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
-
-	body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-	joint_b = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 1., 0.)
-			);
-
-	body_b_id = model->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
-
-	body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
-	joint_c = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-
-	body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
-	*/
-
 	// base body
-	base_rot_z = Body (
-			0.,
-			Vector3d (0., 0., 0.),
-			Vector3d (0., 0., 0.)
-			);
-	joint_base_rot_z = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-	base_rot_z_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_z, base_rot_z);
-
-	base_rot_y = Body (
-			0.,
-			Vector3d (0., 0., 0.),
-			Vector3d (0., 0., 0.)
-			);
-	joint_base_rot_y = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 1., 0.)
-			);
-	base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
-
-	base_rot_x = Body (
+	Body base (
 			1.,
-			Vector3d (0., 1., 0.),
+			Vector3d (0., 0., 0.),
 			Vector3d (1., 1., 1.)
 			);
-	joint_base_rot_x = Joint (
-			JointTypeRevolute,
-			Vector3d (1., 0., 0.)
-			);
-	base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
 
-	// child body
-	child_rot_z = Body (
-			0.,
-			Vector3d (0., 0., 0.),
-			Vector3d (0., 0., 0.)
-			);
-	joint_child_rot_z = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-	child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
+	model->SetFloatingBaseBody(base);
 
-	child_rot_y = Body (
-			0.,
-			Vector3d (0., 0., 0.),
-			Vector3d (0., 0., 0.)
-			);
-	joint_child_rot_y = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 1., 0.)
-			);
-	child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
-
-	child_rot_x = Body (
-			1.,
-			Vector3d (0., 1., 0.),
-			Vector3d (1., 1., 1.)
-			);
-	joint_child_rot_x = Joint (
-			JointTypeRevolute,
-			Vector3d (1., 0., 0.)
-			);
-	child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
-
-	Q = cmlVector(model->mBodies.size() - 1);
-	QDot = cmlVector(model->mBodies.size() - 1);
-	QDDot = cmlVector(model->mBodies.size() - 1);
-	Tau = cmlVector(model->mBodies.size() - 1);
+	Q = cmlVector(model->dof_count);
+	QDot = cmlVector(model->dof_count);
+	QDDot = cmlVector(model->dof_count);
+	Tau = cmlVector(model->dof_count);
 
 	Q.zero();
 	QDot.zero();
 	QDDot.zero();
 	Tau.zero();
 
-	Q[0] = 0.1;
-	Q[1] = 0.1;
-
 	contact_body_id = child_rot_x_id;
-	contact_point.set (1., 1., 0.);
+	contact_point.set (0., -1., 0.);
 	contact_normal.set (0., 1., 0.);
+
+	Q[1] = 1.;
+
+	// We want the body to rotate around its contact point which is located
+	// at (0, 0, 0). There it should have a negative unit rotation around the
+	// Z-axis (i.e. rolling along the X axis). The spatial velocity of the
+	// body at the contact point is therefore (0, 0, -1, 0, 0, 0).
+	SpatialVector velocity_ground (0., 0., -1., -1., 0., 0.);
+
+	// This has now to be transformed to body coordinates.
+	SpatialVector velocity_body = Xtrans (Vector3d (0., 1., 0.)) * velocity_ground;
+
+	// This has now to be shuffled such that it complies with the ordering of
+	// the DoF in the generalized velocity vector.
+	QDot[0] = velocity_body[3];
+	QDot[1] = velocity_body[4];
+	QDot[2] = velocity_body[5];
+	QDot[3] = velocity_body[2];
+	QDot[4] = velocity_body[1];
+	QDot[5] = velocity_body[0];
+
+	cout << "velocity_body = " << velocity_body << std::endl;
+	cout << "Q = " << Q << std::endl;
+	cout << "QDot = " << QDot << std::endl;
 
 	// we call model_update once to update the internal variables for the
 	// state, etc.
@@ -301,17 +224,23 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 	cmlVector qddot (size);
 
 	std::vector<ContactInfo> contact_data;
+	contact_point.set (Q[0], -1., Q[2]);
 
-	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.)));
-	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.)));
-	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.)));
+//	cout << "Q = " << Q << " CP = " << contact_point << endl;
+
+	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
+	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 1.));
+	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 0.));
 
 	for (i = 0; i < size; i++) {
 		q[i] = y[i];
 		qdot[i] = y[i + size];
 	}
 
-	ForwardDynamicsContacts (*model, q, qdot, Tau, contact_data, qddot);
+	{
+		_NoLogging nolog;
+		ForwardDynamicsContacts (*model, q, qdot, Tau, contact_data, qddot);
+	}
 
 	cmlVector res (size * 2);
 	for (i = 0; i < size; i++) {
@@ -373,15 +302,12 @@ void model_update_contact (double delta_time) {
 
 	Vector3d point_pos = model->GetBodyPointPosition (contact_body_id, contact_point);
 
-	qDebug() << "accel =" << cml::dot(point_accel, contact_normal) 
-		<< " point_accel =" << point_accel[0] << point_accel[1] << point_accel[2]
-		<< " point_veloc =" << point_velocity[0] << point_velocity[1] << point_velocity[2];
+//	qDebug() << "accel =" << cml::dot(point_accel, contact_normal) 
+//		<< " point_accel =" << point_accel[0] << point_accel[1] << point_accel[2]
+//		<< " point_veloc =" << point_velocity[0] << point_velocity[1] << point_velocity[2];
 }
 
 void model_update (double delta_time) {
-//	model_update_contact (delta_time);
-//	return;
-
 	unsigned int size = Q.size();
 	unsigned int i;
 	
@@ -395,7 +321,7 @@ void model_update (double delta_time) {
 	cmlVector ynew (size * 2);
 //	delta_time = 0.02;
 //	ynew = rk45_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
-	ynew = rk4_integrator (0., delta_time, y, rhs_normal, 5.0e-1);
+	ynew = rk4_integrator (0., delta_time, y, rhs_contact, 5.0e-2);
 
 	for (i = 0; i < size; i++) {
 		Q[i] = ynew[i];

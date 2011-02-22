@@ -328,7 +328,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	// at (0, 0, 0). There it should have a negative unit rotation around the
 	// Z-axis (i.e. rolling along the X axis). The spatial velocity of the
 	// body at the contact point is therefore (0, 0, -1, 0, 0, 0).
-	SpatialVector velocity_ground (0., 0., -1., 0., 0., 0.);
+	SpatialVector velocity_ground (0., 0., -1., -1., 0., 0.);
 
 	// This has now to be transformed to body coordinates.
 	SpatialVector velocity_body = Xtrans (Vector3d (0., 1., 0.)) * velocity_ground;
@@ -396,8 +396,20 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 
 	cout << "base accel = " << test_accel << endl;
 
+	{
+		SUPPRESS_LOGGING;
+		CalcPointVelocity (*float_model, Q, QDot, 0, Vector3d (0., -1., 0.), test_velocity);
+	}
+	cout << "contact veloc = " << test_velocity << endl;
+
+	{
+		SUPPRESS_LOGGING;
+		CalcPointVelocity (*float_model, Q, QDot, 0, Vector3d (0., 0., 0.), test_velocity);
+	}
+	cout << "base veloc = " << test_velocity << endl;
 
 	cmlVector qddot_test (6);
+
 	qddot_test[0] = 1.;
 	qddot_test[1] = 0.;
 	qddot_test[2] = 0.;

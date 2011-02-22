@@ -125,7 +125,7 @@ void Model::SetFloatingBaseBody (const Body &body) {
 
 Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 	if (floating_base) {
-		assert (body_id < mBodies.size());
+		assert (body_id <= mBodies.size());
 	} else {
 		assert (body_id > 0 && body_id < mBodies.size());
 	}
@@ -144,7 +144,7 @@ Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 
 Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
 	if (floating_base) {
-		assert (body_id < mBodies.size());
+		assert (body_id <= mBodies.size());
 	} else {
 		assert (body_id > 0 && body_id < mBodies.size());
 	}
