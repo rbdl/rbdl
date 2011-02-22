@@ -754,6 +754,11 @@ void ComputeContactImpulses (
 	{
 		SUPPRESS_LOGGING;
 		ComputeContactForces (model, Q, QDotPre, Tau_zero, ContactImpulseInfo, contact_f_ext);
+
+	// compute and apply the external forces by using ComputeContactForces
+	{
+		SUPPRESS_LOGGING;
+		ComputeContactForces (model, Q, QDotPre, Tau_zero, ContactImpulseInfo, contact_f_ext);
 	}
 
 	LOG << "-------- APPLY_EXT ------" << std::endl;
@@ -786,7 +791,7 @@ void ComputeContactImpulses (
 		SUPPRESS_LOGGING;
 		CalcPointAcceleration (model, Q, QDotPre, QDDotFext, contact_info.body_id, contact_info.point, point_accel);
 	}
-	LOG << "Point Accel = " << point_accel << std::endl;
+	LOG << "Point Accel (qdd) = " << point_accel << std::endl;
 	{
 		SUPPRESS_LOGGING;
 		CalcPointAcceleration (model, Q, QDotPre, humans_impulse, contact_info.body_id, contact_info.point, point_accel);
@@ -882,6 +887,18 @@ void ComputeContactImpulses (
 	LOG << "accelera 2 = " << point_accel << std::endl;
 	LOG << "velo     2 = " << point_velocity << std::endl;
 	QDotPost = QDotPre + QDDotFext;
+	}
+
+	Vector3d point_accel;
+
+	{
+		SUPPRESS_LOGGING;
+		CalcPointVelocity (model, Q, QDotPre, contact_info.body_id, contact_info.point, point_accel);
+	}
+	LOG << "Point Vel   (pre) = " << point_accel << std::endl;
+
+
+	LOG << "-------- APPLY_EXT ------" << std::endl;
 }
 
 }
