@@ -24,6 +24,7 @@ void Model::Init() {
 	// structural information
 	lambda.push_back(0.);
 	mu.push_back(std::vector<unsigned int>(0));
+	dof_count = 0;
 
 	// state information
 	q.push_back(0.);
@@ -65,12 +66,14 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	lambda.push_back(parent_id);
 	mu.push_back(std::vector<unsigned int>(0));
 	mu.at(parent_id).push_back(q.size());
+	dof_count += 1;
 
 	// state information
-	q.push_back(0.);
-	qdot.push_back(0.);
-	qddot.push_back(0.);
-	tau.push_back(0.);
+	q = std::vector<double> (dof_count + 1);
+	qdot = std::vector<double> (dof_count + 1);
+	qddot = std::vector<double> (dof_count + 1);
+	tau = std::vector<double> (dof_count + 1);
+
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 
@@ -103,6 +106,13 @@ void Model::SetFloatingBaseBody (const Body &body) {
 
 	// mark the model such that we know it interprets body 0 as floating base
 	floating_base = true;
+
+	// we also will have 6 more degrees of freedom
+	dof_count += 6;
+	q = std::vector<double> (dof_count + 1);
+	qdot = std::vector<double> (dof_count + 1);
+	qddot = std::vector<double> (dof_count + 1);
+	tau = std::vector<double> (dof_count + 1);
 
 	// parent is the maximum possible value to mark it as having no parent
 	lambda.at(0) = std::numeric_limits<unsigned int>::max();

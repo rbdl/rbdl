@@ -10,12 +10,12 @@ SET ( TESTS_SRCS
 	SpatialAlgebraTests.cc
 	MathTests.cc
 	BodyTests.cc
-	ArticulatedFigureTests.cc
+	ModelTests.cc
 	FloatingBaseTests.cc
 	CalcVelocitiesTests.cc
 	CalcAccelerationsTests.cc
 	KinematicsTests.cc
-	ContactsTests.cc
+	# ContactsTests.cc
 	# ImpulsesTests.cc
 	)
 

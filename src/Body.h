@@ -18,6 +18,8 @@ namespace RigidBodyDynamics {
  */
 struct Body {
 	Body() :
+		mMass (1.),
+		mCenterOfMass (0., 0., 0.),
 		mSpatialInertia (
 				0., 0., 0., 0., 0., 0.,	
 				0., 0., 0., 0., 0., 0.,	
@@ -25,19 +27,21 @@ struct Body {
 				0., 0., 0., 0., 0., 0.,	
 				0., 0., 0., 0., 0., 0.,	
 				0., 0., 0., 0., 0., 0.
-				),
-		mCenterOfMass (0., 0., 0.),
-		mMass (1.) { };
+				)
+	{ };
 	Body(const Body &body) :
-		mSpatialInertia (body.mSpatialInertia),
+		mMass (body.mMass),
 		mCenterOfMass (body.mCenterOfMass),
-		mMass (body.mMass) {};
+		mSpatialInertia (body.mSpatialInertia)
+	{};
 	Body& operator= (const Body &body) {
 		if (this != &body) {
 			mSpatialInertia = body.mSpatialInertia;
 			mCenterOfMass = body.mCenterOfMass;
 			mMass = body.mMass;
 		}
+
+		return *this;
 	}
 	/** \brief Constructs a body out of the given parameters
 	 *
@@ -81,12 +85,12 @@ struct Body {
 
 	~Body() {};
 
-	/// \brief The spatial inertia that contains both mass and inertia information
-	SpatialAlgebra::SpatialMatrix mSpatialInertia;
-	/// \brief The position of the center of mass in body coordinates
-	Vector3d mCenterOfMass;
 	/// \brief The mass of the body
 	double mMass;
+	/// \brief The position of the center of mass in body coordinates
+	Vector3d mCenterOfMass;
+	/// \brief The spatial inertia that contains both mass and inertia information
+	SpatialAlgebra::SpatialMatrix mSpatialInertia;
 };
 
 }

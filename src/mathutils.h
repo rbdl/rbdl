@@ -94,7 +94,7 @@ SpatialAlgebra::SpatialMatrix Xrotx (const double &xrot);
 SpatialAlgebra::SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler);
 
 inline std::ostream& operator<<(std::ostream& output, const std::vector<double> &val) {
-	int i;
+	unsigned int i;
 	for (i = 0; i < val.size(); i++)
 		output << val.at(i) << " ";
 

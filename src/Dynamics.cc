@@ -151,6 +151,8 @@ void ForwardDynamicsFloatingBaseExpl (
 		SpatialVector &a_B,
 		cmlVector &QDDot
 		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
 	std::vector<double> Q_stdvec (Q.size());
 	std::vector<double> QDot_stdvec (QDot.size());
 	std::vector<double> QDDot_stdvec (QDDot.size());
@@ -382,10 +384,10 @@ void ForwardDynamicsFloatingBaseExpl (
 	unsigned int i;
 	
 	// Copy state values from the input to the variables in model
-	assert (model.q.size() == Q.size() + 1);
-	assert (model.qdot.size() == QDot.size() + 1);
-	assert (model.qddot.size() == QDDot.size() + 1);
-	assert (model.tau.size() == Tau.size() + 1);
+	assert (model.dof_count == Q.size() + 6);
+	assert (model.dof_count == QDot.size() + 6);
+	assert (model.dof_count == QDDot.size() + 6);
+	assert (model.dof_count == Tau.size() + 6);
 
 	for (i = 0; i < Q.size(); i++) {
 		model.q.at(i+1) = Q.at(i);
@@ -723,19 +725,16 @@ void ComputeContactImpulses (
 		ContactInfo x_velocity_info (contact_info);
 		x_velocity_info.normal.set (1., 0., 0.);
 		x_velocity_info.acceleration = 0. - point_velocity[0];
-//		x_velocity_info.acceleration = 0.03;
 		ContactImpulseInfo.push_back (x_velocity_info);
 
 		ContactInfo y_velocity_info (contact_info);
 		y_velocity_info.normal.set (0., 1., 0.);
 		y_velocity_info.acceleration = 0. - point_velocity[1];
-//		y_velocity_info.acceleration = -0.14;
 		ContactImpulseInfo.push_back (y_velocity_info);
 
 		ContactInfo z_velocity_info (contact_info);
 		z_velocity_info.normal.set (0., 0., 1.);
 		z_velocity_info.acceleration = 0. - point_velocity[2];
-//		z_velocity_info.acceleration = -0.31;
 		ContactImpulseInfo.push_back (z_velocity_info);
 	}
 

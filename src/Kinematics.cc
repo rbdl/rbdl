@@ -195,6 +195,8 @@ void CalcPointAccelerationFeatherstone (
 		Vector3d &point_acceleration
 		)
 {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
 	if (model.floating_base) {
 		// in this case the appropriate function has to be called, see
 		// ForwardDynamicsFloatingBase
@@ -373,7 +375,7 @@ void CalcPointAccelerationDirect (
 {
 	unsigned int i;
 
-	LOG << "-------- CalcPointAccelerationDirect --------" << std::endl;
+	LOG << "-------- " << __func__ << " --------" << std::endl;
 
 	LOG << "Q = " << Q << std::endl;
 	LOG << "QDot = " << QDot << std::endl;

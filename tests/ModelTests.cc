@@ -28,29 +28,31 @@ struct ModelFixture {
 };
 
 TEST_FIXTURE(ModelFixture, TestInit) {
-	CHECK_EQUAL (1, model->lambda.size());
+	CHECK_EQUAL (1u, model->lambda.size());
+	CHECK_EQUAL (1u, model->mu.size());
+	CHECK_EQUAL (0u, model->dof_count);
 
-	CHECK_EQUAL (1, model->q.size());
-	CHECK_EQUAL (1, model->qdot.size());
-	CHECK_EQUAL (1, model->qddot.size());
-	CHECK_EQUAL (1, model->tau.size());
-	CHECK_EQUAL (1, model->v.size());
-	CHECK_EQUAL (1, model->a.size());
+	CHECK_EQUAL (1u, model->q.size());
+	CHECK_EQUAL (1u, model->qdot.size());
+	CHECK_EQUAL (1u, model->qddot.size());
+	CHECK_EQUAL (1u, model->tau.size());
+	CHECK_EQUAL (1u, model->v.size());
+	CHECK_EQUAL (1u, model->a.size());
 	
-	CHECK_EQUAL (1, model->mJoints.size());
-	CHECK_EQUAL (1, model->S.size());
+	CHECK_EQUAL (1u, model->mJoints.size());
+	CHECK_EQUAL (1u, model->S.size());
 
-	CHECK_EQUAL (1, model->c.size());
-	CHECK_EQUAL (1, model->IA.size());
-	CHECK_EQUAL (1, model->pA.size());
-	CHECK_EQUAL (1, model->U.size());
-	CHECK_EQUAL (1, model->d.size());
-	CHECK_EQUAL (1, model->u.size());
-	CHECK_EQUAL (1, model->f_ext.size());
+	CHECK_EQUAL (1u, model->c.size());
+	CHECK_EQUAL (1u, model->IA.size());
+	CHECK_EQUAL (1u, model->pA.size());
+	CHECK_EQUAL (1u, model->U.size());
+	CHECK_EQUAL (1u, model->d.size());
+	CHECK_EQUAL (1u, model->u.size());
+	CHECK_EQUAL (1u, model->f_ext.size());
 	
-	CHECK_EQUAL (1, model->X_lambda.size());
-	CHECK_EQUAL (1, model->X_base.size());
-	CHECK_EQUAL (1, model->mBodies.size());
+	CHECK_EQUAL (1u, model->X_lambda.size());
+	CHECK_EQUAL (1u, model->X_base.size());
+	CHECK_EQUAL (1u, model->mBodies.size());
 }
 
 TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
@@ -63,37 +65,74 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	unsigned int body_id = 0;
 	body_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
-	CHECK_EQUAL (1, body_id);
-	CHECK_EQUAL (2, model->lambda.size());
+	CHECK_EQUAL (1u, body_id);
+	CHECK_EQUAL (2u, model->lambda.size());
+	CHECK_EQUAL (2u, model->mu.size());
+	CHECK_EQUAL (1u, model->dof_count);
 
-	CHECK_EQUAL (2, model->q.size());
-	CHECK_EQUAL (2, model->qdot.size());
-	CHECK_EQUAL (2, model->qddot.size());
-	CHECK_EQUAL (2, model->tau.size());
-	CHECK_EQUAL (2, model->v.size());
-	CHECK_EQUAL (2, model->a.size());
+	CHECK_EQUAL (2u, model->q.size());
+	CHECK_EQUAL (2u, model->qdot.size());
+	CHECK_EQUAL (2u, model->qddot.size());
+	CHECK_EQUAL (2u, model->tau.size());
+	CHECK_EQUAL (2u, model->v.size());
+	CHECK_EQUAL (2u, model->a.size());
 	
-	CHECK_EQUAL (2, model->mJoints.size());
-	CHECK_EQUAL (2, model->S.size());
+	CHECK_EQUAL (2u, model->mJoints.size());
+	CHECK_EQUAL (2u, model->S.size());
 
-	CHECK_EQUAL (2, model->c.size());
-	CHECK_EQUAL (2, model->IA.size());
-	CHECK_EQUAL (2, model->pA.size());
-	CHECK_EQUAL (2, model->U.size());
-	CHECK_EQUAL (2, model->d.size());
-	CHECK_EQUAL (2, model->u.size());
-	CHECK_EQUAL (2, model->f_ext.size());
+	CHECK_EQUAL (2u, model->c.size());
+	CHECK_EQUAL (2u, model->IA.size());
+	CHECK_EQUAL (2u, model->pA.size());
+	CHECK_EQUAL (2u, model->U.size());
+	CHECK_EQUAL (2u, model->d.size());
+	CHECK_EQUAL (2u, model->u.size());
+	CHECK_EQUAL (2u, model->f_ext.size());
 
 	SpatialVector spatial_zero;
 	spatial_zero.zero();
 	CHECK_EQUAL (spatial_zero, model->f_ext.at(0));
 	CHECK_EQUAL (spatial_zero, model->f_ext.at(1));
 	
-	CHECK_EQUAL (2, model->X_lambda.size());
-	CHECK_EQUAL (2, model->X_base.size());
-	CHECK_EQUAL (2, model->mBodies.size());
+	CHECK_EQUAL (2u, model->X_lambda.size());
+	CHECK_EQUAL (2u, model->X_base.size());
+	CHECK_EQUAL (2u, model->mBodies.size());
 }
 
+TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
+	Body body;
+
+	model->SetFloatingBaseBody(body);
+
+	CHECK_EQUAL (1u, model->lambda.size());
+	CHECK_EQUAL (1u, model->mu.size());
+	CHECK_EQUAL (6u, model->dof_count);
+
+	CHECK_EQUAL (7u, model->q.size());
+	CHECK_EQUAL (7u, model->qdot.size());
+	CHECK_EQUAL (7u, model->qddot.size());
+	CHECK_EQUAL (7u, model->tau.size());
+	CHECK_EQUAL (1u, model->v.size());
+	CHECK_EQUAL (1u, model->a.size());
+	
+	CHECK_EQUAL (1u, model->mJoints.size());
+	CHECK_EQUAL (1u, model->S.size());
+
+	CHECK_EQUAL (1u, model->c.size());
+	CHECK_EQUAL (1u, model->IA.size());
+	CHECK_EQUAL (1u, model->pA.size());
+	CHECK_EQUAL (1u, model->U.size());
+	CHECK_EQUAL (1u, model->d.size());
+	CHECK_EQUAL (1u, model->u.size());
+	CHECK_EQUAL (1u, model->f_ext.size());
+
+	SpatialVector spatial_zero;
+	spatial_zero.zero();
+	CHECK_EQUAL (spatial_zero, model->f_ext.at(0));
+	
+	CHECK_EQUAL (1u, model->X_lambda.size());
+	CHECK_EQUAL (1u, model->X_base.size());
+	CHECK_EQUAL (1u, model->mBodies.size());
+}
 
 /** \brief Tests whether the joint and body information stored in the Model are computed correctly 
  */
@@ -228,7 +267,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSingleChain) {
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
@@ -263,7 +302,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSpatialInertiaSingleChain) {
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
@@ -312,7 +351,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain) {
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
@@ -377,7 +416,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTripleChain) {
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
@@ -430,7 +469,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain3D) {
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
@@ -521,7 +560,7 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSimpleTree3D) {
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}

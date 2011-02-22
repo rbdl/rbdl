@@ -51,7 +51,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 
 	ForwardDynamicsFloatingBaseExpl(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
 	}
@@ -124,7 +124,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 
 	ForwardDynamicsFloatingBaseExpl(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
 	}
@@ -225,7 +225,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
-	int i;
+	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
 		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
 	}

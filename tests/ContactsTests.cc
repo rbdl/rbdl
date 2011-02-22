@@ -314,8 +314,8 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	cmlVector QDDot (6);
 	cmlVector Tau (6);
 
-	ContactInfo ground_x (0, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
-	ContactInfo ground_y (0, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
+	ContactInfo ground_x (0, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.), 0.);
+	ContactInfo ground_y (0, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.), 1.);
 	ContactInfo ground_z (0, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
 
 	contact_data.push_back (ground_x);
@@ -377,7 +377,25 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	ForwardDynamicsContacts (*float_model, Q, QDot, Tau, contact_data, QDDot);
 
 	cout << LogOutput.str() << endl;
+	cout << "QDot = " << QDot << std::endl;
 	cout << "QDDot = " << QDDot << std::endl;
+
+	cout << "--- post ---" << endl;
+	// check the velocity of the contact point
+	{
+		SUPPRESS_LOGGING;
+		CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, contact_data[0].point, test_accel);
+	}
+
+	cout << "contact accel = " << test_accel << endl;
+
+	{
+		SUPPRESS_LOGGING;
+		CalcPointAcceleration (*float_model, Q, QDot, QDDot, 0, Vector3d (0., 0., 0.), test_accel);
+	}
+
+	cout << "base accel = " << test_accel << endl;
+
 
 	cmlVector qddot_test (6);
 	qddot_test[0] = 1.;

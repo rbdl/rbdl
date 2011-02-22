@@ -43,6 +43,13 @@ struct Model {
 	/// \brief true if the body has a floating base
 	bool floating_base;
 
+	/** \brief number of degrees of freedoms of the model
+	 *
+	 * This value contains the number of entries in the generalized state (q)
+	 * velocity (qdot), acceleration (qddot), and force (tau) vector.
+	 */
+	unsigned int dof_count;
+
 	/// \brief the cartestian translation of the base
 	Vector3d base_translation;
 	/// \brief the rotation of the base in ZYX-Euler angles
