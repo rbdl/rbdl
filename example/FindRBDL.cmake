@@ -8,14 +8,18 @@ FIND_PATH (RBDL_INCLUDE_DIR rbdl.h
 	/usr/include/
 	/usr/include/rbdl/
 	/usr/local/include/
+	/usr/local/include/rbdl
 	$ENV{RBDL_PATH}/src
 	$ENV{RBDL_PATH}/include
 	$ENV{RBDL_PATH}/include/rbdl
 	$ENV{RBDL_INCLUDE_PATH}
 	)
-FIND_LIBRARY (RBDL_LIBRARY NAMES rbdl PATHS /usr/lib /usr/local/lib $ENV{RBDL_PATH} $ENV{RBDL_LIBRARY_PATH})
-
-MESSAGE ( STATUS $ENV{RBDL_INCLUDE_PATH} )
+FIND_LIBRARY (RBDL_LIBRARY NAMES rbdl	PATHS
+	/usr/lib
+	/usr/local/lib
+	$ENV{RBDL_PATH}
+	$ENV{RBDL_LIBRARY_PATH}
+	)
 
 IF (RBDL_INCLUDE_DIR AND RBDL_LIBRARY)
 	SET (RBDL_FOUND TRUE)

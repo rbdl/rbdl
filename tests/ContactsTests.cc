@@ -314,8 +314,8 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	cmlVector QDDot (6);
 	cmlVector Tau (6);
 
-	ContactInfo ground_x (0, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.), 0.);
-	ContactInfo ground_y (0, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.), 1.);
+	ContactInfo ground_x (0, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
+	ContactInfo ground_y (0, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
 	ContactInfo ground_z (0, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
 
 	contact_data.push_back (ground_x);

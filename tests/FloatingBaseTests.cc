@@ -443,4 +443,61 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseSimple) {
 //	cout << LogOutput.str() << endl;
 }
 
+TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseRotation) {
+	// floating base
+	model->SetFloatingBaseBody(base);
 
+	cmlVector Q;
+	cmlVector QDot;
+	cmlVector QDDot;
+	cmlVector Tau;
+
+	Q.resize(6);
+	QDot.resize(6);
+	QDDot.resize(6);
+	Tau.resize(6);
+
+	Q.zero();
+	QDot.zero();
+	QDDot.zero();
+	Tau.zero();
+
+	unsigned int ref_body_id = 0;
+
+	// first we calculate the velocity when rotating around the Z axis
+	QDot[3] = 1.;
+
+	Vector3d point_position(0., -1., 0.);
+	Vector3d point_acceleration;
+	Vector3d expected_acceleration (0., 1., 0.);
+	Vector3d point_velocity;
+	Vector3d expected_velocity;
+
+	expected_velocity.set (1., 0., 0.);
+	CalcPointVelocity (*model, Q, QDot, ref_body_id, point_position, point_velocity);
+	CHECK_ARRAY_CLOSE (expected_velocity.data(), point_velocity.data(), 3, TEST_PREC);
+
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+	LOG << "Point acceleration = " << point_acceleration << endl;
+
+	CHECK_ARRAY_CLOSE (expected_acceleration.data(), point_acceleration.data(), 3, TEST_PREC);
+
+//	cout << LogOutput.str() << endl;
+
+	ClearLogOutput();
+
+	//  check for the point on the upper side
+	point_position.set (0., 1., 0.);
+	expected_acceleration.set (0., -1., 0.);
+
+	expected_velocity.set (-1., 0., 0.);
+	CalcPointVelocity (*model, Q, QDot, ref_body_id, point_position, point_velocity);
+	CHECK_ARRAY_CLOSE (expected_velocity.data(), point_velocity.data(), 3, TEST_PREC);
+
+	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
+	LOG << "Point acceleration = " << point_acceleration << endl;
+
+	CHECK_ARRAY_CLOSE (expected_acceleration.data(), point_acceleration.data(), 3, TEST_PREC);
+
+//	cout << LogOutput.str() << endl;
+}
