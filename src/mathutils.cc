@@ -196,12 +196,19 @@ bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
 		}
 	}
 
-	for (i = n - 1; i >= 0; i--) {
+	// warning: i is an unsigned int, therefore a for loop of the 
+	// form "for (i = n - 1; i >= 0; i--)" might end up in getting an invalid
+	// value for i!
+	i = n;
+	do {
+		i--;
+
 		for (j = i + 1; j < n; j++) {
 			px[i] += A(i,pivot[j]) * px[j];
 		}
 		px[i] = (b[i] - px[i]) / A(i,pivot[i]);
-	}
+
+	} while (i > 0);
 
 	// Unswapping
 	for (i = 0; i < n; i++) {
