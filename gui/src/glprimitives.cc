@@ -146,7 +146,7 @@ void glprimitives_torus_init() {
 	torus_normal_size = torus_element_count * 3 * sizeof (GLfloat);
 	torus_normal_data = new GLfloat[torus_element_count * 3];
 
-	unsigned int i;
+	int i;
 	GLfloat rad_inc = static_cast<GLfloat> (M_PI * 2 / static_cast<GLfloat> (disc_slices));
 	for (i = 0; i < (torus_element_count - 2); i = i + 2) {
 		GLfloat rad_val = static_cast<GLfloat> (i) * rad_inc * 0.5f;

@@ -1,6 +1,5 @@
 #include <mathutils.h>
 
-#include "stacktrace.h"
 #include <cmath>
 #include <limits>
 
@@ -112,7 +111,7 @@ bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
 
 	unsigned int n = A.rows();
 	
-	int i,j;
+	unsigned int i,j;
 	for (j = 0; j < n; j++) {
 		for (i = j + 1; i < n; i++) {
 			if (fabs(A(j,j)) <= std::numeric_limits<double>::epsilon()) {
@@ -123,7 +122,7 @@ bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
 
 			b[i] -= b[j] * d;
 
-			int k;
+			unsigned int k;
 			for (k = j; k < n; k++) {
 				A(i,k) -= A(j,k) * d;
 			}
@@ -155,7 +154,7 @@ bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
 	// temporary result vector which contains the pivoted result
 	cmlVector px(x);
 	
-	int i,j,k;
+	unsigned int i,j,k;
 
 	for (i = 0; i < n; i++)
 		pivot[i] = i;
@@ -191,7 +190,6 @@ bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
 
 			b[i] -= b[j] * d;
 
-			int k;
 			for (k = j; k < n; k++) {
 				A(i,pivot[k]) -= A(j,pivot[k]) * d;
 			}
@@ -260,7 +258,7 @@ bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a, const SpatialMa
 
 bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVector &vector_b, double epsilon) {
 	assert (epsilon >= 0.);
-	unsigned int i, j;
+	unsigned int i;
 
 	for (i = 0; i < 6; i++) {
 		if (fabs(vector_a[i] - vector_b[i]) >= epsilon) {

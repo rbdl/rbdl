@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>abaMainWindow</class>
- <widget class="QMainWindow" name="abaMainWindow">
+ <class>rbdlMainWindow</class>
+ <widget class="QMainWindow" name="rbdlMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>abaGUI</string>
+   <string>rbdlGUI</string>
   </property>
   <property name="statusTip">
    <string/>

@@ -1,14 +1,14 @@
 #include <QtGui> 
 
 #include "glwidget.h" 
-#include "abaQtApp.h"
+#include "rbdlQtApp.h"
 
 #include <assert.h>
 #include <iostream>
 
 using namespace std;
 
-abaQtApp::abaQtApp(QWidget *parent)
+rbdlQtApp::rbdlQtApp(QWidget *parent)
 {
 	timer = new QTimer (this);
 

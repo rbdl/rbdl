@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "spatialalgebra.h"
+#include "SpatialAlgebra.h"
 
 using namespace std;
 using namespace SpatialAlgebra;

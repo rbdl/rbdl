@@ -1,4 +1,4 @@
-PROJECT ( abagui )
+PROJECT ( rbdlgui )
 
 CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
 
@@ -23,30 +23,30 @@ IF ( QT_FOUND )
 
 	INCLUDE (${QT_USE_FILE})
 
-	SET ( abaMainWindow_UIS
-		ui/abaMainWindow.ui
+	SET ( rbdlMainWindow_UIS
+		ui/rbdlMainWindow.ui
 		)
 	
-	QT4_WRAP_UI (abaMainWindow_UIS_H ${abaMainWindow_UIS})
+	QT4_WRAP_UI (rbdlMainWindow_UIS_H ${rbdlMainWindow_UIS})
 
-	SET ( abaQtApp_SRCS
+	SET ( rbdlQtApp_SRCS
 		src/qtmain.cc
-		src/abaQtApp.cc
+		src/rbdlQtApp.cc
 		src/glwidget.cc
 		src/modeldrawing.cc
 		src/modelstate.cc
 		src/glprimitives.cc
 		)
 
-	QT4_WRAP_CPP ( abaQtApp_MOC_SRCS
-		src/abaQtApp.h
+	QT4_WRAP_CPP ( rbdlQtApp_MOC_SRCS
+		src/rbdlQtApp.h
 		src/glwidget.h
 		)
 
-	ADD_EXECUTABLE ( abagui
-		${abaQtApp_SRCS}
-		${abaQtApp_MOC_SRCS}
-		${abaMainWindow_UIS_H}
+	ADD_EXECUTABLE ( rbdlgui
+		${rbdlQtApp_SRCS}
+		${rbdlQtApp_MOC_SRCS}
+		${rbdlMainWindow_UIS_H}
 	)
 
  	INCLUDE_DIRECTORIES (${QT_INCLUDE_DIR})
@@ -62,13 +62,13 @@ IF ( QT_FOUND )
 		INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" 
   )
 
-  TARGET_LINK_LIBRARIES ( abagui
+  TARGET_LINK_LIBRARIES ( rbdlgui
 		${QT_LIBRARIES}
 		${OPENGL_LIBRARIES}
-		aba	
+		rbdl	
   )
 
-	INSTALL (TARGETS abagui
+	INSTALL (TARGETS rbdlgui
 	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 	)

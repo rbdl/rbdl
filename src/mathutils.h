@@ -5,7 +5,7 @@
 #include <cmath>
 
 #include "cmlwrapper.h"
-#include "spatialalgebra.h"
+#include "SpatialAlgebra.h"
 
 extern Vector3d Vector3dZero;
 extern Matrix3d Matrix3dIdentity;

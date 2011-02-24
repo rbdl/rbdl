@@ -697,6 +697,7 @@ void ForwardDynamicsContacts (
 	}
 }
 
+/*
 void ComputeContactImpulses (
 		Model &model,
 		const cmlVector &Q,
@@ -883,5 +884,6 @@ void ComputeContactImpulses (
 	LOG << "velo     2 = " << point_velocity << std::endl;
 	QDotPost = QDotPre + QDDotFext;
 }
+*/
 
 }

@@ -1,9 +1,8 @@
 #include <iostream>
 
-#include "Model.h"
-#include "Dynamics.h"
+#include <rbdl.h>
 
-#include "mathutils.h" // required for Xtrans
+using namespace RigidBodyDynamics;
 
 int main (int argc, char* argv[]) {
 	Model* model = NULL;
@@ -14,6 +13,8 @@ int main (int argc, char* argv[]) {
 
 	model = new Model();
 	model->Init();
+
+	model->gravity.set (0., -9.81, 0.);
 
 	body_a = Body (1., Vector3d (0.5, 0., 0.0), Vector3d (1., 1., 1.));
 		joint_a = Joint(
