@@ -52,7 +52,13 @@ void jcalc (
 		} else {
 			assert (0 && !"Invalid joint axis!");
 		}
-
+	} else if (joint.mJointType == JointTypePrismatic) {
+		XJ = Xtrans ( Vector3d (
+					joint.mJointAxis[3] * q,
+					joint.mJointAxis[4] * q,
+					joint.mJointAxis[5] * q
+					)
+				);
 	} else {
 		// Only revolute joints supported so far
 		assert (0);
