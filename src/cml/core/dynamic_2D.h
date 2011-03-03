@@ -118,7 +118,11 @@ class dynamic_2D
      * @returns mutable reference.
      */
     reference operator()(size_t row, size_t col) {
-        return this->get_element(row, col, layout());
+			#ifdef CML_CHECK_INDICES_RANGE
+			assert (row >= 0 && row < m_rows);
+			assert (col >= 0 && col < m_cols);
+			#endif
+      return this->get_element(row, col, layout());
     }
 
     /** Access the given element of the matrix.
@@ -127,9 +131,13 @@ class dynamic_2D
      * @param col column of element.
      * @returns const reference.
      */
-    const_reference operator()(size_t row, size_t col) const {
-        return this->get_element(row, col, layout());
-    }
+		const_reference operator()(size_t row, size_t col) const {
+			#ifdef CML_CHECK_INDICES_RANGE
+			assert (row >= 0 && row < m_rows);
+			assert (col >= 0 && col < m_cols);
+			#endif
+			return this->get_element(row, col, layout());
+		}
 
     /** Return access to the data as a raw pointer. */
     pointer data() { return &m_data[0]; }

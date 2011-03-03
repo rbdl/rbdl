@@ -95,7 +95,8 @@ class fixed_1D
      *
      * @note This function does not range-check the argument.
      */
-    reference operator[](size_t i) { return m_data[i]; }
+    reference operator[](size_t i) {
+			return m_data[i]; }
 
     /** Const access to the data as a C array.
      *

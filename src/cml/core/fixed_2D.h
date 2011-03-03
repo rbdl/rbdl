@@ -133,6 +133,10 @@ class fixed_2D
      * @note This function does not range-check the arguments.
      */
     reference operator()(size_t row, size_t col) {
+				#ifdef CML_CHECK_INDICES_RANGE
+				assert (row >= 0 && row < rows());
+				assert (col >= 0 && col < cols());
+				#endif
         /* Dispatch to the right function based on layout: */
         return get_element(row,col,layout());
     }
@@ -146,7 +150,11 @@ class fixed_2D
      * @note This function does not range-check the arguments.
      */
     const_reference operator()(size_t row, size_t col) const {
-        /* Dispatch to the right function based on layout: */
+ 				#ifdef CML_CHECK_INDICES_RANGE
+				assert (row >= 0 && row < rows());
+				assert (col >= 0 && col < cols());
+				#endif
+       /* Dispatch to the right function based on layout: */
         return get_element(row,col,layout());
     }
 

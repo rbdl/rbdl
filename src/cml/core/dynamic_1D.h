@@ -97,7 +97,11 @@ class dynamic_1D
      *
      * @note This function does not range-check the argument.
      */
-    reference operator[](size_t i) { return m_data[i]; }
+    reference operator[](size_t i) { 
+			#ifdef CML_CHECK_INDICES_RANGE
+			assert (i >= 0 && i < m_size);
+			#endif
+			return m_data[i]; }
 
     /** Const access to the data as a C array.
      *
@@ -106,7 +110,12 @@ class dynamic_1D
      *
      * @note This function does not range-check the argument.
      */
-    const_reference operator[](size_t i) const { return m_data[i]; }
+    const_reference operator[](size_t i) const {
+			#ifdef CML_CHECK_INDICES_RANGE
+			assert (i >= 0 && i < m_size);
+			#endif
+			return m_data[i];
+		}
 
     /** Return access to the data as a raw pointer. */
     pointer data() { return &m_data[0]; }
