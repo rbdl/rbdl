@@ -8,6 +8,7 @@
 #include "Model.h"
 #include "Kinematics.h"
 #include "Dynamics_stdvec.h"
+#include "Dynamics.h"
 
 using namespace std;
 using namespace SpatialAlgebra;
@@ -501,3 +502,149 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseRotation)
 
 //	cout << LogOutput.str() << endl;
 }
+
+TEST_FIXTURE(FloatingBaseFixture, TestDynamicsManualFloatBase) {
+	// floating base
+	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	model->SetFloatingBaseBody(base);
+
+	cmlVector Q;
+	cmlVector QDot;
+	cmlVector QDDot;
+	cmlVector QDDot_manual;
+	cmlVector Tau;
+
+	Q.resize(6);
+	QDot.resize(6);
+	QDDot.resize(6);
+	QDDot_manual.resize(6);
+	Tau.resize(6);
+
+	Q.zero();
+	QDot.zero();
+	QDDot.zero();
+	QDDot_manual.zero();
+	Tau.zero();
+
+	// build the manual model
+	Model *float_model_manual = new Model;
+	float_model_manual->Init();
+	float_model_manual->gravity.set (0., -9.81, 0.);
+
+	// body 0: translation x-axis
+	unsigned body_tx_id;
+	Body body_tx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_tx (JointTypePrismatic, Vector3d (1., 0., 0.));
+	body_tx_id = float_model_manual->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
+
+	unsigned body_ty_id;
+	Body body_ty (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_ty (JointTypePrismatic, Vector3d (0., 1., 0.));
+	body_ty_id = float_model_manual->AddBody(body_tx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
+
+	unsigned body_tz_id;
+	Body body_tz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_tz (JointTypePrismatic, Vector3d (0., 0., 1.));
+	body_tz_id = float_model_manual->AddBody(body_ty_id, Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
+
+	unsigned body_rz_id;
+	Body body_rz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_rz (JointTypeRevolute, Vector3d (0., 0., 1.));
+	body_rz_id = float_model_manual->AddBody(body_tz_id, Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
+
+	unsigned body_ry_id;
+	Body body_ry (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_ry (JointTypeRevolute, Vector3d (0., 1., 0.));
+	body_ry_id = float_model_manual->AddBody(body_rz_id, Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
+
+	unsigned body_rx_id;
+	Body body_rx (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	Joint joint_rx (JointTypeRevolute, Vector3d (1., 0., 0.));
+	body_rx_id = float_model_manual->AddBody(body_ry_id, Xtrans (Vector3d (0., 0., 0.)), joint_rx, body_rx);
+
+	Q[0] = 0.;
+	Q[1] = 1.;
+	Q[2] = 0.;
+	QDot[0] = 1.;
+	QDot[3] = -1.;
+
+	ForwardDynamics	(*float_model_manual, Q, QDot, Tau, QDDot_manual);
+	cout << LogOutput.str() << endl;
+	cout << QDDot_manual << endl;
+
+	ClearLogOutput();
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+	cout << "---------------- new -----------------" << endl;
+	cout << LogOutput.str() << endl;
+	cout << QDDot << endl;
+
+	delete float_model_manual;
+}
+
+/*
+TEST_FIXTURE(FloatingBaseFixture, TestDynamicsPointAcceleration) {
+	// floating base
+	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	model->SetFloatingBaseBody(base);
+
+	cmlVector Q;
+	cmlVector QDot;
+	cmlVector QDDot;
+	cmlVector expected_qddot;
+	cmlVector Tau;
+
+	Q.resize(6);
+	QDot.resize(6);
+	QDDot.resize(6);
+	expected_qddot.resize(6);
+	Tau.resize(6);
+
+	Q.zero();
+	QDot.zero();
+	QDDot.zero();
+	Tau.zero();
+
+	unsigned int ref_body_id = 0;
+
+	Vector3d point_position(0., -1., 0.);
+
+	Vector3d point_velocity;
+	Vector3d expected_velocity;
+
+	Vector3d point_acceleration;
+	Vector3d expected_acceleration;
+
+	// set the state
+	Q[0] = 0.2;
+	Q[1] = 1.1; // translation to (0., 1., 0.)
+	Q[2] = -0.4;
+
+	QDot[0] = 1.; // moving along the x-axis
+	QDot[3] = -1.; // rotating cw around the z-axis
+
+	CalcPointVelocity (*model, Q, QDot, ref_body_id, point_position, point_velocity);
+
+	expected_velocity.set (0., 0., 0.);
+	CHECK_ARRAY_CLOSE (expected_velocity.data(), point_velocity.data(), 3, TEST_PREC);
+
+	ClearLogOutput();
+
+	cout << "sd = " << Q << " " << QDot << endl;
+
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+	expected_qddot[0] = 0.;
+	expected_qddot[1] = -8.81;
+	expected_qddot[2] = 0.;
+	expected_qddot[3] = 0.;
+	expected_qddot[4] = 0.;
+	expected_qddot[5] = 0.;
+
+	cout << LogOutput.str() << endl;
+
+	CHECK_ARRAY_CLOSE (expected_qddot.data(), QDDot.data(), 6, TEST_PREC);
+
+//	cout << LogOutput.str() << endl;
+
+	ClearLogOutput();
+}
+*/

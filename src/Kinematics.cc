@@ -100,6 +100,8 @@ void CalcPointVelocity (
 		// in this case the appropriate function has to be called, see
 		// ForwardDynamicsFloatingBase
 		model.v[0].set (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
+
+		model.v[0] = model.X_base[0].inverse() * model.v[0];
 		
 		global_velocities[0] = model.v[0];
 

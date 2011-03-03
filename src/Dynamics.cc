@@ -71,6 +71,7 @@ void ForwardDynamicsFloatingBase (
 		const cmlVector &Tau,
 		cmlVector &QDDot
 		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
 	cmlVector q_expl (Q.size() - 6);
 	cmlVector qdot_expl (QDot.size() - 6);
 	cmlVector tau_expl (Tau.size() - 6);
@@ -81,7 +82,6 @@ void ForwardDynamicsFloatingBase (
 
 	SpatialMatrix X_B = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
 
-	//
 	SpatialVector v_B (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
 	SpatialVector a_B (0., 0., 0., 0., 0., 0.);
 
@@ -481,8 +481,6 @@ void ForwardDynamicsFloatingBaseExpl (
 	}
 
 //	ClearLogOutput();
-	model.a[0] = SpatialLinSolve(model.IA[0], model.pA[0]) * 1.;
-
 	LOG << "--- second loop ---" << std::endl;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
