@@ -1,12 +1,13 @@
 /** \file Mainpage.h 
- * \mainpage Main Page
+ * \mainpage Rigid Body Dynamics Library
  *
  * This is the documentation of a yet to be named rigid body simulation
  * code. So far the code supports the simulation of forward dynamics of
  * tree structured (i.e. no kinematic loops) rigid body models by using the
  * Articulated Body Algorithm (ABA) by Roy Featherstone. The code is
- * heavily inspired by the pseudo code of the book "Rigid Body Dynamics
- * Algorithms" of Featherstone.
+ * written by Martin Felis <martin@silef.de> and heavily inspired by the
+ * pseudo code of the book "Rigid Body Dynamics Algorithms" of
+ * Featherstone.
  *
  * The library uses the configurable math library (which can be found here:
  * <a href="http://www.cmldev.net">http://www.cmldev.net</a>).
@@ -96,4 +97,11 @@
  * id, the transformation from the parent origin to the joint origin, the
  * joint specification as an object, and the body itself. These parameters
  * are then fed to the function Model::AddBody().
+ *
+ * \todo [high] check impulse computation
+ * \todo [med] add specification for the visualization to the model
+ * \todo [med] get rid of the std::vector<> values in Model
+ * \todo [low] use cml for the SpatialAlgebra quantities
+ * \todo [low] incorporate GiNaC (http://www.ginac.de) to generate code
+ * \todo [low] serialization of the model?
  */
