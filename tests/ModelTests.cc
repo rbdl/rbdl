@@ -98,9 +98,10 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2u, model->mBodies.size());
 }
 
-TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
+TEST_FIXTURE(ModelFixture, TestExperimentalFloatingBodyDimensions) {
 	Body body;
 
+	model->experimental_floating_base = true;
 	model->SetFloatingBaseBody(body);
 
 	CHECK_EQUAL (1u, model->lambda.size());
@@ -132,6 +133,42 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	CHECK_EQUAL (1u, model->X_lambda.size());
 	CHECK_EQUAL (1u, model->X_base.size());
 	CHECK_EQUAL (1u, model->mBodies.size());
+}
+
+TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
+	Body body;
+
+	model->SetFloatingBaseBody(body);
+
+	CHECK_EQUAL (7u, model->lambda.size());
+	CHECK_EQUAL (7u, model->mu.size());
+	CHECK_EQUAL (6u, model->dof_count);
+
+	CHECK_EQUAL (7u, model->q.size());
+	CHECK_EQUAL (7u, model->qdot.size());
+	CHECK_EQUAL (7u, model->qddot.size());
+	CHECK_EQUAL (7u, model->tau.size());
+	CHECK_EQUAL (7u, model->v.size());
+	CHECK_EQUAL (7u, model->a.size());
+	
+	CHECK_EQUAL (7u, model->mJoints.size());
+	CHECK_EQUAL (7u, model->S.size());
+
+	CHECK_EQUAL (7u, model->c.size());
+	CHECK_EQUAL (7u, model->IA.size());
+	CHECK_EQUAL (7u, model->pA.size());
+	CHECK_EQUAL (7u, model->U.size());
+	CHECK_EQUAL (7u, model->d.size());
+	CHECK_EQUAL (7u, model->u.size());
+	CHECK_EQUAL (7u, model->f_ext.size());
+
+	SpatialVector spatial_zero;
+	spatial_zero.zero();
+	CHECK_EQUAL (spatial_zero, model->f_ext.at(0));
+	
+	CHECK_EQUAL (7u, model->X_lambda.size());
+	CHECK_EQUAL (7u, model->X_base.size());
+	CHECK_EQUAL (7u, model->mBodies.size());
 }
 
 /** \brief Tests whether the joint and body information stored in the Model are computed correctly 

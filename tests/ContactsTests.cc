@@ -282,9 +282,9 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseSimple) {
 	cmlVector QDDot (6);
 	cmlVector Tau (6);
 
-	ContactInfo ground_x (0, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
-	ContactInfo ground_y (0, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
-	ContactInfo ground_z (0, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
+	ContactInfo ground_x (6, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
+	ContactInfo ground_y (6, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
+	ContactInfo ground_z (6, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
 
 	contact_data.push_back (ground_y);
 
@@ -314,9 +314,9 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	cmlVector QDDot (6);
 	cmlVector Tau (6);
 
-	ContactInfo ground_x (0, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
-	ContactInfo ground_y (0, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
-	ContactInfo ground_z (0, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
+	ContactInfo ground_x (6, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
+	ContactInfo ground_y (6, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
+	ContactInfo ground_z (6, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
 
 	contact_data.push_back (ground_x);
 	contact_data.push_back (ground_y);
@@ -397,20 +397,20 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 
 	{
 		SUPPRESS_LOGGING;
-		CalcPointAcceleration (*float_model, Q, QDot, QDDot, 0, Vector3d (0., 0., 0.), test_accel);
+		CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_accel);
 	}
 
 //	cout << "base accel = " << test_accel << endl;
 
 	{
 		SUPPRESS_LOGGING;
-		CalcPointVelocity (*float_model, Q, QDot, 0, Vector3d (0., -1., 0.), test_velocity);
+		CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, Vector3d (0., -1., 0.), test_velocity);
 	}
 //	cout << "contact veloc = " << test_velocity << endl;
 
 	{
 		SUPPRESS_LOGGING;
-		CalcPointVelocity (*float_model, Q, QDot, 0, Vector3d (0., 0., 0.), test_velocity);
+		CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_velocity);
 	}
 //	cout << "base veloc = " << test_velocity << endl;
 

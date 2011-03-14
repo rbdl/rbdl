@@ -9,6 +9,7 @@
 #include "Contacts.h"
 #include "Dynamics.h"
 #include "Dynamics_stdvec.h"
+#include "Dynamics_experimental.h"
 #include "Kinematics.h"
 
 using namespace SpatialAlgebra;
@@ -80,12 +81,21 @@ void ForwardDynamicsFloatingBase (
 	LOG << "Q = " << Q << std::endl;
 	LOG << "QDot = " << QDot << std::endl;
 
-	SpatialMatrix X_B = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
+	SpatialMatrix permutation (
+			0., 0., 0., 0., 0., 1.,
+			0., 0., 0., 0., 1., 0.,
+			0., 0., 0., 1., 0., 0.,
+			1., 0., 0., 0., 0., 0.,
+			0., 1., 0., 0., 0., 0.,
+			0., 0., 1., 0., 0., 0.
+			);
 
+	SpatialMatrix X_B = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
 	SpatialVector v_B (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
 	SpatialVector a_B (0., 0., 0., 0., 0., 0.);
 
 	SpatialVector f_B (Tau[5], Tau[4], Tau[3], Tau[0], Tau[1], Tau[2]);
+
 	// we also have to add any external force onto 
 	f_B += model.f_ext[0];
 
@@ -153,6 +163,8 @@ void ForwardDynamicsFloatingBaseExpl (
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
+	assert (model.experimental_floating_base);
+
 	std::vector<double> Q_stdvec (Q.size());
 	std::vector<double> QDot_stdvec (QDot.size());
 	std::vector<double> QDDot_stdvec (QDDot.size());
@@ -184,7 +196,7 @@ void ForwardDynamics (
 		const std::vector<double> &Tau,
 		std::vector<double> &QDDot
 		) {
-	if (model.floating_base) {
+	if (model.experimental_floating_base) {
 		cmlVector q (Q.size());
 		cmlVector qdot (QDot.size());
 		cmlVector qddot (QDDot.size());
@@ -345,19 +357,34 @@ void ForwardDynamics (
 		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
 	}
 
+	LOG << std::endl << "--- third loop ---" << std::endl;
+
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
-		if (lambda == 0)
+
+		if (lambda == 0) {
 			model.a[i] = X_lambda * spatial_gravity * (-1.) + model.c[i];
-		else {
+		} else {
 			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
 		}
 
 		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * model.a[i]);
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+
 	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "c[" << i << "] = " << model.c[i] << std::endl;
+	}
+
+	LOG << std::endl;
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "a[" << i << "] = " << model.a[i] << std::endl;
+	}
+
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		QDDot[i - 1] = model.qddot[i];
@@ -378,6 +405,8 @@ void ForwardDynamicsFloatingBaseExpl (
 {
 	SpatialVector result;
 	result.zero();
+
+	assert (model.experimental_floating_base);
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
@@ -437,7 +466,11 @@ void ForwardDynamicsFloatingBaseExpl (
 // ClearLogOutput();
 
 	model.IA[0] = model.mBodies[0].mSpatialInertia;
-	model.pA[0] = v_B.crossf() * model.IA[0] * v_B - f_B;
+
+	LOG << "v[0] = " << model.v[0] << std::endl;
+	LOG << "v[0].crossf() = " << model.v[0].crossf() << std::endl;
+
+	model.pA[0] = model.v[0].crossf() * model.IA[0] * model.v[0] - model.f_ext[0]; 
 
 	LOG << "--- first loop ---" << std::endl;
 
@@ -516,6 +549,9 @@ void ForwardDynamicsFloatingBaseExpl (
 	for (i = 1; i < model.mBodies.size(); i++) {
 		QDDot[i - 1] = model.qddot[i];
 	}
+
+	LOG << "spatial_gravity = " << spatial_gravity << std::endl;
+	LOG << "X_B * spatial_gravity = " << X_B * spatial_gravity << std::endl;
 
 	model.a[0] += X_B * spatial_gravity;
 

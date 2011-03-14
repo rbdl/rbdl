@@ -92,7 +92,7 @@ void CalcPointVelocity (
 			SpatialVector(0., 0., 0., 0., 0., 0.)
 			);
 
-	if (model.floating_base) {
+	if (model.experimental_floating_base) {
 		// set the transformation for the base body
 		model.X_base[0] = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
 		model.X_lambda[0] = model.X_base[0];
@@ -113,6 +113,7 @@ void CalcPointVelocity (
 			}
 		}
 	} else {
+		assert (body_id > 0 && body_id < model.mBodies.size());
 		assert (model.q.size() == Q.size() + 1);
 		assert (model.qdot.size() == QDot.size() + 1);
 
@@ -199,7 +200,7 @@ void CalcPointAccelerationFeatherstone (
 {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	if (model.floating_base) {
+	if (model.experimental_floating_base) {
 		// in this case the appropriate function has to be called, see
 		// ForwardDynamicsFloatingBase
 		assert (0);
@@ -395,7 +396,7 @@ void CalcPointAccelerationDirect (
 			SpatialVector(0., 0., 0., 0., 0., 0.)
 			);
 
-	if (model.floating_base) {
+	if (model.experimental_floating_base) {
 		// set the transformation for the base body
 		model.X_base[0] = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
 		model.X_lambda[0] = model.X_base[0];

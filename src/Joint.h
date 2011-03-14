@@ -15,7 +15,6 @@ class Model;
 
 /** \brief General types of joints
  *
- * \todo add prismatic joints
  * \todo add proper fixed joint handling
  */
 enum JointType {

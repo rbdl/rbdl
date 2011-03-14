@@ -5,6 +5,10 @@
 #include <assert.h>
 #include "cmlwrapper.h"
 
+// forward declaration as it is needed for the SpatialLinSolveFunction
+// \todo proper forward declaration of linsolve
+bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x);
+
 /** \brief Namespace for all the spatial algebra quantities
  */
 namespace SpatialAlgebra {
@@ -170,6 +174,10 @@ class SpatialVector {
 				+ mData[4] * vector.mData[4] 
 				+ mData[5] * vector.mData[5];
 		}
+		double *data() {
+			return mData;
+		}
+
 		inline SpatialMatrix outer_product(const SpatialVector &vector) const;
 
 		inline SpatialMatrix crossm() const;
@@ -924,26 +932,26 @@ inline SpatialMatrix SpatialVector::outer_product(const SpatialVector &vec) cons
  */
 inline SpatialVector SpatialLinSolve (SpatialMatrix A, SpatialVector b) {
 	SpatialVector x(0., 0., 0., 0., 0., 0.);
-	
-	int i,j;
-	for (j = 0; j < 6; j++) {
-		for (i = j + 1; i < 6; i++) {
-			double d = A(i,j)/A(j,j);
+	cmlMatrix cmlA;
+	cmlVector cmlb(6);
+	cmlVector cmlx(6);
 
-			b[i] -= b[j] * d;
+	cmlA.resize(6,6);
+	cmlb.resize(6);
 
-			int k;
-			for (k = j; k < 6; k++) {
-				A(i,k) -= A(j,k) * d;
-			}
+	unsigned int i,j;
+	for (i = 0; i < 6; i++) {
+		for (j = 0; j < 6; j++) {
+			cmlA(i,j) = A(i,j);
 		}
+
+		cmlb[i] = b[i];
 	}
 
-	for (i = 5; i >= 0; i--) {
-		for (j = i + 1; j < 6; j++) {
-			x[i] += A(i,j) * x(j);
-		}
-		x[i] = (b[i] - x[i]) / A(i,i);
+	LinSolveGaussElimPivot (cmlA, cmlb, cmlx);;
+
+	for (i = 0; i < 6; i++) {
+		x[i] = cmlx[i];
 	}
 
 	return x;
@@ -954,4 +962,3 @@ const SpatialVector SpatialVectorZero (0., 0., 0., 0., 0., 0.);
 }
 
 #endif /* SPATIALALGEBRA_H */
-

@@ -7,6 +7,8 @@
 using namespace std;
 using namespace SpatialAlgebra;
 
+const double TEST_PREC = 1.0e-14;
+
 /// \brief Checks the multiplication of a SpatialMatrix with a SpatialVector
 TEST(TestSpatialMatrixTimesSpatialVector) {
 	SpatialMatrix s_matrix (
@@ -163,7 +165,7 @@ TEST(TestSpatialMatrixGetRotation) {
 			7., 8., 9.
 			);
 
-	CHECK_EQUAL( test_result, rotation);
+	CHECK_EQUAL(test_result, rotation);
 }
 
 TEST(TestSpatialMatrixGetTranslation) {
@@ -219,5 +221,5 @@ TEST(TestSpatialLinSolve) {
 	SpatialVector x = SpatialLinSolve (A, b);
 	SpatialVector x_test (3.5, -6.5, 3.5, 1, 1, 1);
 
-	CHECK_EQUAL (x_test, x);
+	CHECK_ARRAY_CLOSE (x_test.data(), x.data(), 6, TEST_PREC);
 }

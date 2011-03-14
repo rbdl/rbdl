@@ -25,7 +25,7 @@ namespace RigidBodyDynamics {
  *
  * An important note is that body 0 is the root body and the moving bodies
  * start at index 1. Additionally the vectors for the states q, qdot, etc.
- * have #bodies + 1 entries where always the first entry (e.g. q[0])
+ * have \#bodies + 1 entries where always the first entry (e.g. q[0])
  * contains the value for the root body. Thus the numbering might be
  * confusing as q[1] holds the position variable of the first degree of
  * freedom. This numbering scheme is very beneficial in terms of readability
@@ -40,8 +40,12 @@ struct Model {
 	/// \brief Contains the ids of all the children of a given body
 	std::vector<std::vector<unsigned int> >mu;
 
-	/// \brief true if the body has a floating base
-	bool floating_base;
+	/** \brief Use floating base extension as described in RBDA chapter 9.4
+	 *
+	 * \warning This function is experimental and produces wrong results. Do
+	 * \warning not use!
+	 */
+	bool experimental_floating_base;
 
 	/** \brief number of degrees of freedoms of the model
 	 *
@@ -49,11 +53,6 @@ struct Model {
 	 * velocity (qdot), acceleration (qddot), and force (tau) vector.
 	 */
 	unsigned int dof_count;
-
-	/// \brief the cartestian translation of the base
-	Vector3d base_translation;
-	/// \brief the rotation of the base in ZYX-Euler angles
-	Vector3d base_rotation;
 
 	/// \brief the cartesian vector of the gravity
 	Vector3d gravity;
@@ -65,7 +64,11 @@ struct Model {
 	 * Warning: to have an easier numbering in the algorithm the state vector
 	 * has NDOF + 1 elements. However element with index 0 is not used!
 	 * 
-	 * q[0] - unused q[1] - joint 1 q[2] - joint 2 ...  q[NDOF] - joint NDOF
+	 * q[0] - unused <br>
+	 * q[1] - joint 1 <br>
+	 * q[2] - joint 2 <br>
+	 * ... <br>
+	 * q[NDOF] - joint NDOF <br>
 	 *
 	 */
 	std::vector<double> q;
@@ -81,7 +84,7 @@ struct Model {
 	std::vector<SpatialAlgebra::SpatialVector> a;
 
 	////////////////////////////////////
-	// Joints\t
+	// Joints
 
 	/// \brief All joints
 	std::vector<Joint> mJoints;
@@ -117,10 +120,11 @@ struct Model {
 	std::vector<SpatialAlgebra::SpatialMatrix> X_base;
 
 	/** \brief All bodies 0 ... N_B, including the base
-	 * mBodies[0] - base body
-	 * mBodies[1] - 1st movable body
-	 * ...
-	 * mBodies[N_B] - N_Bth movable body
+	 *
+	 * mBodies[0] - base body <br>
+	 * mBodies[1] - 1st moveable body <br>
+	 * ... <br>
+	 * mBodies[N_B] - N_Bth moveable body <br>
 	 */
 	std::vector<Body> mBodies;
 
@@ -160,13 +164,22 @@ struct Model {
 			const Joint &joint,
 			const Body &body
 			);
+
 	/** \brief Specifies the dynamical parameters of the first body and
 	 *  \brief assigns it a 6 DoF joint.
 	 *
+	 * The 6 DoF joint is simulated by adding 5 massless bodies at the base
+	 * which are connected with joints. The body that is specified as a
+	 * parameter of this function is then added by a 6th joint to the model.
+	 *
+	 * \param body Properties of the floating base body.
+	 *
+	 *  \returns id of the body with 6 DoF
 	 */
-	void SetFloatingBaseBody (
+	unsigned int SetFloatingBaseBody (
 			const Body &body
 			);
+	
 	/** \brief Returns the 3D coordinate vector of the origin of a given body
 	 *  \brief in base coordinates
 	 *
@@ -176,6 +189,7 @@ struct Model {
 	 *  \returns coordinates
 	 */
 	Vector3d GetBodyOrigin (const unsigned int body_id);
+
 	/** \brief Returns the orientation of a given body as 3x3 matrix
 	 *
 	 *  \param body_id id of the body of intrest

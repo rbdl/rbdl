@@ -30,12 +30,13 @@ struct FloatingBaseFixture {
 	}
 	Model *model;
 	Body base;
+	unsigned int base_body_id;
 };
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
-	model->floating_base = true;
-
-	model->SetFloatingBaseBody(base);
+	model->experimental_floating_base = true;
+	base_body_id = model->SetFloatingBaseBody(base);
+	CHECK_EQUAL (0, base_body_id);
 
 	std::vector<double> Q (0, 0.);
 	std::vector<double> QDot (0, 0.);
@@ -95,9 +96,8 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 }
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
-	model->floating_base = true;
-
 	// floating base
+	model->experimental_floating_base = true;
 	model->SetFloatingBaseBody(base);
 
 	// body_a
@@ -188,6 +188,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 
 //	std::cout << LogOutput.str() << std::endl;
 
+
 	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
 	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
 	CHECK_CLOSE (-1.0000, a_world[2], TEST_PREC);
@@ -199,7 +200,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 	// floating base
-	model->SetFloatingBaseBody(base);
+	base_body_id = model->SetFloatingBaseBody(base);
 
 	// body_a
 	Body body_a (1., Vector3d (1., 0., 0), Vector3d (1., 1., 1.));
@@ -208,7 +209,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 			Vector3d (0., 0., 1.)
 			);
 
-	model->AddBody(0, Xtrans(Vector3d(2., 0., 0.)), joint_a, body_a);
+	model->AddBody(base_body_id, Xtrans(Vector3d(2., 0., 0.)), joint_a, body_a);
 
 	std::vector<double> Q (7, 0.);
 	std::vector<double> QDot (7, 0.);
@@ -299,7 +300,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 	// floating base
-	model->SetFloatingBaseBody(base);
+	base_body_id = model->SetFloatingBaseBody(base);
 
 	cmlVector Q;
 	cmlVector QDot;
@@ -316,7 +317,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 	QDDot.zero();
 	Tau.zero();
 
-	unsigned int ref_body_id = 0;
+	unsigned int ref_body_id = base_body_id;
 
 	// first we calculate the velocity when moving along the X axis
 	QDot[0] = 1.;
@@ -365,7 +366,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseSimple) {
 	// floating base
-	model->SetFloatingBaseBody(base);
+	base_body_id = model->SetFloatingBaseBody(base);
 
 	cmlVector Q;
 	cmlVector QDot;
@@ -382,7 +383,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseSimple) {
 	QDDot.zero();
 	Tau.zero();
 
-	unsigned int ref_body_id = 0;
+	unsigned int ref_body_id = base_body_id;
 
 	// first we calculate the velocity when moving along the X axis
 	QDDot[0] = 1.;
@@ -431,14 +432,17 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseSimple) {
 	// Now there is only a rotation around the Y axis so the point should
 	// accelerate towards the center
 	ClearLogOutput();
-	Q[0] = 0.;
+	Q.zero();
+	QDot.zero();
+	QDDot.zero();
+
 	QDDot[4] = 1.;
 
 	CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position, point_acceleration);
 
-	CHECK_CLOSE(-1., point_acceleration[0], TEST_PREC);
+	CHECK_CLOSE(0., point_acceleration[0], TEST_PREC);
 	CHECK_CLOSE(0., point_acceleration[1], TEST_PREC);
-	CHECK_CLOSE(0., point_acceleration[2], TEST_PREC);
+	CHECK_CLOSE(-1., point_acceleration[2], TEST_PREC);
 
 	LOG << "Point acceleration = " << point_acceleration << endl;
 //	cout << LogOutput.str() << endl;
@@ -446,7 +450,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseSimple) {
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseRotation) {
 	// floating base
-	model->SetFloatingBaseBody(base);
+	base_body_id = model->SetFloatingBaseBody(base);
 
 	cmlVector Q;
 	cmlVector QDot;
@@ -463,7 +467,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseRotation)
 	QDDot.zero();
 	Tau.zero();
 
-	unsigned int ref_body_id = 0;
+	unsigned int ref_body_id = base_body_id;
 
 	// first we calculate the velocity when rotating around the Z axis
 	QDot[3] = 1.;
@@ -503,9 +507,11 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseRotation)
 //	cout << LogOutput.str() << endl;
 }
 
+/*
 TEST_FIXTURE(FloatingBaseFixture, TestDynamicsManualFloatBase) {
 	// floating base
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	model->experimental_floating_base = true;
 	model->SetFloatingBaseBody(base);
 
 	cmlVector Q;
@@ -531,7 +537,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestDynamicsManualFloatBase) {
 	float_model_manual->Init();
 	float_model_manual->gravity.set (0., -9.81, 0.);
 
-	// body 0: translation x-axis
+	// Order: tx ty tz rz ry rx
 	unsigned body_tx_id;
 	Body body_tx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 	Joint joint_tx (JointTypePrismatic, Vector3d (1., 0., 0.));
@@ -568,18 +574,98 @@ TEST_FIXTURE(FloatingBaseFixture, TestDynamicsManualFloatBase) {
 	QDot[0] = 1.;
 	QDot[3] = -1.;
 
+	cout << "--------------- manual -------------" << endl;
 	ForwardDynamics	(*float_model_manual, Q, QDot, Tau, QDDot_manual);
-	cout << LogOutput.str() << endl;
-	cout << QDDot_manual << endl;
+	cout << "IA[6] = " << float_model_manual->IA[6] << endl;
+	cout << "pA[6] = " << float_model_manual->pA[6] << endl;
+//	cout << LogOutput.str() << endl;
+	cout << "manual qddot = " << QDDot_manual << endl;
 
 	ClearLogOutput();
+	cout << "---------------- explicit -----------------" << endl;
 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
-	cout << "---------------- new -----------------" << endl;
 	cout << LogOutput.str() << endl;
-	cout << QDDot << endl;
+	cout << "explicit qddot = " << QDDot << endl;
 
 	delete float_model_manual;
 }
+*/
+
+/*
+TEST_FIXTURE(FloatingBaseFixture, TestDynamicsManualFloatBaseOtherOrder) {
+	cmlVector Q;
+	cmlVector QDot;
+	cmlVector QDDot;
+	cmlVector QDDot_manual;
+	cmlVector Tau;
+
+	Q.resize(6);
+	QDot.resize(6);
+	QDDot.resize(6);
+	QDDot_manual.resize(6);
+	Tau.resize(6);
+
+	Q.zero();
+	QDot.zero();
+	QDDot.zero();
+	QDDot_manual.zero();
+	Tau.zero();
+
+	// build the manual model
+	Model *float_model_manual = new Model;
+	float_model_manual->Init();
+	float_model_manual->gravity.set (0., -9.81, 0.);
+
+	// Order: rx ry rz tx ty tz
+	unsigned body_rx_id;
+	Body body_rx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_rx (JointTypeRevolute, Vector3d (1., 0., 0.));
+	body_rx_id = float_model_manual->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_rx, body_rx);
+
+	unsigned body_ry_id;
+	Body body_ry (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_ry (JointTypeRevolute, Vector3d (0., 1., 0.));
+	body_ry_id = float_model_manual->AddBody(body_rx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
+
+	unsigned body_rz_id;
+	Body body_rz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_rz (JointTypeRevolute, Vector3d (0., 0., 1.));
+	body_rz_id = float_model_manual->AddBody(body_ry_id, Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
+
+	unsigned body_tx_id;
+	Body body_tx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_tx (JointTypePrismatic, Vector3d (1., 0., 0.));
+	body_tx_id = float_model_manual->AddBody(body_rz_id, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
+
+	unsigned body_ty_id;
+	Body body_ty (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint joint_ty (JointTypePrismatic, Vector3d (0., 1., 0.));
+	body_ty_id = float_model_manual->AddBody(body_tx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
+
+	unsigned body_tz_id;
+	Body body_tz (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	Joint joint_tz (JointTypePrismatic, Vector3d (0., 0., 1.));
+	body_tz_id = float_model_manual->AddBody(body_ty_id, Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
+
+	Q[0] = 0.;
+	Q[1] = 0.;
+	Q[2] = 0.;
+	Q[3] = 0.;
+	Q[4] = 1.;
+	Q[5] = 0.;
+	QDot[0] = -1.;
+	QDot[3] = 1.;
+
+	cout << "--------------- manual other order -------------" << endl;
+	ForwardDynamics	(*float_model_manual, Q, QDot, Tau, QDDot_manual);
+	cout << "IA[6] = " << float_model_manual->IA[6] << endl;
+	cout << "pA[6] = " << float_model_manual->pA[6] << endl;
+//	cout << LogOutput.str() << endl;
+	cout << "manual other order qddot = " << QDDot_manual << endl;
+
+	delete float_model_manual;
+}
+*/
 
 /*
 TEST_FIXTURE(FloatingBaseFixture, TestDynamicsPointAcceleration) {
