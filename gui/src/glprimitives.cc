@@ -20,7 +20,6 @@ enum BufferIndex {
 	BufferIndexTorusNormal,
 	BufferIndexSpherePosition,
 	BufferIndexSphereNormal,
-	BufferIndexSphereColor,
 	BufferIndexLast
 };
 
@@ -64,82 +63,37 @@ GLfloat cube_normal_data[] = {
 GLfloat sphere_x = 0.525731112119133606;
 GLfloat sphere_z = 0.850650808352039932;
 
-/*
- GLfloat sphere_vertices[20][3] = {
- 	{-sphere_x, 0.f, sphere_z},   {sphere_x, 0.f, sphere_z },   { -sphere_x, 0.f, -sphere_z},    {sphere_x, 0.f, -sphere_z }, 
-   { 0.0, sphere_z, sphere_x},   {0.f, sphere_z, -sphere_x},   {0.f, -sphere_z, sphere_x  },    {0.f, -sphere_z, -sphere_x},
- 	{ sphere_z, sphere_x, 0.f},   {-sphere_z, sphere_x, 0.f},   {sphere_z, -sphere_x, 0.f  },    {-sphere_z, -sphere_x, 0.f} 
- };
-*/
-
 GLfloat sphere_vertices[60][3] = {
-	{-sphere_x, 0.f, sphere_z},    { 0.0, sphere_z, sphere_x},   {sphere_x, 0.f, sphere_z },
-	{-sphere_x, 0.f, sphere_z},    {-sphere_z, sphere_x, 0.f},   { 0.0, sphere_z, sphere_x}, 
-	{-sphere_z, sphere_x, 0.f},    {0.f, sphere_z, -sphere_x},   { 0.0, sphere_z, sphere_x}, 
-	{ 0.0, sphere_z, sphere_x},    {0.f, sphere_z, -sphere_x},   { sphere_z, sphere_x, 0.f}, 
-	{ 0.0, sphere_z, sphere_x},    { sphere_z, sphere_x, 0.f},   {sphere_x, 0.f, sphere_z }, 
-
-	{ sphere_z, sphere_x, 0.f},    {sphere_z, -sphere_x, 0.f  }, {sphere_x, 0.f, sphere_z },  
-	{ sphere_z, sphere_x, 0.f},    {sphere_x, 0.f, -sphere_z },  {sphere_z, -sphere_x, 0.f  }, 
-	{0.f, sphere_z, -sphere_x},    {sphere_x, 0.f, -sphere_z },  {sphere_z, sphere_x, 0.f}, 
-	{0.f, sphere_z, -sphere_x},    { -sphere_x, 0.f, -sphere_z}, {sphere_x, 0.f, -sphere_z }, 
-	{ -sphere_x, 0.f, -sphere_z},  {0.f, -sphere_z, -sphere_x},  {sphere_x, 0.f, -sphere_z }, 
-
-	{0.f, -sphere_z, -sphere_x},   {sphere_z, -sphere_x, 0.f  }, {sphere_x, 0.f, -sphere_z }, 
-	{0.f, -sphere_z, -sphere_x},   {0.f, -sphere_z, sphere_x  }, {sphere_z, -sphere_x, 0.f  }, 
-	{0.f, -sphere_z, -sphere_x},   {-sphere_z, -sphere_x, 0.f},  {0.f, -sphere_z, sphere_x  }, 
-	{-sphere_z, -sphere_x, 0.f},   {-sphere_x, 0.f, sphere_z},   {0.f, -sphere_z, sphere_x  }, 
-	{-sphere_x, 0.f, sphere_z},    {sphere_x, 0.f, sphere_z },   {0.f, -sphere_z, sphere_x  }, 
-
-	{0.f, -sphere_z, sphere_x  },  {sphere_x, 0.f, sphere_z },   {sphere_z, -sphere_x, 0.f }, 
-	{-sphere_z, sphere_x, 0.f},    {-sphere_x, 0.f, sphere_z},   {-sphere_z, -sphere_x, 0.f},
-	{-sphere_z, sphere_x, 0.f},    {-sphere_z, -sphere_x, 0.f},  { -sphere_x, 0.f, -sphere_z}, 
-	{-sphere_z, sphere_x, 0.f},    {-sphere_x, 0.f, -sphere_z},  {0.f, sphere_z, -sphere_x}, 
-	{0.f, -sphere_z, -sphere_x},   {-sphere_x, 0.f, -sphere_z},  {-sphere_z, -sphere_x, 0.f} 
+   {sphere_x, 0.f, sphere_z  },  { 0.0, sphere_z, sphere_x }, 	{-sphere_x, 0.f, sphere_z },
+   { 0.0, sphere_z, sphere_x },  {-sphere_z, sphere_x, 0.f }, 	{-sphere_x, 0.f, sphere_z }, 
+   { 0.0, sphere_z, sphere_x },  {0.f, sphere_z, -sphere_x }, 	{-sphere_z, sphere_x, 0.f }, 
+   { sphere_z, sphere_x, 0.f },  {0.f, sphere_z, -sphere_x }, 	{ 0.0, sphere_z, sphere_x }, 
+   {sphere_x, 0.f, sphere_z  },  { sphere_z, sphere_x, 0.f }, 	{ 0.0, sphere_z, sphere_x }, 
+                                                              
+   {sphere_x, 0.f, sphere_z  },  {sphere_z, -sphere_x, 0.f }, 	{ sphere_z, sphere_x, 0.f },  
+   {sphere_z, -sphere_x, 0.f },  {sphere_x, 0.f, -sphere_z }, 	{ sphere_z, sphere_x, 0.f }, 
+   {sphere_z, sphere_x, 0.f  },  {sphere_x, 0.f, -sphere_z }, 	{0.f, sphere_z, -sphere_x }, 
+   {sphere_x, 0.f, -sphere_z },  {-sphere_x, 0.f, -sphere_z}, 	{0.f, sphere_z, -sphere_x }, 
+   {sphere_x, 0.f, -sphere_z },  {0.f, -sphere_z, -sphere_x}, 	{-sphere_x, 0.f, -sphere_z}, 
+                                                              
+   {sphere_x, 0.f, -sphere_z },  {sphere_z, -sphere_x, 0.f }, 	{0.f, -sphere_z, -sphere_x}, 
+   {sphere_z, -sphere_x, 0.f },  {0.f, -sphere_z, sphere_x }, 	{0.f, -sphere_z, -sphere_x}, 
+   {0.f, -sphere_z, sphere_x },  {-sphere_z, -sphere_x, 0.f}, 	{0.f, -sphere_z, -sphere_x}, 
+   {0.f, -sphere_z, sphere_x },  {-sphere_x, 0.f, sphere_z }, 	{-sphere_z, -sphere_x, 0.f}, 
+   {0.f, -sphere_z, sphere_x },  {sphere_x, 0.f, sphere_z  }, 	{-sphere_x, 0.f, sphere_z }, 
+                                                              
+   {sphere_z, -sphere_x, 0.f },  {sphere_x, 0.f, sphere_z  }, 	{0.f, -sphere_z, sphere_x }, 
+   {-sphere_z, -sphere_x, 0.f},  {-sphere_x, 0.f, sphere_z }, 	{-sphere_z, sphere_x, 0.f },
+   {-sphere_x, 0.f, -sphere_z},  {-sphere_z, -sphere_x, 0.f}, 	{-sphere_z, sphere_x, 0.f }, 
+   {0.f, sphere_z, -sphere_x },  {-sphere_x, 0.f, -sphere_z}, 	{-sphere_z, sphere_x, 0.f }, 
+   {-sphere_z, -sphere_x, 0.f},  {-sphere_x, 0.f, -sphere_z}, 	{0.f, -sphere_z, -sphere_x} 
 };
 
 GLfloat sphere_normals[60][3];
 
-GLfloat sphere_colors[60][3] = {
-	{1., 0., 0.},    { 1.0, 0.0, 0.0},   {1.0, 0.0, 0.0 },
-	{0.8, 0.8, 0.8},    {0.8, 0.8, 0.8},   { 0.0, 0.8, 0.8}, 
-	{0.8, 0.8, 0.8},    {0.8, 0.8, 0.8},   { 0.0, 0.8, 0.8}, 
-	{ 0.0, 0.8, 0.8},    {0.8, 0.8, 0.8},   { 0.8, 0.8, 0.8}, 
-	{ 0.0, 0.8, 0.8},    { 0.8, 0.8, 0.8},   {0.8, 0.8, 0.8 }, 
-
-	{ 0.8, 0.8, 0.8},    {0.8, 0.8, 0.8  }, {0.8, 0.8, 0.8 },  
-	{ 0.8, 0.8, 0.8},    {0.8, 0.8, 0.8 },  {0.8, 0.8, 0.8  }, 
-	{0.8, 0.8, 0.8},    {0.8, 0.8, 0.8 },  {0.8, 0.8, 0.8}, 
-	{0.8, 0.8, 0.8},    { 0.8, 0.8, 0.8}, {0.8, 0.8, 0.8 }, 
-	{ 0.8, 0.8, 0.8},  {0.8, 0.8, 0.8},  {0.8, 0.8, 0.8 }, 
-
-	{0.8, 0.8, 0.8},   {0.8, 0.8, 0.8  }, {0.8, 0.8, 0.8 }, 
-	{0.8, 0.8, 0.8},   {0.8, 0.8, 0.8  }, {0.8, 0.8, 0.8  }, 
-	{0.8, 0.8, 0.8},   {0.8, 0.8, 0.8},  {0.8, 0.8, 0.8  }, 
-	{0.8, 0.8, 0.8},   {0.8, 0.8, 0.8},   {0.8, 0.8, 0.8  }, 
-	{0.8, 0.8, 0.8},    {0.8, 0.8, 0.8 },   {0.8, 0.8, 0.8  }, 
-
-	{0.8, 0.8, 0.8  },  {0.8, 0.8, 0.8 },   {0.8, 0.8, 0.8 }, 
-	{0.8, 0.8, 0.8},    {0.8, 0.8, 0.8},   {0.8, 0.8, 0.8},
-	{0.8, 0.8, 0.8},    {0.8, 0.8, 0.8},  { 0.8, 0.8, 0.8}, 
-	{0.8, 0.8, 0.8},    {0.8, 0.8, 0.8},  {0.8, 0.8, 0.8}, 
-	{0.8, 0.8, 0.8},   {0.8, 0.8, 0.8},  {0.8, 0.8, 0.8} 
-};
-
-/*
-GLuint sphere_indices[20][3] = {
-   {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},    
-   {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},    
-   {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6}, 
-   {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11}
-};
-*/
-
 GLsizeiptr sphere_element_count = 60;
 GLsizeiptr sphere_position_size = sphere_element_count * 3 * sizeof (GLfloat);
 GLsizeiptr sphere_normal_size   = sphere_element_count * 3 * sizeof (GLfloat);
-
-// GLsizeiptr sphere_indices_size = 20 * 3 * sizeof (GLfloat);
 
 void check_opengl_error (const char* file, int line) {
 	GLenum gl_error = glGetError();
@@ -297,23 +251,10 @@ void glprimitives_sphere_init () {
 	glBufferData (GL_ARRAY_BUFFER, sphere_position_size, sphere_vertices, GL_STATIC_DRAW);
 	check_opengl_error (__FILE__, __LINE__);
 
-	unsigned int i;
-	for (i = 0; i < 60; i++) {
-		sphere_normals[i][0] = sphere_vertices[i][0];
-		sphere_normals[i][1] = sphere_vertices[i][1];
-		sphere_normals[i][2] = sphere_vertices[i][2];
-	}
-
 	// Normals
 	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSphereNormal]);
 	check_opengl_error (__FILE__, __LINE__);
-	glBufferData (GL_ARRAY_BUFFER, sphere_normal_size, sphere_normals, GL_STATIC_DRAW);
-	check_opengl_error (__FILE__, __LINE__);
-
-	// Color
-	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSphereColor]);
-	check_opengl_error (__FILE__, __LINE__);
-	glBufferData (GL_ARRAY_BUFFER, sphere_position_size, sphere_colors, GL_STATIC_DRAW);
+	glBufferData (GL_ARRAY_BUFFER, sphere_normal_size, sphere_vertices, GL_STATIC_DRAW);
 	check_opengl_error (__FILE__, __LINE__);
 }
 
@@ -438,9 +379,6 @@ void glprimitives_sphere () {
 	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSphereNormal]);
 	check_opengl_error (__FILE__, __LINE__);
 	glNormalPointer (GL_FLOAT, 0, 0);
-	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSphereColor]);
-	check_opengl_error (__FILE__, __LINE__);
-	glColorPointer (3, GL_FLOAT, 0, 0);
 	check_opengl_error (__FILE__, __LINE__);
 
 	glEnable(GL_COLOR_MATERIAL);
