@@ -208,7 +208,7 @@ void GLWidget::paintGL() {
 	if (update_simulation)
 		model_update (delta_time_sec);
 
-//	draw_model (model_get());
+	draw_model (model_get());
 }
 
 void GLWidget::resizeGL(int width, int height)
