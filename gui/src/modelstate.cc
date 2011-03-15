@@ -170,7 +170,19 @@ void model_init () {
 			Vector3d (1., 1., 1.)
 			);
 
-	model->SetFloatingBaseBody(base);
+	unsigned int base_body_id = model->SetFloatingBaseBody(base);
+
+	Body scndbody (
+			1.,
+			Vector3d (0.5, 0.5, 0.5),
+			Vector3d (1., 1., 1.)
+			);
+	Joint scndjoint (
+			JointTypeRevolute,
+			Vector3d (1., 0., 0.)
+			);
+
+	unsigned int scndbody_id = model->AddBody(base_body_id, Xtrans (Vector3d(0., 2., 0.)), scndjoint, scndbody);
 
 	Q = cmlVector(model->dof_count);
 	QDot = cmlVector(model->dof_count);
@@ -182,11 +194,26 @@ void model_init () {
 	QDDot.zero();
 	Tau.zero();
 
-	contact_body_id = child_rot_x_id;
+	model->SetBodyVisualizationBox(
+			base_body_id,
+			Vector3d (0.7, 0.7, 0.7),
+			Vector3d (-0.5, 0., -0.5),
+			Vector3d (0.5, 1., 0.5)
+			);
+
+	model->SetBodyVisualizationBox(
+			scndbody_id,
+			Vector3d (0.7, 0.9, 0.7),
+			Vector3d (-0.5, 0., -0.5),
+			Vector3d (0.5, 1., 0.5)
+			);
+
+
+	contact_body_id = base_body_id;
 	contact_point.set (0., -1., 0.);
 	contact_normal.set (0., 1., 0.);
 
-	Q[1] = 1.;
+	Q[0] = 0.;
 
 	// We want the body to rotate around its contact point which is located
 	// at (0, 0, 0). There it should have a negative unit rotation around the

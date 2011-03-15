@@ -15,6 +15,38 @@
  */
 namespace RigidBodyDynamics {
 
+/** \brief Primitive types that can be used for the body visualization
+ *
+ * All values contained in this enum are valid primitive types when
+ * specifying the visualization for a body.
+ *
+ * See also Model.SetBodyVisualizationBox().
+ */
+enum VisualizationPrimitiveType {
+	VisualizationPrimitiveNone = 0,
+	VisualizationPrimitiveBox,
+	VisualizationPrimitiveLast
+};
+
+/** \brief Base structure for primitives for the visualization
+ *
+ * This structure is used to specify the geomentric shape that is used in
+ * the visualization for a body.
+ *
+ * See also Model.SetBodyVisualizationBox().
+ */
+struct VisualizationPrimitive {
+	/// \brief Type of the visualization (e.g. VisualizationPrimitiveBox)
+	VisualizationPrimitiveType type;
+	/// \brief Color of the primitive
+	Vector3d color;
+
+	/// \brief Minimum coordinates when type is a box
+	Vector3d min;
+	/// \brief Maximum coordinates when type is a box
+	Vector3d max;
+};
+
 /** \brief Contains all information about the rigid body model
  *
  * This class contains all information required to perform the forward
@@ -128,6 +160,11 @@ struct Model {
 	 */
 	std::vector<Body> mBodies;
 
+	////////////////////////////////////
+	// Visualization
+	typedef std::map<unsigned int, VisualizationPrimitive > BodyVisualizationMap;
+	BodyVisualizationMap mBodyVisualization;
+
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 
@@ -208,6 +245,41 @@ struct Model {
 	 * \returns a 3-D vector with the point coordinates in base coordinates
 	 */
 	Vector3d GetBodyPointPosition (const unsigned int body_id, const Vector3d &body_point);
+
+	/** \brief Specifies the visualization as a box for a given body
+	 *
+	 * \param body_id id of the body that should be drawn as a box
+	 * \param color   color of the box
+	 * \param min_coords minimum coordinates of the box in body coordinates
+	 * \param max_coords maximum coordinates of the box in body coordinates
+	 */
+	void SetBodyVisualizationBox (unsigned int body_id,
+			const Vector3d &color,
+			const Vector3d &min_coords,
+			const Vector3d &max_coords) {
+		VisualizationPrimitive vis_primitive;
+		vis_primitive.type = VisualizationPrimitiveBox;
+		vis_primitive.color = color;
+		vis_primitive.min = min_coords;
+		vis_primitive.max = max_coords;
+
+		mBodyVisualization[body_id] = vis_primitive;
+	}
+	/** \brief Returns the visualization primitive for a box
+	 *
+	 * \param body_id id of the body of intrest
+	 *
+	 * \returns A pointer to the primitive or NULL if none exists.
+	 */
+	VisualizationPrimitive *GetBodyVisualizationPrimitive (unsigned int body_id) {
+		BodyVisualizationMap::iterator body_visualization_iter = mBodyVisualization.find(body_id);
+
+		if (body_visualization_iter == mBodyVisualization.end()) {
+			return NULL;
+		}
+
+		return &(body_visualization_iter->second);
+	}
 };
 
 /** \brief Computes the joint variables 
