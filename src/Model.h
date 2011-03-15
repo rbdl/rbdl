@@ -25,6 +25,7 @@ namespace RigidBodyDynamics {
 enum VisualizationPrimitiveType {
 	VisualizationPrimitiveNone = 0,
 	VisualizationPrimitiveBox,
+	VisualizationPrimitiveSphere,
 	VisualizationPrimitiveLast
 };
 
@@ -45,6 +46,11 @@ struct VisualizationPrimitive {
 	Vector3d min;
 	/// \brief Maximum coordinates when type is a box
 	Vector3d max;
+
+	/// \brief Center of the sphere when type is a sphere
+	Vector3d center;
+	/// \brief Radius of the sphere when type is a sphere
+	double radius;
 };
 
 /** \brief Contains all information about the rigid body model
@@ -265,6 +271,27 @@ struct Model {
 
 		mBodyVisualization[body_id] = vis_primitive;
 	}
+	
+	/** \brief Specifies the visualization as a sphere for a given body
+	 *
+	 * \param body_id id of the body that should be drawn as a box
+	 * \param color   color of the box
+	 * \param center  center of the sphere
+	 * \param radius  radius of the sphere
+	 */
+	void SetBodyVisualizationSphere (unsigned int body_id,
+			const Vector3d &color,
+			const Vector3d &center,
+			const float radius) {
+		VisualizationPrimitive vis_primitive;
+		vis_primitive.type = VisualizationPrimitiveSphere;
+		vis_primitive.color = color;
+		vis_primitive.center = center;
+		vis_primitive.radius = radius;
+
+		mBodyVisualization[body_id] = vis_primitive;
+	}
+
 	/** \brief Returns the visualization primitive for a box
 	 *
 	 * \param body_id id of the body of intrest

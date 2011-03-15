@@ -178,6 +178,31 @@ void draw_model (Model* model) {
 				glDisable(GL_COLOR_MATERIAL);
 
 				glPopMatrix();
+			} else if (body_visualization->type == VisualizationPrimitiveSphere) {
+				glPushMatrix();
+				glTranslated (
+						body_visualization->center[0],
+						body_visualization->center[1],
+						body_visualization->center[2]
+						);
+				glScaled (
+						body_visualization->radius,
+						body_visualization->radius,
+						body_visualization->radius
+						);
+
+				glEnable(GL_COLOR_MATERIAL);
+				glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+				glColor3f (
+						body_visualization->color[0],
+						body_visualization->color[1],
+						body_visualization->color[2]
+						);
+				glprimitives_sphere();
+				glColor3f (1.0f, 1.0f, 1.0f);
+				glDisable(GL_COLOR_MATERIAL);
+
+				glPopMatrix();
 			}
 
 			// draw the COM as a small cube of red color (we ignore the depth

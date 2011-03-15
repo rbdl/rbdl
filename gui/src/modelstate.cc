@@ -201,13 +201,12 @@ void model_init () {
 			Vector3d (0.5, 1., 0.5)
 			);
 
-	model->SetBodyVisualizationBox(
+	model->SetBodyVisualizationSphere(
 			scndbody_id,
 			Vector3d (0.7, 0.9, 0.7),
-			Vector3d (-0.5, 0., -0.5),
-			Vector3d (0.5, 1., 0.5)
+			Vector3d (0., 1., 0.),
+			1.	
 			);
-
 
 	contact_body_id = base_body_id;
 	contact_point.set (0., -1., 0.);
