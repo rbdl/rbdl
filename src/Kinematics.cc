@@ -169,12 +169,12 @@ void CalcPointVelocity (
 
 	Vector3d point_abs_pos = body_translation + body_rotation * point_position;
 
-	LOG << "body_index   = " << body_id << std::endl;
-	LOG << "global_velo  = " << global_velocities.at(body_id) << std::endl;
-	LOG << "body_transf  = " << model.X_base[body_id] << std::endl;
-	LOG << "body_rotation= " << std::endl << body_rotation << std::endl;
-	LOG << "body_tranlat = " << body_translation << std::endl;
-	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
+	LOG << "body_index     = " << body_id << std::endl;
+	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
+	LOG << "body_transf    = " << model.X_base[body_id] << std::endl;
+	LOG << "body_rotation  = " << std::endl << body_rotation << std::endl;
+	LOG << "body_translat  = " << body_translation << std::endl;
+	LOG << "point_abs_ps   = " << point_abs_pos << std::endl;
 
 	// Now we can compute the spatial velocity at the given point
 	SpatialVector body_global_velocity (global_velocities.at(body_id));
@@ -519,7 +519,7 @@ void CalcPointAccelerationDirect (
 	LOG << "body_accel = " << body_accel << std::endl;
 	LOG << "body_rot_accel  = " << body_rot_accel<< std::endl;
 	LOG << "point_spatial_accel = " << point_spatial_accel << std::endl;
-	
+
 	point_acceleration.set (point_spatial_accel[3], point_spatial_accel[4], point_spatial_accel[5]);
 	LOG << "point_acceleration = " << point_acceleration <<  std::endl;
 }
