@@ -161,28 +161,16 @@ void model_init () {
 	model = new Model;
 	model->Init();
 
-	model->gravity.set (0., -2.81, 0.);
+	model->gravity.set (0., 0., 0.);
 
 	// base body
 	Body base (
 			1.,
-			Vector3d (0., 0., 0.),
+			Vector3d (0., 0.5, 0.),
 			Vector3d (1., 1., 1.)
 			);
 
 	unsigned int base_body_id = model->SetFloatingBaseBody(base);
-
-	Body scndbody (
-			1.,
-			Vector3d (0.5, 0.5, 0.5),
-			Vector3d (1., 1., 1.)
-			);
-	Joint scndjoint (
-			JointTypeRevolute,
-			Vector3d (1., 0., 0.)
-			);
-
-	unsigned int scndbody_id = model->AddBody(base_body_id, Xtrans (Vector3d(0., 2., 0.)), scndjoint, scndbody);
 
 	Q = cmlVector(model->dof_count);
 	QDot = cmlVector(model->dof_count);
@@ -194,25 +182,20 @@ void model_init () {
 	QDDot.zero();
 	Tau.zero();
 
-	model->SetBodyVisualizationBox(
-			base_body_id,
-			Vector3d (0.7, 0.7, 0.7),
-			Vector3d (-0.5, 0., -0.5),
-			Vector3d (0.5, 1., 0.5)
-			);
-
 	model->SetBodyVisualizationSphere(
-			scndbody_id,
+			base_body_id,
 			Vector3d (0.7, 0.9, 0.7),
-			Vector3d (0., 1., 0.),
-			1.	
+			Vector3d (0., 0., 0.),
+			1.0	
 			);
 
+	/*
 	contact_body_id = base_body_id;
 	contact_point.set (0., -1., 0.);
 	contact_normal.set (0., 1., 0.);
+	*/
 
-	Q[0] = 0.;
+	Q[1] = 1.;
 
 	// We want the body to rotate around its contact point which is located
 	// at (0, 0, 0). There it should have a negative unit rotation around the
@@ -221,7 +204,7 @@ void model_init () {
 	SpatialVector velocity_ground (0., 0., -1., -1., 0., 0.);
 
 	// This has now to be transformed to body coordinates.
-	SpatialVector velocity_body = Xtrans (Vector3d (0., 1., 0.)) * velocity_ground;
+	SpatialVector velocity_body = Xtrans (Vector3d (0., 0.5, 0.)) * velocity_ground;
 
 	// This has now to be shuffled such that it complies with the ordering of
 	// the DoF in the generalized velocity vector.
@@ -231,6 +214,10 @@ void model_init () {
 	QDot[3] = velocity_body[2];
 	QDot[4] = velocity_body[1];
 	QDot[5] = velocity_body[0];
+
+	QDot.zero();
+	QDot[0] = 0.5;
+	QDot[3] = -0.5;
 
 	cout << "velocity_body = " << velocity_body << std::endl;
 	cout << "Q = " << Q << std::endl;
@@ -250,13 +237,13 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 	cmlVector qddot (size);
 
 	std::vector<ContactInfo> contact_data;
-	contact_point.set (Q[0], -1., Q[2]);
+	contact_point.set (Q[0], -0.5, Q[2]);
 
 //	cout << "Q = " << Q << " CP = " << contact_point << endl;
 
-	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
-	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 1.));
-	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 0.));
+	contact_data.push_back(ContactInfo (6, contact_point, Vector3d (1., 0., 0.), 0.));
+	contact_data.push_back(ContactInfo (6, contact_point, Vector3d (0., 1., 0.), 0.));
+	contact_data.push_back(ContactInfo (6, contact_point, Vector3d (0., 0., 1.), 0.));
 
 	for (i = 0; i < size; i++) {
 		q[i] = y[i];
@@ -320,6 +307,7 @@ void model_update_contact (double delta_time) {
 		QDot[i] += ynew[i + size];
 	}
 
+/*
 	Vector3d point_accel;
 	CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
 
@@ -327,6 +315,7 @@ void model_update_contact (double delta_time) {
 	CalcPointVelocity (*model, Q, QDot, contact_body_id, contact_point, point_velocity);
 
 	Vector3d point_pos = model->GetBodyPointPosition (contact_body_id, contact_point);
+	*/
 
 //	qDebug() << "accel =" << cml::dot(point_accel, contact_normal) 
 //		<< " point_accel =" << point_accel[0] << point_accel[1] << point_accel[2]
