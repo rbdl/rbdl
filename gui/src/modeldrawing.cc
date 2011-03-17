@@ -79,10 +79,6 @@ void draw_model (Model* model) {
 	glEnable(GL_LIGHTING);
 
 	glEnable (GL_DEPTH_TEST);
-	glPushMatrix();
-	glTranslatef (2., 0., 0.);
-	glprimitives_sphere();
-	glPopMatrix();
 
 	unsigned int i;
 	for (i = 1; i < model->q.size(); i++) {

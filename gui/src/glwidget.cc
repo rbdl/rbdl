@@ -194,6 +194,31 @@ void GLWidget::updateCamera() {
 			up.x(), up.y(), up.z());
 }
 
+void GLWidget::drawGrid() {
+	float xmin, xmax, xstep, zmin, zmax, zstep;
+	int i, count;
+
+	xmin = -16;
+	xmax = 16;
+	zmin = -16;
+	zmax = 16;
+
+	count = 32;
+
+	xstep = fabs (xmin - xmax) / (float)count;
+	zstep = fabs (zmin - zmax) / (float)count;
+
+	glColor3f (0.6, 0.6, 0.6);
+	glBegin (GL_LINES);
+	for (i = 0; i <= count; i++) {
+		glVertex3f (i * xstep + xmin, 0., zmin);
+		glVertex3f (i * xstep + xmin, 0., zmax);
+		glVertex3f (xmin, 0, i * zstep + zmin);
+		glVertex3f (xmax, 0, i * zstep + zmin);
+	}
+	glEnd ();
+}
+
 void GLWidget::paintGL() {
 	update_timer();
 	glClearColor (0.3, 0.3, 0.3, 1.);
@@ -207,6 +232,13 @@ void GLWidget::paintGL() {
 
 	if (update_simulation)
 		model_update (delta_time_sec);
+
+	glEnable (GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHTING);
+
+	drawGrid();
+	glDisable (GL_COLOR_MATERIAL);
+	glEnable(GL_LIGHTING);
 
 	draw_model (model_get());
 }

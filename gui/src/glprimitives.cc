@@ -373,6 +373,21 @@ void glprimitives_torus () {
 }
 
 void glprimitives_sphere () {
+	static GLUquadric* quadric;
+
+
+	quadric = gluNewQuadric();
+
+	gluSphere (quadric, 1., 16, 16);
+	glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+
+	glColor3f (0., 0., 0.);
+	gluSphere (quadric, 1., 16, 16);
+	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+	
+	gluDeleteQuadric(quadric);
+
+	/*
 	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSpherePosition]);
 	check_opengl_error (__FILE__, __LINE__);
 	glVertexPointer (3, GL_FLOAT, 0, 0);
@@ -400,4 +415,5 @@ void glprimitives_sphere () {
 	glDisable(GL_COLOR_MATERIAL);
 
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
+	*/
 }
