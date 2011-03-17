@@ -638,7 +638,7 @@ void ComputeContactForces (
 
 		// transform the test force from the point coordinates to base
 		// coordinates
-		Vector3d contact_point_position = model.GetBodyPointPosition(contact_info.body_id, contact_info.point);
+		Vector3d contact_point_position = model.CalcBodyToBaseCoordinates(contact_info.body_id, contact_info.point);
 
 		test_forces[cj] = Xtrans (contact_point_position * -1.).adjoint() * test_force;
 		LOG << "body_id         = " << contact_info.body_id << std::endl;

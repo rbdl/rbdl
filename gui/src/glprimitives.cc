@@ -375,12 +375,12 @@ void glprimitives_torus () {
 void glprimitives_sphere () {
 	static GLUquadric* quadric;
 
-
 	quadric = gluNewQuadric();
 
 	gluSphere (quadric, 1., 16, 16);
 	glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
 
+	glScalef (1.001f, 1.001f, 1.001f);
 	glColor3f (0., 0., 0.);
 	gluSphere (quadric, 1., 16, 16);
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);

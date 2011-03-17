@@ -157,6 +157,17 @@ cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, do
 	return y;
 }
 
+cmlVector euler_integrator (double t0, double tf, cmlVector &y0, rhs_func func, double stepsize) {
+	cmlVector y (y0);
+
+	cmlVector ydot (y0);
+	ydot = func (tf, y);
+
+	y = y0 + (tf - t0) * ydot;
+
+	return y;
+}
+
 void model_init () {
 	model = new Model;
 	model->Init();
@@ -199,7 +210,7 @@ void model_init () {
 	// at (0, 0, 0). There it should have a negative unit rotation around the
 	// Z-axis (i.e. rolling along the X axis). The spatial velocity of the
 	// body at the contact point is therefore (0, 0, -1, 0, 0, 0).
-	SpatialVector velocity_ground (0., 0., -1., 1., 0., 0.);
+	SpatialVector velocity_ground (0., 0., -1., 0., 0., 0.);
 
 	// This has now to be transformed to body coordinates.
 	SpatialVector velocity_body = Xtrans (Vector3d (0., 1., 0.)) * velocity_ground;
@@ -231,12 +242,15 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 	cmlVector qddot (size);
 
 	std::vector<ContactInfo> contact_data;
-	contact_point.set (Q[0], 0., Q[2]);
+	contact_point = model->CalcBaseToBodyCoordinates (contact_body_id, Vector3d (Q[0], 0., Q[2]));
+	
+	Vector3d contact_point_world;
+	contact_point_world = model->CalcBodyToBaseCoordinates(contact_body_id, contact_point);
 
-//	cout << "Q = " << Q << " CP = " << contact_point << endl;
+	cout << "Q = " << Q << " CP = " << contact_point_world;
 
 	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
-	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 1.));
+	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
 	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 0.));
 
 	for (i = 0; i < size; i++) {
@@ -248,12 +262,25 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 		_NoLogging nolog;
 		ForwardDynamicsContacts (*model, q, qdot, Tau, contact_data, qddot);
 	}
+	cout << " qdd = " << qddot ;
+
+	Vector3d contact_point_world_vel;
+	CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point, contact_point_world_vel);
+	cout << "   CPvel = " << contact_point_world_vel;
+
+	Vector3d contact_point_world_acc;
+	CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point, contact_point_world_acc);
+	cout << "   CPacc = " << contact_point_world_acc;
 
 	cmlVector res (size * 2);
 	for (i = 0; i < size; i++) {
 		res[i] = qdot[i];
 		res[i + size] = qddot[i];
 	}
+
+//	cout << "     y = " << y << "    " << "res = " << res << endl;
+
+	cout << endl;
 
 	return res;
 }
@@ -272,6 +299,20 @@ cmlVector rhs_normal (double t, const cmlVector &y) {
 	}
 
 	ForwardDynamics (*model, q, qdot, Tau, qddot);
+	contact_point = model->CalcBaseToBodyCoordinates (contact_body_id, Vector3d (Q[0], 0., Q[2]));
+
+	Vector3d contact_point_world;
+	contact_point_world = model->CalcBodyToBaseCoordinates(contact_body_id, contact_point);
+
+	cout << "Q = " << Q << " CP = " << contact_point_world;
+
+	Vector3d contact_point_world_vel;
+	CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point, contact_point_world_vel);
+	cout << "   CPvel = " << contact_point_world_vel;
+
+	Vector3d contact_point_world_acc;
+	CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point, contact_point_world_acc);
+	cout << "   CPacc = " << contact_point_world_acc << endl;
 
 	cmlVector res (size * 2);
 	for (i = 0; i < size; i++) {
@@ -295,15 +336,17 @@ void model_update (double delta_time) {
 
 	cmlVector ynew (size * 2);
 //	delta_time = 0.02;
-	ynew = rk45_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
+//	ynew = rk45_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
 //	ynew = rk4_integrator (0., delta_time, y, rhs_contact, 5.0e-2);
+//	ynew = euler_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
+	ynew = euler_integrator (0., delta_time, y, rhs_contact, 1.0e-3);
+
+//	cout << "        ynew = " << ynew << endl;
 
 	for (i = 0; i < size; i++) {
 		Q[i] = ynew[i];
 		QDot[i] = ynew[i + size];
 	}
-
-	cout << "y = " << ynew << endl;
 }
 
 Model* model_get() {

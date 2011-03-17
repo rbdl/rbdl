@@ -131,7 +131,8 @@ struct ContactsFixture {
 	Model *model;
 
 	unsigned int base_rot_z_id, base_rot_y_id, base_rot_x_id,
-		child_rot_z_id, child_rot_y_id, child_rot_x_id;
+		child_rot_z_id, child_rot_y_id, child_rot_x_id,
+		base_body_id;
 
 	Body base_rot_z, base_rot_y, base_rot_x,
 		child_rot_z, child_rot_y, child_rot_x;
@@ -307,28 +308,35 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 
 	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
 
-	float_model->SetFloatingBaseBody(base_body);
+	base_body_id = float_model->SetFloatingBaseBody(base_body);
 
-	cmlVector Q (6);
-	cmlVector QDot (6);
-	cmlVector QDDot (6);
-	cmlVector Tau (6);
+	cmlVector Q (model->dof_count);
+	cmlVector QDot (model->dof_count);
+	cmlVector QDDot (model->dof_count);
+	cmlVector Tau (model->dof_count);
 
-	ContactInfo ground_x (6, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
-	ContactInfo ground_y (6, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
-	ContactInfo ground_z (6, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
+	Q[1] = 1.;
+
+	// update kinematic values!
+	ForwardDynamics (*float_model, Q, QDot, Tau, QDDot);
+
+	contact_body_id = base_body_id;
+	Vector3d contact_point = float_model->CalcBaseToBodyCoordinates (contact_body_id, Vector3d (Q[0], 0., Q[2]));
+	
+	ContactInfo ground_x (contact_body_id, contact_point, Vector3d (1., 0., 0.));
+	ContactInfo ground_y (contact_body_id, contact_point, Vector3d (0., 1., 0.));
+	ContactInfo ground_z (contact_body_id, contact_point, Vector3d (0., 0., 1.));
 
 	contact_data.push_back (ground_x);
 	contact_data.push_back (ground_y);
 	contact_data.push_back (ground_z);
 
-	Q[1] = 1.;
-
 	// We want the body to rotate around its contact point which is located
-	// at (0, 0, 0). There it should have a negative unit rotation around the
-	// Z-axis (i.e. rolling along the X axis). The spatial velocity of the
-	// body at the contact point is therefore (0, 0, -1, 0, 0, 0).
-	SpatialVector velocity_ground (0., 0., -1., -1., 0., 0.);
+	// at (0, 0, 0). There it should have a pure rotation of negative unit
+	// magnitude around the Z-axis (i.e. rolling along the X axis). The
+	// spatial velocity of the body at the contact point is therefore
+	//   (0, 0, -1, 0, 0, 0).
+	SpatialVector velocity_ground (0., 0., -1., 0., 0., 0.);
 
 	// This has now to be transformed to body coordinates.
 	SpatialVector velocity_body = Xtrans (Vector3d (0., 1., 0.)) * velocity_ground;
@@ -353,7 +361,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	Vector3d test_point;
 	{
 		SUPPRESS_LOGGING;
-		test_point = float_model->GetBodyPointPosition(contact_data[0].body_id, contact_data[0].point);
+		test_point = float_model->CalcBodyToBaseCoordinates(contact_data[0].body_id, contact_data[0].point);
 	}
 //	cout << "contact_point = " << test_point << std::endl;
 	
@@ -392,14 +400,12 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 		SUPPRESS_LOGGING;
 		CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, contact_data[0].point, test_accel);
 	}
-
 //	cout << "contact accel = " << test_accel << endl;
 
 	{
 		SUPPRESS_LOGGING;
 		CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_accel);
 	}
-
 //	cout << "base accel = " << test_accel << endl;
 
 	{

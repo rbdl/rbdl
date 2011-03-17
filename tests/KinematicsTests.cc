@@ -165,19 +165,19 @@ TEST_FIXTURE(KinematicsFixture, TestPositionBodyBRotatedNeg45Deg) {
 	CHECK_ARRAY_CLOSE (Vector3d (1 + 0.707106781186547, 1., -0.707106781186547), model->GetBodyOrigin(body_d_id), 3, TEST_PREC );
 }
 
-TEST_FIXTURE(KinematicsFixture, TestGetBodyPointPosition) {
+TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinates) {
 	// We call ForwardDynamics() as it updates the spatial transformation
 	// matrices
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (1., 2., 0.),
-			model->GetBodyPointPosition(body_c_id, Vector3d (0., 1., 0.)),
+			model->CalcBodyToBaseCoordinates(body_c_id, Vector3d (0., 1., 0.)),
 			3, TEST_PREC
 			);
 }
 
-TEST_FIXTURE(KinematicsFixture, TestGetBodyPointPositionRotated) {
+TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 	Q[2] = 0.5 * M_PI;
 
 	// We call ForwardDynamics() as it updates the spatial transformation
@@ -192,7 +192,7 @@ TEST_FIXTURE(KinematicsFixture, TestGetBodyPointPositionRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (0., 1., 0.),
-			model->GetBodyPointPosition(body_c_id, Vector3d (0., 1., 0.)),
+			model->CalcBodyToBaseCoordinates(body_c_id, Vector3d (0., 1., 0.)),
 			3, TEST_PREC
 			);
 
@@ -211,7 +211,7 @@ TEST_FIXTURE(KinematicsFixture, TestGetBodyPointPositionRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (2., 1., 0.),
-			model->GetBodyPointPosition(body_c_id, Vector3d (0., 1., 0.)),
+			model->CalcBodyToBaseCoordinates(body_c_id, Vector3d (0., 1., 0.)),
 			3, TEST_PREC
 			);
 
@@ -231,7 +231,7 @@ TEST_FIXTURE(KinematicsFixture, TestGetBodyPointPositionRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (-2., 1., 0.),
-			model->GetBodyPointPosition(body_c_id, Vector3d (0., 1., 0.)),
+			model->CalcBodyToBaseCoordinates(body_c_id, Vector3d (0., 1., 0.)),
 			3, TEST_PREC
 			);
 

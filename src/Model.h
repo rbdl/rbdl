@@ -97,6 +97,10 @@ struct Model {
 
 	// State information
 
+	/** \brief Stores information 
+	 *
+	 */
+	unsigned int computation_flags;
 	/** \brief The joint position
 	 * 
 	 * Warning: to have an easier numbering in the algorithm the state vector
@@ -174,6 +178,39 @@ struct Model {
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 
+	/*
+	/// \brief Updates the state variables of the model
+	void Update (const cmlVector &Q, const cmlVector &QDot, const cmlVector &QDDot, const cmlVector &Tau) {
+		if (experimental_floating_base) {
+			for (size_t i = 0; i < Q.size(); ++i)
+				q[i] = Q[i];
+
+			for (size_t i = 0; i < QDot.size(); ++i)
+				qdot[i] = QDot[i];
+
+			for (size_t i = 0; i < QDDot.size(); ++i)
+				qddot[i] = QDDot[i];
+
+			for (size_t i = 0; i < Tau.size(); ++i)
+				tau[i] = Tau[i];
+
+			return;
+		}
+
+		for (size_t i = 0; i < Q.size(); ++i)
+			q[i + 1] = Q[i];
+
+		for (size_t i = 0; i < QDot.size(); ++i)
+			qdot[i + 1] = QDot[i];
+
+		for (size_t i = 0; i < QDDot.size(); ++i)
+			qddot[i + 1] = QDDot[i];
+
+		for (size_t i = 0; i < Tau.size(); ++i)
+			tau[i + 1] = Tau[i];
+	}
+	*/
+
 	/** \brief Connects a given body to the model
 	 *
 	 * When adding a body there are basically informations required:
@@ -223,12 +260,12 @@ struct Model {
 			const Body &body
 			);
 	
-	/** \brief Returns the 3D coordinate vector of the origin of a given body
+	/** \brief Returns the 3-D coordinate vector of the origin of a given body
 	 *  \brief in base coordinates
 	 *
 	 *  \param body_id id of the body of intrest
 	 *  
-	 *  \returns 3D coordinate vector of the origin of the body in base
+	 *  \returns 3-D coordinate vector of the origin of the body in base
 	 *  \returns coordinates
 	 */
 	Vector3d GetBodyOrigin (const unsigned int body_id);
@@ -244,13 +281,21 @@ struct Model {
 
 	/** \brief Returns the base coordinates of a point given in body coordinates
 	 *
-	 * \param body_id id of the body for which the point coordinates are
-	 * expressed
+	 * \param body_id id of the body for which the point coordinates are expressed
 	 * \param body_point coordinates of the point in body coordinates
 	 *
-	 * \returns a 3-D vector with the point coordinates in base coordinates
+	 * \returns a 3-D vector with coordinates of the point in base coordinates
 	 */
-	Vector3d GetBodyPointPosition (const unsigned int body_id, const Vector3d &body_point);
+	Vector3d CalcBodyToBaseCoordinates (const unsigned int body_id, const Vector3d &body_point);
+
+	/** \brief Returns the body coordinates of a point given in base coordinates
+	 *
+	 * \param body_id id of the body for which the point coordinates are expressed
+	 * \param base_point coordinates of the point in body coordinates
+	 *
+	 * \returns a 3-D vector with coordinates of the point in body coordinates
+	 */
+	Vector3d CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point);
 
 	/** \brief Specifies the visualization as a box for a given body
 	 *

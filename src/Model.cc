@@ -192,11 +192,16 @@ Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
 	return X_base[body_id].get_upper_left();
 }
 
-Vector3d Model::GetBodyPointPosition (const unsigned int body_id, const Vector3d &body_point) {
+Vector3d Model::CalcBodyToBaseCoordinates (const unsigned int body_id, const Vector3d &body_point) {
 	Matrix3d body_rotation = this->X_base[body_id].get_rotation().transpose();
 	Vector3d body_position = GetBodyOrigin (body_id);
 
-	LOG << "body rotation = " << body_rotation << std::endl;
-	LOG << "body position = " << body_position << std::endl;
 	return body_position + body_rotation * body_point;
+}
+
+Vector3d Model::CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point) {
+	Matrix3d body_rotation = this->X_base[body_id].get_rotation();
+	Vector3d body_position = GetBodyOrigin (body_id);
+
+	return body_rotation * base_point - body_rotation * body_position;
 }

@@ -288,7 +288,7 @@ void CalcPointAccelerationFeatherstone (
 //	Vector3d body_translation (body_rotation * model.X_base[body_id].get_translation() * -1.);
 
 	// computation of the global position of the point
-	Vector3d point_base_pos = model.GetBodyPointPosition(body_id, point_position);
+	Vector3d point_base_pos = model.CalcBodyToBaseCoordinates(body_id, point_position);
 	Vector3d point_base_velocity;
 	{
 		_NoLogging nolog;
@@ -482,7 +482,7 @@ void CalcPointAccelerationDirect (
 	Vector3d body_translation (model.GetBodyOrigin(body_id));
 
 	// computation of the global position of the point
-	Vector3d point_abs_pos = model.GetBodyPointPosition (body_id, point_position);
+	Vector3d point_abs_pos = model.CalcBodyToBaseCoordinates (body_id, point_position);
 	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
 
 	// The whole computation looks in formulae like the following:

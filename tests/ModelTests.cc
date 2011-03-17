@@ -7,6 +7,7 @@
 
 #include "Model.h"
 #include "Dynamics_stdvec.h"
+#include "Dynamics.h"
 
 using namespace std;
 using namespace SpatialAlgebra;
@@ -614,3 +615,88 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSimpleTree3D) {
 	CHECK_CLOSE ( 2.67198443579767E-01, QDDot[3], TEST_PREC);
 	CHECK_CLOSE ( 5.30579766536965E+00, QDDot[4], TEST_PREC);
 }
+
+TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
+	Body body;
+
+	unsigned int body_id = model->SetFloatingBaseBody (body);
+
+	cmlVector q (model->dof_count);
+	cmlVector qdot (model->dof_count);
+	cmlVector qddot (model->dof_count);
+	cmlVector tau (model->dof_count);
+
+	Vector3d base_coords;
+	Vector3d body_coords;
+	Vector3d base_coords_back;
+
+	q.zero();
+	qdot.zero();
+	qddot.zero();
+	tau.zero();
+
+	base_coords.zero();
+
+	ForwardDynamics (*model, q, qdot, tau, qddot);
+	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);
+	base_coords_back = model->CalcBodyToBaseCoordinates (body_id, body_coords);
+
+	CHECK_ARRAY_CLOSE (base_coords.data(), base_coords_back.data(), 3, TEST_PREC);
+
+	q[0] = 1.;
+	q[1] = 0.2;
+	q[2] = -2.3;
+	q[3] = -2.3;
+	q[4] = 0.03;
+	q[5] = -0.23;
+
+	ForwardDynamics (*model, q, qdot, tau, qddot);
+	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);
+	base_coords_back = model->CalcBodyToBaseCoordinates (body_id, body_coords);
+
+	CHECK_ARRAY_CLOSE (base_coords.data(), base_coords_back.data(), 3, TEST_PREC);
+}
+
+/*
+TEST_FIXTURE ( ModelFixture, TestUpdate ) {
+	Body body;
+
+	unsigned int body_id = model->SetFloatingBaseBody (body);
+
+	cmlVector q (model->dof_count);
+	cmlVector qdot (model->dof_count);
+	cmlVector qddot (model->dof_count);
+	cmlVector tau (model->dof_count);
+
+	cmlVector input (model->dof_count);
+	cmlVector reference (model->dof_count + 1);
+
+	reference[0] = 0;
+	reference[1] = 0.;
+	reference[2] = 1.;
+	reference[3] = 2.;
+	reference[4] = 3.;
+	reference[5] = 4.;
+	reference[6] = 5.;
+
+	input[0] = 0.;
+	input[1] = 1.;
+	input[2] = 2.;
+	input[3] = 3.;
+	input[4] = 4.;
+	input[5] = 5.;
+
+	model->Update (input, input * 2, input * 4, input * 8);
+
+	CHECK_ARRAY_CLOSE (reference.data(), model->q.data(), reference.size(), TEST_PREC);
+
+	reference = reference * 2;
+	CHECK_ARRAY_CLOSE (reference.data(), model->qdot.data(), reference.size(), TEST_PREC);
+
+	reference = reference * 2;
+	CHECK_ARRAY_CLOSE (reference.data(), model->qddot.data(), reference.size(), TEST_PREC);
+
+	reference = reference * 2;
+	CHECK_ARRAY_CLOSE (reference.data(), model->tau.data(), reference.size(), TEST_PREC);
+}
+*/

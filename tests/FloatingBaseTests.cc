@@ -24,6 +24,7 @@ struct FloatingBaseFixture {
 		model->gravity.set (0., -9.81, 0.);
 
 		base = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+
 	}
 	~FloatingBaseFixture () {
 		delete model;
@@ -31,12 +32,36 @@ struct FloatingBaseFixture {
 	Model *model;
 	Body base;
 	unsigned int base_body_id;
+
+	cmlVector q, qdot, qddot, tau;
 };
+
+TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
+	base_body_id = model->SetFloatingBaseBody(base);
+
+	q.resize(model->dof_count);
+	qdot.resize(model->dof_count);
+	qddot.resize(model->dof_count);
+	tau.resize(model->dof_count);
+
+	q.zero();
+	qdot.zero();
+	qddot.zero();
+	tau.zero();
+
+	q[1] = 1.;
+	ForwardDynamics (*model, q, qdot, tau, qddot);
+
+	Vector3d test_point;
+
+	test_point = model->CalcBaseToBodyCoordinates(base_body_id, Vector3d (0., 0., 0.));
+	CHECK_ARRAY_CLOSE (Vector3d (0., -1., 0.).data(), test_point.data(), 3, TEST_PREC);
+}
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 	model->experimental_floating_base = true;
 	base_body_id = model->SetFloatingBaseBody(base);
-	CHECK_EQUAL (0, base_body_id);
+	CHECK_EQUAL (0u, base_body_id);
 
 	std::vector<double> Q (0, 0.);
 	std::vector<double> QDot (0, 0.);
