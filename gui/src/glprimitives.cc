@@ -297,7 +297,7 @@ void glprimitives_cube () {
 
 	glEnable(GL_RESCALE_NORMAL);
 
-	glDrawArrays (GL_QUADS, 0, 6 * 3 * 4);
+	glDrawArrays (GL_QUADS, 0, 6 * 4);
 
 	glDisable(GL_RESCALE_NORMAL);
 
