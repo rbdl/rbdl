@@ -2,12 +2,13 @@ RBDL - Rigid Body Dynamics Library
 
 This code is mainly an C++ implementation of the Roy Featherstones
 Articulated Body Algorithm (ABA) written by Martin Felis. The code tightly
-follows the notation used in his book "Rigid Body Dynamics Algorithm".
+follows the notation used in Featherstone's book "Rigid Body Dynamics
+Algorithm".
 
 The documentation is contained in the code and can be extracted with the
 tool doxygen (http://www.doxygen.org).
 
 To create the documentation simply run
   doxygen Doxyfile
-which will generate the documentation in the subdirectory ./doc/html.
-Please open ./doc/html/index.html for further information.
+which will generate the documentation in the subdirectory ./doc/html. The
+mainpage will then be located in ./doc/html/index.html.
