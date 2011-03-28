@@ -70,7 +70,9 @@
  *	 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
  *	
  *		std::cout << QDDot << std::endl;
- *	
+ *
+ * 		delete model;
+ *
  *	 	return 0;
  *	}
  * \endcode

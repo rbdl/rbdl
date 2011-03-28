@@ -49,6 +49,8 @@ int main (int argc, char* argv[]) {
 
 	std::cout << QDDot << std::endl;
 
+	delete model;
+
  	return 0;
 }
 
