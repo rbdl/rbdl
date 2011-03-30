@@ -532,6 +532,52 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseRotation)
 //	cout << LogOutput.str() << endl;
 }
 
+TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationManual) {
+	// floating base
+	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
+	base_body_id = model->SetFloatingBaseBody(base);
+
+	q.resize (model->dof_count);
+	qdot.resize (model->dof_count);
+	qddot.resize (model->dof_count);
+	tau.resize (model->dof_count);
+
+	q.zero ();
+	qdot.zero ();
+	qddot.zero ();
+	tau.zero ();
+
+	unsigned int ref_body_id = base_body_id;
+
+	q[0] = 0.1;
+	q[1] = 1.1;
+	q[2] = 1.2;
+	q[3] = 1.3;
+	q[4] = 1.5;
+	q[5] = 1.7;
+
+	qdot[0] = 0.1;
+	qdot[1] = 1.1;
+	qdot[2] = 1.2;
+	qdot[3] = 1.3;
+	qdot[4] = 1.5;
+	qdot[5] = 1.7;
+
+	cout << "body[6] spatial inertia = " << model->mBodies[6].mSpatialInertia << endl;
+	
+	// first we calculate the velocity when rotating around the Z axis
+	Vector3d point_body_position (1., 0., 0.);
+	Vector3d point_world_position;
+	Vector3d point_world_acceleration;
+
+	ForwardDynamics(*model, q, qdot, tau, qddot);
+	point_world_position = model->CalcBodyToBaseCoordinates(ref_body_id, point_body_position);
+	CalcPointAcceleration (*model, q, qdot, qddot, ref_body_id, point_body_position, point_world_acceleration);
+
+	cout << "body_coords = " << point_body_position << " world_pos = " << point_world_position << " world_accel = " << point_world_acceleration << endl;
+
+	cout << "qddot = " << qddot << endl;
+}
 /*
 TEST_FIXTURE(FloatingBaseFixture, TestDynamicsManualFloatBase) {
 	// floating base
