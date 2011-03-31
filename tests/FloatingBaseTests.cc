@@ -532,6 +532,57 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFloatingBaseRotation)
 //	cout << LogOutput.str() << endl;
 }
 
+TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
+	// floating base
+	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
+	base_body_id = model->SetFloatingBaseBody(base);
+
+	q.resize (model->dof_count);
+	qdot.resize (model->dof_count);
+	qddot.resize (model->dof_count);
+	tau.resize (model->dof_count);
+
+	q.zero ();
+	qdot.zero ();
+	qddot.zero ();
+	tau.zero ();
+
+	unsigned int ref_body_id = base_body_id;
+
+	q[0] = 0.1;
+	q[1] = 1.1;
+	q[2] = 1.2;
+	q[3] = 1.3;
+	q[4] = 1.5;
+	q[5] = 1.7;
+
+	qdot[0] = 0.1;
+	qdot[1] = 1.1;
+	qdot[2] = 1.2;
+	qdot[3] = 1.3;
+	qdot[4] = 1.5;
+	qdot[5] = 1.7;
+
+	// first we calculate the velocity when rotating around the Z axis
+	Vector3d point_body_position (1., 0., 0.);
+	Vector3d point_base_position;
+	Vector3d point_base_velocity;
+	Vector3d point_base_velocity_reference;
+
+	ForwardDynamics(*model, q, qdot, tau, qddot);
+
+	CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position, point_base_velocity);
+
+	point_base_velocity_reference.set (
+			 -3.888503432977729e-01,
+			 -3.171179347202455e-01,
+			 1.093894197498446e+00
+			);
+
+	CHECK_ARRAY_CLOSE (point_base_velocity_reference.data(), point_base_velocity.data(), 3, TEST_PREC);
+}
+
+/*
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationManual) {
 	// floating base
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
@@ -563,245 +614,29 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationManual) {
 	qdot[4] = 1.5;
 	qdot[5] = 1.7;
 
-	cout << "body[6] spatial inertia = " << model->mBodies[6].mSpatialInertia << endl;
-	
 	// first we calculate the velocity when rotating around the Z axis
 	Vector3d point_body_position (1., 0., 0.);
 	Vector3d point_world_position;
+	Vector3d point_world_velocity;
 	Vector3d point_world_acceleration;
 
 	ForwardDynamics(*model, q, qdot, tau, qddot);
+
+	ClearLogOutput();
+
+	cout << "ref_body_id = " << ref_body_id << endl;
+	cout << "point_body_position = " << point_body_position << endl;
 	point_world_position = model->CalcBodyToBaseCoordinates(ref_body_id, point_body_position);
+	CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position, point_world_velocity);
+
+	cout << LogOutput.str() << endl;
+
 	CalcPointAcceleration (*model, q, qdot, qddot, ref_body_id, point_body_position, point_world_acceleration);
 
-	cout << "body_coords = " << point_body_position << " world_pos = " << point_world_position << " world_accel = " << point_world_acceleration << endl;
+	cout << "body_coords = " << point_body_position << " world_pos = " << point_world_position << " world_vel = " << point_world_velocity << " world_accel = " << point_world_acceleration << endl;
 
+	cout << "q     = " << q << endl;
+	cout << "qdot  = " << qdot << endl;
 	cout << "qddot = " << qddot << endl;
-}
-/*
-TEST_FIXTURE(FloatingBaseFixture, TestDynamicsManualFloatBase) {
-	// floating base
-	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-	model->experimental_floating_base = true;
-	model->SetFloatingBaseBody(base);
-
-	cmlVector Q;
-	cmlVector QDot;
-	cmlVector QDDot;
-	cmlVector QDDot_manual;
-	cmlVector Tau;
-
-	Q.resize(6);
-	QDot.resize(6);
-	QDDot.resize(6);
-	QDDot_manual.resize(6);
-	Tau.resize(6);
-
-	Q.zero();
-	QDot.zero();
-	QDDot.zero();
-	QDDot_manual.zero();
-	Tau.zero();
-
-	// build the manual model
-	Model *float_model_manual = new Model;
-	float_model_manual->Init();
-	float_model_manual->gravity.set (0., -9.81, 0.);
-
-	// Order: tx ty tz rz ry rx
-	unsigned body_tx_id;
-	Body body_tx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_tx (JointTypePrismatic, Vector3d (1., 0., 0.));
-	body_tx_id = float_model_manual->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
-
-	unsigned body_ty_id;
-	Body body_ty (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_ty (JointTypePrismatic, Vector3d (0., 1., 0.));
-	body_ty_id = float_model_manual->AddBody(body_tx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
-
-	unsigned body_tz_id;
-	Body body_tz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_tz (JointTypePrismatic, Vector3d (0., 0., 1.));
-	body_tz_id = float_model_manual->AddBody(body_ty_id, Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
-
-	unsigned body_rz_id;
-	Body body_rz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_rz (JointTypeRevolute, Vector3d (0., 0., 1.));
-	body_rz_id = float_model_manual->AddBody(body_tz_id, Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
-
-	unsigned body_ry_id;
-	Body body_ry (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_ry (JointTypeRevolute, Vector3d (0., 1., 0.));
-	body_ry_id = float_model_manual->AddBody(body_rz_id, Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
-
-	unsigned body_rx_id;
-	Body body_rx (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-	Joint joint_rx (JointTypeRevolute, Vector3d (1., 0., 0.));
-	body_rx_id = float_model_manual->AddBody(body_ry_id, Xtrans (Vector3d (0., 0., 0.)), joint_rx, body_rx);
-
-	Q[0] = 0.;
-	Q[1] = 1.;
-	Q[2] = 0.;
-	QDot[0] = 1.;
-	QDot[3] = -1.;
-
-	cout << "--------------- manual -------------" << endl;
-	ForwardDynamics	(*float_model_manual, Q, QDot, Tau, QDDot_manual);
-	cout << "IA[6] = " << float_model_manual->IA[6] << endl;
-	cout << "pA[6] = " << float_model_manual->pA[6] << endl;
-//	cout << LogOutput.str() << endl;
-	cout << "manual qddot = " << QDDot_manual << endl;
-
-	ClearLogOutput();
-	cout << "---------------- explicit -----------------" << endl;
-	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
-	cout << LogOutput.str() << endl;
-	cout << "explicit qddot = " << QDDot << endl;
-
-	delete float_model_manual;
-}
-*/
-
-/*
-TEST_FIXTURE(FloatingBaseFixture, TestDynamicsManualFloatBaseOtherOrder) {
-	cmlVector Q;
-	cmlVector QDot;
-	cmlVector QDDot;
-	cmlVector QDDot_manual;
-	cmlVector Tau;
-
-	Q.resize(6);
-	QDot.resize(6);
-	QDDot.resize(6);
-	QDDot_manual.resize(6);
-	Tau.resize(6);
-
-	Q.zero();
-	QDot.zero();
-	QDDot.zero();
-	QDDot_manual.zero();
-	Tau.zero();
-
-	// build the manual model
-	Model *float_model_manual = new Model;
-	float_model_manual->Init();
-	float_model_manual->gravity.set (0., -9.81, 0.);
-
-	// Order: rx ry rz tx ty tz
-	unsigned body_rx_id;
-	Body body_rx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_rx (JointTypeRevolute, Vector3d (1., 0., 0.));
-	body_rx_id = float_model_manual->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_rx, body_rx);
-
-	unsigned body_ry_id;
-	Body body_ry (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_ry (JointTypeRevolute, Vector3d (0., 1., 0.));
-	body_ry_id = float_model_manual->AddBody(body_rx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
-
-	unsigned body_rz_id;
-	Body body_rz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_rz (JointTypeRevolute, Vector3d (0., 0., 1.));
-	body_rz_id = float_model_manual->AddBody(body_ry_id, Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
-
-	unsigned body_tx_id;
-	Body body_tx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_tx (JointTypePrismatic, Vector3d (1., 0., 0.));
-	body_tx_id = float_model_manual->AddBody(body_rz_id, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
-
-	unsigned body_ty_id;
-	Body body_ty (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-	Joint joint_ty (JointTypePrismatic, Vector3d (0., 1., 0.));
-	body_ty_id = float_model_manual->AddBody(body_tx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
-
-	unsigned body_tz_id;
-	Body body_tz (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-	Joint joint_tz (JointTypePrismatic, Vector3d (0., 0., 1.));
-	body_tz_id = float_model_manual->AddBody(body_ty_id, Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
-
-	Q[0] = 0.;
-	Q[1] = 0.;
-	Q[2] = 0.;
-	Q[3] = 0.;
-	Q[4] = 1.;
-	Q[5] = 0.;
-	QDot[0] = -1.;
-	QDot[3] = 1.;
-
-	cout << "--------------- manual other order -------------" << endl;
-	ForwardDynamics	(*float_model_manual, Q, QDot, Tau, QDDot_manual);
-	cout << "IA[6] = " << float_model_manual->IA[6] << endl;
-	cout << "pA[6] = " << float_model_manual->pA[6] << endl;
-//	cout << LogOutput.str() << endl;
-	cout << "manual other order qddot = " << QDDot_manual << endl;
-
-	delete float_model_manual;
-}
-*/
-
-/*
-TEST_FIXTURE(FloatingBaseFixture, TestDynamicsPointAcceleration) {
-	// floating base
-	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-	model->SetFloatingBaseBody(base);
-
-	cmlVector Q;
-	cmlVector QDot;
-	cmlVector QDDot;
-	cmlVector expected_qddot;
-	cmlVector Tau;
-
-	Q.resize(6);
-	QDot.resize(6);
-	QDDot.resize(6);
-	expected_qddot.resize(6);
-	Tau.resize(6);
-
-	Q.zero();
-	QDot.zero();
-	QDDot.zero();
-	Tau.zero();
-
-	unsigned int ref_body_id = 0;
-
-	Vector3d point_position(0., -1., 0.);
-
-	Vector3d point_velocity;
-	Vector3d expected_velocity;
-
-	Vector3d point_acceleration;
-	Vector3d expected_acceleration;
-
-	// set the state
-	Q[0] = 0.2;
-	Q[1] = 1.1; // translation to (0., 1., 0.)
-	Q[2] = -0.4;
-
-	QDot[0] = 1.; // moving along the x-axis
-	QDot[3] = -1.; // rotating cw around the z-axis
-
-	CalcPointVelocity (*model, Q, QDot, ref_body_id, point_position, point_velocity);
-
-	expected_velocity.set (0., 0., 0.);
-	CHECK_ARRAY_CLOSE (expected_velocity.data(), point_velocity.data(), 3, TEST_PREC);
-
-	ClearLogOutput();
-
-	cout << "sd = " << Q << " " << QDot << endl;
-
-	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
-	expected_qddot[0] = 0.;
-	expected_qddot[1] = -8.81;
-	expected_qddot[2] = 0.;
-	expected_qddot[3] = 0.;
-	expected_qddot[4] = 0.;
-	expected_qddot[5] = 0.;
-
-	cout << LogOutput.str() << endl;
-
-	CHECK_ARRAY_CLOSE (expected_qddot.data(), QDDot.data(), 6, TEST_PREC);
-
-//	cout << LogOutput.str() << endl;
-
-	ClearLogOutput();
 }
 */

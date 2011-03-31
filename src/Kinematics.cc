@@ -84,6 +84,7 @@ void CalcPointVelocity (
 		const Vector3d &point_position,
 		Vector3d &point_velocity
 	) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
 	unsigned int i;
 
 	// this will contain the global velocities of the bodies
@@ -167,9 +168,10 @@ void CalcPointVelocity (
 	// into a global translation
 	body_translation = body_rotation * model.X_base[body_id].get_translation() * -1.;
 
-	Vector3d point_abs_pos = body_translation + body_rotation * point_position;
+	Vector3d point_abs_pos = model.CalcBodyToBaseCoordinates(body_id, point_position); 
 
 	LOG << "body_index     = " << body_id << std::endl;
+	LOG << "point_pos      = " << point_position << std::endl;
 	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
 	LOG << "body_transf    = " << model.X_base[body_id] << std::endl;
 	LOG << "body_rotation  = " << std::endl << body_rotation << std::endl;
@@ -376,9 +378,9 @@ void CalcPointAccelerationDirect (
 		Vector3d &point_acceleration
 		)
 {
-	unsigned int i;
-
 	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	unsigned int i;
 
 	LOG << "Q = " << Q << std::endl;
 	LOG << "QDot = " << QDot << std::endl;
