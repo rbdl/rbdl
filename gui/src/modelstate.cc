@@ -247,7 +247,7 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 	Vector3d contact_point_world;
 	contact_point_world = model->CalcBodyToBaseCoordinates(contact_body_id, contact_point);
 
-	cout << "Q = " << Q << " CP = " << contact_point_world;
+	cout << "Q = " << Q << "\tCP = " << contact_point_world;
 
 	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
 	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
@@ -262,15 +262,15 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 		_NoLogging nolog;
 		ForwardDynamicsContacts (*model, q, qdot, Tau, contact_data, qddot);
 	}
-	cout << " qdd = " << qddot ;
+	cout << "\tqdd = " << qddot ;
 
 	Vector3d contact_point_world_vel;
 	CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point, contact_point_world_vel);
-	cout << "   CPvel = " << contact_point_world_vel;
+	cout << "\tCPvel = " << contact_point_world_vel;
 
 	Vector3d contact_point_world_acc;
 	CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point, contact_point_world_acc);
-	cout << "   CPacc = " << contact_point_world_acc;
+	cout << "\tCPacc = " << contact_point_world_acc;
 
 	cmlVector res (size * 2);
 	for (i = 0; i < size; i++) {
@@ -304,15 +304,15 @@ cmlVector rhs_normal (double t, const cmlVector &y) {
 	Vector3d contact_point_world;
 	contact_point_world = model->CalcBodyToBaseCoordinates(contact_body_id, contact_point);
 
-	cout << "Q = " << Q << " CP = " << contact_point_world;
+	cout << "Q = " << Q << "\tCP = " << contact_point_world;
 
 	Vector3d contact_point_world_vel;
 	CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point, contact_point_world_vel);
-	cout << "   CPvel = " << contact_point_world_vel;
+	cout << "\tCPvel = " << contact_point_world_vel;
 
 	Vector3d contact_point_world_acc;
 	CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point, contact_point_world_acc);
-	cout << "   CPacc = " << contact_point_world_acc << endl;
+	cout << "\tCPacc = " << contact_point_world_acc << endl;
 
 	cmlVector res (size * 2);
 	for (i = 0; i < size; i++) {
@@ -338,8 +338,8 @@ void model_update (double delta_time) {
 //	delta_time = 0.02;
 //	ynew = rk45_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
 //	ynew = rk4_integrator (0., delta_time, y, rhs_contact, 5.0e-2);
-//	ynew = euler_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
-	ynew = euler_integrator (0., delta_time, y, rhs_contact, 1.0e-3);
+	ynew = euler_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
+//	ynew = euler_integrator (0., delta_time, y, rhs_contact, 1.0e-6);
 
 //	cout << "        ynew = " << ynew << endl;
 

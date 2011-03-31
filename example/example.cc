@@ -45,6 +45,11 @@ int main (int argc, char* argv[]) {
 	cmlVector QDDot(3);
 	cmlVector Tau(3);
 
+	Q.zero();
+	QDot.zero();
+	QDDot.zero();
+	Tau.zero();
+
  	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 
 	std::cout << QDDot << std::endl;

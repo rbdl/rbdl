@@ -66,6 +66,11 @@
  *		cmlVector QDot(3);
  *		cmlVector QDDot(3);
  *		cmlVector Tau(3);
+ *
+ *		Q.zero();
+ *		QDot.zero();
+ *		QDDot.zero();
+ *		Tau.zero();
  *	
  *	 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
  *	
