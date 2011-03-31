@@ -516,7 +516,7 @@ void CalcPointAccelerationDirect (
 
 	SpatialVector body_rot_accel (0., 0., 0., cross_result[0], cross_result[1], cross_result[2]);
 	SpatialVector body_accel = point_transform * body_global_acceleration;
-	SpatialVector point_spatial_accel = body_accel + body_rot_accel;
+	SpatialVector point_spatial_accel = body_accel - body_rot_accel;
 
 	LOG << "body_accel = " << body_accel << std::endl;
 	LOG << "body_rot_accel  = " << body_rot_accel<< std::endl;
