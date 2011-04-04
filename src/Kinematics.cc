@@ -304,7 +304,7 @@ void CalcPointAccelerationFeatherstone (
 	SpatialVector body_base_velocity (global_velocities.at(body_id));
 
 	// new method
-	Matrix3d point_to_base_rotation = model.X_base[body_id].transpose().get_upper_left();
+	Matrix3d point_to_base_rotation = model.X_base[body_id].get_upper_left().transpose();
 
 	// Create a transformation that rotates the reference frame such that it
 	// is aligned with the base reference frame.
@@ -328,6 +328,11 @@ void CalcPointAccelerationFeatherstone (
 	SpatialVector pai = p_X_i * model.a[body_id];
 
 	SpatialVector point_spatial_velocity = point_trans * body_base_velocity;
+	point_spatial_velocity.set (0., 0., 0.,
+			point_base_velocity[0],
+			point_base_velocity[1],
+			point_base_velocity[2]
+			);
 
 	LOG << "point_spatial_velocity  = " << point_spatial_velocity << std::endl;
 
@@ -346,6 +351,8 @@ void CalcPointAccelerationFeatherstone (
 			frame_acceleration[1],
 			frame_acceleration[2]
 			);
+
+	spatial_frame_acceleration = point_spatial_velocity.crossm() * point_spatial_velocity;
 
 	/*
 	point_spatial_velocity[0] = 0.;
@@ -458,6 +465,8 @@ void CalcPointAccelerationDirect (
 		LOG << "X_base (" << i << "):" << model.X_base.at(i) << std::endl;
 		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
 
+		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
+
 		// we need to compute the global velocities as they may contribute to the
 		// acceleration (e.g. in rotational motions where there is always an
 		// acceleration towards the center
@@ -465,13 +474,36 @@ void CalcPointAccelerationDirect (
 		LOG << "^0v (" << i << "): " << global_velocities.at(i) << std::endl;
 
 		// v_J = S_i * qdot
-		global_accelerations.at(i) = global_accelerations.at(lambda) + model.X_base.at(i).inverse() * model.S.at(i) * model.qddot[i];
+
+		// a_i = ^a_{i-1} + \dot{s}_i \dot{q}_i + s_i + \ddot{q}_i
+		SpatialVector dot_si_qdot = model.v[i].crossm() * model.S[i] * model.qdot[i];
+		LOG << "dot_si_qdot[" << i << "] = " << dot_si_qdot << std::endl;
+		SpatialVector si_qddot = model.S[i] * model.qddot[i];
+		LOG << "si_qddot   [" << i << "] = " << si_qddot << std::endl;
+		global_accelerations.at(i) = global_accelerations.at(lambda) + model.X_base.at(i).inverse() * (
+				dot_si_qdot + si_qddot
+				);
 		LOG << "^0a (" << i << "): " << global_accelerations.at(i) << std::endl;
 
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
 	}
 
 	LOG << std::endl;
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int lambda = model.lambda[i];
+		SpatialMatrix X_lambda = model.X_lambda[i];
+
+		if (lambda == 0) {
+			model.a[i].zero();
+		} else {
+			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
+		}
+
+		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+
+		LOG << "^0a (" << i << "): " << model.X_base[i] * model.a[i] << std::endl;
+	}
 
 	// we now compute the transformation from the local to the global frame of
 	// the body. We split this up into the translation and rotation of the body
@@ -495,32 +527,27 @@ void CalcPointAccelerationDirect (
 	// The derivation for this formula can be found in
 	// doc/notes/point_velocity_acceleration.tex
 
-	Vector3d body_rot_velocity (
-			body_global_velocity[0],
-			body_global_velocity[1],
-			body_global_velocity[2]
-			);
-
 	// compute the linear velocity of the body (we could call
 	// CalcPointVelocity, however we already have all the data here we need)
 	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos) * body_global_velocity;
 	Vector3d point_lin_velocity (point_spatial_velocity[3], point_spatial_velocity[4], point_spatial_velocity[5]);
 
 	//	CalcPointVelocity (model, Q, QDot, body_id, point_position, point_lin_velocity);
-	
-	Vector3d cross_result = cml::cross (body_rot_velocity, point_lin_velocity);
-	LOG << "Cross res = " << cross_result << std::endl;
 
-	LOG << "body_global_vel = " << body_global_velocity << std::endl;
 	LOG << "point_transform = " << point_transform << std::endl;
+	LOG << "body_global_velocity      = " << body_global_velocity<< std::endl;
+	LOG << "body_global_accelerations = " << body_global_acceleration << std::endl;
 
-	SpatialVector body_rot_accel (0., 0., 0., cross_result[0], cross_result[1], cross_result[2]);
+	SpatialVector frame_acceleration = SpatialVector (0., 0., 0., point_lin_velocity[0], point_lin_velocity[1], point_lin_velocity[2]).crossm() * body_global_velocity;
+	LOG << "frame_acceleration = " << frame_acceleration << std::endl;
+
 	SpatialVector body_accel = point_transform * body_global_acceleration;
-	SpatialVector point_spatial_accel = body_accel - body_rot_accel;
+	LOG << "^p body_accel = " << body_accel << std::endl;
 
-	LOG << "body_accel = " << body_accel << std::endl;
-	LOG << "body_rot_accel  = " << body_rot_accel<< std::endl;
+	SpatialVector point_spatial_accel = (body_accel - frame_acceleration) * -1.;
 	LOG << "point_spatial_accel = " << point_spatial_accel << std::endl;
+
+	LOG << std::endl;
 
 	point_acceleration.set (point_spatial_accel[3], point_spatial_accel[4], point_spatial_accel[5]);
 	LOG << "point_acceleration = " << point_acceleration <<  std::endl;
