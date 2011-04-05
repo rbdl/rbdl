@@ -563,7 +563,7 @@ void ComputeContactForces (
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &Tau,
-		const std::vector<ContactInfo> &ContactData,
+		std::vector<ContactInfo> &ContactData,
 		std::vector<SpatialAlgebra::SpatialVector> &Fext
 		) {
 	LOG << "-------- ComputeContactForces ------" << std::endl;
@@ -692,14 +692,14 @@ void ComputeContactForces (
 	Fext = zero_f_ext;
 
 	for (ci = 0; ci < contact_count; ci++) {
-		ContactInfo contact_info = ContactData[ci];
-	
+		ContactData[ci].force = u[ci];
+
 		test_forces[ci] = test_forces[ci] * u[ci];
 		// it is important to *add* the constraint force as multiple forces
 		// might act on the same body
-		Fext[contact_info.body_id] += test_forces[ci];
+		Fext[ContactData[ci].body_id] += test_forces[ci];
 		LOG << "test_forces[" << ci << "] = " << test_forces[ci] << std::endl;
-		LOG << "f_ext[" << contact_info.body_id << "] = " << Fext[contact_info.body_id] << std::endl;
+		LOG << "f_ext[" << ContactData[ci].body_id << "] = " << Fext[ContactData[ci].body_id] << std::endl;
 	}
 }
 
@@ -708,7 +708,7 @@ void ForwardDynamicsContacts (
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &Tau,
-		const std::vector<ContactInfo> &ContactData,
+		std::vector<ContactInfo> &ContactData,
 		cmlVector &QDDot
 		) {
 	LOG << "-------- ForwardDynamicsContacts ------" << std::endl;

@@ -53,13 +53,17 @@ struct ContactInfo;
  * \param Tau   actuations of the internal joints
  * \param ContactData	a list of all contact points and their desired accelerations
  * \param Fext  constraint forces that enforce desired acceleration on the constraints
+ *
+ * \note During execution of this function the values ContactData[i].force
+ * 	get modified and will contain the value of the force acting along
+ * 	the normal.
  */
 void ComputeContactForces (
 		Model &model,
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &Tau,
-		const std::vector<ContactInfo> &ContactData,
+		std::vector<ContactInfo> &ContactData,
 		const std::vector<SpatialAlgebra::SpatialVector> &Fext
 		);
 
@@ -75,13 +79,17 @@ void ComputeContactForces (
  * \param Tau   actuations of the internal joints
  * \param ContactData	a list of all contact points
  * \param QDDot accelerations of the internals joints (output)
+ *
+ * \note During execution of this function the values ContactData[i].force
+ * 	get modified and will contain the value of the force acting along
+ * 	the normal.
  */
 void ForwardDynamicsContacts (
 		Model &model,
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &Tau,
-		const std::vector<ContactInfo> &ContactData,
+		std::vector<ContactInfo> &ContactData,
 		cmlVector &QDDot
 		);
 

@@ -16,13 +16,15 @@ struct ContactInfo {
 		body_id (0),
 		point (0., 0., 0.),
 		normal (0., 0., 0.),
-		acceleration (0.)
+		acceleration (0.),
+		force (0.)
 	{	}
 	ContactInfo (const ContactInfo &contact_info) :
 		body_id (contact_info.body_id),
 		point (contact_info.point),
 		normal (contact_info.normal),
-		acceleration (contact_info.acceleration)
+		acceleration (contact_info.acceleration),
+		force (contact_info.force)
 	{}
 	ContactInfo& operator= (const ContactInfo &contact_info) {
 		if (this != &contact_info) {
@@ -30,6 +32,7 @@ struct ContactInfo {
 			point = contact_info.point;
 			normal = contact_info.normal;
 			acceleration = contact_info.acceleration;
+			force = contact_info.force;
 		}
 
 		return *this;
@@ -40,14 +43,16 @@ struct ContactInfo {
 		body_id (body),
 		point (contact_point),
 		normal (contact_normal),
-		acceleration (0.)
+		acceleration (0.),
+		force (0.)
 	{	}
 
 	ContactInfo (unsigned int body, const Vector3d &contact_point, const Vector3d &contact_normal, const double accel):
 		body_id (body),
 		point (contact_point),
 		normal (contact_normal),
-		acceleration (accel)
+		acceleration (accel),
+		force (force)
 	{	}
 
 	/// \brief The id of the body of which the motion is constrained
@@ -58,6 +63,8 @@ struct ContactInfo {
 	Vector3d normal;
 	/// \brief Acceleration value of the constraint along the normal
 	double acceleration;
+	/// \brief Force acting along the normal
+	double force;
 };
 
 }
