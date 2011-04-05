@@ -187,6 +187,14 @@ class matrix<Element,dynamic<Alloc>,BasisOrient,Layout>
     explicit matrix(size_t rows, size_t cols)
         : array_type(rows,cols) {}
 
+    /** Construct given array size and standard value */
+    explicit matrix(size_t rows, size_t cols, const Element stdval) : array_type(rows,cols) {
+			for (size_t i = 0; i < rows; i++) {
+				for (size_t j = 0; j < cols; j++) {
+					(*this)(i,j) = stdval;
+				}
+			}
+		}
 
   public:
 
@@ -220,9 +228,9 @@ class matrix<Element,dynamic<Alloc>,BasisOrient,Layout>
 
     /* Define common class operators: */
 
-    CML_CONSTRUCT_MAT_22
-    CML_CONSTRUCT_MAT_33
-    CML_CONSTRUCT_MAT_44
+    explicit CML_CONSTRUCT_MAT_22
+    explicit CML_CONSTRUCT_MAT_33
+    explicit CML_CONSTRUCT_MAT_44
 
     CML_MAT_COPY_FROM_ARRAY(: array_type())
     CML_MAT_COPY_FROM_MATTYPE

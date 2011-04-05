@@ -150,14 +150,19 @@ class vector< Element, dynamic<Alloc> >
     /** Construct given array size. */
     vector(size_t N) : array_type(N) {}
 
+    /** Construct given array size and standard value */
+    explicit vector(size_t N, const Element stdval) : array_type(N) {
+			for (size_t i = 0; i < N; i++)
+				(*this)[i] = stdval;
+		}
 
   public:
 
     /* Define common class operators: */
 
-    CML_CONSTRUCT_VEC_2(: array_type())
-    CML_CONSTRUCT_VEC_3(: array_type())
-    CML_CONSTRUCT_VEC_4(: array_type())
+   	explicit CML_CONSTRUCT_VEC_2(: array_type())
+    explicit CML_CONSTRUCT_VEC_3(: array_type())
+    explicit CML_CONSTRUCT_VEC_4(: array_type())
 
     CML_VEC_COPY_FROM_ARRAY(: array_type())
     CML_VEC_COPY_FROM_VECTYPE(: array_type())

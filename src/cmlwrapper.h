@@ -10,6 +10,9 @@ typedef cml::matrix<double, cml::dynamic<> > cmlMatrix;
 typedef cml::vector<double, cml::fixed<3> > Vector3d;
 typedef cml::matrix<double, cml::fixed<3,3> > Matrix3d;
 
+typedef cml::vector<double, cml::dynamic<> > VectorNd;
+typedef cml::matrix<double, cml::dynamic<> > MatrixNd;
+
 typedef cml::quaternion<double, cml::fixed<>, cml::vector_first, cml::positive_cross> Quaternion;
 
 #include "SpatialAlgebra.h"
