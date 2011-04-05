@@ -30,6 +30,15 @@ SpatialMatrix SpatialMatrixIdentity (
 		0., 0., 0., 0., 0., 1.
 		);
 
+SpatialMatrix SpatialMatrixZero ( 
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.
+		);
+
 void VectorCrossVector (Vector3d &result, const Vector3d &vec_a, const Vector3d &vec_b) {
 	result[0] = vec_a[1]*vec_b[2] - vec_a[2]*vec_b[1];
 	result[1] = vec_a[2]*vec_b[0] - vec_a[0]*vec_b[2];

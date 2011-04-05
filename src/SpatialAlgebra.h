@@ -174,6 +174,26 @@ class SpatialVector {
 				+ mData[4] * vector.mData[4] 
 				+ mData[5] * vector.mData[5];
 		}
+		double length () const {
+			return sqrt (
+				  mData[0] * mData[0]
+				+ mData[1] * mData[1]
+				+ mData[2] * mData[2]
+				+ mData[3] * mData[3]
+				+ mData[4] * mData[4]
+				+ mData[5] * mData[5]
+				);
+		}
+		double length_squared () const {
+			return mData[0] * mData[0]
+				+ mData[1] * mData[1]
+				+ mData[2] * mData[2]
+				+ mData[3] * mData[3]
+				+ mData[4] * mData[4]
+				+ mData[5] * mData[5]
+				;
+		}
+
 		double *data() {
 			return mData;
 		}
