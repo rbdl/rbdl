@@ -640,15 +640,15 @@ void ComputeContactForces (
 		// coordinates
 		Vector3d contact_point_position = model.CalcBodyToBaseCoordinates(contact_info.body_id, contact_info.point);
 
-		test_forces[cj] = Xtrans (contact_point_position * -1.).adjoint() * test_force;
+		test_forces[cj] = Xtrans (contact_point_position).adjoint() * test_force;
 		LOG << "body_id         = " << contact_info.body_id << std::endl;
-		// LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id)).adjoint() * test_force_base << std::endl;
 
 		// apply the test force
 		model.f_ext[contact_info.body_id] = test_forces[cj];
 		cmlVector QDDot_test_ext (QDot);
 
 		LOG << "-------- TEST_EXT -------" << std::endl;
+		LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id) - contact_point_position).adjoint() * test_forces[cj] << std::endl;
 		LOG << "test_force_base = " << test_forces[cj] << std::endl;
 		{
 			SUPPRESS_LOGGING;
@@ -683,6 +683,10 @@ void ComputeContactForces (
 	LOG << "Ae = " << std::endl << Ae << std::endl;
 	LOG << "C0 = " << C0 << std::endl;
 	LinSolveGaussElimPivot (Ae, C0, u);
+
+	// !!!
+	u[0] = 8.81;
+//	test_forces[0].zero(); 
 
 	LOG << "u = " << u << std::endl;
 
@@ -722,6 +726,7 @@ void ForwardDynamicsContacts (
 	unsigned int i;
 	for (i = 0; i < model.f_ext.size(); i++) {
 		model.f_ext[i] += contact_f_ext[i];
+		LOG << "f_ext[" << i << "] = " << model.f_ext[i] << std::endl;
 	}
 
 	LOG << "-------- APPLY_EXT ------" << std::endl;
@@ -729,6 +734,10 @@ void ForwardDynamicsContacts (
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot);
 	}
+	LOG << "apply q     = " << Q << std::endl;
+	LOG << "apply qdot  = " << QDot << std::endl;
+	LOG << "apply tau   = " << Tau << std::endl;
+	LOG << "apply qddot = " << QDDot << std::endl;
 }
 
 /*

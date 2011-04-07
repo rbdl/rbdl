@@ -327,9 +327,9 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	ContactInfo ground_y (contact_body_id, contact_point, Vector3d (0., 1., 0.));
 	ContactInfo ground_z (contact_body_id, contact_point, Vector3d (0., 0., 1.));
 
-	contact_data.push_back (ground_x);
+//	contact_data.push_back (ground_x);
 	contact_data.push_back (ground_y);
-	contact_data.push_back (ground_z);
+//	contact_data.push_back (ground_z);
 
 	// We want the body to rotate around its contact point which is located
 	// at (0, 0, 0). There it should have a pure rotation of negative unit
@@ -353,75 +353,50 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	cout << "velocity_body = " << velocity_body << std::endl;
 	cout << "QDot = " << QDot << std::endl;
 
-	{
-		SUPPRESS_LOGGING;
-		ForwardDynamics (*float_model, Q, QDot, Tau, QDDot);
-	}
+	ForwardDynamics (*float_model, Q, QDot, Tau, QDDot);
 
-	Vector3d test_point;
-	{
-		SUPPRESS_LOGGING;
-		test_point = float_model->CalcBodyToBaseCoordinates(contact_data[0].body_id, contact_data[0].point);
-	}
-	cout << "contact_point = " << test_point << std::endl;
-	
-	Vector3d test_velocity;
-	{
-		SUPPRESS_LOGGING;
-		CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, contact_data[0].point, test_velocity);
-	}
-	cout << "contact_velocity = " << test_velocity << std::endl;
-	
 	QDDot.zero();
 	QDDot[0] = 0.;
+
+	Vector3d test_point;
+	Vector3d test_velocity;
 	Vector3d test_accel;
-	{
-		SUPPRESS_LOGGING;
-		CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, contact_data[0].point, test_accel);
-	}
 
-	cout << "contact_accel = " << test_accel << endl;
+	test_point = float_model->CalcBodyToBaseCoordinates(contact_data[0].body_id, contact_data[0].point);
+	CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, contact_data[0].point, test_velocity);
+	CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, contact_data[0].point, test_accel);
+	
+	cout << "q     = " << Q << endl;
+	cout << "qdot  = " << QDot << endl;
+	cout << "tau   = " << Tau << endl;
+	cout << "qddot = " << QDDot << endl;
 
-	{
-		SUPPRESS_LOGGING;
-		CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_velocity);
-	}
-	cout << "base_velocity = " << test_velocity << std::endl;
+	cout << "contact_point    = " << test_point << std::endl;
+	cout << "contact_velocity = " << test_velocity << std::endl;
+	cout << "contact_accel    = " << test_accel << endl;
+
+	CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_velocity);
+	cout << "base_velocity    = " << test_velocity << std::endl;
 
 	cout << "FWD" << endl;
-	ForwardDynamicsContacts (*float_model, Q, QDot, Tau, contact_data, QDDot);
 
-//	cout << LogOutput.str() << endl;
+	ClearLogOutput();
+	ForwardDynamicsContacts (*float_model, Q, QDot, Tau, contact_data, QDDot);
+	cout << LogOutput.str() << endl;
 //	cout << "QDot = " << QDot << std::endl;
-//	cout << "QDDot = " << QDDot << std::endl;
 
 //	cout << "--- post ---" << endl;
 	// check the velocity of the contact point
-	{
-		SUPPRESS_LOGGING;
-		CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, contact_data[0].point, test_accel);
-	}
-	cout << "contact accel = " << test_accel << endl;
+	CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, contact_data[0].point, test_accel);
+	cout << "contact accel   = " << test_accel << endl;
+	CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_accel);
+	cout << "base accel      = " << test_accel << endl;
+	CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, Vector3d (0., -1., 0.), test_velocity);
+	cout << "contact veloc   = " << test_velocity << endl;
+	CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_velocity);
+	cout << "base veloc      = " << test_velocity << endl;
 
-	{
-		SUPPRESS_LOGGING;
-		CalcPointAcceleration (*float_model, Q, QDot, QDDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_accel);
-	}
-	cout << "base accel = " << test_accel << endl;
-
-	{
-		SUPPRESS_LOGGING;
-		CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, Vector3d (0., -1., 0.), test_velocity);
-	}
-	cout << "contact veloc = " << test_velocity << endl;
-
-	{
-		SUPPRESS_LOGGING;
-		CalcPointVelocity (*float_model, Q, QDot, contact_data[0].body_id, Vector3d (0., 0., 0.), test_velocity);
-	}
-	cout << "base veloc = " << test_velocity << endl;
-
-	cout << "Contact force = ";
+	cout << "Contact force   = ";
 	unsigned int i;
 	for (i = 0; i < contact_data.size(); i++) {
 		cout << contact_data[i].force << " ";
@@ -430,6 +405,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 
 	cout << "q     = " << Q << endl;
 	cout << "qdot  = " << QDot << endl;
+	cout << "tau   = " << Tau << endl;
 	cout << "qddot = " << QDDot << endl;
 
 	cmlVector qddot_test (6);
