@@ -265,11 +265,11 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 	cout << "\tqdd = " << qddot ;
 
 	Vector3d contact_point_world_vel;
-	CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point, contact_point_world_vel);
+	contact_point_world_vel = CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point);
 	cout << "\tCPvel = " << contact_point_world_vel;
 
 	Vector3d contact_point_world_acc;
-	CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point, contact_point_world_acc);
+	contact_point_world_acc = CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point);
 	cout << "\tCPacc = " << contact_point_world_acc;
 
 	cmlVector res (size * 2);
@@ -307,11 +307,11 @@ cmlVector rhs_normal (double t, const cmlVector &y) {
 	cout << "Q = " << Q << "\tCP = " << contact_point_world;
 
 	Vector3d contact_point_world_vel;
-	CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point, contact_point_world_vel);
+	contact_point_world_vel = CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point);
 	cout << "\tCPvel = " << contact_point_world_vel;
 
 	Vector3d contact_point_world_acc;
-	CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point, contact_point_world_acc);
+	contact_point_world_acc = CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point);
 	cout << "\tCPacc = " << contact_point_world_acc << endl;
 
 	cmlVector res (size * 2);

@@ -16,15 +16,15 @@ namespace RigidBodyDynamics {
  * \param QDot    velocity vector of the internal joints
  * \param body_id the id of the body
  * \param point_position the position of the point in body-local data
- * \param point_velocity cartesian velocity of the point in global frame (output)
+ *
+ * \returns The cartesian velocity of the point in global frame (output)
  */
-void CalcPointVelocity (
+Vector3d CalcPointVelocity (
 		Model &model,
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		unsigned int body_id,
-		const Vector3d &point_position,
-		Vector3d &point_velocity
+		const Vector3d &point_position
 		);
 
 /** \brief Computes the acceleration of a point on a body 
@@ -35,16 +35,16 @@ void CalcPointVelocity (
  * \param QDDot    velocity vector of the internal joints
  * \param body_id the id of the body
  * \param point_position the position of the point in body-local data
- * \param point_acceleration cartesian velocity of the point in global frame (output)
+
+ * \returns The cartesian acceleration of the point in global frame (output)
  */
-void CalcPointAcceleration (
+Vector3d CalcPointAcceleration (
 		Model &model,
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &QDDot,
 		unsigned int body_id,
-		const Vector3d &point_position,
-		Vector3d &point_acceleration
+		const Vector3d &point_position
 		);
 
 }

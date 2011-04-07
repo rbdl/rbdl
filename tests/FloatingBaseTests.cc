@@ -344,7 +344,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 	Vector3d point_position(1., 0., 0.);
 	Vector3d point_velocity;
 
-	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
+	point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
 	CHECK_CLOSE(1., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE(0., point_velocity[1], TEST_PREC);
@@ -359,7 +359,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 	QDot[0] = 0.;
 	QDot[3] = 1.;
 
-	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
+	point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
 	CHECK_CLOSE(0., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE(1., point_velocity[1], TEST_PREC);
@@ -374,7 +374,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 	Q[3] = M_PI * 0.5;
 	QDot[3] = 1.;
 
-	CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position, point_velocity);
+	point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
 	CHECK_CLOSE(-1., point_velocity[0], TEST_PREC);
 	CHECK_CLOSE(0., point_velocity[1], TEST_PREC);
@@ -423,7 +423,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
 
 	ForwardDynamics(*model, q, qdot, tau, qddot);
 
-	CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position, point_base_velocity);
+	point_base_velocity = CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position);
 
 	point_base_velocity_reference.set (
 			 -3.888503432977729e-01,
@@ -487,13 +487,13 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
 	qdot = qdot;
 
 	point_world_position = model->CalcBodyToBaseCoordinates(ref_body_id, point_body_position);
-	CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position, point_world_velocity);
+	point_world_velocity = CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position);
 
 	// we set the generalized acceleration to zero
 
 	ClearLogOutput();
 
-	CalcPointAcceleration (*model, q, qdot, qddot, ref_body_id, point_body_position, point_world_acceleration);
+	point_world_acceleration = CalcPointAcceleration (*model, q, qdot, qddot, ref_body_id, point_body_position);
 
 	Vector3d humans_point_position (
 			-6.357089363622626e-01, -6.831041744630977e-01, 2.968974805916970e+00
@@ -569,11 +569,11 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
 //	cout << "ref_body_id = " << ref_body_id << endl;
 //	cout << "point_body_position = " << point_body_position << endl;
 	point_world_position = model->CalcBodyToBaseCoordinates(ref_body_id, point_body_position);
-	CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position, point_world_velocity);
+	point_world_velocity = CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position);
 
 	ClearLogOutput();
 
-	CalcPointAcceleration (*model, q, qdot, qddot, ref_body_id, point_body_position, point_world_acceleration);
+	point_world_acceleration = CalcPointAcceleration (*model, q, qdot, qddot, ref_body_id, point_body_position);
 
 	Vector3d humans_point_position (
 			-1.900000000000000e+00, -1.800000000000000e+00, 0.000000000000000e+00
@@ -660,11 +660,11 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFull) {
 //	cout << "ref_body_id = " << ref_body_id << endl;
 //	cout << "point_body_position = " << point_body_position << endl;
 	point_world_position = model->CalcBodyToBaseCoordinates(ref_body_id, point_body_position);
-	CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position, point_world_velocity);
+	point_world_velocity = CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position);
 
 	ClearLogOutput();
 
-	CalcPointAcceleration (*model, q, qdot, qddot, ref_body_id, point_body_position, point_world_acceleration);
+	point_world_acceleration = CalcPointAcceleration (*model, q, qdot, qddot, ref_body_id, point_body_position);
 
 	Vector3d humans_point_position (
 			-6.357089363622626e-01, -6.831041744630977e-01, 2.968974805916970e+00

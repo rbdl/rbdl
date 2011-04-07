@@ -529,7 +529,7 @@ void ComputeContactForces (
 		Vector3d point_accel;
 		{
 			SUPPRESS_LOGGING;
-			CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point, point_accel);
+			point_accel = CalcPointAcceleration (model, Q, QDot, QDDot_zero_ext, contact_info.body_id, contact_info.point);
 		}
 
 		// evaluate a0 and C0
@@ -574,7 +574,7 @@ void ComputeContactForces (
 			Vector3d point_test_accel;
 			{
 				SUPPRESS_LOGGING;
-				CalcPointAcceleration (model, Q, QDot, QDDot_test_ext, test_contact_info.body_id, test_contact_info.point, point_test_accel);
+				point_test_accel = CalcPointAcceleration (model, Q, QDot, QDDot_test_ext, test_contact_info.body_id, test_contact_info.point);
 			}
 
 			// acceleration due to the test force
