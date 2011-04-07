@@ -4,7 +4,7 @@
  * This is the documentation of a yet to be named rigid body simulation
  * code. So far the code supports the simulation of forward dynamics of
  * tree structured (i.e. no kinematic loops) rigid body models by using the
- * Articulated Body Algorithm (ABA) by Roy Featherstone. The code is
+ * Articulated Body Algorithm (ABA) from Roy Featherstone. The code is
  * written by Martin Felis <martin@silef.de> and heavily inspired by the
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of
  * Featherstone.
