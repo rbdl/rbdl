@@ -7,8 +7,8 @@
 
 #include "Model.h"
 #include "Kinematics.h"
-#include "Dynamics_stdvec.h"
 #include "Dynamics.h"
+#include "Dynamics_experimental.h"
 
 using namespace std;
 using namespace SpatialAlgebra;
@@ -60,13 +60,15 @@ TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 	model->experimental_floating_base = true;
+
 	base_body_id = model->SetFloatingBaseBody(base);
 	CHECK_EQUAL (0u, base_body_id);
 
-	std::vector<double> Q (0, 0.);
-	std::vector<double> QDot (0, 0.);
-	std::vector<double> QDDot (0, 0.);
-	std::vector<double> Tau (0, 0.);
+	// Initialization of the input vectors
+	VectorNd Q ((size_t) 0, 0.);
+	VectorNd QDot ((size_t) 0, 0.);
+	VectorNd QDDot ((size_t) 0, 0.);
+	VectorNd Tau ((size_t) 0, 0.);
 
 	Vector3d pos_B(0., 0., 0.);
 	Vector3d rot_B(0., 0., 0.);
@@ -80,7 +82,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 
 	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
 	for (i = 0; i < model->a.size(); i++) {
@@ -103,7 +105,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 	SpatialVector a_world = X_B.inverse() * a_B;
 
 	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
 	for (i = 0; i < model->a.size(); i++) {
@@ -134,10 +136,11 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 
 	model->AddBody(0, Xtrans(Vector3d(2., 0., 0.)), joint_a, body_a);
 
-	std::vector<double> Q (1, 0.);
-	std::vector<double> QDot (1, 0.);
-	std::vector<double> QDDot (1, 0.);
-	std::vector<double> Tau (1, 0.);
+	// Initialization of the input vectors
+	VectorNd Q ((size_t) 1, 0.);
+	VectorNd QDot ((size_t) 1, 0.);
+	VectorNd QDDot ((size_t) 1, 0.);
+	VectorNd Tau ((size_t) 1, 0.);
 
 	Vector3d pos_B(0., 0., 0.);
 	Vector3d rot_B(0., 0., 0.);
@@ -152,7 +155,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 
 	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
 	for (i = 0; i < model->a.size(); i++) {
@@ -177,7 +180,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 	a_world = X_B.inverse() * a_B;
 
 	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
 	for (i = 0; i < model->a.size(); i++) {
@@ -204,7 +207,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 	a_world = X_B.inverse() * a_B;
 
 	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
 	for (i = 0; i < model->a.size(); i++) {
@@ -236,16 +239,17 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 
 	model->AddBody(base_body_id, Xtrans(Vector3d(2., 0., 0.)), joint_a, body_a);
 
-	std::vector<double> Q (7, 0.);
-	std::vector<double> QDot (7, 0.);
-	std::vector<double> QDDot (7, 0.);
-	std::vector<double> Tau (7, 0.);
+	// Initialization of the input vectors
+	VectorNd Q ((size_t) model->dof_count, 0.);
+	VectorNd QDot ((size_t) model->dof_count, 0.);
+	VectorNd QDDot ((size_t) model->dof_count, 0.);
+	VectorNd Tau ((size_t) model->dof_count, 0.);
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
 	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
 	for (i = 0; i < model->a.size(); i++) {
@@ -267,7 +271,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
 	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
 	for (i = 0; i < model->a.size(); i++) {
@@ -296,7 +300,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
 	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot.at(i) << endl;
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
 	}
 
 	for (i = 0; i < model->a.size(); i++) {

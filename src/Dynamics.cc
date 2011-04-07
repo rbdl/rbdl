@@ -8,51 +8,13 @@
 #include "Model.h"
 #include "Contacts.h"
 #include "Dynamics.h"
-#include "Dynamics_stdvec.h"
+// #include "Dynamics_stdvec.h"
 #include "Dynamics_experimental.h"
 #include "Kinematics.h"
 
 using namespace SpatialAlgebra;
 
 namespace RigidBodyDynamics {
-
-/*
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param QDDot accelerations of the internals joints (output)
- */
-void ForwardDynamics (
-		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		cmlVector &QDDot
-		) {
-	std::vector<double> Q_stdvec (Q.size());
-	std::vector<double> QDot_stdvec (QDot.size());
-	std::vector<double> QDDot_stdvec (QDDot.size());
-	std::vector<double> Tau_stdvec (Tau.size());
-
-	unsigned int i;
-	for (i = 0; i < Q.size(); i++)
-		Q_stdvec[i] = Q[i];
-
-	for (i = 0; i < QDot.size(); i++)
-		QDot_stdvec[i] = QDot[i];
-
-	for (i = 0; i < QDDot.size(); i++)
-		QDDot_stdvec[i] = QDDot[i];
-
-	for (i = 0; i < Tau.size(); i++)
-		Tau_stdvec[i] = Tau[i];
-
-	ForwardDynamics (model, Q_stdvec, QDot_stdvec, Tau_stdvec, QDDot_stdvec);
-
-	for (i = 0; i < QDDot.size(); i++)
-		QDDot[i] = QDDot_stdvec[i];
-}
 
 /*
  * \param model rigid body model
@@ -139,62 +101,12 @@ void ForwardDynamicsFloatingBase (
 	}
 }
 
-/*
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param X_B   transformation into base coordinates
- * \param v_B   velocity of the base (in base coordinates)
- * \param f_B   forces acting on the base (in base coordinates)
- * \param a_B   accelerations of the base (output, in base coordinates)
- * \param QDDot accelerations of the internals joints (output)
- */
-void ForwardDynamicsFloatingBaseExpl (
+void ForwardDynamics (
 		Model &model,
 		const cmlVector &Q,
 		const cmlVector &QDot,
 		const cmlVector &Tau,
-		const SpatialMatrix &X_B,
-		const SpatialVector &v_B,
-		const SpatialVector &f_B,
-		SpatialVector &a_B,
 		cmlVector &QDDot
-		) {
-	LOG << "-------- " << __func__ << " --------" << std::endl;
-
-	assert (model.experimental_floating_base);
-
-	std::vector<double> Q_stdvec (Q.size());
-	std::vector<double> QDot_stdvec (QDot.size());
-	std::vector<double> QDDot_stdvec (QDDot.size());
-	std::vector<double> Tau_stdvec (Tau.size());
-
-	unsigned int i;
-	for (i = 0; i < Q.size(); i++)
-		Q_stdvec[i] = Q[i];
-
-	for (i = 0; i < QDot.size(); i++)
-		QDot_stdvec[i] = QDot[i];
-
-	for (i = 0; i < QDDot.size(); i++)
-		QDDot_stdvec[i] = QDDot[i];
-
-	for (i = 0; i < Tau.size(); i++)
-		Tau_stdvec[i] = Tau[i];
-
-	ForwardDynamicsFloatingBaseExpl (model, Q_stdvec, QDot_stdvec, Tau_stdvec, X_B, v_B, f_B, a_B, QDDot_stdvec);
-
-	for (i = 0; i < QDDot.size(); i++)
-		QDDot[i] = QDDot_stdvec[i];
-}
-
-void ForwardDynamics (
-		Model &model,
-		const std::vector<double> &Q,
-		const std::vector<double> &QDot,
-		const std::vector<double> &Tau,
-		std::vector<double> &QDDot
 		) {
 	if (model.experimental_floating_base) {
 		cmlVector q (Q.size());
@@ -237,10 +149,10 @@ void ForwardDynamics (
 	assert (model.tau.size() == Tau.size() + 1);
 
 	for (i = 0; i < Q.size(); i++) {
-		model.q.at(i+1) = Q.at(i);
-		model.qdot.at(i+1) = QDot.at(i);
-		model.qddot.at(i+1) = QDDot.at(i);
-		model.tau.at(i+1) = Tau.at(i);
+		model.q[i+1] = Q[i];
+		model.qdot[i+1] = QDot[i];
+		model.qddot[i+1] = QDDot[i];
+		model.tau[i+1] = Tau[i];
 	}
 
 	// Reset the velocity of the root body
@@ -253,7 +165,7 @@ void ForwardDynamics (
 		Joint joint = model.mJoints.at(i);
 		unsigned int lambda = model.lambda.at(i);
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
 		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
 
 		model.X_lambda.at(i) = X_J * model.X_T.at(i);
@@ -393,14 +305,14 @@ void ForwardDynamics (
 
 void ForwardDynamicsFloatingBaseExpl (
 		Model &model,
-		const std::vector<double> &Q,
-		const std::vector<double> &QDot,
-		const std::vector<double> &Tau,
+		const cmlVector &Q,
+		const cmlVector &QDot,
+		const cmlVector &Tau,
 		const SpatialMatrix &X_B,
 		const SpatialVector &v_B,
 		const SpatialVector &f_B,
 		SpatialVector &a_B,
-		std::vector<double> &QDDot
+		cmlVector &QDDot
 		)
 {
 	SpatialVector result;
@@ -411,7 +323,7 @@ void ForwardDynamicsFloatingBaseExpl (
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	unsigned int i;
-	
+
 	// Copy state values from the input to the variables in model
 	assert (model.dof_count == Q.size() + 6);
 	assert (model.dof_count == QDot.size() + 6);
@@ -419,10 +331,10 @@ void ForwardDynamicsFloatingBaseExpl (
 	assert (model.dof_count == Tau.size() + 6);
 
 	for (i = 0; i < Q.size(); i++) {
-		model.q.at(i+1) = Q.at(i);
-		model.qdot.at(i+1) = QDot.at(i);
-		model.qddot.at(i+1) = QDDot.at(i);
-		model.tau.at(i+1) = Tau.at(i);
+		model.q[i+1] = Q[i];
+		model.qdot[i+1] = QDot[i];
+		model.qddot[i+1] = QDDot[i];
+		model.tau[i+1] = Tau[i];
 	}
 
 	// Reset the velocity of the root body
@@ -437,7 +349,7 @@ void ForwardDynamicsFloatingBaseExpl (
 		Joint joint = model.mJoints.at(i);
 		unsigned int lambda = model.lambda.at(i);
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
 //		SpatialMatrix X_T (joint.mJointTransform);
 //		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
 

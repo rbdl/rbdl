@@ -27,10 +27,16 @@ void Model::Init() {
 	dof_count = 0;
 
 	// state information
-	q.push_back(0.);
-	qdot.push_back(0.);
-	qddot.push_back(0.);
-	tau.push_back(0.);
+	q.resize(1);
+	qdot.resize(1);
+	qddot.resize(1);
+	tau.resize(1);
+
+	q.zero();
+	qdot.zero();
+	qddot.zero();
+	tau.zero();
+
 	v.push_back(zero_spatial);
 	a.push_back(zero_spatial);
 
@@ -44,8 +50,13 @@ void Model::Init() {
 	IA.push_back(SpatialMatrixIdentity);
 	pA.push_back(zero_spatial);
 	U.push_back(zero_spatial);
-	d.push_back(0.);
-	u.push_back(0.);
+
+	d.resize(1);
+	u.resize(1);
+
+	d.zero();
+	u.zero();
+
 	f_ext.push_back (zero_spatial);
 
 	// Bodies
@@ -69,10 +80,10 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	dof_count += 1;
 
 	// state information
-	q = std::vector<double> (dof_count + 1);
-	qdot = std::vector<double> (dof_count + 1);
-	qddot = std::vector<double> (dof_count + 1);
-	tau = std::vector<double> (dof_count + 1);
+	q.resize (dof_count + 1);
+	qdot.resize (dof_count + 1);
+	qddot.resize (dof_count + 1);
+	tau.resize (dof_count + 1);
 
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
@@ -89,8 +100,8 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	IA.push_back(body.mSpatialInertia);
 	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
-	d.push_back(0.);
-	u.push_back(0.);
+	d.resize (dof_count + 1);
+	u.resize (dof_count + 1);
 	f_ext.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 
 	// Bodies
@@ -107,10 +118,11 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 	if (experimental_floating_base) {
 		// we also will have 6 more degrees of freedom
 		dof_count += 6;
-		q = std::vector<double> (dof_count + 1);
-		qdot = std::vector<double> (dof_count + 1);
-		qddot = std::vector<double> (dof_count + 1);
-		tau = std::vector<double> (dof_count + 1);
+
+		q.resize (dof_count + 1);
+		qdot.resize (dof_count + 1);
+		qddot.resize (dof_count + 1);
+		tau.resize (dof_count + 1);
 
 		// parent is the maximum possible value to mark it as having no parent
 		lambda.at(0) = std::numeric_limits<unsigned int>::max();

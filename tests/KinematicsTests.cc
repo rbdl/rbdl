@@ -7,7 +7,7 @@
 
 #include "Model.h"
 #include "Kinematics.h"
-#include "Dynamics_stdvec.h"
+#include "Dynamics.h"
 
 using namespace std;
 using namespace SpatialAlgebra;
@@ -69,10 +69,10 @@ struct KinematicsFixture {
 
 		body_d_id = model->AddBody(body_c_id, Xtrans(Vector3d(0., 0., -1.)), joint_c, body_d);
 
-		Q = std::vector<double> (4, 0.);
-		QDot = std::vector<double> (4, 0.);
-		QDDot = std::vector<double> (4, 0.);
-		Tau = std::vector<double> (4, 0.);
+		Q = VectorNd ((size_t) model->dof_count, 0.);
+		QDot = VectorNd ((size_t) model->dof_count, 0.);
+		QDDot = VectorNd ((size_t) model->dof_count, 0.);
+		Tau = VectorNd ((size_t) model->dof_count, 0.);
 
 		ClearLogOutput();
 	}
@@ -86,10 +86,10 @@ struct KinematicsFixture {
 	Body body_a, body_b, body_c, body_d;
 	Joint joint_a, joint_b, joint_c, joint_d;
 
-	std::vector<double> Q;
-	std::vector<double> QDot;
-	std::vector<double> QDDot;
-	std::vector<double> Tau;
+	VectorNd Q;
+	VectorNd QDot;
+	VectorNd QDDot;
+	VectorNd Tau;
 };
 
 TEST_FIXTURE(KinematicsFixture, TestPositionNeutral) {

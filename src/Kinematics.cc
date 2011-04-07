@@ -12,70 +12,6 @@ using namespace SpatialAlgebra;
 
 namespace RigidBodyDynamics {
 
-/*
- * \param model   rigid body model
- * \param Q       state vector of the internal joints
- * \param QDot    velocity vector of the internal joints
- * \param body_id the id of the body
- * \param point_position the position of the point in body-local data
- * \param point_velocity cartesian velocity of the point in global frame (output)
- */
-void CalcPointVelocity (
-		Model &model,
-		const std::vector<double> &Q,
-		const std::vector<double> &QDot,
-		unsigned int body_id,
-		const Vector3d &point_position,
-		Vector3d &point_velocity
-		) {
-	cmlVector cmlQ (Q.size());
-	cmlVector cmlQDot (QDot.size());
-
-	unsigned int i;
-	for (i = 0; i < Q.size(); i++)
-		cmlQ[i] = Q[i];
-
-	for (i = 0; i < QDot.size(); i++)
-		cmlQDot[i] = QDot[i];
-
-	CalcPointVelocity( model, cmlQ, cmlQDot, body_id, point_position, point_velocity);
-}
-
-/*
- * \param model   rigid body model
- * \param Q       state vector of the internal joints
- * \param QDot    velocity vector of the internal joints
- * \param QDDot    velocity vector of the internal joints
- * \param body_id the id of the body
- * \param point_position the position of the point in body-local data
- * \param point_acceleration cartesian velocity of the point in global frame (output)
- */
-void CalcPointAcceleration (
-		Model &model,
-		const std::vector<double> &Q,
-		const std::vector<double> &QDot,
-		const std::vector<double> &QDDot,
-		unsigned int body_id,
-		const Vector3d &point_position,
-		Vector3d &point_acceleration
-		) {
-	cmlVector cmlQ (Q.size());
-	cmlVector cmlQDot (QDot.size());
-	cmlVector cmlQDDot (QDDot.size());
-
-	unsigned int i;
-	for (i = 0; i < Q.size(); i++) 
-		cmlQ[i] = Q[i];
-
-	for (i = 0; i < QDot.size(); i++)
-		cmlQDot[i] = QDot[i];
-
-	for (i = 0; i < QDDot.size(); i++)
-		cmlQDDot[i] = QDDot[i];
-
-	CalcPointAcceleration( model, cmlQ, cmlQDot, cmlQDDot, body_id, point_position, point_acceleration);
-}
-
 void CalcPointVelocity (
 		Model &model,
 		const cmlVector &Q,
@@ -109,8 +45,8 @@ void CalcPointVelocity (
 		if (model.mBodies.size() > 1) {
 			// Copy state values from the input to the variables in model
 			for (i = 1; i < model.mBodies.size(); i++) {
-				model.q.at(i) = Q[6 + i];
-				model.qdot.at(i) = QDot[6 + i];
+				model.q[i] = Q[6 + i];
+				model.qdot[i] = QDot[6 + i];
 			}
 		}
 	} else {
@@ -123,8 +59,8 @@ void CalcPointVelocity (
 
 		// Copy state values from the input to the variables in model
 		for (i = 0; i < Q.size(); i++) {
-			model.q.at(i+1) = Q[i];
-			model.qdot.at(i+1) = QDot[i];
+			model.q[i+1] = Q[i];
+			model.qdot[i+1] = QDot[i];
 		}
 	}
 	
@@ -135,8 +71,8 @@ void CalcPointVelocity (
 		Joint joint = model.mJoints.at(i);
 		unsigned int lambda = model.lambda.at(i);
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
-		LOG << "q(" << i << "):" << model.q.at(i) << std::endl;
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
+		LOG << "q(" << i << "):" << model.q[i] << std::endl;
 
 		model.X_lambda.at(i) = X_J * model.X_T.at(i);
 
@@ -231,9 +167,9 @@ void CalcPointAccelerationFeatherstone (
 		if (model.mBodies.size() > 1) {
 			// Copy state values from the input to the variables in model
 			for (i = 1; i < model.mBodies.size(); i++) {
-				model.q.at(i) = Q[6 + i];
-				model.qdot.at(i) = QDot[6 + i];
-				model.qddot.at(i) = QDDot[6 + i];
+				model.q[i] = Q[6 + i];
+				model.qdot[i] = QDot[6 + i];
+				model.qddot[i] = QDDot[6 + i];
 			}
 		}
 	} else {
@@ -247,9 +183,9 @@ void CalcPointAccelerationFeatherstone (
 
 		// Copy state values from the input to the variables in model
 		for (i = 0; i < Q.size(); i++) {
-			model.q.at(i+1) = Q[i];
-			model.qdot.at(i+1) = QDot[i];
-			model.qddot.at(i+1) = QDDot[i];
+			model.q[i+1] = Q[i];
+			model.qdot[i+1] = QDot[i];
+			model.qddot[i+1] = QDDot[i];
 		}
 	}
 
@@ -266,7 +202,7 @@ void CalcPointAccelerationFeatherstone (
 		Joint joint = model.mJoints.at(i);
 		unsigned int lambda = model.lambda.at(i);
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
 
 		model.X_lambda.at(i) = X_J * model.X_T.at(i);
 
@@ -376,9 +312,9 @@ void CalcPointAccelerationDirect (
 		if (model.mBodies.size() > 1) {
 			// Copy state values from the input to the variables in model
 			for (i = 1; i < model.mBodies.size(); i++) {
-				model.q.at(i) = Q[6 + i];
-				model.qdot.at(i) = QDot[6 + i];
-				model.qddot.at(i) = QDDot[6 + i];
+				model.q[i] = Q[6 + i];
+				model.qdot[i] = QDot[6 + i];
+				model.qddot[i] = QDDot[6 + i];
 			}
 		}
 	} else {
@@ -392,9 +328,9 @@ void CalcPointAccelerationDirect (
 
 		// Copy state values from the input to the variables in model
 		for (i = 0; i < Q.size(); i++) {
-			model.q.at(i+1) = Q[i];
-			model.qdot.at(i+1) = QDot[i];
-			model.qddot.at(i+1) = QDDot[i];
+			model.q[i+1] = Q[i];
+			model.qdot[i+1] = QDot[i];
+			model.qddot[i+1] = QDDot[i];
 		}
 	}
 
@@ -405,8 +341,8 @@ void CalcPointAccelerationDirect (
 		Joint joint = model.mJoints.at(i);
 		unsigned int lambda = model.lambda.at(i);
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q.at(i), model.qdot.at(i));
-		LOG << "q(" << i << "):" << model.q.at(i) << std::endl;
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
+		LOG << "q(" << i << "):" << model.q[i] << std::endl;
 
 		model.X_lambda.at(i) = X_J * model.X_T.at(i);
 

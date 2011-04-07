@@ -6,7 +6,7 @@
 #include "Logging.h"
 
 #include "Model.h"
-#include "Kinematics_stdvec.h"
+#include "Kinematics.h"
 
 using namespace std;
 using namespace SpatialAlgebra;
@@ -56,9 +56,9 @@ struct ModelAccelerationsFixture {
 
 		body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
-		Q = std::vector<double> (3, 0.);
-		QDot = std::vector<double> (3, 0.);
-		QDDot = std::vector<double> (3, 0.);
+		Q = VectorNd ((size_t) model->dof_count, 0.);
+		QDot = VectorNd ((size_t) model->dof_count, 0.);
+		QDDot = VectorNd ((size_t) model->dof_count, 0.);
 
 		point_position.zero();
 		point_acceleration.zero();
@@ -76,9 +76,9 @@ struct ModelAccelerationsFixture {
 	Body body_a, body_b, body_c;
 	Joint joint_a, joint_b, joint_c;
 
-	std::vector<double> Q;
-	std::vector<double> QDot;
-	std::vector<double> QDDot;
+	VectorNd Q;
+	VectorNd QDot;
+	VectorNd QDDot;
 
 	Vector3d point_position, point_acceleration;
 };

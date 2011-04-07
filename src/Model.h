@@ -113,13 +113,14 @@ struct Model {
 	 * q[NDOF] - joint NDOF <br>
 	 *
 	 */
-	std::vector<double> q;
+	
+	VectorNd q;
 	/// \brief The joint velocity
-	std::vector<double> qdot;
+	VectorNd qdot;
 	/// \brief The joint acceleration
-	std::vector<double> qddot;
+	VectorNd qddot;
 	/// \brief The force / torque applied at joint i
-	std::vector<double> tau;
+	VectorNd tau;
 	/// \brief The spatial velocity of body i
 	std::vector<SpatialAlgebra::SpatialVector> v;
 	/// \brief The spatial acceleration of body i
@@ -147,9 +148,9 @@ struct Model {
 	/// \brief Temporary variable U_i (RBDA p. 130)
 	std::vector<SpatialAlgebra::SpatialVector> U;
 	/// \brief Temporary variable D_i (RBDA p. 130)
-	std::vector<double> d;
+	VectorNd d;
 	/// \brief Temporary variable u (RBDA p. 130)
-	std::vector<double> u;
+	VectorNd u;
 	/// \brief Forces acting on the body (in base coordinates)
 	std::vector<SpatialAlgebra::SpatialVector> f_ext;
 
