@@ -15,17 +15,17 @@ struct MathFixture {
 TEST (GaussElimPivot) {
 	ClearLogOutput();
 
-	cmlMatrix A;
+	MatrixNd A;
 	A.resize(3,3);
-	cmlVector b(3);
-	cmlVector x(3);
+	VectorNd b(3);
+	VectorNd x(3);
 
 	A.set(0, 2, 1,
 			1, 1, 5,
 			0, 0, 1);
 	b.set(1,2,3);
 
-	cmlVector test_result (3);
+	VectorNd test_result (3);
 	test_result.set (-12, -1, 3);
 
 	LinSolveGaussElimPivot (A, b, x);

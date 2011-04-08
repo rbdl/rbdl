@@ -29,16 +29,16 @@ namespace RigidBodyDynamics {
  */
 void ForwardDynamicsFloatingBase (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		cmlVector &QDDot
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		VectorNd &QDDot
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	cmlVector q_expl (Q.size() - 6);
-	cmlVector qdot_expl (QDot.size() - 6);
-	cmlVector tau_expl (Tau.size() - 6);
-	cmlVector qddot_expl (QDDot.size() - 6);
+	VectorNd q_expl (Q.size() - 6);
+	VectorNd qdot_expl (QDot.size() - 6);
+	VectorNd tau_expl (Tau.size() - 6);
+	VectorNd qddot_expl (QDDot.size() - 6);
 
 	LOG << "Q = " << Q << std::endl;
 	LOG << "QDot = " << QDot << std::endl;
@@ -103,16 +103,16 @@ void ForwardDynamicsFloatingBase (
 
 void ForwardDynamics (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		cmlVector &QDDot
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		VectorNd &QDDot
 		) {
 	if (model.experimental_floating_base) {
-		cmlVector q (Q.size());
-		cmlVector qdot (QDot.size());
-		cmlVector qddot (QDDot.size());
-		cmlVector tau (Tau.size());
+		VectorNd q (Q.size());
+		VectorNd qdot (QDot.size());
+		VectorNd qddot (QDDot.size());
+		VectorNd tau (Tau.size());
 
 		unsigned int i;
 		
@@ -305,14 +305,14 @@ void ForwardDynamics (
 
 void ForwardDynamicsFloatingBaseExpl (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
 		const SpatialMatrix &X_B,
 		const SpatialVector &v_B,
 		const SpatialVector &f_B,
 		SpatialVector &a_B,
-		cmlVector &QDDot
+		VectorNd &QDDot
 		)
 {
 	SpatialVector result;
@@ -472,9 +472,9 @@ void ForwardDynamicsFloatingBaseExpl (
 
 void ComputeContactForces (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
 		std::vector<ContactInfo> &ContactData,
 		std::vector<SpatialAlgebra::SpatialVector> &Fext
 		) {
@@ -502,10 +502,10 @@ void ComputeContactForces (
 	
 	// save current external forces:
 
-	cmlMatrix Ae;
+	MatrixNd Ae;
 	Ae.resize(contact_count, contact_count);
-	cmlVector C0 (contact_count);
-	cmlVector a0 (contact_count);
+	VectorNd C0 (contact_count);
+	VectorNd a0 (contact_count);
 
 	std::vector<SpatialVector> current_f_ext (model.f_ext);
 	std::vector<SpatialVector> zero_f_ext (model.f_ext.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
@@ -514,7 +514,7 @@ void ComputeContactForces (
 	model.f_ext = zero_f_ext;
 
 	LOG << "-------- ZERO_EXT ------" << std::endl;
-	cmlVector QDDot_zero_ext (QDot);
+	VectorNd QDDot_zero_ext (QDot);
 	{
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_zero_ext);
@@ -557,7 +557,7 @@ void ComputeContactForces (
 
 		// apply the test force
 		model.f_ext[contact_info.body_id] = test_forces[cj];
-		cmlVector QDDot_test_ext (QDot);
+		VectorNd QDDot_test_ext (QDot);
 
 		LOG << "-------- TEST_EXT -------" << std::endl;
 		LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id) - contact_point_position).adjoint() * test_forces[cj] << std::endl;
@@ -590,7 +590,7 @@ void ComputeContactForces (
 	}
 	
 	// solve the system!!!
-	cmlVector u (contact_count);
+	VectorNd u (contact_count);
 
 	LOG << "Ae = " << std::endl << Ae << std::endl;
 	LOG << "C0 = " << C0 << std::endl;
@@ -621,11 +621,11 @@ void ComputeContactForces (
 
 void ForwardDynamicsContacts (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
 		std::vector<ContactInfo> &ContactData,
-		cmlVector &QDDot
+		VectorNd &QDDot
 		) {
 	LOG << "-------- ForwardDynamicsContacts ------" << std::endl;
 
@@ -655,13 +655,13 @@ void ForwardDynamicsContacts (
 /*
 void ComputeContactImpulses (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDotPre,
+		const VectorNd &Q,
+		const VectorNd &QDotPre,
 		const std::vector<ContactInfo> &ContactData,
-		cmlVector &QDotPost
+		VectorNd &QDotPost
 		) {
 	std::vector<ContactInfo> ContactImpulseInfo;
-	cmlVector QDotZero (QDotPre.size());
+	VectorNd QDotZero (QDotPre.size());
 	QDotZero.zero();
 	ContactInfo contact_info;
 	Vector3d point_velocity;
@@ -695,12 +695,12 @@ void ComputeContactImpulses (
 	}
 
 	std::vector<SpatialVector> contact_f_ext;
-	cmlVector QDDotFext (QDotPre);
+	VectorNd QDDotFext (QDotPre);
 	QDDotFext.zero();
-	cmlVector Tau_zero (QDDotFext);
+	VectorNd Tau_zero (QDDotFext);
 
 	// for debugging
-	cmlVector QDDotZeroFext (QDotPre.size());
+	VectorNd QDDotZeroFext (QDotPre.size());
 	{
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDotPre, Tau_zero, QDDotZeroFext);
@@ -726,7 +726,7 @@ void ComputeContactImpulses (
 	LOG << "QDDotZeroFext = " << QDDotZeroFext << std::endl;
 	LOG << "QDDotFext     = " << QDDotFext << std::endl;
 
-	cmlVector humans_impulse (QDotPre.size());
+	VectorNd humans_impulse (QDotPre.size());
 	humans_impulse[0] = 0.;
 	humans_impulse[1] = -0.05;
 	humans_impulse[2] = 0.1;

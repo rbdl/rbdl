@@ -355,28 +355,6 @@ struct Model {
 	}
 };
 
-/** \brief Computes the joint variables 
- *
- * \param model    the rigid body model
- * \param joint_id the id of the joint we are interested in (output)
- * \param XJ       the joint transformation (output)
- * \param S        motion subspace of the joint (output)
- * \param v_J      joint velocity (output)
- * \param c_J      joint acceleration for rhenomic joints (output)
- * \param q        joint state variable
- * \param qdot     joint velocity variable
- */
-void jcalc (
-		const Model &model,
-		const unsigned int &joint_id,
-		SpatialAlgebra::SpatialMatrix &XJ,
-		SpatialAlgebra::SpatialVector &S,
-		SpatialAlgebra::SpatialVector &v_J,
-		SpatialAlgebra::SpatialVector &c_J,
-		const double &q,
-		const double &qdot
-		);
-
 }
 
 #endif /* _MODEL_H */

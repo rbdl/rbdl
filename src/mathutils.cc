@@ -112,7 +112,7 @@ Matrix3d VectorCrossMatrix (const Vector3d &vector) {
 			-vector[1],  vector[0], 0);
 }
 
-bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
+bool LinSolveGaussElim (MatrixNd A, VectorNd b, VectorNd &x) {
 	x.zero();
 
 	// We can only solve quadratic systems
@@ -148,7 +148,7 @@ bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
 	return true;
 }
 
-bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
+bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 	x.zero();
 
 	// We can only solve quadratic systems
@@ -161,7 +161,7 @@ bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
 	size_t *pivot = new size_t[n];
 
 	// temporary result vector which contains the pivoted result
-	cmlVector px(x);
+	VectorNd px(x);
 	
 	unsigned int i,j,k;
 

@@ -31,10 +31,10 @@ Body base_rot_z, base_rot_y, base_rot_x,
 Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
 	joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
 
-cmlVector Q;
-cmlVector QDot;
-cmlVector QDDot;
-cmlVector Tau;
+VectorNd Q;
+VectorNd QDot;
+VectorNd QDDot;
+VectorNd Tau;
 
 unsigned int contact_body_id;
 Vector3d contact_point;
@@ -42,26 +42,26 @@ Vector3d contact_normal;
 
 std::vector<ContactInfo> contact_data;
 
-typedef cmlVector (rhs_func) (double, const cmlVector&);
+typedef VectorNd (rhs_func) (double, const VectorNd&);
 
-cmlVector rk45_integrator (double t0, double tf, cmlVector &y0, rhs_func func, double error) {
-	cmlVector k1 (y0.size());
-	cmlVector k2 (y0.size());
-	cmlVector k3 (y0.size());
-	cmlVector k4 (y0.size());
-	cmlVector k5 (y0.size());
-	cmlVector k6 (y0.size());
-	cmlVector rk4 (y0.size());
-	cmlVector rk5 (y0.size());
+VectorNd rk45_integrator (double t0, double tf, VectorNd &y0, rhs_func func, double error) {
+	VectorNd k1 (y0.size());
+	VectorNd k2 (y0.size());
+	VectorNd k3 (y0.size());
+	VectorNd k4 (y0.size());
+	VectorNd k5 (y0.size());
+	VectorNd k6 (y0.size());
+	VectorNd rk4 (y0.size());
+	VectorNd rk5 (y0.size());
 
 	double s = 1.;
 	double t = t0;
 	double h0 = tf - t0;
 	double h = h0;
 	double h_min = 1.0e5;
-	cmlVector h_min_y (y0);
-	cmlVector h_min_rk5 (y0);
-	cmlVector y (y0);
+	VectorNd h_min_y (y0);
+	VectorNd h_min_rk5 (y0);
+	VectorNd y (y0);
 	int stepcount = 0;
 
 	while (t < tf) {
@@ -121,12 +121,12 @@ cmlVector rk45_integrator (double t0, double tf, cmlVector &y0, rhs_func func, d
 //	return y0 + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6.; 
 }
 
-cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, double stepsize) {
-	cmlVector k1 (y0.size());
-	cmlVector k2 (y0.size());
-	cmlVector k3 (y0.size());
-	cmlVector k4 (y0.size());
-	cmlVector y (y0);
+VectorNd rk4_integrator (double t0, double tf, VectorNd &y0, rhs_func func, double stepsize) {
+	VectorNd k1 (y0.size());
+	VectorNd k2 (y0.size());
+	VectorNd k3 (y0.size());
+	VectorNd k4 (y0.size());
+	VectorNd y (y0);
 
 	double t = t0;
 	double h = stepsize;
@@ -157,10 +157,10 @@ cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, do
 	return y;
 }
 
-cmlVector euler_integrator (double t0, double tf, cmlVector &y0, rhs_func func, double stepsize) {
-	cmlVector y (y0);
+VectorNd euler_integrator (double t0, double tf, VectorNd &y0, rhs_func func, double stepsize) {
+	VectorNd y (y0);
 
-	cmlVector ydot (y0);
+	VectorNd ydot (y0);
 	ydot = func (tf, y);
 
 	y = y0 + (tf - t0) * ydot;
@@ -183,10 +183,10 @@ void model_init () {
 
 	unsigned int base_body_id = model->SetFloatingBaseBody(base);
 
-	Q = cmlVector(model->dof_count);
-	QDot = cmlVector(model->dof_count);
-	QDDot = cmlVector(model->dof_count);
-	Tau = cmlVector(model->dof_count);
+	Q = VectorNd(model->dof_count);
+	QDot = VectorNd(model->dof_count);
+	QDDot = VectorNd(model->dof_count);
+	Tau = VectorNd(model->dof_count);
 
 	Q.zero();
 	QDot.zero();
@@ -233,13 +233,13 @@ void model_init () {
 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 }
 
-cmlVector rhs_contact (double t, const cmlVector &y) {
+VectorNd rhs_contact (double t, const VectorNd &y) {
 	unsigned int i;
 	unsigned int size = Q.size();
 
-	cmlVector q (size);
-	cmlVector qdot (size);
-	cmlVector qddot (size);
+	VectorNd q (size);
+	VectorNd qdot (size);
+	VectorNd qddot (size);
 
 	std::vector<ContactInfo> contact_data;
 	contact_point = model->CalcBaseToBodyCoordinates (contact_body_id, Vector3d (Q[0], 0., Q[2]));
@@ -272,7 +272,7 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 	contact_point_world_acc = CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point);
 	cout << "\tCPacc = " << contact_point_world_acc;
 
-	cmlVector res (size * 2);
+	VectorNd res (size * 2);
 	for (i = 0; i < size; i++) {
 		res[i] = qdot[i];
 		res[i + size] = qddot[i];
@@ -285,13 +285,13 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 	return res;
 }
 
-cmlVector rhs_normal (double t, const cmlVector &y) {
+VectorNd rhs_normal (double t, const VectorNd &y) {
 	unsigned int i;
 	unsigned int size = Q.size();
 
-	cmlVector q (size);
-	cmlVector qdot (size);
-	cmlVector qddot (size);
+	VectorNd q (size);
+	VectorNd qdot (size);
+	VectorNd qddot (size);
 
 	for (i = 0; i < size; i++) {
 		q[i] = y[i];
@@ -314,7 +314,7 @@ cmlVector rhs_normal (double t, const cmlVector &y) {
 	contact_point_world_acc = CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point);
 	cout << "\tCPacc = " << contact_point_world_acc << endl;
 
-	cmlVector res (size * 2);
+	VectorNd res (size * 2);
 	for (i = 0; i < size; i++) {
 		res[i] = qdot[i];
 		res[i + size] = qddot[i];
@@ -327,14 +327,14 @@ void model_update (double delta_time) {
 	unsigned int size = Q.size();
 	unsigned int i;
 	
-	cmlVector y (size * 2);
+	VectorNd y (size * 2);
 
 	for (i = 0; i < size; i++) {
 		y[i] = Q[i];
 		y[i + size] = QDot[i];
 	}
 
-	cmlVector ynew (size * 2);
+	VectorNd ynew (size * 2);
 //	delta_time = 0.02;
 //	ynew = rk45_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
 //	ynew = rk4_integrator (0., delta_time, y, rhs_contact, 5.0e-2);

@@ -545,10 +545,10 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 
 	unsigned int body_id = model->SetFloatingBaseBody (body);
 
-	cmlVector q (model->dof_count);
-	cmlVector qdot (model->dof_count);
-	cmlVector qddot (model->dof_count);
-	cmlVector tau (model->dof_count);
+	VectorNd q (model->dof_count);
+	VectorNd qdot (model->dof_count);
+	VectorNd qddot (model->dof_count);
+	VectorNd tau (model->dof_count);
 
 	Vector3d base_coords;
 	Vector3d body_coords;
@@ -587,13 +587,13 @@ TEST_FIXTURE ( ModelFixture, TestUpdate ) {
 
 	unsigned int body_id = model->SetFloatingBaseBody (body);
 
-	cmlVector q (model->dof_count);
-	cmlVector qdot (model->dof_count);
-	cmlVector qddot (model->dof_count);
-	cmlVector tau (model->dof_count);
+	VectorNd q (model->dof_count);
+	VectorNd qdot (model->dof_count);
+	VectorNd qddot (model->dof_count);
+	VectorNd tau (model->dof_count);
 
-	cmlVector input (model->dof_count);
-	cmlVector reference (model->dof_count + 1);
+	VectorNd input (model->dof_count);
+	VectorNd reference (model->dof_count + 1);
 
 	reference[0] = 0;
 	reference[1] = 0.;

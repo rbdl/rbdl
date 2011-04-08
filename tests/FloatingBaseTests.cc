@@ -33,7 +33,7 @@ struct FloatingBaseFixture {
 	Body base;
 	unsigned int base_body_id;
 
-	cmlVector q, qdot, qddot, tau;
+	VectorNd q, qdot, qddot, tau;
 };
 
 TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
@@ -322,10 +322,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 	// floating base
 	base_body_id = model->SetFloatingBaseBody(base);
 
-	cmlVector Q;
-	cmlVector QDot;
-	cmlVector QDDot;
-	cmlVector Tau;
+	VectorNd Q;
+	VectorNd QDot;
+	VectorNd QDDot;
+	VectorNd Tau;
 
 	Q.resize(6);
 	QDot.resize(6);

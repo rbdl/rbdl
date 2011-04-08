@@ -31,14 +31,14 @@ namespace RigidBodyDynamics {
  */
 void ForwardDynamicsFloatingBaseExpl (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
 		const SpatialAlgebra::SpatialMatrix &X_B,
 		const SpatialAlgebra::SpatialVector &v_B,
 		const SpatialAlgebra::SpatialVector &f_B,
 		SpatialAlgebra::SpatialVector &a_B,
-		cmlVector &QDDot
+		VectorNd &QDDot
 		);
 
 /** \brief Computes the change of the generalized velocity due to collisions
@@ -58,10 +58,10 @@ void ForwardDynamicsFloatingBaseExpl (
  */
 void ComputeContactImpulses (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDotPre,
+		const VectorNd &Q,
+		const VectorNd &QDotPre,
 		const std::vector<ContactInfo> &ContactData,
-		cmlVector &QDotPost
+		VectorNd &QDotPost
 		);
 }
 

@@ -33,10 +33,10 @@ namespace RigidBodyDynamics {
  */
 void ForwardDynamics (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		cmlVector &QDDot
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		VectorNd &QDDot
 		);
 
 struct ContactInfo;
@@ -60,9 +60,9 @@ struct ContactInfo;
  */
 void ComputeContactForces (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
 		std::vector<ContactInfo> &ContactData,
 		const std::vector<SpatialAlgebra::SpatialVector> &Fext
 		);
@@ -86,11 +86,11 @@ void ComputeContactForces (
  */
 void ForwardDynamicsContacts (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
 		std::vector<ContactInfo> &ContactData,
-		cmlVector &QDDot
+		VectorNd &QDDot
 		);
 
 /** \brief Computes the change of the generalized velocity due to collisions
@@ -110,10 +110,10 @@ void ForwardDynamicsContacts (
  */
 void ComputeContactImpulses (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDotPre,
+		const VectorNd &Q,
+		const VectorNd &QDotPre,
 		const std::vector<ContactInfo> &ContactData,
-		cmlVector &QDotPost
+		VectorNd &QDotPost
 		);
 }
 

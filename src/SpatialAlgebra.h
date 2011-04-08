@@ -7,7 +7,7 @@
 
 // forward declaration as it is needed for the SpatialLinSolveFunction
 // \todo proper forward declaration of linsolve
-bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x);
+bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 
 /** \brief Namespace for all the spatial algebra quantities
  */
@@ -952,9 +952,9 @@ inline SpatialMatrix SpatialVector::outer_product(const SpatialVector &vec) cons
  */
 inline SpatialVector SpatialLinSolve (SpatialMatrix A, SpatialVector b) {
 	SpatialVector x(0., 0., 0., 0., 0., 0.);
-	cmlMatrix cmlA;
-	cmlVector cmlb(6);
-	cmlVector cmlx(6);
+	MatrixNd cmlA;
+	VectorNd cmlb(6);
+	VectorNd cmlx(6);
 
 	cmlA.resize(6,6);
 	cmlb.resize(6);

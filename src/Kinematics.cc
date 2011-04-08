@@ -14,8 +14,8 @@ namespace RigidBodyDynamics {
 
 Vector3d CalcPointVelocity (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
+		const VectorNd &Q,
+		const VectorNd &QDot,
 		unsigned int body_id,
 		const Vector3d &point_position
 	) {
@@ -132,9 +132,9 @@ Vector3d CalcPointVelocity (
 
 Vector3d CalcPointAcceleration (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &QDDot,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &QDDot,
 		unsigned int body_id,
 		const Vector3d &point_position
 		)

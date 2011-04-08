@@ -25,11 +25,11 @@ void MatrixCopy (Matrix3d &result, const Matrix3d &src);
 
 /** \brief Solves a linear system using gaussian elimination
  */
-bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x);
+bool LinSolveGaussElim (MatrixNd A, VectorNd b, VectorNd &x);
 
 /** \brief Solves a linear system using gaussian elimination with pivoting
  */
-bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x);
+bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 
 /** \brief Creates the matrix to the cross product of a given 3D vector
  *  
