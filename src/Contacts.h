@@ -5,6 +5,8 @@
 
 namespace RigidBodyDynamics {
 
+namespace Experimental {
+
 /** \brief Structure that contains information about a one-dimensional
  *  \brief contact constraint
  *
@@ -142,7 +144,8 @@ void ComputeContactImpulses (
 		VectorNd &QDotPost
 		);
 
+} /* namespace Experimental */
 
-}
+} /* namespace RigidBodyDynamics */
 
 #endif /* _CONTACTS_H */

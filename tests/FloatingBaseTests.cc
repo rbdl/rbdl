@@ -78,7 +78,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 	SpatialVector f_B(0., 0., 0., 0., 0., 0.);
 	SpatialVector a_B(0., 0., 0., 0., 0., 0.);
 
-	ForwardDynamicsFloatingBaseExpl(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	Experimental::ForwardDynamicsFloatingBaseExpl(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 
 	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
@@ -101,7 +101,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
 	// We rotate the base... let's see what happens...
 	rot_B[0] = 0.8;
 	X_B = XtransRotZYXEuler(pos_B, rot_B);
-	ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	Experimental::ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 	SpatialVector a_world = X_B.inverse() * a_B;
 
 	for (i = 0; i < QDDot.size(); i++) {
@@ -151,7 +151,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 	SpatialVector a_B(0., 0., 0., 0., 0., 0.);
 	SpatialVector a_world(0., 0., 0., 0., 0., 0.);
 
-	ForwardDynamicsFloatingBaseExpl(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	Experimental::ForwardDynamicsFloatingBaseExpl(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 
 	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
@@ -176,7 +176,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 	rot_B[0] = 0.8;
 	X_B = XtransRotZYXEuler(pos_B, rot_B);
 
-	ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	Experimental::ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 	a_world = X_B.inverse() * a_B;
 
 	for (i = 0; i < QDDot.size(); i++) {
@@ -203,7 +203,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
 
 	Tau[0] = 1.;
 
-	ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
+	Experimental::ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
 	a_world = X_B.inverse() * a_B;
 
 	for (i = 0; i < QDDot.size(); i++) {

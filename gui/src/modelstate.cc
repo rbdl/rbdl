@@ -15,6 +15,7 @@
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace SpatialAlgebra;
+using namespace Experimental;
 
 static Model* model = NULL;
 

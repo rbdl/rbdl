@@ -11,21 +11,9 @@
 
 namespace RigidBodyDynamics {
 
-/** \brief Computes inverse dynamics with the Newton-Euler algorithm
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param QDDot accelerations of the internals joints
- * \param Tau   actuations of the internal joints (output)
-  */
-void InverseDynamics (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &QDDot,
-		VectorNd &Tau
-		);
+/** \brief Namespace for experimental code that is not thoroughly tested
+ */
+namespace Experimental {
 
 /** \brief Computes forward dynamics for models with a floating base
  *
@@ -56,6 +44,8 @@ void ForwardDynamicsFloatingBaseExpl (
 		SpatialAlgebra::SpatialVector &a_B,
 		VectorNd &QDDot
 		);
+
+}
 
 }
 

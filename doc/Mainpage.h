@@ -106,9 +106,13 @@
  * are then fed to the function Model::AddBody().
  *
  * \todo [high] check impulse computation
- * \todo [med] add specification for the visualization to the model
- * \todo [med] get rid of the std::vector<> values in Model
  * \todo [low] use cml for the SpatialAlgebra quantities
  * \todo [low] incorporate GiNaC (http://www.ginac.de) to generate code
  * \todo [low] serialization of the model?
+ *
+ * \subsection ToDo_done Done:
+ * <ul>
+ *   <li>[med] add specification for the visualization to the model</li>
+ *   <li>[med] get rid of the std::vector<> values in Model</li>
+ * </ul>
  */

@@ -108,7 +108,10 @@ struct Joint {
 	JointType mJointType;
 };
 
-/** \brief Computes the joint variables 
+/** \brief Computes all variables for a joint model
+ *
+ *	By appropriate modification of this function all types of joints can be
+ *	modeled. See RBDA Section 4.4 for details.
  *
  * \param model    the rigid body model
  * \param joint_id the id of the joint we are interested in (output)

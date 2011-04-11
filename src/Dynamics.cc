@@ -16,6 +16,8 @@ using namespace SpatialAlgebra;
 namespace RigidBodyDynamics {
 
 // forward declaration
+namespace Experimental {
+
 void ForwardDynamicsFloatingBase (
 		Model &model,
 		const VectorNd &Q,
@@ -23,6 +25,7 @@ void ForwardDynamicsFloatingBase (
 		const VectorNd &Tau,
 		VectorNd &QDDot
 		);
+}
 
 void ForwardDynamics (
 		Model &model,
@@ -49,7 +52,7 @@ void ForwardDynamics (
 			tau[i] = Tau[i];
 		}
 
-		ForwardDynamicsFloatingBase (model, q, qdot, tau, qddot);
+		Experimental::ForwardDynamicsFloatingBase (model, q, qdot, tau, qddot);
 
 		for (i = 0; i < qddot.size(); i++) {
 			QDDot[i] = qddot[i];
@@ -229,17 +232,6 @@ void ForwardDynamics (
 	}
 }
 
-/*
- * Experimental Code
- */
-/** \brief Computes inverse dynamics with the Newton-Euler algorithm
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param QDDot accelerations of the internals joints
- * \param Tau   actuations of the internal joints (output)
-  */
 void InverseDynamics (
 		Model &model,
 		const VectorNd &Q,
@@ -316,16 +308,18 @@ void InverseDynamics (
 	}
 }
 
-
 /*
+ * Experimental Code
+ */
+
+namespace Experimental {
+
+/** Prepares and computes forward dynamics by using ForwardDynamicsFloatingBaseExpl()
+ *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param X_B   transformation into base coordinates
- * \param v_B   velocity of the base (in base coordinates)
- * \param f_B   forces acting on the base (in base coordinates)
- * \param a_B   accelerations of the base (output, in base coordinates)
  * \param QDDot accelerations of the internals joints (output)
  */
 void ForwardDynamicsFloatingBase (
@@ -401,7 +395,6 @@ void ForwardDynamicsFloatingBase (
 		}
 	}
 }
-
 
 void ForwardDynamicsFloatingBaseExpl (
 		Model &model,
@@ -940,5 +933,6 @@ void ComputeContactImpulses (
 	QDotPost = QDotPre + QDDotFext;
 }
 */
+} /* namespace Experimental */
 
-}
+} /* namespace RigidBodyDynamics */
