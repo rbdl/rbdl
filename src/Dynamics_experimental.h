@@ -41,28 +41,6 @@ void ForwardDynamicsFloatingBaseExpl (
 		VectorNd &QDDot
 		);
 
-/** \brief Computes the change of the generalized velocity due to collisions
- *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
- *
- * This function computes the change of the generalized velocity vector
- * QDot such that the points defined in ContactData have zero velocity.
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDotPre  generalized velocity before the collision
- * \param ContactData	a list of all contact points
- * \param QDotPost generalized velocity after the collision
- */
-void ComputeContactImpulses (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDotPre,
-		const std::vector<ContactInfo> &ContactData,
-		VectorNd &QDotPost
-		);
 }
 
 #endif /* _DYNAMICS_EXPERIMENTAL_H */
