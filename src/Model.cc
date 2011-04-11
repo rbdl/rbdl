@@ -57,6 +57,7 @@ void Model::Init() {
 	d.zero();
 	u.zero();
 
+	f.push_back (zero_spatial);
 	f_ext.push_back (zero_spatial);
 
 	// Bodies
@@ -102,6 +103,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	d.resize (dof_count + 1);
 	u.resize (dof_count + 1);
+	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 	f_ext.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 
 	// Bodies

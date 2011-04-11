@@ -151,7 +151,9 @@ struct Model {
 	VectorNd d;
 	/// \brief Temporary variable u (RBDA p. 130)
 	VectorNd u;
-	/// \brief Forces acting on the body (in base coordinates)
+	/// \brief Internal forces on the body (used only InverseDynamics())
+	std::vector<SpatialAlgebra::SpatialVector> f;
+	/// \brief External forces acting on the body (in base coordinates)
 	std::vector<SpatialAlgebra::SpatialVector> f_ext;
 
 	////////////////////////////////////
@@ -282,6 +284,9 @@ struct Model {
 
 	/** \brief Returns the base coordinates of a point given in body coordinates
 	 *
+	 * \note The forward kinematics of the model have to be computed beforehand
+	 * (e.g. with ForwardKinematics() or ForwardDynamics())!
+	 *
 	 * \param body_id id of the body for which the point coordinates are expressed
 	 * \param body_point coordinates of the point in body coordinates
 	 *
@@ -291,6 +296,9 @@ struct Model {
 
 	/** \brief Returns the body coordinates of a point given in base coordinates
 	 *
+	 * \note The forward kinematics of the model have to be computed beforehand
+	 * (e.g. with ForwardKinematics() or ForwardDynamics())!
+	 * 
 	 * \param body_id id of the body for which the point coordinates are expressed
 	 * \param base_point coordinates of the point in body coordinates
 	 *

@@ -15,6 +15,7 @@ SET ( TESTS_SRCS
 	CalcVelocitiesTests.cc
 	CalcAccelerationsTests.cc
 	KinematicsTests.cc
+	InverseDynamicsTests.cc
 	# ContactsTests.cc
 	# ImpulsesTests.cc
 	)

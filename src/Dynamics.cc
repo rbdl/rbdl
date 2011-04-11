@@ -8,7 +8,6 @@
 #include "Model.h"
 #include "Contacts.h"
 #include "Dynamics.h"
-// #include "Dynamics_stdvec.h"
 #include "Dynamics_experimental.h"
 #include "Kinematics.h"
 
@@ -16,90 +15,14 @@ using namespace SpatialAlgebra;
 
 namespace RigidBodyDynamics {
 
-/*
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param X_B   transformation into base coordinates
- * \param v_B   velocity of the base (in base coordinates)
- * \param f_B   forces acting on the base (in base coordinates)
- * \param a_B   accelerations of the base (output, in base coordinates)
- * \param QDDot accelerations of the internals joints (output)
- */
+// forward declaration
 void ForwardDynamicsFloatingBase (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &Tau,
 		VectorNd &QDDot
-		) {
-	LOG << "-------- " << __func__ << " --------" << std::endl;
-	VectorNd q_expl (Q.size() - 6);
-	VectorNd qdot_expl (QDot.size() - 6);
-	VectorNd tau_expl (Tau.size() - 6);
-	VectorNd qddot_expl (QDDot.size() - 6);
-
-	LOG << "Q = " << Q << std::endl;
-	LOG << "QDot = " << QDot << std::endl;
-
-	SpatialMatrix permutation (
-			0., 0., 0., 0., 0., 1.,
-			0., 0., 0., 0., 1., 0.,
-			0., 0., 0., 1., 0., 0.,
-			1., 0., 0., 0., 0., 0.,
-			0., 1., 0., 0., 0., 0.,
-			0., 0., 1., 0., 0., 0.
-			);
-
-	SpatialMatrix X_B = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
-	SpatialVector v_B (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
-	SpatialVector a_B (0., 0., 0., 0., 0., 0.);
-
-	SpatialVector f_B (Tau[5], Tau[4], Tau[3], Tau[0], Tau[1], Tau[2]);
-
-	// we also have to add any external force onto 
-	f_B += model.f_ext[0];
-
-	LOG << "X_B = " << X_B << std::endl;
-	LOG << "v_B = " << v_B << std::endl;
-	LOG << "Tau = " << Tau << std::endl;
-
-	unsigned int i;
-
-	if (Q.size() > 6) {
-		for (i = 0; i < q_expl.size(); i++) {
-			q_expl[i] = Q[i + 6];
-		}
-		for (i = 0; i < qdot_expl.size(); i++) {
-			qdot_expl[i] = QDot[i + 6];
-		}
-
-		for (i = 0; i < tau_expl.size(); i++) {
-			tau_expl[i] = Tau[i + 6];
-		}
-	}
-	
-	ForwardDynamicsFloatingBaseExpl (model, q_expl, qdot_expl, tau_expl, X_B, v_B, f_B, a_B, qddot_expl);
-
-	LOG << "FloatingBaseExplRes a_B = " << a_B << std::endl;
-
-	// we have to transform the acceleration back to base coordinates
-	a_B = X_B.inverse() * a_B;
-
-	QDDot[0] = a_B[5];
-	QDDot[1] = a_B[4];
-	QDDot[2] = a_B[3];
-	QDDot[3] = a_B[0];
-	QDDot[4] = a_B[1];
-	QDDot[5] = a_B[2];
-
-	if (Q.size() > 6) {
-		for (i = 0; i < qddot_expl.size(); i++) {
-			QDDot[i + 6] = qddot_expl[i];
-		}
-	}
-}
+		);
 
 void ForwardDynamics (
 		Model &model,
@@ -224,14 +147,13 @@ void ForwardDynamics (
 	LOG << std::endl;
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
+		// we can skip further processing if the joint is fixed
+		if (model.mJoints[i].mJointType == JointTypeFixed)
+			continue;
+
 		model.U[i] = model.IA[i] * model.S[i];
 		model.d[i] = model.S[i] * model.U[i];
 		model.u[i] = model.tau[i] - model.S[i] * model.pA[i];
-
-		if (model.d[i] == 0. ) {
-			std::cerr << "Warning d[i] == 0.!" << std::endl;
-			continue;
-		}
 
 		unsigned int lambda = model.lambda.at(i);
 		if (lambda != 0) {
@@ -275,16 +197,20 @@ void ForwardDynamics (
 		unsigned int lambda = model.lambda[i];
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
-
 		if (lambda == 0) {
 			model.a[i] = X_lambda * spatial_gravity * (-1.) + model.c[i];
 		} else {
 			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
 		}
 
+		// we can skip further processing if the joint type is fixed
+		if (model.mJoints[i].mJointType == JointTypeFixed) {
+			model.qddot[i] = 0.;
+			continue;
+		}
+
 		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * model.a[i]);
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
-
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -302,6 +228,180 @@ void ForwardDynamics (
 		QDDot[i - 1] = model.qddot[i];
 	}
 }
+
+/*
+ * Experimental Code
+ */
+/** \brief Computes inverse dynamics with the Newton-Euler algorithm
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param QDDot accelerations of the internals joints
+ * \param Tau   actuations of the internal joints (output)
+  */
+void InverseDynamics (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &QDDot,
+		VectorNd &Tau
+		) {
+	if (model.experimental_floating_base)
+		assert (0 && !"InverseDynamics not supported for experimental floating base models!");
+
+	SpatialVector result;
+	result.zero();
+
+	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
+
+	unsigned int i;
+
+	// Copy state values from the input to the variables in model
+	assert (model.q.size() == Q.size() + 1);
+	assert (model.qdot.size() == QDot.size() + 1);
+	assert (model.qddot.size() == QDDot.size() + 1);
+	assert (model.tau.size() == Tau.size() + 1);
+
+	for (i = 0; i < Q.size(); i++) {
+		model.q[i+1] = Q[i];
+		model.qdot[i+1] = QDot[i];
+		model.qddot[i+1] = QDDot[i];
+	}
+
+	// Reset the velocity of the root body
+	model.v[0].zero();
+	model.a[0] = spatial_gravity * -1.;
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		SpatialMatrix X_J;
+		SpatialVector v_J;
+		SpatialVector c_J;
+		Joint joint = model.mJoints.at(i);
+		unsigned int lambda = model.lambda.at(i);
+
+		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
+		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
+
+		model.X_lambda.at(i) = X_J * model.X_T.at(i);
+
+		if (lambda == 0) {
+			model.X_base.at(i) = model.X_lambda.at(i);
+			model.v[i] = v_J;
+			model.a[i] = model.X_base[i] * spatial_gravity * -1. + model.S[i] * model.qddot[i];
+		}	else {
+			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+			model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
+			model.c[i] = c_J + model.v.at(i).crossm() * v_J;
+			model.a[i] = model.X_lambda[i] * model.a[lambda] + model.S[i] * model.qddot[i] + model.c[i];
+		}
+
+		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
+		LOG << "v (" << i << "):" << std::endl << v_J << std::endl;
+		LOG << "a (" << i << "):" << std::endl << v_J << std::endl;
+
+		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + model.v[i].crossf() * model.mBodies[i].mSpatialInertia * model.v[i] - model.X_base[i].adjoint() * model.f_ext[i];
+	}
+
+	for (i = model.mBodies.size() - 1; i > 0; i--) {
+		model.tau[i] = model.S[i] * model.f[i];
+		unsigned int lambda = model.lambda.at(i);
+		if (lambda != 0) {
+			model.f[lambda] = model.f[lambda] + model.X_lambda[i].transpose() * model.f[i];
+		}
+	}
+
+	for (i = 0; i < Tau.size(); i++) {
+		Tau[i] = model.tau[i + 1];
+	}
+}
+
+
+/*
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param X_B   transformation into base coordinates
+ * \param v_B   velocity of the base (in base coordinates)
+ * \param f_B   forces acting on the base (in base coordinates)
+ * \param a_B   accelerations of the base (output, in base coordinates)
+ * \param QDDot accelerations of the internals joints (output)
+ */
+void ForwardDynamicsFloatingBase (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		VectorNd &QDDot
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+	VectorNd q_expl (Q.size() - 6);
+	VectorNd qdot_expl (QDot.size() - 6);
+	VectorNd tau_expl (Tau.size() - 6);
+	VectorNd qddot_expl (QDDot.size() - 6);
+
+	LOG << "Q = " << Q << std::endl;
+	LOG << "QDot = " << QDot << std::endl;
+
+	SpatialMatrix permutation (
+			0., 0., 0., 0., 0., 1.,
+			0., 0., 0., 0., 1., 0.,
+			0., 0., 0., 1., 0., 0.,
+			1., 0., 0., 0., 0., 0.,
+			0., 1., 0., 0., 0., 0.,
+			0., 0., 1., 0., 0., 0.
+			);
+
+	SpatialMatrix X_B = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
+	SpatialVector v_B (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
+	SpatialVector a_B (0., 0., 0., 0., 0., 0.);
+
+	SpatialVector f_B (Tau[5], Tau[4], Tau[3], Tau[0], Tau[1], Tau[2]);
+
+	// we also have to add any external force onto 
+	f_B += model.f_ext[0];
+
+	LOG << "X_B = " << X_B << std::endl;
+	LOG << "v_B = " << v_B << std::endl;
+	LOG << "Tau = " << Tau << std::endl;
+
+	unsigned int i;
+
+	if (Q.size() > 6) {
+		for (i = 0; i < q_expl.size(); i++) {
+			q_expl[i] = Q[i + 6];
+		}
+		for (i = 0; i < qdot_expl.size(); i++) {
+			qdot_expl[i] = QDot[i + 6];
+		}
+
+		for (i = 0; i < tau_expl.size(); i++) {
+			tau_expl[i] = Tau[i + 6];
+		}
+	}
+	
+	ForwardDynamicsFloatingBaseExpl (model, q_expl, qdot_expl, tau_expl, X_B, v_B, f_B, a_B, qddot_expl);
+
+	LOG << "FloatingBaseExplRes a_B = " << a_B << std::endl;
+
+	// we have to transform the acceleration back to base coordinates
+	a_B = X_B.inverse() * a_B;
+
+	QDDot[0] = a_B[5];
+	QDDot[1] = a_B[4];
+	QDDot[2] = a_B[3];
+	QDDot[3] = a_B[0];
+	QDDot[4] = a_B[1];
+	QDDot[5] = a_B[2];
+
+	if (Q.size() > 6) {
+		for (i = 0; i < qddot_expl.size(); i++) {
+			QDDot[i + 6] = qddot_expl[i];
+		}
+	}
+}
+
 
 void ForwardDynamicsFloatingBaseExpl (
 		Model &model,
