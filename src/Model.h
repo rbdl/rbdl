@@ -155,6 +155,8 @@ struct Model {
 	std::vector<SpatialAlgebra::SpatialVector> f;
 	/// \brief External forces acting on the body (in base coordinates)
 	std::vector<SpatialAlgebra::SpatialVector> f_ext;
+	/// \brief The spatial inertia of body i (used only in //CompositeRigidBody())
+	std::vector<SpatialAlgebra::SpatialMatrix> Ic;
 
 	////////////////////////////////////
 	// Bodies

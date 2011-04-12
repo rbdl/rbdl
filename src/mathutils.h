@@ -23,10 +23,6 @@ void MatrixSetZero (Matrix3d &result);
 void MatrixCopyTranspose (Matrix3d &result, const Matrix3d &src);
 void MatrixCopy (Matrix3d &result, const Matrix3d &src);
 
-/** \brief Solves a linear system using gaussian elimination
- */
-bool LinSolveGaussElim (MatrixNd A, VectorNd b, VectorNd &x);
-
 /** \brief Solves a linear system using gaussian elimination with pivoting
  */
 bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);

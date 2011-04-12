@@ -308,6 +308,38 @@ void InverseDynamics (
 	}
 }
 
+void CompositeRigidBody (Model& model, const VectorNd &Q, MatrixNd &H) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	if (H.rows() != Q.size() || H.cols() != Q.size()) 
+		H.resize(Q.size(), Q.size());
+
+	H.zero();
+
+	unsigned int i;
+	for (i = 1; i < model.mBodies.size(); i++) {
+		model.Ic[i] = model.mBodies[i].mSpatialInertia;
+	}
+
+	for (i = model.mBodies.size() - 1; i > 0; i--) {
+		unsigned int lambda = model.lambda[i];
+		if (lambda != 0) {
+			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].transpose() * model.Ic[i] * model.X_lambda[i];
+		}
+
+		SpatialVector F = model.Ic[i] * model.S[i];
+		H(i - 1, i - 1) = model.S[i] * F;
+		unsigned int j = i;
+
+		while (model.lambda[j] != 0) {
+			F = model.X_lambda[j].transpose() * F;
+			j = model.lambda[j];
+			H(i - 1,j - 1) = F * model.S[j];
+			H(j - 1,i - 1) = H(i - 1,j - 1);
+		}
+	}
+}
+
 /*
  * Experimental Code
  */
@@ -330,6 +362,7 @@ void ForwardDynamicsFloatingBase (
 		VectorNd &QDDot
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
+
 	VectorNd q_expl (Q.size() - 6);
 	VectorNd qdot_expl (QDot.size() - 6);
 	VectorNd tau_expl (Tau.size() - 6);
