@@ -66,7 +66,7 @@ TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsFlo
 	Tau[5] = 1.3;
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
-	CompositeRigidBody (*model, Q, H);
+	CompositeRigidBodyAlgorithm (*model, Q, H);
 	InverseDynamics (*model, Q, QDot, QDDot_zero, C);
 
 	CHECK (LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot_crba));

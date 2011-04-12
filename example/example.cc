@@ -40,10 +40,10 @@ int main (int argc, char* argv[]) {
 	
 	body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
-	cmlVector Q(3);
-	cmlVector QDot(3);
-	cmlVector QDDot(3);
-	cmlVector Tau(3);
+	VectorNd Q(3);
+	VectorNd QDot(3);
+	VectorNd QDDot(3);
+	VectorNd Tau(3);
 
 	Q.zero();
 	QDot.zero();

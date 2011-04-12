@@ -2,13 +2,17 @@
  * \mainpage Rigid Body Dynamics Library
  *
  * This is the documentation of a yet to be named rigid body simulation
- * code. So far the code supports the simulation of forward dynamics of
- * tree structured (i.e. no kinematic loops) rigid body models by using the
- * Articulated Body Algorithm (ABA) from Roy Featherstone. The code is
- * written by Martin Felis <martin@silef.de> and heavily inspired by the
- * pseudo code of the book "Rigid Body Dynamics Algorithms" of
- * Featherstone.
+ * code. So far the code supports forward and inverse dynamics by using the
+ * Articulated Body Algorathm and the Newton-Euler algorithm, respectively.
+ * Additionally it also containes the Composite Rigid Body Algorithm that
+ * computes the joint space inertia matrix.
  *
+ * The code is written by <a
+ * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
+ * <martin.felis@iwr.uni-heidelberg.de></a> and heavily inspired by the
+ * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
+ * href="http://users.cecs.anu.edu.au/~roy/">Roy Featherstone</a>.
+ * 
  * The library uses the configurable math library (which can be found here:
  * <a href="http://www.cmldev.net">http://www.cmldev.net</a>).
  *
@@ -16,9 +20,10 @@
  * the namespace RigidBodyDynamics.
  *
  * \section Example An Example
- * Here is a simple example how one can create a model and compute the
- * forward dynamics for it:
- *
+ * 
+ * Here is a simple example how one can create a meaningless model and
+ * compute the forward dynamics for it:
+ * 
  * \code
  *	#include <iostream>
  *	
@@ -62,10 +67,10 @@
  *		
  *		body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
  *	
- *		cmlVector Q(3);
- *		cmlVector QDot(3);
- *		cmlVector QDDot(3);
- *		cmlVector Tau(3);
+ *		VectorNd Q(3);
+ *		VectorNd QDot(3);
+ *		VectorNd QDDot(3);
+ *		VectorNd Tau(3);
  *
  *		Q.zero();
  *		QDot.zero();
@@ -103,7 +108,7 @@
  * Adding bodies to the model is done by specifying the parent body by its
  * id, the transformation from the parent origin to the joint origin, the
  * joint specification as an object, and the body itself. These parameters
- * are then fed to the function Model::AddBody().
+ * are then fed to the function RigidBodyDynamics::Model::AddBody().
  *
  * \todo [high] check impulse computation
  * \todo [low] use cml for the SpatialAlgebra quantities

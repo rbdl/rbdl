@@ -308,7 +308,7 @@ void InverseDynamics (
 	}
 }
 
-void CompositeRigidBody (Model& model, const VectorNd &Q, MatrixNd &H) {
+void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
 	if (H.rows() != Q.size() || H.cols() != Q.size()) 
