@@ -63,8 +63,8 @@ struct VisualizationPrimitive {
  *
  * An important note is that body 0 is the root body and the moving bodies
  * start at index 1. Additionally the vectors for the states q, qdot, etc.
- * have \#bodies + 1 entries where always the first entry (e.g. q[0])
- * contains the value for the root body. Thus the numbering might be
+ * have \#Model::dof_count + 1 entries where always the first entry (e.g. q[0])
+ * contains the value for the base (or "root" body. Thus the numbering might be
  * confusing as q[1] holds the position variable of the first degree of
  * freedom. This numbering scheme is very beneficial in terms of readability
  * of the code as the resulting code is very similar to the pseudo-code in
@@ -155,7 +155,7 @@ struct Model {
 	std::vector<SpatialAlgebra::SpatialVector> f;
 	/// \brief External forces acting on the body (in base coordinates)
 	std::vector<SpatialAlgebra::SpatialVector> f_ext;
-	/// \brief The spatial inertia of body i (used only in //CompositeRigidBody())
+	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
 	std::vector<SpatialAlgebra::SpatialMatrix> Ic;
 
 	////////////////////////////////////
