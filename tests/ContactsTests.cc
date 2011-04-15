@@ -13,6 +13,7 @@
 using namespace std;
 using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Experimental;
 
 const double TEST_PREC = 1.0e-14;
 
@@ -108,10 +109,10 @@ struct ContactsFixture {
 				);
 		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
 
-		Q = cmlVector(model->mBodies.size() - 1);
-		QDot = cmlVector(model->mBodies.size() - 1);
-		QDDot = cmlVector(model->mBodies.size() - 1);
-		Tau = cmlVector(model->mBodies.size() - 1);
+		Q = VectorNd(model->mBodies.size() - 1);
+		QDot = VectorNd(model->mBodies.size() - 1);
+		QDDot = VectorNd(model->mBodies.size() - 1);
+		Tau = VectorNd(model->mBodies.size() - 1);
 
 		Q.zero();
 		QDot.zero();
@@ -140,10 +141,10 @@ struct ContactsFixture {
 	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
 		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
 
-	cmlVector Q;
-	cmlVector QDot;
-	cmlVector QDDot;
-	cmlVector Tau;
+	VectorNd Q;
+	VectorNd QDot;
+	VectorNd QDDot;
+	VectorNd Tau;
 
 	unsigned int contact_body_id;
 	Vector3d contact_point;
@@ -164,7 +165,7 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 		ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 	}
 
-	cmlVector humans_values (QDDot.size());
+	VectorNd humans_values (QDDot.size());
 	humans_values[0] =	-1.647101149402497e+00;
 	humans_values[1] =	-3.333333333333333e+00;
 	humans_values[2] =	1.500000000000000e+00;
@@ -215,7 +216,7 @@ TEST_FIXTURE(ContactsFixture, TestContactEulerSingularity) {
 		ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 	}
 
-	cmlVector humans_values (QDDot.size());
+	VectorNd humans_values (QDDot.size());
 
 	humans_values[0] = 4.008081005501898e+01;
 	humans_values[1] = 5.046003674456097e+01;
@@ -235,7 +236,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
 	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.)));
 	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.)));
 
-	cmlVector humans_values (QDDot.size());
+	VectorNd humans_values (QDDot.size());
 
 	Q[0] = 0.2;
 	Q[1] = -0.5;
@@ -278,10 +279,10 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseSimple) {
 
 	float_model->SetFloatingBaseBody(base_body);
 
-	cmlVector Q (6);
-	cmlVector QDot (6);
-	cmlVector QDDot (6);
-	cmlVector Tau (6);
+	VectorNd Q (6);
+	VectorNd QDot (6);
+	VectorNd QDDot (6);
+	VectorNd Tau (6);
 
 	ContactInfo ground_x (6, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
 	ContactInfo ground_y (6, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
@@ -294,7 +295,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseSimple) {
 //	cout << QDDot << std::endl;
 //	cout << LogOutput.str() << endl;
 
-	cmlVector qddot_test (6);
+	VectorNd qddot_test (6);
 	qddot_test.zero();
 
 	CHECK_ARRAY_CLOSE (qddot_test.data(), QDDot.data(), QDDot.size(), TEST_PREC);
@@ -310,10 +311,10 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 
 	base_body_id = float_model->SetFloatingBaseBody(base_body);
 
-	cmlVector Q (model->dof_count);
-	cmlVector QDot (model->dof_count);
-	cmlVector QDDot (model->dof_count);
-	cmlVector Tau (model->dof_count);
+	VectorNd Q (model->dof_count);
+	VectorNd QDot (model->dof_count);
+	VectorNd QDDot (model->dof_count);
+	VectorNd Tau (model->dof_count);
 
 	Q[1] = 1.;
 
@@ -408,7 +409,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	cout << "tau   = " << Tau << endl;
 	cout << "qddot = " << QDDot << endl;
 
-	cmlVector qddot_test (6);
+	VectorNd qddot_test (6);
 
 	qddot_test[0] = 0.;
 	qddot_test[1] = 0.;
