@@ -121,6 +121,52 @@ void ForwardDynamicsContacts (
 		VectorNd &QDDot
 		);
 
+/** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
+ *
+ * This method builds and solves the linear system \f[
+ \left(
+   \begin{array}{cc}
+	   H & G^T \\
+		 G & 0
+   \end{array}
+ \right)
+ =
+ \left(
+   \begin{array}{c}
+	   -C + \tau \\
+		 -\gamma
+   \end{array}
+ \right)
+ * \f] where \f$H\f$ is the joint space inertia matrix computed with the
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
+ * contact points, \f$C\f$ the bias force (sometimes called "non-linear
+ * effects"), and \f$\gamma\f$ the generalized acceleration independent
+ * part of the contact point accelerations.
+ *
+ * \note So far, only constraints acting along cartesian coordinate axes
+ * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
+ * not specify redundant constraints!
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param ContactData	a list of all contact points
+ * \param QDDot accelerations of the internals joints (output)
+ *
+ * \note During execution of this function the values ContactData[i].force
+ * 	get modified and will contain the value of the force acting along
+ * 	the normal.
+ */
+void ForwardDynamicsContactsLagrangian (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		std::vector<ContactInfo> &ContactData,
+		VectorNd &QDDot
+		);
+
 /** \brief Computes the change of the generalized velocity due to collisions
  *
  * The method used here is the one described by Kokkevis and Metaxas in the

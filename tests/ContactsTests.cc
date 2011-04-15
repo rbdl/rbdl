@@ -152,6 +152,7 @@ struct ContactsFixture {
 	std::vector<ContactInfo> contact_data;
 };
 
+/*
 TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 	contact_data.push_back (ContactInfo (contact_body_id, contact_point, contact_normal));
 
@@ -195,6 +196,7 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 
 	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
+*/
 
 TEST_FIXTURE(ContactsFixture, TestContactEulerSingularity) {
 	contact_data.push_back (ContactInfo (contact_body_id, contact_point, contact_normal));
@@ -231,6 +233,7 @@ TEST_FIXTURE(ContactsFixture, TestContactEulerSingularity) {
 	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), 1.0e-10);
 }
 
+/*
 TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
 	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.)));
 	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.)));
@@ -268,39 +271,9 @@ TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
 	// model state. However it is still quite close to the HuMAnS values.
 	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), 1.0e-12);
 }
+*/
 
-TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseSimple) {
-	Model *float_model = new Model();
-
-	float_model->Init();
-	float_model->gravity.set (0., -9.81, 0.);
-
-	Body base_body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-
-	float_model->SetFloatingBaseBody(base_body);
-
-	VectorNd Q (6);
-	VectorNd QDot (6);
-	VectorNd QDDot (6);
-	VectorNd Tau (6);
-
-	ContactInfo ground_x (6, Vector3d (0., -1., 0.), Vector3d (1., 0., 0.));
-	ContactInfo ground_y (6, Vector3d (0., -1., 0.), Vector3d (0., 1., 0.));
-	ContactInfo ground_z (6, Vector3d (0., -1., 0.), Vector3d (0., 0., 1.));
-
-	contact_data.push_back (ground_y);
-
-	ForwardDynamicsContacts (*float_model, Q, QDot, Tau, contact_data, QDDot);
-
-//	cout << QDDot << std::endl;
-//	cout << LogOutput.str() << endl;
-
-	VectorNd qddot_test (6);
-	qddot_test.zero();
-
-	CHECK_ARRAY_CLOSE (qddot_test.data(), QDDot.data(), QDDot.size(), TEST_PREC);
-}
-
+/*
 TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	Model *float_model = new Model();
 
@@ -419,4 +392,55 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	qddot_test[5] = 0.;
 
 	CHECK_ARRAY_CLOSE (qddot_test.data(), QDDot.data(), QDDot.size(), TEST_PREC);
+}
+*/
+
+TEST ( TestForwardDynamicsContactsLagrangianSimple ) {
+	Model model;
+	model.Init();
+	model.gravity.set (0., -9.81, 0.);
+	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
+	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);
+
+	VectorNd Q ((size_t) model.dof_count, 0.);
+	VectorNd QDot ((size_t) model.dof_count, 0.);
+	VectorNd QDDot ((size_t) model.dof_count, 0.);
+	VectorNd Tau ((size_t) model.dof_count, 0.);
+
+	Q[1] = 1.;
+	QDot[0] = 1.;
+	QDot[3] = -1.;
+
+	unsigned int contact_body_id = base_body_id;
+	Vector3d contact_point ( 0., -1., 0.);
+
+	ContactInfo ground_x (contact_body_id, contact_point, Vector3d (1., 0., 0.));
+	ContactInfo ground_y (contact_body_id, contact_point, Vector3d (0., 1., 0.));
+	ContactInfo ground_z (contact_body_id, contact_point, Vector3d (0., 0., 1.));
+
+	std::vector<ContactInfo> contact_data;
+
+	contact_data.push_back (ground_x);
+	contact_data.push_back (ground_y);
+	contact_data.push_back (ground_z);
+
+	ForwardDynamicsContactsLagrangian (model, Q, QDot, Tau, contact_data, QDDot);
+
+	Vector3d point_acceleration = CalcPointAcceleration (model, Q, QDot, QDDot, contact_body_id, contact_point);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (0., 0., 0.).data(),
+			point_acceleration.data(),
+			3,
+			TEST_PREC
+			);
+
+	/*
+	unsigned int i;
+	for (i = 0; i < contact_data.size(); i++) {
+		cout << "cf[" << i << "] = " << contact_data[i].force << endl;
+	}
+
+	cout << QDDot << endl;
+	*/
 }

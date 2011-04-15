@@ -346,6 +346,116 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H) 
 
 namespace Experimental {
 
+void ForwardDynamicsContactsLagrangian (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		std::vector<ContactInfo> &ContactData,
+		VectorNd &QDDot
+		) {
+	// Compute H
+	MatrixNd H (model.dof_count, model.dof_count);
+	CompositeRigidBodyAlgorithm (model, Q, H);
+
+	// Compute C
+	VectorNd QDDot_zero (model.dof_count);
+	VectorNd C (model.dof_count);
+
+	InverseDynamics (model, Q, QDot, QDDot_zero, C);
+
+	// Compute G
+	MatrixNd G (ContactData.size(), model.dof_count);
+
+	ForwardKinematics (model, Q, QDot, QDDot_zero);
+	unsigned int i,j;
+	for (i = 0; i < ContactData.size(); i++) {
+		// Only alow contact normals along the coordinate axes
+		unsigned int axis_index = 0;
+
+		if (ContactData[i].normal == Vector3d(1., 0., 0.))
+			axis_index = 0;
+		else if (ContactData[i].normal == Vector3d(0., 1., 0.))
+			axis_index = 1;
+		else if (ContactData[i].normal == Vector3d(0., 0., 1.))
+			axis_index = 2;
+		else
+			assert (0 && "Invalid contact normal axis!");
+
+		MatrixNd Gi (3, model.dof_count);
+		Gi = CalcPointJacobian (model, Q, ContactData[i].body_id, ContactData[i].point, false);
+
+		for (j = 0; j < model.dof_count; j++) {
+			G(i,j) = Gi(axis_index, j);
+		}
+	}
+
+	// Compute gamma
+	VectorNd gamma (ContactData.size());
+	for (i = 0; i < ContactData.size(); i++) {
+		// Only alow contact normals along the coordinate axes
+		unsigned int axis_index = 0;
+
+		if (ContactData[i].normal == Vector3d(1., 0., 0.))
+			axis_index = 0;
+		else if (ContactData[i].normal == Vector3d(0., 1., 0.))
+			axis_index = 1;
+		else if (ContactData[i].normal == Vector3d(0., 0., 1.))
+			axis_index = 2;
+		else
+			assert (0 && "Invalid contact normal axis!");
+
+		Vector3d gamma_i = CalcPointAcceleration (model, Q, QDot, QDDot_zero, ContactData[i].body_id, ContactData[i].point);
+	
+		// we also substract ContactData[i].acceleration such that the contact
+		// point will have the desired acceleration
+		gamma[i] = gamma_i[axis_index] - ContactData[i].acceleration;
+	}
+	
+	// Build the system
+	MatrixNd A (model.dof_count + ContactData.size(), model.dof_count + ContactData.size(), 0.);
+	VectorNd b (model.dof_count + ContactData.size(), 0.);
+	VectorNd x (model.dof_count + ContactData.size(), 0.);
+
+	// Build the system: Copy H
+	for (i = 0; i < model.dof_count; i++) {
+		for (j = 0; j < model.dof_count; j++) {
+			A(i,j) = H(i,j);	
+		}
+	}
+
+	// Build the system: Copy G, and G^T
+	for (i = 0; i < ContactData.size(); i++) {
+		for (j = 0; j < model.dof_count; j++) {
+			A(i + model.dof_count, j) = G (i,j);
+			A(j, i + model.dof_count) = G (i,j);
+		}
+	}
+
+	// Build the system: Copy -C + \tau
+	for (i = 0; i < model.dof_count; i++) {
+		b[i] = -C[i] + Tau[i];
+	}
+
+	// Build the system: Copy -gamma
+	for (i = 0; i < ContactData.size(); i++) {
+		b[i + model.dof_count] = - gamma[i];
+	}
+	
+	// Solve the system
+	bool solve_successful = LinSolveGaussElimPivot (A, b, x);
+	assert (solve_successful);
+
+	// Copy back QDDot
+	for (i = 0; i < model.dof_count; i++)
+		QDDot[i] = x[i];
+
+	// Copy back contact forces
+	for (i = 0; i < ContactData.size(); i++) {
+		ContactData[i].force = x[model.dof_count + i];
+	}
+}
+
 /** Prepares and computes forward dynamics by using ForwardDynamicsFloatingBaseExpl()
  *
  * \param model rigid body model
