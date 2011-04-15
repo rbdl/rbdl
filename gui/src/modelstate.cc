@@ -251,7 +251,7 @@ VectorNd rhs_contact (double t, const VectorNd &y) {
 	cout << "Q = " << Q << "\tCP = " << contact_point_world;
 
 	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
-	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
+	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 1.));
 	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 0.));
 
 	for (i = 0; i < size; i++) {
@@ -261,7 +261,7 @@ VectorNd rhs_contact (double t, const VectorNd &y) {
 
 	{
 		_NoLogging nolog;
-		ForwardDynamicsContacts (*model, q, qdot, Tau, contact_data, qddot);
+		ForwardDynamicsContactsLagrangian (*model, q, qdot, Tau, contact_data, qddot);
 	}
 	cout << "\tqdd = " << qddot ;
 
@@ -315,6 +315,8 @@ VectorNd rhs_normal (double t, const VectorNd &y) {
 	contact_point_world_acc = CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point);
 	cout << "\tCPacc = " << contact_point_world_acc << endl;
 
+	assert (0);
+
 	VectorNd res (size * 2);
 	for (i = 0; i < size; i++) {
 		res[i] = qdot[i];
@@ -339,8 +341,8 @@ void model_update (double delta_time) {
 //	delta_time = 0.02;
 //	ynew = rk45_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
 //	ynew = rk4_integrator (0., delta_time, y, rhs_contact, 5.0e-2);
-	ynew = euler_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
-//	ynew = euler_integrator (0., delta_time, y, rhs_contact, 1.0e-6);
+//	ynew = euler_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
+	ynew = euler_integrator (0., delta_time, y, rhs_contact, 1.0e-3);
 
 //	cout << "        ynew = " << ynew << endl;
 
