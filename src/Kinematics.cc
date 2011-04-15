@@ -71,6 +71,42 @@ void ForwardKinematics (Model &model,
 	}
 }
 
+MatrixNd CalcPointJacobian (
+		Model &model,
+		const VectorNd &Q,
+		unsigned int body_id,
+		const Vector3d &point_position,
+		bool update_kinematics
+	) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+	if (model.experimental_floating_base) {
+		assert (0 && "CalcPointJacobian() not yet supported for experimental floating base models");
+	};
+
+	// update the Kinematics with zero acceleration
+	if (update_kinematics) {
+		VectorNd QDDot_zero (Q.size(), 0.);
+		VectorNd QDot_zero (Q.size(), 0.);
+		ForwardKinematics (model, Q, QDot_zero, QDDot_zero);
+	}
+
+	Vector3d point_base_pos = model.CalcBodyToBaseCoordinates(body_id, point_position);
+	SpatialMatrix point_trans = Xtrans (point_base_pos);
+	MatrixNd result (3, model.dof_count);
+
+	unsigned int j;
+	for (j = 1; j < model.mBodies.size(); j++) {
+		SpatialVector S_base;
+		S_base = point_trans * model.X_base[j].inverse() * model.S[j];
+
+		result(0, j - 1) = S_base[3];
+		result(1, j - 1) = S_base[4];
+		result(2, j - 1) = S_base[5];
+	}
+
+	return result;
+}
+
 Vector3d CalcPointVelocity (
 		Model &model,
 		const VectorNd &Q,

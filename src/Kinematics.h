@@ -25,6 +25,27 @@ void ForwardKinematics (Model &model,
 		const VectorNd &QDDot
 		);
 
+/** \brief Computes the point jacobian for a point on a body
+ *
+ * If a position of a point is computed by a function \f$g(q(t))\f$ for which its
+ * time derivative is \f$\frac{d}{dt} g(q(t)) = G(q)\dot{q}\f$ then this
+ * function computes the jacobian matrix \f$G(q)\f$.
+ *
+ * \param model   rigid body model
+ * \param Q       state vector of the internal joints
+ * \param body_id the id of the body
+ * \param point_position the position of the point in body-local data
+ * \param update_kinematics whether ForwardKinematics() should be called or not (default: true)
+ *
+ * \returns A 3 x \#dof_count matrix of the point jacobian
+ */
+MatrixNd CalcPointJacobian (Model &model,
+		const VectorNd &Q,
+		unsigned int body_id,
+		const Vector3d &point_position,
+		bool update_kinematics = true
+		);
+
 /** \brief Computes the velocity of a point on a body 
  *
  * \param model   rigid body model

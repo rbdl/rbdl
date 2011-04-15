@@ -237,3 +237,43 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 
 //	cout << LogOutput.str() << endl;
 }
+
+TEST(TestCalcPointJacobian) {
+	Model model;
+	model.Init();
+	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
+	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);
+
+	VectorNd Q ((size_t) model.dof_count, 0.);
+	VectorNd QDot ((size_t) model.dof_count, 0.);
+	MatrixNd G (3, model.dof_count, 0.);
+	Vector3d point_position (1.1, 1.2, 2.1);
+	Vector3d point_velocity_ref;
+	Vector3d point_velocity;
+
+	Q[0] = 1.1;
+	Q[1] = 1.2;
+	Q[2] = 1.3;
+	Q[3] = 0.7;
+	Q[4] = 0.8;
+	Q[5] = 0.9;
+
+	QDot[0] = -1.1;
+	QDot[1] = 2.2;
+	QDot[2] = 1.3;
+	QDot[3] = -2.7;
+	QDot[4] = 1.8;
+	QDot[5] = -2.9;
+
+	// Compute the reference velocity
+	point_velocity_ref = CalcPointVelocity (model, Q, QDot, base_body_id, point_position);
+
+	G = CalcPointJacobian (model, Q, base_body_id, point_position);
+	point_velocity = G * QDot;
+
+	CHECK_ARRAY_CLOSE (
+			point_velocity_ref.data(),
+			point_velocity.data(),
+			3, TEST_PREC
+			);
+}
