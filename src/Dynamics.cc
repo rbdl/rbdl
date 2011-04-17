@@ -34,6 +34,8 @@ void ForwardDynamics (
 		const VectorNd &Tau,
 		VectorNd &QDDot
 		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
 	if (model.experimental_floating_base) {
 		VectorNd q (Q.size());
 		VectorNd qdot (QDot.size());
@@ -232,6 +234,28 @@ void ForwardDynamics (
 	}
 }
 
+void ForwardDynamicsLagrangian (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		VectorNd &QDDot
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	MatrixNd H ((size_t) model.dof_count, (size_t) model.dof_count, 0.);
+	VectorNd C ((size_t) model.dof_count, 0.);
+
+	CompositeRigidBodyAlgorithm (model, Q, H);
+
+	// we set QDDot to zero to compute C properly with the InverseDynamics
+	// method.
+	QDDot.zero();
+	InverseDynamics (model, Q, QDot, QDDot, C);
+
+	LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
+}
+
 void InverseDynamics (
 		Model &model,
 		const VectorNd &Q,
@@ -239,6 +263,8 @@ void InverseDynamics (
 		const VectorNd &QDDot,
 		VectorNd &Tau
 		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
 	if (model.experimental_floating_base)
 		assert (0 && !"InverseDynamics not supported for experimental floating base models!");
 

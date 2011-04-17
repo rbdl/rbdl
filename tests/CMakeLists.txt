@@ -14,6 +14,7 @@ SET ( TESTS_SRCS
 	FloatingBaseTests.cc
 	CalcVelocitiesTests.cc
 	CalcAccelerationsTests.cc
+	DynamicsTests.cc
 	KinematicsTests.cc
 	InverseDynamicsTests.cc
 	CompositeRigidBodyTests.cc

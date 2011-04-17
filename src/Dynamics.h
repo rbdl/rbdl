@@ -21,9 +21,31 @@ namespace RigidBodyDynamics {
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param QDDot accelerations of the internals joints (output)
+ * \param QDDot accelerations of the internal joints (output)
  */
 void ForwardDynamics (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		VectorNd &QDDot
+		);
+
+/** \brief Computes forward dynamics by building and solving the full Lagrangian equation
+ *
+ * This method builds and solves the linear system
+ * \f[ 	H \ddot{q} = -C + \tau	\f]
+ * for \f$\ddot{q}\f$ where \f$H\f$ is the joint space inertia matrix
+ * computed with the CompositeRigidBodyAlgorithm(), \f$C\f$ the bias
+ * force (sometimes called "non-linear effects").
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param QDDot accelerations of the internal joints (output)
+ */
+void ForwardDynamicsLagrangian (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,

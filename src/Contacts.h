@@ -130,6 +130,12 @@ void ForwardDynamicsContacts (
 		 G & 0
    \end{array}
  \right)
+ \left(
+   \begin{array}{c}
+	   \ddot{q} \\
+		 \lambda
+   \end{array}
+ \right)
  =
  \left(
    \begin{array}{c}
