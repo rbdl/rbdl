@@ -1,7 +1,7 @@
 #ifndef _MODEL_H
 #define _MODEL_H
 
-#include <cmlwrapper.h>
+#include <mathwrapper.h>
 #include <vector>
 #include <map>
 #include <assert.h>
@@ -14,6 +14,9 @@
 /** \brief Namespace for all structures of the RigidBodyDynamics library
  */
 namespace RigidBodyDynamics {
+
+class Joint;
+class Body;
 
 /** \brief Primitive types that can be used for the body visualization
  *

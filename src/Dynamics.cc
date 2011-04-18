@@ -6,6 +6,8 @@
 #include "Logging.h"
 
 #include "Model.h"
+#include "Joint.h"
+#include "Body.h"
 #include "Contacts.h"
 #include "Dynamics.h"
 #include "Dynamics_experimental.h"

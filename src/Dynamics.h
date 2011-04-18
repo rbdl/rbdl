@@ -1,15 +1,14 @@
 #ifndef _DYNAMICS_H
 #define _DYNAMICS_H
 
-#include <cmlwrapper.h>
-#include <vector>
+#include <mathwrapper.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
 
-#include "Model.h"
-
 namespace RigidBodyDynamics {
+
+class Model;
 
 /** \brief Computes forward dynamics with the Articulated Body Algorithm
  *

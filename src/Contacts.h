@@ -1,7 +1,7 @@
 #ifndef _CONTACTS_H
 #define _CONTACTS_H
 
-#include "cmlwrapper.h"
+#include "mathwrapper.h"
 
 namespace RigidBodyDynamics {
 

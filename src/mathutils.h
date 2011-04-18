@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <cmath>
 
-#include "cmlwrapper.h"
+#include "mathwrapper.h"
 #include "SpatialAlgebra.h"
 
 extern Vector3d Vector3dZero;

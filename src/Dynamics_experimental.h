@@ -1,8 +1,7 @@
 #ifndef _DYNAMICS_EXPERIMENTAL_H
 #define _DYNAMICS_EXPERIMENTAL_H
 
-#include <cmlwrapper.h>
-#include <vector>
+#include <mathwrapper.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"

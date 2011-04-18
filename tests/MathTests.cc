@@ -2,7 +2,7 @@
 
 #include "Logging.h"
 #include "mathutils.h"
-#include "cmlwrapper.h"
+#include "mathwrapper.h"
 #include <iostream>
 
 const double TEST_PREC = 1.0e-14;

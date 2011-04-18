@@ -1,8 +1,7 @@
 #ifndef _KINEMATICS_H
 #define _KINEMATICS_H
 
-#include <cmlwrapper.h>
-#include <vector>
+#include <mathwrapper.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"

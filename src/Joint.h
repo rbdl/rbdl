@@ -1,13 +1,10 @@
 #ifndef _JOINT_H
 #define _JOINT_H
 
-#include <cmlwrapper.h>
-#include <vector>
+#include <mathwrapper.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
-
-#include "Model.h"
 
 namespace RigidBodyDynamics {
 

@@ -3,7 +3,7 @@
 
 #include <sstream>
 #include <assert.h>
-#include "cmlwrapper.h"
+#include "mathwrapper.h"
 
 // forward declaration as it is needed for the SpatialLinSolveFunction
 // \todo proper forward declaration of linsolve

@@ -1,8 +1,7 @@
 #ifndef _BODY_H
 #define _BODY_H
 
-#include <cmlwrapper.h>
-#include <vector>
+#include <mathwrapper.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
