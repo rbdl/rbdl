@@ -20,30 +20,30 @@ TEST (GaussElimPivot) {
 	VectorNd b(3);
 	VectorNd x(3);
 
-	A.set(0, 2, 1,
+	A << 0, 2, 1,
 			1, 1, 5,
-			0, 0, 1);
-	b.set(1,2,3);
+			0, 0, 1;
+	b << 1,2,3;
 
 	VectorNd test_result (3);
-	test_result.set (-12, -1, 3);
+	test_result << -12, -1, 3;
 
 	LinSolveGaussElimPivot (A, b, x);
 
 	CHECK_ARRAY_CLOSE (test_result.data(), x.data(), 3, TEST_PREC);
 
-	A.set(0, -2, 1,
+	A << 0, -2, 1,
 			1, 1, 5,
-			0, 0, 1);
+			0, 0, 1;
 
 	LinSolveGaussElimPivot (A, b, x);
-	test_result.set(-14, 1, 3);
+	test_result << -14, 1, 3;
 
 	CHECK_ARRAY_CLOSE (test_result.data(), x.data(), 3, TEST_PREC);
 }
 
 TEST (Dynamic_1D_initialize_value) {
-	VectorNd myvector_10 ((size_t) 10, 12.);
+	VectorNd myvector_10 = VectorNd::Constant ((size_t) 10, 12.);
 
 	double *test_values = new double[10];
 	for (unsigned int i = 0; i < 10; i++)
@@ -54,7 +54,7 @@ TEST (Dynamic_1D_initialize_value) {
 }
 
 TEST (Dynamic_2D_initialize_value) {
-	MatrixNd mymatrix_10x10 (10, 10, 12.);
+	MatrixNd mymatrix_10x10 = MatrixNd::Constant (10, 10, 12.);
 
 	double *test_values = new double[10 * 10];
 	for (unsigned int i = 0; i < 10; i++)

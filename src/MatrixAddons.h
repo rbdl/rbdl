@@ -23,6 +23,16 @@
       m_storage.data()[8] = m22;
     }
 
+/* Not working!
+    explicit Matrix (size_t rows, size_t cols, Scalar val) {
+			*this = Matrix::Constant (rows, cols, val);
+		}
+
+		explicit Matrix (size_t size, Scalar val) {
+			*this = Matrix::Constant (size, val);
+		}
+		*/
+
     /** \brief Constructs an initialized 6D vector with given coefficients */
     EIGEN_STRONG_INLINE Matrix(const Scalar& v0, const Scalar& v1, const Scalar& v2, const Scalar& v3, const Scalar& v4, const Scalar& v5)
     {
@@ -90,5 +100,11 @@
       m_storage.data()[34] = m54;
       m_storage.data()[35] = m55;
     }
+
+/*
+	void zero() {
+		*this = Matrix::Zero(this->cols(), this->rows());
+	}
+	*/
 
 #endif

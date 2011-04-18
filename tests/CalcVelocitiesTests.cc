@@ -44,11 +44,11 @@ struct ModelVelocitiesFixture {
 
 		body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
-		Q = VectorNd ((size_t) model->dof_count, 0.);
-		QDot = VectorNd ((size_t) model->dof_count, 0.);
+		Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
-		point_position.zero();
-		point_velocity.zero();
+		point_position = Vector3d::Zero(3);
+		point_velocity = Vector3d::Zero(3);
 
 		ref_body_id = 0;
 
@@ -72,7 +72,7 @@ struct ModelVelocitiesFixture {
 TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointSimple) {
 	ref_body_id = 1;
 	QDot[0] = 1.;
-	point_position.set(1., 0., 0.);
+	point_position = Vector3d (1., 0., 0.);
 	point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
 	CHECK_CLOSE(0., point_velocity[0], TEST_PREC);
@@ -89,7 +89,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseSimple) {
 	ref_body_id = 1;
 	Q[0] = M_PI * 0.5;
 	QDot[0] = 1.;
-	point_position.set(1., 0., 0.);
+	point_position = Vector3d (1., 0., 0.);
 	point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
 	CHECK_CLOSE(-1., point_velocity[0], TEST_PREC);
@@ -104,7 +104,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBodyB) {
 	
 	ref_body_id = 3;
 	QDot[1] = 1.;
-	point_position.set(1., 0., 0.);
+	point_position = Vector3d (1., 0., 0.);
 	point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
 //	cout << LogOutput.str() << endl;
@@ -121,7 +121,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBaseXAxis) {
 	ref_body_id = 3;
 	QDot[0] = 1.;
 	QDot[1] = 1.;
-	point_position.set(1., -1., 0.);
+	point_position = Vector3d (1., -1., 0.);
 	point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
 //	cout << LogOutput.str() << endl;
@@ -137,7 +137,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseXAxis) {
 	ClearLogOutput();
 
 	ref_body_id = 3;
-	point_position.set(1., -1., 0.);
+	point_position = Vector3d (1., -1., 0.);
 
 	Q[0] = M_PI * 0.5;
 	QDot[0] = 1.;
@@ -156,7 +156,7 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointBodyOrigin) {
 	// of a body
 
 	ref_body_id = body_b_id;
-	point_position.set(0., 0., 0.);
+	point_position = Vector3d (0., 0., 0.);
 
 	Q[0] = 0.;
 	QDot[0] = 1.;

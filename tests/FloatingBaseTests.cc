@@ -21,7 +21,7 @@ struct FloatingBaseFixture {
 		ClearLogOutput();
 		model = new Model;
 		model->Init();
-		model->gravity.set (0., -9.81, 0.);
+		model->gravity = Vector3d (0., -9.81, 0.);
 
 		base = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
@@ -39,15 +39,10 @@ struct FloatingBaseFixture {
 TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
 	base_body_id = model->SetFloatingBaseBody(base);
 
-	q.resize(model->dof_count);
-	qdot.resize(model->dof_count);
-	qddot.resize(model->dof_count);
-	tau.resize(model->dof_count);
-
-	q.zero();
-	qdot.zero();
-	qddot.zero();
-	tau.zero();
+	q = VectorNd::Constant(model->dof_count, 0.);
+	qdot = VectorNd::Constant(model->dof_count, 0.);
+	qddot = VectorNd::Constant(model->dof_count, 0.);
+	tau = VectorNd::Constant(model->dof_count, 0.);
 
 	q[1] = 1.;
 	ForwardDynamics (*model, q, qdot, tau, qddot);
@@ -56,174 +51,6 @@ TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
 
 	test_point = model->CalcBaseToBodyCoordinates(base_body_id, Vector3d (0., 0., 0.));
 	CHECK_ARRAY_CLOSE (Vector3d (0., -1., 0.).data(), test_point.data(), 3, TEST_PREC);
-}
-
-TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseSimple) {
-	model->experimental_floating_base = true;
-
-	base_body_id = model->SetFloatingBaseBody(base);
-	CHECK_EQUAL (0u, base_body_id);
-
-	// Initialization of the input vectors
-	VectorNd Q ((size_t) 0, 0.);
-	VectorNd QDot ((size_t) 0, 0.);
-	VectorNd QDDot ((size_t) 0, 0.);
-	VectorNd Tau ((size_t) 0, 0.);
-
-	Vector3d pos_B(0., 0., 0.);
-	Vector3d rot_B(0., 0., 0.);
-
-	SpatialMatrix X_B (XtransRotZYXEuler(pos_B, rot_B));
-	SpatialVector v_B(0., 0., 0., 0., 0., 0.);
-	SpatialVector f_B(0., 0., 0., 0., 0., 0.);
-	SpatialVector a_B(0., 0., 0., 0., 0., 0.);
-
-	Experimental::ForwardDynamicsFloatingBaseExpl(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
-
-	unsigned int i;
-	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
-	}
-
-	for (i = 0; i < model->a.size(); i++) {
-		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
-	}
-
-//	std::cout << LogOutput.str() << std::endl;
-
-	CHECK_CLOSE ( 0.0000, a_B[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_B[1], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_B[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_B[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, a_B[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_B[5], TEST_PREC);
-
-	// We rotate the base... let's see what happens...
-	rot_B[0] = 0.8;
-	X_B = XtransRotZYXEuler(pos_B, rot_B);
-	Experimental::ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
-	SpatialVector a_world = X_B.inverse() * a_B;
-
-	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
-	}
-
-	for (i = 0; i < model->a.size(); i++) {
-		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
-	}
-
-//	std::cout << LogOutput.str() << std::endl;
-
-	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, a_world[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
-}
-
-TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDouble) {
-	// floating base
-	model->experimental_floating_base = true;
-	model->SetFloatingBaseBody(base);
-
-	// body_a
-	Body body_a (1., Vector3d (1., 0., 0), Vector3d (1., 1., 1.));
-	Joint joint_a (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-
-	model->AddBody(0, Xtrans(Vector3d(2., 0., 0.)), joint_a, body_a);
-
-	// Initialization of the input vectors
-	VectorNd Q ((size_t) 1, 0.);
-	VectorNd QDot ((size_t) 1, 0.);
-	VectorNd QDDot ((size_t) 1, 0.);
-	VectorNd Tau ((size_t) 1, 0.);
-
-	Vector3d pos_B(0., 0., 0.);
-	Vector3d rot_B(0., 0., 0.);
-
-	SpatialMatrix X_B (XtransRotZYXEuler(pos_B, rot_B));
-	SpatialVector v_B(0., 0., 0., 0., 0., 0.);
-	SpatialVector f_B(0., 0., 0., 0., 0., 0.);
-	SpatialVector a_B(0., 0., 0., 0., 0., 0.);
-	SpatialVector a_world(0., 0., 0., 0., 0., 0.);
-
-	Experimental::ForwardDynamicsFloatingBaseExpl(*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
-
-	unsigned int i;
-	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
-	}
-
-	for (i = 0; i < model->a.size(); i++) {
-		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
-	}
-
-//	std::cout << LogOutput.str() << std::endl;
-
-	CHECK_CLOSE ( 0.0000, a_B[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_B[1], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_B[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_B[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, a_B[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_B[5], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-
-	// We rotate the base... let's see what happens...
-	rot_B[0] = 0.8;
-	X_B = XtransRotZYXEuler(pos_B, rot_B);
-
-	Experimental::ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
-	a_world = X_B.inverse() * a_B;
-
-	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
-	}
-
-	for (i = 0; i < model->a.size(); i++) {
-		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
-	}
-
-//	std::cout << LogOutput.str() << std::endl;
-
-	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
-	CHECK_CLOSE (-9.8100, a_world[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-
-	// We apply a torqe let's see what happens...
-	rot_B[0] = 0.0;
-	X_B = XtransRotZYXEuler(pos_B, rot_B);
-
-	Tau[0] = 1.;
-
-	Experimental::ForwardDynamicsFloatingBaseExpl (*model, Q, QDot, Tau, X_B, v_B, f_B, a_B, QDDot);
-	a_world = X_B.inverse() * a_B;
-
-	for (i = 0; i < QDDot.size(); i++) {
-		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
-	}
-
-	for (i = 0; i < model->a.size(); i++) {
-		LOG << "a[" << i << "]     = " << model->a.at(i) << endl;
-	}
-
-//	std::cout << LogOutput.str() << std::endl;
-
-
-	CHECK_CLOSE ( 0.0000, a_world[0], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[1], TEST_PREC);
-	CHECK_CLOSE (-1.0000, a_world[2], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[3], TEST_PREC);
-	CHECK_CLOSE (-8.8100, a_world[4], TEST_PREC);
-	CHECK_CLOSE ( 0.0000, a_world[5], TEST_PREC);
-	CHECK_CLOSE ( 2.0000, QDDot[0],   TEST_PREC);
 }
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
@@ -240,10 +67,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 	model->AddBody(base_body_id, Xtrans(Vector3d(2., 0., 0.)), joint_a, body_a);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Zero ((size_t) model->dof_count);
+	VectorNd QDot = VectorNd::Zero  ((size_t) model->dof_count);
+	VectorNd QDDot = VectorNd::Zero  ((size_t) model->dof_count);
+	VectorNd Tau = VectorNd::Zero  ((size_t) model->dof_count);
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
@@ -322,20 +149,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 	// floating base
 	base_body_id = model->SetFloatingBaseBody(base);
 
-	VectorNd Q;
-	VectorNd QDot;
-	VectorNd QDDot;
-	VectorNd Tau;
-
-	Q.resize(6);
-	QDot.resize(6);
-	QDDot.resize(6);
-	Tau.resize(6);
-
-	Q.zero();
-	QDot.zero();
-	QDDot.zero();
-	Tau.zero();
+	VectorNd Q = VectorNd::Zero (model->dof_count);
+	VectorNd QDot = VectorNd::Zero (model->dof_count);
+	VectorNd QDDot = VectorNd::Zero (model->dof_count);
+	VectorNd Tau = VectorNd::Zero (model->dof_count);
 
 	unsigned int ref_body_id = base_body_id;
 
@@ -389,15 +206,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
 	base_body_id = model->SetFloatingBaseBody(base);
 
-	q.resize (model->dof_count);
-	qdot.resize (model->dof_count);
-	qddot.resize (model->dof_count);
-	tau.resize (model->dof_count);
-
-	q.zero ();
-	qdot.zero ();
-	qddot.zero ();
-	tau.zero ();
+	VectorNd q = VectorNd::Zero (model->dof_count);
+	VectorNd qdot = VectorNd::Zero (model->dof_count);
+	VectorNd qddot = VectorNd::Zero (model->dof_count);
+	VectorNd tau = VectorNd::Zero (model->dof_count);
 
 	unsigned int ref_body_id = base_body_id;
 
@@ -425,7 +237,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
 
 	point_base_velocity = CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position);
 
-	point_base_velocity_reference.set (
+	point_base_velocity_reference = Vector3d (
 			 -3.888503432977729e-01,
 			 -3.171179347202455e-01,
 			 1.093894197498446e+00
@@ -448,15 +260,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
 	base_body_id = model->SetFloatingBaseBody(base);
 
-	q.resize (model->dof_count);
-	qdot.resize (model->dof_count);
-	qddot.resize (model->dof_count);
-	tau.resize (model->dof_count);
-
-	q.zero ();
-	qdot.zero ();
-	qddot.zero ();
-	tau.zero ();
+	VectorNd q = VectorNd::Zero (model->dof_count);
+	VectorNd qdot = VectorNd::Zero (model->dof_count);
+	VectorNd qddot = VectorNd::Zero (model->dof_count);
+	VectorNd tau = VectorNd::Zero (model->dof_count);
 
 	unsigned int ref_body_id = base_body_id;
 
@@ -482,7 +289,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
 
 	// call ForwardDynamics to update the model
 	ForwardDynamics(*model, q, qdot, tau, qddot);
-	qddot.zero();
+	qddot = VectorNd::Zero (qddot.size());
 
 	qdot = qdot;
 
@@ -537,15 +344,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
 	base_body_id = model->SetFloatingBaseBody(base);
 
-	q.resize (model->dof_count);
-	qdot.resize (model->dof_count);
-	qddot.resize (model->dof_count);
-	tau.resize (model->dof_count);
-
-	q.zero ();
-	qdot.zero ();
-	qddot.zero ();
-	tau.zero ();
+	VectorNd q = VectorNd::Zero (model->dof_count);
+	VectorNd qdot = VectorNd::Zero (model->dof_count);
+	VectorNd qddot = VectorNd::Zero (model->dof_count);
+	VectorNd tau = VectorNd::Zero (model->dof_count);
 
 	unsigned int ref_body_id = base_body_id;
 
@@ -557,7 +359,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
 
 	ForwardDynamics(*model, q, qdot, tau, qddot);
 
-	qddot.zero();
+	qddot = VectorNd::Zero (qddot.size());
 
 	qddot[0] = 0.1;
 	qddot[1] = 1.1;
@@ -616,15 +418,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFull) {
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
 	base_body_id = model->SetFloatingBaseBody(base);
 
-	q.resize (model->dof_count);
-	qdot.resize (model->dof_count);
-	qddot.resize (model->dof_count);
-	tau.resize (model->dof_count);
-
-	q.zero ();
-	qdot.zero ();
-	qddot.zero ();
-	tau.zero ();
+	VectorNd q = VectorNd::Zero (model->dof_count);
+	VectorNd qdot = VectorNd::Zero (model->dof_count);
+	VectorNd qddot = VectorNd::Zero (model->dof_count);
+	VectorNd tau = VectorNd::Zero (model->dof_count);
 
 	unsigned int ref_body_id = base_body_id;
 

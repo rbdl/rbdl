@@ -23,12 +23,12 @@ TEST (TestForwardDynamicsLagrangian) {
 	model.SetFloatingBaseBody(base_body);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model.dof_count, 0.);
-	VectorNd QDot ((size_t) model.dof_count, 0.);
-	VectorNd Tau ((size_t) model.dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
 	
-	VectorNd QDDot_aba ((size_t) model.dof_count, 0.);
-	VectorNd QDDot_lagrangian ((size_t) model.dof_count, 0.);
+	VectorNd QDDot_aba = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDDot_lagrangian = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
 	Q[0] = 1.1;
 	Q[1] = 1.2;

@@ -27,15 +27,10 @@ void Model::Init() {
 	dof_count = 0;
 
 	// state information
-	q.resize(1);
-	qdot.resize(1);
-	qddot.resize(1);
-	tau.resize(1);
-
-	q.zero();
-	qdot.zero();
-	qddot.zero();
-	tau.zero();
+	q = VectorNd::Zero (1);
+	qdot = VectorNd::Zero (1);
+	qddot = VectorNd::Zero (1);
+	tau = VectorNd::Zero (1);
 
 	v.push_back(zero_spatial);
 	a.push_back(zero_spatial);
@@ -54,8 +49,8 @@ void Model::Init() {
 	d.resize(1);
 	u.resize(1);
 
-	d.zero();
-	u.zero();
+	u = VectorNd::Zero (1);
+	d = VectorNd::Zero (1);
 
 	f.push_back (zero_spatial);
 	f_ext.push_back (zero_spatial);

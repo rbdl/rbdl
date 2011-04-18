@@ -20,7 +20,7 @@ struct InverseDynamicsFixture {
 		ClearLogOutput();
 		model = new Model;
 		model->Init();
-		model->gravity.set (0., -9.81, 0.);
+		model->gravity = Vector3d  (0., -9.81, 0.);
 	}
 	~InverseDynamicsFixture () {
 		delete model;
@@ -34,11 +34,11 @@ TEST_FIXTURE(InverseDynamicsFixture, TestInverseForwardDynamicsFloatingBase) {
 	model->SetFloatingBaseBody(base_body);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
-	VectorNd TauInv ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd TauInv = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
 	Q[0] = 1.1;
 	Q[1] = 1.2;

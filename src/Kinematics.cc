@@ -86,8 +86,8 @@ void CalcPointJacobian (
 
 	// update the Kinematics with zero acceleration
 	if (update_kinematics) {
-		VectorNd QDDot_zero (Q.size(), 0.);
-		VectorNd QDot_zero (Q.size(), 0.);
+		VectorNd QDDot_zero = VectorNd::Constant (Q.size(), 0.);
+		VectorNd QDot_zero = VectorNd::Constant (Q.size(), 0.);
 		ForwardKinematics (model, Q, QDot_zero, QDDot_zero);
 	}
 
@@ -155,7 +155,7 @@ Vector3d CalcPointVelocity (
 
 	// update the Kinematics with zero acceleration
 	if (update_kinematics) {
-		VectorNd QDDot_zero (Q.size(), 0.);
+		VectorNd QDDot_zero = VectorNd::Constant (Q.size(), 0.);
 		ForwardKinematics (model, Q, QDot, QDDot_zero);
 	}
 

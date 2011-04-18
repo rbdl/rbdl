@@ -69,10 +69,10 @@ struct KinematicsFixture {
 
 		body_d_id = model->AddBody(body_c_id, Xtrans(Vector3d(0., 0., -1.)), joint_c, body_d);
 
-		Q = VectorNd ((size_t) model->dof_count, 0.);
-		QDot = VectorNd ((size_t) model->dof_count, 0.);
-		QDDot = VectorNd ((size_t) model->dof_count, 0.);
-		Tau = VectorNd ((size_t) model->dof_count, 0.);
+		Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
 		ClearLogOutput();
 	}
@@ -244,9 +244,9 @@ TEST(TestCalcPointJacobian) {
 	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
 	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);
 
-	VectorNd Q ((size_t) model.dof_count, 0.);
-	VectorNd QDot ((size_t) model.dof_count, 0.);
-	MatrixNd G (3, model.dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	MatrixNd G = MatrixNd::Constant (3, model.dof_count, 0.);
 	Vector3d point_position (1.1, 1.2, 2.1);
 	Vector3d point_velocity_ref;
 	Vector3d point_velocity;

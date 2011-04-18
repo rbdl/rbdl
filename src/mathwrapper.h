@@ -17,14 +17,15 @@
 #else
 
 	#define EIGEN_MATRIX_PLUGIN "MatrixAddons.h"
+	#define EIGEN_DEFAULT_TO_ROW_MAJOR
 
 	#include "Eigen/Dense"
 
-	typedef Eigen::Vector3d Vector3d;
-	typedef Eigen::Matrix3d Matrix3d;
+	typedef Eigen::Matrix< double, 3, 1> Vector3d;
+	typedef Eigen::Matrix< double, 3, 3> Matrix3d;
 
-	typedef Eigen::Matrix< double, 6, 1 > Vector6d;
-	typedef Eigen::Matrix< double, 6, 6 > Matrix6d;
+	typedef Eigen::Matrix< double, 6, 1> Vector6d;
+	typedef Eigen::Matrix< double, 6, 6> Matrix6d;
 
 	typedef Eigen::VectorXd VectorNd;
 	typedef Eigen::MatrixXd MatrixNd;

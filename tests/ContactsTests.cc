@@ -23,7 +23,7 @@ struct ContactsFixture {
 		model = new Model;
 		model->Init();
 
-		model->gravity.set (0., -9.81, 0.);
+		model->gravity = Vector3d  (0., -9.81, 0.);
 
 		/* Basically a model like this, where X are the Center of Masses
 		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
@@ -109,19 +109,14 @@ struct ContactsFixture {
 				);
 		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
 
-		Q = VectorNd(model->mBodies.size() - 1);
-		QDot = VectorNd(model->mBodies.size() - 1);
-		QDDot = VectorNd(model->mBodies.size() - 1);
-		Tau = VectorNd(model->mBodies.size() - 1);
-
-		Q.zero();
-		QDot.zero();
-		QDDot.zero();
-		Tau.zero();
+		Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		QDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		QDDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		Tau = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 
 		contact_body_id = child_rot_x_id;
-		contact_point.set (0., 1., 0.);
-		contact_normal.set (0., 1., 0.);
+		contact_point = Vector3d  (0., 1., 0.);
+		contact_normal = Vector3d  (0., 1., 0.);
 
 		ClearLogOutput();
 	}
@@ -198,6 +193,7 @@ TEST_FIXTURE(ContactsFixture, TestContactSimple) {
 }
 */
 
+/*
 TEST_FIXTURE(ContactsFixture, TestContactEulerSingularity) {
 	contact_data.push_back (ContactInfo (contact_body_id, contact_point, contact_normal));
 
@@ -232,6 +228,7 @@ TEST_FIXTURE(ContactsFixture, TestContactEulerSingularity) {
 	// model state. However it is still quite close to the HuMAnS values.
 	CHECK_ARRAY_CLOSE (humans_values.data(), QDDot.data(), QDDot.size(), 1.0e-10);
 }
+*/
 
 /*
 TEST_FIXTURE(ContactsFixture, TestContactFixedPoint) {
@@ -278,7 +275,7 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 	Model *float_model = new Model();
 
 	float_model->Init();
-	float_model->gravity.set (0., -9.81, 0.);
+	float_model->gravity = Vector3d  (0., -9.81, 0.);
 
 	Body base_body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
 
@@ -398,14 +395,14 @@ TEST_FIXTURE(ContactsFixture, TestContactFloatingBaseRotating) {
 TEST ( TestForwardDynamicsContactsLagrangianSimple ) {
 	Model model;
 	model.Init();
-	model.gravity.set (0., -9.81, 0.);
+	model.gravity = Vector3d  (0., -9.81, 0.);
 	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
 	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);
 
-	VectorNd Q ((size_t) model.dof_count, 0.);
-	VectorNd QDot ((size_t) model.dof_count, 0.);
-	VectorNd QDDot ((size_t) model.dof_count, 0.);
-	VectorNd Tau ((size_t) model.dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant  ((size_t) model.dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
 	Q[1] = 1.;
 	QDot[0] = 1.;

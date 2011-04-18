@@ -77,7 +77,7 @@ VectorNd rk45_integrator (double t0, double tf, VectorNd &y0, rhs_func func, dou
 		rk4 = y + 25./216. * k1 + 1408./2565. * k3 + 2197./4104. * k4 - 1./5. * k5;
 		rk5 = y + 16./135. * k1 + 6656./12825. * k3 + 28561./56430. * k4 - 9./50. * k5 + 2./55. * k6;
 
-		double error_est = cml::length(rk5 - rk4);
+		double error_est = (rk5 - rk4).norm();
 
 //		cout << "error estimate = " << scientific << error_est << endl;
 
@@ -173,7 +173,7 @@ void model_init () {
 	model = new Model;
 	model->Init();
 
-	model->gravity.set (0., 0., 0.);
+	model->gravity = Vector3d (0., 0., 0.);
 
 	// base body
 	Body base (
@@ -184,15 +184,10 @@ void model_init () {
 
 	unsigned int base_body_id = model->SetFloatingBaseBody(base);
 
-	Q = VectorNd(model->dof_count);
-	QDot = VectorNd(model->dof_count);
-	QDDot = VectorNd(model->dof_count);
-	Tau = VectorNd(model->dof_count);
-
-	Q.zero();
-	QDot.zero();
-	QDDot.zero();
-	Tau.zero();
+	Q = VectorNd::Constant (model->dof_count, 0.);
+	QDot = VectorNd::Constant (model->dof_count, 0.);
+	QDDot = VectorNd::Constant (model->dof_count, 0.);
+	Tau = VectorNd::Constant (model->dof_count, 0.);
 
 	model->SetBodyVisualizationSphere(
 			base_body_id,
@@ -202,8 +197,8 @@ void model_init () {
 			);
 
 	contact_body_id = base_body_id;
-	contact_point.set (0., -1., 0.);
-	contact_normal.set (0., 1., 0.);
+	contact_point = Vector3d (0., -1., 0.);
+	contact_normal = Vector3d (0., 1., 0.);
 
 	Q[1] = 1.;
 

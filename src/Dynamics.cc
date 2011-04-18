@@ -39,34 +39,8 @@ void ForwardDynamics (
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
 	if (model.experimental_floating_base) {
-		VectorNd q (Q.size());
-		VectorNd qdot (QDot.size());
-		VectorNd qddot (QDDot.size());
-		VectorNd tau (Tau.size());
-
-		unsigned int i;
-		
-		for (i = 0; i < q.size(); i++) {
-			q[i] = Q[i];
-		}
-		for (i = 0; i < qdot.size(); i++) {
-			qdot[i] = QDot[i];
-		}
-		for (i = 0; i < tau.size(); i++) {
-			tau[i] = Tau[i];
-		}
-
-		Experimental::ForwardDynamicsFloatingBase (model, q, qdot, tau, qddot);
-
-		for (i = 0; i < qddot.size(); i++) {
-			QDDot[i] = qddot[i];
-		}
-
-		return;
+		assert (0 && "Experimental floating base not supported");
 	}
-
-	SpatialVector result;
-	result.zero();
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
@@ -245,14 +219,14 @@ void ForwardDynamicsLagrangian (
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	MatrixNd H ((size_t) model.dof_count, (size_t) model.dof_count, 0.);
-	VectorNd C ((size_t) model.dof_count, 0.);
+	MatrixNd H = MatrixNd::Constant ((size_t) model.dof_count, (size_t) model.dof_count, 0.);
+	VectorNd C = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
 	CompositeRigidBodyAlgorithm (model, Q, H);
 
 	// we set QDDot to zero to compute C properly with the InverseDynamics
 	// method.
-	QDDot.zero();
+	QDDot.setZero();
 	InverseDynamics (model, Q, QDot, QDDot, C);
 
 	LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
@@ -269,9 +243,6 @@ void InverseDynamics (
 
 	if (model.experimental_floating_base)
 		assert (0 && !"InverseDynamics not supported for experimental floating base models!");
-
-	SpatialVector result;
-	result.zero();
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
@@ -342,7 +313,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H) 
 	if (H.rows() != Q.size() || H.cols() != Q.size()) 
 		H.resize(Q.size(), Q.size());
 
-	H.zero();
+	H.setZero();
 
 	unsigned int i;
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -441,9 +412,9 @@ void ForwardDynamicsContactsLagrangian (
 	}
 	
 	// Build the system
-	MatrixNd A (model.dof_count + ContactData.size(), model.dof_count + ContactData.size(), 0.);
-	VectorNd b (model.dof_count + ContactData.size(), 0.);
-	VectorNd x (model.dof_count + ContactData.size(), 0.);
+	MatrixNd A = MatrixNd::Constant (model.dof_count + ContactData.size(), model.dof_count + ContactData.size(), 0.);
+	VectorNd b = VectorNd::Constant (model.dof_count + ContactData.size(), 0.);
+	VectorNd x = VectorNd::Constant (model.dof_count + ContactData.size(), 0.);
 
 	// Build the system: Copy H
 	for (i = 0; i < model.dof_count; i++) {
@@ -579,9 +550,6 @@ void ForwardDynamicsFloatingBaseExpl (
 		VectorNd &QDDot
 		)
 {
-	SpatialVector result;
-	result.zero();
-
 	assert (model.experimental_floating_base);
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
@@ -797,7 +765,8 @@ void ComputeContactForces (
 		}
 
 		// evaluate a0 and C0
-		double a0i = cml::dot(contact_info.normal,point_accel);
+//		double a0i = cml::dot(contact_info.normal,point_accel);
+		double a0i = contact_info.normal.dot(point_accel);
 
 		a0[ci] = a0i;
 		C0[ci] = - (a0i - contact_info.acceleration);
@@ -842,7 +811,8 @@ void ComputeContactForces (
 			}
 
 			// acceleration due to the test force
-			double a1j_i = cml::dot(test_contact_info.normal, point_test_accel);
+//			double a1j_i = cml::dot(test_contact_info.normal, point_test_accel);
+			double a1j_i = test_contact_info.normal.dot(point_test_accel);
 			LOG << "test_accel a1j_i = " << a1j_i << std::endl;
 			LOG << "a0[ci] = " << a0[ci] << std::endl;
 			Ae(ci,cj) = a1j_i - a0[ci];

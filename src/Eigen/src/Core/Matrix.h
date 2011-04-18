@@ -263,7 +263,7 @@ class Matrix
     #endif
 
     /** \brief Constructs an initialized 3D vector with given coefficients */
-    EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
+    EIGEN_STRONG_INLINE explicit Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
       Base::_check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3)
@@ -272,7 +272,7 @@ class Matrix
       m_storage.data()[2] = z;
     }
     /** \brief Constructs an initialized 4D vector with given coefficients */
-    EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
+    EIGEN_STRONG_INLINE explicit Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
       Base::_check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 4)

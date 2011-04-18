@@ -696,7 +696,10 @@ class SpatialMatrix {
 		}
 
 		// Special operators
-		
+		double *data() {
+			return mData;
+		}
+	
 		// regular transpose of a 6 dimensional matrix
 		SpatialMatrix transpose() const {
 			return SpatialMatrix (

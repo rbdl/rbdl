@@ -20,7 +20,7 @@ struct ModelFixture {
 		ClearLogOutput();
 		model = new Model;
 		model->Init();
-		model->gravity.set (0., -9.81, 0.);
+		model->gravity = Vector3d (0., -9.81, 0.);
 	}
 	~ModelFixture () {
 		delete model;
@@ -259,10 +259,10 @@ TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
 	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), fixed_joint, endeffector);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Zero ((size_t) model->dof_count);
+	VectorNd QDot = VectorNd::Zero ((size_t) model->dof_count);
+	VectorNd QDDot = VectorNd::Zero ((size_t) model->dof_count);
+	VectorNd Tau = VectorNd::Zero ((size_t) model->dof_count);
 
 	QDot[0] = 1.;
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
@@ -290,10 +290,10 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSingleChain) {
 	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant  ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant  ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant  ((size_t) model->dof_count, 0.);
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
@@ -320,12 +320,13 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSpatialInertiaSingleChain) {
 	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
 
 	unsigned int i;
 	for (i = 0; i < QDDot.size(); i++) {
@@ -357,10 +358,10 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain) {
 	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
 //	cout << "--- Double Chain ---" << endl;
 
@@ -407,10 +408,10 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicTripleChain) {
 	model->AddBody(2, Xtrans(Vector3d(1., 0., 0.)), joint_c, body_c);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
 	// cout << "--- Triple Chain ---" << endl;
 
@@ -450,10 +451,10 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicDoubleChain3D) {
 	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
 	// cout << "--- Double Chain 3D ---" << endl;
 
@@ -516,10 +517,10 @@ TEST_FIXTURE(ModelFixture, TestCalcDynamicSimpleTree3D) {
 	model->AddBody(4, Xtrans(Vector3d(0., -0.5, 0.)), joint_c2, body_c2);
 
 	// Initialization of the input vectors
-	VectorNd Q ((size_t) model->dof_count, 0.);
-	VectorNd QDot ((size_t) model->dof_count, 0.);
-	VectorNd QDDot ((size_t) model->dof_count, 0.);
-	VectorNd Tau ((size_t) model->dof_count, 0.);
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
 	// cout << "--- SimpleTree ---" << endl;
 
@@ -547,21 +548,14 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	Body body;
 	unsigned int body_id = model->SetFloatingBaseBody (body);
 
-	VectorNd q (model->dof_count);
-	VectorNd qdot (model->dof_count);
-	VectorNd qddot (model->dof_count);
-	VectorNd tau (model->dof_count);
+	VectorNd q = VectorNd::Zero (model->dof_count);
+	VectorNd qdot = VectorNd::Zero (model->dof_count);
+	VectorNd qddot = VectorNd::Zero (model->dof_count);
+	VectorNd tau = VectorNd::Zero (model->dof_count);
 
-	Vector3d base_coords;
+	Vector3d base_coords (0., 0., 0.);
 	Vector3d body_coords;
 	Vector3d base_coords_back;
-
-	q.zero();
-	qdot.zero();
-	qddot.zero();
-	tau.zero();
-
-	base_coords.zero();
 
 	ForwardKinematics (*model, q, qdot, qddot);
 	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);

@@ -1,10 +1,10 @@
-#include <mathutils.h>
-
 #include <cmath>
 #include <limits>
 
 #include <iostream>
 #include <assert.h>
+
+#include <mathutils.h>
 
 #include "Logging.h"
 
@@ -113,7 +113,7 @@ Matrix3d VectorCrossMatrix (const Vector3d &vector) {
 }
 
 bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
-	x.zero();
+	x = VectorNd::Zero(x.size());
 
 	// We can only solve quadratic systems
 	assert (A.rows() == A.cols());

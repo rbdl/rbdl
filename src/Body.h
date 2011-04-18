@@ -63,14 +63,12 @@ struct Body {
 					-com[1],  com[0],      0.
 					);
 			Matrix3d parallel_axis;
-			parallel_axis = mass * com_cross * cml::transpose(com_cross);
-
-			LOG << "parrallel axis = " << parallel_axis << std::endl;
+			parallel_axis = mass * com_cross * com_cross.transpose();
 
 			Vector3d gr (gyration_radii);
 			Matrix3d pa (parallel_axis);
 			Matrix3d mcc = mass * com_cross;
-			Matrix3d mccT = transpose(mcc);
+			Matrix3d mccT = mcc.transpose();
 
 			mSpatialInertia.set (
 					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
@@ -103,13 +101,16 @@ struct Body {
 					-com[1],  com[0],      0.
 					);
 			Matrix3d parallel_axis;
-			parallel_axis = mass * com_cross * cml::transpose(com_cross);
+			Matrix3d com_crossT = com_cross;
+			com_crossT.transpose();
+			parallel_axis = mass * com_cross * com_crossT;
 
 			LOG << "parrallel axis = " << parallel_axis << std::endl;
 
 			Matrix3d pa (parallel_axis);
 			Matrix3d mcc = mass * com_cross;
-			Matrix3d mccT = transpose(mcc);
+			Matrix3d mccT = mcc;
+			mccT.transpose();
 
 			mSpatialInertia.set (
 					inertia_C(0,0) + pa(0, 0), inertia_C(0,1) + pa(0, 1), inertia_C(0,2) + pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),

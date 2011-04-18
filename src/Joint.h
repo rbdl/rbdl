@@ -65,7 +65,7 @@ struct Joint {
 
 		if (joint_type == JointTypeRevolute) {
 			// make sure we have a unit axis
-			assert (joint_axis.length() == 1.);
+			assert (joint_axis.squaredNorm() == 1.);
 
 			assert ( joint_axis == Vector3d (1., 0., 0.)
 					|| joint_axis == Vector3d (0., 1., 0.)
@@ -88,7 +88,7 @@ struct Joint {
 			mJointAxis.set (0., 0., 0., 0., 0., 0.);
 		} else if (joint_type == JointTypePrismatic) {
 			// make sure we have a unit axis
-			assert (joint_axis.length() == 1.);
+			assert (joint_axis.squaredNorm() == 1.);
 
 			mJointAxis.set (
 					0., 0., 0.,

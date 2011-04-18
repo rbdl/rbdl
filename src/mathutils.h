@@ -5,7 +5,6 @@
 #include <cmath>
 
 #include "mathwrapper.h"
-#include "SpatialAlgebra.h"
 
 extern Vector3d Vector3dZero;
 extern Matrix3d Matrix3dIdentity;
@@ -90,6 +89,7 @@ SpatialAlgebra::SpatialMatrix Xrotx (const double &xrot);
  */
 SpatialAlgebra::SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler);
 
+/*
 inline std::ostream& operator<<(std::ostream& output, const std::vector<double> &val) {
 	unsigned int i;
 	for (i = 0; i < val.size(); i++)
@@ -99,5 +99,6 @@ inline std::ostream& operator<<(std::ostream& output, const std::vector<double> 
 
 	return output;
 }
+*/
 
 #endif /* _MATHUTILS_H */

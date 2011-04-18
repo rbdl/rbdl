@@ -114,10 +114,10 @@ void draw_model (Model* model) {
 		Vector3d target_direction (joint_axis[0], joint_axis[1], joint_axis[2]);
 
 		target_direction.normalize();
-		float rot_angle = acos (cml::dot(target_direction, Vector3d (0., 0., 1.)));
+		float rot_angle = acos (target_direction.dot(Vector3d (0., 0., 1.)));
 		rot_angle = rot_angle;
 		if (fabs(rot_angle) > 0.0001) {
-			Vector3d rotation_axis = cml::cross (target_direction, Vector3d (0., 0., 1.));
+			Vector3d rotation_axis = target_direction.cross(Vector3d (0., 0., 1.));
 			glRotatef (rot_angle * 180./M_PI,
 					rotation_axis[0],
 					rotation_axis[1],
