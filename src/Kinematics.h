@@ -34,14 +34,16 @@ void ForwardKinematics (Model &model,
  * \param Q       state vector of the internal joints
  * \param body_id the id of the body
  * \param point_position the position of the point in body-local data
+ * \param G       a matrix where the result will be stored in
  * \param update_kinematics whether ForwardKinematics() should be called or not (default: true)
  *
  * \returns A 3 x \#dof_count matrix of the point jacobian
  */
-MatrixNd CalcPointJacobian (Model &model,
+void CalcPointJacobian (Model &model,
 		const VectorNd &Q,
 		unsigned int body_id,
 		const Vector3d &point_position,
+		MatrixNd &G,
 		bool update_kinematics = true
 		);
 

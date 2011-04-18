@@ -411,7 +411,7 @@ void ForwardDynamicsContactsLagrangian (
 			assert (0 && "Invalid contact normal axis!");
 
 		MatrixNd Gi (3, model.dof_count);
-		Gi = CalcPointJacobian (model, Q, ContactData[i].body_id, ContactData[i].point, false);
+		CalcPointJacobian (model, Q, ContactData[i].body_id, ContactData[i].point, Gi, false);
 
 		for (j = 0; j < model.dof_count; j++) {
 			G(i,j) = Gi(axis_index, j);

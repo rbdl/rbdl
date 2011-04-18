@@ -268,7 +268,7 @@ TEST(TestCalcPointJacobian) {
 	// Compute the reference velocity
 	point_velocity_ref = CalcPointVelocity (model, Q, QDot, base_body_id, point_position);
 
-	G = CalcPointJacobian (model, Q, base_body_id, point_position);
+	CalcPointJacobian (model, Q, base_body_id, point_position, G);
 	point_velocity = G * QDot;
 
 	CHECK_ARRAY_CLOSE (

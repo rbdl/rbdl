@@ -71,11 +71,12 @@ void ForwardKinematics (Model &model,
 	}
 }
 
-MatrixNd CalcPointJacobian (
+void CalcPointJacobian (
 		Model &model,
 		const VectorNd &Q,
 		unsigned int body_id,
 		const Vector3d &point_position,
+		MatrixNd &G,
 		bool update_kinematics
 	) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
@@ -92,19 +93,18 @@ MatrixNd CalcPointJacobian (
 
 	Vector3d point_base_pos = model.CalcBodyToBaseCoordinates(body_id, point_position);
 	SpatialMatrix point_trans = Xtrans (point_base_pos);
-	MatrixNd result (3, model.dof_count);
+
+	assert (G.rows() == 3 && G.cols() == model.dof_count );
 
 	unsigned int j;
 	for (j = 1; j < model.mBodies.size(); j++) {
 		SpatialVector S_base;
 		S_base = point_trans * model.X_base[j].inverse() * model.S[j];
 
-		result(0, j - 1) = S_base[3];
-		result(1, j - 1) = S_base[4];
-		result(2, j - 1) = S_base[5];
+		G(0, j - 1) = S_base[3];
+		G(1, j - 1) = S_base[4];
+		G(2, j - 1) = S_base[5];
 	}
-
-	return result;
 }
 
 Vector3d CalcPointVelocity (
