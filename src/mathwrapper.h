@@ -1,6 +1,8 @@
 #ifndef _MATHWRAPPER_H
 #define _MATHWRAPPER_H
 
+#define USE_EIGEN
+
 #ifndef USE_EIGEN
 
 	#include "cml/cml_config.h"
@@ -14,15 +16,20 @@
 
 #else
 
+	#define EIGEN_MATRIX_PLUGIN "MatrixAddons.h"
+
 	#include "Eigen/Dense"
+
 	typedef Eigen::Vector3d Vector3d;
 	typedef Eigen::Matrix3d Matrix3d;
+
+	typedef Eigen::Matrix< double, 6, 1 > Vector6d;
+	typedef Eigen::Matrix< double, 6, 6 > Matrix6d;
 
 	typedef Eigen::VectorXd VectorNd;
 	typedef Eigen::MatrixXd MatrixNd;
 
 #endif
-
 
 #include "SpatialAlgebra.h"
 
