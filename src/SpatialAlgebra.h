@@ -200,8 +200,11 @@ class SpatialVector {
 
 		inline SpatialMatrix outer_product(const SpatialVector &vector) const;
 
-		inline SpatialMatrix crossm() const;
-		inline SpatialMatrix crossf() const;
+		inline SpatialMatrix crossm_matrix() const;
+		inline SpatialMatrix crossf_matrix() const;
+
+		inline SpatialVector crossm(const SpatialVector &vector) const;
+		inline SpatialVector crossf(const SpatialVector &vector) const;
 			
 	private:
 		double mData[6];
@@ -913,7 +916,7 @@ inline SpatialMatrix operator*(const double& val, const SpatialMatrix &mat) {
 
 // Functions of SpatialVector that are dependent on the declaration of
 // SpatialMatrix.
-SpatialMatrix SpatialVector::crossm() const
+SpatialMatrix SpatialVector::crossm_matrix() const
 {
 	return SpatialMatrix (
 		        0,  -mData[2],  mData[1],         0,          0,         0,
@@ -927,9 +930,30 @@ SpatialMatrix SpatialVector::crossm() const
 
 // Functions of SpatialVector that are dependent on the declaration of
 // SpatialMatrix.
-SpatialMatrix SpatialVector::crossf() const
+SpatialMatrix SpatialVector::crossf_matrix() const
 {
-	return this->crossm().adjoint();
+	return SpatialMatrix (
+		        0,  -mData[2],  mData[1],         0,  -mData[5],  mData[4],
+		 mData[2],          0, -mData[0],  mData[5],          0, -mData[3],
+		-mData[1],   mData[0],         0, -mData[4],   mData[3],         0,
+		        0,          0,         0,         0,  -mData[2],  mData[1],
+		        0,          0,         0,  mData[2],          0, -mData[0],
+		        0,          0,         0, -mData[1],   mData[0],         0
+		);
+}
+
+// Functions of SpatialVector that are dependent on the declaration of
+// SpatialMatrix.
+SpatialVector SpatialVector::crossm(const SpatialVector &vector) const
+{
+	return crossm_matrix() * vector;
+}
+
+// Functions of SpatialVector that are dependent on the declaration of
+// SpatialMatrix.
+SpatialVector SpatialVector::crossf(const SpatialVector &vector) const
+{
+	return crossf_matrix() * vector;
 }
 
 

@@ -198,11 +198,11 @@ TEST(TestSpatialVectorCross) {
 			-5.,  4.,  0., -2.,  1.,  0.
 			);
 
-	SpatialMatrix s_vec_cross (s_vec.crossm());
+	SpatialMatrix s_vec_cross (s_vec.crossm_matrix());
 	CHECK_EQUAL (test_cross, s_vec_cross);
 
-	SpatialMatrix s_vec_crossf (s_vec.crossf());
-	SpatialMatrix test_crossf = -1. * s_vec.crossm().transpose();
+	SpatialMatrix s_vec_crossf (s_vec.crossf_matrix());
+	SpatialMatrix test_crossf = -1. * s_vec.crossm_matrix().transpose();
 
 	CHECK_EQUAL (test_crossf, s_vec_crossf);
 }

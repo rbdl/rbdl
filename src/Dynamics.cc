@@ -66,38 +66,38 @@ void ForwardDynamics (
 		SpatialMatrix X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
-		Joint joint = model.mJoints.at(i);
-		unsigned int lambda = model.lambda.at(i);
+		Joint joint = model.mJoints[i];
+		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
-		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
+		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+		LOG << "X_T (" << i << "):" << std::endl << model.X_T[i] << std::endl;
 
-		model.X_lambda.at(i) = X_J * model.X_T.at(i);
+		model.X_lambda[i] = X_J * model.X_T[i];
 
 		if (lambda != 0)
-			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 		else
-			model.X_base.at(i) = model.X_lambda.at(i);
+			model.X_base[i] = model.X_lambda[i];
 
-		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
+		model.v[i] = model.X_lambda[i] * model.v.at(lambda) + v_J;
 
 		/*
 		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
 		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
-		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
-		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda.at(i) << std::endl;
-		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
+		LOG << "X_base (" << i << "):" << std::endl << model.X_base[i] << std::endl;
+		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda[i] << std::endl;
+		LOG << "SpatialVelocity (" << i << "): " << model.v[i] << std::endl;
 		*/
 
-		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
-		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
+		model.c[i] = c_J + model.v[i].crossm(v_J);
+		model.IA[i] = model.mBodies[i].mSpatialInertia;
 
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i);
+		model.pA[i] = model.v[i].crossf(model.IA[i] * model.v[i]);
 
-		if (model.f_ext.at(i) != SpatialVectorZero) {
-			LOG << "External force (" << i << ") = " << model.X_base[i].adjoint() * model.f_ext.at(i) << std::endl;
-			model.pA.at(i) -= model.X_base[i].adjoint() * model.f_ext.at(i);
+		if (model.f_ext[i] != SpatialVectorZero) {
+			LOG << "External force (" << i << ") = " << model.X_base[i].adjoint() * model.f_ext[i] << std::endl;
+			model.pA[i] -= model.X_base[i].adjoint() * model.f_ext[i];
 		}
 	}
 
@@ -136,7 +136,7 @@ void ForwardDynamics (
 		model.d[i] = model.S[i] * model.U[i];
 		model.u[i] = model.tau[i] - model.S[i] * model.pA[i];
 
-		unsigned int lambda = model.lambda.at(i);
+		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
 			SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
@@ -268,22 +268,22 @@ void InverseDynamics (
 		SpatialMatrix X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
-		Joint joint = model.mJoints.at(i);
-		unsigned int lambda = model.lambda.at(i);
+		Joint joint = model.mJoints[i];
+		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
-		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
+		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+		LOG << "X_T (" << i << "):" << std::endl << model.X_T[i] << std::endl;
 
-		model.X_lambda.at(i) = X_J * model.X_T.at(i);
+		model.X_lambda[i] = X_J * model.X_T[i];
 
 		if (lambda == 0) {
-			model.X_base.at(i) = model.X_lambda.at(i);
+			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
 			model.a[i] = model.X_base[i] * spatial_gravity * -1. + model.S[i] * model.qddot[i];
 		}	else {
-			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 			model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
-			model.c[i] = c_J + model.v.at(i).crossm() * v_J;
+			model.c[i] = c_J + model.v[i].crossm(v_J);
 			model.a[i] = model.X_lambda[i] * model.a[lambda] + model.S[i] * model.qddot[i] + model.c[i];
 		}
 
@@ -291,12 +291,12 @@ void InverseDynamics (
 		LOG << "v (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "a (" << i << "):" << std::endl << v_J << std::endl;
 
-		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + model.v[i].crossf() * model.mBodies[i].mSpatialInertia * model.v[i] - model.X_base[i].adjoint() * model.f_ext[i];
+		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + model.v[i].crossf(model.mBodies[i].mSpatialInertia * model.v[i]) - model.X_base[i].adjoint() * model.f_ext[i];
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		model.tau[i] = model.S[i] * model.f[i];
-		unsigned int lambda = model.lambda.at(i);
+		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
 			model.f[lambda] = model.f[lambda] + model.X_lambda[i].transpose() * model.f[i];
 		}
@@ -578,33 +578,33 @@ void ForwardDynamicsFloatingBaseExpl (
 		SpatialMatrix X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
-		Joint joint = model.mJoints.at(i);
-		unsigned int lambda = model.lambda.at(i);
+		Joint joint = model.mJoints[i];
+		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
+		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
 //		SpatialMatrix X_T (joint.mJointTransform);
-//		LOG << "X_T (" << i << "):" << std::endl << model.X_T.at(i) << std::endl;
+//		LOG << "X_T (" << i << "):" << std::endl << model.X_T[i] << std::endl;
 
-		model.X_lambda.at(i) = X_J * model.X_T.at(i);
+		model.X_lambda[i] = X_J * model.X_T[i];
 
 		if (lambda != 0) 
-			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 
-		model.v.at(i) = model.X_lambda.at(i) * model.v.at(lambda) + v_J;
+		model.v[i] = model.X_lambda[i] * model.v.at(lambda) + v_J;
 
 		/*
 		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
 		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
-		LOG << "X_base (" << i << "):" << std::endl << model.X_base.at(i) << std::endl;
-		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda.at(i) << std::endl;
-		LOG << "SpatialVelocity (" << i << "): " << model.v.at(i) << std::endl;
+		LOG << "X_base (" << i << "):" << std::endl << model.X_base[i] << std::endl;
+		LOG << "X_lambda (" << i << "):" << std::endl << model.X_lambda[i] << std::endl;
+		LOG << "SpatialVelocity (" << i << "): " << model.v[i] << std::endl;
 		*/
 
-		model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
-		model.IA.at(i) = model.mBodies.at(i).mSpatialInertia;
+		model.c[i] = c_J + model.v[i].crossm(v_J);
+		model.IA[i] = model.mBodies[i].mSpatialInertia;
 
-		model.pA.at(i) = model.v.at(i).crossf() * model.IA.at(i) * model.v.at(i) - model.X_base[i].transpose() * model.f_ext.at(i);
+		model.pA[i] = model.v[i].crossf(model.IA[i] * model.v[i]) - model.X_base[i].transpose() * model.f_ext[i];
 	}
 
 // ClearLogOutput();
@@ -612,9 +612,8 @@ void ForwardDynamicsFloatingBaseExpl (
 	model.IA[0] = model.mBodies[0].mSpatialInertia;
 
 	LOG << "v[0] = " << model.v[0] << std::endl;
-	LOG << "v[0].crossf() = " << model.v[0].crossf() << std::endl;
 
-	model.pA[0] = model.v[0].crossf() * model.IA[0] * model.v[0] - model.f_ext[0]; 
+	model.pA[0] = model.v[0].crossf(model.IA[0] * model.v[0]) - model.f_ext[0]; 
 
 	LOG << "--- first loop ---" << std::endl;
 
@@ -646,7 +645,7 @@ void ForwardDynamicsFloatingBaseExpl (
 			continue;
 		}
 
-		unsigned int lambda = model.lambda.at(i);
+		unsigned int lambda = model.lambda[i];
 		SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
 		SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 

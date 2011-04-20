@@ -58,7 +58,7 @@ void ForwardKinematics (Model &model,
 		if (lambda != 0) {
 			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
 			model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
-			model.c.at(i) = c_J + model.v.at(i).crossm() * v_J;
+			model.c.at(i) = c_J + model.v.at(i).crossm(v_J);
 			model.a[i] = model.X_lambda[i] * model.a[lambda] + model.c[i];
 		}	else {
 			model.X_base.at(i) = model.X_lambda.at(i);
@@ -245,7 +245,7 @@ Vector3d CalcPointAcceleration (
 
 	SpatialVector frame_acceleration = SpatialVector(0., 0., 0.,
 			p_v_i[3], p_v_i[4], p_v_i[5]
-			).crossm() * body_global_velocity;
+			).crossm(body_global_velocity);
 
 	LOG << model.X_base[body_id] << std::endl;
 //	LOG << "p_X_i              = " << p_X_i << std::endl;
