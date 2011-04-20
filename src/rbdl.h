@@ -1,9 +1,8 @@
 #ifndef _RBDL_H
 #define _RBDL_H
 
-#include "SpatialAlgebra.h"
+#include "mathwrapper.h"
 #include "mathutils.h"
-#include "cmlwrapper.h"
 
 #include "Body.h"
 #include "Model.h"

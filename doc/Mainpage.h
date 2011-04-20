@@ -26,65 +26,60 @@
  * 
  * \code
  *	#include <iostream>
- *	
- *	#include "rbdl.h"
+ *
+ *	#include <rbdl.h>
  *
  *	using namespace RigidBodyDynamics;
- *	
+ *
  *	int main (int argc, char* argv[]) {
- *		Model* model = NULL;
- *	
- *		unsigned int body_a_id, body_b_id, body_c_id;
- *		Body body_a, body_b, body_c;
- *		Joint joint_a, joint_b, joint_c;
- *	
- *		model = new Model();
- *		model->Init();
+ *	Model* model = NULL;
  *
- *		model->gravity.set (0., -9.81, 0.);
- *	
- *		body_a = Body (1., Vector3d (0.5, 0., 0.0), Vector3d (1., 1., 1.));
+ *	unsigned int body_a_id, body_b_id, body_c_id;
+ *	Body body_a, body_b, body_c;
+ *	Joint joint_a, joint_b, joint_c;
+ *
+ *	model = new Model();
+ *	model->Init();
+ *
+ *	model->gravity = Vector3d (0., -9.81, 0.);
+ *
+ *	body_a = Body (1., Vector3d (0.5, 0., 0.0), Vector3d (1., 1., 1.));
  *		joint_a = Joint(
- *			JointTypeRevolute,
- *			Vector3d (0., 0., 1.)
- *		);
- *		
- *		body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
- *		
- *		body_b = Body (1., Vector3d (0., 0.5, 0.), Vector3d (1., 1., 1.));
+ *		JointTypeRevolute,
+ *		Vector3d (0., 0., 1.)
+ *	);
+ *	
+ *	body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+ *	
+ *	body_b = Body (1., Vector3d (0., 0.5, 0.), Vector3d (1., 1., 1.));
  *		joint_b = Joint (
- *			JointTypeRevolute,
- *			Vector3d (0., 0., 1.)
- *		);
- *		
- *		body_b_id = model->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
- *		
- *		body_c = Body (0., Vector3d (0.5, 0., 0.), Vector3d (1., 1., 1.));
+ *		JointTypeRevolute,
+ *		Vector3d (0., 0., 1.)
+ *	);
+ *	
+ *	body_b_id = model->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+ *	
+ *	body_c = Body (0., Vector3d (0.5, 0., 0.), Vector3d (1., 1., 1.));
  *		joint_c = Joint (
- *			JointTypeRevolute,
- *			Vector3d (0., 0., 1.)
- *		);
- *		
- *		body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+ *		JointTypeRevolute,
+ *		Vector3d (0., 0., 1.)
+ *	);
  *	
- *		VectorNd Q(3);
- *		VectorNd QDot(3);
- *		VectorNd QDDot(3);
- *		VectorNd Tau(3);
+ *	body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
  *
- *		Q.zero();
- *		QDot.zero();
- *		QDDot.zero();
- *		Tau.zero();
- *	
- *	 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
- *	
- *		std::cout << QDDot << std::endl;
+ *	VectorNd Q = VectorNd::Zero (model->dof_count);
+ *	VectorNd QDot = VectorNd::Zero (model->dof_count);
+ *	VectorNd Tau = VectorNd::Zero (model->dof_count);
+ *	VectorNd QDDot = VectorNd::Zero (model->dof_count);
  *
- * 		delete model;
+ * 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
  *
- *	 	return 0;
- *	}
+ *	std::cout << QDDot.transpose() << std::endl;
+ *
+ *	delete model;
+ *
+ * 	return 0;
+ *}
  * \endcode
  *
  * If the library itself is already created, one can compile this example
