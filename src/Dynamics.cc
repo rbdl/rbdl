@@ -96,8 +96,8 @@ void ForwardDynamics (
 		model.pA[i] = model.v[i].crossf(model.IA[i] * model.v[i]);
 
 		if (model.f_ext[i] != SpatialVectorZero) {
-			LOG << "External force (" << i << ") = " << model.X_base[i].adjoint() * model.f_ext[i] << std::endl;
-			model.pA[i] -= model.X_base[i].adjoint() * model.f_ext[i];
+			LOG << "External force (" << i << ") = " << model.X_base[i].spatial_adjoint() * model.f_ext[i] << std::endl;
+			model.pA[i] -= model.X_base[i].spatial_adjoint() * model.f_ext[i];
 		}
 	}
 
@@ -143,7 +143,7 @@ void ForwardDynamics (
 
 			SpatialMatrix X_lambda = model.X_lambda[i];
 
-			// note: X_lambda.inverse().adjoint() = X_lambda.transpose()
+			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
 			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
 			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
 		}
@@ -291,7 +291,7 @@ void InverseDynamics (
 		LOG << "v (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "a (" << i << "):" << std::endl << v_J << std::endl;
 
-		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + model.v[i].crossf(model.mBodies[i].mSpatialInertia * model.v[i]) - model.X_base[i].adjoint() * model.f_ext[i];
+		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + model.v[i].crossf(model.mBodies[i].mSpatialInertia * model.v[i]) - model.X_base[i].spatial_adjoint() * model.f_ext[i];
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
@@ -651,7 +651,7 @@ void ForwardDynamicsFloatingBaseExpl (
 
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
-		// note: X_lambda.inverse().adjoint() = X_lambda.transpose()
+		// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
 		model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
 		model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
 	}
@@ -784,7 +784,7 @@ void ComputeContactForces (
 		// coordinates
 		Vector3d contact_point_position = model.CalcBodyToBaseCoordinates(contact_info.body_id, contact_info.point);
 
-		test_forces[cj] = Xtrans (contact_point_position).adjoint() * test_force;
+		test_forces[cj] = Xtrans (contact_point_position).spatial_adjoint() * test_force;
 		LOG << "body_id         = " << contact_info.body_id << std::endl;
 
 		// apply the test force
@@ -792,7 +792,7 @@ void ComputeContactForces (
 		VectorNd QDDot_test_ext (QDot);
 
 		LOG << "-------- TEST_EXT -------" << std::endl;
-		LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id) - contact_point_position).adjoint() * test_forces[cj] << std::endl;
+		LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id) - contact_point_position).spatial_adjoint() * test_forces[cj] << std::endl;
 		LOG << "test_force_base = " << test_forces[cj] << std::endl;
 		{
 			SUPPRESS_LOGGING;

@@ -113,7 +113,7 @@ TEST(TestSpatialMatrixTransformAdjoint) {
 			);
 	
 	SpatialMatrix result;
-	result = s_matrix.adjoint();
+	result = s_matrix.spatial_adjoint();
 
 	SpatialMatrix test_result_matrix (
 			 1.,  2.,  3., 19., 20., 21.,
