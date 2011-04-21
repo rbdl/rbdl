@@ -89,6 +89,9 @@ class SpatialVector {
 		void zero() {
 			set(0., 0., 0., 0., 0., 0.);
 		}
+		void setZero() {
+			zero();
+		}
 
 		// Operators with scalars
 		SpatialVector operator*(const double &scalar) const {
@@ -448,6 +451,9 @@ class SpatialMatrix {
 					0., 0., 0., 0., 0., 0.,
 					0., 0., 0., 0., 0., 0.
 				 );
+		}
+		void setZero() {
+			zero();
 		}
 
 		void identity() {

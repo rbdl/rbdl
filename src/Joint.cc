@@ -34,11 +34,11 @@ void jcalc (
 
 	// the velocity dependent spatial acceleration is != 0 only for rhenomic
 	// constraints (see RBDA, p. 55)
-	c_J.zero();
+	c_J.setZero();
 
 	if (joint.mJointType == JointTypeFixed) {
 		XJ = SpatialMatrixIdentity;
-		v_J.zero();
+		v_J.setZero();
 
 		return;
 	} else if (joint.mJointType == JointTypeRevolute) {

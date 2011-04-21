@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "mathutils.h"
-#include "SpatialAlgebra.h"
 #include "Body.h"
 
 using namespace std;

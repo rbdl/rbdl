@@ -182,9 +182,9 @@ Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 	// matrix is the matrix form of the cross product of the origin
 	// coordinate vector, however in body coordinates. We have to rotate it
 	// by its orientation to be able to retrieve the bodies origin
-	// coordinates in base coordinates. 
-	Matrix3d upper_left = X_base[body_id].get_upper_left().transpose();
-	Matrix3d rx = upper_left * X_base[body_id].get_lower_left();
+	// coordinates in base coordinates.
+	Matrix3d upper_left = X_base[body_id].block<3,3>(0,0).transpose();
+	Matrix3d rx = upper_left * X_base[body_id].block<3,3>(3,0);
 
 	return Vector3d (rx(1,2), -rx(0,2), rx(0,1));
 }
@@ -200,18 +200,18 @@ Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
 	// We use the information from the X_base vector. In the upper left 3x3
 	// matrix contains the orientation as a 3x3 matrix which we are asking
 	// for.
-	return X_base[body_id].get_upper_left();
+	return X_base[body_id].block<3,3>(0,0);
 }
 
 Vector3d Model::CalcBodyToBaseCoordinates (const unsigned int body_id, const Vector3d &body_point) {
-	Matrix3d body_rotation = this->X_base[body_id].get_rotation().transpose();
+	Matrix3d body_rotation = X_base[body_id].block<3,3>(0,0).transpose();
 	Vector3d body_position = GetBodyOrigin (body_id);
 
 	return body_position + body_rotation * body_point;
 }
 
 Vector3d Model::CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point) {
-	Matrix3d body_rotation = this->X_base[body_id].get_rotation();
+	Matrix3d body_rotation = X_base[body_id].block<3,3>(0,0);
 	Vector3d body_position = GetBodyOrigin (body_id);
 
 	return body_rotation * base_point - body_rotation * body_position;

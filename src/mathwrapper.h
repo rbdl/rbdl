@@ -24,14 +24,18 @@
 	typedef Eigen::Matrix< double, 3, 1> Vector3d;
 	typedef Eigen::Matrix< double, 3, 3> Matrix3d;
 
-	typedef Eigen::Matrix< double, 6, 1> Vector6d;
-	typedef Eigen::Matrix< double, 6, 6> Matrix6d;
-
 	typedef Eigen::VectorXd VectorNd;
 	typedef Eigen::MatrixXd MatrixNd;
 
+	namespace SpatialAlgebra {
+		typedef Eigen::Matrix< double, 6, 1> SpatialVector;
+		typedef Eigen::Matrix< double, 6, 6> SpatialMatrix;
+	}
+
+  #include <SpatialAlgebraOperators.h>
+
 #endif
 
-#include "SpatialAlgebra.h"
+// #include "SpatialAlgebra.h"
 
 #endif /* _MATHWRAPPER_H */

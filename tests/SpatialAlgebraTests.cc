@@ -2,10 +2,11 @@
 
 #include <iostream>
 
-#include "SpatialAlgebra.h"
+#include "mathwrapper.h"
 
 using namespace std;
 using namespace SpatialAlgebra;
+using namespace SpatialAlgebra::Operators;
 
 const double TEST_PREC = 1.0e-14;
 
@@ -112,8 +113,7 @@ TEST(TestSpatialMatrixTransformAdjoint) {
 			31., 32., 33., 34., 35., 36.
 			);
 	
-	SpatialMatrix result;
-	result = s_matrix.spatial_adjoint();
+	SpatialMatrix result = spatial_adjoint(s_matrix);
 
 	SpatialMatrix test_result_matrix (
 			 1.,  2.,  3., 19., 20., 21.,
@@ -145,7 +145,7 @@ TEST(TestSpatialMatrixInverse) {
 			2, 5, 8, 2, 5, 8
 			);
 			
-	CHECK_EQUAL (test_inv, s_matrix.inverse());
+	CHECK_EQUAL (test_inv, spatial_inverse(s_matrix));
 }
 
 TEST(TestSpatialMatrixGetRotation) {
@@ -158,7 +158,8 @@ TEST(TestSpatialMatrixGetRotation) {
 			 0.,  0.,  0.,  0.,  0.,  0.
 			);
 
-	Matrix3d rotation = spatial_transform.get_rotation();
+//	Matrix3d rotation = spatial_transform.block<3,3>(0,0);
+	Matrix3d rotation = get_rotation (spatial_transform);
 	Matrix3d test_result (
 			1., 2., 3.,
 			4., 5., 6.,
@@ -178,7 +179,7 @@ TEST(TestSpatialMatrixGetTranslation) {
 			 0.,  0.,  0.,  0.,  0.,  0.
 			);
 
-	Vector3d translation = spatial_transform.get_translation();
+	Vector3d translation = get_translation(spatial_transform);
 	Vector3d test_result (
 			1., 2., 3.
 			);
@@ -198,11 +199,11 @@ TEST(TestSpatialVectorCross) {
 			-5.,  4.,  0., -2.,  1.,  0.
 			);
 
-	SpatialMatrix s_vec_cross (s_vec.crossm_matrix());
+	SpatialMatrix s_vec_cross (crossm(s_vec));
 	CHECK_EQUAL (test_cross, s_vec_cross);
 
-	SpatialMatrix s_vec_crossf (s_vec.crossf_matrix());
-	SpatialMatrix test_crossf = -1. * s_vec.crossm_matrix().transpose();
+	SpatialMatrix s_vec_crossf (crossf(s_vec));
+	SpatialMatrix test_crossf = -1. * crossm(s_vec).transpose();
 
 	CHECK_EQUAL (test_crossf, s_vec_crossf);
 }

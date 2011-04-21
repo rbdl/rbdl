@@ -14,6 +14,7 @@
 #include "Kinematics.h"
 
 using namespace SpatialAlgebra;
+using namespace SpatialAlgebra::Operators;
 
 namespace RigidBodyDynamics {
 
@@ -60,7 +61,7 @@ void ForwardDynamics (
 	}
 
 	// Reset the velocity of the root body
-	model.v[0].zero();
+	model.v[0].setZero();
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		SpatialMatrix X_J;
@@ -90,14 +91,14 @@ void ForwardDynamics (
 		LOG << "SpatialVelocity (" << i << "): " << model.v[i] << std::endl;
 		*/
 
-		model.c[i] = c_J + model.v[i].crossm(v_J);
+		model.c[i] = c_J + crossm(model.v[i],v_J);
 		model.IA[i] = model.mBodies[i].mSpatialInertia;
 
-		model.pA[i] = model.v[i].crossf(model.IA[i] * model.v[i]);
+		model.pA[i] = crossf(model.v[i],model.IA[i] * model.v[i]);
 
-		if (model.f_ext[i] != SpatialVectorZero) {
-			LOG << "External force (" << i << ") = " << model.X_base[i].spatial_adjoint() * model.f_ext[i] << std::endl;
-			model.pA[i] -= model.X_base[i].spatial_adjoint() * model.f_ext[i];
+		if (model.f_ext[i] != SpatialVector::Zero()) {
+			LOG << "External force (" << i << ") = " << spatial_adjoint(model.X_base[i]) * model.f_ext[i] << std::endl;
+			model.pA[i] -= spatial_adjoint(model.X_base[i]) * model.f_ext[i];
 		}
 	}
 
@@ -133,12 +134,12 @@ void ForwardDynamics (
 			continue;
 
 		model.U[i] = model.IA[i] * model.S[i];
-		model.d[i] = model.S[i] * model.U[i];
-		model.u[i] = model.tau[i] - model.S[i] * model.pA[i];
+		model.d[i] = model.S[i].dot(model.U[i]);
+		model.u[i] = model.tau[i] - model.S[i].dot(model.pA[i]);
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
+			SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
 			SpatialMatrix X_lambda = model.X_lambda[i];
@@ -190,7 +191,7 @@ void ForwardDynamics (
 			continue;
 		}
 
-		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * model.a[i]);
+		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
 	}
 
@@ -261,7 +262,7 @@ void InverseDynamics (
 	}
 
 	// Reset the velocity of the root body
-	model.v[0].zero();
+	model.v[0].setZero();
 	model.a[0] = spatial_gravity * -1.;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -283,7 +284,7 @@ void InverseDynamics (
 		}	else {
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 			model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
-			model.c[i] = c_J + model.v[i].crossm(v_J);
+			model.c[i] = c_J + crossm(model.v[i],v_J);
 			model.a[i] = model.X_lambda[i] * model.a[lambda] + model.S[i] * model.qddot[i] + model.c[i];
 		}
 
@@ -291,11 +292,11 @@ void InverseDynamics (
 		LOG << "v (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "a (" << i << "):" << std::endl << v_J << std::endl;
 
-		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + model.v[i].crossf(model.mBodies[i].mSpatialInertia * model.v[i]) - model.X_base[i].spatial_adjoint() * model.f_ext[i];
+		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mSpatialInertia * model.v[i]) - spatial_adjoint(model.X_base[i]) * model.f_ext[i];
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
-		model.tau[i] = model.S[i] * model.f[i];
+		model.tau[i] = model.S[i].dot(model.f[i]);
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
 			model.f[lambda] = model.f[lambda] + model.X_lambda[i].transpose() * model.f[i];
@@ -327,13 +328,13 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H) 
 		}
 
 		SpatialVector F = model.Ic[i] * model.S[i];
-		H(i - 1, i - 1) = model.S[i] * F;
+		H(i - 1, i - 1) = model.S[i].dot(F);
 		unsigned int j = i;
 
 		while (model.lambda[j] != 0) {
 			F = model.X_lambda[j].transpose() * F;
 			j = model.lambda[j];
-			H(i - 1,j - 1) = F * model.S[j];
+			H(i - 1,j - 1) = F.dot(model.S[j]);
 			H(j - 1,i - 1) = H(i - 1,j - 1);
 		}
 	}
@@ -601,10 +602,10 @@ void ForwardDynamicsFloatingBaseExpl (
 		LOG << "SpatialVelocity (" << i << "): " << model.v[i] << std::endl;
 		*/
 
-		model.c[i] = c_J + model.v[i].crossm(v_J);
+		model.c[i] = c_J + crossm(model.v[i],v_J);
 		model.IA[i] = model.mBodies[i].mSpatialInertia;
 
-		model.pA[i] = model.v[i].crossf(model.IA[i] * model.v[i]) - model.X_base[i].transpose() * model.f_ext[i];
+		model.pA[i] = crossf(model.v[i],model.IA[i] * model.v[i]) - model.X_base[i].transpose() * model.f_ext[i];
 	}
 
 // ClearLogOutput();
@@ -613,7 +614,7 @@ void ForwardDynamicsFloatingBaseExpl (
 
 	LOG << "v[0] = " << model.v[0] << std::endl;
 
-	model.pA[0] = model.v[0].crossf(model.IA[0] * model.v[0]) - model.f_ext[0]; 
+	model.pA[0] = crossf(model.v[0],model.IA[0] * model.v[0]) - model.f_ext[0]; 
 
 	LOG << "--- first loop ---" << std::endl;
 
@@ -637,8 +638,7 @@ void ForwardDynamicsFloatingBaseExpl (
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		model.U[i] = model.IA[i] * model.S[i];
-		model.d[i] = model.S[i] * model.U[i];
-		model.u[i] = model.tau[i] - model.S[i] * model.pA[i];
+		model.d[i] = model.S[i].dot(model.U[i]);
 
 		if (model.d[i] == 0. ) {
 			std::cerr << "Warning d[i] == 0.!" << std::endl;
@@ -646,7 +646,7 @@ void ForwardDynamicsFloatingBaseExpl (
 		}
 
 		unsigned int lambda = model.lambda[i];
-		SpatialMatrix Ia = model.IA[i] - model.U[i].outer_product(model.U[i] / model.d[i]);
+		SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
 		SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 
 		SpatialMatrix X_lambda = model.X_lambda[i];
@@ -678,14 +678,16 @@ void ForwardDynamicsFloatingBaseExpl (
 		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
 	}
 
-	model.a[0] = SpatialLinSolve (model.IA[0], model.pA[0]) * -1.;
+	// !!!
+	// model.a[0] = SpatialLinSolve (model.IA[0], model.pA[0]) * -1.;
+	model.a[0].setZero();
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
 		model.a[i] = X_lambda * model.a[lambda] + model.c[i];
-		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i] * model.a[i]);
+		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
 	}
 
@@ -784,7 +786,7 @@ void ComputeContactForces (
 		// coordinates
 		Vector3d contact_point_position = model.CalcBodyToBaseCoordinates(contact_info.body_id, contact_info.point);
 
-		test_forces[cj] = Xtrans (contact_point_position).spatial_adjoint() * test_force;
+		test_forces[cj] = spatial_adjoint(Xtrans (contact_point_position)) * test_force;
 		LOG << "body_id         = " << contact_info.body_id << std::endl;
 
 		// apply the test force
@@ -792,7 +794,7 @@ void ComputeContactForces (
 		VectorNd QDDot_test_ext (QDot);
 
 		LOG << "-------- TEST_EXT -------" << std::endl;
-		LOG << "test_force_body = " << Xtrans (model.GetBodyOrigin(contact_info.body_id) - contact_point_position).spatial_adjoint() * test_forces[cj] << std::endl;
+		LOG << "test_force_body = " << spatial_adjoint(Xtrans (model.GetBodyOrigin(contact_info.body_id) - contact_point_position)) * test_forces[cj] << std::endl;
 		LOG << "test_force_base = " << test_forces[cj] << std::endl;
 		{
 			SUPPRESS_LOGGING;
@@ -819,7 +821,7 @@ void ComputeContactForces (
 		}
 
 		// clear the test force
-		model.f_ext[contact_info.body_id].zero();
+		model.f_ext[contact_info.body_id].setZero();
 	}
 	
 	// solve the system!!!
@@ -831,7 +833,7 @@ void ComputeContactForces (
 
 	// !!!
 	u[0] = 8.81;
-//	test_forces[0].zero(); 
+//	test_forces[0].setZero(); 
 
 	LOG << "u = " << u << std::endl;
 
@@ -895,7 +897,7 @@ void ComputeContactImpulses (
 		) {
 	std::vector<ContactInfo> ContactImpulseInfo;
 	VectorNd QDotZero (QDotPre.size());
-	QDotZero.zero();
+	QDotZero.setZero();
 	ContactInfo contact_info;
 	Vector3d point_velocity;
 
@@ -929,7 +931,7 @@ void ComputeContactImpulses (
 
 	std::vector<SpatialVector> contact_f_ext;
 	VectorNd QDDotFext (QDotPre);
-	QDDotFext.zero();
+	QDDotFext.setZero();
 	VectorNd Tau_zero (QDDotFext);
 
 	// for debugging

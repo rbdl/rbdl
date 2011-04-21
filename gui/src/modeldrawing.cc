@@ -10,6 +10,7 @@
 #include "glprimitives.h"
 
 using namespace RigidBodyDynamics;
+using namespace SpatialAlgebra::Operators;
 
 void compute_body_center_and_dimensions (Model* model, unsigned int body_id, Vector3d &body_center, Vector3d &body_dimensions) {
 	unsigned int j;
@@ -31,7 +32,7 @@ void compute_body_center_and_dimensions (Model* model, unsigned int body_id, Vec
 		// dimensions such that the boundaries reach to the joint origins
 		for (j = 0; j < model->mu.at(body_id).size(); j++) {
 			unsigned int child_id = model->mu[body_id][j];
-			Vector3d child_translation = model->X_T[child_id].get_translation();
+			Vector3d child_translation = get_translation(model->X_T[child_id]);
 
 			int k;
 			for (k = 0; k < 3; k++) {

@@ -9,6 +9,7 @@
 #include "Kinematics.h"
 
 using namespace SpatialAlgebra;
+using namespace SpatialAlgebra::Operators;
 
 namespace RigidBodyDynamics {
 
@@ -48,23 +49,23 @@ void ForwardKinematics (Model &model,
 		SpatialMatrix X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
-		Joint joint = model.mJoints.at(i);
-		unsigned int lambda = model.lambda.at(i);
+		Joint joint = model.mJoints[i];
+		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S.at(i), v_J, c_J, model.q[i], model.qdot[i]);
+		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
 
-		model.X_lambda.at(i) = X_J * model.X_T.at(i);
+		model.X_lambda[i] = X_J * model.X_T[i];
 
 		if (lambda != 0) {
-			model.X_base.at(i) = model.X_lambda.at(i) * model.X_base.at(lambda);
+			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 			model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
-			model.c.at(i) = c_J + model.v.at(i).crossm(v_J);
+			model.c[i] = c_J + crossm(model.v[i],v_J);
 			model.a[i] = model.X_lambda[i] * model.a[lambda] + model.c[i];
 		}	else {
-			model.X_base.at(i) = model.X_lambda.at(i);
+			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
-			model.c[i] = SpatialVectorZero;
-			model.a[i] = SpatialVectorZero;
+			model.c[i].setZero();
+			model.a[i].setZero();
 		}
 
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
@@ -144,7 +145,7 @@ Vector3d CalcPointVelocity (
 		assert (model.qdot.size() == QDot.size() + 1);
 
 		// Reset the velocity of the root body
-		model.v[0].zero();
+		model.v[0].setZero();
 
 		// Copy state values from the input to the variables in model
 		for (i = 0; i < Q.size(); i++) {
@@ -198,8 +199,8 @@ Vector3d CalcPointAcceleration (
 	unsigned int i;
 
 	// Reset the velocity of the root body
-	model.v[0].zero();
-	model.a[0].zero();
+	model.v[0].setZero();
+	model.a[0].setZero();
 
 	if (model.experimental_floating_base) {
 		// set the transformation for the base body
@@ -237,15 +238,18 @@ Vector3d CalcPointAcceleration (
 	SpatialMatrix local_point_transform (Xtrans (point_position));
 
 	Matrix3d global_body_orientation_inv = model.GetBodyWorldOrientation (body_id).inverse();
-	SpatialMatrix p_X_i = SpatialMatrix (global_body_orientation_inv, Matrix3dZero,
-			Matrix3dZero, global_body_orientation_inv) * Xtrans (point_position);
+	SpatialMatrix p_X_i = SpatialMatrix::Zero(6,6);
+
+	p_X_i.block<3,3>(0,0) = global_body_orientation_inv;
+	p_X_i.block<3,3>(3,3) = global_body_orientation_inv;
+
+	p_X_i *= Xtrans (point_position);
 
 	SpatialVector p_v_i = p_X_i * model.v[body_id];
 	SpatialVector p_a_i = p_X_i * model.a[body_id];
 
-	SpatialVector frame_acceleration = SpatialVector(0., 0., 0.,
-			p_v_i[3], p_v_i[4], p_v_i[5]
-			).crossm(body_global_velocity);
+	SpatialVector frame_acceleration = 
+		crossm( SpatialVector(0., 0., 0., p_v_i[3], p_v_i[4], p_v_i[5]), (body_global_velocity));
 
 	LOG << model.X_base[body_id] << std::endl;
 //	LOG << "p_X_i              = " << p_X_i << std::endl;

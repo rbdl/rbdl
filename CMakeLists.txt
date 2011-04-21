@@ -32,10 +32,10 @@ SET ( RBDL_SOURCES
 	)
 
 ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
-ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
 
-SET_TARGET_PROPERTIES ( rbdl-static PROPERTIES OUTPUT_NAME "rbdl")
+ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
 SET_TARGET_PROPERTIES ( rbdl-static PROPERTIES PREFIX "lib")
+SET_TARGET_PROPERTIES ( rbdl-static PROPERTIES OUTPUT_NAME "rbdl")
 
 OPTION (ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 

@@ -92,7 +92,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2u, model->Ic.size());
 
 	SpatialVector spatial_zero;
-	spatial_zero.zero();
+	spatial_zero.setZero();
 	CHECK_EQUAL (spatial_zero, model->f_ext.at(0));
 	CHECK_EQUAL (spatial_zero, model->f_ext.at(1));
 	
@@ -130,7 +130,7 @@ TEST_FIXTURE(ModelFixture, TestExperimentalFloatingBodyDimensions) {
 	CHECK_EQUAL (1u, model->f_ext.size());
 
 	SpatialVector spatial_zero;
-	spatial_zero.zero();
+	spatial_zero.setZero();
 	CHECK_EQUAL (spatial_zero, model->f_ext.at(0));
 	
 	CHECK_EQUAL (1u, model->X_lambda.size());
@@ -166,7 +166,7 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	CHECK_EQUAL (7u, model->f_ext.size());
 
 	SpatialVector spatial_zero;
-	spatial_zero.zero();
+	spatial_zero.setZero();
 	CHECK_EQUAL (spatial_zero, model->f_ext.at(0));
 	
 	CHECK_EQUAL (7u, model->X_lambda.size());
