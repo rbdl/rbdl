@@ -11,6 +11,7 @@
 #include "Contacts.h"
 #include "Dynamics.h"
 #include "Kinematics.h"
+#include "Visualization.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -189,12 +190,24 @@ void model_init () {
 	QDDot = VectorNd::Constant (model->dof_count, 0.);
 	Tau = VectorNd::Constant (model->dof_count, 0.);
 
-	model->SetBodyVisualizationSphere(
+	model->AddBodyVisualizationPrimitive (
 			base_body_id,
-			Vector3d (0.7, 0.9, 0.7),
-			Vector3d (0., 0., 0.),
-			1.	
+			Visualization::PrimitiveSphere (
+				Vector3d (0.7, 0.9, 0.7),
+				Vector3d (0., 0., 0.),
+				1.	
+				)
 			);
+
+	model->AddBodyVisualizationPrimitive (
+			base_body_id,
+			Visualization::PrimitiveSphere (
+				Vector3d (0.7, 0.9, 0.7),
+				Vector3d (1., 0., 0.),
+				1.	
+				)
+			);
+
 
 	contact_body_id = base_body_id;
 	contact_point = Vector3d (0., -1., 0.);

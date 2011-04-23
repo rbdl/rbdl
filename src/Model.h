@@ -4,6 +4,7 @@
 #include <mathwrapper.h>
 #include <vector>
 #include <map>
+#include <list>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
@@ -15,46 +16,14 @@
  */
 namespace RigidBodyDynamics {
 
+namespace Visualization {
+	class Primitive;
+	class PrimitiveBox;
+	class PrimitiveSphere;
+}
+
 class Joint;
 class Body;
-
-/** \brief Primitive types that can be used for the body visualization
- *
- * All values contained in this enum are valid primitive types when
- * specifying the visualization for a body.
- *
- * See also Model.SetBodyVisualizationBox().
- */
-enum VisualizationPrimitiveType {
-	VisualizationPrimitiveNone = 0,
-	VisualizationPrimitiveBox,
-	VisualizationPrimitiveSphere,
-	VisualizationPrimitiveLast
-};
-
-/** \brief Base structure for primitives for the visualization
- *
- * This structure is used to specify the geomentric shape that is used in
- * the visualization for a body.
- *
- * See also Model.SetBodyVisualizationBox().
- */
-struct VisualizationPrimitive {
-	/// \brief Type of the visualization (e.g. VisualizationPrimitiveBox)
-	VisualizationPrimitiveType type;
-	/// \brief Color of the primitive
-	Vector3d color;
-
-	/// \brief Minimum coordinates when type is a box
-	Vector3d min;
-	/// \brief Maximum coordinates when type is a box
-	Vector3d max;
-
-	/// \brief Center of the sphere when type is a sphere
-	Vector3d center;
-	/// \brief Radius of the sphere when type is a sphere
-	double radius;
-};
 
 /** \brief Contains all information about the rigid body model
  *
@@ -180,7 +149,8 @@ struct Model {
 
 	////////////////////////////////////
 	// Visualization
-	typedef std::map<unsigned int, VisualizationPrimitive > BodyVisualizationMap;
+	typedef std::list<Visualization::Primitive> VisualizationPrimitiveList;
+	typedef std::map<unsigned int, VisualizationPrimitiveList > BodyVisualizationMap;
 	BodyVisualizationMap mBodyVisualization;
 
 	/// \brief Initializes the helper values for the dynamics algorithm
@@ -311,61 +281,22 @@ struct Model {
 	 */
 	Vector3d CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point);
 
-	/** \brief Specifies the visualization as a box for a given body
+	/** \brief Adds a Visualization::Primitive to the primitive list of a body
 	 *
 	 * \param body_id id of the body that should be drawn as a box
-	 * \param color   color of the box
-	 * \param min_coords minimum coordinates of the box in body coordinates
-	 * \param max_coords maximum coordinates of the box in body coordinates
+	 * \param primitive the primitive that should be associated with the body
+	 *
+	 * \todo Wrap primitives up in smart pointers.
 	 */
-	void SetBodyVisualizationBox (unsigned int body_id,
-			const Vector3d &color,
-			const Vector3d &min_coords,
-			const Vector3d &max_coords) {
-		VisualizationPrimitive vis_primitive;
-		vis_primitive.type = VisualizationPrimitiveBox;
-		vis_primitive.color = color;
-		vis_primitive.min = min_coords;
-		vis_primitive.max = max_coords;
-
-		mBodyVisualization[body_id] = vis_primitive;
-	}
+	void AddBodyVisualizationPrimitive (unsigned int body_id, Visualization::Primitive primitive);
 	
-	/** \brief Specifies the visualization as a sphere for a given body
-	 *
-	 * \param body_id id of the body that should be drawn as a box
-	 * \param color   color of the box
-	 * \param center  center of the sphere
-	 * \param radius  radius of the sphere
-	 */
-	void SetBodyVisualizationSphere (unsigned int body_id,
-			const Vector3d &color,
-			const Vector3d &center,
-			const float radius) {
-		VisualizationPrimitive vis_primitive;
-		vis_primitive.type = VisualizationPrimitiveSphere;
-		vis_primitive.color = color;
-		vis_primitive.center = center;
-		vis_primitive.radius = radius;
-
-		mBodyVisualization[body_id] = vis_primitive;
-	}
-
 	/** \brief Returns the visualization primitive for a box
 	 *
 	 * \param body_id id of the body of intrest
 	 *
 	 * \returns A pointer to the primitive or NULL if none exists.
 	 */
-	VisualizationPrimitive *GetBodyVisualizationPrimitive (unsigned int body_id) {
-		BodyVisualizationMap::iterator body_visualization_iter = mBodyVisualization.find(body_id);
-
-		if (body_visualization_iter == mBodyVisualization.end()) {
-			return NULL;
-		}
-
-		return &(body_visualization_iter->second);
-	}
+	VisualizationPrimitiveList GetBodyVisualizationPrimitiveList (unsigned int body_id);
 };
 
 }

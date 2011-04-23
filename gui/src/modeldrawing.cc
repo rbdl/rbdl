@@ -1,6 +1,7 @@
 #include "Model.h"
 #include "Joint.h"
 #include "Body.h"
+#include "Visualization.h"
 
 #include <sstream>
 
@@ -11,6 +12,8 @@
 
 using namespace RigidBodyDynamics;
 using namespace SpatialAlgebra::Operators;
+
+typedef std::list<Visualization::Primitive> VisualizationPrimitiveList;
 
 void compute_body_center_and_dimensions (Model* model, unsigned int body_id, Vector3d &body_center, Vector3d &body_dimensions) {
 	unsigned int j;
@@ -85,7 +88,8 @@ void draw_model (Model* model) {
 	for (i = 1; i < model->q.size(); i++) {
 		Matrix3d rotation = model->GetBodyWorldOrientation(i);
 		Vector3d translation = model->GetBodyOrigin(i);
-		VisualizationPrimitive* body_visualization = model->GetBodyVisualizationPrimitive(i);
+
+		VisualizationPrimitiveList primitive_list = model->GetBodyVisualizationPrimitiveList(i);
 
 		std::ostringstream model_X;
 		model_X << model->X_base[i];
@@ -146,62 +150,68 @@ void draw_model (Model* model) {
 		glEnable(GL_LIGHTING);
 
 		// Draw the body
-		if (body_visualization) {
-			Vector3d body_center, body_dimensions;
+		if (primitive_list.size() > 0) {
+			VisualizationPrimitiveList::iterator iter = primitive_list.begin();
 
-			if (body_visualization->type == VisualizationPrimitiveBox) {
-				Vector3d box_size = body_visualization->max - body_visualization->min;
-				glPushMatrix();
-				glTranslated (
-						body_visualization->min[0] + box_size[0] * 0.5,
-						body_visualization->min[1] + box_size[1] * 0.5,
-						body_visualization->min[2] + box_size[2] * 0.5
-						);
-				glScaled (
-						box_size[0] * 0.5,
-						box_size[1] * 0.5,
-						box_size[2] * 0.5
-						);
+			while (iter != primitive_list.end()) {
+				Vector3d body_center, body_dimensions;
+				Visualization::Primitive *primitive = &(*iter);
 
-				glEnable(GL_COLOR_MATERIAL);
-				glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-				glColor3f (
-						body_visualization->color[0],
-						body_visualization->color[1],
-						body_visualization->color[2]
-						);
-				glprimitives_cube();
-				glColor3f (1.0f, 1.0f, 1.0f);
-				glDisable(GL_COLOR_MATERIAL);
+				if (primitive->type == Visualization::PrimitiveTypeBox) {
+					Vector3d box_size = primitive->max - primitive->min;
+					glPushMatrix();
+					glTranslated (
+							primitive->min[0] + box_size[0] * 0.5,
+							primitive->min[1] + box_size[1] * 0.5,
+							primitive->min[2] + box_size[2] * 0.5
+							);
+					glScaled (
+							box_size[0] * 0.5,
+							box_size[1] * 0.5,
+							box_size[2] * 0.5
+							);
 
-				glPopMatrix();
-			} else if (body_visualization->type == VisualizationPrimitiveSphere) {
-				glPushMatrix();
-				glTranslated (
-						body_visualization->center[0],
-						body_visualization->center[1],
-						body_visualization->center[2]
-						);
-				glScaled (
-						body_visualization->radius,
-						body_visualization->radius,
-						body_visualization->radius
-						);
+					glEnable(GL_COLOR_MATERIAL);
+					glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+					glColor3f (
+							primitive->color[0],
+							primitive->color[1],
+							primitive->color[2]
+							);
+					glprimitives_cube();
+					glColor3f (1.0f, 1.0f, 1.0f);
+					glDisable(GL_COLOR_MATERIAL);
 
-				glEnable(GL_COLOR_MATERIAL);
-				glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-				glColor3f (
-						body_visualization->color[0],
-						body_visualization->color[1],
-						body_visualization->color[2]
-						);
-				glprimitives_sphere();
-				glColor3f (1.0f, 1.0f, 1.0f);
-				glDisable(GL_COLOR_MATERIAL);
+					glPopMatrix();
+				} else if (primitive->type == Visualization::PrimitiveTypeSphere) {
+					glPushMatrix();
+					glTranslated (
+							primitive->center[0],
+							primitive->center[1],
+							primitive->center[2]
+							);
+					glScaled (
+							primitive->radius,
+							primitive->radius,
+							primitive->radius
+							);
 
-				glPopMatrix();
+					glEnable(GL_COLOR_MATERIAL);
+					glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+					glColor3f (
+							primitive->color[0],
+							primitive->color[1],
+							primitive->color[2]
+							);
+					glprimitives_sphere();
+					glColor3f (1.0f, 1.0f, 1.0f);
+					glDisable(GL_COLOR_MATERIAL);
+
+					glPopMatrix();
+				}
+
+				iter ++;
 			}
-
 			// draw the COM as a small cube of red color (we ignore the depth
 			// buffer for better visibility 
 			glTranslated (

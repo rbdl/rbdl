@@ -8,6 +8,7 @@
 #include "Model.h"
 #include "Body.h"
 #include "Joint.h"
+#include "Visualization.h"
 
 using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
@@ -109,6 +110,21 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	mBodies.push_back(body);
 
 	return q.size() - 1;
+}
+
+void Model::AddBodyVisualizationPrimitive (unsigned int body_id,
+		Visualization::Primitive primitive) {
+		mBodyVisualization[body_id].push_back(primitive);
+}
+
+Model::VisualizationPrimitiveList Model::GetBodyVisualizationPrimitiveList (unsigned int body_id) {
+	BodyVisualizationMap::iterator body_visualization_iter = mBodyVisualization.find(body_id);
+
+	if (body_visualization_iter == mBodyVisualization.end()) {
+		return VisualizationPrimitiveList();
+	}
+
+	return body_visualization_iter->second;
 }
 
 unsigned int Model::SetFloatingBaseBody (const Body &body) {
