@@ -3,9 +3,6 @@
 
 namespace SpatialAlgebra {
 
-typedef Eigen::Matrix< double, 6, 1> SpatialVector;
-typedef Eigen::Matrix< double, 6, 6> SpatialMatrix;
-
 namespace Operators {
 	inline SpatialMatrix crossm (const SpatialVector &v) {
 		return SpatialMatrix (
