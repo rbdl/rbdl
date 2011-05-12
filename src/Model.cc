@@ -112,6 +112,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	return q.size() - 1;
 }
 
+#ifdef USE_VISUALIZATION
 void Model::AddBodyVisualizationPrimitive (unsigned int body_id,
 		Visualization::Primitive primitive) {
 		mBodyVisualization[body_id].push_back(primitive);
@@ -126,6 +127,7 @@ Model::VisualizationPrimitiveList Model::GetBodyVisualizationPrimitiveList (unsi
 
 	return body_visualization_iter->second;
 }
+#endif
 
 unsigned int Model::SetFloatingBaseBody (const Body &body) {
 	assert (lambda.size() >= 0);

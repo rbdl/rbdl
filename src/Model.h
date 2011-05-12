@@ -1,16 +1,16 @@
 #ifndef _MODEL_H
 #define _MODEL_H
 
+//#include <vector>
 #include <mathwrapper.h>
-#include <vector>
 #include <map>
-#include <list>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
 
 #include "Joint.h"
 #include "Body.h"
+#include "Visualization.h"
 
 /** \brief Namespace for all structures of the RigidBodyDynamics library
  */
@@ -102,7 +102,7 @@ struct Model {
 	// Joints
 
 	/// \brief All joints
-	std::vector<Joint> mJoints;
+	std::vector<Joint,Eigen::aligned_allocator<Joint> > mJoints;
 	/// \brief The joint axis for joint i
 	std::vector<SpatialAlgebra::SpatialVector> S;
 	/// \brief Transformations from the parent body to the frame of the joint
@@ -145,49 +145,7 @@ struct Model {
 	 * ... <br>
 	 * mBodies[N_B] - N_Bth moveable body <br>
 	 */
-	std::vector<Body> mBodies;
-
-	////////////////////////////////////
-	// Visualization
-	typedef std::list<Visualization::Primitive> VisualizationPrimitiveList;
-	typedef std::map<unsigned int, VisualizationPrimitiveList > BodyVisualizationMap;
-	BodyVisualizationMap mBodyVisualization;
-
-	/// \brief Initializes the helper values for the dynamics algorithm
-	void Init ();
-
-	/*
-	/// \brief Updates the state variables of the model
-	void Update (const cmlVector &Q, const cmlVector &QDot, const cmlVector &QDDot, const cmlVector &Tau) {
-		if (experimental_floating_base) {
-			for (size_t i = 0; i < Q.size(); ++i)
-				q[i] = Q[i];
-
-			for (size_t i = 0; i < QDot.size(); ++i)
-				qdot[i] = QDot[i];
-
-			for (size_t i = 0; i < QDDot.size(); ++i)
-				qddot[i] = QDDot[i];
-
-			for (size_t i = 0; i < Tau.size(); ++i)
-				tau[i] = Tau[i];
-
-			return;
-		}
-
-		for (size_t i = 0; i < Q.size(); ++i)
-			q[i + 1] = Q[i];
-
-		for (size_t i = 0; i < QDot.size(); ++i)
-			qdot[i + 1] = QDot[i];
-
-		for (size_t i = 0; i < QDDot.size(); ++i)
-			qddot[i + 1] = QDDot[i];
-
-		for (size_t i = 0; i < Tau.size(); ++i)
-			tau[i + 1] = Tau[i];
-	}
-	*/
+	std::vector<Body,Eigen::aligned_allocator<Body> > mBodies;
 
 	/** \brief Connects a given body to the model
 	 *
@@ -281,6 +239,18 @@ struct Model {
 	 */
 	Vector3d CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point);
 
+	/// \brief Initializes the helper values for the dynamics algorithm
+	void Init ();
+
+#ifdef USE_VISUALIZATION
+	////////////////////////////////////
+	// Visualization
+
+	typedef std::list<Visualization::Primitive> VisualizationPrimitiveList;
+	typedef std::map<unsigned int, VisualizationPrimitiveList,
+					std::less<unsigned int>, Eigen::aligned_allocator<std::pair<const unsigned int, VisualizationPrimitiveList> > > BodyVisualizationMap;
+	BodyVisualizationMap mBodyVisualization;
+
 	/** \brief Adds a Visualization::Primitive to the primitive list of a body
 	 *
 	 * \param body_id id of the body that should be drawn as a box
@@ -297,6 +267,7 @@ struct Model {
 	 * \returns A pointer to the primitive or NULL if none exists.
 	 */
 	VisualizationPrimitiveList GetBodyVisualizationPrimitiveList (unsigned int body_id);
+#endif
 };
 
 }
