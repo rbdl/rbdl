@@ -21,4 +21,10 @@ else
   [H,C] = HandC( model, q, qd, f_ext, grav_accn );
 end
 
+H
+
+tau
+
+-C
+
 qdd = H \ (tau - C);

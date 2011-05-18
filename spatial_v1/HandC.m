@@ -26,7 +26,11 @@ end
 external_force = ( nargin > 3 && length(f_ext) > 0 );
 
 for i = 1:model.NB
-  [ XJ, S{i} ] = jcalc( model.pitch(i), q(i) );
+  [ XJ, S{i} ] = jcalc3d( model.jaxis{i}, model.pitch(i), q(i) );
+%  [ XJ, S{i} ] = jcalc( model.pitch(i), q(i) );
+
+	S{i}
+
   vJ = S{i}*qd(i);
   Xup{i} = XJ * model.Xtree{i};
   if model.parent(i) == 0

@@ -175,6 +175,8 @@ void ForwardDynamics (
 
 	LOG << std::endl << "--- third loop ---" << std::endl;
 
+	LOG << "spatial gravity = " << spatial_gravity.transpose() << std::endl;
+
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 		SpatialMatrix X_lambda = model.X_lambda[i];
