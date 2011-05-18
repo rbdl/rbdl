@@ -4,9 +4,21 @@
 
 SET (UNITTEST++_FOUND FALSE)
 
-FIND_PATH (UNITTEST++_INCLUDE_DIR UnitTest++.h /usr/include/unittest++ /usr/local/include/unittest++ $ENV{UNITTESTXX_PATH}/src $ENV{UNITTESTXX_INCLUDE_PATH})
+FIND_PATH (UNITTEST++_INCLUDE_DIR UnitTest++.h
+	/usr/include/unittest++ 
+	/usr/local/include/unittest++ 
+	/opt/local/include/unittest++
+	$ENV{UNITTESTXX_PATH}/src 
+	$ENV{UNITTESTXX_INCLUDE_PATH}
+	)
 
-FIND_LIBRARY (UNITTEST++_LIBRARY NAMES UnitTest++ PATHS /usr/lib /usr/local/lib $ENV{UNITTESTXX_PATH} ENV{UNITTESTXX_LIBRARY_PATH})
+FIND_LIBRARY (UNITTEST++_LIBRARY NAMES UnitTest++ PATHS 
+	/usr/lib 
+	/usr/local/lib 
+	/opt/local/lib 
+	$ENV{UNITTESTXX_PATH} 
+	ENV{UNITTESTXX_LIBRARY_PATH}
+	)
 
 IF (UNITTEST++_INCLUDE_DIR AND UNITTEST++_LIBRARY)
 	SET (UNITTEST++_FOUND TRUE)

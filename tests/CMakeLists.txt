@@ -22,7 +22,7 @@ SET ( TESTS_SRCS
 	# ImpulsesTests.cc
 	)
 
-FIND_PACKAGE (UnitTest++)
+FIND_PACKAGE (UnitTest++ REQUIRED)
 
 INCLUDE_DIRECTORIES ( ../src/ )
 
