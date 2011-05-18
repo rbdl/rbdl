@@ -230,9 +230,13 @@ void ForwardDynamicsLagrangian (
 	// we set QDDot to zero to compute C properly with the InverseDynamics
 	// method.
 	QDDot.setZero();
+
 	InverseDynamics (model, Q, QDot, QDDot, C);
 
-	LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
+	LOG << "A = " << std::endl << H << std::endl;
+	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;
+
+	QDDot = H.colPivHouseholderQr().solve (C * -1. + Tau);
 }
 
 void InverseDynamics (

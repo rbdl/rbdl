@@ -107,4 +107,51 @@ TEST (TestForwardDynamics3DoFModel) {
 	CHECK_ARRAY_CLOSE (QDDot_ref.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
+/*
+ * Another simple 3 dof model test which showed some problems when
+ * computing forward dynamics with the Lagrangian formulation.
+ */
+TEST (TestForwardDynamics3DoFModelLagrangian) {
+	Model model;
+	model.Init();
+
+	model.gravity = Vector3d (0., -9.81, 0.);
+
+	Body null_body (0., Vector3d(0., 0., 0.), 1., Vector3d (0., 0., 0.));
+	Body base_body (1., Vector3d(0., 0.5, 0.), 1., Vector3d (1., 1., 1.));
+
+	Joint joint_rot_z (JointTypeRevolute, Vector3d (0., 0., 1.));
+	Joint joint_rot_y (JointTypeRevolute, Vector3d (0., 1., 0.));
+	Joint joint_rot_x (JointTypeRevolute, Vector3d (1., 0., 0.));
+
+	unsigned int base_id_rot_z, base_id_rot_y;
+	// thes are the ids of the baseren with masses
+	unsigned int base_id = std::numeric_limits<unsigned int>::max();
+
+	// we can reuse both bodies and joints as they are copied
+	base_id_rot_z = model.AddBody (0, Xtrans (Vector3d(0., 0., 0.)), joint_rot_z, null_body);
+	base_id_rot_y = model.AddBody (base_id_rot_z, Xtrans (Vector3d(0., 0., 0.)), joint_rot_y, null_body);
+	base_id = model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
+
+	// Initialization of the input vectors
+	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
 	
+	VectorNd QDDot_ab = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDDot_lagrangian = VectorNd::Constant ((size_t) model.dof_count, 0.);
+
+	Q[1] = 1.;
+
+	ClearLogOutput();
+
+	ForwardDynamics (model, Q, QDot, Tau, QDDot_ab);
+	ForwardDynamicsLagrangian (model, Q, QDot, Tau, QDDot_lagrangian);
+
+//	cout << QDDot_lagrangian << endl;
+//	cout << LogOutput.str() << endl;
+
+	CHECK_ARRAY_CLOSE (QDDot_ab.data(), QDDot_lagrangian.data(), QDDot_ab.size(), TEST_PREC);
+}
+
+		
