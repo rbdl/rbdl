@@ -213,6 +213,92 @@ class SpatialVector {
 		double mData[6];
 };
 
+/** \brief Block class that can be used to access blocks of a spatial matrix
+ *
+ * This class is a proxy class and only contains data on where to find the
+ * desired information.
+ *
+ */
+class Block {
+	Block () :
+		nrows(0),
+		ncols(0),
+		parent_rows(0)
+		parent_cols(0),
+		parent_row_index(0),
+		parent_col_index(0),
+		transposed(false);
+		parent(NULL)
+	{ }
+	Block (const Block& other) :
+		nrows(other.nrows),
+		ncols(other.ncols),
+		parent_rows(other.parent_nrows)
+		parent_cols(other.parent_ncols),
+		parent_row_index(other.parent_row_index),
+		parent_col_index(other.parent_col_index),
+		transposed(other.transposed);
+		parent(other.parent)
+	{ }
+
+	Block (
+			unsigned int rows,
+			unsigned int cols,
+			double *parent_data,
+			unsigned int parent_row_start,
+			unsigned int parent_col_start,
+			unsigned int parent_num_rows,
+			unsigned int parent_num_cols)
+	{
+		nrows = rows;
+		ncols = cols;
+		parent = parent_data;
+		parent_row_index = parent_row_start;
+		parent_col_index = parent_col_start;
+
+		parent_rows = parent_num_rows;
+		parent_colss = parent_num_colss;
+
+		transposed = false;
+	}
+
+	/** This operater is only used to copy the data from other into this
+	 *
+	 */
+	Block& operator=(const Block& other) {
+		if (this != &other) {
+			// copy the data, but we have to ensure, that the sizes match!
+			assert (nrows == other.rows);
+			assert (ncols == other.cols);
+
+			parent_row_index = other.parent_row_index;
+			parent_col_index = other.parent_col_index;
+
+			parent = other.parent;
+		}
+
+		// copy data depending on other.transposed!
+
+		return *this;
+	}
+
+	Block transpose() {
+		Block result (*this);
+		result.transposed = transposed ^ true;
+		return result;
+	}
+
+	unsigned int nrows;
+	unsigned int ncols;
+	unsigned int parent_rows;
+	unsigned int parent_cols;
+	unsigned int parent_row_index;
+	unsigned int parent_col_index;
+	bool transposed;
+
+	double *parent;
+};
+
 /** \brief Matrix class for spatial matrices (both spatial transformations and inertias)
  */
 class SpatialMatrix {
@@ -466,6 +552,8 @@ class SpatialMatrix {
 					0., 0., 0., 0., 0., 1.
 				 );
 		}
+
+		// Block accessing functions
 
 		// Operators with scalars
 		SpatialMatrix operator*(const double &scalar) const {

@@ -14,6 +14,8 @@
 	typedef cml::vector<double, cml::dynamic<> > VectorNd;
 	typedef cml::matrix<double, cml::dynamic<> > MatrixNd;
 
+	#include "SpatialAlgebra.h"
+
 #else
 
 	#define EIGEN_DEFAULT_TO_ROW_MAJOR
@@ -35,11 +37,8 @@
 
 	inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(SpatialAlgebra::SpatialVector)
 	inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(SpatialAlgebra::SpatialMatrix)
-
-  #include "SpatialAlgebraOperators.h"
-
 #endif
 
-// #include "SpatialAlgebra.h"
+#include "SpatialAlgebraOperators.h"
 
 #endif /* _MATHWRAPPER_H */

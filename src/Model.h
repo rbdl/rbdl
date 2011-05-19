@@ -1,7 +1,6 @@
 #ifndef _MODEL_H
 #define _MODEL_H
 
-//#include <vector>
 #include <mathwrapper.h>
 #include <map>
 #include <assert.h>
@@ -12,6 +11,12 @@
 #include "Body.h"
 #include "Visualization.h"
 
+// std::vectors containing any objectst that have Eigen matrices or vectors
+// as members need to have a special allocater. This can be achieved with
+// the following macro.
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint);
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
+
 /** \brief Namespace for all structures of the RigidBodyDynamics library
  */
 namespace RigidBodyDynamics {
@@ -21,9 +26,6 @@ namespace Visualization {
 	class PrimitiveBox;
 	class PrimitiveSphere;
 }
-
-class Joint;
-class Body;
 
 /** \brief Contains all information about the rigid body model
  *
@@ -69,10 +71,6 @@ struct Model {
 
 	// State information
 
-	/** \brief Stores information 
-	 *
-	 */
-	unsigned int computation_flags;
 	/** \brief The joint position
 	 * 
 	 * Warning: to have an easier numbering in the algorithm the state vector
@@ -85,7 +83,6 @@ struct Model {
 	 * q[NDOF] - joint NDOF <br>
 	 *
 	 */
-	
 	VectorNd q;
 	/// \brief The joint velocity
 	VectorNd qdot;
@@ -102,7 +99,8 @@ struct Model {
 	// Joints
 
 	/// \brief All joints
-	std::vector<Joint,Eigen::aligned_allocator<Joint> > mJoints;
+	
+	std::vector<Joint> mJoints;
 	/// \brief The joint axis for joint i
 	std::vector<SpatialAlgebra::SpatialVector> S;
 	/// \brief Transformations from the parent body to the frame of the joint
@@ -145,7 +143,7 @@ struct Model {
 	 * ... <br>
 	 * mBodies[N_B] - N_Bth moveable body <br>
 	 */
-	std::vector<Body,Eigen::aligned_allocator<Body> > mBodies;
+	std::vector<Body> mBodies;
 
 	/** \brief Connects a given body to the model
 	 *

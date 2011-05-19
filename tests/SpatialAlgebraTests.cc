@@ -208,6 +208,30 @@ TEST(TestSpatialVectorCross) {
 	CHECK_EQUAL (test_crossf, s_vec_crossf);
 }
 
+TEST(TestSpatialVectorCrossmCrossf) {
+	SpatialVector s_vec (1., 2., 3., 4., 5., 6.);
+	SpatialVector t_vec (9., 8., 7., 6., 5., 4.);
+
+	// by explicitly building the matrices (crossm/f with only one vector)
+	SpatialVector crossm_s_x_t = crossm(s_vec) * t_vec;
+	SpatialVector crossf_s_x_t = crossf(s_vec) * t_vec;
+
+	// by using direct computation that avoids building of the matrix
+	SpatialVector crossm_s_t = crossm(s_vec, t_vec);
+	SpatialVector crossf_s_t = crossf(s_vec, t_vec);
+
+	/*
+	cout << crossm_s_x_t << endl;
+	cout << "---" << endl;
+	cout << crossf_s_x_t << endl;
+	cout << "---" << endl;
+	cout << crossf_s_t << endl;
+	*/
+	
+	CHECK_EQUAL (crossm_s_x_t, crossm_s_t);
+	CHECK_EQUAL (crossf_s_x_t, crossf_s_t);
+}
+
 TEST(TestSpatialLinSolve) {
 	SpatialVector b (1, 2, 0, 1, 1, 1);
 	SpatialMatrix A (
