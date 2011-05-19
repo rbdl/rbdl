@@ -109,7 +109,11 @@ TEST (TestForwardDynamics3DoFModel) {
 
 /*
  * Another simple 3 dof model test which showed some problems when
- * computing forward dynamics with the Lagrangian formulation.
+ * computing forward dynamics with the Lagrangian formulation. A proplem
+ * occured as the CRBA does not update the kinematics of the model, hence
+ * invalid body transformations and joint axis were used in the CRBA.
+ * Running the CRBA after the InverseDynamics calculation fixes this. This
+ * test ensures that the error does not happen when calling ForwardLagrangian.
  */
 TEST (TestForwardDynamics3DoFModelLagrangian) {
 	Model model;
@@ -142,11 +146,17 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
 	VectorNd QDDot_lagrangian = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
 	Q[1] = 1.;
-
 	ClearLogOutput();
 
-	ForwardDynamics (model, Q, QDot, Tau, QDDot_ab);
+	Q[0] = 0.;
+	Q[1] = 1.;
+	Q[2] = 0.;
 	ForwardDynamicsLagrangian (model, Q, QDot, Tau, QDDot_lagrangian);
+	Q[0] = 0.;
+	Q[1] = 0.;
+	Q[2] = 1.;
+	ForwardDynamicsLagrangian (model, Q, QDot, Tau, QDDot_lagrangian);
+	ForwardDynamics (model, Q, QDot, Tau, QDDot_ab);
 
 //	cout << QDDot_lagrangian << endl;
 //	cout << LogOutput.str() << endl;

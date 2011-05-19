@@ -225,13 +225,14 @@ void ForwardDynamicsLagrangian (
 	MatrixNd H = MatrixNd::Constant ((size_t) model.dof_count, (size_t) model.dof_count, 0.);
 	VectorNd C = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
-	CompositeRigidBodyAlgorithm (model, Q, H);
-
 	// we set QDDot to zero to compute C properly with the InverseDynamics
 	// method.
 	QDDot.setZero();
 
+	// we first have to call InverseDynamics as it will update the spatial
+	// joint axes which CRBA does not do on its own!
 	InverseDynamics (model, Q, QDot, QDDot, C);
+	CompositeRigidBodyAlgorithm (model, Q, H);
 
 	LOG << "A = " << std::endl << H << std::endl;
 	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;

@@ -78,6 +78,9 @@ void InverseDynamics (
  * the generalized state vector:
  *   \f$ M(q) \f$
  *
+ * \warning This function does not update joint axis and body transformations,
+ * \warning hence one has to call ForwardKinematics() first!
+ *
  * \param model rigid body model
  * \param Q     state vector of the model
  * \param H     a matrix where the result will be stored in
