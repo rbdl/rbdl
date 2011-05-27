@@ -67,16 +67,20 @@ namespace Operators {
 	}
 
 	inline SpatialVector SpatialLinSolve (const SpatialMatrix &A, const SpatialVector &b) {
+#ifdef USE_SLOW_SPATIAL_ALGEBRA
+		std::cerr << "Cannot solve linear systems with slow math library! Use eigen instead" << std::endl;
+		return b;
+//		exit (-1);
+#else
 		return A.partialPivLu().solve(b);
+#endif
 	}
 
 	inline Matrix3d get_rotation (const SpatialMatrix &m) {
 		return m.block<3,3>(0,0);
-
 	}
 	inline Vector3d get_translation (const SpatialMatrix &m) {
-		Vector3d result (-m.data()[26], m.data()[20], -m.data()[19]);
-		return result;
+		return Vector3d (-m(4,2), m(3,2), -m(3,1));
 	}
 }
 

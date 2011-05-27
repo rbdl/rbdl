@@ -28,10 +28,10 @@ void Model::Init() {
 	dof_count = 0;
 
 	// state information
-	q = VectorNd::Zero (1);
-	qdot = VectorNd::Zero (1);
-	qddot = VectorNd::Zero (1);
-	tau = VectorNd::Zero (1);
+	q = VectorNd::Zero(1);
+	qdot = VectorNd::Zero(1);
+	qddot = VectorNd::Zero(1);
+	tau = VectorNd::Zero(1);
 
 	v.push_back(zero_spatial);
 	a.push_back(zero_spatial);
@@ -50,8 +50,8 @@ void Model::Init() {
 	d.resize(1);
 	u.resize(1);
 
-	u = VectorNd::Zero (1);
-	d = VectorNd::Zero (1);
+	u = VectorNd::Zero(1);
+	d = VectorNd::Zero(1);
 
 	f.push_back (zero_spatial);
 	f_ext.push_back (zero_spatial);
@@ -202,7 +202,7 @@ Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 	// by its orientation to be able to retrieve the bodies origin
 	// coordinates in base coordinates.
 	Matrix3d upper_left = X_base[body_id].block<3,3>(0,0).transpose();
-	Matrix3d rx = upper_left * X_base[body_id].block<3,3>(3,0);
+	Matrix3d rx = upper_left * static_cast<Matrix3d>(X_base[body_id].block<3,3>(3,0));
 
 	return Vector3d (rx(1,2), -rx(0,2), rx(0,1));
 }

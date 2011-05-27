@@ -3,11 +3,6 @@
 
 #include <sstream>
 #include <assert.h>
-#include "mathwrapper.h"
-
-// forward declaration as it is needed for the SpatialLinSolveFunction
-// \todo proper forward declaration of linsolve
-bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 
 /** \brief Namespace for all the spatial algebra quantities
  */
@@ -85,7 +80,8 @@ class SpatialVector {
 			mData[2] = v2;
 			mData[3] = v3;
 			mData[4] = v4;
-			mData[5] = v5;		};
+			mData[5] = v5;
+		};
 		void zero() {
 			set(0., 0., 0., 0., 0., 0.);
 		}
@@ -177,6 +173,15 @@ class SpatialVector {
 				+ mData[4] * vector.mData[4] 
 				+ mData[5] * vector.mData[5];
 		}
+		double dot (const SpatialVector &vector) const {
+			return mData[0] * vector.mData[0]
+				+ mData[1] * vector.mData[1] 
+				+ mData[2] * vector.mData[2] 
+				+ mData[3] * vector.mData[3] 
+				+ mData[4] * vector.mData[4] 
+				+ mData[5] * vector.mData[5];
+		}
+
 		double length () const {
 			return sqrt (
 				  mData[0] * mData[0]
@@ -195,6 +200,14 @@ class SpatialVector {
 				+ mData[4] * mData[4]
 				+ mData[5] * mData[5]
 				;
+		}
+
+		SpatialVector transpose() const {
+			return SpatialVector (*this);
+		}
+
+		const double *data() const {
+			return mData;
 		}
 
 		double *data() {
@@ -219,45 +232,45 @@ class SpatialVector {
  * desired information.
  *
  */
+template <typename val_type, unsigned int BlockRows, unsigned int BlockCols>
 class Block {
+	public:
 	Block () :
-		nrows(0),
-		ncols(0),
-		parent_rows(0)
-		parent_cols(0),
+		nrows(BlockRows),
+		ncols(BlockCols),
+		parent_nrows(0),
+		parent_ncols(0),
 		parent_row_index(0),
 		parent_col_index(0),
-		transposed(false);
+		transposed(false),
 		parent(NULL)
 	{ }
 	Block (const Block& other) :
-		nrows(other.nrows),
-		ncols(other.ncols),
-		parent_rows(other.parent_nrows)
-		parent_cols(other.parent_ncols),
+		nrows(BlockRows),
+		ncols(BlockCols),
+		parent_nrows(other.parent_nrows),
+		parent_ncols(other.parent_ncols),
 		parent_row_index(other.parent_row_index),
 		parent_col_index(other.parent_col_index),
-		transposed(other.transposed);
+		transposed(other.transposed),
 		parent(other.parent)
 	{ }
 
 	Block (
-			unsigned int rows,
-			unsigned int cols,
-			double *parent_data,
+			val_type *parent_data,
 			unsigned int parent_row_start,
 			unsigned int parent_col_start,
 			unsigned int parent_num_rows,
-			unsigned int parent_num_cols)
+			unsigned int parent_num_cols) :
+		nrows(BlockRows),
+		ncols(BlockCols)
 	{
-		nrows = rows;
-		ncols = cols;
 		parent = parent_data;
 		parent_row_index = parent_row_start;
 		parent_col_index = parent_col_start;
 
-		parent_rows = parent_num_rows;
-		parent_colss = parent_num_colss;
+		parent_nrows = parent_num_rows;
+		parent_ncols = parent_num_cols;
 
 		transposed = false;
 	}
@@ -268,13 +281,15 @@ class Block {
 	Block& operator=(const Block& other) {
 		if (this != &other) {
 			// copy the data, but we have to ensure, that the sizes match!
-			assert (nrows == other.rows);
-			assert (ncols == other.cols);
+			assert (nrows == other.nrows);
+			assert (ncols == other.ncols);
 
-			parent_row_index = other.parent_row_index;
-			parent_col_index = other.parent_col_index;
-
-			parent = other.parent;
+			unsigned int i, j;
+			for (i = 0; i < nrows; i++) {
+				for (j = 0; j < ncols; j++) {
+					this->operator()(i,j) = other(i,j);
+				}
+			}
 		}
 
 		// copy data depending on other.transposed!
@@ -282,21 +297,120 @@ class Block {
 		return *this;
 	}
 
+	/** This operater is only used to copy the data from other into this
+	 *
+	 */
+	Block& operator=(const Matrix3d& data_in) {
+		assert (parent != NULL);
+		// copy the data, but we have to ensure, that the sizes match!
+		assert (nrows == 3);
+		assert (ncols == 3);
+
+		if (!transposed) {
+			// copy data depending on other.transposed!
+			parent[parent_nrows * (0 + parent_row_index) + 0 + parent_col_index] = data_in (0,0);
+			parent[parent_nrows * (0 + parent_row_index) + 1 + parent_col_index] = data_in (0,1);
+			parent[parent_nrows * (0 + parent_row_index) + 2 + parent_col_index] = data_in (0,2);
+
+			parent[parent_nrows * (1 + parent_row_index) + 0 + parent_col_index] = data_in (1,0);
+			parent[parent_nrows * (1 + parent_row_index) + 1 + parent_col_index] = data_in (1,1);
+			parent[parent_nrows * (1 + parent_row_index) + 2 + parent_col_index] = data_in (1,2);
+
+			parent[parent_nrows * (2 + parent_row_index) + 0 + parent_col_index] = data_in (2,0);
+			parent[parent_nrows * (2 + parent_row_index) + 1 + parent_col_index] = data_in (2,1);
+			parent[parent_nrows * (2 + parent_row_index) + 2 + parent_col_index] = data_in (2,2);
+		} else {
+			parent[parent_nrows * (0 + parent_row_index) + 0 + parent_col_index] = data_in (0,0);
+			parent[parent_nrows * (0 + parent_row_index) + 1 + parent_col_index] = data_in (1,0);
+			parent[parent_nrows * (0 + parent_row_index) + 2 + parent_col_index] = data_in (2,0);
+
+			parent[parent_nrows * (1 + parent_row_index) + 0 + parent_col_index] = data_in (0,1);
+			parent[parent_nrows * (1 + parent_row_index) + 1 + parent_col_index] = data_in (1,1);
+			parent[parent_nrows * (1 + parent_row_index) + 2 + parent_col_index] = data_in (2,1);
+
+			parent[parent_nrows * (2 + parent_row_index) + 0 + parent_col_index] = data_in (0,2);
+			parent[parent_nrows * (2 + parent_row_index) + 1 + parent_col_index] = data_in (1,2);
+			parent[parent_nrows * (2 + parent_row_index) + 2 + parent_col_index] = data_in (2,2);
+		}
+
+		return *this;
+	}
+
 	Block transpose() {
+		assert (parent != NULL);
 		Block result (*this);
 		result.transposed = transposed ^ true;
 		return result;
 	}
 
+	const val_type& operator() (const unsigned int i, const unsigned int j) const {
+		assert (parent != NULL);
+		assert (i < nrows);
+		assert (j < ncols);
+
+		if (!transposed)
+			return parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
+	
+		return parent[parent_nrows * (j + parent_row_index) + i + parent_col_index];
+	}
+
+	val_type& operator() (const unsigned int i, const unsigned int j) {
+		assert (parent != NULL);
+		assert (i < nrows);
+		assert (j < ncols);
+
+		if (!transposed)
+			return parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
+	
+		return parent[parent_nrows * (j + parent_row_index) + i + parent_col_index];
+	}
+
+	// casting operator
+	operator Matrix3d () {
+		assert (nrows == 3);
+		assert (ncols == 3);
+
+		if (!transposed) {
+			// copy data depending on other.transposed!
+			return Matrix3d (
+					parent[parent_nrows * (0 + parent_row_index) + 0 + parent_col_index],
+					parent[parent_nrows * (0 + parent_row_index) + 1 + parent_col_index],
+					parent[parent_nrows * (0 + parent_row_index) + 2 + parent_col_index],
+
+					parent[parent_nrows * (1 + parent_row_index) + 0 + parent_col_index],
+					parent[parent_nrows * (1 + parent_row_index) + 1 + parent_col_index],
+					parent[parent_nrows * (1 + parent_row_index) + 2 + parent_col_index],
+
+					parent[parent_nrows * (2 + parent_row_index) + 0 + parent_col_index],
+					parent[parent_nrows * (2 + parent_row_index) + 1 + parent_col_index],
+					parent[parent_nrows * (2 + parent_row_index) + 2 + parent_col_index]
+				);
+		} 
+
+		return Matrix3d (
+				parent[parent_nrows * (0 + parent_row_index) + 0 + parent_col_index],
+				parent[parent_nrows * (1 + parent_row_index) + 0 + parent_col_index],
+				parent[parent_nrows * (2 + parent_row_index) + 0 + parent_col_index],
+
+				parent[parent_nrows * (0 + parent_row_index) + 1 + parent_col_index],
+				parent[parent_nrows * (1 + parent_row_index) + 1 + parent_col_index],
+				parent[parent_nrows * (2 + parent_row_index) + 1 + parent_col_index],
+
+				parent[parent_nrows * (0 + parent_row_index) + 2 + parent_col_index],
+				parent[parent_nrows * (1 + parent_row_index) + 2 + parent_col_index],
+				parent[parent_nrows * (2 + parent_row_index) + 2 + parent_col_index]
+				);
+	}
+
 	unsigned int nrows;
 	unsigned int ncols;
-	unsigned int parent_rows;
-	unsigned int parent_cols;
+	unsigned int parent_nrows;
+	unsigned int parent_ncols;
 	unsigned int parent_row_index;
 	unsigned int parent_col_index;
 	bool transposed;
 
-	double *parent;
+	val_type *parent;
 };
 
 /** \brief Matrix class for spatial matrices (both spatial transformations and inertias)
@@ -435,7 +549,6 @@ class SpatialMatrix {
 			mData[30 + 3] = lower_right(2,0);
 			mData[30 + 4] = lower_right(2,1);
 			mData[30 + 5] = lower_right(2,2);
-
 		}
 
 		// comparison
@@ -554,6 +667,10 @@ class SpatialMatrix {
 		}
 
 		// Block accessing functions
+		template <unsigned int blockrows, unsigned int blockcols>
+		Block<double, blockrows, blockcols> block (unsigned int i, unsigned int j) const {
+			return Block<double, blockrows, blockcols> (const_cast<double*> (this->mData), i, j, 6, 6);
+		}
 
 		// Operators with scalars
 		SpatialMatrix operator*(const double &scalar) const {
@@ -775,6 +892,9 @@ class SpatialMatrix {
 				
 			return result;
 		}
+		SpatialMatrix operator*=(const SpatialMatrix &matrix) {
+			return SpatialMatrix (*this) * matrix;
+		}
 
 		// Operators with SpatialVectors
 		SpatialVector operator*(const SpatialVector &vector) const {
@@ -951,6 +1071,22 @@ inline std::ostream& operator<<(std::ostream& output, const SpatialMatrix &matri
 	return output;
 }
 
+template <unsigned int blockrows, unsigned int blockcols>
+inline std::ostream& operator<<(std::ostream& output, const Block<double, blockrows, blockcols> &block) {
+	output << std::endl;
+
+	unsigned int i,j;
+	for (i = 0; i < blockrows; i++) {
+		output << "[ ";
+		for (j = 0; j < blockcols; j++) {
+			output << block(i,j) << " ";
+		}
+		output << "]" << std::endl;
+	}
+
+	return output;
+}
+
 inline SpatialVector operator*(const double& val, const SpatialVector &vec) {
 	return SpatialVector (
 			vec[0] * val,
@@ -1050,7 +1186,6 @@ SpatialVector SpatialVector::crossf(const SpatialVector &vector) const
 	return crossf_matrix() * vector;
 }
 
-
 inline SpatialMatrix SpatialVector::outer_product(const SpatialVector &vec) const {
 	return SpatialMatrix (
 			mData[0] * vec[0], mData[0] * vec[1], mData[0] * vec[2], mData[0] * vec[3], mData[0] * vec[4], mData[0] * vec[5],
@@ -1061,44 +1196,6 @@ inline SpatialMatrix SpatialVector::outer_product(const SpatialVector &vec) cons
 			mData[5] * vec[0], mData[5] * vec[1], mData[5] * vec[2], mData[5] * vec[3], mData[5] * vec[4], mData[5] * vec[5]
 			);
 }
-
-/** \brief Solves a 6D linear system of equations by using elimination of variables
- *
- * Computes the solution x of a 6D system of linear equations of the form Ax = b.
- *
- * \param A Spatial matrix that describes the left hand matrix
- * \param b Spatial vector that is the right hand side
- *
- * \returns solution x
- */
-inline SpatialVector SpatialLinSolve (SpatialMatrix A, SpatialVector b) {
-	SpatialVector x(0., 0., 0., 0., 0., 0.);
-	MatrixNd cmlA;
-	VectorNd cmlb(6);
-	VectorNd cmlx(6);
-
-	cmlA.resize(6,6);
-	cmlb.resize(6);
-
-	unsigned int i,j;
-	for (i = 0; i < 6; i++) {
-		for (j = 0; j < 6; j++) {
-			cmlA(i,j) = A(i,j);
-		}
-
-		cmlb[i] = b[i];
-	}
-
-	LinSolveGaussElimPivot (cmlA, cmlb, cmlx);;
-
-	for (i = 0; i < 6; i++) {
-		x[i] = cmlx[i];
-	}
-
-	return x;
-}
-
-const SpatialVector SpatialVectorZero (0., 0., 0., 0., 0., 0.);
 
 }
 

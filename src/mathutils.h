@@ -10,8 +10,11 @@ extern Vector3d Vector3dZero;
 extern Matrix3d Matrix3dIdentity;
 extern Matrix3d Matrix3dZero;
 
+extern SpatialAlgebra::SpatialVector SpatialVectorZero;
+
 extern SpatialAlgebra::SpatialMatrix SpatialMatrixIdentity;
 extern SpatialAlgebra::SpatialMatrix SpatialMatrixZero;
+
 
 void VectorCrossVector (Vector3d &result, const Vector3d &vec_a, const Vector3d &vec_b);
 void VectorPrint (const char* msg, const Vector3d &vector);

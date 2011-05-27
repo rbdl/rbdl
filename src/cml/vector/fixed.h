@@ -89,6 +89,11 @@ class vector< Element, fixed<Size> >
         return cml::dot(*this,*this);
     }
 
+		/** Return square of the length. */
+    value_type squaredNorm() const {
+        return this->length_squared();
+    }
+
     /** Return the length. */
     value_type length() const {
         return std::sqrt(length_squared());
@@ -104,6 +109,31 @@ class vector< Element, fixed<Size> >
         typedef cml::et::OpAssign<Element,Element> OpT;
         cml::et::UnrollAssignment<OpT>(*this,Element(0));
         return *this;
+    }
+
+		vector_type& Zero() {
+		    return this->zero();
+		}
+
+		/** Return a vector with zeros */
+    static vector_type Zero(int size) {
+        vector_type result;
+				result.Zero();
+        return result;
+		}
+
+		/** Return a vector with zeros */
+    static vector_type Constant(int size, const value_type &value) {
+		    vector_type result (Size);
+				int i;
+				for (i = 0; i < Size; i++)
+					result[i] = value;
+
+        return result;
+    }
+
+		value_type dot(const vector_type &other) const {
+        return cml::dot(*this,other);
     }
 
     /** Set this vector to a cardinal vector. */

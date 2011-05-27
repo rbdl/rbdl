@@ -1,6 +1,7 @@
 #include <UnitTest++.h>
 
 #include <iostream>
+#include <limits>
 
 #include "mathutils.h"
 #include "Logging.h"

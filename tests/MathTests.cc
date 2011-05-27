@@ -20,24 +20,32 @@ TEST (GaussElimPivot) {
 	VectorNd b(3);
 	VectorNd x(3);
 
-	A << 0, 2, 1,
-			1, 1, 5,
-			0, 0, 1;
-	b << 1,2,3;
+	A(0,0) = 0; A(0,1) = 2; A(0,2) = 1;
+	A(1,0) = 1; A(1,1) = 1; A(1,2) = 5;
+	A(2,0) = 0; A(2,1) = 0; A(2,2) = 1;
+
+	b[0] = 1;
+	b[1] = 2;
+	b[2] = 3;
 
 	VectorNd test_result (3);
-	test_result << -12, -1, 3;
+
+	test_result[0] = -12;
+	test_result[1] = -1;
+	test_result[2] = 3;
 
 	LinSolveGaussElimPivot (A, b, x);
 
 	CHECK_ARRAY_CLOSE (test_result.data(), x.data(), 3, TEST_PREC);
 
-	A << 0, -2, 1,
-			1, 1, 5,
-			0, 0, 1;
+	A(0,0) = 0; A(0,1) = -2; A(0,2) = 1;
+	A(1,0) = 1; A(1,1) =  1; A(1,2) = 5;
+	A(2,0) = 0; A(2,1) =  0; A(2,2) = 1;
 
 	LinSolveGaussElimPivot (A, b, x);
-	test_result << -14, 1, 3;
+	test_result[0] = -14;
+	test_result[1] = 1;
+	test_result[2] = 3;
 
 	CHECK_ARRAY_CLOSE (test_result.data(), x.data(), 3, TEST_PREC);
 }

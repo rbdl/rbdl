@@ -232,6 +232,7 @@ TEST(TestSpatialVectorCrossmCrossf) {
 	CHECK_EQUAL (crossf_s_x_t, crossf_s_t);
 }
 
+#ifdef USE_SLOW_SPATIAL_ALGEBRA
 TEST(TestSpatialLinSolve) {
 	SpatialVector b (1, 2, 0, 1, 1, 1);
 	SpatialMatrix A (
@@ -248,3 +249,4 @@ TEST(TestSpatialLinSolve) {
 
 	CHECK_ARRAY_CLOSE (x_test.data(), x.data(), 6, TEST_PREC);
 }
+#endif

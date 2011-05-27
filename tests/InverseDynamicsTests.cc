@@ -28,6 +28,7 @@ struct InverseDynamicsFixture {
 	Model *model;
 };
 
+#ifndef USE_SLOW_SPATIAL_ALGEBRA
 TEST_FIXTURE(InverseDynamicsFixture, TestInverseForwardDynamicsFloatingBase) {
 	Body base_body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
@@ -66,4 +67,4 @@ TEST_FIXTURE(InverseDynamicsFixture, TestInverseForwardDynamicsFloatingBase) {
 
 	CHECK_ARRAY_CLOSE (Tau.data(), TauInv.data(), Tau.size(), TEST_PREC);
 }
-
+#endif

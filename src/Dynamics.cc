@@ -96,7 +96,7 @@ void ForwardDynamics (
 
 		model.pA[i] = crossf(model.v[i],model.IA[i] * model.v[i]);
 
-		if (model.f_ext[i] != SpatialVector::Zero()) {
+		if (model.f_ext[i] != SpatialVectorZero) {
 			LOG << "External force (" << i << ") = " << spatial_adjoint(model.X_base[i]) * model.f_ext[i] << std::endl;
 			model.pA[i] -= spatial_adjoint(model.X_base[i]) * model.f_ext[i];
 		}
@@ -139,9 +139,20 @@ void ForwardDynamics (
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
+#ifdef USE_SLOW_SPATIAL_ALGEBRA
+			SpatialVector Ud = model.U[i] / model.d[i];
+			SpatialMatrix Ia = model.IA[i] - SpatialMatrix (
+				model.U[i][0] * Ud[0], model.U[i][0] * Ud[1], model.U[i][0] * Ud[2], model.U[i][0] * Ud[3], model.U[i][0] * Ud[4], model.U[i][0] * Ud[5], 
+				model.U[i][1] * Ud[0], model.U[i][1] * Ud[1], model.U[i][1] * Ud[2], model.U[i][1] * Ud[3], model.U[i][1] * Ud[4], model.U[i][1] * Ud[5], 
+				model.U[i][2] * Ud[0], model.U[i][2] * Ud[1], model.U[i][2] * Ud[2], model.U[i][2] * Ud[3], model.U[i][2] * Ud[4], model.U[i][2] * Ud[5], 
+				model.U[i][3] * Ud[0], model.U[i][3] * Ud[1], model.U[i][3] * Ud[2], model.U[i][3] * Ud[3], model.U[i][3] * Ud[4], model.U[i][3] * Ud[5], 
+				model.U[i][4] * Ud[0], model.U[i][4] * Ud[1], model.U[i][4] * Ud[2], model.U[i][4] * Ud[3], model.U[i][4] * Ud[4], model.U[i][4] * Ud[5], 
+				model.U[i][5] * Ud[0], model.U[i][5] * Ud[1], model.U[i][5] * Ud[2], model.U[i][5] * Ud[3], model.U[i][5] * Ud[4], model.U[i][5] * Ud[5]
+				);
+#else
 			SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
+#endif
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
-
 			SpatialMatrix X_lambda = model.X_lambda[i];
 
 			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
@@ -222,12 +233,12 @@ void ForwardDynamicsLagrangian (
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	MatrixNd H = MatrixNd::Constant ((size_t) model.dof_count, (size_t) model.dof_count, 0.);
-	VectorNd C = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	MatrixNd H = MatrixNd::Zero(model.dof_count, model.dof_count);
+	VectorNd C = VectorNd::Zero(model.dof_count);
 
 	// we set QDDot to zero to compute C properly with the InverseDynamics
 	// method.
-	QDDot.setZero();
+	QDDot.Zero(QDDot.size());
 
 	// we first have to call InverseDynamics as it will update the spatial
 	// joint axes which CRBA does not do on its own!
@@ -237,7 +248,11 @@ void ForwardDynamicsLagrangian (
 	LOG << "A = " << std::endl << H << std::endl;
 	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;
 
+#ifdef USE_SLOW_SPATIAL_ALGEBRA
+	LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
+#else
 	QDDot = H.colPivHouseholderQr().solve (C * -1. + Tau);
+#endif
 }
 
 void InverseDynamics (
@@ -321,7 +336,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H) 
 	if (H.rows() != Q.size() || H.cols() != Q.size()) 
 		H.resize(Q.size(), Q.size());
 
-	H.setZero();
+	H.Zero(H.rows(), H.cols());
 
 	unsigned int i;
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -653,9 +668,20 @@ void ForwardDynamicsFloatingBaseExpl (
 		}
 
 		unsigned int lambda = model.lambda[i];
+#ifdef USE_SLOW_SPATIAL_ALGEBRA
+		SpatialVector Ud = model.U[i] / model.d[i];
+		SpatialMatrix Ia = model.IA[i] - SpatialMatrix (
+				model.U[i][0] * Ud[0], model.U[i][0] * Ud[1], model.U[i][0] * Ud[2], model.U[i][0] * Ud[3], model.U[i][0] * Ud[4], model.U[i][0] * Ud[5], 
+				model.U[i][1] * Ud[0], model.U[i][1] * Ud[1], model.U[i][1] * Ud[2], model.U[i][1] * Ud[3], model.U[i][1] * Ud[4], model.U[i][1] * Ud[5], 
+				model.U[i][2] * Ud[0], model.U[i][2] * Ud[1], model.U[i][2] * Ud[2], model.U[i][2] * Ud[3], model.U[i][2] * Ud[4], model.U[i][2] * Ud[5], 
+				model.U[i][3] * Ud[0], model.U[i][3] * Ud[1], model.U[i][3] * Ud[2], model.U[i][3] * Ud[3], model.U[i][3] * Ud[4], model.U[i][3] * Ud[5], 
+				model.U[i][4] * Ud[0], model.U[i][4] * Ud[1], model.U[i][4] * Ud[2], model.U[i][4] * Ud[3], model.U[i][4] * Ud[4], model.U[i][4] * Ud[5], 
+				model.U[i][5] * Ud[0], model.U[i][5] * Ud[1], model.U[i][5] * Ud[2], model.U[i][5] * Ud[3], model.U[i][5] * Ud[4], model.U[i][5] * Ud[5]
+				);
+#else
 		SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
+#endif	
 		SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
-
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
 		// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()

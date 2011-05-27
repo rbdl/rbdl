@@ -98,6 +98,28 @@ class vector< Element, dynamic<Alloc> >
         return *this;
     }
 
+		/** Set this vector to [0]. */
+    vector_type& Zero() {
+        return this->zero();
+    }
+
+		/** Return a vector with zeros */
+    static vector_type Zero(int size) {
+        vector_type result (size);
+				result.Zero();
+        return result;
+		}
+
+		/** Return a vector with zeros */
+    static vector_type Constant(int size, const value_type &value) {
+		    vector_type result (size);
+				int i;
+				for (i = 0; i < size; i++)
+					result[i] = value;
+
+        return result;
+    }
+
     /** Set this vector to a cardinal vector. */
     vector_type& cardinal(size_t i) {
         zero();

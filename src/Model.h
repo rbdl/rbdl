@@ -14,8 +14,11 @@
 // std::vectors containing any objectst that have Eigen matrices or vectors
 // as members need to have a special allocater. This can be achieved with
 // the following macro.
+
+#ifdef EIGEN_CORE_H
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint);
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
+#endif
 
 /** \brief Namespace for all structures of the RigidBodyDynamics library
  */

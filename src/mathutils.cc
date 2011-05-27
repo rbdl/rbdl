@@ -21,6 +21,9 @@ Matrix3d Matrix3dZero (
 		0., 0., 0.,
 		0., 0., 0.
 		);
+
+SpatialAlgebra::SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
+
 SpatialMatrix SpatialMatrixIdentity (
 		1., 0., 0., 0., 0., 0.,
 		0., 1., 0., 0., 0., 0.,

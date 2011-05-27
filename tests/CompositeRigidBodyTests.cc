@@ -27,6 +27,7 @@ struct CompositeRigidBodyFixture {
 	Model *model;
 };
 
+#ifndef USE_SLOW_SPATIAL_ALGEBRA
 TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsFloatingBase) {
 	Body base_body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
@@ -73,4 +74,4 @@ TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsFlo
 
 	CHECK_ARRAY_CLOSE (QDDot.data(), QDDot_crba.data(), QDDot.size(), TEST_PREC);
 }
-
+#endif

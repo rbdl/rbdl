@@ -102,6 +102,30 @@ class matrix<Element,dynamic<Alloc>,BasisOrient,Layout>
         return *this;
     }
 
+		matrix_type& Zero() {
+        return this->zero();
+    }
+
+		/** Return a vector with zeros */
+    static matrix_type Zero(int rows, int cols) {
+		    matrix_type result (rows, cols);
+				result.Zero();
+        return result;
+    }
+
+		/** Return a vector with zeros */
+    static matrix_type Constant(int rows, int cols, const value_type &value) {
+		    matrix_type result (rows, cols);
+				int i, j;
+				for (i = 0; i < rows; i++) {
+					for (j = 0; j < cols; j++) {
+						result(i,j) = value;
+					}
+				}
+
+        return result;
+    }
+
     /** Set this matrix to the identity.
      *
      * This only makes sense for a square matrix, but no error will be

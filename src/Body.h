@@ -81,54 +81,6 @@ struct Body {
 					);
 		}
 
-	/** \brief Constructs a body out of the given parameters
-	 *
-	 * This constructor eases the construction of a new body as all the required
-	 * parameters can simply be specified as parameters to the constructor.
-	 * These are then used to generate the spatial inertia matrix.
-	 *
-	 * \param mass the mass of the body
-	 * \param com  the position of the center of mass in the bodies coordinates
-	 * \param length the length of the segment (needed to compute the inertia at the CoM
-	 * \param gyration_radii the radii of gyration at the center of mass of the body in percentage of the segment length
-	 */
-	Body(const double &mass,
-			const Vector3d &com,
-			const double &length,
-			const Vector3d &gyration_radii) :
-		mMass (mass),
-		mCenterOfMass(com) {
-			Matrix3d com_cross (
-					0., -com[2],  com[1],
-					com[2],      0., -com[0],
-					-com[1],  com[0],      0.
-					);
-			Matrix3d parallel_axis;
-			parallel_axis = mass * com_cross * com_cross.transpose();
-
-			LOG << "parrallel axis = " << parallel_axis << std::endl;
-
-			Vector3d gr = mass * Vector3d(
-					gyration_radii[0] * gyration_radii[0] * length * length,
-					gyration_radii[1] * gyration_radii[1] * length * length,
-					gyration_radii[2] * gyration_radii[2] * length * length
-					);
-			Matrix3d pa (parallel_axis);
-			Matrix3d mcc = mass * com_cross;
-			Matrix3d mccT = mcc.transpose();
-
-			mSpatialInertia.set (
-					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
-					pa(1, 0), gr[1] + pa(1, 1), pa(1, 2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
-					pa(2, 0), pa(2, 1), gr[2] + pa(2, 2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
-					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
-					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
-					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
-					);
-
-			LOG << "spatial inertia = " << mSpatialInertia << std::endl;
-		}
-
 	/** \brief Constructs a body from mass, center of mass, and a 3x3 inertia matrix 
 	 *
 	 * This constructor eases the construction of a new body as all the required

@@ -87,8 +87,9 @@ void CalcPointJacobian (
 
 	// update the Kinematics with zero acceleration
 	if (update_kinematics) {
-		VectorNd QDDot_zero = VectorNd::Constant (Q.size(), 0.);
-		VectorNd QDot_zero = VectorNd::Constant (Q.size(), 0.);
+		VectorNd QDDot_zero = VectorNd::Zero(Q.size());
+		VectorNd QDot_zero = VectorNd::Zero(Q.size());
+		
 		ForwardKinematics (model, Q, QDot_zero, QDDot_zero);
 	}
 
@@ -156,7 +157,8 @@ Vector3d CalcPointVelocity (
 
 	// update the Kinematics with zero acceleration
 	if (update_kinematics) {
-		VectorNd QDDot_zero = VectorNd::Constant (Q.size(), 0.);
+		VectorNd QDDot_zero = VectorNd::Zero(Q.size());
+		
 		ForwardKinematics (model, Q, QDot, QDDot_zero);
 	}
 
@@ -238,7 +240,7 @@ Vector3d CalcPointAcceleration (
 	SpatialMatrix local_point_transform (Xtrans (point_position));
 
 	Matrix3d global_body_orientation_inv = model.GetBodyWorldOrientation (body_id).inverse();
-	SpatialMatrix p_X_i = SpatialMatrix::Zero(6,6);
+	SpatialMatrix p_X_i = SpatialMatrixZero;
 
 	p_X_i.block<3,3>(0,0) = global_body_orientation_inv;
 	p_X_i.block<3,3>(3,3) = global_body_orientation_inv;

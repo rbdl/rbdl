@@ -97,6 +97,10 @@ class matrix<Element,fixed<Rows,Cols>,BasisOrient,Layout>
         return *this;
     }
 
+		matrix_type& Zero() {
+        return this->zero();
+    }
+
     /** Set this matrix to the identity.
      *
      * This only makes sense for a square matrix, but no error will be
