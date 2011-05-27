@@ -591,6 +591,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = ./src \
+                         doc/example.h \
                          doc/Mainpage.h
 
 # This tag can be used to specify the character encoding of the source files 

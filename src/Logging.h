@@ -5,6 +5,13 @@
 
 class _NoLogging;
 
+/** \def ENABLE_LOGGING
+ *
+ * Enables/Disables logging
+ *
+ * \warning Logging has a huge impact on performance.
+ */
+
 #ifndef ENABLE_LOGGING
 	#define LOG if (false) LogOutput 
 	#define SUPPRESS_LOGGING ;
@@ -16,6 +23,31 @@ class _NoLogging;
 extern std::ostringstream LogOutput;
 void ClearLogOutput ();
 
+/** \brief Helper object to ignore any logs that happen during its lifetime
+ *
+ * If an instance of this class exists all logging gets suppressed. This
+ * allows to disable logging for a certain scope or a single function call,
+ * e.g.
+ *
+ * \code
+ * {
+ *   // logging will be active
+ *   do_some_stuff();
+ *  
+ *   // now create a new scope in which a _NoLogging instance exists
+ *   {
+ *     _NoLogging ignore_logging;
+ *    
+ *     // as a _Nologging instance exists, all logging will be discarded
+ *     do_some_crazy_stuff();
+ *   }
+ *
+ *   // logging will be active again
+ *   do_some_more_stuff();
+ * }
+ * \endcode
+ *
+ */
 class _NoLogging {
 	public:
 		_NoLogging() {
