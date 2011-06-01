@@ -139,7 +139,7 @@ void ForwardDynamics (
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-#ifdef USE_SLOW_SPATIAL_ALGEBRA
+#ifndef USE_EIGEN_MATH
 			SpatialVector Ud = model.U[i] / model.d[i];
 			SpatialMatrix Ia = model.IA[i] - SpatialMatrix (
 				model.U[i][0] * Ud[0], model.U[i][0] * Ud[1], model.U[i][0] * Ud[2], model.U[i][0] * Ud[3], model.U[i][0] * Ud[4], model.U[i][0] * Ud[5], 
@@ -248,7 +248,7 @@ void ForwardDynamicsLagrangian (
 	LOG << "A = " << std::endl << H << std::endl;
 	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;
 
-#ifdef USE_SLOW_SPATIAL_ALGEBRA
+#ifndef USE_EIGEN_MATH
 	LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
 #else
 	QDDot = H.colPivHouseholderQr().solve (C * -1. + Tau);
@@ -545,7 +545,7 @@ void ForwardDynamicsFloatingBase (
 	LOG << "FloatingBaseExplRes a_B = " << a_B << std::endl;
 
 	// we have to transform the acceleration back to base coordinates
-	a_B = X_B.inverse() * a_B;
+	a_B = spatial_inverse(X_B) * a_B;
 
 	QDDot[0] = a_B[5];
 	QDDot[1] = a_B[4];
@@ -668,7 +668,7 @@ void ForwardDynamicsFloatingBaseExpl (
 		}
 
 		unsigned int lambda = model.lambda[i];
-#ifdef USE_SLOW_SPATIAL_ALGEBRA
+#ifndef USE_EIGEN_MATH
 		SpatialVector Ud = model.U[i] / model.d[i];
 		SpatialMatrix Ia = model.IA[i] - SpatialMatrix (
 				model.U[i][0] * Ud[0], model.U[i][0] * Ud[1], model.U[i][0] * Ud[2], model.U[i][0] * Ud[3], model.U[i][0] * Ud[4], model.U[i][0] * Ud[5], 

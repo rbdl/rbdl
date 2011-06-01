@@ -67,7 +67,7 @@ namespace Operators {
 	}
 
 	inline SpatialVector SpatialLinSolve (const SpatialMatrix &A, const SpatialVector &b) {
-#ifdef USE_SLOW_SPATIAL_ALGEBRA
+#ifndef USE_EIGEN_MATH
 		std::cerr << "Cannot solve linear systems with slow math library! Use eigen instead" << std::endl;
 		return b;
 //		exit (-1);

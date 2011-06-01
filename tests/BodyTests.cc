@@ -26,5 +26,7 @@ TEST ( TestComputeSpatialInertiaFromAbsoluteRadiiGyration ) {
 			1.32, -1.65, 0, 0, 0, 1.1
 			);
 
+//	cout << LogOutput.str() << endl;
+
 	CHECK_ARRAY_CLOSE (reference_inertia.data(), body.mSpatialInertia.data(), 36, TEST_PREC);
 }

@@ -23,6 +23,7 @@ OPTION (ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" 
 OPTION (BUILD_STATIC "Build the statically linked library" OFF)
 OPTION (BUILD_GUI "Build the (rudimentary) graphical user interface" OFF)
 OPTION (BUILD_TESTS "Build the test executables" OFF)
+OPTION (USE_EIGEN_MATH "Use the fast Eigen library" ON)
 
 SET ( RBDL_SOURCES 
 	src/mathutils.cc
@@ -40,6 +41,11 @@ ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
 IF ( ENABLE_LOGGING )
 	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_LOGGING" )
 ENDIF ( ENABLE_LOGGING )
+
+IF ( USE_EIGEN_MATH )
+	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_EIGEN_MATH" )
+ENDIF ( USE_EIGEN_MATH )
+
 
 IF (BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )

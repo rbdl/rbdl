@@ -89,7 +89,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimple) {
 	point_position = Vector3d (1., 0., 0.);
 	point_acceleration = CalcPointAcceleration(*model, Q, QDot, QDDot, ref_body_id, point_position);
 
-//	cout << LogOutput.str() << endl;
+	// cout << LogOutput.str() << endl;
 
 	CHECK_CLOSE(0., point_acceleration[0], TEST_PREC);
 	CHECK_CLOSE(1., point_acceleration[1], TEST_PREC);

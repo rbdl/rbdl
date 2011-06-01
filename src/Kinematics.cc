@@ -101,7 +101,7 @@ void CalcPointJacobian (
 	unsigned int j;
 	for (j = 1; j < model.mBodies.size(); j++) {
 		SpatialVector S_base;
-		S_base = point_trans * model.X_base[j].inverse() * model.S[j];
+		S_base = point_trans * spatial_inverse(model.X_base[j]) * model.S[j];
 
 		G(0, j - 1) = S_base[3];
 		G(1, j - 1) = S_base[4];
@@ -129,7 +129,7 @@ Vector3d CalcPointVelocity (
 		// ForwardDynamicsFloatingBase
 		model.v[0].set (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
 
-		model.v[0] = model.X_base[0].inverse() * model.v[0];
+		model.v[0] = spatial_inverse(model.X_base[0]) * model.v[0];
 		
 		// global_velocities[0] = model.v[0];
 
@@ -169,10 +169,12 @@ Vector3d CalcPointVelocity (
 //	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
 	LOG << "body_transf    = " << model.X_base[body_id] << std::endl;
 	LOG << "point_abs_ps   = " << point_abs_pos << std::endl;
+	LOG << "X   = " << Xtrans (point_abs_pos) * spatial_inverse(model.X_base[body_id]) << std::endl;
+	LOG << "v   = " << model.v[body_id] << std::endl;
 
 	// Now we can compute the spatial velocity at the given point
 //	SpatialVector body_global_velocity (global_velocities.at(body_id));
-	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos) * model.X_base[body_id].inverse() * model.v[body_id];
+	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos) * spatial_inverse(model.X_base[body_id]) * model.v[body_id];
 
 	LOG << "point_velocity = " <<	Vector3d (
 			point_spatial_velocity[3],
@@ -234,16 +236,22 @@ Vector3d CalcPointAcceleration (
 	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
 
 	// The whole computation looks in formulae like the following:
-	SpatialVector body_global_velocity (model.X_base[body_id].inverse() * model.v[body_id]);
-	SpatialVector body_global_acceleration (model.X_base[body_id].inverse() * model.a[body_id]);
+	SpatialVector body_global_velocity (spatial_inverse(model.X_base[body_id]) * model.v[body_id]);
+	SpatialVector body_global_acceleration (spatial_inverse(model.X_base[body_id]) * model.a[body_id]);
 	SpatialMatrix global_point_transform (Xtrans (point_abs_pos));
 	SpatialMatrix local_point_transform (Xtrans (point_position));
 
-	Matrix3d global_body_orientation_inv = model.GetBodyWorldOrientation (body_id).inverse();
+	LOG << " orientation " << std::endl << model.GetBodyWorldOrientation(body_id) << std::endl;
+	LOG << " orientationT " << std::endl <<  model.GetBodyWorldOrientation(body_id).transpose() << std::endl;
+
+	Matrix3d global_body_orientation_inv = model.GetBodyWorldOrientation (body_id).transpose();
 	SpatialMatrix p_X_i = SpatialMatrixZero;
 
 	p_X_i.block<3,3>(0,0) = global_body_orientation_inv;
 	p_X_i.block<3,3>(3,3) = global_body_orientation_inv;
+
+	LOG << " p_X_i = " << std::endl << p_X_i << std::endl;
+	LOG << " xtrans = " << std::endl << Xtrans (point_position) << std::endl;
 
 	p_X_i *= Xtrans (point_position);
 
@@ -254,7 +262,9 @@ Vector3d CalcPointAcceleration (
 		crossm( SpatialVector(0., 0., 0., p_v_i[3], p_v_i[4], p_v_i[5]), (body_global_velocity));
 
 	LOG << model.X_base[body_id] << std::endl;
-//	LOG << "p_X_i              = " << p_X_i << std::endl;
+	LOG << "v_i                = " << model.v[body_id] << std::endl;
+	LOG << "a_i                = " << model.a[body_id] << std::endl;
+	LOG << "p_X_i              = " << p_X_i << std::endl;
 	LOG << "p_v_i              = " << p_v_i << std::endl;
 	LOG << "p_a_i              = " << p_a_i << std::endl;
 	LOG << "body_global_vel    = " << body_global_velocity << std::endl;

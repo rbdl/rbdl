@@ -892,8 +892,8 @@ class SpatialMatrix {
 				
 			return result;
 		}
-		SpatialMatrix operator*=(const SpatialMatrix &matrix) {
-			return SpatialMatrix (*this) * matrix;
+		void operator*=(const SpatialMatrix &matrix) {
+			*this = SpatialMatrix (*this) * matrix;
 		}
 
 		// Operators with SpatialVectors

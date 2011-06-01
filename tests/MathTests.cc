@@ -8,6 +8,7 @@
 const double TEST_PREC = 1.0e-14;
 
 using namespace std;
+using namespace SpatialAlgebra;
 
 struct MathFixture {
 };
@@ -71,4 +72,38 @@ TEST (Dynamic_2D_initialize_value) {
 
 	CHECK_ARRAY_EQUAL (test_values, mymatrix_10x10.data(), 10*10);
 	delete[] test_values;
+}
+
+TEST (SpatialMatrix_Multiplication) {
+	SpatialMatrix X_1 (
+			 1.,  2.,  3.,  4.,  5.,  6.,
+			11., 12., 13., 14., 15., 16.,
+			21., 22., 23., 24., 25., 26.,
+			31., 32., 33., 34., 35., 36.,
+			41., 42., 43., 44., 45., 46.,
+			51., 52., 53., 54., 55., 56.
+			);
+
+	SpatialMatrix X_2 (X_1);
+
+	X_2 *= 2;
+
+	SpatialMatrix correct_result (
+    1442,    1484,    1526,    1568,    1610,    1652,
+    4562,    4724,    4886,    5048,    5210,    5372,
+    7682,    7964,    8246,    8528,    8810,    9092,
+   10802,   11204,   11606,   12008,   12410,   12812,
+   13922,   14444,   14966,   15488,   16010,   16532,
+   17042,   17684,   18326,   18968,   19610,   20252
+			);
+
+	SpatialMatrix test_result = X_1 * X_2;
+
+	CHECK_ARRAY_CLOSE (correct_result.data(), test_result.data(), 6 * 6, TEST_PREC);
+
+	// check the *= operator:
+	test_result = X_1;
+	test_result *= X_2;
+
+	CHECK_ARRAY_CLOSE (correct_result.data(), test_result.data(), 6 * 6, TEST_PREC);
 }
