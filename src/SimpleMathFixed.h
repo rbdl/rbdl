@@ -207,7 +207,7 @@ class Matrix {
 			unsigned int i;
 			for (i = 0; i < nrows * ncols; i++)
 				mData[i] = matrix.mData[i];
-		};
+		}
 		Matrix& operator=(const Matrix &matrix) {
 			if (this != &matrix) {
 				unsigned int i;
@@ -215,7 +215,8 @@ class Matrix {
 					mData[i] = matrix.mData[i];
 			}
 			return *this;
-		};
+		}
+
 		~Matrix() {};
 
 		Matrix (
@@ -448,6 +449,14 @@ class Matrix {
 			}
 			return true;
 		}
+		bool operator!=(const Matrix &matrix) const {
+			for (unsigned int i = 0; i < nrows * ncols; i++) {
+				if (mData[i] != matrix.mData[i])
+					return true;
+			}
+			return false;
+		}
+
 
 		// access operators
 		const double& operator[](const unsigned int &index) const {
@@ -529,14 +538,6 @@ class Matrix {
 		}
 
 		// Operators with scalars
-		Matrix operator*(const val_type &scalar) const {
-			matrix_type result (*this);
-
-			for (unsigned int i = 0; i < nrows * ncols; i++)
-				result[i] *= scalar;
-
-			return result;
-		}
 		void operator*=(const val_type &scalar) {
 			for (unsigned int i = 0; i < nrows * ncols; i++)
 				mData[i] *= scalar;
@@ -651,7 +652,17 @@ inline std::ostream& operator<<(std::ostream& output, const Block<double, blockr
 }
 
 template <typename val_type, unsigned int nrows, unsigned int ncols>
-Matrix<val_type, nrows, ncols> operator*(val_type scalar, const Matrix<val_type, nrows, ncols> &matrix) {
+inline Matrix<val_type, nrows, ncols> operator*(val_type scalar, const Matrix<val_type, nrows, ncols> &matrix) {
+	Matrix<val_type, nrows, ncols> result (matrix);
+
+	for (unsigned int i = 0; i < nrows * ncols; i++)
+		result.data()[i] *= scalar;
+
+	return result;
+}
+
+template <typename val_type, unsigned int nrows, unsigned int ncols>
+inline Matrix<val_type, nrows, ncols> operator*(const Matrix<val_type, nrows, ncols> &matrix, val_type scalar) {
 	Matrix<val_type, nrows, ncols> result (matrix);
 
 	for (unsigned int i = 0; i < nrows * ncols; i++)

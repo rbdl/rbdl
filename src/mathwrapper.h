@@ -29,18 +29,12 @@
 	typedef SimpleMath::Fixed::Matrix<double, 3,3> Matrix3d;
 
 	namespace SpatialAlgebra {
-	typedef SimpleMath::Fixed::Matrix<double, 6,1> SpatialVector;
-	typedef SimpleMath::Fixed::Matrix<double, 6,6> SpatialMatrix;
+		typedef SimpleMath::Fixed::Matrix<double, 6,1> SpatialVector;
+		typedef SimpleMath::Fixed::Matrix<double, 6,6> SpatialMatrix;
 	}
-
-
-//	typedef cml::vector<double, cml::fixed<3> > Vector3d;
-//	typedef cml::matrix<double, cml::fixed<3,3> > Matrix3d;
 
 	typedef cml::vector<double, cml::dynamic<> > VectorNd;
 	typedef cml::matrix<double, cml::dynamic<> > MatrixNd;
-
-//	#include "SpatialAlgebra.h"
 #endif
 
 #include "SpatialAlgebraOperators.h"

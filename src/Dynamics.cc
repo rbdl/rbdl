@@ -729,9 +729,10 @@ void ForwardDynamicsFloatingBaseExpl (
 	}
 
 	LOG << "spatial_gravity = " << spatial_gravity << std::endl;
+#ifdef USE_EIGEN_MATH
 	LOG << "X_B * spatial_gravity = " << X_B * spatial_gravity << std::endl;
-
-	model.a[0] += X_B * spatial_gravity;
+	model.a[0] = X_B * spatial_gravity;
+#endif
 
 	a_B = model.a[0];
 }
