@@ -485,6 +485,28 @@ class Matrix {
 			zero();
 		}
 
+		val_type norm() {
+			return sqrt(this->squaredNorm());
+		}
+
+		void normalize() {
+			val_type length = this->norm();
+
+			for (unsigned int i = 0; i < ncols * nrows; i++)
+				mData[i] /= length;
+		}
+
+		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) {
+			assert (nrows * ncols == 3);
+
+			Matrix<val_type, 3, 1> result;
+			result[0] = mData[1] * other_vector[2] - mData[2] * other_vector[1];
+			result[1] = mData[2] * other_vector[0] - mData[0] * other_vector[2];
+			result[2] = mData[0] * other_vector[1] - mData[1] * other_vector[0];
+
+			return result;
+		}
+
 		static matrix_type Zero() {
 			matrix_type result;
 			result.zero();

@@ -84,6 +84,10 @@ class VectorXpr
         return m_expr.length();
     }
 
+		value_type norm() const {
+        return std::sqrt(length_squared());
+    }
+
     /** Return the result as a normalized vector. */
     result_type normalize() const {
         return m_expr.normalize();

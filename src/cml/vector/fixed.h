@@ -99,6 +99,11 @@ class vector< Element, fixed<Size> >
         return std::sqrt(length_squared());
     }
 
+		/** Return the length. */
+    value_type norm() const {
+        return std::sqrt(length_squared());
+    }
+
     /** Normalize the vector. */
     vector_type& normalize() {
         return (*this /= length());

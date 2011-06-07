@@ -3,6 +3,7 @@
 
 #include <mathwrapper.h>
 #include <map>
+#include <list>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
@@ -243,13 +244,17 @@ struct Model {
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 
-#ifdef USE_VISUALIZATION
 	////////////////////////////////////
 	// Visualization
 
 	typedef std::list<Visualization::Primitive> VisualizationPrimitiveList;
+
+#ifdef EIGEN_CORE_H
 	typedef std::map<unsigned int, VisualizationPrimitiveList,
 					std::less<unsigned int>, Eigen::aligned_allocator<std::pair<const unsigned int, VisualizationPrimitiveList> > > BodyVisualizationMap;
+#else
+	typedef std::map<unsigned int, VisualizationPrimitiveList> BodyVisualizationMap;
+#endif
 	BodyVisualizationMap mBodyVisualization;
 
 	/** \brief Adds a Visualization::Primitive to the primitive list of a body
@@ -268,7 +273,6 @@ struct Model {
 	 * \returns A pointer to the primitive or NULL if none exists.
 	 */
 	VisualizationPrimitiveList GetBodyVisualizationPrimitiveList (unsigned int body_id);
-#endif
 };
 
 }

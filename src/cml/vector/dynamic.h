@@ -86,6 +86,10 @@ class vector< Element, dynamic<Alloc> >
         return std::sqrt(length_squared());
     }
 
+		value_type norm() const {
+        return std::sqrt(length_squared());
+    }
+
     /** Normalize the vector. */
     vector_type& normalize() {
         return (*this /= length());
