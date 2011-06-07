@@ -236,7 +236,7 @@ void ForwardDynamicsLagrangian (
 	LOG << "A = " << std::endl << H << std::endl;
 	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;
 
-#ifdef USE_EIGEN_MATH
+#ifndef RBDL_USE_SIMPLE_MATH
 	QDDot = H.colPivHouseholderQr().solve (C * -1. + Tau);
 #else
 	bool solve_successful = LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
@@ -459,7 +459,7 @@ void ForwardDynamicsContactsLagrangian (
 	}
 	
 	// Solve the system
-#ifdef USE_EIGEN_MATH
+#ifndef RBDL_USE_SIMPLE_MATH
 	x = A.colPivHouseholderQr().solve (b);
 #else
 	bool solve_successful = LinSolveGaussElimPivot (A, b, x);
@@ -563,7 +563,7 @@ void ComputeContactImpulsesLagrangian (
 	}
 	
 	// Solve the system
-#ifdef USE_EIGEN_MATH
+#ifndef RBDL_USE_SIMPLE_MATH
 	x = A.colPivHouseholderQr().solve (b);
 #else
 	bool solve_successful = LinSolveGaussElimPivot (A, b, x);
@@ -827,7 +827,7 @@ void ForwardDynamicsFloatingBaseExpl (
 	}
 
 	LOG << "spatial_gravity = " << spatial_gravity << std::endl;
-#ifdef USE_EIGEN_MATH
+#ifndef RBDL_USE_SIMPLE_MATH
 	LOG << "X_B * spatial_gravity = " << X_B * spatial_gravity << std::endl;
 	model.a[0] = X_B * spatial_gravity;
 #endif

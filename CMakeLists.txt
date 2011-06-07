@@ -6,6 +6,7 @@ LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
 INCLUDE_DIRECTORIES ( 
 	src/
+	include/rbdl
 )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
@@ -72,13 +73,13 @@ INSTALL (TARGETS rbdl
 	)
 
 CONFIGURE_FILE (
-	"${CMAKE_SOURCE_DIR}/src/rbdlconfig.h.cmake" 
-	"${CMAKE_BINARY_DIR}/include/rbdl/rbdlconfig.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdlconfig.h.cmake" 
+	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdlconfig.h"
 	)
 
 FILE ( GLOB headers 
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
-	"${CMAKE_BINARY_DIR}/include/rbdl/rbdlconfig.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdlconfig.h"
 	)
 
 INSTALL ( FILES ${headers} DESTINATION include/rbdl )
