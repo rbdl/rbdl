@@ -13,9 +13,9 @@
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
  * href="http://users.cecs.anu.edu.au/~roy/">Roy Featherstone</a>.
  * 
- * The library uses the
- * <a href="http://eigen.tuxfamily.org/">Eigen</a> math library
- * (which can be found here:
+ * The library comes with version 3 of the the
+ * <a href="http://eigen.tuxfamily.org/">Eigen</a> math library. More
+ * information about it can be found here:
  * <a href="http://eigen.tuxfamily.org/">http://eigen.tuxfamily.org/</a>).
  *
  * Documentation of the functions can be found at the documentation page of
@@ -32,12 +32,12 @@
  * joint specification as an object, and the body itself. These parameters
  * are then fed to the function RigidBodyDynamics::Model::AddBody().
  *
- * \todo [high] check impulse computation
   * \todo [low] incorporate GiNaC (http://www.ginac.de) to generate code
  * \todo [low] serialization of the model?
  *
  * \subsection ToDo_done Done:
  * <ul>
+ *   <li>[high] check impulse computation 2011-06-07</li>
  *   <li>[med] add specification for the visualization to the model</li>
  *   <li>[med] get replace std::vector<> vectors with proper math vectors in Model</li>
  * </ul>

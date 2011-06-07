@@ -248,10 +248,11 @@ void ForwardDynamicsLagrangian (
 	LOG << "A = " << std::endl << H << std::endl;
 	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;
 
-#ifndef USE_EIGEN_MATH
-	LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
-#else
+#ifdef USE_EIGEN_MATH
 	QDDot = H.colPivHouseholderQr().solve (C * -1. + Tau);
+#else
+	bool solve_successful = LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
+	assert (solve_successful);
 #endif
 }
 
@@ -362,12 +363,6 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H) 
 	}
 }
 
-/*
- * Experimental Code
- */
-
-namespace Experimental {
-
 void ForwardDynamicsContactsLagrangian (
 		Model &model,
 		const VectorNd &Q,
@@ -376,6 +371,8 @@ void ForwardDynamicsContactsLagrangian (
 		std::vector<ContactInfo> &ContactData,
 		VectorNd &QDDot
 		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
 	// Compute H
 	MatrixNd H (model.dof_count, model.dof_count);
 	CompositeRigidBodyAlgorithm (model, Q, H);
@@ -389,8 +386,13 @@ void ForwardDynamicsContactsLagrangian (
 	// Compute G
 	MatrixNd G (ContactData.size(), model.dof_count);
 
-	ForwardKinematics (model, Q, QDot, QDDot_zero);
 	unsigned int i,j;
+
+	// variables to check whether we need to recompute G
+	unsigned int prev_body_id = 0;
+	Vector3d prev_body_point = Vector3d::Zero();
+	MatrixNd Gi (3, model.dof_count);
+
 	for (i = 0; i < ContactData.size(); i++) {
 		// Only alow contact normals along the coordinate axes
 		unsigned int axis_index = 0;
@@ -404,8 +406,12 @@ void ForwardDynamicsContactsLagrangian (
 		else
 			assert (0 && "Invalid contact normal axis!");
 
-		MatrixNd Gi (3, model.dof_count);
-		CalcPointJacobian (model, Q, ContactData[i].body_id, ContactData[i].point, Gi, false);
+		// only compute the matrix Gi if actually needed
+		if (prev_body_id != ContactData[i].body_id || prev_body_point != ContactData[i].point) {
+			CalcPointJacobian (model, Q, ContactData[i].body_id, ContactData[i].point, Gi, false);
+			prev_body_id = ContactData[i].body_id;
+			prev_body_point = ContactData[i].point;
+		}
 
 		for (j = 0; j < model.dof_count; j++) {
 			G(i,j) = Gi(axis_index, j);
@@ -465,8 +471,12 @@ void ForwardDynamicsContactsLagrangian (
 	}
 	
 	// Solve the system
+#ifdef USE_EIGEN_MATH
+	x = A.colPivHouseholderQr().solve (b);
+#else
 	bool solve_successful = LinSolveGaussElimPivot (A, b, x);
 	assert (solve_successful);
+#endif
 
 	// Copy back QDDot
 	for (i = 0; i < model.dof_count; i++)
@@ -477,6 +487,118 @@ void ForwardDynamicsContactsLagrangian (
 		ContactData[i].force = x[model.dof_count + i];
 	}
 }
+
+void ComputeContactImpulsesLagrangian (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDotMinus,
+		std::vector<ContactInfo> &ContactData,
+		VectorNd &QDotPlus
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	// Compute H
+	MatrixNd H (model.dof_count, model.dof_count);
+
+	VectorNd QZero = VectorNd::Zero (model.dof_count);
+	ForwardKinematics (model, Q, QZero, QZero);
+
+	// Note: ForwardKinematics must have been called beforehand!
+	CompositeRigidBodyAlgorithm (model, Q, H);
+
+	// Compute G
+	MatrixNd G (ContactData.size(), model.dof_count);
+
+	unsigned int i,j;
+
+	// variables to check whether we need to recompute G
+	unsigned int prev_body_id = 0;
+	Vector3d prev_body_point = Vector3d::Zero();
+	MatrixNd Gi (3, model.dof_count);
+
+	for (i = 0; i < ContactData.size(); i++) {
+		// Only alow contact normals along the coordinate axes
+		unsigned int axis_index = 0;
+
+		if (ContactData[i].normal == Vector3d(1., 0., 0.))
+			axis_index = 0;
+		else if (ContactData[i].normal == Vector3d(0., 1., 0.))
+			axis_index = 1;
+		else if (ContactData[i].normal == Vector3d(0., 0., 1.))
+			axis_index = 2;
+		else
+			assert (0 && "Invalid contact normal axis!");
+
+		// only compute the matrix Gi if actually needed
+		if (prev_body_id != ContactData[i].body_id || prev_body_point != ContactData[i].point) {
+			CalcPointJacobian (model, Q, ContactData[i].body_id, ContactData[i].point, Gi, false);
+			prev_body_id = ContactData[i].body_id;
+			prev_body_point = ContactData[i].point;
+		}
+
+		for (j = 0; j < model.dof_count; j++) {
+			G(i,j) = Gi(axis_index, j);
+		}
+	}
+
+	// Compute H * \dot{q}^-
+	VectorNd Hqdotminus (H * QDotMinus);
+
+	// Build the system
+	MatrixNd A = MatrixNd::Constant (model.dof_count + ContactData.size(), model.dof_count + ContactData.size(), 0.);
+	VectorNd b = VectorNd::Constant (model.dof_count + ContactData.size(), 0.);
+	VectorNd x = VectorNd::Constant (model.dof_count + ContactData.size(), 0.);
+
+	// Build the system: Copy H
+	for (i = 0; i < model.dof_count; i++) {
+		for (j = 0; j < model.dof_count; j++) {
+			A(i,j) = H(i,j);	
+		}
+	}
+
+	// Build the system: Copy G, and G^T
+	for (i = 0; i < ContactData.size(); i++) {
+		for (j = 0; j < model.dof_count; j++) {
+			A(i + model.dof_count, j) = G (i,j);
+			A(j, i + model.dof_count) = G (i,j);
+		}
+	}
+
+	// Build the system: Copy -C + \tau
+	for (i = 0; i < model.dof_count; i++) {
+		b[i] = Hqdotminus[i];
+	}
+
+	// Build the system: Copy -gamma
+	for (i = 0; i < ContactData.size(); i++) {
+		b[i + model.dof_count] = ContactData[i].acceleration;
+	}
+	
+	// Solve the system
+#ifdef USE_EIGEN_MATH
+	x = A.colPivHouseholderQr().solve (b);
+#else
+	bool solve_successful = LinSolveGaussElimPivot (A, b, x);
+	assert (solve_successful);
+#endif
+
+	// Copy back QDDot
+	for (i = 0; i < model.dof_count; i++)
+		QDotPlus[i] = x[i];
+
+	// Copy back contact impulses
+	for (i = 0; i < ContactData.size(); i++) {
+		ContactData[i].force = x[model.dof_count + i];
+	}
+
+}
+
+
+/*
+ * Experimental Code
+ */
+
+namespace Experimental {
 
 /** Prepares and computes forward dynamics by using ForwardDynamicsFloatingBaseExpl()
  *

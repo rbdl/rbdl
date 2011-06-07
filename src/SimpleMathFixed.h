@@ -231,7 +231,7 @@ class Matrix {
 		}
 
 		void set(
-				const val_type v00, const val_type v01, const val_type v02
+				const val_type &v00, const val_type &v01, const val_type &v02
 				) {
 			assert (rows * cols == 3);
 

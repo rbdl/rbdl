@@ -5,8 +5,6 @@
 
 namespace RigidBodyDynamics {
 
-namespace Experimental {
-
 /** \brief Structure that contains information about a one-dimensional
  *  \brief contact constraint
  *
@@ -69,58 +67,6 @@ struct ContactInfo {
 	double force;
 };
 
-/** \brief Computes forces acting on the model due to contact
- *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points and their desired accelerations
- * \param Fext  constraint forces that enforce desired acceleration on the constraints
- *
- * \note During execution of this function the values ContactData[i].force
- * 	get modified and will contain the value of the force acting along
- * 	the normal.
- */
-void ComputeContactForces (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
-		const std::vector<SpatialAlgebra::SpatialVector> &Fext
-		);
-
-/** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
- *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points
- * \param QDDot accelerations of the internals joints (output)
- *
- * \note During execution of this function the values ContactData[i].force
- * 	get modified and will contain the value of the force acting along
- * 	the normal.
- */
-void ForwardDynamicsContacts (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
-		VectorNd &QDDot
-		);
-
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
  *
  * This method builds and solves the linear system \f[
@@ -152,7 +98,13 @@ void ForwardDynamicsContacts (
  * \note So far, only constraints acting along cartesian coordinate axes
  * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
  * not specify redundant constraints!
+ * 
+ * \par 
  *
+ * \note To increase performance group constraints body and pointwise such
+ * that constraints acting on the same body point are sequentially in
+ * ContactData. This can save computation of point jacobians \f$G\f$.
+  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
@@ -172,6 +124,121 @@ void ForwardDynamicsContactsLagrangian (
 		std::vector<ContactInfo> &ContactData,
 		VectorNd &QDDot
 		);
+
+/** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
+ *
+ * This method builds and solves the linear system \f[
+ \left(
+   \begin{array}{cc}
+	   H & G^T \\
+		 G & 0
+   \end{array}
+ \right)
+ \left(
+   \begin{array}{c}
+	   \dot{q}^{+} \\
+		 \Lambda
+   \end{array}
+ \right)
+ =
+ \left(
+   \begin{array}{c}
+	   H \dot{q}^{-} \\
+		v^{+} 
+   \end{array}
+ \right)
+ * \f] where \f$H\f$ is the joint space inertia matrix computed with the
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
+ * contact points, \f$\dot{q}^{+}\f$ the generalized velocity after the
+ * impact, \f$\Lambda\f$ the impulses at each constraint, \f$\dot{q}^{-}\f$
+ * the generalized velocity before the impact, and \f$v^{+}\f$ the desired
+ * velocity of each constraint after the impact (known beforehand, usually
+ * 0).
+ *
+ * The desired velocity can be specified by ContactInfo::acceleration.
+ * 
+ * \note So far, only constraints acting along cartesian coordinate axes
+ * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
+ * not specify redundant constraints!
+ * 
+ * \par 
+ *
+ * \note To increase performance group constraints body and pointwise such
+ * that constraints acting on the same body point are sequentially in
+ * ContactData. This can save computation of point jacobians \f$G\f$.
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDotMinus  velocity vector of the internal joints before the impact
+ * \param ContactData	a list of all contact points
+ * \param QDotPlus velocities of the internals joints after the impact (output)
+ *
+ * \note During execution of this function the values ContactInfo::force
+ * 	get modified and will contain the value of the impulse acting along
+ * 	the normal.
+ */
+void ComputeContactImpulsesLagrangian (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDotMinus,
+		std::vector<ContactInfo> &ContactData,
+		VectorNd &QDotPlus
+		);
+
+namespace Experimental {
+
+/** \brief Computes forces acting on the model due to contact
+ *
+ * The method used here is the one described by Kokkevis and Metaxas in the
+ * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
+ * published in Multibody System Dynamics Vol.2, 1998.
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param ContactData	a list of all contact points and their desired accelerations
+ * \param Fext  constraint forces that enforce desired acceleration on the constraints
+ *
+ * \note During execution of this function the values ContactData[i].force
+ * 	get modified and will contain the value of the force acting along
+ * 	the normal.
+ */
+void ComputeContactForces (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		std::vector<ContactInfo> &ContactData,
+		std::vector<SpatialAlgebra::SpatialVector> &Fext
+		);
+
+/** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
+ *
+ * The method used here is the one described by Kokkevis and Metaxas in the
+ * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
+ * published in Multibody System Dynamics Vol.2, 1998.
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param ContactData	a list of all contact points
+ * \param QDDot accelerations of the internals joints (output)
+ *
+ * \note During execution of this function the values ContactData[i].force
+ * 	get modified and will contain the value of the force acting along
+ * 	the normal.
+ */
+void ForwardDynamicsContacts (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		std::vector<ContactInfo> &ContactData,
+		VectorNd &QDDot
+		);
+
 
 /** \brief Computes the change of the generalized velocity due to collisions
  *
