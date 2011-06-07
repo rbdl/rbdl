@@ -1,7 +1,8 @@
 #ifndef _RBDL_H
 #define _RBDL_H
 
-#include "rbdlconfig.h"
+#cmakedefine RBDL_USE_SIMPLE_MATH
+#cmakedefine RBDL_ENABLE_LOGGING
 
 #include "mathwrapper.h"
 #include "mathutils.h"
@@ -16,4 +17,4 @@
 
 #include "Contacts.h"
 
-#endif /* _RBDL_H */
+#endif

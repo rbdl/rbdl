@@ -5,14 +5,14 @@
 
 class _NoLogging;
 
-/** \def ENABLE_LOGGING
+/** \def RBDL_ENABLE_LOGGING
  *
  * Enables/Disables logging
  *
  * \warning Logging has a huge impact on performance.
  */
 
-#ifndef ENABLE_LOGGING
+#ifndef RBDL_ENABLE_LOGGING
 	#define LOG if (false) LogOutput 
 	#define SUPPRESS_LOGGING ;
 #else

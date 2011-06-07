@@ -19,11 +19,11 @@ SET (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
-OPTION (ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (BUILD_STATIC "Build the statically linked library" OFF)
 OPTION (BUILD_GUI "Build the (rudimentary) graphical user interface" OFF)
 OPTION (BUILD_TESTS "Build the test executables" OFF)
-OPTION (USE_EIGEN_MATH "Use the fast Eigen library" ON)
+OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
+OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of Eigen3 library (faster compilation)" OFF)
 
 SET ( RBDL_SOURCES 
 	src/mathutils.cc
@@ -38,14 +38,13 @@ SET ( RBDL_SOURCES
 ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
 
 # Option dependend build information
-IF ( ENABLE_LOGGING )
-	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DENABLE_LOGGING" )
-ENDIF ( ENABLE_LOGGING )
+IF ( RBDL_ENABLE_LOGGING )
+	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRBDL_ENABLE_LOGGING" )
+ENDIF ( RBDL_ENABLE_LOGGING )
 
-IF ( USE_EIGEN_MATH )
-	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_EIGEN_MATH" )
-ENDIF ( USE_EIGEN_MATH )
-
+IF ( RBDL_USE_SIMPLE_MATH )
+	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRBDL_USE_SIMPLE_MATH" )
+ENDIF ( RBDL_USE_SIMPLE_MATH )
 
 IF (BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
@@ -72,5 +71,14 @@ INSTALL (TARGETS rbdl
 	ARCHIVE DESTINATION lib
 	)
 
-FILE ( GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h" )
+CONFIGURE_FILE (
+	"${CMAKE_SOURCE_DIR}/src/rbdlconfig.h.cmake" 
+	"${CMAKE_BINARY_DIR}/include/rbdl/rbdlconfig.h"
+	)
+
+FILE ( GLOB headers 
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
+	"${CMAKE_BINARY_DIR}/include/rbdl/rbdlconfig.h"
+	)
+
 INSTALL ( FILES ${headers} DESTINATION include/rbdl )

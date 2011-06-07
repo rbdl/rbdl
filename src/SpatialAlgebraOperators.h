@@ -1,6 +1,8 @@
 #ifndef _SPATIALALGEBRAOPERATORS_H
 #define _SPATIALALGEBRAOPERATORS_H
 
+#include <iostream>
+
 namespace SpatialAlgebra {
 
 /** \brief Contains operators such as crossf(), crossm(), etc.
@@ -67,7 +69,7 @@ namespace Operators {
 	}
 
 	inline SpatialVector SpatialLinSolve (const SpatialMatrix &A, const SpatialVector &b) {
-#ifndef USE_EIGEN_MATH
+#ifdef RBDL_USE_SIMPLE_MATH
 		std::cerr << "Cannot solve linear systems with slow math library! Use eigen instead" << std::endl;
 		return b;
 //		exit (-1);

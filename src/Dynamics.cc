@@ -139,19 +139,7 @@ void ForwardDynamics (
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-#ifndef USE_EIGEN_MATH
-			SpatialVector Ud = model.U[i] / model.d[i];
-			SpatialMatrix Ia = model.IA[i] - SpatialMatrix (
-				model.U[i][0] * Ud[0], model.U[i][0] * Ud[1], model.U[i][0] * Ud[2], model.U[i][0] * Ud[3], model.U[i][0] * Ud[4], model.U[i][0] * Ud[5], 
-				model.U[i][1] * Ud[0], model.U[i][1] * Ud[1], model.U[i][1] * Ud[2], model.U[i][1] * Ud[3], model.U[i][1] * Ud[4], model.U[i][1] * Ud[5], 
-				model.U[i][2] * Ud[0], model.U[i][2] * Ud[1], model.U[i][2] * Ud[2], model.U[i][2] * Ud[3], model.U[i][2] * Ud[4], model.U[i][2] * Ud[5], 
-				model.U[i][3] * Ud[0], model.U[i][3] * Ud[1], model.U[i][3] * Ud[2], model.U[i][3] * Ud[3], model.U[i][3] * Ud[4], model.U[i][3] * Ud[5], 
-				model.U[i][4] * Ud[0], model.U[i][4] * Ud[1], model.U[i][4] * Ud[2], model.U[i][4] * Ud[3], model.U[i][4] * Ud[4], model.U[i][4] * Ud[5], 
-				model.U[i][5] * Ud[0], model.U[i][5] * Ud[1], model.U[i][5] * Ud[2], model.U[i][5] * Ud[3], model.U[i][5] * Ud[4], model.U[i][5] * Ud[5]
-				);
-#else
 			SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
-#endif
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 			SpatialMatrix X_lambda = model.X_lambda[i];
 
@@ -790,19 +778,7 @@ void ForwardDynamicsFloatingBaseExpl (
 		}
 
 		unsigned int lambda = model.lambda[i];
-#ifndef USE_EIGEN_MATH
-		SpatialVector Ud = model.U[i] / model.d[i];
-		SpatialMatrix Ia = model.IA[i] - SpatialMatrix (
-				model.U[i][0] * Ud[0], model.U[i][0] * Ud[1], model.U[i][0] * Ud[2], model.U[i][0] * Ud[3], model.U[i][0] * Ud[4], model.U[i][0] * Ud[5], 
-				model.U[i][1] * Ud[0], model.U[i][1] * Ud[1], model.U[i][1] * Ud[2], model.U[i][1] * Ud[3], model.U[i][1] * Ud[4], model.U[i][1] * Ud[5], 
-				model.U[i][2] * Ud[0], model.U[i][2] * Ud[1], model.U[i][2] * Ud[2], model.U[i][2] * Ud[3], model.U[i][2] * Ud[4], model.U[i][2] * Ud[5], 
-				model.U[i][3] * Ud[0], model.U[i][3] * Ud[1], model.U[i][3] * Ud[2], model.U[i][3] * Ud[3], model.U[i][3] * Ud[4], model.U[i][3] * Ud[5], 
-				model.U[i][4] * Ud[0], model.U[i][4] * Ud[1], model.U[i][4] * Ud[2], model.U[i][4] * Ud[3], model.U[i][4] * Ud[4], model.U[i][4] * Ud[5], 
-				model.U[i][5] * Ud[0], model.U[i][5] * Ud[1], model.U[i][5] * Ud[2], model.U[i][5] * Ud[3], model.U[i][5] * Ud[4], model.U[i][5] * Ud[5]
-				);
-#else
 		SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
-#endif	
 		SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
