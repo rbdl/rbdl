@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <assert.h>
 
+#include "compileassert.h"
+
 /** \brief Namespace for a highly inefficient math library
  *
  */
@@ -24,12 +26,10 @@ class Matrix;
  * desired information.
  *
  */
-template <typename val_type, unsigned int BlockRows, unsigned int BlockCols>
+template <typename val_type, unsigned int block_rows, unsigned int block_cols>
 class Block {
 	public:
 	Block () :
-		nrows(BlockRows),
-		ncols(BlockCols),
 		parent_nrows(0),
 		parent_ncols(0),
 		parent_row_index(0),
@@ -38,8 +38,6 @@ class Block {
 		parent(NULL)
 	{ }
 	Block (const Block& other) :
-		nrows(BlockRows),
-		ncols(BlockCols),
 		parent_nrows(other.parent_nrows),
 		parent_ncols(other.parent_ncols),
 		parent_row_index(other.parent_row_index),
@@ -53,9 +51,7 @@ class Block {
 			unsigned int parent_row_start,
 			unsigned int parent_col_start,
 			unsigned int parent_num_rows,
-			unsigned int parent_num_cols) :
-		nrows(BlockRows),
-		ncols(BlockCols)
+			unsigned int parent_num_cols)
 	{
 		parent = parent_data;
 		parent_row_index = parent_row_start;
@@ -73,12 +69,10 @@ class Block {
 	Block& operator=(const Block& other) {
 		if (this != &other) {
 			// copy the data, but we have to ensure, that the sizes match!
-			assert (nrows == other.nrows);
-			assert (ncols == other.ncols);
 
 			unsigned int i, j;
-			for (i = 0; i < nrows; i++) {
-				for (j = 0; j < ncols; j++) {
+			for (i = 0; i < block_rows; i++) {
+				for (j = 0; j < block_cols; j++) {
 					this->operator()(i,j) = other(i,j);
 				}
 			}
@@ -95,18 +89,18 @@ class Block {
 	Block& operator=(const Matrix<val_type, other_rows, other_cols>& data_in) {
 		assert (parent != NULL);
 		// copy the data, but we have to ensure, that the sizes match!
-		assert (nrows == other_rows);
-		assert (ncols == other_cols);
+		COMPILE_ASSERT (block_rows == other_rows);
+		COMPILE_ASSERT (block_cols == other_cols);
 
 		if (!transposed) {
-			for (unsigned int i = 0; i < nrows; i++) {
-				for (unsigned int j = 0; j < ncols; j++) {
+			for (unsigned int i = 0; i < block_rows; i++) {
+				for (unsigned int j = 0; j < block_cols; j++) {
 					parent[parent_nrows * (i + parent_row_index) + j + parent_col_index] = data_in(i,j);
 				}
 			}
 		} else {
-			for (unsigned int i = 0; i < nrows; i++) {
-				for (unsigned int j = 0; j < ncols; j++) {
+			for (unsigned int i = 0; i < block_rows; i++) {
+				for (unsigned int j = 0; j < block_cols; j++) {
 					parent[parent_nrows * (j + parent_row_index) + i + parent_col_index] = data_in(i,j);
 				}
 			}
@@ -124,8 +118,8 @@ class Block {
 
 	const val_type& operator() (const unsigned int i, const unsigned int j) const {
 		assert (parent != NULL);
-		assert (i < nrows);
-		assert (j < ncols);
+		assert (i < block_rows);
+		assert (j < block_cols);
 
 		if (!transposed)
 			return parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
@@ -135,8 +129,8 @@ class Block {
 
 	val_type& operator() (const unsigned int i, const unsigned int j) {
 		assert (parent != NULL);
-		assert (i < nrows);
-		assert (j < ncols);
+		assert (i < block_rows);
+		assert (j < block_cols);
 
 		if (!transposed)
 			return parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
@@ -149,30 +143,28 @@ class Block {
 	operator Matrix<val_type, other_rows, other_cols>() {
 
 		if (!transposed) {
-			assert (nrows == other_rows);
-			assert (ncols == other_cols);
+			assert (block_rows == other_rows);
+			assert (block_cols == other_cols);
 
 			Matrix<val_type, other_rows, other_cols> result;
-			for (unsigned int i = 0; i < nrows; i++) 
-				for (unsigned int j = 0; j < ncols; j++)
+			for (unsigned int i = 0; i < block_rows; i++) 
+				for (unsigned int j = 0; j < block_cols; j++)
 					result(i,j) = parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
 
 			return result;
 		} 
 
-		assert (nrows == other_cols);
-		assert (ncols == other_rows);
+		assert (block_rows == other_cols);
+		assert (block_cols == other_rows);
 
 		Matrix<val_type, other_rows, other_cols> result;
-		for (unsigned int i = 0; i < nrows; i++) 
-			for (unsigned int j = 0; j < ncols; j++)
+		for (unsigned int i = 0; i < block_rows; i++) 
+			for (unsigned int j = 0; j < block_cols; j++)
 				result(j,i) = parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
 
 		return result;
 	}
 
-	unsigned int nrows;
-	unsigned int ncols;
 	unsigned int parent_nrows;
 	unsigned int parent_ncols;
 	unsigned int parent_row_index;
@@ -233,7 +225,7 @@ class Matrix {
 		void set(
 				const val_type &v00, const val_type &v01, const val_type &v02
 				) {
-			assert (rows * cols == 3);
+			COMPILE_ASSERT (nrows * ncols == 3);
 
 			mData[0] = v00;
 			mData[1] = v01;
@@ -245,8 +237,8 @@ class Matrix {
 				const val_type &v10, const val_type &v11, const val_type &v12,
 				const val_type &v20, const val_type &v21, const val_type &v22
 				) {
-			assert (nrows == 3);
-			assert (ncols == 3);
+			COMPILE_ASSERT (nrows == 3);
+			COMPILE_ASSERT (ncols == 3);
 
 			mData[0] = v00;
 			mData[1] = v01;
@@ -266,8 +258,8 @@ class Matrix {
 				const val_type v10, const val_type v11, const val_type v12,
 				const val_type v20, const val_type v21, const val_type v22
 				) {
-			assert (rows == 3);
-			assert (cols == 3);
+			COMPILE_ASSERT (nrows == 3);
+			COMPILE_ASSERT (ncols == 3);
 
 			mData[0] = v00;
 			mData[1] = v01;
@@ -286,8 +278,8 @@ class Matrix {
 				const val_type &v00, const val_type &v01, const val_type &v02,
 				const val_type &v03, const val_type &v04, const val_type &v05
 				) {
-			assert (nrows == 6);
-			assert (ncols == 1);
+			COMPILE_ASSERT (nrows == 6);
+			COMPILE_ASSERT (ncols == 1);
 
 			mData[0] = v00;
 			mData[1] = v01;
@@ -301,7 +293,7 @@ class Matrix {
 				const val_type &v00, const val_type &v01, const val_type &v02,
 				const val_type &v03, const val_type &v04, const val_type &v05
 				) {
-			assert (nrows * ncols == 6);
+			COMPILE_ASSERT (nrows * ncols == 6);
 
 			mData[0] = v00;
 			mData[1] = v01;
@@ -330,8 +322,8 @@ class Matrix {
 				const val_type &v50, const val_type &v51, const val_type &v52,
 				const val_type &v53, const val_type &v54, const val_type &v55
 				) {
-			assert (nrows == 6);
-			assert (ncols == 6);
+			COMPILE_ASSERT (nrows == 6);
+			COMPILE_ASSERT (ncols == 6);
 
 			mData[0] = v00;
 			mData[1] = v01;
@@ -395,8 +387,8 @@ class Matrix {
 				const val_type v50, const val_type v51, const val_type v52,
 				const val_type v53, const val_type v54, const val_type v55
 				) {
-			assert (nrows == 6);
-			assert (ncols == 6);
+			COMPILE_ASSERT (nrows == 6);
+			COMPILE_ASSERT (ncols == 6);
 
 			mData[0] = v00;
 			mData[1] = v01;
@@ -457,7 +449,6 @@ class Matrix {
 			return false;
 		}
 
-
 		// access operators
 		const double& operator[](const unsigned int &index) const {
 			assert (index	>= 0 && index < nrows * ncols);
@@ -497,7 +488,7 @@ class Matrix {
 		}
 
 		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) {
-			assert (nrows * ncols == 3);
+			COMPILE_ASSERT (nrows * ncols == 3);
 
 			Matrix<val_type, 3, 1> result;
 			result[0] = mData[1] * other_vector[2] - mData[2] * other_vector[1];
@@ -520,7 +511,7 @@ class Matrix {
 		}
 
 		void identity() {
-			assert (ncols == nrows);
+			COMPILE_ASSERT (nrows == ncols);
 
 			zero();
 			for (unsigned int i = 0; i < ncols; i++)
@@ -533,7 +524,7 @@ class Matrix {
 		}
 
 		val_type squaredNorm() const {
-			assert (ncols == 1 || nrows == 1);
+			COMPILE_ASSERT (ncols == 1 || nrows == 1);
 			val_type result = 0;
 
 			for (unsigned int i = 0; i < nrows * ncols; i++)
@@ -543,7 +534,7 @@ class Matrix {
 		}
 
 		val_type dot(const matrix_type &matrix) const {
-			assert (ncols == 1 || nrows == 1);
+			COMPILE_ASSERT (ncols == 1 || nrows == 1);
 			val_type result = 0;
 
 			for (unsigned int i = 0; i < nrows * ncols; i++)
@@ -556,6 +547,8 @@ class Matrix {
 		// Block accessing functions
 		template <unsigned int blockrows, unsigned int blockcols>
 		Block<val_type, blockrows, blockcols> block (unsigned int i, unsigned int j) const {
+			COMPILE_ASSERT (nrows > blockrows);
+			COMPILE_ASSERT (ncols > blockcols);
 			return Block<val_type, blockrows, blockcols> (const_cast<double*> (this->mData), i, j, nrows, ncols);
 		}
 
@@ -605,7 +598,7 @@ class Matrix {
 
 		template <unsigned int other_rows, unsigned int other_cols>
 		Matrix<val_type, nrows, other_cols> operator*(const Matrix<val_type, other_rows, other_cols> &matrix) {
-			assert (ncols == matrix.rows());
+			COMPILE_ASSERT (ncols == other_rows);
 
 			Matrix<val_type, nrows, other_cols> result;
 			
@@ -647,8 +640,8 @@ class Matrix {
 		}
 
 		operator val_type() {
-			assert (nrows == 1u);
-			assert (ncols == 1u);
+			COMPILE_ASSERT (nrows == 1);
+			COMPILE_ASSERT (nrows == 1);
 
 			return mData[0];
 		}
