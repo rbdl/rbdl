@@ -647,7 +647,7 @@ class Matrix {
 		}
 
 	private:
-		val_type mData[36];
+		val_type mData[nrows * ncols];
 };
 
 template <unsigned int blockrows, unsigned int blockcols>

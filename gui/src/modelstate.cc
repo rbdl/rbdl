@@ -174,7 +174,7 @@ void model_init () {
 	model = new Model;
 	model->Init();
 
-	model->gravity = Vector3d (0., 0., 0.);
+	model->gravity = Vector3d (0., -9.81, 0.);
 
 	// base body
 	Body base (
@@ -280,6 +280,8 @@ VectorNd rhs_contact (double t, const VectorNd &y) {
 	Vector3d contact_point_world_acc;
 	contact_point_world_acc = CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point);
 	cout << "\tCPacc = " << contact_point_world_acc;
+
+	cout << "\tforce = " << contact_data[0].force << ", " << contact_data[1].force << ", " << contact_data[2].force << endl;
 
 	VectorNd res (size * 2);
 	for (i = 0; i < size; i++) {
