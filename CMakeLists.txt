@@ -5,6 +5,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
 INCLUDE_DIRECTORIES ( 
+	${CMAKE_CURRENT_BINARY_DIR}/
 	src/
 	include/rbdl
 )
@@ -24,7 +25,7 @@ OPTION (BUILD_STATIC "Build the statically linked library" OFF)
 OPTION (BUILD_GUI "Build the (rudimentary) graphical user interface" OFF)
 OPTION (BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
-OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of Eigen3 library (faster compilation)" OFF)
+OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
 
 SET ( RBDL_SOURCES 
 	src/mathutils.cc
@@ -37,15 +38,6 @@ SET ( RBDL_SOURCES
 	)
 
 ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
-
-# Option dependend build information
-IF ( RBDL_ENABLE_LOGGING )
-	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRBDL_ENABLE_LOGGING" )
-ENDIF ( RBDL_ENABLE_LOGGING )
-
-IF ( RBDL_USE_SIMPLE_MATH )
-	SET ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRBDL_USE_SIMPLE_MATH" )
-ENDIF ( RBDL_USE_SIMPLE_MATH )
 
 IF (BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )

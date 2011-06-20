@@ -1,8 +1,6 @@
 #ifndef _RBDL_H
 #define _RBDL_H
 
-#include "rbdlconfig.h"
-
 #include "mathwrapper.h"
 #include "mathutils.h"
 
