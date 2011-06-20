@@ -408,6 +408,13 @@ void ForwardDynamicsContactsLagrangian (
 
 	// Compute gamma
 	VectorNd gamma (ContactData.size());
+	prev_body_id = 0;
+	prev_body_point = Vector3d::Zero();
+	Vector3d gamma_i = Vector3d::Zero();
+
+	// update Kinematics just once
+	ForwardKinematics (model, Q, QDot, QDDot_zero);
+
 	for (i = 0; i < ContactData.size(); i++) {
 		// Only alow contact normals along the coordinate axes
 		unsigned int axis_index = 0;
@@ -421,7 +428,12 @@ void ForwardDynamicsContactsLagrangian (
 		else
 			assert (0 && "Invalid contact normal axis!");
 
-		Vector3d gamma_i = CalcPointAcceleration (model, Q, QDot, QDDot_zero, ContactData[i].body_id, ContactData[i].point);
+		// only compute point accelerations when necessary
+		if (prev_body_id != ContactData[i].body_id || prev_body_point != ContactData[i].point) {
+			gamma_i = CalcPointAcceleration (model, Q, QDot, QDDot_zero, ContactData[i].body_id, ContactData[i].point, false);
+			prev_body_id = ContactData[i].body_id;
+			prev_body_point = ContactData[i].point;
+		}
 	
 		// we also substract ContactData[i].acceleration such that the contact
 		// point will have the desired acceleration
@@ -457,6 +469,9 @@ void ForwardDynamicsContactsLagrangian (
 	for (i = 0; i < ContactData.size(); i++) {
 		b[i + model.dof_count] = - gamma[i];
 	}
+
+	LOG << "A = " << std::endl << A << std::endl;
+	LOG << "b = " << std::endl << b << std::endl;
 	
 	// Solve the system
 #ifndef RBDL_USE_SIMPLE_MATH
