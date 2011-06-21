@@ -242,6 +242,8 @@ void ForwardDynamicsLagrangian (
 	bool solve_successful = LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
 	assert (solve_successful);
 #endif
+
+	LOG << "x = " << QDDot << std::endl;
 }
 
 void InverseDynamics (
@@ -361,15 +363,19 @@ void ForwardDynamicsContactsLagrangian (
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	// Compute H
-	MatrixNd H (model.dof_count, model.dof_count);
-	CompositeRigidBodyAlgorithm (model, Q, H);
+	// Note: InverseDynamics must be called *before*
+	// CompositeRigidBodyAlgorithm() as the latter does not update
+	// transformations etc.!
 
 	// Compute C
 	VectorNd QDDot_zero (model.dof_count);
 	VectorNd C (model.dof_count);
 
 	InverseDynamics (model, Q, QDot, QDDot_zero, C);
+
+	// Compute H
+	MatrixNd H (model.dof_count, model.dof_count);
+	CompositeRigidBodyAlgorithm (model, Q, H);
 
 	// Compute G
 	MatrixNd G (ContactData.size(), model.dof_count);
