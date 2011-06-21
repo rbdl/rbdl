@@ -176,6 +176,8 @@ TEST ( TestForwardDynamicsContactsLagrangianSimple ) {
 	contact_data.push_back (ground_y);
 	contact_data.push_back (ground_z);
 
+	ClearLogOutput();
+
 	ForwardDynamicsContactsLagrangian (model, Q, QDot, Tau, contact_data, QDDot);
 
 	Vector3d point_acceleration = CalcPointAcceleration (model, Q, QDot, QDDot, contact_body_id, contact_point);
@@ -186,6 +188,10 @@ TEST ( TestForwardDynamicsContactsLagrangianSimple ) {
 			3,
 			TEST_PREC
 			);
+
+	cout << "LagrangianSimple Logoutput Start" << endl;
+	cout << LogOutput.str() << endl;
+	cout << "LagrangianSimple Logoutput End" << endl;
 
 	/*
 	unsigned int i;
