@@ -327,7 +327,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H) 
 	if (H.rows() != Q.size() || H.cols() != Q.size()) 
 		H.resize(Q.size(), Q.size());
 
-	H.Zero(H.rows(), H.cols());
+	H.setZero();
 
 	unsigned int i;
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -368,7 +368,7 @@ void ForwardDynamicsContactsLagrangian (
 	// transformations etc.!
 
 	// Compute C
-	VectorNd QDDot_zero (model.dof_count);
+	VectorNd QDDot_zero = VectorNd::Zero (model.dof_count);
 	VectorNd C (model.dof_count);
 
 	InverseDynamics (model, Q, QDot, QDDot_zero, C);

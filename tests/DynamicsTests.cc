@@ -333,14 +333,17 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 // QDDot =  6.31843e-07 -6.12442e-07  9.22595e-14   3.3712e-07  4.27368e-07 -7.91795e-07   3.3712e-07  4.27368e-07 -7.91795e-07
 // QDDAB = -0.00192794    -9.81419        -0.2    0.198972 -0.00130243    0.100141    0.198972 -0.00130243    0.100141
 
-
 	ForwardDynamics (*model, Q, QDot, Tau, QDDotABA);
-
 	ClearLogOutput();
-
 	ForwardDynamicsLagrangian (*model, Q, QDot, Tau, QDDot);
 
-	cout << LogOutput.str() << endl;
+//	cout << LogOutput.str() << endl;
+
+	// run it again to make sure the calculations give the same results and
+	// no invalid state information lingering in the model structure is being used
+	ForwardDynamics (*model, Q, QDot, Tau, QDDotABA);
+	ClearLogOutput();
+	ForwardDynamicsLagrangian (*model, Q, QDot, Tau, QDDot);
 
 	CHECK_ARRAY_CLOSE (QDDotABA.data(), QDDot.data(), QDDotABA.size(), TEST_PREC);
 }

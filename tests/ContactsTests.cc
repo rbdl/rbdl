@@ -189,9 +189,9 @@ TEST ( TestForwardDynamicsContactsLagrangianSimple ) {
 			TEST_PREC
 			);
 
-	cout << "LagrangianSimple Logoutput Start" << endl;
-	cout << LogOutput.str() << endl;
-	cout << "LagrangianSimple Logoutput End" << endl;
+	// cout << "LagrangianSimple Logoutput Start" << endl;
+	// cout << LogOutput.str() << endl;
+	// cout << "LagrangianSimple Logoutput End" << endl;
 
 	/*
 	unsigned int i;
