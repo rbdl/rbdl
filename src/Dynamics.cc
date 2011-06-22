@@ -226,7 +226,7 @@ void ForwardDynamicsLagrangian (
 
 	// we set QDDot to zero to compute C properly with the InverseDynamics
 	// method.
-	QDDot.Zero(QDDot.size());
+	QDDot.setZero();
 
 	// we first have to call InverseDynamics as it will update the spatial
 	// joint axes which CRBA does not do on its own!
