@@ -1,7 +1,7 @@
 #ifndef _MATRIXADDONS_H
 #define _MATRIXADDONS_H
 
-  /** \brief Constructs an initialized 3x3 matrix with given coefficients */
+	  /** \brief Constructs an initialized 3x3 matrix with given coefficients */
     EIGEN_STRONG_INLINE Matrix(
         const Scalar& m00, const Scalar& m01, const Scalar& m02,
         const Scalar& m10, const Scalar& m11, const Scalar& m12,
@@ -89,6 +89,17 @@
       m_storage.data()[33] = m53;
       m_storage.data()[34] = m54;
       m_storage.data()[35] = m55;
+    }
+
+		void  set(
+        const Scalar& v0, const Scalar& v1, const Scalar& v2
+         )
+    {
+      Base::_check_template_params();
+      EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix, 3, 1) 
+      m_storage.data()[0] = v0;
+      m_storage.data()[1] = v1;
+      m_storage.data()[2] = v2;
     }
 
 		void  set(
