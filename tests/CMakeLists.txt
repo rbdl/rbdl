@@ -1,4 +1,4 @@
-PROJECT (ABA_TESTS)
+PROJECT (RBDL_TESTS)
 
 CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
 
@@ -14,12 +14,15 @@ SET ( TESTS_SRCS
 	FloatingBaseTests.cc
 	CalcVelocitiesTests.cc
 	CalcAccelerationsTests.cc
+	DynamicsTests.cc
 	KinematicsTests.cc
+	InverseDynamicsTests.cc
+	CompositeRigidBodyTests.cc
 	ContactsTests.cc
-	# ImpulsesTests.cc
+	ImpulsesTests.cc
 	)
 
-FIND_PACKAGE (UnitTest++)
+FIND_PACKAGE (UnitTest++ REQUIRED)
 
 INCLUDE_DIRECTORIES ( ../src/ )
 
@@ -28,18 +31,18 @@ SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
 )
 
 IF ( UNITTEST++_FOUND )
-	ADD_EXECUTABLE ( aba_tests ${TESTS_SRCS} )
+	ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} )
 
   INCLUDE_DIRECTORIES ( ${UNITTEST++_INCLUDE_DIR} )
 
-	SET_TARGET_PROPERTIES ( aba_tests PROPERTIES
+	SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
 		LINKER_LANGUAGE CXX
 		OUTPUT_NAME runtests
 		)
 
-	TARGET_LINK_LIBRARIES ( aba_tests
+	TARGET_LINK_LIBRARIES ( rbdl_tests
 			${UNITTEST++_LIBRARY}
-			aba	
+			rbdl	
 		)
 		
 	OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)

@@ -21,10 +21,8 @@ end
 
 external_force = ( nargin > 4 && length(f_ext) > 0 );
 
-a_grav = a_grav
-
 for i = 1:model.NB
-  [ XJ, S{i} ] = jcalc( model.pitch(i), q(i), model.jaxis{i} );
+  [ XJ, S{i} ] = jcalc3d( model.jaxis{i}, model.pitch(i), q(i) );
   vJ = S{i}*qd(i);
   Xup{i} = XJ * model.Xtree{i};
   if model.parent(i) == 0
@@ -41,11 +39,7 @@ for i = 1:model.NB
   end
 end
 
-Xup{1} = Xup{1}
-v{1} = v{1}
-IA{1} = IA{1}
-pA{1} = pA{1}
-S{1} = S{1}
+c
 
 for i = model.NB:-1:1
   U{i} = IA{i} * S{i};
@@ -59,13 +53,10 @@ for i = model.NB:-1:1
   end
 end
 
-disp("second")
-
-% U{2} = U{2}
-% d{2} = d{2}
-% u{2} = u{2}
-% IA{1} = IA{1}
-% pA{1} = pA{1}
+IA
+pA
+c
+a_grav
 
 for i = 1:model.NB
   if model.parent(i) == 0
@@ -76,3 +67,6 @@ for i = 1:model.NB
   qdd(i,1) = (u{i} - U{i}'*a{i})/d{i};
   a{i} = a{i} + S{i}*qdd(i);
 end
+
+a
+qdd

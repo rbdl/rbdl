@@ -18,6 +18,8 @@ enum BufferIndex {
 	BufferIndexTorusPosition,
 	BufferIndexTorusIndex,
 	BufferIndexTorusNormal,
+	BufferIndexSpherePosition,
+	BufferIndexSphereNormal,
 	BufferIndexLast
 };
 
@@ -56,7 +58,43 @@ GLfloat cube_normal_data[] = {
 	 0,-1, 0,   0,-1, 0,  0,-1, 0,  0,-1, 0, // v7-v4-v3-v2
 	 0, 0,-1,   0, 0,-1,  0, 0,-1,  0, 0,-1  // v4-v7-v6-v5
 
-};        
+};
+
+GLfloat sphere_x = 0.525731112119133606;
+GLfloat sphere_z = 0.850650808352039932;
+
+GLfloat sphere_vertices[60][3] = {
+   {sphere_x, 0.f, sphere_z  },  { 0.0, sphere_z, sphere_x }, 	{-sphere_x, 0.f, sphere_z },
+   { 0.0, sphere_z, sphere_x },  {-sphere_z, sphere_x, 0.f }, 	{-sphere_x, 0.f, sphere_z }, 
+   { 0.0, sphere_z, sphere_x },  {0.f, sphere_z, -sphere_x }, 	{-sphere_z, sphere_x, 0.f }, 
+   { sphere_z, sphere_x, 0.f },  {0.f, sphere_z, -sphere_x }, 	{ 0.0, sphere_z, sphere_x }, 
+   {sphere_x, 0.f, sphere_z  },  { sphere_z, sphere_x, 0.f }, 	{ 0.0, sphere_z, sphere_x }, 
+                                                              
+   {sphere_x, 0.f, sphere_z  },  {sphere_z, -sphere_x, 0.f }, 	{ sphere_z, sphere_x, 0.f },  
+   {sphere_z, -sphere_x, 0.f },  {sphere_x, 0.f, -sphere_z }, 	{ sphere_z, sphere_x, 0.f }, 
+   {sphere_z, sphere_x, 0.f  },  {sphere_x, 0.f, -sphere_z }, 	{0.f, sphere_z, -sphere_x }, 
+   {sphere_x, 0.f, -sphere_z },  {-sphere_x, 0.f, -sphere_z}, 	{0.f, sphere_z, -sphere_x }, 
+   {sphere_x, 0.f, -sphere_z },  {0.f, -sphere_z, -sphere_x}, 	{-sphere_x, 0.f, -sphere_z}, 
+                                                              
+   {sphere_x, 0.f, -sphere_z },  {sphere_z, -sphere_x, 0.f }, 	{0.f, -sphere_z, -sphere_x}, 
+   {sphere_z, -sphere_x, 0.f },  {0.f, -sphere_z, sphere_x }, 	{0.f, -sphere_z, -sphere_x}, 
+   {0.f, -sphere_z, sphere_x },  {-sphere_z, -sphere_x, 0.f}, 	{0.f, -sphere_z, -sphere_x}, 
+   {0.f, -sphere_z, sphere_x },  {-sphere_x, 0.f, sphere_z }, 	{-sphere_z, -sphere_x, 0.f}, 
+   {0.f, -sphere_z, sphere_x },  {sphere_x, 0.f, sphere_z  }, 	{-sphere_x, 0.f, sphere_z }, 
+                                                              
+   {sphere_z, -sphere_x, 0.f },  {sphere_x, 0.f, sphere_z  }, 	{0.f, -sphere_z, sphere_x }, 
+   {-sphere_z, -sphere_x, 0.f},  {-sphere_x, 0.f, sphere_z }, 	{-sphere_z, sphere_x, 0.f },
+   {-sphere_x, 0.f, -sphere_z},  {-sphere_z, -sphere_x, 0.f}, 	{-sphere_z, sphere_x, 0.f }, 
+   {0.f, sphere_z, -sphere_x },  {-sphere_x, 0.f, -sphere_z}, 	{-sphere_z, sphere_x, 0.f }, 
+   {-sphere_z, -sphere_x, 0.f},  {-sphere_x, 0.f, -sphere_z}, 	{0.f, -sphere_z, -sphere_x} 
+};
+
+GLfloat sphere_normals[60][3];
+
+GLsizeiptr sphere_element_count = 60;
+GLsizeiptr sphere_position_size = sphere_element_count * 3 * sizeof (GLfloat);
+GLsizeiptr sphere_normal_size   = sphere_element_count * 3 * sizeof (GLfloat);
+
 void check_opengl_error (const char* file, int line) {
 	GLenum gl_error = glGetError();
 	if (gl_error) {
@@ -146,7 +184,7 @@ void glprimitives_torus_init() {
 	torus_normal_size = torus_element_count * 3 * sizeof (GLfloat);
 	torus_normal_data = new GLfloat[torus_element_count * 3];
 
-	unsigned int i;
+	int i;
 	GLfloat rad_inc = static_cast<GLfloat> (M_PI * 2 / static_cast<GLfloat> (disc_slices));
 	for (i = 0; i < (torus_element_count - 2); i = i + 2) {
 		GLfloat rad_val = static_cast<GLfloat> (i) * rad_inc * 0.5f;
@@ -206,6 +244,20 @@ void glprimitives_torus_destroy() {
 	torus_normal_data = NULL;
 }
 
+void glprimitives_sphere_init () {
+	// Vertices
+	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSpherePosition]);
+	check_opengl_error (__FILE__, __LINE__);
+	glBufferData (GL_ARRAY_BUFFER, sphere_position_size, sphere_vertices, GL_STATIC_DRAW);
+	check_opengl_error (__FILE__, __LINE__);
+
+	// Normals
+	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSphereNormal]);
+	check_opengl_error (__FILE__, __LINE__);
+	glBufferData (GL_ARRAY_BUFFER, sphere_normal_size, sphere_vertices, GL_STATIC_DRAW);
+	check_opengl_error (__FILE__, __LINE__);
+}
+
 void glprimitives_init () {
 	// initialize VBO for the cube
 	glGenBuffers(BufferIndexLast, BufferNames);
@@ -220,6 +272,7 @@ void glprimitives_init () {
 	glprimitives_cube_init();
 	glprimitives_disc_init();
 	glprimitives_torus_init();
+	glprimitives_sphere_init();
 }
 
 void glprimitives_destroy () {
@@ -244,7 +297,7 @@ void glprimitives_cube () {
 
 	glEnable(GL_RESCALE_NORMAL);
 
-	glDrawArrays (GL_QUADS, 0, 6 * 3 * 4);
+	glDrawArrays (GL_QUADS, 0, 6 * 4);
 
 	glDisable(GL_RESCALE_NORMAL);
 
@@ -317,4 +370,50 @@ void glprimitives_torus () {
 		glRotatef (180, 0, 1., 0.);
 		glprimitives_disc();
 	glPopMatrix();
+}
+
+void glprimitives_sphere () {
+	static GLUquadric* quadric;
+
+	quadric = gluNewQuadric();
+
+	gluSphere (quadric, 1., 16, 16);
+	glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+
+	glScalef (1.001f, 1.001f, 1.001f);
+	glColor3f (0., 0., 0.);
+	gluSphere (quadric, 1., 16, 16);
+	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+	
+	gluDeleteQuadric(quadric);
+
+	/*
+	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSpherePosition]);
+	check_opengl_error (__FILE__, __LINE__);
+	glVertexPointer (3, GL_FLOAT, 0, 0);
+	glBindBuffer (GL_ARRAY_BUFFER, BufferNames[BufferIndexSphereNormal]);
+	check_opengl_error (__FILE__, __LINE__);
+	glNormalPointer (GL_FLOAT, 0, 0);
+	check_opengl_error (__FILE__, __LINE__);
+
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+	glEnableClientState (GL_VERTEX_ARRAY);
+	glEnableClientState (GL_NORMAL_ARRAY);
+
+	glEnable(GL_RESCALE_NORMAL);
+
+	glDrawArrays (GL_TRIANGLES, 0, sphere_element_count);
+//	glDrawElements (GL_TRIANGLES, 20 * 3, GL_UNSIGNED_INT, NULL);
+//	glDrawArrays (GL_QUAD_STRIP, 0, sphere_element_count);
+
+	glDisable(GL_RESCALE_NORMAL);
+
+	glDisableClientState (GL_VERTEX_ARRAY);
+	glDisableClientState (GL_NORMAL_ARRAY);
+	glDisableClientState (GL_COLOR_ARRAY);
+	glDisable(GL_COLOR_MATERIAL);
+
+	glBindBuffer (GL_ARRAY_BUFFER, 0);
+	*/
 }

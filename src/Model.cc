@@ -8,12 +8,13 @@
 #include "Model.h"
 #include "Body.h"
 #include "Joint.h"
+#include "Visualization.h"
 
 using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
 
 void Model::Init() {
-	floating_base = false;
+	experimental_floating_base = false;
 
 	Body root_body;
 	Joint root_joint;
@@ -27,10 +28,11 @@ void Model::Init() {
 	dof_count = 0;
 
 	// state information
-	q.push_back(0.);
-	qdot.push_back(0.);
-	qddot.push_back(0.);
-	tau.push_back(0.);
+	q = VectorNd::Zero(1);
+	qdot = VectorNd::Zero(1);
+	qddot = VectorNd::Zero(1);
+	tau = VectorNd::Zero(1);
+
 	v.push_back(zero_spatial);
 	a.push_back(zero_spatial);
 
@@ -44,9 +46,16 @@ void Model::Init() {
 	IA.push_back(SpatialMatrixIdentity);
 	pA.push_back(zero_spatial);
 	U.push_back(zero_spatial);
-	d.push_back(0.);
-	u.push_back(0.);
+
+	d.resize(1);
+	u.resize(1);
+
+	u = VectorNd::Zero(1);
+	d = VectorNd::Zero(1);
+
+	f.push_back (zero_spatial);
 	f_ext.push_back (zero_spatial);
+	Ic.push_back (SpatialMatrixIdentity);
 
 	// Bodies
 	X_lambda.push_back(SpatialMatrixIdentity);
@@ -69,10 +78,10 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	dof_count += 1;
 
 	// state information
-	q = std::vector<double> (dof_count + 1);
-	qdot = std::vector<double> (dof_count + 1);
-	qddot = std::vector<double> (dof_count + 1);
-	tau = std::vector<double> (dof_count + 1);
+	q.resize (dof_count + 1);
+	qdot.resize (dof_count + 1);
+	qddot.resize (dof_count + 1);
+	tau.resize (dof_count + 1);
 
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
@@ -89,9 +98,11 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	IA.push_back(body.mSpatialInertia);
 	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
-	d.push_back(0.);
-	u.push_back(0.);
+	d.resize (dof_count + 1);
+	u.resize (dof_count + 1);
+	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 	f_ext.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
+	Ic.push_back (SpatialMatrixIdentity);
 
 	// Bodies
 	X_lambda.push_back(SpatialMatrixIdentity);
@@ -101,30 +112,82 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	return q.size() - 1;
 }
 
-void Model::SetFloatingBaseBody (const Body &body) {
+void Model::AddBodyVisualizationPrimitive (unsigned int body_id,
+		Visualization::Primitive primitive) {
+		mBodyVisualization[body_id].push_back(primitive);
+}
+
+Model::VisualizationPrimitiveList Model::GetBodyVisualizationPrimitiveList (unsigned int body_id) {
+	BodyVisualizationMap::iterator body_visualization_iter = mBodyVisualization.find(body_id);
+
+	if (body_visualization_iter == mBodyVisualization.end()) {
+		return VisualizationPrimitiveList();
+	}
+
+	return body_visualization_iter->second;
+}
+
+unsigned int Model::SetFloatingBaseBody (const Body &body) {
 	assert (lambda.size() >= 0);
 
-	// mark the model such that we know it interprets body 0 as floating base
-	floating_base = true;
+	if (experimental_floating_base) {
+		// we also will have 6 more degrees of freedom
+		dof_count += 6;
 
-	// we also will have 6 more degrees of freedom
-	dof_count += 6;
-	q = std::vector<double> (dof_count + 1);
-	qdot = std::vector<double> (dof_count + 1);
-	qddot = std::vector<double> (dof_count + 1);
-	tau = std::vector<double> (dof_count + 1);
+		q.resize (dof_count + 1);
+		qdot.resize (dof_count + 1);
+		qddot.resize (dof_count + 1);
+		tau.resize (dof_count + 1);
 
-	// parent is the maximum possible value to mark it as having no parent
-	lambda.at(0) = std::numeric_limits<unsigned int>::max();
+		// parent is the maximum possible value to mark it as having no parent
+		lambda.at(0) = std::numeric_limits<unsigned int>::max();
 
-	// Bodies
-	X_lambda.at(0) = SpatialMatrixIdentity;
-	X_base.at(0) = SpatialMatrixIdentity;
-	mBodies.at(0) = body;
+		// Bodies
+		X_lambda.at(0) = SpatialMatrixIdentity;
+		X_base.at(0) = SpatialMatrixIdentity;
+		mBodies.at(0) = body;
+		return 0;
+	} else {
+		// Add five zero weight bodies and append the given body last. Order of
+		// the degrees of freedom is:
+		// 		tx ty tz rz ry rx
+		//
+
+		unsigned body_tx_id;
+		Body body_tx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+		Joint joint_tx (JointTypePrismatic, Vector3d (1., 0., 0.));
+		body_tx_id = this->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
+
+		unsigned body_ty_id;
+		Body body_ty (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+		Joint joint_ty (JointTypePrismatic, Vector3d (0., 1., 0.));
+		body_ty_id = this->AddBody(body_tx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
+
+		unsigned body_tz_id;
+		Body body_tz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+		Joint joint_tz (JointTypePrismatic, Vector3d (0., 0., 1.));
+		body_tz_id = this->AddBody(body_ty_id, Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
+
+		unsigned body_rz_id;
+		Body body_rz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+		Joint joint_rz (JointTypeRevolute, Vector3d (0., 0., 1.));
+		body_rz_id = this->AddBody(body_tz_id, Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
+
+		unsigned body_ry_id;
+		Body body_ry (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+		Joint joint_ry (JointTypeRevolute, Vector3d (0., 1., 0.));
+		body_ry_id = this->AddBody(body_rz_id, Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
+
+		unsigned body_rx_id;
+		Joint joint_rx (JointTypeRevolute, Vector3d (1., 0., 0.));
+		body_rx_id = this->AddBody(body_ry_id, Xtrans (Vector3d (0., 0., 0.)), joint_rx, body);
+
+		return body_rx_id;
+	}
 }
 
 Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
-	if (floating_base) {
+	if (experimental_floating_base) {
 		assert (body_id <= mBodies.size());
 	} else {
 		assert (body_id > 0 && body_id < mBodies.size());
@@ -135,31 +198,37 @@ Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 	// matrix is the matrix form of the cross product of the origin
 	// coordinate vector, however in body coordinates. We have to rotate it
 	// by its orientation to be able to retrieve the bodies origin
-	// coordinates in base coordinates. 
-	Matrix3d upper_left = X_base[body_id].get_upper_left().transpose();
-	Matrix3d rx = upper_left * X_base[body_id].get_lower_left();
+	// coordinates in base coordinates.
+	Matrix3d upper_left = X_base[body_id].block<3,3>(0,0).transpose();
+	Matrix3d rx = upper_left * static_cast<Matrix3d>(X_base[body_id].block<3,3>(3,0));
 
 	return Vector3d (rx(1,2), -rx(0,2), rx(0,1));
 }
 
 Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
-	if (floating_base) {
+	if (experimental_floating_base) {
 		assert (body_id <= mBodies.size());
 	} else {
-		assert (body_id > 0 && body_id < mBodies.size());
+		assert (body_id > 0);
+		assert (body_id < mBodies.size());
 	}
 
 	// We use the information from the X_base vector. In the upper left 3x3
 	// matrix contains the orientation as a 3x3 matrix which we are asking
 	// for.
-	return X_base[body_id].get_upper_left();
+	return X_base[body_id].block<3,3>(0,0);
 }
 
-Vector3d Model::GetBodyPointPosition (const unsigned int body_id, const Vector3d &body_point) {
-	Matrix3d body_rotation = this->X_base[body_id].get_rotation().transpose();
+Vector3d Model::CalcBodyToBaseCoordinates (const unsigned int body_id, const Vector3d &body_point) {
+	Matrix3d body_rotation = X_base[body_id].block<3,3>(0,0).transpose();
 	Vector3d body_position = GetBodyOrigin (body_id);
 
-	LOG << "body rotation = " << body_rotation << std::endl;
-	LOG << "body position = " << body_position << std::endl;
 	return body_position + body_rotation * body_point;
+}
+
+Vector3d Model::CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point) {
+	Matrix3d body_rotation = X_base[body_id].block<3,3>(0,0);
+	Vector3d body_position = GetBodyOrigin (body_id);
+
+	return body_rotation * base_point - body_rotation * body_position;
 }

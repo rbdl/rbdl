@@ -1,6 +1,7 @@
 #include "Model.h"
 #include "Joint.h"
 #include "Body.h"
+#include "Visualization.h"
 
 #include <sstream>
 
@@ -10,9 +11,12 @@
 #include "glprimitives.h"
 
 using namespace RigidBodyDynamics;
+using namespace SpatialAlgebra::Operators;
+
+typedef std::list<Visualization::Primitive> VisualizationPrimitiveList;
 
 void compute_body_center_and_dimensions (Model* model, unsigned int body_id, Vector3d &body_center, Vector3d &body_dimensions) {
-	int j;
+	unsigned int j;
 
 	// draw the body as a green box that extends from the origin to the
 	// next joint
@@ -31,7 +35,7 @@ void compute_body_center_and_dimensions (Model* model, unsigned int body_id, Vec
 		// dimensions such that the boundaries reach to the joint origins
 		for (j = 0; j < model->mu.at(body_id).size(); j++) {
 			unsigned int child_id = model->mu[body_id][j];
-			Vector3d child_translation = model->X_T[child_id].get_translation();
+			Vector3d child_translation = get_translation(model->X_T[child_id]);
 
 			int k;
 			for (k = 0; k < 3; k++) {
@@ -78,10 +82,14 @@ void draw_model (Model* model) {
 	glEnd();
 	glEnable(GL_LIGHTING);
 
+	glEnable (GL_DEPTH_TEST);
+
 	unsigned int i;
 	for (i = 1; i < model->q.size(); i++) {
 		Matrix3d rotation = model->GetBodyWorldOrientation(i);
 		Vector3d translation = model->GetBodyOrigin(i);
+
+		VisualizationPrimitiveList primitive_list = model->GetBodyVisualizationPrimitiveList(i);
 
 		std::ostringstream model_X;
 		model_X << model->X_base[i];
@@ -111,11 +119,15 @@ void draw_model (Model* model) {
 		Vector3d target_direction (joint_axis[0], joint_axis[1], joint_axis[2]);
 
 		target_direction.normalize();
-		float rot_angle = acos (cml::dot(target_direction, Vector3d (0., 0., 1.)));
+		float rot_angle = acos (target_direction.dot(Vector3d (0., 0., 1.)));
 		rot_angle = rot_angle;
 		if (fabs(rot_angle) > 0.0001) {
-			Vector3d rotation_axis = cml::cross (target_direction, Vector3d (0., 0., 1.));
-			glRotatef (rot_angle * 180./M_PI, rotation_axis[0], rotation_axis[1], rotation_axis[2]);
+			Vector3d rotation_axis = target_direction.cross(Vector3d (0., 0., 1.));
+			glRotatef (rot_angle * 180./M_PI,
+					rotation_axis[0],
+					rotation_axis[1],
+					rotation_axis[2]
+					);
 		}
 		glColor3f (1., 0., 0.);
 		glScalef (0.07, 0.07, 0.2);
@@ -137,34 +149,69 @@ void draw_model (Model* model) {
 		glEnd();
 		glEnable(GL_LIGHTING);
 
-
-		//! \todo the body box is not well centered!
 		// Draw the body
-		if (model->mBodies[i].mMass != 0) {
-			Vector3d body_center, body_dimensions;
-			compute_body_center_and_dimensions (model, i, body_center, body_dimensions);
+		if (primitive_list.size() > 0) {
+			VisualizationPrimitiveList::iterator iter = primitive_list.begin();
 
-			glPushMatrix();
-			glTranslated (
-					body_center[0],
-					body_center[1],
-					body_center[2]
-					);
-			glScalef (
-					body_dimensions[0] * 0.5,
-					body_dimensions[1] * 0.5,
-					body_dimensions[2] * 0.5
-					);
+			while (iter != primitive_list.end()) {
+				Vector3d body_center, body_dimensions;
+				Visualization::Primitive *primitive = &(*iter);
 
-			glEnable(GL_COLOR_MATERIAL);
-			glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-			glColor3f (0., 0.9, 0.1);
-			glprimitives_cube();
-			glColor3f (1.0f, 1.0f, 1.0f);
-			glDisable(GL_COLOR_MATERIAL);
+				if (primitive->type == Visualization::PrimitiveTypeBox) {
+					Vector3d box_size = primitive->max - primitive->min;
+					glPushMatrix();
+					glTranslated (
+							primitive->min[0] + box_size[0] * 0.5,
+							primitive->min[1] + box_size[1] * 0.5,
+							primitive->min[2] + box_size[2] * 0.5
+							);
+					glScaled (
+							box_size[0] * 0.5,
+							box_size[1] * 0.5,
+							box_size[2] * 0.5
+							);
 
-			glPopMatrix();
+					glEnable(GL_COLOR_MATERIAL);
+					glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+					glColor3f (
+							primitive->color[0],
+							primitive->color[1],
+							primitive->color[2]
+							);
+					glprimitives_cube();
+					glColor3f (1.0f, 1.0f, 1.0f);
+					glDisable(GL_COLOR_MATERIAL);
 
+					glPopMatrix();
+				} else if (primitive->type == Visualization::PrimitiveTypeSphere) {
+					glPushMatrix();
+					glTranslated (
+							primitive->center[0],
+							primitive->center[1],
+							primitive->center[2]
+							);
+					glScaled (
+							primitive->radius,
+							primitive->radius,
+							primitive->radius
+							);
+
+					glEnable(GL_COLOR_MATERIAL);
+					glColorMaterial (GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+					glColor3f (
+							primitive->color[0],
+							primitive->color[1],
+							primitive->color[2]
+							);
+					glprimitives_sphere();
+					glColor3f (1.0f, 1.0f, 1.0f);
+					glDisable(GL_COLOR_MATERIAL);
+
+					glPopMatrix();
+				}
+
+				iter ++;
+			}
 			// draw the COM as a small cube of red color (we ignore the depth
 			// buffer for better visibility 
 			glTranslated (
@@ -181,6 +228,7 @@ void draw_model (Model* model) {
 			glprimitives_cube();
 			glColor3f (1.0f, 1.0f, 1.0f);
 			glDisable(GL_COLOR_MATERIAL);
+
 			glEnable (GL_DEPTH_TEST);
 		}
 		glPopMatrix();

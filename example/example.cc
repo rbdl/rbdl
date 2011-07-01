@@ -1,9 +1,8 @@
 #include <iostream>
 
-#include "Model.h"
-#include "Dynamics.h"
+#include <rbdl.h>
 
-#include "mathutils.h" // required for Xtrans
+using namespace RigidBodyDynamics;
 
 int main (int argc, char* argv[]) {
 	Model* model = NULL;
@@ -14,6 +13,8 @@ int main (int argc, char* argv[]) {
 
 	model = new Model();
 	model->Init();
+
+	model->gravity = Vector3d (0., -9.81, 0.);
 
 	body_a = Body (1., Vector3d (0.5, 0., 0.0), Vector3d (1., 1., 1.));
 		joint_a = Joint(
@@ -39,14 +40,16 @@ int main (int argc, char* argv[]) {
 	
 	body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
-	cmlVector Q(3);
-	cmlVector QDot(3);
-	cmlVector QDDot(3);
-	cmlVector Tau(3);
+	VectorNd Q = VectorNd::Zero (model->dof_count);
+	VectorNd QDot = VectorNd::Zero (model->dof_count);
+	VectorNd Tau = VectorNd::Zero (model->dof_count);
+	VectorNd QDDot = VectorNd::Zero (model->dof_count);
 
  	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 
-	std::cout << QDDot << std::endl;
+	std::cout << QDDot.transpose() << std::endl;
+
+	delete model;
 
  	return 0;
 }

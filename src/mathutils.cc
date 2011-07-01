@@ -1,11 +1,10 @@
-#include <mathutils.h>
-
-// #include "stacktrace.h"
 #include <cmath>
 #include <limits>
 
 #include <iostream>
 #include <assert.h>
+
+#include <mathutils.h>
 
 #include "Logging.h"
 
@@ -22,6 +21,9 @@ Matrix3d Matrix3dZero (
 		0., 0., 0.,
 		0., 0., 0.
 		);
+
+SpatialAlgebra::SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
+
 SpatialMatrix SpatialMatrixIdentity (
 		1., 0., 0., 0., 0., 0.,
 		0., 1., 0., 0., 0., 0.,
@@ -29,6 +31,15 @@ SpatialMatrix SpatialMatrixIdentity (
 		0., 0., 0., 1., 0., 0.,
 		0., 0., 0., 0., 1., 0.,
 		0., 0., 0., 0., 0., 1.
+		);
+
+SpatialMatrix SpatialMatrixZero ( 
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.
 		);
 
 void VectorCrossVector (Vector3d &result, const Vector3d &vec_a, const Vector3d &vec_b) {
@@ -104,44 +115,8 @@ Matrix3d VectorCrossMatrix (const Vector3d &vector) {
 			-vector[1],  vector[0], 0);
 }
 
-bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x) {
-	x.zero();
-
-	// We can only solve quadratic systems
-	assert (A.rows() == A.cols());
-
-	unsigned int n = A.rows();
-	
-	int i,j;
-	for (j = 0; j < n; j++) {
-		for (i = j + 1; i < n; i++) {
-			if (fabs(A(j,j)) <= std::numeric_limits<double>::epsilon()) {
-				std::cout << LogOutput.str() << std::endl;
-			}
-			assert (fabs(A(j,j)) > std::numeric_limits<double>::epsilon());
-			double d = A(i,j)/A(j,j);
-
-			b[i] -= b[j] * d;
-
-			int k;
-			for (k = j; k < n; k++) {
-				A(i,k) -= A(j,k) * d;
-			}
-		}
-	}
-
-	for (i = n - 1; i >= 0; i--) {
-		for (j = i + 1; j < n; j++) {
-			x[i] += A(i,j) * x[j];
-		}
-		x[i] = (b[i] - x[i]) / A(i,i);
-	}
-
-	return true;
-}
-
-bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
-	x.zero();
+bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
+	x = VectorNd::Zero(x.size());
 
 	// We can only solve quadratic systems
 	assert (A.rows() == A.cols());
@@ -153,9 +128,9 @@ bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
 	size_t *pivot = new size_t[n];
 
 	// temporary result vector which contains the pivoted result
-	cmlVector px(x);
+	VectorNd px(x);
 	
-	int i,j,k;
+	unsigned int i,j,k;
 
 	for (i = 0; i < n; i++)
 		pivot[i] = i;
@@ -191,19 +166,25 @@ bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x) {
 
 			b[i] -= b[j] * d;
 
-			int k;
 			for (k = j; k < n; k++) {
 				A(i,pivot[k]) -= A(j,pivot[k]) * d;
 			}
 		}
 	}
 
-	for (i = n - 1; i >= 0; i--) {
+	// warning: i is an unsigned int, therefore a for loop of the 
+	// form "for (i = n - 1; i >= 0; i--)" might end up in getting an invalid
+	// value for i!
+	i = n;
+	do {
+		i--;
+
 		for (j = i + 1; j < n; j++) {
 			px[i] += A(i,pivot[j]) * px[j];
 		}
 		px[i] = (b[i] - px[i]) / A(i,pivot[i]);
-	}
+
+	} while (i > 0);
 
 	// Unswapping
 	for (i = 0; i < n; i++) {
@@ -260,7 +241,7 @@ bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a, const SpatialMa
 
 bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVector &vector_b, double epsilon) {
 	assert (epsilon >= 0.);
-	unsigned int i, j;
+	unsigned int i;
 
 	for (i = 0; i < 6; i++) {
 		if (fabs(vector_a[i] - vector_b[i]) >= epsilon) {

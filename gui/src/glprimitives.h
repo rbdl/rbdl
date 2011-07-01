@@ -8,4 +8,6 @@ void glprimitives_cube ();
 void glprimitives_disc ();
 void glprimitives_torus ();
 
+void glprimitives_sphere ();
+
 #endif /* _GLPRIMITIVES_H */

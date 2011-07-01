@@ -91,7 +91,7 @@ section.
 To compute the acceleration of a point we have to compute the spatial
 acceleration of a body in base coordinates. This can be expressed as:
 \begin{equation}
-	{}^0\Spa{a}_i = {}^0\Spa{a}_{\lambda(i)}
+	\Spa{a}_i = {}^0\Spa{a}_{\lambda(i)}
 	+ {}^{0}\Spa{X}_{i} \Spa{a}_{Ji}
 \end{equation}
 for which $\Spa{a}_{Ji} = \Spa{S}_i \ddot{q}_i + \dot{\Spa{S}}_i \dot{q}_i$.
@@ -153,31 +153,5 @@ coordinate frame that has a pure linear velocity of ${^0}\Nspa{\dot{p}}$.
 
 The linear part of this vector is then the acceleration of the point in base
 coordinates.
-
-Looking again at the components of the rotational and translational part of
-the combined 6D vector reveals the following (after some re-ordering):
-
-\begin{equation}
-	{}^0\Nspa{a}_p = \Nspa{a}_i +
-	\Nspa{\dot{\omega}}_i
-	\times
-	{}^0\Nspa{r}_p
-	+
-	\Nspa{\omega}_i \times \Nspa{v}_p
-	\label{}
-\end{equation}
-
-We shall derive this equation with standard 3D notation. Assuming we have the
-velocity of point $\Vec{p}$ given as ${}^0\Vec{v}_p = {}^0\Vec{v}_i +
-\Vec{\omega}_i \times {}^0\Vec{r}_p$. Taking the derivative gives us:
-\begin{eqnarray}
-	\frac{d}{dt} {}^0 \Vec{v}_p & = & {}^0 \Vec{a}_i + \Vec{\dot{\omega}}_i \times
-	{}^0 \Vec{r}_p + \Vec{\omega}_i \times {}^0 \Vec{ v}_p
-	\label{}
-\end{eqnarray}
-as both $\Vec{\omega}$ and ${}^0\Vec{r}_p$ can change over time. The
-expression we get is exactly what we found for the translational part of our
-6D vector.
-
 
 \end{document}

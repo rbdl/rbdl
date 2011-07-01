@@ -591,6 +591,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = ./src \
+                         doc/example.h \
                          doc/Mainpage.h
 
 # This tag can be used to specify the character encoding of the source files 
@@ -650,7 +651,8 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = ./src/cml
+EXCLUDE                = ./src/cml \
+                         ./src/Eigen
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
 # directories that are symbolic links (a Unix filesystem feature) are excluded 
@@ -772,7 +774,7 @@ REFERENCES_LINK_SOURCE = YES
 # tagging system (see http://www.gnu.org/software/global/global.html). You 
 # will need version 4.8.6 or higher.
 
-USE_HTAGS              = YES
+USE_HTAGS              = NO
 
 # If the VERBATIM_HEADERS tag is set to YES (the default) then Doxygen 
 # will generate a verbatim copy of the header file for each class for 
@@ -1010,7 +1012,7 @@ DISABLE_INDEX          = NO
 # This tag can be used to set the number of enum values (range [1..20]) 
 # that doxygen will group on one line in the generated HTML documentation.
 
-ENUM_VALUES_PER_LINE   = 4
+ENUM_VALUES_PER_LINE   = 3
 
 # The GENERATE_TREEVIEW tag is used to specify whether a tree-like index 
 # structure should be generated to display hierarchical information. 
@@ -1020,7 +1022,7 @@ ENUM_VALUES_PER_LINE   = 4
 # JavaScript, DHTML, CSS and frames is required (i.e. any modern browser). 
 # Windows users are probably better off using the HTML help feature.
 
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 
 # By enabling USE_INLINE_TREES, doxygen will generate the Groups, Directories, 
 # and Class Hierarchy pages using a tree view instead of an ordered list.
@@ -1031,7 +1033,7 @@ USE_INLINE_TREES       = NO
 # used to set the initial width (in pixels) of the frame in which the tree 
 # is shown.
 
-TREEVIEW_WIDTH         = 250
+TREEVIEW_WIDTH         = 248
 
 # Use this tag to change the font size of Latex formulas included 
 # as images in the HTML documentation. The default is 10. Note that 

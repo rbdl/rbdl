@@ -61,23 +61,26 @@ if external_force && length(f_ext{6}) > 0
 end
 
 IAfb = model.I{6}
+disp("vfb = ");
+disp(vfb);
+crf(vfb)
 pAfb = crf(vfb) * IAfb * vfb
 
-disp("v = ");
-disp(v);
+% disp("v = ");
+% disp(v);
 
 disp("IAfb = ");
 disp(IAfb);
-disp("IA = ");
-disp (IA);
+%disp("IA = ");
+%disp (IA);
 
 disp ("pAfb = ");
 disp (pAfb);
-disp("pA = ");
-disp (pA);
+%disp("pA = ");
+%disp (pA);
 
-disp("S = ");
-disp (S);
+%disp("S = ");
+%disp (S);
 % IA
 % pA
 
@@ -101,12 +104,12 @@ end
 
 afb = - IAfb \ pAfb;			% floating base accn without gravity
 
-disp("U =");
-disp(U);
-disp("d =");
-disp(d);
-disp("u =");
-disp(u);
+%disp("U =");
+%disp(U);
+%disp("d =");
+%disp(d);
+%disp("u =");
+%disp(u);
 
 disp(" --- third loop ---");
 
@@ -120,14 +123,14 @@ for i = 1:NBR
   a{i} = a{i} + S{i}*qdd(i);
 end
 
-disp("a = ");
-a
+% disp("a = ");
+% a
+% 
+% disp("Xup = ");
+% Xup
+% 
+% disp("v = ");
+% v
 
-disp("Xup = ");
-Xup
-
-disp("v = ");
-v
-
-accel = qdd
+% accel = qdd
 afb = Xfb \ afb + a_grav;		% true flt base accn in ref coords

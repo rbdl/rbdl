@@ -1,142 +1,96 @@
 #ifndef _DYNAMICS_H
 #define _DYNAMICS_H
 
-#include <cmlwrapper.h>
-#include <vector>
+#include <mathwrapper.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
 
-#include "Model.h"
-
 namespace RigidBodyDynamics {
 
-/** \brief Computes forward dynamics for a given model
+class Model;
+
+/** \brief Computes forward dynamics with the Articulated Body Algorithm
  *
- * When the function Model::SetFloatingBaseBody() was called on a model,
- * this function uses the function ForwardDynamicsFloatingBaseExpl() to
- * compute the accelerations. In this case the first 6 entries of Q, QDot,
- * Tau, and QDDot are first the translations and then the rotations of the
- * floating base. The 6 DoF are ordered in the following way:
- *   0: x translation
- *   1: y translation
- *   2: z translation
- *   3: z rotation
- *   4: y rotation
- *   5: x rotation
+ * This function computes the generalized accelerations from given
+ * generalized states, velocities and forces:
+ *   \f$ \ddot{q} = M(q)^{-1} ( -N(q, \dot{q}) + \tau)\f$
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param QDDot accelerations of the internals joints (output)
+ * \param QDDot accelerations of the internal joints (output)
  */
 void ForwardDynamics (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		cmlVector &QDDot
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		VectorNd &QDDot
 		);
 
-/** \brief Computes forward dynamics for models with a floating base
+/** \brief Computes forward dynamics by building and solving the full Lagrangian equation
  *
- * This method uses explicit information about the state of the floating
- * base body, i.e., base transformation and velocities are specified as
- * parameters to this function. This function will be called by
- * ForwardDynamics() when the flag Model::floating_base was set to true
- * (e.g. as done when calling Model::SetFloatingBaseBody()).
+ * This method builds and solves the linear system
+ * \f[ 	H \ddot{q} = -C + \tau	\f]
+ * for \f$\ddot{q}\f$ where \f$H\f$ is the joint space inertia matrix
+ * computed with the CompositeRigidBodyAlgorithm(), \f$C\f$ the bias
+ * force (sometimes called "non-linear effects").
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param X_B   transformation into base coordinates
- * \param v_B   velocity of the base (in base coordinates)
- * \param f_B   forces acting on the base (in base coordinates)
- * \param a_B   accelerations of the base (output, in base coordinates)
- * \param QDDot accelerations of the internals joints (output)
+ * \param QDDot accelerations of the internal joints (output)
  */
-void ForwardDynamicsFloatingBaseExpl (
+void ForwardDynamicsLagrangian (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		const SpatialAlgebra::SpatialMatrix &X_B,
-		const SpatialAlgebra::SpatialVector &v_B,
-		const SpatialAlgebra::SpatialVector &f_B,
-		SpatialAlgebra::SpatialVector &a_B,
-		cmlVector &QDDot
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		VectorNd &QDDot
 		);
 
-struct ContactInfo;
-
-/** \brief Computes forces acting on the model due to contact
+/** \brief Computes inverse dynamics with the Newton-Euler Algorithm
  *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
+ * This function computes the generalized forces from given generalized
+ * states, velocities, and accelerations:
+ *   \f$ \tau = M(q) \ddot{q} + N(q, \dot{q}) \f$
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points and their desired accelerations
- * \param Fext  constraint forces that enforce desired acceleration on the constraints
- */
-void ComputeContactForces (
+ * \param QDDot accelerations of the internals joints
+ * \param Tau   actuations of the internal joints (output)
+  */
+void InverseDynamics (
 		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		const std::vector<ContactInfo> &ContactData,
-		const std::vector<SpatialAlgebra::SpatialVector> &Fext
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &QDDot,
+		VectorNd &Tau
 		);
 
-/** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
+/** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm
  *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
+ * This function computes the joint space inertia matrix from a given model and
+ * the generalized state vector:
+ *   \f$ M(q) \f$
+ *
+ * \warning This function does not update joint axis and body transformations,
+ * \warning hence one has to call ForwardKinematics() first!
  *
  * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points
- * \param QDDot accelerations of the internals joints (output)
+ * \param Q     state vector of the model
+ * \param H     a matrix where the result will be stored in
  */
-void ForwardDynamicsContacts (
-		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDot,
-		const cmlVector &Tau,
-		const std::vector<ContactInfo> &ContactData,
-		cmlVector &QDDot
+void CompositeRigidBodyAlgorithm (
+		Model& model,
+		const VectorNd &Q,
+		MatrixNd &H
 		);
 
-/** \brief Computes the change of the generalized velocity due to collisions
- *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
- *
- * This function computes the change of the generalized velocity vector
- * QDot such that the points defined in ContactData have zero velocity.
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDotPre  generalized velocity before the collision
- * \param ContactData	a list of all contact points
- * \param QDotPost generalized velocity after the collision
- */
-void ComputeContactImpulses (
-		Model &model,
-		const cmlVector &Q,
-		const cmlVector &QDotPre,
-		const std::vector<ContactInfo> &ContactData,
-		cmlVector &QDotPost
-		);
 }
 
 #endif /* _DYNAMICS_H */

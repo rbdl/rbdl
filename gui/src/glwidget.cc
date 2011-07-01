@@ -66,12 +66,12 @@ GLWidget::GLWidget(QWidget *parent)
     : QGLWidget(parent)
 {
 	poi.setX(0.);
-	poi.setY(-0.4);
+	poi.setY(1.0);
 	poi.setZ(0.);
 
-	eye.setX(4.);
-	eye.setY(1.);
-	eye.setZ(4.);
+	eye.setX(6.);
+	eye.setY(3.);
+	eye.setZ(6.);
 
 	updateSphericalCoordinates();
 
@@ -194,6 +194,31 @@ void GLWidget::updateCamera() {
 			up.x(), up.y(), up.z());
 }
 
+void GLWidget::drawGrid() {
+	float xmin, xmax, xstep, zmin, zmax, zstep;
+	int i, count;
+
+	xmin = -16;
+	xmax = 16;
+	zmin = -16;
+	zmax = 16;
+
+	count = 32;
+
+	xstep = fabs (xmin - xmax) / (float)count;
+	zstep = fabs (zmin - zmax) / (float)count;
+
+	glColor3f (0.6, 0.6, 0.6);
+	glBegin (GL_LINES);
+	for (i = 0; i <= count; i++) {
+		glVertex3f (i * xstep + xmin, 0., zmin);
+		glVertex3f (i * xstep + xmin, 0., zmax);
+		glVertex3f (xmin, 0, i * zstep + zmin);
+		glVertex3f (xmax, 0, i * zstep + zmin);
+	}
+	glEnd ();
+}
+
 void GLWidget::paintGL() {
 	update_timer();
 	glClearColor (0.3, 0.3, 0.3, 1.);
@@ -205,10 +230,20 @@ void GLWidget::paintGL() {
 
 	updateCamera();
 
+	GLfloat light_pos[4] = {20.0f, 20.0f, 20.0f, 1.0f};
+	glLightfv (GL_LIGHT0, GL_POSITION, light_pos);
+
 	if (update_simulation)
 		model_update (delta_time_sec);
 
-//	draw_model (model_get());
+	glEnable (GL_COLOR_MATERIAL);
+	glDisable(GL_LIGHTING);
+
+	drawGrid();
+	glDisable (GL_COLOR_MATERIAL);
+	glEnable(GL_LIGHTING);
+
+	draw_model (model_get());
 }
 
 void GLWidget::resizeGL(int width, int height)
@@ -260,11 +295,13 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 		theta = std::min(theta, static_cast<float>(M_PI * 0.99));
 	} else if (event->buttons().testFlag(Qt::MiddleButton)) {
 		// move
-		QVector3D eye_normalized (eye);
+		QVector3D eye_normalized (poi - eye);
 		eye_normalized.normalize();
-		QVector3D right = QVector3D::crossProduct (up, eye_normalized) * -1.;
-		poi += right * dx * 0.01 + up * dy * 0.01;
-		eye += right * dx * 0.01 + up * dy * 0.01;
+
+		QVector3D global_y (0., 1., 0.);
+		QVector3D right = QVector3D::crossProduct (up, eye_normalized);
+		poi += right * dx * 0.01 + global_y * dy * 0.01;
+		eye += right * dx * 0.01 + global_y * dy * 0.01;
 	} else if (event->buttons().testFlag(Qt::RightButton)) {
 		// zoom
 		r += 0.05 * dy;

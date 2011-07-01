@@ -11,10 +11,12 @@
 #include "Contacts.h"
 #include "Dynamics.h"
 #include "Kinematics.h"
+#include "Visualization.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace SpatialAlgebra;
+using namespace Experimental;
 
 static Model* model = NULL;
 
@@ -31,10 +33,10 @@ Body base_rot_z, base_rot_y, base_rot_x,
 Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
 	joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
 
-cmlVector Q;
-cmlVector QDot;
-cmlVector QDDot;
-cmlVector Tau;
+VectorNd Q;
+VectorNd QDot;
+VectorNd QDDot;
+VectorNd Tau;
 
 unsigned int contact_body_id;
 Vector3d contact_point;
@@ -42,26 +44,26 @@ Vector3d contact_normal;
 
 std::vector<ContactInfo> contact_data;
 
-typedef cmlVector (rhs_func) (double, const cmlVector&);
+typedef VectorNd (rhs_func) (double, const VectorNd&);
 
-cmlVector rk45_integrator (double t0, double tf, cmlVector &y0, rhs_func func, double error) {
-	cmlVector k1 (y0.size());
-	cmlVector k2 (y0.size());
-	cmlVector k3 (y0.size());
-	cmlVector k4 (y0.size());
-	cmlVector k5 (y0.size());
-	cmlVector k6 (y0.size());
-	cmlVector rk4 (y0.size());
-	cmlVector rk5 (y0.size());
+VectorNd rk45_integrator (double t0, double tf, VectorNd &y0, rhs_func func, double error) {
+	VectorNd k1 (y0.size());
+	VectorNd k2 (y0.size());
+	VectorNd k3 (y0.size());
+	VectorNd k4 (y0.size());
+	VectorNd k5 (y0.size());
+	VectorNd k6 (y0.size());
+	VectorNd rk4 (y0.size());
+	VectorNd rk5 (y0.size());
 
 	double s = 1.;
 	double t = t0;
 	double h0 = tf - t0;
 	double h = h0;
 	double h_min = 1.0e5;
-	cmlVector h_min_y (y0);
-	cmlVector h_min_rk5 (y0);
-	cmlVector y (y0);
+	VectorNd h_min_y (y0);
+	VectorNd h_min_rk5 (y0);
+	VectorNd y (y0);
 	int stepcount = 0;
 
 	while (t < tf) {
@@ -76,7 +78,7 @@ cmlVector rk45_integrator (double t0, double tf, cmlVector &y0, rhs_func func, d
 		rk4 = y + 25./216. * k1 + 1408./2565. * k3 + 2197./4104. * k4 - 1./5. * k5;
 		rk5 = y + 16./135. * k1 + 6656./12825. * k3 + 28561./56430. * k4 - 9./50. * k5 + 2./55. * k6;
 
-		double error_est = cml::length(rk5 - rk4);
+		double error_est = (rk5 - rk4).norm();
 
 //		cout << "error estimate = " << scientific << error_est << endl;
 
@@ -121,12 +123,12 @@ cmlVector rk45_integrator (double t0, double tf, cmlVector &y0, rhs_func func, d
 //	return y0 + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6.; 
 }
 
-cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, double stepsize) {
-	cmlVector k1 (y0.size());
-	cmlVector k2 (y0.size());
-	cmlVector k3 (y0.size());
-	cmlVector k4 (y0.size());
-	cmlVector y (y0);
+VectorNd rk4_integrator (double t0, double tf, VectorNd &y0, rhs_func func, double stepsize) {
+	VectorNd k1 (y0.size());
+	VectorNd k2 (y0.size());
+	VectorNd k3 (y0.size());
+	VectorNd k4 (y0.size());
+	VectorNd y (y0);
 
 	double t = t0;
 	double h = stepsize;
@@ -157,11 +159,22 @@ cmlVector rk4_integrator (double t0, double tf, cmlVector &y0, rhs_func func, do
 	return y;
 }
 
+VectorNd euler_integrator (double t0, double tf, VectorNd &y0, rhs_func func, double stepsize) {
+	VectorNd y (y0);
+
+	VectorNd ydot (y0);
+	ydot = func (tf, y);
+
+	y = y0 + (tf - t0) * ydot;
+
+	return y;
+}
+
 void model_init () {
 	model = new Model;
 	model->Init();
 
-	model->gravity.set (0., -2.81, 0.);
+	model->gravity = Vector3d (0., -9.81, 0.);
 
 	// base body
 	Body base (
@@ -170,21 +183,35 @@ void model_init () {
 			Vector3d (1., 1., 1.)
 			);
 
-	model->SetFloatingBaseBody(base);
+	unsigned int base_body_id = model->SetFloatingBaseBody(base);
 
-	Q = cmlVector(model->dof_count);
-	QDot = cmlVector(model->dof_count);
-	QDDot = cmlVector(model->dof_count);
-	Tau = cmlVector(model->dof_count);
+	Q = VectorNd::Constant (model->dof_count, 0.);
+	QDot = VectorNd::Constant (model->dof_count, 0.);
+	QDDot = VectorNd::Constant (model->dof_count, 0.);
+	Tau = VectorNd::Constant (model->dof_count, 0.);
 
-	Q.zero();
-	QDot.zero();
-	QDDot.zero();
-	Tau.zero();
+	model->AddBodyVisualizationPrimitive (
+			base_body_id,
+			Visualization::PrimitiveSphere (
+				Vector3d (0.7, 0.9, 0.7),
+				Vector3d (0., 0., 0.),
+				1.	
+				)
+			);
 
-	contact_body_id = child_rot_x_id;
-	contact_point.set (0., -1., 0.);
-	contact_normal.set (0., 1., 0.);
+	model->AddBodyVisualizationPrimitive (
+			base_body_id,
+			Visualization::PrimitiveSphere (
+				Vector3d (0.7, 0.9, 0.7),
+				Vector3d (1., 0., 0.),
+				1.	
+				)
+			);
+
+
+	contact_body_id = base_body_id;
+	contact_point = Vector3d (0., -1., 0.);
+	contact_normal = Vector3d (0., 1., 0.);
 
 	Q[1] = 1.;
 
@@ -192,7 +219,7 @@ void model_init () {
 	// at (0, 0, 0). There it should have a negative unit rotation around the
 	// Z-axis (i.e. rolling along the X axis). The spatial velocity of the
 	// body at the contact point is therefore (0, 0, -1, 0, 0, 0).
-	SpatialVector velocity_ground (0., 0., -1., -1., 0., 0.);
+	SpatialVector velocity_ground (0., 0., -1., 0., 0., 0.);
 
 	// This has now to be transformed to body coordinates.
 	SpatialVector velocity_body = Xtrans (Vector3d (0., 1., 0.)) * velocity_ground;
@@ -215,18 +242,21 @@ void model_init () {
 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 }
 
-cmlVector rhs_contact (double t, const cmlVector &y) {
+VectorNd rhs_contact (double t, const VectorNd &y) {
 	unsigned int i;
 	unsigned int size = Q.size();
 
-	cmlVector q (size);
-	cmlVector qdot (size);
-	cmlVector qddot (size);
+	VectorNd q (size);
+	VectorNd qdot (size);
+	VectorNd qddot (size);
 
 	std::vector<ContactInfo> contact_data;
-	contact_point.set (Q[0], -1., Q[2]);
+	contact_point = model->CalcBaseToBodyCoordinates (contact_body_id, Vector3d (Q[0], 0., Q[2]));
+	
+	Vector3d contact_point_world;
+	contact_point_world = model->CalcBodyToBaseCoordinates(contact_body_id, contact_point);
 
-//	cout << "Q = " << Q << " CP = " << contact_point << endl;
+	cout << "Q = " << Q << "\tCP = " << contact_point_world;
 
 	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
 	contact_data.push_back(ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 1.));
@@ -239,25 +269,40 @@ cmlVector rhs_contact (double t, const cmlVector &y) {
 
 	{
 		_NoLogging nolog;
-		ForwardDynamicsContacts (*model, q, qdot, Tau, contact_data, qddot);
+		ForwardDynamicsContactsLagrangian (*model, q, qdot, Tau, contact_data, qddot);
 	}
+	cout << "\tqdd = " << qddot ;
 
-	cmlVector res (size * 2);
+	Vector3d contact_point_world_vel;
+	contact_point_world_vel = CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point);
+	cout << "\tCPvel = " << contact_point_world_vel;
+
+	Vector3d contact_point_world_acc;
+	contact_point_world_acc = CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point);
+	cout << "\tCPacc = " << contact_point_world_acc;
+
+	cout << "\tforce = " << contact_data[0].force << ", " << contact_data[1].force << ", " << contact_data[2].force << endl;
+
+	VectorNd res (size * 2);
 	for (i = 0; i < size; i++) {
 		res[i] = qdot[i];
 		res[i + size] = qddot[i];
 	}
 
+//	cout << "     y = " << y << "    " << "res = " << res << endl;
+
+	cout << endl;
+
 	return res;
 }
 
-cmlVector rhs_normal (double t, const cmlVector &y) {
+VectorNd rhs_normal (double t, const VectorNd &y) {
 	unsigned int i;
 	unsigned int size = Q.size();
 
-	cmlVector q (size);
-	cmlVector qdot (size);
-	cmlVector qddot (size);
+	VectorNd q (size);
+	VectorNd qdot (size);
+	VectorNd qddot (size);
 
 	for (i = 0; i < size; i++) {
 		q[i] = y[i];
@@ -265,8 +310,24 @@ cmlVector rhs_normal (double t, const cmlVector &y) {
 	}
 
 	ForwardDynamics (*model, q, qdot, Tau, qddot);
+	contact_point = model->CalcBaseToBodyCoordinates (contact_body_id, Vector3d (Q[0], 0., Q[2]));
 
-	cmlVector res (size * 2);
+	Vector3d contact_point_world;
+	contact_point_world = model->CalcBodyToBaseCoordinates(contact_body_id, contact_point);
+
+	cout << "Q = " << Q << "\tCP = " << contact_point_world;
+
+	Vector3d contact_point_world_vel;
+	contact_point_world_vel = CalcPointVelocity (*model, q, qdot, contact_body_id, contact_point);
+	cout << "\tCPvel = " << contact_point_world_vel;
+
+	Vector3d contact_point_world_acc;
+	contact_point_world_acc = CalcPointAcceleration (*model, q, qdot, qddot, contact_body_id, contact_point);
+	cout << "\tCPacc = " << contact_point_world_acc << endl;
+
+	assert (0);
+
+	VectorNd res (size * 2);
 	for (i = 0; i < size; i++) {
 		res[i] = qdot[i];
 		res[i + size] = qddot[i];
@@ -275,60 +336,30 @@ cmlVector rhs_normal (double t, const cmlVector &y) {
 	return res;
 }
 
-void model_update_contact (double delta_time) {
-	unsigned int size = Q.size();
-	unsigned int i;
-	
-	cmlVector y (size * 2);
-
-	for (i = 0; i < size; i++) {
-		y[i] = Q[i];
-		y[i + size] = QDot[i];
-	}
-
-	cmlVector ynew (size * 2);
-	ynew = rk4_integrator (0., delta_time, y, rhs_contact, delta_time);
-
-	for (i = 0; i < size; i++) {
-		Q[i] += ynew[i];
-		QDot[i] += ynew[i + size];
-	}
-
-	Vector3d point_accel;
-	CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, point_accel);
-
-	Vector3d point_velocity;
-	CalcPointVelocity (*model, Q, QDot, contact_body_id, contact_point, point_velocity);
-
-	Vector3d point_pos = model->GetBodyPointPosition (contact_body_id, contact_point);
-
-//	qDebug() << "accel =" << cml::dot(point_accel, contact_normal) 
-//		<< " point_accel =" << point_accel[0] << point_accel[1] << point_accel[2]
-//		<< " point_veloc =" << point_velocity[0] << point_velocity[1] << point_velocity[2];
-}
-
 void model_update (double delta_time) {
 	unsigned int size = Q.size();
 	unsigned int i;
 	
-	cmlVector y (size * 2);
+	VectorNd y (size * 2);
 
 	for (i = 0; i < size; i++) {
 		y[i] = Q[i];
 		y[i + size] = QDot[i];
 	}
 
-	cmlVector ynew (size * 2);
+	VectorNd ynew (size * 2);
 //	delta_time = 0.02;
 //	ynew = rk45_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
-	ynew = rk4_integrator (0., delta_time, y, rhs_contact, 5.0e-2);
+//	ynew = rk4_integrator (0., delta_time, y, rhs_contact, 5.0e-2);
+//	ynew = euler_integrator (0., delta_time, y, rhs_normal, 1.0e-3);
+	ynew = euler_integrator (0., delta_time, y, rhs_contact, 1.0e-3);
+
+//	cout << "        ynew = " << ynew << endl;
 
 	for (i = 0; i < size; i++) {
 		Q[i] = ynew[i];
 		QDot[i] = ynew[i + size];
 	}
-
-	cout << "y = " << ynew << endl;
 }
 
 Model* model_get() {

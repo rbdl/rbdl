@@ -1,13 +1,10 @@
 #ifndef _JOINT_H
 #define _JOINT_H
 
-#include <cmlwrapper.h>
-#include <vector>
+#include <mathwrapper.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
-
-#include "Model.h"
 
 namespace RigidBodyDynamics {
 
@@ -15,13 +12,13 @@ class Model;
 
 /** \brief General types of joints
  *
- * \todo add prismatic joints
  * \todo add proper fixed joint handling
  */
 enum JointType {
 	JointTypeUndefined = 0,
 	JointTypeFixed,
-	JointTypeRevolute
+	JointTypeRevolute,
+	JointTypePrismatic
 };
 
 /** \brief Describes a joint relative to the predecessor body 
@@ -62,11 +59,14 @@ struct Joint {
 		// Some assertions, as we concentrate on simple cases
 
 		// Only rotation around the Z-axis
-		assert ( joint_type == JointTypeRevolute || joint_type == JointTypeFixed
-				);
+		assert ( joint_type == JointTypeRevolute || joint_type == JointTypeFixed || joint_type == JointTypePrismatic );
+
 		mJointType = joint_type;
 
 		if (joint_type == JointTypeRevolute) {
+			// make sure we have a unit axis
+			assert (joint_axis.squaredNorm() == 1.);
+
 			assert ( joint_axis == Vector3d (1., 0., 0.)
 					|| joint_axis == Vector3d (0., 1., 0.)
 					|| joint_axis == Vector3d (0., 0., 1.));
@@ -86,6 +86,16 @@ struct Joint {
 					0., 0., 0.
 					);
 			mJointAxis.set (0., 0., 0., 0., 0., 0.);
+		} else if (joint_type == JointTypePrismatic) {
+			// make sure we have a unit axis
+			assert (joint_axis.squaredNorm() == 1.);
+
+			mJointAxis.set (
+					0., 0., 0.,
+					joint_axis[0],
+					joint_axis[1],
+					joint_axis[2]
+					);
 		}
 	}
 
@@ -95,7 +105,10 @@ struct Joint {
 	JointType mJointType;
 };
 
-/** \brief Computes the joint variables 
+/** \brief Computes all variables for a joint model
+ *
+ *	By appropriate modification of this function all types of joints can be
+ *	modeled. See RBDA Section 4.4 for details.
  *
  * \param model    the rigid body model
  * \param joint_id the id of the joint we are interested in (output)

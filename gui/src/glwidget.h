@@ -58,6 +58,7 @@ class GLWidget : public QGLWidget
 
 	protected:
 		void update_timer();
+		void drawGrid();
 
 		void initializeGL();
 		void paintGL();

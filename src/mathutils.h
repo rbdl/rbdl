@@ -4,14 +4,17 @@
 #include <assert.h>
 #include <cmath>
 
-#include "cmlwrapper.h"
-#include "spatialalgebra.h"
+#include "mathwrapper.h"
 
 extern Vector3d Vector3dZero;
 extern Matrix3d Matrix3dIdentity;
 extern Matrix3d Matrix3dZero;
 
+extern SpatialAlgebra::SpatialVector SpatialVectorZero;
+
 extern SpatialAlgebra::SpatialMatrix SpatialMatrixIdentity;
+extern SpatialAlgebra::SpatialMatrix SpatialMatrixZero;
+
 
 void VectorCrossVector (Vector3d &result, const Vector3d &vec_a, const Vector3d &vec_b);
 void VectorPrint (const char* msg, const Vector3d &vector);
@@ -22,13 +25,9 @@ void MatrixSetZero (Matrix3d &result);
 void MatrixCopyTranspose (Matrix3d &result, const Matrix3d &src);
 void MatrixCopy (Matrix3d &result, const Matrix3d &src);
 
-/** \brief Solves a linear system using gaussian elimination
- */
-bool LinSolveGaussElim (cmlMatrix A, cmlVector b, cmlVector &x);
-
 /** \brief Solves a linear system using gaussian elimination with pivoting
  */
-bool LinSolveGaussElimPivot (cmlMatrix A, cmlVector b, cmlVector &x);
+bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 
 /** \brief Creates the matrix to the cross product of a given 3D vector
  *  
@@ -93,6 +92,7 @@ SpatialAlgebra::SpatialMatrix Xrotx (const double &xrot);
  */
 SpatialAlgebra::SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler);
 
+/*
 inline std::ostream& operator<<(std::ostream& output, const std::vector<double> &val) {
 	unsigned int i;
 	for (i = 0; i < val.size(); i++)
@@ -102,5 +102,6 @@ inline std::ostream& operator<<(std::ostream& output, const std::vector<double> 
 
 	return output;
 }
+*/
 
 #endif /* _MATHUTILS_H */

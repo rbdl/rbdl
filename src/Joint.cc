@@ -34,11 +34,11 @@ void jcalc (
 
 	// the velocity dependent spatial acceleration is != 0 only for rhenomic
 	// constraints (see RBDA, p. 55)
-	c_J.zero();
+	c_J.setZero();
 
 	if (joint.mJointType == JointTypeFixed) {
 		XJ = SpatialMatrixIdentity;
-		v_J.zero();
+		v_J.setZero();
 
 		return;
 	} else if (joint.mJointType == JointTypeRevolute) {
@@ -52,7 +52,13 @@ void jcalc (
 		} else {
 			assert (0 && !"Invalid joint axis!");
 		}
-
+	} else if (joint.mJointType == JointTypePrismatic) {
+		XJ = Xtrans ( Vector3d (
+					joint.mJointAxis[3] * q,
+					joint.mJointAxis[4] * q,
+					joint.mJointAxis[5] * q
+					)
+				);
 	} else {
 		// Only revolute joints supported so far
 		assert (0);
