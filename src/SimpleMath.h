@@ -1227,11 +1227,10 @@ inline std::ostream& operator<<(std::ostream& output, const Block<double, blockr
 
 	unsigned int i,j;
 	for (i = 0; i < blockrows; i++) {
-		output << "[ ";
 		for (j = 0; j < blockcols; j++) {
+			output.width(12);
 			output << block(i,j) << " ";
 		}
-		output << "]" << std::endl;
 	}
 
 	return output;
@@ -1261,11 +1260,11 @@ template <typename val_type>
 inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type> &matrix) {
 	output << std::endl;
 	for (unsigned int i = 0; i < matrix.rows(); i++) {
-		output << "[ ";
 		for (unsigned int j = 0; j < matrix.cols(); j++) {
+			output.width(12);
 			output << matrix(i,j) << " ";
 		}
-		output << "]" << std::endl;
+		output << std::endl;
 	}
 	return output;
 }
