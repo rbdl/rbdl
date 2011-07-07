@@ -487,6 +487,8 @@ void ForwardDynamicsContactsLagrangian (
 	assert (solve_successful);
 #endif
 
+	LOG << "x = " << std::endl << x << std::endl;
+
 	// Copy back QDDot
 	for (i = 0; i < model.dof_count; i++)
 		QDDot[i] = x[i];
