@@ -15,7 +15,7 @@ using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Experimental;
 
-const double TEST_PREC = 1.0e-14;
+const double TEST_PREC = 1.0e-13;
 
 Model *model = NULL;
 
@@ -250,7 +250,7 @@ void init_model () {
 	temp_id = model->AddBody (temp_id, Xtrans (joint_location[JointLocationAnkle]), joint_rot_z, foot_left_body);
 	foot_left_id = temp_id;
 
-	cerr << "--- model created (" << model->dof_count << " DOF) ---" << endl;
+//	cerr << "--- model created (" << model->dof_count << " DOF) ---" << endl;
 
 	// contact data
 
@@ -345,25 +345,36 @@ TEST ( TestForwardDynamicsContactsLagrangianFootmodel ) {
 	ForwardDynamics (*model, Q, QDot, Tau, QDDot_aba);
 	ForwardDynamicsLagrangian (*model, Q, QDot, Tau, QDDot_lag);
 
-	cout << "QDDot_aba = " << QDDot_aba.transpose() << endl;
-	cout << "QDDot_lag = " << QDDot_lag.transpose() << endl;
+//	cout << "QDDot_aba = " << QDDot_aba.transpose() << endl;
+//	cout << "QDDot_lag = " << QDDot_lag.transpose() << endl;
+
+	unsigned int body_id = contact_data_left[0].body_id;
+	Vector3d contact_point = contact_data_left[0].point;
+
+	MatrixNd G (3, Q.size());
+	CalcPointJacobian (*model, Q, body_id, contact_point, G, true);
+
+//	cout << G << endl;
 
 	ClearLogOutput();
 
 	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, contact_data_left, QDDot);
 
-	cout << "C0: " << contact_data_left[0].body_id << ", " << contact_data_left[0].point.transpose() << endl;
-	cout << "C1: " << contact_data_left[1].body_id << ", " << contact_data_left[1].point.transpose() << endl;
-	cout << "td: " << foot_left_id << ", " << heel_point.transpose() << endl;
+//	cout << "C0: " << contact_data_left[0].body_id << ", " << contact_data_left[0].point.transpose() << endl;
+//	cout << "C1: " << contact_data_left[1].body_id << ", " << contact_data_left[1].point.transpose() << endl;
+//	cout << "td: " << foot_left_id << ", " << heel_point.transpose() << endl;
 
 	contact_force[0] = contact_data_left[0].force;
 	contact_force[1] = contact_data_left[1].force;
 
-	cout << LogOutput.str() << endl;
+	CHECK_EQUAL (body_id, foot_left_id);
+	CHECK_EQUAL (contact_point, heel_point);
+
+//	cout << LogOutput.str() << endl;
 	contact_accel_left = CalcPointAcceleration (*model, Q, QDot, QDDot, foot_left_id, heel_point);
 	contact_vel_left = CalcPointVelocity (*model, Q, QDot, foot_left_id, heel_point);
-	cout << contact_force << endl;
-	cout << contact_accel_left << endl;
+//	cout << contact_force << endl;
+//	cout << contact_accel_left << endl;
 
 	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), contact_accel_left.data(), 3, TEST_PREC);
 

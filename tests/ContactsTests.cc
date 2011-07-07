@@ -202,3 +202,68 @@ TEST ( TestForwardDynamicsContactsLagrangianSimple ) {
 	cout << QDDot << endl;
 	*/
 }
+
+TEST ( TestForwardDynamicsContactsLagrangianMoving ) {
+	Model model;
+	model.Init();
+	model.gravity = Vector3d  (0., -9.81, 0.);
+	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
+	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);
+
+	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant  ((size_t) model.dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
+
+	Q[0] = 0.1;
+	Q[1] = 0.2;
+	Q[2] = 0.3;
+	Q[3] = 0.4;
+	Q[4] = 0.5;
+	Q[5] = 0.6;
+	QDot[0] = 1.1;
+	QDot[1] = 1.2;
+	QDot[2] = 1.3;
+	QDot[3] = -1.4;
+	QDot[4] = -1.5;
+	QDot[5] = -1.6;
+
+	unsigned int contact_body_id = base_body_id;
+	Vector3d contact_point ( 0., -1., 0.);
+
+	ContactInfo ground_x (contact_body_id, contact_point, Vector3d (1., 0., 0.));
+	ContactInfo ground_y (contact_body_id, contact_point, Vector3d (0., 1., 0.));
+	ContactInfo ground_z (contact_body_id, contact_point, Vector3d (0., 0., 1.));
+
+	std::vector<ContactInfo> contact_data;
+
+	contact_data.push_back (ground_x);
+	contact_data.push_back (ground_y);
+	contact_data.push_back (ground_z);
+
+	ClearLogOutput();
+
+	ForwardDynamicsContactsLagrangian (model, Q, QDot, Tau, contact_data, QDDot);
+
+	Vector3d point_acceleration = CalcPointAcceleration (model, Q, QDot, QDDot, contact_body_id, contact_point);
+
+	CHECK_ARRAY_CLOSE (
+			Vector3d (0., 0., 0.).data(),
+			point_acceleration.data(),
+			3,
+			TEST_PREC
+			);
+
+	// cout << "LagrangianSimple Logoutput Start" << endl;
+	// cout << LogOutput.str() << endl;
+	// cout << "LagrangianSimple Logoutput End" << endl;
+
+	/*
+	unsigned int i;
+	for (i = 0; i < contact_data.size(); i++) {
+		cout << "cf[" << i << "] = " << contact_data[i].force << endl;
+	}
+
+	cout << QDDot << endl;
+	*/
+}

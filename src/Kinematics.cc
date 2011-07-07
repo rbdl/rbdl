@@ -1,5 +1,6 @@
 #include <iostream>
 #include <limits>
+#include <cstring>
 #include <assert.h>
 
 #include "mathutils.h"
@@ -98,14 +99,32 @@ void CalcPointJacobian (
 
 	assert (G.rows() == 3 && G.cols() == model.dof_count );
 
-	unsigned int j;
-	for (j = 1; j < model.mBodies.size(); j++) {
-		SpatialVector S_base;
-		S_base = point_trans * spatial_inverse(model.X_base[j]) * model.S[j];
+	G.setZero();
 
-		G(0, j - 1) = S_base[3];
-		G(1, j - 1) = S_base[4];
-		G(2, j - 1) = S_base[5];
+	// we have to make sure that only the joints that contribute to the
+	// bodies motion also get non-zero columns in the jacobian.
+	//VectorNd e = VectorNd::Zero(Q.size() + 1);
+
+	unsigned int j = body_id;
+
+	char e[(Q.size() + 1)];
+	memset (&e[0], 0, Q.size() + 1);
+
+	// e will contain 
+	while (j != 0) {
+		e[j] = 1;
+		j = model.lambda[j];
+	}
+
+	for (j = 1; j < model.mBodies.size(); j++) {
+		if (e[j] == 1) {
+			SpatialVector S_base;
+			S_base = point_trans * spatial_inverse(model.X_base[j]) * model.S[j];
+
+			G(0, j - 1) = S_base[3];
+			G(1, j - 1) = S_base[4];
+			G(2, j - 1) = S_base[5];
+		}
 	}
 }
 
