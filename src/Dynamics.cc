@@ -1033,11 +1033,6 @@ void ComputeAccelerationDeltas (
 	}
 
 	unsigned int i;
-	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
-//	spatial_gravity.setZero();
-
-//////////////////////////i
-// START
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		model.IA[i] = model.mBodies[i].mSpatialInertia;
@@ -1045,9 +1040,8 @@ void ComputeAccelerationDeltas (
 
 		if (i == body_id)
 			d_p[i] -= spatial_adjoint(model.X_base[i]) * f_t;
+		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
 	}
-
-// ClearLogOutput();
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		// we can skip further processing if the joint is fixed
@@ -1058,7 +1052,7 @@ void ComputeAccelerationDeltas (
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			SpatialVector pa = d_p[i] + model.U[i] * model.u[i] / model.d[i];
+			SpatialVector pa = d_p[i] + model.U[i] * d_u[i] / model.d[i];
 			SpatialMatrix X_lambda = model.X_lambda[i];
 
 			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
@@ -1066,13 +1060,15 @@ void ComputeAccelerationDeltas (
 		}
 	}
 
-	d_a[0].setZero();
+	// apply gravity
+	d_a[0].set (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
-		d_a[i] = X_lambda * model.a[lambda];
+		d_a[i] = X_lambda * d_a[lambda];
+		LOG << "if = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
 
 		// we can skip further processing if the joint type is fixed
 		if (model.mJoints[i].mJointType == JointTypeFixed) {
@@ -1081,64 +1077,9 @@ void ComputeAccelerationDeltas (
 		}
 
 		QDDot_t[i] = (1./model.d[i]) * (d_u[i] - model.U[i].dot(d_a[i]));
-		d_a[i] = model.a[i] + model.S[i] * QDDot_t[i];
-	}
-
-//////////////////////////i
-// END
-
-
-	/*
-	unsigned int i;
-	for (i = body_id + 1; i < model.mBodies.size(); i++) {
-		d_p[i] = SpatialVector::Zero();
-		d_pv[i] = SpatialVector::Zero();
-		d_u[i] = 0.;
-	}
-
-	for (i = body_id; i > 0; i--) {
-		if (i == body_id) {
-			d_pv[i] = -f_t;
-			d_p[i] = f_t;
-		} else {
-			d_pv[i] = SpatialVector::Zero();
-			d_p[i] = SpatialVector::Zero();
-		}
-
-		unsigned int j;
-		for (j = 1; j < model.mu[i].size(); j++) {
-			unsigned int k = model.mu[i][j];
-
-			d_p[i] += model.X_lambda[k].transpose() * (d_p[k] + d_u[k]/model.d[k] * model.U[k]);
-			d_u[i] += - model.S[i].transpose() * d_p[i];
-		}
-		LOG << "i = " << i << " d_pv = " << d_pv[i].transpose() << std::endl;
-		LOG << "i = " << i << " d_p  = " << d_p[i].transpose() << std::endl;
-		LOG << "i = " << i << " d_u  = " << d_u[i] << std::endl;
-	}
-
-	QDDot_t[0] = 0.;
-	d_a[0].setZero();
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		unsigned int lambda = model.lambda[i];
-		SpatialMatrix X_lambda = model.X_lambda[i];
-
-		if (lambda == 0) {
-			d_a[i] = X_lambda * SpatialVector (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
-		} else {
-			d_a[i] = X_lambda * d_a[lambda];
-		}
-
-		d_a[i] += model.c[i];
-
-		QDDot_t[i] = (1./model.d[i]) * (d_u[i] - model.U[i].dot(d_a[i]));
 		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i];
-
 		LOG << "i = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
 	}
-	*/
-
 }
 
 void ForwardDynamicsContacts (

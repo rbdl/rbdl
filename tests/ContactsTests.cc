@@ -357,14 +357,14 @@ TEST ( TestComputeAccelerationDeltas ) {
 	f_t = spatial_adjoint(Xtrans(Vector3d (1., 0., 0.))) * f_t;
 	cout << "f_t = " << f_t.transpose() << endl;
 	
-	model->f_ext[contact_body_id] = f_t;
-	ForwardDynamics (*model, Q, QDot, Tau, QDDot_t);
-	model->f_ext[contact_body_id].setZero();
+	ClearLogOutput();
+	ComputeAccelerationDeltas (*model, contact_body_id, f_t, call_QDDot_t);
+
+	for (unsigned int i = 0; i < QDDot_t.size(); i++) {
+		QDDot_t[i] = call_QDDot_t[i + 1];
+	}
 
 	cout << "qddot_t = " << QDDot_t.transpose() << endl;
-
-	ComputeAccelerationDeltas (*model, contact_body_id, f_t, call_QDDot_t);
-	cout << "call qdd= " << call_QDDot_t.transpose() << endl;
 
 	// compute the actual accelerations
 	Vector3d point_accel_t;	
