@@ -331,64 +331,21 @@ TEST ( TestComputeAccelerationDeltas ) {
 	contact_point = Vector3d  (0., 1., 0.);
 	contact_normal = Vector3d  (0., 1., 0.);
 
-	Vector3d point_accel_0;	
+	Vector3d point_accel_c;	
 
-	double fm = 1.;
 	contact_body_id = body_b_id;
 	contact_point.set (5., 0., 0.);
 
-	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
-	cout << "qddot = " << QDDot.transpose() << endl;
-	point_accel_0 = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
-	cout << "point_accel_0 = " << point_accel_0.transpose() << endl;
-
-	ClearLogOutput();
-
-	// this is used here
-	VectorNd QDDot_t = VectorNd::Zero (model->dof_count);
-
-	SpatialVector f_t;
-
-	f_t.set (0., 0., 0., 0., fm, 0.);
-	f_t = spatial_adjoint(Xtrans(Vector3d (1., 0., 0.))) * f_t;
-	cout << "f_t = " << f_t.transpose() << endl;
-	
-	ClearLogOutput();
-	ComputeAccelerationDeltas (*model, contact_body_id, f_t, QDDot_t);
-
-	cout << "qddot_t = " << QDDot_t.transpose() << endl;
-
-	// compute the actual accelerations
-	Vector3d point_accel_t;	
-	point_accel_t = CalcPointAcceleration (*model, Q, QDot, QDDot_t, contact_body_id, contact_point);
-	cout << "point_accel_t = " << point_accel_t.transpose() << endl;
-
-	double C0 = point_accel_0[1];
-	cout << "C0 = " << C0 << endl;
-
-	double k_1 = point_accel_t[1];
-	// k = f * (qdd_d - qdd_0) / (qdd_t - qdd_0)
-	k_1 = (point_accel_0[1]) / (point_accel_t[1] - point_accel_0[1]);
-	cout << "k_1 = " << k_1 << endl;
-
-	// compute constrained acceleration
-	SpatialVector f_ext = f_t * k_1 * -1.;
-	model->f_ext[contact_body_id] = f_ext;
-
-	Vector3d point_accel_c;
-	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
-	model->f_ext[contact_body_id].setZero();
-	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
-	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
-
-	cout << "NOOOOOOW" << endl;
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, contact_normal, 0.));
-	ClearLogOutput();
+
+//	ClearLogOutput();
 	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
-	cout << LogOutput.str() << endl;
+//	cout << LogOutput.str() << endl;
 
 	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
-	cout << "point_accel_c neeu = " << point_accel_c.transpose() << endl;
+//	cout << "point_accel_c neeu = " << point_accel_c.transpose() << endl;
+
+	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 
 	delete model;
 }
