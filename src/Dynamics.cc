@@ -1022,7 +1022,7 @@ void ComputeAccelerationDeltas (
 	static std::vector<SpatialVector> d_a;
 	static std::vector<double> d_u;
 
-	assert (QDDot_t.size() == model.dof_count + 1);
+	assert (QDDot_t.size() == model.dof_count);
 
 	// check for proper sizes and perform resizes if necessary
 	if (d_pv.size() != model.dof_count + 1) {
@@ -1076,8 +1076,8 @@ void ComputeAccelerationDeltas (
 			continue;
 		}
 
-		QDDot_t[i] = (1./model.d[i]) * (d_u[i] - model.U[i].dot(d_a[i]));
-		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i];
+		QDDot_t[i - 1] = (1./model.d[i]) * (d_u[i] - model.U[i].dot(d_a[i]));
+		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i - 1];
 		LOG << "i = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
 	}
 }
@@ -1092,27 +1092,64 @@ void ForwardDynamicsContacts (
 		) {
 	LOG << "-------- ForwardDynamicsContacts ------" << std::endl;
 
+	assert (ContactData.size() == 1);
+
 	std::vector<SpatialVector> contact_f_ext (model.f_ext.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
 
-	ComputeContactForces (model, Q, QDot, Tau, ContactData, contact_f_ext);
+	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
+	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 
-	assert (contact_f_ext.size() == model.f_ext.size());
+	Vector3d point_accel_0, point_accel_t;
+	double k;
 
-	unsigned int i;
-	for (i = 0; i < model.f_ext.size(); i++) {
-		model.f_ext[i] += contact_f_ext[i];
-		LOG << "f_ext[" << i << "] = " << model.f_ext[i] << std::endl;
+	unsigned int body_id;
+	Vector3d point, normal;
+	double acceleration;
+
+	body_id = ContactData[0].body_id;
+	point = ContactData[0].point;
+	normal = ContactData[0].normal;
+	acceleration = ContactData[0].acceleration;
+
+	{
+		SUPPRESS_LOGGING;
+		ForwardDynamics (model, Q, QDot, Tau, QDDot_0);
+		point_accel_0 = CalcPointAcceleration (model, Q, QDot, QDDot_0, body_id, point, true);
 	}
+	LOG << "point_accel_0 = " << point_accel_0.transpose() << std::endl;
 
-	LOG << "-------- APPLY_EXT ------" << std::endl;
+	// assemble the test force
+	// \TODO properly transform the force with respect to the orientation
+	// of the body!
+	assert (normal == Vector3d (0., 1., 0.));
+	Vector3d contact_normal = normal;
+
+	SpatialVector f_t;
+	f_t.set (0., 0., 0., contact_normal[0], contact_normal[1], contact_normal[2]);
+	f_t = spatial_adjoint(Xtrans(Vector3d (1., 0., 0.))) * f_t;
+
+	ComputeAccelerationDeltas (model, body_id, f_t, QDDot_t);
+
+	// \TODO here we need to update the kinematics ... but this should be
+	// circumvented ... at some point	
+	{
+		SUPPRESS_LOGGING;
+		point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, body_id, point, true);
+	}
+	LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
+
+	k = (acceleration - normal.transpose() * point_accel_0) 
+		/ (normal.transpose() * point_accel_t - normal.transpose() * point_accel_0);
+
+	LOG << "k = " << k << std::endl;
+
+	ContactData[0].force = k;
+
+	model.f_ext[body_id] = f_t * k;
 	{
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot);
 	}
-	LOG << "apply q     = " << Q << std::endl;
-	LOG << "apply qdot  = " << QDot << std::endl;
-	LOG << "apply tau   = " << Tau << std::endl;
-	LOG << "apply qddot = " << QDDot << std::endl;
 }
 
 } /* namespace Experimental */
