@@ -12,6 +12,7 @@
 
 using namespace std;
 using namespace SpatialAlgebra;
+using namespace SpatialAlgebra::Operators;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Experimental;
 
@@ -266,4 +267,87 @@ TEST ( TestForwardDynamicsContactsLagrangianMoving ) {
 
 	cout << QDDot << endl;
 	*/
+}
+
+TEST ( TestComputeAccelerationDeltas ) {
+	Model *model;
+
+	unsigned int body_a_id, body_b_id, base_rot_x_id,
+		child_rot_z_id, child_rot_y_id, child_rot_x_id,
+		base_body_id;
+
+	Body body_a, body_b, base_rot_x,
+		child_rot_z, child_rot_y, child_rot_x;
+
+	Joint joint_body_a, joint_body_b, joint_base_rot_x,
+		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
+
+	unsigned int contact_body_id;
+	Vector3d contact_point;
+	Vector3d contact_normal;
+	std::vector<ContactInfo> contact_data;
+
+	model = new Model;
+	model->Init();
+
+	model->gravity = Vector3d  (0., -9.81, 0.);
+
+	/* A simple model that is located at the origin and has a rotational
+	 * joint around the Z-axis.
+	 *
+	 *  Z   
+	 *  O---*
+	 *      
+	 */
+
+	// base body
+	body_a = Body (
+			1.,
+			Vector3d (1., 0., 0.),
+			Vector3d (1., 1., 1.)
+			);
+	joint_body_a = Joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+	body_a_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_body_a, body_a);
+
+	body_b = Body (
+			1.,
+			Vector3d (1., 0., 0.),
+			Vector3d (1., 1., 1.)
+			);
+	joint_body_b = Joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+	body_b_id = model->AddBody (body_a_id, Xtrans (Vector3d (1., 0., 0.)), joint_body_b, body_b);
+
+	VectorNd Q = VectorNd::Zero (model->dof_count);
+	VectorNd QDot = VectorNd::Zero (model->dof_count);
+	VectorNd QDDot = VectorNd::Zero (model->dof_count);
+	VectorNd Tau = VectorNd::Zero (model->dof_count);
+
+	contact_body_id = child_rot_x_id;
+	contact_point = Vector3d  (0., 1., 0.);
+	contact_normal = Vector3d  (0., 1., 0.);
+	
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+	cout << "qddot = " << QDDot.transpose() << endl;
+
+	ClearLogOutput();
+
+	VectorNd QDDot_t = VectorNd::Zero (model->dof_count + 1);
+	SpatialVector f_t;
+
+	f_t.set (0., 0., 0., 1., 1., 1.);
+//	f_t = spatial_adjoint(Xtrans(Vector3d (1., 0., 0.))) * f_t;
+	cout << "f_t = " << f_t.transpose() << endl;
+
+	ComputeAccelerationDeltas (*model, body_b_id, f_t, QDDot_t);
+	
+	cout << LogOutput.str() << endl;
+	cout << "qddot_t = " << QDDot_t.transpose() << endl;
+
+	delete model;
 }

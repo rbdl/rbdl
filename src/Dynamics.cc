@@ -1009,6 +1009,79 @@ void ComputeContactForces (
 	}
 }
 
+void ComputeAccelerationDeltas (
+		Model &model,
+		const unsigned int body_id,
+		const SpatialAlgebra::SpatialVector &f_t,
+		VectorNd &QDDot_t
+	) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	static std::vector<SpatialVector> d_pv;
+	static std::vector<SpatialVector> d_p;
+	static std::vector<SpatialVector> d_a;
+	static std::vector<double> d_u;
+
+	assert (QDDot_t.size() == model.dof_count + 1);
+
+	// check for proper sizes and perform resizes if necessary
+	if (d_pv.size() != model.dof_count + 1) {
+		d_pv.resize (model.dof_count + 1);
+		d_p.resize (model.dof_count + 1);
+		d_a.resize (model.dof_count + 1);
+		d_u.resize (model.dof_count + 1);
+	}
+
+	unsigned int i;
+	for (i = body_id + 1; i < model.mBodies.size(); i++) {
+		d_p[i] = SpatialVector::Zero();
+		d_pv[i] = SpatialVector::Zero();
+		d_u[i] = 0.;
+	}
+
+	for (i = body_id; i > 0; i--) {
+		if (i == body_id) {
+			d_pv[i] = -f_t;
+			d_p[i] = f_t;
+		} else {
+			d_pv[i] = SpatialVector::Zero();
+			d_p[i] = SpatialVector::Zero();
+		}
+
+		unsigned int j;
+		for (j = 1; j < model.mu[i].size(); j++) {
+			unsigned int k = model.mu[i][j];
+
+			d_p[i] += model.X_lambda[k].transpose() * (d_p[k] + d_u[k]/model.d[k] * model.U[k]);
+			d_u[i] += - model.S[i].transpose() * d_p[i];
+		}
+		LOG << "i = " << i << " d_pv = " << d_pv[i].transpose() << std::endl;
+		LOG << "i = " << i << " d_p  = " << d_p[i].transpose() << std::endl;
+		LOG << "i = " << i << " d_u  = " << d_u[i] << std::endl;
+	}
+
+	QDDot_t[0] = 0.;
+	d_a[0].setZero();
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int lambda = model.lambda[i];
+		SpatialMatrix X_lambda = model.X_lambda[i];
+
+		if (lambda == 0) {
+			d_a[i] = X_lambda * SpatialVector (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
+		} else {
+			d_a[i] = X_lambda * d_a[lambda];
+		}
+
+		d_a[i] += model.c[i];
+
+		QDDot_t[i] = (1./model.d[i]) * (d_u[i] - model.U[i].dot(d_a[i]));
+		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i];
+
+		LOG << "i = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
+	}
+}
+
 void ForwardDynamicsContacts (
 		Model &model,
 		const VectorNd &Q,

@@ -213,6 +213,26 @@ void ComputeContactForces (
 		std::vector<SpatialAlgebra::SpatialVector> &Fext
 		);
 
+/** 
+ *
+ * This is described as ABM_AccelerationDeltas (l, f^t_l) in the Kokkevis
+ * 2005 paper.
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints
+ * \param body_id id of the body on which the test force should be applied
+ * \param f_t   the test force that should be applied (in body coordinates)
+ * \param QDDot_t the resulting accelerations due to the test force (output)
+  */
+void ComputeAccelerationDeltas (
+		Model &model,
+		const unsigned int body_id,
+		const SpatialAlgebra::SpatialVector &f_t,
+		VectorNd &QDDot_t
+		);
+
 /** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
@@ -238,7 +258,6 @@ void ForwardDynamicsContacts (
 		std::vector<ContactInfo> &ContactData,
 		VectorNd &QDDot
 		);
-
 
 /** \brief Computes the change of the generalized velocity due to collisions
  *

@@ -659,6 +659,10 @@ class Matrix {
 			return mData[0];
 		}
 
+		Matrix operator-() const {
+			return *this * -1.;
+		}
+
 	private:
 		val_type mData[nrows * ncols];
 };
