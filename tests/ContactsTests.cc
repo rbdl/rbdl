@@ -312,6 +312,7 @@ TEST ( TestComputeAccelerationDeltas ) {
 			);
 	body_a_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_body_a, body_a);
 
+	/*
 	body_b = Body (
 			1.,
 			Vector3d (1., 0., 0.),
@@ -322,7 +323,7 @@ TEST ( TestComputeAccelerationDeltas ) {
 			Vector3d (0., 0., 1.)
 			);
 	body_b_id = model->AddBody (body_a_id, Xtrans (Vector3d (1., 0., 0.)), joint_body_b, body_b);
-
+*/
 	VectorNd Q = VectorNd::Zero (model->dof_count);
 	VectorNd QDot = VectorNd::Zero (model->dof_count);
 	VectorNd QDDot = VectorNd::Zero (model->dof_count);
@@ -340,11 +341,11 @@ TEST ( TestComputeAccelerationDeltas ) {
 	VectorNd QDDot_t = VectorNd::Zero (model->dof_count + 1);
 	SpatialVector f_t;
 
-	f_t.set (0., 0., 0., 1., 1., 1.);
-//	f_t = spatial_adjoint(Xtrans(Vector3d (1., 0., 0.))) * f_t;
+	f_t.set (0., 0., 0., 0., 1., 0.);
+	f_t = spatial_adjoint(Xtrans(Vector3d (-1., 0., 0.))) * f_t;
 	cout << "f_t = " << f_t.transpose() << endl;
 
-	ComputeAccelerationDeltas (*model, body_b_id, f_t, QDDot_t);
+	ComputeAccelerationDeltas (*model, body_a_id, f_t, QDDot_t);
 	
 	cout << LogOutput.str() << endl;
 	cout << "qddot_t = " << QDDot_t.transpose() << endl;
