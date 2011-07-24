@@ -223,7 +223,7 @@ void ComputeContactForces (
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
  * \param body_id id of the body on which the test force should be applied
- * \param f_t   the test force that should be applied (in body coordinates)
+ * \param f_t   the test force that should be applied (in base coordinates)
  * \param QDDot_t the resulting accelerations due to the test force (output)
   */
 void ComputeAccelerationDeltas (

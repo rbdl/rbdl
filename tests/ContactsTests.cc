@@ -312,7 +312,6 @@ TEST ( TestComputeAccelerationDeltas ) {
 			);
 	body_a_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_body_a, body_a);
 
-	/*
 	body_b = Body (
 			1.,
 			Vector3d (1., 0., 0.),
@@ -323,7 +322,7 @@ TEST ( TestComputeAccelerationDeltas ) {
 			Vector3d (0., 0., 1.)
 			);
 	body_b_id = model->AddBody (body_a_id, Xtrans (Vector3d (1., 0., 0.)), joint_body_b, body_b);
-*/
+	
 	VectorNd Q = VectorNd::Zero (model->dof_count);
 	VectorNd QDot = VectorNd::Zero (model->dof_count);
 	VectorNd QDDot = VectorNd::Zero (model->dof_count);
@@ -332,23 +331,62 @@ TEST ( TestComputeAccelerationDeltas ) {
 	contact_body_id = child_rot_x_id;
 	contact_point = Vector3d  (0., 1., 0.);
 	contact_normal = Vector3d  (0., 1., 0.);
-	
+
+	Vector3d point_accel_0;	
+
+	double fm = 1.;
+	contact_body_id = body_b_id;
+	contact_point.set (1., 0., 0.);
+
 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 	cout << "qddot = " << QDDot.transpose() << endl;
+	point_accel_0 = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
+	cout << "point_accel_0 = " << point_accel_0.transpose() << endl;
 
 	ClearLogOutput();
 
-	VectorNd QDDot_t = VectorNd::Zero (model->dof_count + 1);
+	// this is used here
+	VectorNd QDDot_t = VectorNd::Zero (model->dof_count);
+
+	// this is used when calling ComputeAccelerationDeltas()
+	VectorNd call_QDDot_t = VectorNd::Zero (model->dof_count + 1);
+
 	SpatialVector f_t;
 
-	f_t.set (0., 0., 0., 0., 1., 0.);
-	f_t = spatial_adjoint(Xtrans(Vector3d (-1., 0., 0.))) * f_t;
+	f_t.set (0., 0., 0., 0., fm, 0.);
+	f_t = spatial_adjoint(Xtrans(Vector3d (1., 0., 0.))) * f_t;
 	cout << "f_t = " << f_t.transpose() << endl;
-
-	ComputeAccelerationDeltas (*model, body_a_id, f_t, QDDot_t);
 	
-	cout << LogOutput.str() << endl;
+	model->f_ext[contact_body_id] = f_t;
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot_t);
+	model->f_ext[contact_body_id].setZero();
+
 	cout << "qddot_t = " << QDDot_t.transpose() << endl;
+
+	ComputeAccelerationDeltas (*model, contact_body_id, f_t, call_QDDot_t);
+	cout << "call qdd= " << call_QDDot_t.transpose() << endl;
+
+	// compute the actual accelerations
+	Vector3d point_accel_t;	
+	point_accel_t = CalcPointAcceleration (*model, Q, QDot, QDDot_t, contact_body_id, contact_point);
+	cout << "point_accel_t = " << point_accel_t.transpose() << endl;
+
+	double C0 = point_accel_0[1];
+	cout << "C0 = " << C0 << endl;
+
+	double k_1 = point_accel_t[1];
+	k_1 = fm * (point_accel_0[1]) / (point_accel_t[1] - point_accel_0[1]);
+	cout << "k_1 = " << k_1 << endl;
+	cout << "den = " << point_accel_t[1] - point_accel_0[1] << endl;
+
+	// compute constrained acceleration
+	SpatialVector f_ext = f_t * k_1 * -1. / fm;
+	model->f_ext[contact_body_id] = f_ext;
+
+	Vector3d point_accel_c;
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
+	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
 
 	delete model;
 }

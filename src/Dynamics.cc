@@ -1044,7 +1044,7 @@ void ComputeAccelerationDeltas (
 		d_p[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
 
 		if (i == body_id)
-			d_p[i] -= f_t;
+			d_p[i] -= spatial_adjoint(model.X_base[i]) * f_t;
 	}
 
 // ClearLogOutput();
