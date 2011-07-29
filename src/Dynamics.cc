@@ -1138,8 +1138,7 @@ void ForwardDynamicsContacts (
 	}
 	LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
 
-	k = (acceleration - normal.transpose() * point_accel_0) 
-		/ (normal.transpose() * point_accel_t - normal.transpose() * point_accel_0);
+	k = (acceleration - normal.dot(point_accel_0)) / (normal.dot(point_accel_t) - normal.dot(point_accel_0));
 
 	LOG << "k = " << k << std::endl;
 
