@@ -1,3 +1,10 @@
+/*
+ * RBDL - Rigid Body Library
+ * Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ *
+ * Licensed under the zlib license. See LICENSE for more details.
+ */
+
 #ifndef _DYNAMICS_EXPERIMENTAL_H
 #define _DYNAMICS_EXPERIMENTAL_H
 
