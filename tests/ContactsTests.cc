@@ -111,7 +111,7 @@ struct ContactsFixture {
 		Tau = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 
 		contact_body_id = child_rot_x_id;
-		contact_point = Vector3d  (0., 1., 0.);
+		contact_point = Vector3d  (1., 0., 0.);
 		contact_normal = Vector3d  (0., 1., 0.);
 
 		ClearLogOutput();
@@ -277,6 +277,34 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContact) {
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 }
 
+TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContactRotated) {
+	contact_normal.set (0., 1., 0.);
+	contact_data.push_back (ContactInfo(contact_body_id, contact_point, contact_normal, 0.));
+
+	Q[0] = - M_PI * 0.25;
+	Q[3] =   M_PI * 0.5;
+
+	Vector3d point_accel_lagrangian;
+	double contact_force_lagrangian;
+	
+	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, contact_data, QDDot);
+	point_accel_lagrangian = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
+	contact_force_lagrangian = contact_data[0].force;
+		
+	ClearLogOutput();
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
+	cout << LogOutput.str() << endl;
+
+	Vector3d point_accel_recursive;
+	double contact_force_recursive;
+	point_accel_recursive = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
+	contact_force_recursive = contact_data[0].force;
+
+	CHECK_CLOSE (0., contact_normal.dot(point_accel_recursive), TEST_PREC);
+	CHECK_ARRAY_CLOSE (point_accel_lagrangian.data(), point_accel_recursive.data(), 3, TEST_PREC);
+	CHECK_CLOSE (contact_force_lagrangian, contact_force_recursive, TEST_PREC);
+}
+
 /*
 TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContact) {
 //	contact_point.set (1., 0., 0.);
@@ -295,8 +323,8 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContact) {
 	//
 	
 	Q[0] = - M_PI * 0.25;
-	Q[3] =   M_PI * 0.25;
-		
+	Q[3] =   M_PI * 0.5;
+	
 	ClearLogOutput();
 	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
 	cout << LogOutput.str() << endl;
@@ -304,6 +332,9 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContact) {
 	Vector3d point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
 	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
 
+	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, contact_data, QDDot);
+	cout << contact_data[0].force << ", " << contact_data[1].force << endl;
+	
 	CHECK_CLOSE (0., point_accel_c[0], TEST_PREC);
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 }

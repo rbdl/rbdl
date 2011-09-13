@@ -1101,8 +1101,6 @@ void ForwardDynamicsContacts (
 
 //	assert (ContactData.size() == 1);
 
-	std::vector<SpatialVector> contact_f_ext (model.f_ext.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
-
 	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
 	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 	std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
@@ -1130,10 +1128,8 @@ void ForwardDynamicsContacts (
 		LOG << "point_accel_0 = " << point_accel_0.transpose() << std::endl;
 
 		// assemble the test force
-		// \TODO properly transform the force with respect to the orientation
-		// of the body!
-//		assert (normal == Vector3d (0., 1., 0.));
-		Vector3d contact_normal = normal;
+		Vector3d contact_normal = model.GetBodyWorldOrientation(body_id) * normal;
+		LOG << "contact_normal = " << contact_normal.transpose() << std::endl;
 
 		Vector3d point_global = model.CalcBodyToBaseCoordinates(body_id, point);
 		f_t[ci].set (0., 0., 0., contact_normal[0], contact_normal[1], contact_normal[2]);
@@ -1145,8 +1141,7 @@ void ForwardDynamicsContacts (
 			ComputeAccelerationDeltas (model, body_id, f_t[ci], QDDot_t);
 		}
 
-		// \TODO here we need to update the kinematics ... but this should be
-		// circumvented ... at some point	
+		// compute the resulting acceleration
 		{
 			SUPPRESS_LOGGING;
 			ForwardKinematics (model, Q, QDot, QDDot_t);
@@ -1155,7 +1150,7 @@ void ForwardDynamicsContacts (
 		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {
 			{
 				SUPPRESS_LOGGING;
-				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, true);
+				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
 			}
 			K(ci,cj) = ContactData[cj].normal.dot(point_accel_t - point_accel_0);
 			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
@@ -1174,16 +1169,20 @@ void ForwardDynamicsContacts (
 
 	LOG << "f = " << f << std::endl;
 
+	std::vector<SpatialVector> f_ext_backup (model.f_ext);
+
 	for (ci = 0; ci < ContactData.size(); ci++) {
 		ContactData[ci].force = f[ci];
 		model.f_ext[ContactData[ci].body_id] = f_t[ci] * f[ci];
-		LOG << "f_ext[" << ci << "] = " << model.f_ext[ci].transpose() << std::endl;
+		LOG << "f_ext[" << ci << "] = " << model.f_ext[ContactData[ci].body_id].transpose() << std::endl;
 	}
 
 	{
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, QDDot);
 	}
+
+	model.f_ext = f_ext_backup;
 }
 
 } /* namespace Experimental */
