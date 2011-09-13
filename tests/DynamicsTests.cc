@@ -25,12 +25,12 @@ TEST (TestForwardDynamicsLagrangian) {
 	model.SetFloatingBaseBody(base_body);
 
 	// Initialization of the input vectors
-	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
-	VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
-	VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd Q = VectorNd::Zero (model.dof_count);
+	VectorNd QDot = VectorNd::Zero (model.dof_count);
+	VectorNd Tau = VectorNd::Zero (model.dof_count);
 	
-	VectorNd QDDot_aba = VectorNd::Constant ((size_t) model.dof_count, 0.);
-	VectorNd QDDot_lagrangian = VectorNd::Constant ((size_t) model.dof_count, 0.);
+	VectorNd QDDot_aba = VectorNd::Zero (model.dof_count);
+	VectorNd QDDot_lagrangian = VectorNd::Zero (model.dof_count);
 
 	Q[0] = 1.1;
 	Q[1] = 1.2;
@@ -56,6 +56,7 @@ TEST (TestForwardDynamicsLagrangian) {
 	ForwardDynamics(model, Q, QDot, Tau, QDDot_aba);
 	ForwardDynamicsLagrangian(model, Q, QDot, Tau, QDDot_lagrangian);
 
+	CHECK_EQUAL (QDDot_aba.size(), QDDot_lagrangian.size());
 	CHECK_ARRAY_CLOSE (QDDot_aba.data(), QDDot_lagrangian.data(), QDDot_aba.size(), TEST_PREC);
 }
 
@@ -346,5 +347,7 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 	ForwardDynamicsLagrangian (*model, Q, QDot, Tau, QDDot);
 
 	CHECK_ARRAY_CLOSE (QDDotABA.data(), QDDot.data(), QDDotABA.size(), TEST_PREC);
+
+	delete model;
 }
 

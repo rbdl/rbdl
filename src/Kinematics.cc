@@ -257,15 +257,8 @@ Vector3d CalcPointAcceleration (
 
 	LOG << std::endl;
 
-	// computation of the global position of the point
-	Vector3d point_abs_pos = model.CalcBodyToBaseCoordinates (body_id, point_position);
-	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
-
 	// The whole computation looks in formulae like the following:
 	SpatialVector body_global_velocity (spatial_inverse(model.X_base[body_id]) * model.v[body_id]);
-	SpatialVector body_global_acceleration (spatial_inverse(model.X_base[body_id]) * model.a[body_id]);
-	SpatialMatrix global_point_transform (Xtrans (point_abs_pos));
-	SpatialMatrix local_point_transform (Xtrans (point_position));
 
 	LOG << " orientation " << std::endl << model.GetBodyWorldOrientation(body_id) << std::endl;
 	LOG << " orientationT " << std::endl <<  model.GetBodyWorldOrientation(body_id).transpose() << std::endl;

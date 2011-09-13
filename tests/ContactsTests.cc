@@ -16,7 +16,7 @@ using namespace SpatialAlgebra::Operators;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Experimental;
 
-const double TEST_PREC = 1.0e-14;
+const double TEST_PREC = 1.0e-12;
 
 struct ContactsFixture {
 	ContactsFixture () {
@@ -26,23 +26,18 @@ struct ContactsFixture {
 
 		model->gravity = Vector3d  (0., -9.81, 0.);
 
-		/* Basically a model like this, where X are the Center of Masses
-		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
+		/* 
 		 *
-		 *                X
-		 *                *
-		 *              _/
-		 *            _/  (-Z)
-		 *      Z    /
-		 *      *---* 
-		 *      |
-		 *      |
-		 *  Z   |
-		 *  O---*
-		 *      Y
+		 *          X Contact point (ref child)
+		 *          |
+		 *    Base  |
+		 *   / body |
+		 *  O-------*
+		 *           \
+		 *             Child body
 		 */
 
-		// base body
+		// base body (3 DoF)
 		base_rot_z = Body (
 				0.,
 				Vector3d (0., 0., 0.),
@@ -76,7 +71,7 @@ struct ContactsFixture {
 				);
 		base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
 
-		// child body
+		// child body (3 DoF)
 		child_rot_z = Body (
 				0.,
 				Vector3d (0., 0., 0.),
@@ -269,83 +264,47 @@ TEST ( TestForwardDynamicsContactsLagrangianMoving ) {
 	*/
 }
 
-TEST ( TestComputeAccelerationDeltas ) {
-	Model *model;
-
-	unsigned int body_a_id, body_b_id, base_rot_x_id,
-		child_rot_z_id, child_rot_y_id, child_rot_x_id,
-		base_body_id;
-
-	Body body_a, body_b, base_rot_x,
-		child_rot_z, child_rot_y, child_rot_x;
-
-	Joint joint_body_a, joint_body_b, joint_base_rot_x,
-		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
-
-	unsigned int contact_body_id;
-	Vector3d contact_point;
-	Vector3d contact_normal;
-	std::vector<ContactInfo> contact_data;
-
-	model = new Model;
-	model->Init();
-
-	model->gravity = Vector3d  (0., -9.81, 0.);
-
-	/* A simple model that is located at the origin and has a rotational
-	 * joint around the Z-axis.
-	 *
-	 *  Z   
-	 *  O---*
-	 *      
-	 */
-
-	// base body
-	body_a = Body (
-			1.,
-			Vector3d (1., 0., 0.),
-			Vector3d (1., 1., 1.)
-			);
-	joint_body_a = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-	body_a_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_body_a, body_a);
-
-	body_b = Body (
-			1.,
-			Vector3d (1., 0., 0.),
-			Vector3d (1., 1., 1.)
-			);
-	joint_body_b = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-	body_b_id = model->AddBody (body_a_id, Xtrans (Vector3d (1., 0., 0.)), joint_body_b, body_b);
-	
-	VectorNd Q = VectorNd::Zero (model->dof_count);
-	VectorNd QDot = VectorNd::Zero (model->dof_count);
-	VectorNd QDDot = VectorNd::Zero (model->dof_count);
-	VectorNd Tau = VectorNd::Zero (model->dof_count);
-
-	contact_point = Vector3d  (0., 1., 0.);
-	contact_normal = Vector3d  (0., 1., 0.);
-
-	Vector3d point_accel_c;	
-
-	contact_body_id = body_b_id;
-	contact_point.set (5., 0., 0.);
-
+TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContact) {
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, contact_normal, 0.));
 
 //	ClearLogOutput();
 	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
 //	cout << LogOutput.str() << endl;
 
-	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
+	Vector3d point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
 //	cout << "point_accel_c neeu = " << point_accel_c.transpose() << endl;
 
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
-
-	delete model;
 }
+
+/*
+TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContact) {
+//	contact_point.set (1., 0., 0.);
+
+	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
+	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
+
+	// we rotate the joints so that we have full mobility at the contact
+	// point:
+	//
+	//  O       X (contact point)
+	//   \     /
+	//    \   /
+	//     \ /
+	//      *      
+	//
+	
+	Q[0] = - M_PI * 0.25;
+	Q[3] =   M_PI * 0.25;
+		
+	ClearLogOutput();
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
+	cout << LogOutput.str() << endl;
+
+	Vector3d point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
+	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
+
+	CHECK_CLOSE (0., point_accel_c[0], TEST_PREC);
+	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
+}
+*/
