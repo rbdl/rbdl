@@ -1132,8 +1132,8 @@ void ForwardDynamicsContacts (
 		LOG << "contact_normal = " << contact_normal.transpose() << std::endl;
 
 		Vector3d point_global = model.CalcBodyToBaseCoordinates(body_id, point);
-		f_t[ci].set (0., 0., 0., contact_normal[0], contact_normal[1], contact_normal[2]);
-		f_t[ci] = spatial_adjoint(Xtrans(Vector3d (point_global))) * f_t[ci];
+		f_t[ci].set (0., 0., 0., -contact_normal[0], -contact_normal[1], -contact_normal[2]);
+		f_t[ci] = spatial_adjoint(Xtrans(Vector3d (-point_global))) * f_t[ci];
 		LOG << "f_t[" << ci << "] = " << f_t[ci].transpose() << std::endl;
 
 		{
