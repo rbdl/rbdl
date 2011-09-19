@@ -647,7 +647,6 @@ void ForwardDynamicsAccelerationsOnly (
 	unsigned int i;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		model.IA[i] = model.mBodies[i].mSpatialInertia;
 		d_p[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
 
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
@@ -667,10 +666,9 @@ void ForwardDynamicsAccelerationsOnly (
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
 			SpatialVector pa = d_p[i] + model.U[i] * d_u[i] / model.d[i];
-			SpatialMatrix X_lambda = model.X_lambda[i];
 
 			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
-			d_p[lambda] = d_p[lambda] + X_lambda.transpose() * pa;
+			d_p[lambda] = d_p[lambda] + model.X_lambda[i].transpose() * pa;
 		}
 	}
 
@@ -679,9 +677,8 @@ void ForwardDynamicsAccelerationsOnly (
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
-		SpatialMatrix X_lambda = model.X_lambda[i];
 
-		d_a[i] = X_lambda * d_a[lambda];
+		d_a[i] = model.X_lambda[i] * d_a[lambda];
 //		LOG << "if = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
 
 		// we can skip further processing if the joint type is fixed
@@ -707,14 +704,25 @@ void ForwardDynamicsContacts (
 	LOG << "-------- ForwardDynamicsContacts ------" << std::endl;
 
 //	assert (ContactData.size() == 1);
+	static std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
+	static std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
+	static VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
+	static VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 
-	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
-	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
-	std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
-	std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
 	MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
 	VectorNd f = VectorNd::Zero(ContactData.size());
 	VectorNd a = VectorNd::Zero(ContactData.size());
+
+	if (f_ext_constraints.size() != model.mBodies.size())
+		f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
+
+	if (f_t.size() != ContactData.size())
+		f_t.resize(ContactData.size(), SpatialVectorZero);
+
+	if (QDDot_0.size() != model.dof_count) {
+		QDDot_0.resize(model.dof_count);
+		QDDot_t.resize(model.dof_count);
+	}
 
 	Vector3d point_accel_0, point_accel_t;
 	double k;

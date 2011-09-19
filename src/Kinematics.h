@@ -15,7 +15,7 @@
 
 namespace RigidBodyDynamics {
 
-/** \brief Updates the and computes velocities and accelerations of the bodies
+/** \brief Updates and computes velocities and accelerations of the bodies
  *
  * This function updates the kinematic variables such as body velocities
  * and accelerations in the model to reflect the variables passed to this function.
@@ -31,6 +31,16 @@ void ForwardKinematics (Model &model,
 		const VectorNd &QDDot
 		);
 
+/** \brief Selectively updates and computes velocities and accelerations of the bodies
+ *
+ * This function updates the kinematic variables such as body velocities and
+ * accelerations in the model to reflect the variables passed to this function.
+ *
+ * \param model the model
+ * \param Q     the positional variables of the model
+ * \param QDot  the generalized velocities of the joints
+ * \param QDDot the generalized accelerations of the joints
+ */
 void ForwardKinematicsCustom (Model &model,
 		const VectorNd *Q,
 		const VectorNd *QDot,
