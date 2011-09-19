@@ -731,7 +731,8 @@ void ForwardDynamicsContacts (
 		{
 			SUPPRESS_LOGGING;
 			ForwardDynamics (model, Q, QDot, Tau, QDDot_0);
-			point_accel_0 = CalcPointAcceleration (model, Q, QDot, QDDot_0, body_id, point, true);
+			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_0);
+			point_accel_0 = CalcPointAcceleration (model, Q, QDot, QDDot_0, body_id, point, false);
 			a[ci] = acceleration - ContactData[ci].normal.dot(point_accel_0);
 		}
 		LOG << "point_accel_0 = " << point_accel_0.transpose() << std::endl;
@@ -756,7 +757,7 @@ void ForwardDynamicsContacts (
 		// compute the resulting acceleration
 		{
 			SUPPRESS_LOGGING;
-			ForwardKinematics (model, Q, QDot, QDDot_t);
+			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_t);
 		}
 
 		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {

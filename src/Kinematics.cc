@@ -80,6 +80,105 @@ void ForwardKinematics (Model &model,
 	}
 }
 
+void ForwardKinematicsCustom (Model &model,
+		const VectorNd *Q,
+		const VectorNd *QDot,
+		const VectorNd *QDDot
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	unsigned int i;
+
+	if (Q)
+	
+	if (QDot)
+
+	if (QDDot)
+		assert (model.qddot.size() == QDDot->size() + 1);
+
+	if (model.experimental_floating_base) {
+		assert (0 && !"ForwardKinematics not supported yet for experimental floating bases");
+	}
+
+	if (Q) {
+		assert (model.q.size() == Q->size() + 1);
+		// positions
+		for (i = 0; i < model.dof_count; i++) {
+			model.q[i + 1] = (*Q)[i];
+		}
+	}
+
+	if (QDot) {
+		assert (model.qdot.size() == QDot->size() + 1);
+		// velocities
+		for (i = 0; i < model.dof_count; i++) {
+			model.qdot[i + 1] = (*QDot)[i];
+		}
+	}
+
+	if (QDDot) {
+		assert (model.qddot.size() == QDDot->size() + 1);
+		// accelerations
+		for (i = 0; i < model.dof_count; i++) {
+			model.qddot[i + 1] = (*QDDot)[i];
+		}
+	}
+
+	if (Q) {
+		for (i = 1; i < model.mBodies.size(); i++) {
+			SpatialVector v_J;
+			SpatialVector c_J;
+			SpatialMatrix X_J;
+			Joint joint = model.mJoints[i];
+			unsigned int lambda = model.lambda[i];
+
+			jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+
+			model.X_lambda[i] = X_J * model.X_T[i];
+
+			if (lambda != 0) {
+				model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
+			}	else {
+				model.X_base[i] = model.X_lambda[i];
+			}
+		}
+	}
+
+	if (QDot) {
+		for (i = 1; i < model.mBodies.size(); i++) {
+			SpatialVector v_J;
+			SpatialVector c_J;
+			SpatialMatrix X_J;
+			Joint joint = model.mJoints[i];
+			unsigned int lambda = model.lambda[i];
+
+			jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+
+			if (lambda != 0) {
+				model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
+				model.c[i] = c_J + crossm(model.v[i],v_J);
+			}	else {
+				model.v[i] = v_J;
+				model.c[i].setZero();
+			}
+		}
+	}
+
+	if (QDDot) {
+		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int lambda = model.lambda[i];
+
+			if (lambda != 0) {
+				model.a[i] = model.X_lambda[i] * model.a[lambda] + model.c[i];
+			}	else {
+				model.a[i].setZero();
+			}
+
+			model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+		}
+	}
+}
+
 void CalcPointJacobian (
 		Model &model,
 		const VectorNd &Q,

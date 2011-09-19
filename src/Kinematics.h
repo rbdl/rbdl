@@ -31,6 +31,12 @@ void ForwardKinematics (Model &model,
 		const VectorNd &QDDot
 		);
 
+void ForwardKinematicsCustom (Model &model,
+		const VectorNd *Q,
+		const VectorNd *QDot,
+		const VectorNd *QDDot
+		);
+
 /** \brief Computes the point jacobian for a point on a body
  *
  * If a position of a point is computed by a function \f$g(q(t))\f$ for which its
