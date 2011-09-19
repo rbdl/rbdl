@@ -1045,9 +1045,11 @@ void ComputeAccelerationDeltas (
 		model.IA[i] = model.mBodies[i].mSpatialInertia;
 		d_p[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
 
-		if (i == body_id)
+		if (i == body_id) {
 			d_p[i] -= spatial_adjoint(model.X_base[i]) * f_t;
-		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
+			LOG << "f_t (local)[" << i << "] = " << spatial_adjoint(model.X_base[i]) * f_t << std::endl;
+		}
+//		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
@@ -1075,7 +1077,7 @@ void ComputeAccelerationDeltas (
 		SpatialMatrix X_lambda = model.X_lambda[i];
 
 		d_a[i] = X_lambda * d_a[lambda];
-		LOG << "if = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
+//		LOG << "if = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
 
 		// we can skip further processing if the joint type is fixed
 		if (model.mJoints[i].mJointType == JointTypeFixed) {
@@ -1085,7 +1087,7 @@ void ComputeAccelerationDeltas (
 
 		QDDot_t[i - 1] = (1./model.d[i]) * (d_u[i] - model.U[i].dot(d_a[i]));
 		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i - 1];
-		LOG << "i = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
+//		LOG << "i = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
 	}
 }
 
@@ -1114,6 +1116,7 @@ void ForwardDynamicsContacts (
 	unsigned int ci = 0;
 
 	for (ci = 0; ci < ContactData.size(); ci++) {
+		LOG << "=== Loop Start ===" << std::endl;
 		unsigned int body_id = ContactData[ci].body_id;
 		Vector3d point = ContactData[ci].point;
 		Vector3d normal = ContactData[ci].normal;
@@ -1128,7 +1131,7 @@ void ForwardDynamicsContacts (
 		LOG << "point_accel_0 = " << point_accel_0.transpose() << std::endl;
 
 		// assemble the test force
-		Vector3d contact_normal = model.GetBodyWorldOrientation(body_id) * normal;
+		Vector3d contact_normal = normal;
 		LOG << "contact_normal = " << contact_normal.transpose() << std::endl;
 
 		Vector3d point_global = model.CalcBodyToBaseCoordinates(body_id, point);
@@ -1137,7 +1140,7 @@ void ForwardDynamicsContacts (
 		LOG << "f_t[" << ci << "] = " << f_t[ci].transpose() << std::endl;
 
 		{
-			SUPPRESS_LOGGING;
+//			SUPPRESS_LOGGING;
 			ComputeAccelerationDeltas (model, body_id, f_t[ci], QDDot_t);
 		}
 
@@ -1173,7 +1176,7 @@ void ForwardDynamicsContacts (
 
 	for (ci = 0; ci < ContactData.size(); ci++) {
 		ContactData[ci].force = f[ci];
-		model.f_ext[ContactData[ci].body_id] = f_t[ci] * f[ci];
+		model.f_ext[ContactData[ci].body_id] += f_t[ci] * f[ci];
 		LOG << "f_ext[" << ci << "] = " << model.f_ext[ContactData[ci].body_id].transpose() << std::endl;
 	}
 
