@@ -16,7 +16,7 @@ using namespace SpatialAlgebra::Operators;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Experimental;
 
-const double TEST_PREC = 1.0e-12;
+const double TEST_PREC = 1.0e-11;
 
 struct ContactsFixture {
 	ContactsFixture () {
@@ -284,9 +284,9 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContact) {
 	point_accel_recursive = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
 	contact_force_recursive = contact_data[0].force;
 
+	CHECK_CLOSE (contact_force_lagrangian, contact_force_recursive, TEST_PREC);
 	CHECK_CLOSE (0., contact_normal.dot(point_accel_recursive), TEST_PREC);
 	CHECK_ARRAY_CLOSE (point_accel_lagrangian.data(), point_accel_recursive.data(), 3, TEST_PREC);
-	CHECK_CLOSE (contact_force_lagrangian, contact_force_recursive, TEST_PREC);
 }
 
 TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContactRotated) {

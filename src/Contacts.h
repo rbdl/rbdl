@@ -252,10 +252,13 @@ void ComputeAccelerationDeltas (
  * \param Tau   actuations of the internal joints
  * \param ContactData	a list of all contact points
  * \param QDDot accelerations of the internals joints (output)
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  *
  * \note During execution of this function the values ContactData[i].force
  * 	get modified and will contain the value of the force acting along
  * 	the normal.
+ *
+ * \todo Allow for external forces
  */
 void ForwardDynamicsContacts (
 		Model &model,

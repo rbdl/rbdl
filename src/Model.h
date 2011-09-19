@@ -134,8 +134,6 @@ struct Model {
 	VectorNd u;
 	/// \brief Internal forces on the body (used only InverseDynamics())
 	std::vector<SpatialAlgebra::SpatialVector> f;
-	/// \brief External forces acting on the body (in base coordinates)
-	std::vector<SpatialAlgebra::SpatialVector> f_ext;
 	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
 	std::vector<SpatialAlgebra::SpatialMatrix> Ic;
 

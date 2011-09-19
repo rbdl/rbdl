@@ -61,7 +61,6 @@ void Model::Init() {
 	d = VectorNd::Zero(1);
 
 	f.push_back (zero_spatial);
-	f_ext.push_back (zero_spatial);
 	Ic.push_back (SpatialMatrixIdentity);
 
 	// Bodies
@@ -108,7 +107,6 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	d.resize (dof_count + 1);
 	u.resize (dof_count + 1);
 	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
-	f_ext.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 	Ic.push_back (SpatialMatrixIdentity);
 
 	// Bodies

@@ -28,13 +28,15 @@ class Model;
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
  * \param QDDot accelerations of the internal joints (output)
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
 void ForwardDynamics (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &Tau,
-		VectorNd &QDDot
+		VectorNd &QDDot,
+		std::vector<SpatialAlgebra::SpatialVector> *f_ext = NULL
 		);
 
 /** \brief Computes forward dynamics by building and solving the full Lagrangian equation
@@ -50,6 +52,7 @@ void ForwardDynamics (
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
  * \param QDDot accelerations of the internal joints (output)
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
 void ForwardDynamicsLagrangian (
 		Model &model,
@@ -70,13 +73,15 @@ void ForwardDynamicsLagrangian (
  * \param QDot  velocity vector of the internal joints
  * \param QDDot accelerations of the internals joints
  * \param Tau   actuations of the internal joints (output)
-  */
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
+ */
 void InverseDynamics (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &QDDot,
-		VectorNd &Tau
+		VectorNd &Tau,
+		std::vector<SpatialAlgebra::SpatialVector> *f_ext = NULL
 		);
 
 /** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm
