@@ -194,57 +194,69 @@ void ComputeContactImpulsesLagrangian (
 
 namespace Experimental {
 
-/** \brief Computes forces acting on the model due to contact
- *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points and their desired accelerations
- * \param Fext  constraint forces that enforce desired acceleration on the constraints
- *
- * \note During execution of this function the values ContactData[i].force
- * 	get modified and will contain the value of the force acting along
- * 	the normal.
- */
-void ComputeContactForces (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
-		std::vector<SpatialAlgebra::SpatialVector> &Fext
-		);
-
 /** 
  *
  * This is described as ABM_AccelerationDeltas (l, f^t_l) in the Kokkevis
  * 2005 paper.
  *
  * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints
- * \param body_id id of the body on which the test force should be applied
- * \param f_t   the test force that should be applied (in base coordinates)
  * \param QDDot_t the resulting accelerations due to the test force (output)
-  */
-void ComputeAccelerationDeltas (
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
+ */
+void ForwardDynamicsAccelerationsOnly (
 		Model &model,
-		const unsigned int body_id,
-		const SpatialAlgebra::SpatialVector &f_t,
-		VectorNd &QDDot_t
+		VectorNd &QDDot_t,
+		std::vector<SpatialAlgebra::SpatialVector> *f_ext = NULL
 		);
 
 /** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
+ * Paper "Practical Physics for Articulated Characters", Game Developers
+ * Conference, 2004.
+ *
+ * It does this by recursively computing the inverse articulated-body inertia (IABI)
+ * \f$\Phi_{i,j}\f$ which is then used to build and solve a system of the form:
+ \f[
+ \left(
+   \begin{array}{c}
+	   \dot{v}_1 \\
+		 \dot{v}_2 \\
+		 \vdots \\
+		 \dot{v}_n
+   \end{array}
+ \right)
+ =
+ \left(
+   \begin{array}{cccc}
+	   \Phi_{1,1} & \Phi_{1,2} & \cdots & \Phi{1,n} \\
+	   \Phi_{2,1} & \Phi_{2,2} & \cdots & \Phi{2,n} \\
+	   \cdots & \cdots & \cdots & \vdots \\
+	   \Phi_{n,1} & \Phi_{n,2} & \cdots & \Phi{n,n} 
+   \end{array}
+ \right)
+ \left(
+   \begin{array}{c}
+	   f_1 \\
+		 f_2 \\
+		 \vdots \\
+		 f_n
+   \end{array}
+ \right)
+ + 
+ \left(
+   \begin{array}{c}
+	 \phi_1 \\
+	 \phi_2 \\
+	 \vdots \\
+	 \phi_n
+   \end{array}
+ \right).
+ \f]
+ Here \f$n\f$ is the number of constraints and the method for building the system
+ uses the Articulated Body Algorithm to efficiently compute entries of the system. The
+ values \f$\dot{v}_i\f$ are the constraint accelerations, \f$f_i\f$ the constraint forces,
+ and \f$\phi_i\f$ are the constraint bias forces.
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
@@ -252,7 +264,6 @@ void ComputeAccelerationDeltas (
  * \param Tau   actuations of the internal joints
  * \param ContactData	a list of all contact points
  * \param QDDot accelerations of the internals joints (output)
- * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  *
  * \note During execution of this function the values ContactData[i].force
  * 	get modified and will contain the value of the force acting along
@@ -272,8 +283,8 @@ void ForwardDynamicsContacts (
 /** \brief Computes the change of the generalized velocity due to collisions
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * published in Multibody System Dynamics Vol.2, 1998.
+ * Paper "Practical Physics for Articulated Characters", Game Developers
+ * Conference, 2004.
  *
  * This function computes the change of the generalized velocity vector
  * QDot such that the points defined in ContactData have zero velocity.

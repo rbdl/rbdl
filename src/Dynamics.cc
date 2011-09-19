@@ -622,12 +622,11 @@ void ComputeContactImpulsesLagrangian (
 
 namespace Experimental {
 
-void ComputeAccelerationDeltas (
+void ForwardDynamicsAccelerationsOnly (
 		Model &model,
-		const unsigned int body_id,
-		const SpatialAlgebra::SpatialVector &f_t,
-		VectorNd &QDDot_t
-	) {
+		VectorNd &QDDot_t,
+		std::vector<SpatialAlgebra::SpatialVector> *f_ext
+		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
 	static std::vector<SpatialVector> d_pv;
@@ -651,9 +650,9 @@ void ComputeAccelerationDeltas (
 		model.IA[i] = model.mBodies[i].mSpatialInertia;
 		d_p[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
 
-		if (i == body_id) {
-			d_p[i] -= spatial_adjoint(model.X_base[i]) * f_t;
-			LOG << "f_t (local)[" << i << "] = " << spatial_adjoint(model.X_base[i]) * f_t << std::endl;
+		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
+			d_p[i] -= spatial_adjoint(model.X_base[i]) * (*f_ext)[i];
+			LOG << "f_t (local)[" << i << "] = " << spatial_adjoint(model.X_base[i]) * (*f_ext)[i] << std::endl;
 		}
 //		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
 	}
@@ -712,6 +711,7 @@ void ForwardDynamicsContacts (
 	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
 	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 	std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
+	std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
 	MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
 	VectorNd f = VectorNd::Zero(ContactData.size());
 	VectorNd a = VectorNd::Zero(ContactData.size());
@@ -743,12 +743,15 @@ void ForwardDynamicsContacts (
 		Vector3d point_global = model.CalcBodyToBaseCoordinates(body_id, point);
 		f_t[ci].set (0., 0., 0., -contact_normal[0], -contact_normal[1], -contact_normal[2]);
 		f_t[ci] = spatial_adjoint(Xtrans(Vector3d (-point_global))) * f_t[ci];
-		LOG << "f_t[" << ci << "] = " << f_t[ci].transpose() << std::endl;
+
+		f_ext_constraints[body_id] = f_t[ci];
+		LOG << "f_t[" << body_id << "] = " << f_t[body_id].transpose() << std::endl;
 
 		{
 //			SUPPRESS_LOGGING;
-			ComputeAccelerationDeltas (model, body_id, f_t[ci], QDDot_t);
+			ForwardDynamicsAccelerationsOnly (model, QDDot_t, &f_ext_constraints);
 		}
+		f_ext_constraints[body_id].setZero();
 
 		// compute the resulting acceleration
 		{
@@ -778,17 +781,17 @@ void ForwardDynamicsContacts (
 
 	LOG << "f = " << f << std::endl;
 
-	std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVector (0., 0., 0., 0., 0., 0.));
-
 	for (ci = 0; ci < ContactData.size(); ci++) {
 		ContactData[ci].force = f[ci];
-		f_ext_constraints[ContactData[ci].body_id] += f_t[ci] * f[ci];
-		LOG << "f_ext[" << ContactData[ci].body_id << "] = " << f_ext_constraints[ContactData[ci].body_id].transpose() << std::endl;
+		unsigned int body_id = ContactData[ci].body_id;
+
+		f_ext_constraints[body_id] += f_t[ci] * f[ci]; 
+		LOG << "f_ext[" << body_id << "] = " << f_ext_constraints[body_id].transpose() << std::endl;
 	}
 
 	{
 		SUPPRESS_LOGGING;
-		ForwardDynamics (model, Q, QDot, Tau, QDDot, &f_ext_constraints);
+		ForwardDynamicsAccelerationsOnly (model, QDDot, &f_ext_constraints);
 	}
 }
 

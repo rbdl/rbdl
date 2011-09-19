@@ -281,7 +281,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContact) {
 
 	Vector3d point_accel_recursive;
 	double contact_force_recursive;
-	point_accel_recursive = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
+	point_accel_recursive = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point, true);
 	contact_force_recursive = contact_data[0].force;
 
 	CHECK_CLOSE (contact_force_lagrangian, contact_force_recursive, TEST_PREC);
