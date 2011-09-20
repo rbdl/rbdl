@@ -31,7 +31,7 @@ void Model::Init() {
 
 	// structural information
 	lambda.push_back(0.);
-	mu.push_back(std::vector<unsigned int>(0));
+	mu.push_back(std::vector<unsigned int>());
 	dof_count = 0;
 
 	// state information
@@ -79,8 +79,9 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 
 	// structural information
 	lambda.push_back(parent_id);
-	mu.push_back(std::vector<unsigned int>(0));
+	mu.push_back(std::vector<unsigned int>());
 	mu.at(parent_id).push_back(q.size());
+
 	dof_count += 1;
 
 	// state information

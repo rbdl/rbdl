@@ -280,6 +280,15 @@ void ForwardDynamicsContacts (
 		VectorNd &QDDot
 		);
 
+void ForwardDynamicsContactsOpt (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		std::vector<ContactInfo> &ContactData,
+		VectorNd &QDDot
+		);
+
 /** \brief Computes the change of the generalized velocity due to collisions
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
