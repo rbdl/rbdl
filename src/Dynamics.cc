@@ -769,11 +769,27 @@ void ForwardDynamicsContacts (
 		}
 
 		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {
-			{
-				SUPPRESS_LOGGING;
-				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
-			}
-			K(ci,cj) = ContactData[cj].normal.dot(point_accel_t - point_accel_0);
+			/*
+			// Compute the acceleration of each contact point due to the test force.
+
+			Matrix3d R = model.X_base[ContactData[cj].body_id].block<3,3>(0,0).transpose();
+			Vector3d p = ContactData[cj].point;
+			Matrix3d T (0., p[2], -p[1],
+					-p[2], 0., p[0],
+					p[1], -p[0], 0.
+					);
+			SpatialVector a = model.a[ContactData[cj].body_id];
+			SpatialVector v = model.v[ContactData[cj].body_id];
+
+			LOG << "R = " << R << std::endl;
+			LOG << "T = " << T << std::endl;
+			Vector3d point_accel_t = R * (T * Vector3d (a[0], a[1], a[2]) + Vector3d (a[3], a[4], a[5]));
+			*/
+
+			Vector3d point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);	
+	
+			LOG << "point_accel_0  = " << point_accel_0.transpose() << std::endl;
+			K(ci,cj) = ContactData[cj].normal.dot(- point_accel_0 + point_accel_t);
 			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
 		}
 	}
@@ -782,7 +798,8 @@ void ForwardDynamicsContacts (
 	LOG << "a = " << std::endl << a << std::endl;
 
 #ifndef RBDL_USE_SIMPLE_MATH
-	f = K.colPivHouseholderQr().solve (a);
+	f = K.ldlt().solve (a);
+//	f = K.colPivHouseholderQr().solve (a);
 #else
 	bool solve_successful = LinSolveGaussElimPivot (K, a, f);
 	assert (solve_successful);

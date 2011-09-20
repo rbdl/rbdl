@@ -318,8 +318,6 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContactRotated) {
 }
 
 TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContact) {
-//	contact_point.set (1., 0., 0.);
-
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
 
@@ -338,6 +336,44 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContact) {
 
 	Q[0] = M_PI * 0.25;
 	Q[3] = M_PI * 0.5;
+	
+	ClearLogOutput();
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
+//	cout << LogOutput.str() << endl;
+
+	Vector3d point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
+//	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
+
+	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, contact_data_lagrangian, QDDot);
+//	cout << "Lagrangian contact force " << contact_data_lagrangian[0].force << ", " << contact_data_lagrangian[1].force << endl;
+
+	CHECK_CLOSE (contact_data_lagrangian[0].force, contact_data[0].force, TEST_PREC);
+	CHECK_CLOSE (contact_data_lagrangian[1].force, contact_data[1].force, TEST_PREC);
+
+	CHECK_CLOSE (0., point_accel_c[0], TEST_PREC);
+	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
+}
+
+TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactRotating) {
+	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
+	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
+
+	std::vector<ContactInfo> contact_data_lagrangian (contact_data);
+	
+
+	// we rotate the joints so that we have full mobility at the contact
+	// point:
+	//
+	//  O       X (contact point)
+	//   \     /
+	//    \   /
+	//     \ /
+	//      *      
+	//
+
+	Q[0] = M_PI * 0.25;
+	Q[3] = M_PI * 0.5;
+	QDot[0] = 2.;
 	
 	ClearLogOutput();
 	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
