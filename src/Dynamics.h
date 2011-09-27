@@ -22,6 +22,8 @@ class Model;
  * This function computes the generalized accelerations from given
  * generalized states, velocities and forces:
  *   \f$ \ddot{q} = M(q)^{-1} ( -N(q, \dot{q}) + \tau)\f$
+ * It does this by using the recursive Articulated Body Algorithm that runs
+ * in \f$O(n_{dof})\f$ with \f$n_{dof}\f$ being the number of joints.
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
@@ -29,6 +31,8 @@ class Model;
  * \param Tau   actuations of the internal joints
  * \param QDDot accelerations of the internal joints (output)
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
+ *
+ * \todo [high] Create a test for this function.
  */
 void ForwardDynamics (
 		Model &model,
@@ -59,7 +63,8 @@ void ForwardDynamicsLagrangian (
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &Tau,
-		VectorNd &QDDot
+		VectorNd &QDDot,
+		std::vector<SpatialAlgebra::SpatialVector> *f_ext = NULL
 		);
 
 /** \brief Computes inverse dynamics with the Newton-Euler Algorithm

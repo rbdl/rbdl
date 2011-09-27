@@ -225,7 +225,8 @@ void ForwardDynamicsLagrangian (
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &Tau,
-		VectorNd &QDDot
+		VectorNd &QDDot,
+		std::vector<SpatialAlgebra::SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
@@ -238,7 +239,7 @@ void ForwardDynamicsLagrangian (
 
 	// we first have to call InverseDynamics as it will update the spatial
 	// joint axes which CRBA does not do on its own!
-	InverseDynamics (model, Q, QDot, QDDot, C);
+	InverseDynamics (model, Q, QDot, QDDot, C, f_ext);
 	CompositeRigidBodyAlgorithm (model, Q, H);
 
 	LOG << "A = " << std::endl << H << std::endl;
