@@ -25,18 +25,6 @@ using namespace SpatialAlgebra::Operators;
 
 namespace RigidBodyDynamics {
 
-// forward declaration
-namespace Experimental {
-
-void ForwardDynamicsFloatingBase (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		VectorNd &QDDot
-		);
-}
-
 void ForwardDynamics (
 		Model &model,
 		const VectorNd &Q,
@@ -265,8 +253,9 @@ void InverseDynamics (
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	if (model.experimental_floating_base)
+	if (model.experimental_floating_base) {
 		assert (0 && !"InverseDynamics not supported for experimental floating base models!");
+	}
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
@@ -616,7 +605,6 @@ void ComputeContactImpulsesLagrangian (
 
 }
 
-
 /*
  * Experimental Code
  */
@@ -856,7 +844,6 @@ void ForwardDynamicsContactsOpt (
 		ForwardDynamicsAccelerationsOnly (model, QDDot, &f_ext_constraints);
 	}
 }
-
 
 void ForwardDynamicsContacts (
 		Model &model,
