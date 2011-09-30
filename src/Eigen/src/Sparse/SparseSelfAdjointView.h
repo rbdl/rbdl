@@ -31,13 +31,13 @@
   * \brief Pseudo expression to manipulate a triangular sparse matrix as a selfadjoint matrix.
   *
   * \param MatrixType the type of the dense matrix storing the coefficients
-  * \param UpLo can be either \c Lower or \c Upper
+  * \param UpLo can be either \c #Lower or \c #Upper
   *
   * This class is an expression of a sefladjoint matrix from a triangular part of a matrix
   * with given dense storage of the coefficients. It is the return type of MatrixBase::selfadjointView()
   * and most of the time this is the only way that it is used.
   *
-  * \sa SparseMatrixBase::selfAdjointView()
+  * \sa SparseMatrixBase::selfadjointView()
   */
 template<typename Lhs, typename Rhs, int UpLo>
 class SparseSelfAdjointTimeDenseProduct;
@@ -383,7 +383,7 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
         continue;
                   
       Index ip = perm ? perm[i] : i;
-      count[DstUpLo==Lower ? std::min(ip,jp) : std::max(ip,jp)]++;
+      count[DstUpLo==Lower ? (std::min)(ip,jp) : (std::max)(ip,jp)]++;
     }
   }
   dest._outerIndexPtr()[0] = 0;
@@ -403,8 +403,8 @@ void permute_symm_to_symm(const MatrixType& mat, SparseMatrix<typename MatrixTyp
         continue;
                   
       Index ip = perm? perm[i] : i;
-      Index k = count[DstUpLo==Lower ? std::min(ip,jp) : std::max(ip,jp)]++;
-      dest._innerIndexPtr()[k] = DstUpLo==Lower ? std::max(ip,jp) : std::min(ip,jp);
+      Index k = count[DstUpLo==Lower ? (std::min)(ip,jp) : (std::max)(ip,jp)]++;
+      dest._innerIndexPtr()[k] = DstUpLo==Lower ? (std::max)(ip,jp) : (std::min)(ip,jp);
       
       if((DstUpLo==Lower && ip<jp) || (DstUpLo==Upper && ip>jp))
         dest._valuePtr()[k] = conj(it.value());

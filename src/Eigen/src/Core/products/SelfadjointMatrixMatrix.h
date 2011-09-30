@@ -114,7 +114,7 @@ struct symm_pack_rhs
     }
 
     // second part: diagonal block
-    for(Index j2=k2; j2<std::min(k2+rows,packet_cols); j2+=nr)
+    for(Index j2=k2; j2<(std::min)(k2+rows,packet_cols); j2+=nr)
     {
       // again we can split vertically in three different parts (transpose, symmetric, normal)
       // transpose
@@ -179,7 +179,7 @@ struct symm_pack_rhs
     for(Index j2=packet_cols; j2<cols; ++j2)
     {
       // transpose
-      Index half = std::min(end_k,j2);
+      Index half = (std::min)(end_k,j2);
       for(Index k=k2; k<half; k++)
       {
         blockB[count] = conj(rhs(j2,k));
@@ -261,12 +261,12 @@ struct product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,ConjugateLhs
     Index nc = cols;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
     // kc must smaller than mc
-    kc = std::min(kc,mc);
+    kc = (std::min)(kc,mc);
 
-    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*cols;
-    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+    ei_declare_aligned_stack_constructed_variable(Scalar, blockA, kc*mc, 0);
+    ei_declare_aligned_stack_constructed_variable(Scalar, allocatedBlockB, sizeB, 0);
     Scalar* blockB = allocatedBlockB + sizeW;
 
     gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
@@ -276,7 +276,7 @@ struct product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,ConjugateLhs
 
     for(Index k2=0; k2<size; k2+=kc)
     {
-      const Index actual_kc = std::min(k2+kc,size)-k2;
+      const Index actual_kc = (std::min)(k2+kc,size)-k2;
 
       // we have selected one row panel of rhs and one column panel of lhs
       // pack rhs's panel into a sequential chunk of memory
@@ -289,7 +289,7 @@ struct product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,ConjugateLhs
       //  3 - the panel below the diagonal block => generic packed copy
       for(Index i2=0; i2<k2; i2+=mc)
       {
-        const Index actual_mc = std::min(i2+mc,k2)-i2;
+        const Index actual_mc = (std::min)(i2+mc,k2)-i2;
         // transposed packed copy
         pack_lhs_transposed(blockA, &lhs(k2, i2), lhsStride, actual_kc, actual_mc);
 
@@ -297,7 +297,7 @@ struct product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,ConjugateLhs
       }
       // the block diagonal
       {
-        const Index actual_mc = std::min(k2+kc,size)-k2;
+        const Index actual_mc = (std::min)(k2+kc,size)-k2;
         // symmetric packed copy
         pack_lhs(blockA, &lhs(k2,k2), lhsStride, actual_kc, actual_mc);
 
@@ -306,16 +306,13 @@ struct product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,true,ConjugateLhs
 
       for(Index i2=k2+kc; i2<size; i2+=mc)
       {
-        const Index actual_mc = std::min(i2+mc,size)-i2;
+        const Index actual_mc = (std::min)(i2+mc,size)-i2;
         gemm_pack_lhs<Scalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder,false>()
           (blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
         gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha);
       }
     }
-
-    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
   }
 };
 
@@ -343,11 +340,10 @@ struct product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,ConjugateLh
     Index mc = rows;  // cache block size along the M direction
     Index nc = cols;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar>(kc, mc, nc);
-
-    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*cols;
-    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+    ei_declare_aligned_stack_constructed_variable(Scalar, blockA, kc*mc, 0);
+    ei_declare_aligned_stack_constructed_variable(Scalar, allocatedBlockB, sizeB, 0);
     Scalar* blockB = allocatedBlockB + sizeW;
 
     gebp_kernel<Scalar, Scalar, Index, Traits::mr, Traits::nr, ConjugateLhs, ConjugateRhs> gebp_kernel;
@@ -356,22 +352,19 @@ struct product_selfadjoint_matrix<Scalar,Index,LhsStorageOrder,false,ConjugateLh
 
     for(Index k2=0; k2<size; k2+=kc)
     {
-      const Index actual_kc = std::min(k2+kc,size)-k2;
+      const Index actual_kc = (std::min)(k2+kc,size)-k2;
 
       pack_rhs(blockB, _rhs, rhsStride, actual_kc, cols, k2);
 
       // => GEPP
       for(Index i2=0; i2<rows; i2+=mc)
       {
-        const Index actual_mc = std::min(i2+mc,rows)-i2;
+        const Index actual_mc = (std::min)(i2+mc,rows)-i2;
         pack_lhs(blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
         gebp_kernel(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, cols, alpha);
       }
     }
-
-    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
   }
 };
 

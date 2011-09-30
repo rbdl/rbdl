@@ -290,7 +290,7 @@ inline typename MatrixType::Scalar RealSchur<MatrixType>::computeNormOfT()
   //               + m_matT.bottomLeftCorner(size-1,size-1).diagonal().cwiseAbs().sum();
   Scalar norm = 0.0;
   for (Index j = 0; j < size; ++j)
-    norm += m_matT.row(j).segment(std::max(j-1,Index(0)), size-std::max(j-1,Index(0))).cwiseAbs().sum();
+    norm += m_matT.row(j).segment((std::max)(j-1,Index(0)), size-(std::max)(j-1,Index(0))).cwiseAbs().sum();
   return norm;
 }
 
@@ -324,11 +324,11 @@ inline void RealSchur<MatrixType>::splitOffTwoRows(Index iu, bool computeU, Scal
   m_matT.coeffRef(iu,iu) += exshift;
   m_matT.coeffRef(iu-1,iu-1) += exshift;
 
-  if (q >= 0) // Two real eigenvalues
+  if (q >= Scalar(0)) // Two real eigenvalues
   {
     Scalar z = internal::sqrt(internal::abs(q));
     JacobiRotation<Scalar> rot;
-    if (p >= 0)
+    if (p >= Scalar(0))
       rot.makeGivens(p + z, m_matT.coeff(iu, iu-1));
     else
       rot.makeGivens(p - z, m_matT.coeff(iu, iu-1));
@@ -369,7 +369,7 @@ inline void RealSchur<MatrixType>::computeShift(Index iu, Index iter, Scalar& ex
   {
     Scalar s = (shiftInfo.coeff(1) - shiftInfo.coeff(0)) / Scalar(2.0);
     s = s * s + shiftInfo.coeff(2);
-    if (s > 0)
+    if (s > Scalar(0))
     {
       s = internal::sqrt(s);
       if (shiftInfo.coeff(1) < shiftInfo.coeff(0))
@@ -442,7 +442,7 @@ inline void RealSchur<MatrixType>::performFrancisQRStep(Index il, Index im, Inde
 
       // These Householder transformations form the O(n^3) part of the algorithm
       m_matT.block(k, k, 3, size-k).applyHouseholderOnTheLeft(ess, tau, workspace);
-      m_matT.block(0, k, std::min(iu,k+3) + 1, 3).applyHouseholderOnTheRight(ess, tau, workspace);
+      m_matT.block(0, k, (std::min)(iu,k+3) + 1, 3).applyHouseholderOnTheRight(ess, tau, workspace);
       if (computeU)
         m_matU.block(0, k, size, 3).applyHouseholderOnTheRight(ess, tau, workspace);
     }

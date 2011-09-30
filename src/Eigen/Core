@@ -51,16 +51,16 @@
       #define EIGEN_SSE2_ON_MSVC_2008_OR_LATER
     #endif
   #endif
-#endif
-
-// Remember that usage of defined() in a #define is undefined by the standard
-#if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
-  #define EIGEN_SSE2_BUT_NOT_OLD_GCC
+#else
+  // Remember that usage of defined() in a #define is undefined by the standard
+  #if (defined __SSE2__) && ( (!defined __GNUC__) || EIGEN_GNUC_AT_LEAST(4,2) )
+    #define EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC
+  #endif
 #endif
 
 #ifndef EIGEN_DONT_VECTORIZE
 
-  #if defined (EIGEN_SSE2_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
+  #if defined (EIGEN_SSE2_ON_NON_MSVC_BUT_NOT_OLD_GCC) || defined(EIGEN_SSE2_ON_MSVC_2008_OR_LATER)
 
     // Defines symbols for compile-time detection of which instructions are
     // used.
@@ -143,6 +143,7 @@
 #ifdef EIGEN_HAS_ERRNO
 #include <cerrno>
 #endif
+#include <cstddef>
 #include <cstdlib>
 #include <cmath>
 #include <complex>
@@ -174,16 +175,10 @@
   #include <new>
 #endif
 
-// this needs to be done after all possible windows C header includes and before any Eigen source includes
-// (system C++ includes are supposed to be able to deal with this already):
-// windows.h defines min and max macros which would make Eigen fail to compile.
-#if defined(min) || defined(max)
-#error The preprocessor symbols 'min' or 'max' are defined. If you are compiling on Windows, do #define NOMINMAX to prevent windows.h from defining these symbols.
-#endif
-
 // defined in bits/termios.h
 #undef B0
 
+/** \brief Namespace containing all symbols from the %Eigen library. */
 namespace Eigen {
 
 inline static const char *SimdInstructionSetsInUse(void) {
@@ -239,6 +234,8 @@ inline static const char *SimdInstructionSetsInUse(void) {
 // we use size_t frequently and we'll never remember to prepend it with std:: everytime just to
 // ensure QNX/QCC support
 using std::size_t;
+// gcc 4.6.0 wants std:: for ptrdiff_t 
+using std::ptrdiff_t;
 
 /** \defgroup Core_Module Core module
   * This is the main module of Eigen providing dense matrix and vector support

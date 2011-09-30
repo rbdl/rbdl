@@ -83,10 +83,10 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
     if(mc > Traits::nr)
       mc = (mc/Traits::nr)*Traits::nr;
 
-    LhsScalar* blockA = ei_aligned_stack_new(LhsScalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*size;
-    RhsScalar* allocatedBlockB = ei_aligned_stack_new(RhsScalar, sizeB);
+    ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, kc*mc, 0);
+    ei_declare_aligned_stack_constructed_variable(RhsScalar, allocatedBlockB, sizeB, 0);
     RhsScalar* blockB = allocatedBlockB + sizeW;
     
     gemm_pack_lhs<LhsScalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
@@ -96,14 +96,14 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 
     for(Index k2=0; k2<depth; k2+=kc)
     {
-      const Index actual_kc = std::min(k2+kc,depth)-k2;
+      const Index actual_kc = (std::min)(k2+kc,depth)-k2;
 
       // note that the actual rhs is the transpose/adjoint of mat
       pack_rhs(blockB, &rhs(k2,0), rhsStride, actual_kc, size);
 
       for(Index i2=0; i2<size; i2+=mc)
       {
-        const Index actual_mc = std::min(i2+mc,size)-i2;
+        const Index actual_mc = (std::min)(i2+mc,size)-i2;
 
         pack_lhs(blockA, &lhs(i2, k2), lhsStride, actual_kc, actual_mc);
 
@@ -112,7 +112,7 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
         //  2 - the actual_mc x actual_mc symmetric block => processed with a special kernel
         //  3 - after the diagonal => processed with gebp or skipped
         if (UpLo==Lower)
-          gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, std::min(size,i2), alpha,
+          gebp(res+i2, resStride, blockA, blockB, actual_mc, actual_kc, (std::min)(size,i2), alpha,
                -1, -1, 0, 0, allocatedBlockB);
 
         sybb(res+resStride*i2 + i2, resStride, blockA, blockB + actual_kc*i2, actual_mc, actual_kc, alpha, allocatedBlockB);
@@ -120,13 +120,11 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
         if (UpLo==Upper)
         {
           Index j2 = i2+actual_mc;
-          gebp(res+resStride*j2+i2, resStride, blockA, blockB+actual_kc*j2, actual_mc, actual_kc, std::max(Index(0), size-j2), alpha,
+          gebp(res+resStride*j2+i2, resStride, blockA, blockB+actual_kc*j2, actual_mc, actual_kc, (std::max)(Index(0), size-j2), alpha,
                -1, -1, 0, 0, allocatedBlockB);
         }
       }
     }
-    ei_aligned_stack_delete(LhsScalar, blockA, kc*mc);
-    ei_aligned_stack_delete(RhsScalar, allocatedBlockB, sizeB);
   }
 };
 

@@ -111,6 +111,7 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
       EIGEN_ONLY_USED_FOR_DEBUG(col);
       eigen_assert(col>=0 && col<cols() && row>=0 && row<rows());
       const int mode = int(Mode) & ~SelfAdjoint;
+      EIGEN_ONLY_USED_FOR_DEBUG(mode);
       eigen_assert((mode==Upper && col>=row)
                 || (mode==Lower && col<=row)
                 || ((mode==StrictlyUpper || mode==UnitUpper) && col>row)
@@ -134,13 +135,13 @@ template<typename Derived> class TriangularBase : public EigenBase<Derived>
   * \brief Base class for triangular part in a matrix
   *
   * \param MatrixType the type of the object in which we are taking the triangular part
-  * \param Mode the kind of triangular matrix expression to construct. Can be Upper,
-  *             Lower, UpperSelfadjoint, or LowerSelfadjoint. This is in fact a bit field;
-  *             it must have either Upper or Lower, and additionnaly it may have either
-  *             UnitDiag or Selfadjoint.
+  * \param Mode the kind of triangular matrix expression to construct. Can be #Upper,
+  *             #Lower, #UnitUpper, #UnitLower, #StrictlyUpper, or #StrictlyLower.
+  *             This is in fact a bit field; it must have either #Upper or #Lower, 
+  *             and additionnaly it may have #UnitDiag or #ZeroDiag or neither.
   *
   * This class represents a triangular part of a matrix, not necessarily square. Strictly speaking, for rectangular
-  * matrices one should speak ok "trapezoid" parts. This class is the return type
+  * matrices one should speak of "trapezoid" parts. This class is the return type
   * of MatrixBase::triangularView() and most of the time this is the only way it is used.
   *
   * \sa MatrixBase::triangularView()
@@ -448,6 +449,8 @@ struct triangular_assignment_selector
     col = (UnrollCount-1) / Derived1::RowsAtCompileTime,
     row = (UnrollCount-1) % Derived1::RowsAtCompileTime
   };
+  
+  typedef typename Derived1::Scalar Scalar;
 
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
@@ -466,9 +469,9 @@ struct triangular_assignment_selector
     else if(ClearOpposite)
     {
       if (Mode&UnitDiag && row==col)
-        dst.coeffRef(row, col) = 1;
+        dst.coeffRef(row, col) = Scalar(1);
       else
-        dst.coeffRef(row, col) = 0;
+        dst.coeffRef(row, col) = Scalar(0);
     }
   }
 };
@@ -484,16 +487,17 @@ template<typename Derived1, typename Derived2, bool ClearOpposite>
 struct triangular_assignment_selector<Derived1, Derived2, Upper, Dynamic, ClearOpposite>
 {
   typedef typename Derived1::Index Index;
+  typedef typename Derived1::Scalar Scalar;
   inline static void run(Derived1 &dst, const Derived2 &src)
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
-      Index maxi = std::min(j, dst.rows()-1);
+      Index maxi = (std::min)(j, dst.rows()-1);
       for(Index i = 0; i <= maxi; ++i)
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
         for(Index i = maxi+1; i < dst.rows(); ++i)
-          dst.coeffRef(i, j) = 0;
+          dst.coeffRef(i, j) = Scalar(0);
     }
   }
 };
@@ -508,10 +512,10 @@ struct triangular_assignment_selector<Derived1, Derived2, Lower, Dynamic, ClearO
     {
       for(Index i = j; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
-      Index maxi = std::min(j, dst.rows());
+      Index maxi = (std::min)(j, dst.rows());
       if (ClearOpposite)
         for(Index i = 0; i < maxi; ++i)
-          dst.coeffRef(i, j) = 0;
+          dst.coeffRef(i, j) = static_cast<typename Derived1::Scalar>(0);
     }
   }
 };
@@ -524,7 +528,7 @@ struct triangular_assignment_selector<Derived1, Derived2, StrictlyUpper, Dynamic
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
-      Index maxi = std::min(j, dst.rows());
+      Index maxi = (std::min)(j, dst.rows());
       for(Index i = 0; i < maxi; ++i)
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
@@ -544,10 +548,10 @@ struct triangular_assignment_selector<Derived1, Derived2, StrictlyLower, Dynamic
     {
       for(Index i = j+1; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
-      Index maxi = std::min(j, dst.rows()-1);
+      Index maxi = (std::min)(j, dst.rows()-1);
       if (ClearOpposite)
         for(Index i = 0; i <= maxi; ++i)
-          dst.coeffRef(i, j) = 0;
+          dst.coeffRef(i, j) = static_cast<typename Derived1::Scalar>(0);
     }
   }
 };
@@ -560,7 +564,7 @@ struct triangular_assignment_selector<Derived1, Derived2, UnitUpper, Dynamic, Cl
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
-      Index maxi = std::min(j, dst.rows());
+      Index maxi = (std::min)(j, dst.rows());
       for(Index i = 0; i < maxi; ++i)
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
@@ -580,7 +584,7 @@ struct triangular_assignment_selector<Derived1, Derived2, UnitLower, Dynamic, Cl
   {
     for(Index j = 0; j < dst.cols(); ++j)
     {
-      Index maxi = std::min(j, dst.rows());
+      Index maxi = (std::min)(j, dst.rows());
       for(Index i = maxi+1; i < dst.rows(); ++i)
         dst.copyCoeff(i, j, src);
       if (ClearOpposite)
@@ -756,8 +760,8 @@ typename internal::eigen2_part_return_type<Derived, Mode>::type MatrixBase<Deriv
 /**
   * \returns an expression of a triangular view extracted from the current matrix
   *
-  * The parameter \a Mode can have the following values: \c Upper, \c StrictlyUpper, \c UnitUpper,
-  * \c Lower, \c StrictlyLower, \c UnitLower.
+  * The parameter \a Mode can have the following values: \c #Upper, \c #StrictlyUpper, \c #UnitUpper,
+  * \c #Lower, \c #StrictlyLower, \c #UnitLower.
   *
   * Example: \include MatrixBase_extract.cpp
   * Output: \verbinclude MatrixBase_extract.out
@@ -792,7 +796,7 @@ bool MatrixBase<Derived>::isUpperTriangular(RealScalar prec) const
   RealScalar maxAbsOnUpperPart = static_cast<RealScalar>(-1);
   for(Index j = 0; j < cols(); ++j)
   {
-    Index maxi = std::min(j, rows()-1);
+    Index maxi = (std::min)(j, rows()-1);
     for(Index i = 0; i <= maxi; ++i)
     {
       RealScalar absValue = internal::abs(coeff(i,j));
@@ -824,7 +828,7 @@ bool MatrixBase<Derived>::isLowerTriangular(RealScalar prec) const
   RealScalar threshold = maxAbsOnLowerPart * prec;
   for(Index j = 1; j < cols(); ++j)
   {
-    Index maxi = std::min(j, rows()-1);
+    Index maxi = (std::min)(j, rows()-1);
     for(Index i = 0; i < maxi; ++i)
       if(internal::abs(coeff(i, j)) > threshold) return false;
   }

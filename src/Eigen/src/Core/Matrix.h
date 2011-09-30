@@ -43,8 +43,8 @@
   * \tparam _Cols Number of columns, or \b Dynamic
   *
   * The remaining template parameters are optional -- in most cases you don't have to worry about them.
-  * \tparam _Options \anchor matrix_tparam_options A combination of either \b RowMajor or \b ColMajor, and of either
-  *                 \b AutoAlign or \b DontAlign.
+  * \tparam _Options \anchor matrix_tparam_options A combination of either \b #RowMajor or \b #ColMajor, and of either
+  *                 \b #AutoAlign or \b #DontAlign.
   *                 The former controls \ref TopicStorageOrders "storage order", and defaults to column-major. The latter controls alignment, which is required
   *                 for vectorization. It defaults to aligning matrices except for fixed sizes that aren't a multiple of the packet size.
   * \tparam _MaxRows Maximum number of rows. Defaults to \a _Rows (\ref maxrows "note").
@@ -263,7 +263,7 @@ class Matrix
     #endif
 
     /** \brief Constructs an initialized 3D vector with given coefficients */
-    EIGEN_STRONG_INLINE explicit Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
+    EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z)
     {
       Base::_check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3)
@@ -272,7 +272,7 @@ class Matrix
       m_storage.data()[2] = z;
     }
     /** \brief Constructs an initialized 4D vector with given coefficients */
-    EIGEN_STRONG_INLINE explicit Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
+    EIGEN_STRONG_INLINE Matrix(const Scalar& x, const Scalar& y, const Scalar& z, const Scalar& w)
     {
       Base::_check_template_params();
       EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 4)
@@ -281,6 +281,7 @@ class Matrix
       m_storage.data()[2] = z;
       m_storage.data()[3] = w;
     }
+
     explicit Matrix(const Scalar *data);
 
     /** \brief Constructor copying the value of the expression \a other */
