@@ -183,6 +183,21 @@ TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
 	// \Todo: Dynamic properties
 }
 
+TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
+	Body body;
+	Joint joint (
+		JointTypeRevolute,
+		Vector3d(0., 0., 1.)
+		);
+
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body, "mybody"); 
+
+	unsigned int body_id = model->GetBodyId("mybody");
+
+	CHECK_EQUAL (1, body_id);
+	CHECK_EQUAL (std::numeric_limits<unsigned int>::max(), model->GetBodyId("unknownbody"));
+}
+
 TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	Body body;
 	Joint joint (

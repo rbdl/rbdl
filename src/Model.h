@@ -13,8 +13,9 @@
 #include <list>
 #include <assert.h>
 #include <iostream>
-#include "Logging.h"
+#include <limits>
 
+#include "Logging.h"
 #include "Joint.h"
 #include "Body.h"
 #include "Visualization.h"
@@ -154,6 +155,9 @@ struct Model {
 	 */
 	std::vector<Body> mBodies;
 
+	/// \brief Human readable names for the bodies
+	std::vector<std::string> mBodyNames;
+
 	/** \brief Connects a given body to the model
 	 *
 	 * When adding a body there are basically informations required:
@@ -178,6 +182,8 @@ struct Model {
 	 *                    of the joint frame (represents X_T in RBDA)
 	 * \param joint       specification for the joint that describes the connection
 	 * \param body        specification of the body itself
+	 * \param body_name   human readable name for the body (can be used to retrieve its id
+	 *                    with GetBodyId())
 	 *
 	 * \returns id of the added body
 	 */
@@ -185,7 +191,8 @@ struct Model {
 			const unsigned int parent_id,
 			const SpatialAlgebra::SpatialMatrix &joint_frame,
 			const Joint &joint,
-			const Body &body
+			const Body &body,
+			std::string body_name = "" 
 			);
 
 	/** \brief Specifies the dynamical parameters of the first body and
@@ -202,7 +209,19 @@ struct Model {
 	unsigned int SetFloatingBaseBody (
 			const Body &body
 			);
-	
+
+	/** \brief Returns the id of a body that was passed to AddBody()
+	 *
+	 * Bodies can be given a human readable name. This function allows to
+	 * resolve its name to the numeric id.
+	 *
+	 * \note Instead of querying this function repeatedly, it might be
+	 * advisable to query it once and reuse the returned id.
+	 *
+	 * \returns the id of the body or \c std::numeric_limits<unsigned int>::max() if the id was not found.
+	 */
+	unsigned int GetBodyId (const char *id);
+
 	/** \brief Returns the 3-D coordinate vector of the origin of a given body
 	 *  \brief in base coordinates
 	 *

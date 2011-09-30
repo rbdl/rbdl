@@ -256,12 +256,6 @@ Vector3d CalcPointVelocity (
 	// Reset the velocity of the root body
 	model.v[0].setZero();
 
-	// Copy state values from the input to the variables in model
-	for (i = 0; i < Q.size(); i++) {
-		model.q[i+1] = Q[i];
-		model.qdot[i+1] = QDot[i];
-	}
-
 	// update the Kinematics with zero acceleration
 	if (update_kinematics) {
 		VectorNd QDDot_zero = VectorNd::Zero(Q.size());

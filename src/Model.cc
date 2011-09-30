@@ -68,12 +68,14 @@ void Model::Init() {
 	X_base.push_back(SpatialMatrixIdentity);
 
 	mBodies.push_back(root_body);
+	mBodyNames.push_back("ROOT");
 }
 
 unsigned int Model::AddBody (const unsigned int parent_id,
 		const SpatialMatrix &joint_frame,
 		const Joint &joint,
-		const Body &body) {
+		const Body &body,
+		std::string body_name) {
 	assert (lambda.size() > 0);
 	assert (joint.mJointType != JointTypeUndefined);
 
@@ -114,6 +116,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	X_lambda.push_back(SpatialMatrixIdentity);
 	X_base.push_back(SpatialMatrixIdentity);
 	mBodies.push_back(body);
+	mBodyNames.push_back(body_name);
 
 	return q.size() - 1;
 }
@@ -190,6 +193,15 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 
 		return body_rx_id;
 	}
+}
+
+unsigned int Model::GetBodyId (const char *id) {
+	for (unsigned int i = 0; i < mBodyNames.size(); i++) {
+		if (mBodyNames[i] == id)
+			return i;
+	}
+
+	return std::numeric_limits<unsigned int>::max();
 }
 
 Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
