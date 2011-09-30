@@ -25,13 +25,15 @@
  *
  * \section ModelConstruction Construction of Models
  *
- * The construction of models makes use of carefully designed constructors
- * of the classes Body and Joint to ease the process of creating bodies.
- * Adding bodies to the model is done by specifying the parent body by its
- * id, the transformation from the parent origin to the joint origin, the
- * joint specification as an object, and the body itself. These parameters
- * are then fed to the function RigidBodyDynamics::Model::AddBody().
- *
+ * The construction of \link RigidBodyDynamics::Model Models \endlink makes
+ * use of carefully designed constructors of the classes \link
+ * RigidBodyDynamics::Body Body \endlink and \link RigidBodyDynamics::Joint
+ * Joint \endlink to ease the process of creating bodies.  Adding bodies to
+ * the model is done by specifying the parent body by its id, the
+ * transformation from the parent origin to the joint origin, the joint
+ * specification as an object, and the body itself. These parameters are
+ * then fed to the function RigidBodyDynamics::Model::AddBody().
+ * 
  * \section Licensing Licensing
  *
  * The library is published under the very permissive zlib free software
