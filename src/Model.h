@@ -18,7 +18,6 @@
 #include "Logging.h"
 #include "Joint.h"
 #include "Body.h"
-#include "Visualization.h"
 
 // std::vectors containing any objectst that have Eigen matrices or vectors
 // as members need to have a special allocater. This can be achieved with
@@ -32,12 +31,6 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
 /** \brief Namespace for all structures of the RigidBodyDynamics library
  */
 namespace RigidBodyDynamics {
-
-namespace Visualization {
-	class Primitive;
-	class PrimitiveBox;
-	class PrimitiveSphere;
-}
 
 /** \brief Contains all information about the rigid body model
  *
@@ -267,36 +260,6 @@ struct Model {
 
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
-
-	////////////////////////////////////
-	// Visualization
-
-	typedef std::list<Visualization::Primitive> VisualizationPrimitiveList;
-
-#ifdef EIGEN_CORE_H
-	typedef std::map<unsigned int, VisualizationPrimitiveList,
-					std::less<unsigned int>, Eigen::aligned_allocator<std::pair<const unsigned int, VisualizationPrimitiveList> > > BodyVisualizationMap;
-#else
-	typedef std::map<unsigned int, VisualizationPrimitiveList> BodyVisualizationMap;
-#endif
-	BodyVisualizationMap mBodyVisualization;
-
-	/** \brief Adds a Visualization::Primitive to the primitive list of a body
-	 *
-	 * \param body_id id of the body that should be drawn as a box
-	 * \param primitive the primitive that should be associated with the body
-	 *
-	 * \todo Wrap primitives up in smart pointers.
-	 */
-	void AddBodyVisualizationPrimitive (unsigned int body_id, Visualization::Primitive primitive);
-	
-	/** \brief Returns the visualization primitive for a box
-	 *
-	 * \param body_id id of the body of intrest
-	 *
-	 * \returns A pointer to the primitive or NULL if none exists.
-	 */
-	VisualizationPrimitiveList GetBodyVisualizationPrimitiveList (unsigned int body_id);
 };
 
 }

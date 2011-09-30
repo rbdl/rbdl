@@ -22,7 +22,6 @@ SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
 OPTION (BUILD_STATIC "Build the statically linked library" OFF)
-OPTION (BUILD_GUI "Build the (rudimentary) graphical user interface" OFF)
 OPTION (BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
@@ -53,10 +52,6 @@ ENDIF (BUILD_STATIC)
 IF (BUILD_TESTS)
   ADD_SUBDIRECTORY ( tests )
 ENDIF (BUILD_TESTS)
-
-IF (BUILD_GUI)
-  ADD_SUBDIRECTORY ( gui )
-ENDIF (BUILD_GUI)
 
 # Installing
 INSTALL (TARGETS rbdl
