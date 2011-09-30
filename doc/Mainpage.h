@@ -16,7 +16,7 @@
  * The library comes with version 3 of the the
  * <a href="http://eigen.tuxfamily.org/">Eigen</a> math library. More
  * information about it can be found here:
- * <a href="http://eigen.tuxfamily.org/">http://eigen.tuxfamily.org/</a>).
+ * <a href="http://eigen.tuxfamily.org/">http://eigen.tuxfamily.org/</a>.
  *
  * Documentation of the functions can be found at the documentation page of
  * the namespace RigidBodyDynamics.
