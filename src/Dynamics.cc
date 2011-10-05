@@ -758,8 +758,8 @@ void ForwardDynamicsContacts (
 		{
 //			SUPPRESS_LOGGING;
 			ForwardDynamicsAccelerationsOnly (model, QDDot_t, &f_ext_constraints);
-			LOG << "QDDot_t = " << QDDot_t.transpose() << std::endl;
 			LOG << "QDDot_0 = " << QDDot_0.transpose() << std::endl;
+			LOG << "QDDot_t = " << QDDot_t.transpose() << std::endl;
 			LOG << "QDDot_t - QDDot_0= " << (QDDot_t - QDDot_0).transpose() << std::endl;
 		}
 		f_ext_constraints[body_id].setZero();
@@ -818,10 +818,10 @@ void ForwardDynamicsAccelerationDeltas (
 		) {
 	LOG << "-------- " << __func__ << " ------" << std::endl;
 	
-	static std::vector<SpatialVector> d_p_v (model.mBodies.size());
-	static std::vector<SpatialVector> d_pA (model.mBodies.size());
-	static std::vector<SpatialVector> d_a (model.mBodies.size());
-	static std::vector<double> d_u (model.mBodies.size());
+	std::vector<SpatialVector> d_p_v (model.mBodies.size());
+	std::vector<SpatialVector> d_pA (model.mBodies.size());
+	std::vector<SpatialVector> d_a (model.mBodies.size());
+	std::vector<double> d_u (model.mBodies.size());
 
 	if (d_p_v.size() != model.mBodies.size()) {
 		d_p_v.resize(model.mBodies.size());
@@ -879,10 +879,10 @@ void ForwardDynamicsContactsOpt (
 //	LOG << "Q    = " << Q.transpose() << std::endl;
 //	LOG << "QDot = " << QDot.transpose() << std::endl;
 //	assert (ContactData.size() == 1);
-	static std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
-	static std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
-	static VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
-	static VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
+	std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
+	std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
+	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
+	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 
 	MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
 	VectorNd f = VectorNd::Zero(ContactData.size());
@@ -942,8 +942,8 @@ void ForwardDynamicsContactsOpt (
 //			SUPPRESS_LOGGING;
 			ForwardDynamicsAccelerationDeltas (model, QDDot_t, body_id, f_ext_constraints[body_id]);
 			LOG << "QDDot_0 = " << QDDot_0.transpose() << std::endl;
-			LOG << "QDDot_t = " << QDDot_t.transpose() << std::endl;
-			LOG << "QDDot_t - QDDot_0= " << (QDDot_t - QDDot_0).transpose() << std::endl;
+			LOG << "QDDot_t = " << (QDDot_t + QDDot_0).transpose() << std::endl;
+			LOG << "QDDot_t - QDDot_0= " << (QDDot_t).transpose() << std::endl;
 		}
 		f_ext_constraints[body_id].setZero();
 
