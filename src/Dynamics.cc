@@ -952,19 +952,32 @@ void ForwardDynamicsContactsOpt (
 		}
 		f_ext_constraints[body_id].setZero();
 
-		// compute the resulting acceleration
-		{
-			SUPPRESS_LOGGING;
-			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_t);
+		// update the spatial accelerations due to the test force
+		for (unsigned j = 1; j < model.mBodies.size(); j++) {
+			if (model.lambda[j] != 0) {
+				model.a[j] = model.X_lambda[j] * model.a[model.lambda[j]] + model.c[j];
+			}	else {
+				model.a[j].setZero();
+			}
+
+			model.a[j] = model.a[j] + model.S[j] * QDDot_t[j - 1];
 		}
 
 		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {
+			static SpatialVector point_spatial_acc;
 			{
 				SUPPRESS_LOGGING;
 
-				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
+				// we compute the net effect (acceleration due to the test force) by
+				// simply transforming the spatial acceleration appropriately. This
+				// is faster than calling CalcPointAcceleration.
+				point_global = model.CalcBodyToBaseCoordinates(ContactData[cj].body_id, ContactData[cj].point);
+				point_spatial_acc = Xtrans (point_global) * (spatial_inverse(model.X_base[ContactData[cj].body_id]) * model.a[ContactData[cj].body_id]);
+//				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
 			}
-	
+
+			point_accel_t.set (point_spatial_acc[3], point_spatial_acc[4], point_spatial_acc[5]);
+			LOG << "point_spatial_a= " << point_spatial_acc.transpose() << std::endl;
 			LOG << "point_accel_0  = " << point_accel_0.transpose() << std::endl;
 			K(ci,cj) = ContactData[cj].normal.dot(point_accel_t);
 			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
