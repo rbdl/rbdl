@@ -814,14 +814,14 @@ void ForwardDynamicsAccelerationDeltas (
 		Model &model,
 		VectorNd &QDDot_t,
 		const unsigned int body_id,
-		SpatialVector &f_t
+		const std::vector<SpatialVector> &f_t
 		) {
 	LOG << "-------- " << __func__ << " ------" << std::endl;
 	
-	std::vector<SpatialVector> d_p_v (model.mBodies.size());
-	std::vector<SpatialVector> d_pA (model.mBodies.size());
-	std::vector<SpatialVector> d_a (model.mBodies.size());
-	std::vector<double> d_u (model.mBodies.size());
+	static std::vector<SpatialVector> d_p_v (model.mBodies.size());
+	static std::vector<SpatialVector> d_pA (model.mBodies.size());
+	static std::vector<SpatialVector> d_a (model.mBodies.size());
+	static std::vector<double> d_u (model.mBodies.size());
 
 	if (d_p_v.size() != model.mBodies.size()) {
 		d_p_v.resize(model.mBodies.size());
@@ -838,11 +838,12 @@ void ForwardDynamicsAccelerationDeltas (
 
 	for (unsigned int i = body_id; i > 0; i--) {
 		if (i == body_id) {
-			d_p_v[i] = -spatial_adjoint(model.X_base[i]) * f_t;
+			d_p_v[i] = -spatial_adjoint(model.X_base[i]) * f_t[body_id];
 			d_pA[i] = d_p_v[i];
 		} else {
 			d_p_v[i].setZero();
 			d_pA[i].setZero();
+			d_u[i] = 0.;
 		}
 		
 		for (unsigned int j = 0; j < model.mu[i].size(); j++) {
@@ -862,7 +863,7 @@ void ForwardDynamicsAccelerationDeltas (
 
 		SpatialVector Xa = model.X_lambda[i] * d_a[j];
 		QDDot_t[i - 1] = (d_u[i] - model.U[i].dot(Xa) ) / model.d[i];
-		d_a[i] = model.X_lambda[i] * d_a[j] + model.S[i] * QDDot_t[i - 1];
+		d_a[i] = Xa + model.S[i] * QDDot_t[i - 1];
 	}
 }
 
@@ -879,20 +880,24 @@ void ForwardDynamicsContactsOpt (
 //	LOG << "Q    = " << Q.transpose() << std::endl;
 //	LOG << "QDot = " << QDot.transpose() << std::endl;
 //	assert (ContactData.size() == 1);
-	std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
-	std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
-	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
-	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
+	static std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
+	static std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
+	static VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
+	static VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 
-	MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
-	VectorNd f = VectorNd::Zero(ContactData.size());
-	VectorNd a = VectorNd::Zero(ContactData.size());
+	static MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
+	static VectorNd f = VectorNd::Zero(ContactData.size());
+	static VectorNd a = VectorNd::Zero(ContactData.size());
 
 	if (f_ext_constraints.size() != model.mBodies.size())
 		f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
 
-	if (f_t.size() != ContactData.size())
+	if (f_t.size() != ContactData.size()) {
 		f_t.resize(ContactData.size(), SpatialVectorZero);
+		K.resize(ContactData.size(), ContactData.size());
+		f.resize(ContactData.size());
+		a.resize(ContactData.size());
+	}
 
 	if (QDDot_0.size() != model.dof_count) {
 		QDDot_0.resize(model.dof_count);
@@ -940,7 +945,7 @@ void ForwardDynamicsContactsOpt (
 
 		{
 //			SUPPRESS_LOGGING;
-			ForwardDynamicsAccelerationDeltas (model, QDDot_t, body_id, f_ext_constraints[body_id]);
+			ForwardDynamicsAccelerationDeltas (model, QDDot_t, body_id, f_ext_constraints);
 			LOG << "QDDot_0 = " << QDDot_0.transpose() << std::endl;
 			LOG << "QDDot_t = " << (QDDot_t + QDDot_0).transpose() << std::endl;
 			LOG << "QDDot_t - QDDot_0= " << (QDDot_t).transpose() << std::endl;
@@ -970,8 +975,8 @@ void ForwardDynamicsContactsOpt (
 	LOG << "a = " << std::endl << a << std::endl;
 
 #ifndef RBDL_USE_SIMPLE_MATH
-	f = K.ldlt().solve (a);
-//	f = K.colPivHouseholderQr().solve (a);
+//	f = K.ldlt().solve (a);
+	f = K.colPivHouseholderQr().solve (a);
 #else
 	bool solve_successful = LinSolveGaussElimPivot (K, a, f);
 	assert (solve_successful);
