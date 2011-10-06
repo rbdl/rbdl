@@ -92,8 +92,7 @@ bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 			if (fabs(A(j,pivot[j])) <= std::numeric_limits<double>::epsilon()) {
 				LOG << "Pivoting failed for matrix A = " << std::endl;
 				LOG << "A = " << std::endl << A << std::endl;
-//				LOG << "b = " << b << std::endl;
-				std::cout << LogOutput.str() << std::endl;
+				LOG << "b = " << b << std::endl;
 			}
 			assert (fabs(A(j,pivot[j])) > std::numeric_limits<double>::epsilon());
 			double d = A(i,pivot[j])/A(j,pivot[j]);
