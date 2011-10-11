@@ -353,14 +353,24 @@ void ForwardDynamicsAccelerationsOnly (
 		}
 	}
 
+	/*
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": IA[i] - d_IA[i] " << std::endl << model.IA[i] - d_IA[i] << std::endl;
+		LOG << "i = " << i << ": d_IA[i] " << std::endl << d_IA[i] << std::endl;
 	}
+	*/
 
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": pA[i] - d_pA[i] " << std::endl << model.pA[i] - d_pA[i] << std::endl;
+		LOG << "i = " << i << ": d_pA[i] - pA[i] " << std::endl << (d_pA[i] - model.pA[i]).transpose() << std::endl;
 	}
-
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "i = " << i << ": d_u[i] - u[i] = " << (d_u[i] - model.u[i]) << std::endl;
+	}
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "i = " << i << ": d_d[i] - d[i] = " << (d_d[i] - model.d[i]) << std::endl;
+	}
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "i = " << i << ": d_U[i] - U[i] = " << (d_U[i] - model.U[i]).transpose() << std::endl;
+	}
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
@@ -380,8 +390,10 @@ void ForwardDynamicsAccelerationsOnly (
 			continue;
 		}
 
-		QDDot_t[i - 1] = (1./d_d[i]) * (d_u[i] - d_U[i].dot(d_a[i]));
+		QDDot_t[i - 1] = (d_u[i] - model.U[i].dot(d_a[i])) / model.d[i];
+		LOG << "QDDot_t[" << i - 1 << "] = " << QDDot_t[i - 1] << std::endl;
 		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i - 1];
+		LOG << "d_a[i] - a[i] = " << (d_a[i] - X_lambda * model.a[i]).transpose() << std::endl;
 	}
 }
 
@@ -489,8 +501,8 @@ void ForwardDynamicsContacts (
 	LOG << "a = " << std::endl << a << std::endl;
 
 #ifndef RBDL_USE_SIMPLE_MATH
-	f = K.ldlt().solve (a);
-//	f = K.colPivHouseholderQr().solve (a);
+//	f = K.ldlt().solve (a);
+	f = K.colPivHouseholderQr().solve (a);
 #else
 	bool solve_successful = LinSolveGaussElimPivot (K, a, f);
 	assert (solve_successful);
@@ -542,12 +554,14 @@ void ForwardDynamicsAccelerationDeltas (
 		if (i == body_id) {
 			d_p_v[i] = -spatial_adjoint(model.X_base[i]) * f_t[body_id];
 			d_pA[i] = d_p_v[i];
+			d_u[i] = -model.S[i].dot(d_pA[i]);
+
 		} else {
 			d_p_v[i].setZero();
 			d_pA[i].setZero();
 			d_u[i] = 0.;
 		}
-		
+
 		for (unsigned int j = 0; j < model.mu[i].size(); j++) {
 			unsigned int k = model.mu[i][j];
 
@@ -556,16 +570,25 @@ void ForwardDynamicsAccelerationDeltas (
 		}
 	}
 
-	LOG << "model.qddot = " << model.qddot.transpose() << std::endl;
+	for (unsigned int i = 0; i < model.mBodies.size(); i++) {
+		LOG << "i = " << i << ": d_pA[i] " << std::endl << d_pA[i].transpose() << std::endl;
+	}
+	for (unsigned int i = 0; i < model.mBodies.size(); i++) {
+		LOG << "i = " << i << ": d_u[i] = " << d_u[i] << std::endl;
+	}
+
 	QDDot_t[0] = 0.;
-	d_a[0].setZero();
+	d_a[0] = model.a[0];
 
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		unsigned int j = model.lambda[i];
+		unsigned int lambda = model.lambda[i];
 
-		SpatialVector Xa = model.X_lambda[i] * d_a[j];
+		SpatialVector Xa = model.X_lambda[i] * d_a[lambda];
 		QDDot_t[i - 1] = (d_u[i] - model.U[i].dot(Xa) ) / model.d[i];
 		d_a[i] = Xa + model.S[i] * QDDot_t[i - 1];
+
+		LOG << "QDDot_t[" << i - 1 << "] = " << QDDot_t[i - 1] << std::endl;
+		LOG << "d_a[i] = " << d_a[i].transpose() << std::endl;
 	}
 }
 
@@ -652,6 +675,29 @@ void ForwardDynamicsContactsOpt (
 		}
 		f_ext_constraints[body_id].setZero();
 
+		////////////////////////////
+		QDDot_t += QDDot_0;
+
+		// compute the resulting acceleration
+		{
+			SUPPRESS_LOGGING;
+			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_t);
+		}
+
+		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {
+			{
+				SUPPRESS_LOGGING;
+
+				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
+			}
+	
+			LOG << "point_accel_0  = " << point_accel_0.transpose() << std::endl;
+			K(ci,cj) = ContactData[cj].normal.dot(point_accel_t - point_accel_0);
+			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
+		}
+		//////////////////////////////////
+
+		/*
 		// update the spatial accelerations due to the test force
 		for (unsigned j = 1; j < model.mBodies.size(); j++) {
 			if (model.lambda[j] != 0) {
@@ -662,7 +708,20 @@ void ForwardDynamicsContactsOpt (
 
 			model.a[j] = model.a[j] + model.S[j] * QDDot_t[j - 1];
 		}
+		*/
 
+		/////////////i
+		/*
+
+		QDDot_t += QDDot_0;
+
+		{
+			SUPPRESS_LOGGING;
+			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_t);
+		}
+		
+		LOG << "SUUUHUUM = " << (QDDot_t).transpose() << std::endl;
+	
 		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {
 			static SpatialVector point_spatial_acc;
 			{
@@ -673,13 +732,13 @@ void ForwardDynamicsContactsOpt (
 
 				// method 1: simply compute the acceleration by calling
 				// CalcPointAcceleration() (slow)
-				// point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
+				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
 
 				// method 2: transforming the spatial acceleration
 				// appropriately.(faster: 
-				point_global = model.CalcBodyToBaseCoordinates(ContactData[cj].body_id, ContactData[cj].point);
-				point_spatial_acc = Xtrans (point_global) * (spatial_inverse(model.X_base[ContactData[cj].body_id]) * model.a[ContactData[cj].body_id]);
-				point_accel_t.set (point_spatial_acc[3], point_spatial_acc[4], point_spatial_acc[5]);
+//				point_global = model.CalcBodyToBaseCoordinates(ContactData[cj].body_id, ContactData[cj].point);
+//				point_spatial_acc = Xtrans (point_global) * (spatial_inverse(model.X_base[ContactData[cj].body_id]) * model.a[ContactData[cj].body_id]);
+//				point_accel_t.set (point_spatial_acc[3], point_spatial_acc[4], point_spatial_acc[5]);
 
 				// method 3: reduce 1 Matrix-Matrix computation:
 				// \todo currently broken!
@@ -692,10 +751,12 @@ void ForwardDynamicsContactsOpt (
 			}
 
 			LOG << "point_spatial_a= " << point_spatial_acc.transpose() << std::endl;
-			LOG << "point_accel_0  = " << point_accel_0.transpose() << std::endl;
+			LOG << "point_accel_0  = [" << point_accel_0.transpose() << " ]" << std::endl;
 			K(ci,cj) = ContactData[cj].normal.dot(point_accel_t);
-			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
+			LOG << "point_accel_t = [" << (point_accel_t).transpose() << " ]" << std::endl;
 		}
+		*/
+		////////////////
 	}
 
 	LOG << "K = " << std::endl << K << std::endl;
