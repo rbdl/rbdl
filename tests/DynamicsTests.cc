@@ -17,6 +17,285 @@ using namespace RigidBodyDynamics;
 
 const double TEST_PREC = 1.0e-14;
 
+struct DynamicsFixture {
+	DynamicsFixture () {
+		ClearLogOutput();
+		model = new Model;
+		model->Init();
+		model->gravity = Vector3d (0., -9.81, 0.);
+	}
+	~DynamicsFixture () {
+		delete model;
+	}
+	Model *model;
+};
+
+TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSingleChain) {
+	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
+
+	// Initialization of the input vectors
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant  ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant  ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant  ((size_t) model->dof_count, 0.);
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	unsigned int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	CHECK_EQUAL (-4.905, QDDot[0]);
+}
+
+TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSpatialInertiaSingleChain) {
+	// This function checks the value for a non-trivial spatial inertia
+	Body body(1., Vector3d (1.5, 1., 1.), Vector3d (1., 2., 3.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
+
+	// Initialization of the input vectors
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+
+	unsigned int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	CHECK_EQUAL (-2.3544, QDDot[0]);
+}
+
+TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain) {
+	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_a (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+
+	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+
+	// Initialization of the input vectors
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
+
+//	cout << "--- Double Chain ---" << endl;
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	unsigned int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	//	cout << LogOutput.str() << endl;
+	
+	CHECK_CLOSE (-5.88600000000000E+00, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 3.92400000000000E+00, QDDot[1], TEST_PREC);
+}
+
+TEST_FIXTURE(DynamicsFixture, TestCalcDynamicTripleChain) {
+	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_a (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+
+	Body body_b (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+
+	Body body_c (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_c (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(2, Xtrans(Vector3d(1., 0., 0.)), joint_c, body_c);
+
+	// Initialization of the input vectors
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
+
+	// cout << "--- Triple Chain ---" << endl;
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	unsigned int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	// cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE (-6.03692307692308E+00, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 3.77307692307692E+00, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( 1.50923076923077E+00, QDDot[2], TEST_PREC);
+}
+
+TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain3D) {
+	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_a (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+
+	Body body_b (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b (
+			JointTypeRevolute,
+			Vector3d (0., 1., 0.)
+			);
+
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+
+	// Initialization of the input vectors
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
+
+	// cout << "--- Double Chain 3D ---" << endl;
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	unsigned int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	// cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE (-3.92400000000000E+00, QDDot[0], TEST_PREC);
+	CHECK_CLOSE ( 0.00000000000000E+00, QDDot[1], TEST_PREC);
+}
+
+TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSimpleTree3D) {
+	Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint_a (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+
+	Body body_b1 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b1 (
+			JointTypeRevolute,
+			Vector3d (0., 1., 0.)
+			);
+
+	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b1, body_b1);
+
+	Body body_c1 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+	Joint joint_c1 (
+			JointTypeRevolute,
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c1, body_c1);
+
+	Body body_b2 (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+	Joint joint_b2 (
+			JointTypeRevolute,
+			Vector3d (0., 1., 0.)
+			);
+
+	model->AddBody(1, Xtrans(Vector3d(-0.5, 0., 0.)), joint_b2, body_b2);
+
+	Body body_c2 (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+	Joint joint_c2 (
+			JointTypeRevolute,
+			Vector3d (1., 0., 0.)
+			);
+
+	model->AddBody(4, Xtrans(Vector3d(0., -0.5, 0.)), joint_c2, body_c2);
+
+	// Initialization of the input vectors
+	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+	VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
+
+	// cout << "--- SimpleTree ---" << endl;
+
+	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	unsigned int i;
+	for (i = 0; i < QDDot.size(); i++) {
+		LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
+	}
+
+	for (i = 0; i < model->a.size(); i++) {
+		LOG << "a[" << i << "]     = " << model->a[i] << endl;
+	}
+
+	// cout << LogOutput.str() << endl;
+
+	CHECK_CLOSE (-1.60319066147860E+00, QDDot[0], TEST_PREC);
+	CHECK_CLOSE (-5.34396887159533E-01, QDDot[1], TEST_PREC);
+	CHECK_CLOSE ( 4.10340466926070E+00, QDDot[2], TEST_PREC);
+	CHECK_CLOSE ( 2.67198443579767E-01, QDDot[3], TEST_PREC);
+	CHECK_CLOSE ( 5.30579766536965E+00, QDDot[4], TEST_PREC);
+}
+
+
+
 TEST (TestForwardDynamicsLagrangian) {
 	Model model;
 	model.Init();
