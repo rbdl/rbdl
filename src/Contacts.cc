@@ -282,6 +282,12 @@ void ComputeContactImpulsesLagrangian (
 
 namespace Experimental {
 
+/** \brief Compute only the effects of external forces on the generalized accelerations
+ *
+ * This function is a reduced version of ForwardDynamics() which only
+ * computes the effects of the external forces on the generalized
+ * accelerations.
+ */
 void ForwardDynamicsAccelerationsOnly (
 		Model &model,
 		VectorNd &QDDot_t,
@@ -290,27 +296,35 @@ void ForwardDynamicsAccelerationsOnly (
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
 	static std::vector<SpatialVector> d_pv;
-	static std::vector<SpatialVector> d_p;
+	static std::vector<SpatialVector> d_pA;
 	static std::vector<SpatialVector> d_a;
+	static std::vector<SpatialVector> d_U;
+	static std::vector<SpatialMatrix> d_IA;
 	static std::vector<double> d_u;
+	static std::vector<double> d_d;
 
 	assert (QDDot_t.size() == model.dof_count);
 
 	// check for proper sizes and perform resizes if necessary
 	if (d_pv.size() != model.dof_count + 1) {
 		d_pv.resize (model.dof_count + 1);
-		d_p.resize (model.dof_count + 1);
+		d_pA.resize (model.dof_count + 1);
 		d_a.resize (model.dof_count + 1);
+		d_U.resize (model.dof_count + 1);
+		d_IA.resize (model.dof_count + 1);
+
 		d_u.resize (model.dof_count + 1);
+		d_d.resize (model.dof_count + 1);
 	}
 
 	unsigned int i;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		d_p[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
+		d_pA[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
+		d_IA[i] = model.mBodies[i].mSpatialInertia;
 
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
-			d_p[i] -= spatial_adjoint(model.X_base[i]) * (*f_ext)[i];
+			d_pA[i] -= spatial_adjoint(model.X_base[i]) * (*f_ext)[i];
 //			LOG << "f_t (local)[" << i << "] = " << spatial_adjoint(model.X_base[i]) * (*f_ext)[i] << std::endl;
 		}
 //		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
@@ -321,25 +335,44 @@ void ForwardDynamicsAccelerationsOnly (
 		if (model.mJoints[i].mJointType == JointTypeFixed)
 			continue;
 
-		d_u[i] = model.tau[i] - model.S[i].dot(d_p[i]);
+		d_U[i] = d_IA[i] * model.S[i];
+		d_d[i] = model.S[i].dot(model.U[i]);
+		d_u[i] = model.tau[i] - model.S[i].dot(d_pA[i]);
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			SpatialVector pa = d_p[i] + model.U[i] * d_u[i] / model.d[i];
+			SpatialMatrix Ia = d_IA[i] - d_U[i] * (d_U[i] / d_d[i]).transpose();
+			SpatialVector pa = d_pA[i] + Ia * model.c[i] + d_U[i] * d_u[i] / d_d[i];
+			SpatialMatrix X_lambda = model.X_lambda[i];
 
 			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
-			d_p[lambda] = d_p[lambda] + model.X_lambda[i].transpose() * pa;
+			d_IA[lambda] = d_IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
+			d_pA[lambda] = d_pA[lambda] + model.X_lambda[i].transpose() * pa;
+
+			assert (model.IA[lambda] == d_IA[lambda]);
 		}
 	}
 
-	// apply gravity
-	d_a[0].set (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "i = " << i << ": IA[i] - d_IA[i] " << std::endl << model.IA[i] - d_IA[i] << std::endl;
+	}
+
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "i = " << i << ": pA[i] - d_pA[i] " << std::endl << model.pA[i] - d_pA[i] << std::endl;
+	}
+
+
+	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
+		SpatialMatrix X_lambda = model.X_lambda[i];
 
-		d_a[i] = model.X_lambda[i] * d_a[lambda];
-//		LOG << "if = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
+		if (lambda == 0) {
+			d_a[i] = X_lambda * spatial_gravity * (-1.) + model.c[i];
+		} else {
+			d_a[i] = X_lambda * d_a[lambda] + model.c[i];
+		}
 
 		// we can skip further processing if the joint type is fixed
 		if (model.mJoints[i].mJointType == JointTypeFixed) {
@@ -347,9 +380,8 @@ void ForwardDynamicsAccelerationsOnly (
 			continue;
 		}
 
-		QDDot_t[i - 1] = (1./model.d[i]) * (d_u[i] - model.U[i].dot(d_a[i]));
+		QDDot_t[i - 1] = (1./d_d[i]) * (d_u[i] - d_U[i].dot(d_a[i]));
 		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i - 1];
-//		LOG << "i = " << i << " d_a[i] = " << d_a[i].transpose() << std::endl;
 	}
 }
 
