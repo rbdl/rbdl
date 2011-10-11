@@ -34,6 +34,7 @@ SET ( RBDL_SOURCES
 	src/Model.cc
 	src/Kinematics.cc
 	src/Dynamics.cc
+	src/Contacts.cc
 	)
 
 ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
