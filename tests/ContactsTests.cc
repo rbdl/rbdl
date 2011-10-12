@@ -669,8 +669,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptMultipleContact) {
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 }
 
-/*
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptMultipleContactMultipleBodies) {
+TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactsMultipleBodies) {
 	// we add another child body with a 3DoF joint so that we have a 3 link chain
 	
 	// child body (3 DoF)
@@ -720,22 +719,15 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptMultipleContactMultiple
 
 	std::vector<ContactInfo> contact_data_lagrangian (contact_data);
 
-	// we rotate the joints so that we have full mobility at the contact
-	// point:
-	//
-	//  O       X (contact point)
-	//   \     /
-	//    \   /
-	//     \ /
-	//      *      
-	//
+	Q[0] = 0.1;
+	Q[1] = -0.1;
+	Q[2] = 0.1;
+	Q[3] = -0.1;
+	Q[4] = 0.1;
+	Q[5] = -0.1;
 
-	Q[0] = M_PI * 0.25;
-	Q[3] = M_PI * 0.5;
-	Q[7] = 0.1;
-	
 	ClearLogOutput();
-	ForwardDynamicsContactsOpt (*model, Q, QDot, Tau, contact_data, QDDot);
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
 //	cout << LogOutput.str() << endl;
 
 	Vector3d point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
@@ -756,4 +748,3 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptMultipleContactMultiple
 
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
-*/

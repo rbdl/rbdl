@@ -503,7 +503,7 @@ void ForwardDynamicsContacts (
 			}
 	
 			LOG << "point_accel_0  = " << point_accel_0[ci].transpose() << std::endl;
-			K(ci,cj) = ContactData[cj].normal.dot(- point_accel_0[ci] + point_accel_t);
+			K(cj,ci) = ContactData[cj].normal.dot(- point_accel_0[cj] + point_accel_t);
 			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
 		}
 	}
