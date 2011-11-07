@@ -112,7 +112,9 @@ Vector3d CalcPointAcceleration (
 		bool update_kinematics = true
 	);
 
-/** \brief Computes the inverse kinematics
+namespace Experimental {
+
+/** \brief Computes the inverse kinematics iteratively using a damped Levenberg-Marquardt method
  *
  * \param model rigid body model
  * \param Qinit initial guess for the state
@@ -121,15 +123,38 @@ Vector3d CalcPointAcceleration (
  * to be matched to target positions
  * \param target_pos a vector of target positions
  * \param Qres output of the computed inverse kinematics
+ * \param step_tol tolerance used for convergence detection
+ * \param lambda damping factor for the least squares function
+ * \param max_iter maximum number of steps that should be performed
+ * \returns true on success, false otherwise
+ *
+ * This function repeatedly computes
+ *   \f[ Qres = Qres + \Delta \theta\f]
+ *   \f[ \Delta \theta = G^T (G^T G + \lambda^2 I)^{-1} e \f]
+ * where \f$G = G(q) = \frac{d}{dt} g(q(t))\f$ and \f$e\f$ is the
+ * correction of the body points so that they coincide with the target
+ * positions. The function returns true when \f$||\Delta \theta||_2 \le\f$
+ * step_tol otherwise it aborts when more than max_iter iterations were
+ * performed.
+ *
+ * The parameter \f$\lambda\f$ is the damping factor that has to
+ * be chosen carefully. In case of unreachable positions higher values (e.g
+ * 0.9) can be helpful. Otherwise values of 0.0001, 0.001, 0.01, 0.1 might
+ * yield good results. See the literature for best practices.
  */
-void InverseKinematics (
+bool InverseKinematics (
 		Model &model,
 		const VectorNd &Qinit,
 		const std::vector<unsigned int>& body_id,
 		const std::vector<Vector3d>& body_point,
 		const std::vector<Vector3d>& target_pos,
-		VectorNd &Qres
+		VectorNd &Qres,
+		double step_tol = 1.0e-12,
+		double lambda = 0.01,
+		unsigned int max_iter = 50
 		);
+
+}
 
 }
 

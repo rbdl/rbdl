@@ -153,6 +153,8 @@ void ForwardDynamicsContactsLagrangian (
 	
 	// Solve the system
 #ifndef RBDL_USE_SIMPLE_MATH
+//	x = A.ldlt().solve(b);
+//	x = A.householderQr().solve(b);
 	x = A.colPivHouseholderQr().solve (b);
 #else
 	bool solve_successful = LinSolveGaussElimPivot (A, b, x);

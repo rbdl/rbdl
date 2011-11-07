@@ -363,13 +363,18 @@ Vector3d CalcPointAcceleration (
 			);
 }
 
-void InverseKinematics (
+namespace Experimental {
+
+bool InverseKinematics (
 		Model &model,
 		const VectorNd &Qinit,
 		const std::vector<unsigned int>& body_id,
 		const std::vector<Vector3d>& body_point,
 		const std::vector<Vector3d>& target_pos,
-		VectorNd &Qres
+		VectorNd &Qres,
+		double step_tol,
+		double lambda,
+		unsigned int max_iter
 		) {
 
 	assert (Qinit.size() == model.dof_count);
@@ -381,7 +386,7 @@ void InverseKinematics (
 
 	Qres = Qinit;
 
-	for (int ik_iter = 0; ik_iter < 30; ik_iter++) {
+	for (int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 		ForwardKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
@@ -404,32 +409,36 @@ void InverseKinematics (
 
 
 		MatrixNd JJT = J * J.transpose();
-
-		VectorNd JJTe = JJT * e;
-		double a = e.dot( JJTe) / JJTe.squaredNorm();
+		VectorNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * MatrixNd::Identity(e.size(), e.size());
 
 		LOG << "JJT = " << JJT << std::endl;
 
 		VectorNd z (body_id.size() * 3);
 #ifndef RBDL_USE_SIMPLE_MATH
-		z = JJT.colPivHouseholderQr().solve (e);
+		z = JJTe_lambda2_I.colPivHouseholderQr().solve (e);
 #else
-		bool solve_successful = LinSolveGaussElimPivot (JJT, e, z);
+		bool solve_successful = LinSolveGaussElimPivot (JJTe_lambda2_I, e, z);
 		assert (solve_successful);
 #endif
 
 		LOG << "z = " << z << std::endl;
 
 		VectorNd delta_theta = J.transpose() * z;
-
 		LOG << "change = " << delta_theta << std::endl;
 
 		Qres = Qres + delta_theta;
-
 		LOG << "Qres = " << Qres.transpose() << std::endl;
+
+		// abort if we are getting "close"
+		if (delta_theta.norm() < step_tol) {
+			LOG << "reached convergence after " << ik_iter << " steps" << std::endl;
+			return true;
+		}
 	}
 
-//	Qres = Qinit;
+	return false;
+}
+
 }
 
 }

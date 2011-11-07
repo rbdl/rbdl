@@ -669,6 +669,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptMultipleContact) {
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 }
 
+/*
 TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactsMultipleBodies) {
 	// we add another child body with a 3DoF joint so that we have a 3 link chain
 	
@@ -835,3 +836,4 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactsMultipleBo
 
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
+*/
