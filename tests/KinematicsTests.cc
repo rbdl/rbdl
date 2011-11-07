@@ -12,7 +12,6 @@
 using namespace std;
 using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
-using namespace RigidBodyDynamics::Experimental;
 
 const double TEST_PREC = 1.0e-14;
 
@@ -421,8 +420,10 @@ TEST_FIXTURE(KinematicsFixture, TestInverseKinematicSimple) {
 	target_pos.push_back (target);
 
 	ClearLogOutput();
-	InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres);
-//	cout << LogOutput.str() << endl;
+	bool res = InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres);
+	//	cout << LogOutput.str() << endl;
+	CHECK_EQUAL (true, res);
+
 	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
 
 	Vector3d effector;
@@ -451,13 +452,55 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicUnreachable) {
 	target_pos.push_back (target);
 
 	ClearLogOutput();
-	InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres, 1.0e-8, 0.9, 1000);
+	bool res = InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres, 1.0e-8, 0.9, 1000);
 //	cout << LogOutput.str() << endl;
+	CHECK_EQUAL (true, res);
+
 	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
 
 	Vector3d effector;
 	effector = model->CalcBodyToBaseCoordinates(body_id, body_point);
 
 	CHECK_ARRAY_CLOSE (Vector3d (2.0, 0., 0.).data(), effector.data(), 3, 1.0e-7);	
+}
+
+TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicTwoPoints) {
+	std::vector<unsigned int> body_ids;
+	std::vector<Vector3d> body_points;
+	std::vector<Vector3d> target_pos;
+
+	Q[0] = 0.2;
+	Q[1] = 0.1;
+	Q[2] = 0.1;
+
+	VectorNd Qres = VectorNd::Zero ((size_t) model->dof_count);
+
+	unsigned int body_id = child_rot_x_id;
+	Vector3d body_point = Vector3d (1., 0., 0.);
+	Vector3d target (2., 0., 0.);
+
+	body_ids.push_back (body_id);
+	body_points.push_back (body_point);
+	target_pos.push_back (target);
+
+	body_ids.push_back (base_rot_x_id);
+	body_points.push_back (Vector3d (0.6, 1.0, 0.));
+	target_pos.push_back (Vector3d (0.5, 1.1, 0.));
+
+	ClearLogOutput();
+	bool res = InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres, 1.0e-3, 0.9, 200);
+	CHECK_EQUAL (true, res);
+
+//	cout << LogOutput.str() << endl;
+	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
+
+	Vector3d effector;
+
+	// testing with very low precision
+	effector = model->CalcBodyToBaseCoordinates(body_ids[0], body_points[0]);
+	CHECK_ARRAY_CLOSE (target_pos[0].data(), effector.data(), 3, 1.0e-1);	
+
+	effector = model->CalcBodyToBaseCoordinates(body_ids[1], body_points[1]);
+	CHECK_ARRAY_CLOSE (target_pos[1].data(), effector.data(), 3, 1.0e-1);	
 }
 

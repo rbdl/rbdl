@@ -112,8 +112,6 @@ Vector3d CalcPointAcceleration (
 		bool update_kinematics = true
 	);
 
-namespace Experimental {
-
 /** \brief Computes the inverse kinematics iteratively using a damped Levenberg-Marquardt method
  *
  * \param model rigid body model
@@ -141,6 +139,9 @@ namespace Experimental {
  * be chosen carefully. In case of unreachable positions higher values (e.g
  * 0.9) can be helpful. Otherwise values of 0.0001, 0.001, 0.01, 0.1 might
  * yield good results. See the literature for best practices.
+ *
+ * \warning The actual accuracy might be rather low (~1.0e-2)! Use this function with a
+ * grain of suspicion.
  */
 bool InverseKinematics (
 		Model &model,
@@ -153,8 +154,6 @@ bool InverseKinematics (
 		double lambda = 0.01,
 		unsigned int max_iter = 50
 		);
-
-}
 
 }
 

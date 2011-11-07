@@ -363,8 +363,6 @@ Vector3d CalcPointAcceleration (
 			);
 }
 
-namespace Experimental {
-
 bool InverseKinematics (
 		Model &model,
 		const VectorNd &Qinit,
@@ -434,8 +432,6 @@ bool InverseKinematics (
 	}
 
 	return false;
-}
-
 }
 
 }
