@@ -21,10 +21,10 @@ namespace RigidBodyDynamics {
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
-		SpatialMatrix &XJ,
-		SpatialVector &S,
-		SpatialVector &v_J,
-		SpatialVector &c_J,
+		SpatialAlgebra::SpatialMatrix &XJ,
+		SpatialAlgebra::SpatialVector &S,
+		SpatialAlgebra::SpatialVector &v_J,
+		SpatialAlgebra::SpatialVector &c_J,
 		const double &q,
 		const double &qdot
 		) {
