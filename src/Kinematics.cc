@@ -382,7 +382,7 @@ bool InverseKinematics (
 	assert (body_id.size() == target_pos.size());
 
 	MatrixNd J (3 * body_id.size(), model.dof_count);
-	MatrixNd e (3 * body_id.size());
+	VectorNd e (3 * body_id.size());
 
 	Qres = Qinit;
 
@@ -408,10 +408,7 @@ bool InverseKinematics (
 		LOG << "e = " << e << std::endl;
 
 
-		MatrixNd JJT = J * J.transpose();
-		VectorNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * MatrixNd::Identity(e.size(), e.size());
-
-		LOG << "JJT = " << JJT << std::endl;
+		MatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * MatrixNd::Identity(e.size(), e.size());
 
 		VectorNd z (body_id.size() * 3);
 #ifndef RBDL_USE_SIMPLE_MATH
