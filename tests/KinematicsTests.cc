@@ -281,3 +281,34 @@ TEST(TestCalcPointJacobian) {
 			);
 	#endif
 }
+
+TEST_FIXTURE(KinematicsFixture, TestInverseKinematic) {
+	std::vector<unsigned int> body_ids;
+	std::vector<Vector3d> body_points;
+	std::vector<Vector3d> target_pos;
+
+	Q[0] = 0.2;
+	Q[1] = 0.1;
+	Q[2] = 0.1;
+
+	VectorNd Qres = VectorNd::Zero ((size_t) model->dof_count);
+
+	unsigned int body_id = body_d_id;
+	Vector3d body_point = Vector3d (1., 0., 0.);
+	Vector3d target (1.3, 0., 0.);
+
+	body_ids.push_back (body_d_id);
+	body_points.push_back (body_point);
+	target_pos.push_back (target);
+
+	ClearLogOutput();
+	InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres);
+	cout << LogOutput.str() << endl;
+	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
+
+	Vector3d effector;
+	effector = model->CalcBodyToBaseCoordinates(body_id, body_point);
+
+	CHECK_ARRAY_CLOSE (target.data(), effector.data(), 3, TEST_PREC);	
+}
+

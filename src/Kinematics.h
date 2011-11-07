@@ -112,6 +112,25 @@ Vector3d CalcPointAcceleration (
 		bool update_kinematics = true
 	);
 
+/** \brief Computes the inverse kinematics
+ *
+ * \param model rigid body model
+ * \param Qinit initial guess for the state
+ * \param body_id a vector of all bodies for which we we have kinematic target positions
+ * \param body_point a vector of points in body local coordinates that are
+ * to be matched to target positions
+ * \param target_pos a vector of target positions
+ * \param Qres output of the computed inverse kinematics
+ */
+void InverseKinematics (
+		Model &model,
+		const VectorNd &Qinit,
+		const std::vector<unsigned int>& body_id,
+		const std::vector<Vector3d>& body_point,
+		const std::vector<Vector3d>& target_pos,
+		VectorNd &Qres
+		);
+
 }
 
 #endif /* _KINEMATICS_H */
