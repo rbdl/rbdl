@@ -132,8 +132,8 @@ Vector3d CalcPointAcceleration (
  * where \f$G = G(q) = \frac{d}{dt} g(q(t))\f$ and \f$e\f$ is the
  * correction of the body points so that they coincide with the target
  * positions. The function returns true when \f$||\Delta \theta||_2 \le\f$
- * step_tol otherwise it aborts when more than max_iter iterations were
- * performed.
+ * step_tol or if the error between body points and target gets smaller
+ * than step_tol. Otherwise it returns false.
  *
  * The parameter \f$\lambda\f$ is the damping factor that has to
  * be chosen carefully. In case of unreachable positions higher values (e.g

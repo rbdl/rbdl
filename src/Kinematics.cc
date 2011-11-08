@@ -400,11 +400,16 @@ bool InverseKinematics (
 
 				e[k * body_id.size() + i] = target_pos[k][i] - point_base[i];
 			}
+
+			// abort if we are getting "close"
+			if (e.norm() < step_tol) {
+				LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+				return true;
+			}
 		}
 
 		LOG << "J = " << J << std::endl;
-		LOG << "e = " << e << std::endl;
-
+		LOG << "e = " << e.transpose() << std::endl;
 
 		MatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * MatrixNd::Identity(e.size(), e.size());
 
@@ -424,11 +429,27 @@ bool InverseKinematics (
 		Qres = Qres + delta_theta;
 		LOG << "Qres = " << Qres.transpose() << std::endl;
 
-		// abort if we are getting "close"
 		if (delta_theta.norm() < step_tol) {
 			LOG << "reached convergence after " << ik_iter << " steps" << std::endl;
 			return true;
 		}
+
+		VectorNd test_1 (z.size());
+		VectorNd test_res (z.size());
+
+		test_1.setZero();
+
+		for (unsigned int i = 0; i < z.size(); i++) {
+			test_1[i] = 1.;
+
+			VectorNd test_delta = J.transpose() * test_1;
+
+			test_res[i] = test_delta.squaredNorm();
+
+			test_1[i] = 0.;
+		}
+
+		LOG << "test_res = " << test_res.transpose() << std::endl;
 	}
 
 	return false;
