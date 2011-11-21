@@ -26,7 +26,8 @@ struct ContactsFixture {
 
 		model->gravity = Vector3d  (0., -9.81, 0.);
 
-		/* 
+		/* 3 DoF (rot.) joint at base
+		 * 3 DoF (rot.) joint child origin
 		 *
 		 *          X Contact point (ref child)
 		 *          |
@@ -131,6 +132,169 @@ struct ContactsFixture {
 
 	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
 		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
+
+	VectorNd Q;
+	VectorNd QDot;
+	VectorNd QDDot;
+	VectorNd Tau;
+
+	unsigned int contact_body_id;
+	Vector3d contact_point;
+	Vector3d contact_normal;
+	std::vector<ContactInfo> contact_data;
+};
+
+struct ContactsFixture9DoF {
+	ContactsFixture9DoF () {
+		ClearLogOutput();
+		model = new Model;
+		model->Init();
+
+		model->gravity = Vector3d  (0., -9.81, 0.);
+
+		/* 3 DoF (rot.) joint at base
+		 * 3 DoF (rot.) joint child origin
+		 *
+		 *          X Contact point (ref child)
+		 *          |
+		 *    Base  |
+		 *   / body |
+		 *  O-------*
+		 *           \
+		 *             Child body
+		 */
+
+		// base body (3 DoF)
+		base_rot_z = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_base_rot_z = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+		base_rot_z_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_z, base_rot_z);
+
+		base_rot_y = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_base_rot_y = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 1., 0.)
+				);
+		base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
+
+		base_rot_x = Body (
+				1.,
+				Vector3d (0.5, 0., 0.),
+				Vector3d (1., 1., 1.)
+				);
+		joint_base_rot_x = Joint (
+				JointTypeRevolute,
+				Vector3d (1., 0., 0.)
+				);
+		base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
+
+		// child body 1 (3 DoF)
+		child_rot_z = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_child_rot_z = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
+
+		child_rot_y = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_child_rot_y = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 1., 0.)
+				);
+		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
+
+		child_rot_x = Body (
+				1.,
+				Vector3d (0., 0.5, 0.),
+				Vector3d (1., 1., 1.)
+				);
+		joint_child_rot_x = Joint (
+				JointTypeRevolute,
+				Vector3d (1., 0., 0.)
+				);
+		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
+
+		// child body (3 DoF)
+		child_2_rot_z = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_child_2_rot_z = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+		child_2_rot_z_id = model->AddBody (child_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_2_rot_z, child_2_rot_z);
+
+		child_2_rot_y = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_child_2_rot_y = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 1., 0.)
+				);
+		child_2_rot_y_id = model->AddBody (child_2_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_y, child_2_rot_y);
+
+		child_2_rot_x = Body (
+				1.,
+				Vector3d (0., 0.5, 0.),
+				Vector3d (1., 1., 1.)
+				);
+		joint_child_2_rot_x = Joint (
+				JointTypeRevolute,
+				Vector3d (1., 0., 0.)
+				);
+		child_2_rot_x_id = model->AddBody (child_2_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_x, child_2_rot_x);
+
+		Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		QDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		QDDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		Tau = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+
+		contact_body_id = child_rot_x_id;
+		contact_point = Vector3d  (0.5, 0.5, 0.);
+		contact_normal = Vector3d  (0., 1., 0.);
+
+		ClearLogOutput();
+	}
+	
+	~ContactsFixture9DoF () {
+		delete model;
+	}
+	Model *model;
+
+	unsigned int base_rot_z_id, base_rot_y_id, base_rot_x_id,
+		child_rot_z_id, child_rot_y_id, child_rot_x_id,
+		child_2_rot_z_id, child_2_rot_y_id,child_2_rot_x_id,
+		base_body_id;
+
+	Body base_rot_z, base_rot_y, base_rot_x,
+		child_rot_z, child_rot_y, child_rot_x,
+		child_2_rot_z, child_2_rot_y, child_2_rot_x;
+
+	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
+		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x,
+		joint_child_2_rot_z, joint_child_2_rot_y, joint_child_2_rot_x;
 
 	VectorNd Q;
 	VectorNd QDot;
@@ -669,49 +833,9 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptMultipleContact) {
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 }
 
-/*
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactsMultipleBodies) {
-	// we add another child body with a 3DoF joint so that we have a 3 link chain
-	
-	// child body (3 DoF)
-	Body child_2_rot_z = Body (
-			0.,
-			Vector3d (0., 0., 0.),
-			Vector3d (0., 0., 0.)
-			);
-	Joint joint_child_2_rot_z = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-	unsigned int child_2_rot_z_id = model->AddBody (child_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_2_rot_z, child_2_rot_z);
-
-	Body child_2_rot_y = Body (
-			0.,
-			Vector3d (0., 0., 0.),
-			Vector3d (0., 0., 0.)
-			);
-	Joint joint_child_2_rot_y = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 1., 0.)
-			);
-	unsigned int child_2_rot_y_id = model->AddBody (child_2_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_y, child_2_rot_y);
-
-	Body child_2_rot_x = Body (
-			1.,
-			Vector3d (0., 0.5, 0.),
-			Vector3d (1., 1., 1.)
-			);
-	Joint joint_child_2_rot_x = Joint (
-			JointTypeRevolute,
-			Vector3d (1., 0., 0.)
-			);
-	unsigned int child_2_rot_x_id = model->AddBody (child_2_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_x, child_2_rot_x);
-
+TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsMultipleContactsMultipleBodies) {
 	// we have to resize the state vectors
-	Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-	QDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-	QDDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-	Tau = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
@@ -750,48 +874,8 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactsMultipleBo
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactsMultipleBodiesMoving) {
-	// we add another child body with a 3DoF joint so that we have a 3 link chain
-	
-	// child body (3 DoF)
-	Body child_2_rot_z = Body (
-			0.,
-			Vector3d (0., 0., 0.),
-			Vector3d (0., 0., 0.)
-			);
-	Joint joint_child_2_rot_z = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-	unsigned int child_2_rot_z_id = model->AddBody (child_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_2_rot_z, child_2_rot_z);
-
-	Body child_2_rot_y = Body (
-			0.,
-			Vector3d (0., 0., 0.),
-			Vector3d (0., 0., 0.)
-			);
-	Joint joint_child_2_rot_y = Joint (
-			JointTypeRevolute,
-			Vector3d (0., 1., 0.)
-			);
-	unsigned int child_2_rot_y_id = model->AddBody (child_2_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_y, child_2_rot_y);
-
-	Body child_2_rot_x = Body (
-			1.,
-			Vector3d (0., 0.5, 0.),
-			Vector3d (1., 1., 1.)
-			);
-	Joint joint_child_2_rot_x = Joint (
-			JointTypeRevolute,
-			Vector3d (1., 0., 0.)
-			);
-	unsigned int child_2_rot_x_id = model->AddBody (child_2_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_x, child_2_rot_x);
-
-	// we have to resize the state vectors
-	Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-	QDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-	QDDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-	Tau = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+/*
+TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsMultipleContactsMultipleBodiesMoving) {
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
@@ -804,27 +888,27 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactsMultipleBo
 	Q[1] = -0.1;
 	Q[2] = 0.1;
 	Q[3] = -0.1;
-	Q[4] = 0.1;
-	Q[5] = -0.1;
+	Q[4] = -0.1;
+	Q[5] = 0.1;
 
-	QDot[0] =  1; 
-	QDot[1] = -1;
+	QDot[0] =  1.; 
+	QDot[1] = -1.;
 	QDot[2] =  1; 
-	QDot[3] = -1; 
-	QDot[4] =  1; 
-	QDot[5] = -1; 
+	QDot[3] = -1.5; 
+	QDot[4] =  1.5; 
+	QDot[5] = -1.5; 
 
 	ClearLogOutput();
 	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
-//	cout << LogOutput.str() << endl;
+	cout << LogOutput.str() << endl;
 
 	Vector3d point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
 	Vector3d point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_rot_x_id, contact_point);
 
-//	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
+	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
 
 	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, contact_data_lagrangian, QDDot_lagrangian);
-//	cout << "Lagrangian contact force " << contact_data_lagrangian[0].force << ", " << contact_data_lagrangian[1].force << endl;
+	cout << "Lagrangian contact force " << contact_data_lagrangian[0].force << ", " << contact_data_lagrangian[1].force << ", " << contact_data_lagrangian[2].force << endl;
 
 	CHECK_CLOSE (contact_data_lagrangian[0].force, contact_data[0].force, TEST_PREC);
 	CHECK_CLOSE (contact_data_lagrangian[1].force, contact_data[1].force, TEST_PREC);
