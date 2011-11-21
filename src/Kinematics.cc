@@ -379,8 +379,8 @@ bool InverseKinematics (
 	assert (body_id.size() == body_point.size());
 	assert (body_id.size() == target_pos.size());
 
-	MatrixNd J (3 * body_id.size(), model.dof_count);
-	VectorNd e (3 * body_id.size());
+	MatrixNd J = MatrixNd::Zero(3 * body_id.size(), model.dof_count);
+	VectorNd e = VectorNd::Zero(3 * body_id.size());
 
 	Qres = Qinit;
 
