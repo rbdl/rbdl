@@ -202,3 +202,36 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointBodyOrigin) {
 	CHECK_CLOSE(  0., point_acceleration[1], TEST_PREC);
 	CHECK_CLOSE(  0., point_acceleration[2], TEST_PREC);
 }
+
+TEST_FIXTURE(ModelAccelerationsFixture, TestAccelerationLinearFuncOfQddot) {
+	// rotating second joint, point at third body
+	
+	QDot[0] = 1.1;
+	QDot[1] = 1.3;
+	QDot[2] = 1.5;
+
+	ref_body_id = body_c_id;
+	point_position = Vector3d (1., 1., 1.); 
+
+	VectorNd qddot_1 = VectorNd::Zero (model->dof_count);
+	VectorNd qddot_2 = VectorNd::Zero (model->dof_count);
+	VectorNd qddot_0 = VectorNd::Zero (model->dof_count);
+
+	qddot_1[0] = 0.1;
+	qddot_1[1] = 0.2;
+	qddot_1[2] = 0.3;
+
+	qddot_2[0] = 0.32;
+	qddot_2[1] = -0.1;
+	qddot_2[2] = 0.53;
+
+	Vector3d acc_1 = CalcPointAcceleration(*model, Q, QDot, qddot_1, ref_body_id, point_position);
+	Vector3d acc_2 = CalcPointAcceleration(*model, Q, QDot, qddot_2, ref_body_id, point_position);
+
+	MatrixNd G = MatrixNd::Zero (3, model->dof_count);
+	CalcPointJacobian (*model, Q, ref_body_id, point_position, G, true);
+
+	VectorNd net_acc = G * (qddot_1 - qddot_2);
+
+	CHECK_ARRAY_CLOSE (net_acc.data(),  (acc_1 - acc_2).data(), 3, TEST_PREC);
+}
