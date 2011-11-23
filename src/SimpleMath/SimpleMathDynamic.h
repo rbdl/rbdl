@@ -548,7 +548,6 @@ inline Matrix<val_type> operator*(const Matrix<val_type> &matrix, val_type scala
 
 template <typename val_type>
 inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type> &matrix) {
-	output << std::endl;
 	for (unsigned int i = 0; i < matrix.rows(); i++) {
 		for (unsigned int j = 0; j < matrix.cols(); j++) {
 			output.width(12);

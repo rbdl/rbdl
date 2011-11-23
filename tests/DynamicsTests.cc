@@ -294,8 +294,6 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSimpleTree3D) {
 	CHECK_CLOSE ( 5.30579766536965E+00, QDDot[4], TEST_PREC);
 }
 
-
-
 TEST (TestForwardDynamicsLagrangian) {
 	Model model;
 	model.Init();

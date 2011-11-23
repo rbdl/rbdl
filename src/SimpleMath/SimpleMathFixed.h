@@ -711,7 +711,6 @@ inline Matrix<val_type, nrows, ncols> operator*(const Matrix<val_type, nrows, nc
 
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type, nrows, ncols> &matrix) {
-	output << std::endl;
 	for (unsigned int i = 0; i < nrows; i++) {
 		output << "[ ";
 		for (unsigned int j = 0; j < ncols; j++) {

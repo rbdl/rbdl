@@ -361,8 +361,14 @@ void ForwardDynamicsAccelerationsOnly (
 	}
 	*/
 
+	if (f_ext) {
+		for (unsigned int i = 0; i < f_ext->size(); i++) {
+			LOG << "f_ext[" << i << "] = " << (*f_ext)[i].transpose();
+		}
+	}
+
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_pA[i] - pA[i] " << std::endl << (d_pA[i] - model.pA[i]).transpose() << std::endl;
+		LOG << "i = " << i << ": d_pA[i] - pA[i] " << (d_pA[i] - model.pA[i]).transpose();
 	}
 	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "i = " << i << ": d_u[i] - u[i] = " << (d_u[i] - model.u[i]) << std::endl;
@@ -423,21 +429,23 @@ void ForwardDynamicsContacts (
 	VectorNd f = VectorNd::Zero(ContactData.size());
 	VectorNd a = VectorNd::Zero(ContactData.size());
 
-	if (f_ext_constraints.size() != model.mBodies.size())
-		f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
+	static Vector3d point_accel_t;
+
+	if (f_ext_constraints.size() != model.mBodies.size() + 1)
+		f_ext_constraints.resize (model.mBodies.size() + 1, SpatialVectorZero);
 
 	if (f_t.size() != ContactData.size()) {
 		f_t.resize(ContactData.size(), SpatialVectorZero);
 		point_accel_0.resize(ContactData.size(), Vector3d::Zero());
+		K = MatrixNd::Zero (ContactData.size(), ContactData.size());
+		f = VectorNd::Zero (ContactData.size());
+		a = VectorNd::Zero (ContactData.size());
 	}
 
 	if (QDDot_0.size() != model.dof_count) {
 		QDDot_0.resize(model.dof_count);
 		QDDot_t.resize(model.dof_count);
 	}
-
-	Vector3d point_accel_t;
-	double k;
 
 	unsigned int ci = 0;
 	
@@ -447,8 +455,16 @@ void ForwardDynamicsContacts (
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_0);
 	}
 
+	// The vector f_ext_constraints might contain some values from previous
+	// computations so we need to reset it.
+	for (unsigned int fi = 0; fi < f_ext_constraints.size(); fi++) {
+			f_ext_constraints[fi].setZero();
+		}
+
+	// we have to compute the standard accelerations first as we use them to
+	// compute the effects of each test force
+	LOG << "=== Initial Loop Start ===" << std::endl;
 	for (ci = 0; ci < ContactData.size(); ci++) {
-		LOG << "=== Loop Start ===" << std::endl;
 		unsigned int body_id = ContactData[ci].body_id;
 		Vector3d point = ContactData[ci].point;
 		Vector3d normal = ContactData[ci].normal;
@@ -461,11 +477,13 @@ void ForwardDynamicsContacts (
 
 			a[ci] = acceleration - ContactData[ci].normal.dot(point_accel_0[ci]);
 		}
-		LOG << "point_accel_0 = " << point_accel_0[ci].transpose() << std::endl;
+		LOG << "point_accel_0 = " << point_accel_0[ci].transpose();
 	}
 
+	// Now we can compute and apply the test forces and use their net effect
+	// to compute the inverse articlated inertia to fill K.
 	for (ci = 0; ci < ContactData.size(); ci++) {
-		LOG << "=== Loop Start ===" << std::endl;
+		LOG << "=== Testforce Loop Start ===" << std::endl;
 		unsigned int body_id = ContactData[ci].body_id;
 		Vector3d point = ContactData[ci].point;
 		Vector3d normal = ContactData[ci].normal;
@@ -480,7 +498,9 @@ void ForwardDynamicsContacts (
 		f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
 		f_t[ci] = spatial_adjoint(Xtrans(-point_global)) * f_t[ci];
 		f_ext_constraints[body_id] = f_t[ci];
-		LOG << "f_t[" << body_id << "] = " << f_t[ci].transpose() << std::endl;
+
+		LOG << "f_t[" << ci << "] (i = ci) = " << f_t[ci].transpose() << std::endl;
+		LOG << "f_t[" << body_id << "] (i = body_id) = " << f_t[body_id].transpose() << std::endl;
 
 		{
 //			SUPPRESS_LOGGING;
@@ -537,6 +557,12 @@ void ForwardDynamicsContacts (
 	}
 }
 
+/** \brief Computes the effect of external forces on the generalized accelerations.
+ *
+ * This function is essentially similar to ForwardDynamics() except that it
+ * tries to only perform computations of variables that change due to
+ * external forces defined in f_t.
+ */
 void ForwardDynamicsAccelerationDeltas (
 		Model &model,
 		VectorNd &QDDot_t,
@@ -557,34 +583,41 @@ void ForwardDynamicsAccelerationDeltas (
 		d_u.resize(model.mBodies.size());
 	}
 
+	// TODO reset all values (debug)
+	for (unsigned int i = 0; i < model.mBodies.size(); i++) {
+		d_p_v[i].setZero();
+		d_pA[i].setZero();
+		d_a[i].setZero();
+		d_u[i] = 0.;
+	}
+
 	for (unsigned int i = body_id + 1; i < model.mBodies.size(); i++) {
 		d_p_v[i].setZero();
 		d_pA[i].setZero();
+		d_a[i].setZero();
 		d_u[i] = 0.;
 	}
 
 	for (unsigned int i = body_id; i > 0; i--) {
 		if (i == body_id) {
-			d_p_v[i] = -spatial_adjoint(model.X_base[i]) * f_t[body_id];
+			d_p_v[i] = -spatial_adjoint(model.X_base[i]) * f_t[i];
 			d_pA[i] = d_p_v[i];
-			d_u[i] = -model.S[i].dot(d_pA[i]);
-
-		} else {
-			d_p_v[i].setZero();
-			d_pA[i].setZero();
-			d_u[i] = 0.;
 		}
 
-		for (unsigned int j = 0; j < model.mu[i].size(); j++) {
-			unsigned int k = model.mu[i][j];
+		d_u[i] = - model.S[i].dot(d_pA[i]);
 
-			d_pA[i] += model.X_lambda[k].transpose() * (d_pA[k] + (d_u[k] / model.d[k]) * model.U[k]);
-			d_u[i] -= model.S[i].dot(d_pA[i]);
+		unsigned int lambda = model.lambda[i];
+		if (lambda != 0) {
+			d_pA[lambda] = d_pA[lambda] + model.X_lambda[i].transpose() * (d_pA[i] + model.U[i] * d_u[i] / model.d[i]);
 		}
 	}
 
+	for (unsigned int i = 0; i < f_t.size(); i++) {
+		LOG << "f_t[" << i << "] = " << f_t[i].transpose();
+	}
+
 	for (unsigned int i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_pA[i] " << std::endl << d_pA[i].transpose() << std::endl;
+		LOG << "i = " << i << ": d_pA[i] " << d_pA[i].transpose();
 	}
 	for (unsigned int i = 0; i < model.mBodies.size(); i++) {
 		LOG << "i = " << i << ": d_u[i] = " << d_u[i] << std::endl;
@@ -620,6 +653,7 @@ void ForwardDynamicsContactsOpt (
 //	assert (ContactData.size() == 1);
 	static std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
 	static std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
+	static std::vector<Vector3d> point_accel_0 (ContactData.size(), Vector3d::Zero());
 	static VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
 	static VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 
@@ -627,22 +661,23 @@ void ForwardDynamicsContactsOpt (
 	static VectorNd f = VectorNd::Zero(ContactData.size());
 	static VectorNd a = VectorNd::Zero(ContactData.size());
 
-	if (f_ext_constraints.size() != model.mBodies.size())
-		f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
+	static Vector3d point_accel_t;
+
+	if (f_ext_constraints.size() != model.mBodies.size() + 1)
+		f_ext_constraints.resize (model.mBodies.size() + 1, SpatialVectorZero);
 
 	if (f_t.size() != ContactData.size()) {
 		f_t.resize(ContactData.size(), SpatialVectorZero);
-		K.resize(ContactData.size(), ContactData.size());
-		f.resize(ContactData.size());
-		a.resize(ContactData.size());
+		point_accel_0.resize(ContactData.size(), Vector3d::Zero());
+		K = MatrixNd::Zero (ContactData.size(), ContactData.size());
+		f = VectorNd::Zero (ContactData.size());
+		a = VectorNd::Zero (ContactData.size());
 	}
 
 	if (QDDot_0.size() != model.dof_count) {
 		QDDot_0.resize(model.dof_count);
 		QDDot_t.resize(model.dof_count);
 	}
-
-	static Vector3d point_accel_0, point_accel_t;
 
 	unsigned int ci = 0;
 	
@@ -652,8 +687,16 @@ void ForwardDynamicsContactsOpt (
 		ForwardDynamics (model, Q, QDot, Tau, QDDot_0);
 	}
 
+	// The vector f_ext_constraints might contain some values from previous
+	// computations so we need to reset it.
+	for (unsigned int fi = 0; fi < f_ext_constraints.size(); fi++) {
+			f_ext_constraints[fi].setZero();
+		}
+
+	LOG << "=== Initial Loop Start ===" << std::endl;
+	// we have to compute the standard accelerations first as we use them to
+	// compute the effects of each test force
 	for (ci = 0; ci < ContactData.size(); ci++) {
-		LOG << "=== Loop Start ===" << std::endl;
 		unsigned int body_id = ContactData[ci].body_id;
 		Vector3d point = ContactData[ci].point;
 		Vector3d normal = ContactData[ci].normal;
@@ -662,11 +705,21 @@ void ForwardDynamicsContactsOpt (
 		{
 			SUPPRESS_LOGGING;
 			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_0);
-			point_accel_0 = CalcPointAcceleration (model, Q, QDot, QDDot_0, body_id, point, false);
+			point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, QDDot_0, body_id, point, false);
 
-			a[ci] = acceleration - ContactData[ci].normal.dot(point_accel_0);
+			a[ci] = acceleration - ContactData[ci].normal.dot(point_accel_0[ci]);
 		}
-		LOG << "point_accel_0 = " << point_accel_0.transpose() << std::endl;
+		LOG << "point_accel_0 = " << point_accel_0[ci].transpose();
+	}
+
+	// Now we can compute and apply the test forces and use their net effect
+	// to compute the inverse articlated inertia to fill K.
+	for (ci = 0; ci < ContactData.size(); ci++) {
+		LOG << "=== Testforce Loop Start ===" << std::endl;
+		unsigned int body_id = ContactData[ci].body_id;
+		Vector3d point = ContactData[ci].point;
+		Vector3d normal = ContactData[ci].normal;
+		double acceleration = ContactData[ci].acceleration;
 
 		// assemble the test force
 		LOG << "normal = " << normal.transpose() << std::endl;
@@ -701,11 +754,11 @@ void ForwardDynamicsContactsOpt (
 			{
 				SUPPRESS_LOGGING;
 
-				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
+				point_accel_t = CalcPointAcceleration (model, Q, QDot, (QDDot_t + QDDot_0), ContactData[cj].body_id, ContactData[cj].point, false);
 			}
 	
-			LOG << "point_accel_0  = " << point_accel_0.transpose() << std::endl;
-			K(ci,cj) = ContactData[cj].normal.dot(point_accel_t - point_accel_0);
+			LOG << "point_accel_0  = " << point_accel_0[ci].transpose() << std::endl;
+			K(ci,cj) = ContactData[cj].normal.dot(point_accel_t - point_accel_0[cj]);
 			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
 		}
 		//////////////////////////////////
