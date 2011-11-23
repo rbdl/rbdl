@@ -591,13 +591,6 @@ void ForwardDynamicsAccelerationDeltas (
 		d_u[i] = 0.;
 	}
 
-	for (unsigned int i = body_id + 1; i < model.mBodies.size(); i++) {
-		d_p_v[i].setZero();
-		d_pA[i].setZero();
-		d_a[i].setZero();
-		d_u[i] = 0.;
-	}
-
 	for (unsigned int i = body_id; i > 0; i--) {
 		if (i == body_id) {
 			d_p_v[i] = -spatial_adjoint(model.X_base[i]) * f_t[i];
@@ -754,7 +747,7 @@ void ForwardDynamicsContactsOpt (
 			{
 				SUPPRESS_LOGGING;
 
-				point_accel_t = CalcPointAcceleration (model, Q, QDot, (QDDot_t + QDDot_0), ContactData[cj].body_id, ContactData[cj].point, false);
+				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
 			}
 	
 			LOG << "point_accel_0  = " << point_accel_0[ci].transpose() << std::endl;
