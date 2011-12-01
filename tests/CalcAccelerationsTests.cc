@@ -233,5 +233,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestAccelerationLinearFuncOfQddot) {
 
 	VectorNd net_acc = G * (qddot_1 - qddot_2);
 
-	CHECK_ARRAY_CLOSE (net_acc.data(),  (acc_1 - acc_2).data(), 3, TEST_PREC);
+	Vector3d acc_new = acc_1 - acc_2;
+
+	CHECK_ARRAY_CLOSE (net_acc.data(), acc_new.data(), 3, TEST_PREC);
 }
