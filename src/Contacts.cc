@@ -504,7 +504,8 @@ void ForwardDynamicsContacts (
 
 		{
 //			SUPPRESS_LOGGING;
-			ForwardDynamicsAccelerationsOnly (model, QDDot_t, &f_ext_constraints);
+//			ForwardDynamicsAccelerationsOnly (model, QDDot_t, &f_ext_constraints);
+			ForwardDynamics (model, Q, QDot, Tau, QDDot_t, &f_ext_constraints);
 			LOG << "QDDot_0 = " << QDDot_0.transpose() << std::endl;
 			LOG << "QDDot_t = " << QDDot_t.transpose() << std::endl;
 			LOG << "QDDot_t - QDDot_0= " << (QDDot_t - QDDot_0).transpose() << std::endl;
@@ -543,6 +544,10 @@ void ForwardDynamicsContacts (
 
 	LOG << "f = " << f << std::endl;
 
+	for (unsigned int i = 0; i < f_ext_constraints.size(); i++) {
+		f_ext_constraints[i].setZero();
+	}
+
 	for (ci = 0; ci < ContactData.size(); ci++) {
 		ContactData[ci].force = f[ci];
 		unsigned int body_id = ContactData[ci].body_id;
@@ -553,7 +558,8 @@ void ForwardDynamicsContacts (
 
 	{
 		SUPPRESS_LOGGING;
-		ForwardDynamicsAccelerationsOnly (model, QDDot, &f_ext_constraints);
+//		ForwardDynamicsAccelerationsOnly (model, QDDot, &f_ext_constraints);
+		ForwardDynamics (model, Q, QDot, Tau, QDDot, &f_ext_constraints);
 	}
 }
 

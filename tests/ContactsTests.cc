@@ -1180,7 +1180,7 @@ TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsOptMultipleContactsMul
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture12DoFFloatingBase, ForwardDynamicsContactsOptMultipleContactsFloatingBase) {
+TEST_FIXTURE (ContactsFixture12DoFFloatingBase, ForwardDynamicsContactsMultipleContactsFloatingBase) {
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->dof_count, 0.);
 
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
@@ -1210,7 +1210,7 @@ TEST_FIXTURE (ContactsFixture12DoFFloatingBase, ForwardDynamicsContactsOptMultip
 	QDot[8] = -3.5; 
 
 	ClearLogOutput();
-	ForwardDynamicsContactsOpt (*model, Q, QDot, Tau, contact_data, QDDot);
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, contact_data, QDDot);
 //	cout << LogOutput.str() << endl;
 
 	Vector3d point_accel_c, point_accel_2_c;
