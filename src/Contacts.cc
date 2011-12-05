@@ -155,14 +155,22 @@ void ForwardDynamicsContactsLagrangian (
 #ifndef RBDL_USE_SIMPLE_MATH
 //	x = A.ldlt().solve(b);
 //	x = A.householderQr().solve(b);
+//	x = A.partialPivLu().solve(b);
 	x = A.colPivHouseholderQr().solve (b);
+
+//	LOG << "fullPivLu = " << A.fullPivLu().solve(b) << std::endl;
+//	LOG << "householderQr = " << A.householderQr().solve(b) << std::endl;
+//	LOG << "colPivHouseholderQr = " << A.colPivHouseholderQr().solve(b) << std::endl;
+//	LOG << "partialPivLu = " << A.partialPivLu().solve(b) << std::endl;
+//	LOG << "Ainv * b = " << A.inverse() * b << std::endl;
 #else
 	bool solve_successful = LinSolveGaussElimPivot (A, b, x);
 	assert (solve_successful);
 #endif
 
 	LOG << "x = " << std::endl << x << std::endl;
-
+	LOG << "res = A*x -b = " << (A * x - b) << std::endl;
+	LOG << "A' = " << A << std::endl;
 	// Copy back QDDot
 	for (i = 0; i < model.dof_count; i++)
 		QDDot[i] = x[i];
@@ -297,13 +305,13 @@ void ForwardDynamicsAccelerationsOnly (
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	static std::vector<SpatialVector> d_pv;
-	static std::vector<SpatialVector> d_pA;
-	static std::vector<SpatialVector> d_a;
-	static std::vector<SpatialVector> d_U;
-	static std::vector<SpatialMatrix> d_IA;
-	static std::vector<double> d_u;
-	static std::vector<double> d_d;
+	std::vector<SpatialVector> d_pv (model.mBodies.size(), SpatialVectorZero);
+	std::vector<SpatialVector> d_pA (model.mBodies.size(), SpatialVectorZero);
+	std::vector<SpatialVector> d_a (model.mBodies.size(), SpatialVectorZero);
+	std::vector<SpatialVector> d_U (model.mBodies.size(), SpatialVectorZero);
+	std::vector<SpatialMatrix> d_IA (model.mBodies.size(), SpatialMatrixZero);
+	std::vector<double> d_u (model.mBodies.size(), 0.);
+	std::vector<double> d_d (model.mBodies.size(), 0.);
 
 	assert (QDDot_t.size() == model.dof_count);
 
@@ -419,17 +427,17 @@ void ForwardDynamicsContacts (
 //	LOG << "QDot = " << QDot.transpose() << std::endl;
 
 //	assert (ContactData.size() == 1);
-	static std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
-	static std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
-	static std::vector<Vector3d> point_accel_0 (ContactData.size(), Vector3d::Zero());
-	static VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
-	static VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
+	std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
+	std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
+	std::vector<Vector3d> point_accel_0 (ContactData.size(), Vector3d::Zero());
+	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
+	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 
 	MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
 	VectorNd f = VectorNd::Zero(ContactData.size());
 	VectorNd a = VectorNd::Zero(ContactData.size());
 
-	static Vector3d point_accel_t;
+	Vector3d point_accel_t;
 
 	if (f_ext_constraints.size() != model.mBodies.size() + 1)
 		f_ext_constraints.resize (model.mBodies.size() + 1, SpatialVectorZero);
@@ -577,10 +585,10 @@ void ForwardDynamicsAccelerationDeltas (
 		) {
 	LOG << "-------- " << __func__ << " ------" << std::endl;
 	
-	static std::vector<SpatialVector> d_p_v (model.mBodies.size());
-	static std::vector<SpatialVector> d_pA (model.mBodies.size());
-	static std::vector<SpatialVector> d_a (model.mBodies.size());
-	static std::vector<double> d_u (model.mBodies.size());
+	std::vector<SpatialVector> d_p_v (model.mBodies.size(), SpatialVectorZero);
+	std::vector<SpatialVector> d_pA (model.mBodies.size(), SpatialVectorZero);
+	std::vector<SpatialVector> d_a (model.mBodies.size(), SpatialVectorZero);
+	std::vector<double> d_u (model.mBodies.size(), 0.);
 
 	if (d_p_v.size() != model.mBodies.size()) {
 		d_p_v.resize(model.mBodies.size());
@@ -650,17 +658,17 @@ void ForwardDynamicsContactsOpt (
 //	LOG << "Q    = " << Q.transpose() << std::endl;
 //	LOG << "QDot = " << QDot.transpose() << std::endl;
 //	assert (ContactData.size() == 1);
-	static std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
-	static std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
-	static std::vector<Vector3d> point_accel_0 (ContactData.size(), Vector3d::Zero());
-	static VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
-	static VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
+	std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
+	std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
+	std::vector<Vector3d> point_accel_0 (ContactData.size(), Vector3d::Zero());
+	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
+	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
 
-	static MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
-	static VectorNd f = VectorNd::Zero(ContactData.size());
-	static VectorNd a = VectorNd::Zero(ContactData.size());
+	MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
+	VectorNd f = VectorNd::Zero(ContactData.size());
+	VectorNd a = VectorNd::Zero(ContactData.size());
 
-	static Vector3d point_accel_t;
+	Vector3d point_accel_t;
 
 	if (f_ext_constraints.size() != model.mBodies.size() + 1)
 		f_ext_constraints.resize (model.mBodies.size() + 1, SpatialVectorZero);

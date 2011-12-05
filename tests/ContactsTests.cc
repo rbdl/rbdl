@@ -1220,8 +1220,10 @@ TEST_FIXTURE (ContactsFixture12DoFFloatingBase, ForwardDynamicsContactsMultipleC
 
 //	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
 
+	ClearLogOutput();
 	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, contact_data_lagrangian, QDDot_lagrangian);
 //	cout << "Lagrangian contact force " << contact_data_lagrangian[0].force << ", " << contact_data_lagrangian[1].force << ", " << contact_data_lagrangian[2].force << endl;
+	cout << LogOutput.str() << endl;
 
 	CHECK_CLOSE (contact_data_lagrangian[0].force, contact_data[0].force, TEST_PREC);
 	CHECK_CLOSE (contact_data_lagrangian[1].force, contact_data[1].force, TEST_PREC);
