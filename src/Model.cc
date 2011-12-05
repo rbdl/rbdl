@@ -25,6 +25,7 @@ void Model::Init() {
 	Body root_body;
 	Joint root_joint;
 
+	gravity = Vector3d (0., -9.81, 0.);
 	Vector3d zero_position (0., 0., 0.);
 	SpatialVector zero_spatial (0., 0., 0., 0., 0., 0.);
 
