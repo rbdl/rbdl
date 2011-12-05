@@ -5,6 +5,7 @@ doc/notes/*.aux
 doc/notes/*.pdf
 Debug/*
 Release/*
+RelWithDebInfo/*
 .*.swp
 CMakeFiles/*
 cmake_install.cmake
