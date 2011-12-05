@@ -108,8 +108,8 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	IA.push_back(body.mSpatialInertia);
 	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
-	d.resize (dof_count + 1);
-	u.resize (dof_count + 1);
+	d = VectorNd::Zero (dof_count + 1);
+	u = VectorNd::Zero (dof_count + 1);
 	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 	Ic.push_back (SpatialMatrixIdentity);
 
