@@ -22,4 +22,32 @@ TEST (SimpleTestFixed) {
 	CHECK_ARRAY_EQUAL (myvector.data(), result, myvector.size());
 }
 
+TEST (FixedTestBlockFullMatrix) {
+	Matrix44d mymatrix;
+	Vector4d myvector;
 
+	mymatrix.identity();
+	myvector.random();
+
+	Matrix44d othermatrix = Matrix44d::Zero (4,4);
+
+	mymatrix.block<4,4>(0,0) = othermatrix;
+
+	CHECK_EQUAL (mymatrix, othermatrix);
+}
+
+TEST (FixedTestBlockPartialToBorderMatrix) {
+	Matrix44d mymatrix;
+	Vector4d myvector;
+
+	mymatrix.setZero();
+	mymatrix(3,3) = 1.;
+	mymatrix.identity();
+	myvector.random();
+
+	Matrix33d othermatrix = Matrix33d::Identity (3,3);
+
+	mymatrix.block<3,3>(0,0) = othermatrix;
+
+	CHECK_EQUAL (mymatrix, Matrix44d::Identity (4,4));
+}

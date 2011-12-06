@@ -12,3 +12,4 @@ Makefile
 tags
 *.log
 tests/runtests
+tests/CMakeCache.txt

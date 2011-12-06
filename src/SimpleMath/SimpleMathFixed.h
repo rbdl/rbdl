@@ -523,9 +523,16 @@ class Matrix {
 			return result;
 		}
 
+		static matrix_type Zero(int ignore_me, int ignore_me_too) {
+			matrix_type result;
+			result.setZero();
+			return result;
+		}
+
+
 		static matrix_type Identity(int ignore_me, int ignore_me_too) {
 			matrix_type result;
-			result.identity;
+			result.identity();
 			return result;
 		}
 
@@ -566,8 +573,8 @@ class Matrix {
 		// Block accessing functions
 		template <unsigned int blockrows, unsigned int blockcols>
 		Block<val_type, blockrows, blockcols> block (unsigned int i, unsigned int j) const {
-			COMPILE_ASSERT (nrows > blockrows);
-			COMPILE_ASSERT (ncols > blockcols);
+			COMPILE_ASSERT (nrows >= blockrows);
+			COMPILE_ASSERT (ncols >= blockcols);
 			return Block<val_type, blockrows, blockcols> (const_cast<double*> (this->mData), i, j, nrows, ncols);
 		}
 
@@ -711,6 +718,7 @@ inline Matrix<val_type, nrows, ncols> operator*(const Matrix<val_type, nrows, nc
 
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type, nrows, ncols> &matrix) {
+	output << std::endl;
 	for (unsigned int i = 0; i < nrows; i++) {
 		output << "[ ";
 		for (unsigned int j = 0; j < ncols; j++) {
