@@ -439,22 +439,6 @@ void ForwardDynamicsContacts (
 
 	Vector3d point_accel_t;
 
-	if (f_ext_constraints.size() != model.mBodies.size() + 1)
-		f_ext_constraints.resize (model.mBodies.size() + 1, SpatialVectorZero);
-
-	if (f_t.size() != ContactData.size()) {
-		f_t.resize(ContactData.size(), SpatialVectorZero);
-		point_accel_0.resize(ContactData.size(), Vector3d::Zero());
-		K = MatrixNd::Zero (ContactData.size(), ContactData.size());
-		f = VectorNd::Zero (ContactData.size());
-		a = VectorNd::Zero (ContactData.size());
-	}
-
-	if (QDDot_0.size() != model.dof_count) {
-		QDDot_0.resize(model.dof_count);
-		QDDot_t.resize(model.dof_count);
-	}
-
 	unsigned int ci = 0;
 	
 	// The default acceleration only needs to be computed once
@@ -669,22 +653,6 @@ void ForwardDynamicsContactsOpt (
 	VectorNd a = VectorNd::Zero(ContactData.size());
 
 	Vector3d point_accel_t;
-
-	if (f_ext_constraints.size() != model.mBodies.size() + 1)
-		f_ext_constraints.resize (model.mBodies.size() + 1, SpatialVectorZero);
-
-	if (f_t.size() != ContactData.size()) {
-		f_t.resize(ContactData.size(), SpatialVectorZero);
-		point_accel_0.resize(ContactData.size(), Vector3d::Zero());
-		K = MatrixNd::Zero (ContactData.size(), ContactData.size());
-		f = VectorNd::Zero (ContactData.size());
-		a = VectorNd::Zero (ContactData.size());
-	}
-
-	if (QDDot_0.size() != model.dof_count) {
-		QDDot_0.resize(model.dof_count);
-		QDDot_t.resize(model.dof_count);
-	}
 
 	unsigned int ci = 0;
 	
