@@ -18,9 +18,9 @@ SET ( TESTS_SRCS
 	KinematicsTests.cc
 	InverseDynamicsTests.cc
 	CompositeRigidBodyTests.cc
-	ContactsTests.cc
 	ImpulsesTests.cc
 	TwolegModelTests.cc
+	ContactsTests.cc
 	)
 
 FIND_PACKAGE (UnitTest++ REQUIRED)

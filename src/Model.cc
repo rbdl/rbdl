@@ -55,9 +55,6 @@ void Model::Init() {
 	pA.push_back(zero_spatial);
 	U.push_back(zero_spatial);
 
-	d.resize(1);
-	u.resize(1);
-
 	u = VectorNd::Zero(1);
 	d = VectorNd::Zero(1);
 
@@ -108,8 +105,10 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	IA.push_back(body.mSpatialInertia);
 	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
+
 	d = VectorNd::Zero (dof_count + 1);
 	u = VectorNd::Zero (dof_count + 1);
+
 	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 	Ic.push_back (SpatialMatrixIdentity);
 

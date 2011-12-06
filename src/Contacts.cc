@@ -170,7 +170,7 @@ void ForwardDynamicsContactsLagrangian (
 
 	LOG << "x = " << std::endl << x << std::endl;
 	LOG << "res = A*x -b = " << (A * x - b) << std::endl;
-	LOG << "A' = " << A << std::endl;
+
 	// Copy back QDDot
 	for (i = 0; i < model.dof_count; i++)
 		QDDot[i] = x[i];
@@ -314,18 +314,6 @@ void ForwardDynamicsAccelerationsOnly (
 	std::vector<double> d_d (model.mBodies.size(), 0.);
 
 	assert (QDDot_t.size() == model.dof_count);
-
-	// check for proper sizes and perform resizes if necessary
-	if (d_pv.size() != model.dof_count + 1) {
-		d_pv.resize (model.dof_count + 1);
-		d_pA.resize (model.dof_count + 1);
-		d_a.resize (model.dof_count + 1);
-		d_U.resize (model.dof_count + 1);
-		d_IA.resize (model.dof_count + 1);
-
-		d_u.resize (model.dof_count + 1);
-		d_d.resize (model.dof_count + 1);
-	}
 
 	unsigned int i;
 
@@ -573,13 +561,6 @@ void ForwardDynamicsAccelerationDeltas (
 	std::vector<SpatialVector> d_pA (model.mBodies.size(), SpatialVectorZero);
 	std::vector<SpatialVector> d_a (model.mBodies.size(), SpatialVectorZero);
 	std::vector<double> d_u (model.mBodies.size(), 0.);
-
-	if (d_p_v.size() != model.mBodies.size()) {
-		d_p_v.resize(model.mBodies.size());
-		d_pA.resize(model.mBodies.size());
-		d_a.resize(model.mBodies.size());
-		d_u.resize(model.mBodies.size());
-	}
 
 	// TODO reset all values (debug)
 	for (unsigned int i = 0; i < model.mBodies.size(); i++) {
