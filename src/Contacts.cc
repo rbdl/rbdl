@@ -169,7 +169,6 @@ void ForwardDynamicsContactsLagrangian (
 #endif
 
 	LOG << "x = " << std::endl << x << std::endl;
-	LOG << "res = A*x -b = " << (A * x - b) << std::endl;
 
 	// Copy back QDDot
 	for (i = 0; i < model.dof_count; i++)

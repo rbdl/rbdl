@@ -523,6 +523,19 @@ class Matrix {
 			return result;
 		}
 
+		static matrix_type Zero(int ignore_me, int ignore_me_too) {
+			matrix_type result;
+			result.setZero();
+			return result;
+		}
+
+
+		static matrix_type Identity(int ignore_me, int ignore_me_too) {
+			matrix_type result;
+			result.identity();
+			return result;
+		}
+
 		void identity() {
 			COMPILE_ASSERT (nrows == ncols);
 
@@ -560,8 +573,8 @@ class Matrix {
 		// Block accessing functions
 		template <unsigned int blockrows, unsigned int blockcols>
 		Block<val_type, blockrows, blockcols> block (unsigned int i, unsigned int j) const {
-			COMPILE_ASSERT (nrows > blockrows);
-			COMPILE_ASSERT (ncols > blockcols);
+			COMPILE_ASSERT (nrows >= blockrows);
+			COMPILE_ASSERT (ncols >= blockcols);
 			return Block<val_type, blockrows, blockcols> (const_cast<double*> (this->mData), i, j, nrows, ncols);
 		}
 

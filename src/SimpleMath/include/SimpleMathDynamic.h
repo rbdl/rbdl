@@ -360,6 +360,15 @@ class Matrix {
 			return result;
 		}
 
+		static matrix_type Identity (int rows, int cols = 1) {
+			assert (rows == cols);
+
+			matrix_type result (rows, cols);
+			result.identity();
+
+			return result;
+		}
+
 		void identity() {
 			assert (nrows == ncols);
 
@@ -397,8 +406,8 @@ class Matrix {
 		// Block accessing functions
 		template <unsigned int blockrows, unsigned int blockcols>
 		Block<val_type, blockrows, blockcols> block (unsigned int i, unsigned int j) const {
-			assert (nrows > blockrows);
-			assert (ncols > blockcols);
+			assert (nrows >= blockrows);
+			assert (ncols >= blockcols);
 			return Block<val_type, blockrows, blockcols> (const_cast<double*> (this->mData), i, j, nrows, ncols);
 		}
 

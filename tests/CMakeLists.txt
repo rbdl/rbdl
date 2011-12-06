@@ -20,7 +20,7 @@ SET ( TESTS_SRCS
 	CompositeRigidBodyTests.cc
 	ImpulsesTests.cc
 	TwolegModelTests.cc
-	# ContactsTests.cc
+	ContactsTests.cc
 	)
 
 FIND_PACKAGE (UnitTest++ REQUIRED)
