@@ -78,7 +78,7 @@ static void run(Index rows, Index cols, Index depth,
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
 
   Index kc = blocking.kc();                 // cache block size along the K direction
-  Index mc = std::min(rows,blocking.mc());  // cache block size along the M direction
+  Index mc = (std::min)(rows,blocking.mc());  // cache block size along the M direction
   //Index nc = blocking.nc(); // cache block size along the N direction
 
   gemm_pack_lhs<LhsScalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
@@ -94,15 +94,16 @@ static void run(Index rows, Index cols, Index depth,
     
     std::size_t sizeA = kc*mc;
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
-    LhsScalar* blockA = ei_aligned_stack_new(LhsScalar, sizeA);
-    RhsScalar* w = ei_aligned_stack_new(RhsScalar, sizeW);
+    ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, sizeA, 0);
+    ei_declare_aligned_stack_constructed_variable(RhsScalar, w, sizeW, 0);
+    
     RhsScalar* blockB = blocking.blockB();
     eigen_internal_assert(blockB!=0);
 
     // For each horizontal panel of the rhs, and corresponding vertical panel of the lhs...
     for(Index k=0; k<depth; k+=kc)
     {
-      const Index actual_kc = std::min(k+kc,depth)-k; // => rows of B', and cols of the A'
+      const Index actual_kc = (std::min)(k+kc,depth)-k; // => rows of B', and cols of the A'
 
       // In order to reduce the chance that a thread has to wait for the other,
       // let's start by packing A'.
@@ -139,7 +140,7 @@ static void run(Index rows, Index cols, Index depth,
       // Then keep going as usual with the remaining A'
       for(Index i=mc; i<rows; i+=mc)
       {
-        const Index actual_mc = std::min(i+mc,rows)-i;
+        const Index actual_mc = (std::min)(i+mc,rows)-i;
 
         // pack A_i,k to A'
         pack_lhs(blockA, &lhs(i,k), lhsStride, actual_kc, actual_mc);
@@ -154,9 +155,6 @@ static void run(Index rows, Index cols, Index depth,
         #pragma omp atomic
         --(info[j].users);
     }
-
-    ei_aligned_stack_delete(LhsScalar, blockA, kc*mc);
-    ei_aligned_stack_delete(RhsScalar, w, sizeW);
   }
   else
 #endif // EIGEN_HAS_OPENMP
@@ -167,15 +165,16 @@ static void run(Index rows, Index cols, Index depth,
     std::size_t sizeA = kc*mc;
     std::size_t sizeB = kc*cols;
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
-    LhsScalar *blockA = blocking.blockA()==0 ? ei_aligned_stack_new(LhsScalar, sizeA) : blocking.blockA();
-    RhsScalar *blockB = blocking.blockB()==0 ? ei_aligned_stack_new(RhsScalar, sizeB) : blocking.blockB();
-    RhsScalar *blockW = blocking.blockW()==0 ? ei_aligned_stack_new(RhsScalar, sizeW) : blocking.blockW();
+
+    ei_declare_aligned_stack_constructed_variable(LhsScalar, blockA, sizeA, blocking.blockA());
+    ei_declare_aligned_stack_constructed_variable(RhsScalar, blockB, sizeB, blocking.blockB());
+    ei_declare_aligned_stack_constructed_variable(RhsScalar, blockW, sizeW, blocking.blockW());
 
     // For each horizontal panel of the rhs, and corresponding panel of the lhs...
     // (==GEMM_VAR1)
     for(Index k2=0; k2<depth; k2+=kc)
     {
-      const Index actual_kc = std::min(k2+kc,depth)-k2;
+      const Index actual_kc = (std::min)(k2+kc,depth)-k2;
 
       // OK, here we have selected one horizontal panel of rhs and one vertical panel of lhs.
       // => Pack rhs's panel into a sequential chunk of memory (L2 caching)
@@ -188,7 +187,7 @@ static void run(Index rows, Index cols, Index depth,
       // (==GEPP_VAR1)
       for(Index i2=0; i2<rows; i2+=mc)
       {
-        const Index actual_mc = std::min(i2+mc,rows)-i2;
+        const Index actual_mc = (std::min)(i2+mc,rows)-i2;
 
         // We pack the lhs's block into a sequential chunk of memory (L1 caching)
         // Note that this block will be read a very high number of times, which is equal to the number of
@@ -200,10 +199,6 @@ static void run(Index rows, Index cols, Index depth,
 
       }
     }
-
-    if(blocking.blockA()==0) ei_aligned_stack_delete(LhsScalar, blockA, sizeA);
-    if(blocking.blockB()==0) ei_aligned_stack_delete(RhsScalar, blockB, sizeB);
-    if(blocking.blockW()==0) ei_aligned_stack_delete(RhsScalar, blockW, sizeW);
   }
 }
 

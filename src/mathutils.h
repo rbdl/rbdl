@@ -1,3 +1,10 @@
+/*
+ * RBDL - Rigid Body Library
+ * Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ *
+ * Licensed under the zlib license. See LICENSE for more details.
+ */
+
 #ifndef _MATHUTILS_H
 #define _MATHUTILS_H
 
@@ -11,28 +18,13 @@ extern Matrix3d Matrix3dIdentity;
 extern Matrix3d Matrix3dZero;
 
 extern SpatialAlgebra::SpatialVector SpatialVectorZero;
-
 extern SpatialAlgebra::SpatialMatrix SpatialMatrixIdentity;
 extern SpatialAlgebra::SpatialMatrix SpatialMatrixZero;
 
-
-void VectorCrossVector (Vector3d &result, const Vector3d &vec_a, const Vector3d &vec_b);
-void VectorPrint (const char* msg, const Vector3d &vector);
-
-void MatrixPrint (const char* msg, const Matrix3d &matrix);
-void MatrixSetIdentity (Matrix3d &result);
-void MatrixSetZero (Matrix3d &result);
-void MatrixCopyTranspose (Matrix3d &result, const Matrix3d &src);
-void MatrixCopy (Matrix3d &result, const Matrix3d &src);
-
-/** \brief Solves a linear system using gaussian elimination with pivoting
- */
+/// \brief Solves a linear system using gaussian elimination with pivoting
 bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 
-/** \brief Creates the matrix to the cross product of a given 3D vector
- *  
- * \todo write test 
- */
+/// \brief Creates the skew symmetric matrix of the cross product of a given 3D vector
 Matrix3d VectorCrossMatrix (const Vector3d &vector);
 // \todo write test 
 void SpatialMatrixSetSubmatrix(SpatialAlgebra::SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix);
@@ -91,17 +83,5 @@ SpatialAlgebra::SpatialMatrix Xrotx (const double &xrot);
  * by ZYX-Euler angles.
  */
 SpatialAlgebra::SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler);
-
-/*
-inline std::ostream& operator<<(std::ostream& output, const std::vector<double> &val) {
-	unsigned int i;
-	for (i = 0; i < val.size(); i++)
-		output << val.at(i) << " ";
-
-	output << std::endl;
-
-	return output;
-}
-*/
 
 #endif /* _MATHUTILS_H */

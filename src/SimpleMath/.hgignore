@@ -1,0 +1,15 @@
+syntax: glob
+
+doc/html/*
+doc/notes/*.aux
+doc/notes/*.pdf
+Debug/*
+Release/*
+.*.swp
+CMakeFiles/*
+cmake_install.cmake
+Makefile
+tags
+*.log
+tests/runtests
+tests/CMakeCache.txt

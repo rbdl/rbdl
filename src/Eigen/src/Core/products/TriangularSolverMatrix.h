@@ -70,10 +70,10 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
     Index nc = cols;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar,4>(kc, mc, nc);
 
-    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*cols;
-    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+    ei_declare_aligned_stack_constructed_variable(Scalar, blockA, kc*mc, 0);
+    ei_declare_aligned_stack_constructed_variable(Scalar, allocatedBlockB, sizeB, 0);
     Scalar* blockB = allocatedBlockB + sizeW;
 
     conj_if<Conjugate> conj;
@@ -85,7 +85,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
         IsLower ? k2<size : k2>0;
         IsLower ? k2+=kc : k2-=kc)
     {
-      const Index actual_kc = std::min(IsLower ? size-k2 : k2, kc);
+      const Index actual_kc = (std::min)(IsLower ? size-k2 : k2, kc);
 
       // We have selected and packed a big horizontal panel R1 of rhs. Let B be the packed copy of this panel,
       // and R2 the remaining part of rhs. The corresponding vertical panel of lhs is split into
@@ -164,7 +164,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
         Index end   = IsLower ? size : k2-kc;
         for(Index i2=start; i2<end; i2+=mc)
         {
-          const Index actual_mc = std::min(mc,end-i2);
+          const Index actual_mc = (std::min)(mc,end-i2);
           if (actual_mc>0)
           {
             pack_lhs(blockA, &tri(i2, IsLower ? k2 : k2-kc), triStride, actual_kc, actual_mc);
@@ -174,9 +174,6 @@ struct triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conjugate,TriStorageO
         }
       }
     }
-
-    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
   }
 };
 
@@ -209,10 +206,10 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
     Index nc = rows;  // cache block size along the N direction
     computeProductBlockingSizes<Scalar,Scalar,4>(kc, mc, nc);
 
-    Scalar* blockA = ei_aligned_stack_new(Scalar, kc*mc);
     std::size_t sizeW = kc*Traits::WorkSpaceFactor;
     std::size_t sizeB = sizeW + kc*size;
-    Scalar* allocatedBlockB = ei_aligned_stack_new(Scalar, sizeB);
+    ei_declare_aligned_stack_constructed_variable(Scalar, blockA, kc*mc, 0);
+    ei_declare_aligned_stack_constructed_variable(Scalar, allocatedBlockB, sizeB, 0);
     Scalar* blockB = allocatedBlockB + sizeW;
 
     conj_if<Conjugate> conj;
@@ -225,7 +222,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
         IsLower ? k2>0 : k2<size;
         IsLower ? k2-=kc : k2+=kc)
     {
-      const Index actual_kc = std::min(IsLower ? k2 : size-k2, kc);
+      const Index actual_kc = (std::min)(IsLower ? k2 : size-k2, kc);
       Index actual_k2 = IsLower ? k2-actual_kc : k2 ;
 
       Index startPanel = IsLower ? 0 : k2+actual_kc;
@@ -254,7 +251,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
 
       for(Index i2=0; i2<rows; i2+=mc)
       {
-        const Index actual_mc = std::min(mc,rows-i2);
+        const Index actual_mc = (std::min)(mc,rows-i2);
 
         // triangular solver kernel
         {
@@ -314,9 +311,6 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
                       -1, -1, 0, 0, allocatedBlockB);
       }
     }
-
-    ei_aligned_stack_delete(Scalar, blockA, kc*mc);
-    ei_aligned_stack_delete(Scalar, allocatedBlockB, sizeB);
   }
 };
 

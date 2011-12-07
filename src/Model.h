@@ -1,3 +1,10 @@
+/*
+ * RBDL - Rigid Body Library
+ * Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ *
+ * Licensed under the zlib license. See LICENSE for more details.
+ */
+
 #ifndef _MODEL_H
 #define _MODEL_H
 
@@ -6,11 +13,11 @@
 #include <list>
 #include <assert.h>
 #include <iostream>
-#include "Logging.h"
+#include <limits>
 
+#include "Logging.h"
 #include "Joint.h"
 #include "Body.h"
-#include "Visualization.h"
 
 // std::vectors containing any objectst that have Eigen matrices or vectors
 // as members need to have a special allocater. This can be achieved with
@@ -24,12 +31,6 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
 /** \brief Namespace for all structures of the RigidBodyDynamics library
  */
 namespace RigidBodyDynamics {
-
-namespace Visualization {
-	class Primitive;
-	class PrimitiveBox;
-	class PrimitiveSphere;
-}
 
 /** \brief Contains all information about the rigid body model
  *
@@ -127,8 +128,6 @@ struct Model {
 	VectorNd u;
 	/// \brief Internal forces on the body (used only InverseDynamics())
 	std::vector<SpatialAlgebra::SpatialVector> f;
-	/// \brief External forces acting on the body (in base coordinates)
-	std::vector<SpatialAlgebra::SpatialVector> f_ext;
 	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
 	std::vector<SpatialAlgebra::SpatialMatrix> Ic;
 
@@ -148,6 +147,9 @@ struct Model {
 	 * mBodies[N_B] - N_Bth moveable body <br>
 	 */
 	std::vector<Body> mBodies;
+
+	/// \brief Human readable names for the bodies
+	std::vector<std::string> mBodyNames;
 
 	/** \brief Connects a given body to the model
 	 *
@@ -173,6 +175,8 @@ struct Model {
 	 *                    of the joint frame (represents X_T in RBDA)
 	 * \param joint       specification for the joint that describes the connection
 	 * \param body        specification of the body itself
+	 * \param body_name   human readable name for the body (can be used to retrieve its id
+	 *                    with GetBodyId())
 	 *
 	 * \returns id of the added body
 	 */
@@ -180,7 +184,8 @@ struct Model {
 			const unsigned int parent_id,
 			const SpatialAlgebra::SpatialMatrix &joint_frame,
 			const Joint &joint,
-			const Body &body
+			const Body &body,
+			std::string body_name = "" 
 			);
 
 	/** \brief Specifies the dynamical parameters of the first body and
@@ -197,7 +202,19 @@ struct Model {
 	unsigned int SetFloatingBaseBody (
 			const Body &body
 			);
-	
+
+	/** \brief Returns the id of a body that was passed to AddBody()
+	 *
+	 * Bodies can be given a human readable name. This function allows to
+	 * resolve its name to the numeric id.
+	 *
+	 * \note Instead of querying this function repeatedly, it might be
+	 * advisable to query it once and reuse the returned id.
+	 *
+	 * \returns the id of the body or \c std::numeric_limits<unsigned int>::max() if the id was not found.
+	 */
+	unsigned int GetBodyId (const char *id);
+
 	/** \brief Returns the 3-D coordinate vector of the origin of a given body
 	 *  \brief in base coordinates
 	 *
@@ -243,36 +260,6 @@ struct Model {
 
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
-
-	////////////////////////////////////
-	// Visualization
-
-	typedef std::list<Visualization::Primitive> VisualizationPrimitiveList;
-
-#ifdef EIGEN_CORE_H
-	typedef std::map<unsigned int, VisualizationPrimitiveList,
-					std::less<unsigned int>, Eigen::aligned_allocator<std::pair<const unsigned int, VisualizationPrimitiveList> > > BodyVisualizationMap;
-#else
-	typedef std::map<unsigned int, VisualizationPrimitiveList> BodyVisualizationMap;
-#endif
-	BodyVisualizationMap mBodyVisualization;
-
-	/** \brief Adds a Visualization::Primitive to the primitive list of a body
-	 *
-	 * \param body_id id of the body that should be drawn as a box
-	 * \param primitive the primitive that should be associated with the body
-	 *
-	 * \todo Wrap primitives up in smart pointers.
-	 */
-	void AddBodyVisualizationPrimitive (unsigned int body_id, Visualization::Primitive primitive);
-	
-	/** \brief Returns the visualization primitive for a box
-	 *
-	 * \param body_id id of the body of intrest
-	 *
-	 * \returns A pointer to the primitive or NULL if none exists.
-	 */
-	VisualizationPrimitiveList GetBodyVisualizationPrimitiveList (unsigned int body_id);
 };
 
 }

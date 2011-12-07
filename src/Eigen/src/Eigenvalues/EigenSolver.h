@@ -343,6 +343,7 @@ typename EigenSolver<MatrixType>::EigenvectorsType EigenSolver<MatrixType>::eige
     {
       // we have a real eigen value
       matV.col(j) = m_eivec.col(j).template cast<ComplexScalar>();
+      matV.col(j).normalize();
     }
     else
     {
@@ -434,7 +435,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
   Scalar norm = 0.0;
   for (Index j = 0; j < size; ++j)
   {
-    norm += m_matT.row(j).segment(std::max(j-1,Index(0)), size-std::max(j-1,Index(0))).cwiseAbs().sum();
+    norm += m_matT.row(j).segment((std::max)(j-1,Index(0)), size-(std::max)(j-1,Index(0))).cwiseAbs().sum();
   }
   
   // Backsubstitute to find vectors of upper triangular form
@@ -449,7 +450,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
     Scalar q = m_eivalues.coeff(n).imag();
 
     // Scalar vector
-    if (q == 0)
+    if (q == Scalar(0))
     {
       Scalar lastr=0, lastw=0;
       Index l = n;
@@ -490,12 +491,12 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
 
           // Overflow control
           Scalar t = internal::abs(m_matT.coeff(i,n));
-          if ((eps * t) * t > 1)
+          if ((eps * t) * t > Scalar(1))
             m_matT.col(n).tail(size-i) /= t;
         }
       }
     }
-    else if (q < 0) // Complex vector
+    else if (q < Scalar(0) && n > 0) // Complex vector
     {
       Scalar lastra=0, lastsa=0, lastw=0;
       Index l = n-1;
@@ -529,7 +530,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
         else
         {
           l = i;
-          if (m_eivalues.coeff(i).imag() == 0)
+          if (m_eivalues.coeff(i).imag() == RealScalar(0))
           {
             std::complex<Scalar> cc = cdiv(-ra,-sa,w,q);
             m_matT.coeffRef(i,n-1) = internal::real(cc);
@@ -562,12 +563,17 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
           }
 
           // Overflow control
-          Scalar t = std::max(internal::abs(m_matT.coeff(i,n-1)),internal::abs(m_matT.coeff(i,n)));
-          if ((eps * t) * t > 1)
+          using std::max;
+          Scalar t = (max)(internal::abs(m_matT.coeff(i,n-1)),internal::abs(m_matT.coeff(i,n)));
+          if ((eps * t) * t > Scalar(1))
             m_matT.block(i, n-1, size-i, 2) /= t;
 
         }
       }
+    }
+    else
+    {
+      eigen_assert("Internal bug in EigenSolver"); // this should not happen
     }
   }
 

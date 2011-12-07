@@ -1,3 +1,10 @@
+/*
+ * RBDL - Rigid Body Library
+ * Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ *
+ * Licensed under the zlib license. See LICENSE for more details.
+ */
+
 #include <iostream>
 #include <limits>
 #include <assert.h>
@@ -8,7 +15,6 @@
 #include "Model.h"
 #include "Body.h"
 #include "Joint.h"
-#include "Visualization.h"
 
 using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
@@ -24,8 +30,10 @@ void Model::Init() {
 
 	// structural information
 	lambda.push_back(0.);
-	mu.push_back(std::vector<unsigned int>(0));
+	mu.push_back(std::vector<unsigned int>());
 	dof_count = 0;
+
+	gravity = Vector3d (0., -9.81, 0.);
 
 	// state information
 	q = VectorNd::Zero(1);
@@ -47,14 +55,10 @@ void Model::Init() {
 	pA.push_back(zero_spatial);
 	U.push_back(zero_spatial);
 
-	d.resize(1);
-	u.resize(1);
-
 	u = VectorNd::Zero(1);
 	d = VectorNd::Zero(1);
 
 	f.push_back (zero_spatial);
-	f_ext.push_back (zero_spatial);
 	Ic.push_back (SpatialMatrixIdentity);
 
 	// Bodies
@@ -62,19 +66,22 @@ void Model::Init() {
 	X_base.push_back(SpatialMatrixIdentity);
 
 	mBodies.push_back(root_body);
+	mBodyNames.push_back("ROOT");
 }
 
 unsigned int Model::AddBody (const unsigned int parent_id,
 		const SpatialMatrix &joint_frame,
 		const Joint &joint,
-		const Body &body) {
+		const Body &body,
+		std::string body_name) {
 	assert (lambda.size() > 0);
 	assert (joint.mJointType != JointTypeUndefined);
 
 	// structural information
 	lambda.push_back(parent_id);
-	mu.push_back(std::vector<unsigned int>(0));
+	mu.push_back(std::vector<unsigned int>());
 	mu.at(parent_id).push_back(q.size());
+
 	dof_count += 1;
 
 	// state information
@@ -98,33 +105,20 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	IA.push_back(body.mSpatialInertia);
 	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
-	d.resize (dof_count + 1);
-	u.resize (dof_count + 1);
+
+	d = VectorNd::Zero (dof_count + 1);
+	u = VectorNd::Zero (dof_count + 1);
+
 	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
-	f_ext.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 	Ic.push_back (SpatialMatrixIdentity);
 
 	// Bodies
 	X_lambda.push_back(SpatialMatrixIdentity);
 	X_base.push_back(SpatialMatrixIdentity);
 	mBodies.push_back(body);
+	mBodyNames.push_back(body_name);
 
 	return q.size() - 1;
-}
-
-void Model::AddBodyVisualizationPrimitive (unsigned int body_id,
-		Visualization::Primitive primitive) {
-		mBodyVisualization[body_id].push_back(primitive);
-}
-
-Model::VisualizationPrimitiveList Model::GetBodyVisualizationPrimitiveList (unsigned int body_id) {
-	BodyVisualizationMap::iterator body_visualization_iter = mBodyVisualization.find(body_id);
-
-	if (body_visualization_iter == mBodyVisualization.end()) {
-		return VisualizationPrimitiveList();
-	}
-
-	return body_visualization_iter->second;
 }
 
 unsigned int Model::SetFloatingBaseBody (const Body &body) {
@@ -184,6 +178,15 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 
 		return body_rx_id;
 	}
+}
+
+unsigned int Model::GetBodyId (const char *id) {
+	for (unsigned int i = 0; i < mBodyNames.size(); i++) {
+		if (mBodyNames[i] == id)
+			return i;
+	}
+
+	return std::numeric_limits<unsigned int>::max();
 }
 
 Vector3d Model::GetBodyOrigin (const unsigned int body_id) {

@@ -13,7 +13,7 @@ using namespace std;
 using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
 
-const double TEST_PREC = 1.0e-14;
+const double TEST_PREC = 1.0e-12;
 
 struct KinematicsFixture {
 	KinematicsFixture () {
@@ -91,6 +91,124 @@ struct KinematicsFixture {
 	VectorNd QDDot;
 	VectorNd Tau;
 };
+
+struct KinematicsFixture6DoF {
+	KinematicsFixture6DoF () {
+		ClearLogOutput();
+		model = new Model;
+		model->Init();
+
+		model->gravity = Vector3d  (0., -9.81, 0.);
+
+		/* 
+		 *
+		 *          X Contact point (ref child)
+		 *          |
+		 *    Base  |
+		 *   / body |
+		 *  O-------*
+		 *           \
+		 *             Child body
+		 */
+
+		// base body (3 DoF)
+		base_rot_z = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_base_rot_z = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+		base_rot_z_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_z, base_rot_z);
+
+		base_rot_y = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_base_rot_y = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 1., 0.)
+				);
+		base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
+
+		base_rot_x = Body (
+				1.,
+				Vector3d (0.5, 0., 0.),
+				Vector3d (1., 1., 1.)
+				);
+		joint_base_rot_x = Joint (
+				JointTypeRevolute,
+				Vector3d (1., 0., 0.)
+				);
+		base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
+
+		// child body (3 DoF)
+		child_rot_z = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_child_rot_z = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
+
+		child_rot_y = Body (
+				0.,
+				Vector3d (0., 0., 0.),
+				Vector3d (0., 0., 0.)
+				);
+		joint_child_rot_y = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 1., 0.)
+				);
+		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
+
+		child_rot_x = Body (
+				1.,
+				Vector3d (0., 0.5, 0.),
+				Vector3d (1., 1., 1.)
+				);
+		joint_child_rot_x = Joint (
+				JointTypeRevolute,
+				Vector3d (1., 0., 0.)
+				);
+		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
+
+		Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		QDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		QDDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+		Tau = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+
+		ClearLogOutput();
+	}
+	
+	~KinematicsFixture6DoF () {
+		delete model;
+	}
+	Model *model;
+
+	unsigned int base_rot_z_id, base_rot_y_id, base_rot_x_id,
+		child_rot_z_id, child_rot_y_id, child_rot_x_id,
+		base_body_id;
+
+	Body base_rot_z, base_rot_y, base_rot_x,
+		child_rot_z, child_rot_y, child_rot_x;
+
+	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
+		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
+
+	VectorNd Q;
+	VectorNd QDot;
+	VectorNd QDDot;
+	VectorNd Tau;
+};
+
+
 
 TEST_FIXTURE(KinematicsFixture, TestPositionNeutral) {
 	// We call ForwardDynamics() as it updates the spatial transformation
@@ -281,3 +399,108 @@ TEST(TestCalcPointJacobian) {
 			);
 	#endif
 }
+
+TEST_FIXTURE(KinematicsFixture, TestInverseKinematicSimple) {
+	std::vector<unsigned int> body_ids;
+	std::vector<Vector3d> body_points;
+	std::vector<Vector3d> target_pos;
+
+	Q[0] = 0.2;
+	Q[1] = 0.1;
+	Q[2] = 0.1;
+
+	VectorNd Qres = VectorNd::Zero ((size_t) model->dof_count);
+
+	unsigned int body_id = body_d_id;
+	Vector3d body_point = Vector3d (1., 0., 0.);
+	Vector3d target (1.3, 0., 0.);
+
+	body_ids.push_back (body_d_id);
+	body_points.push_back (body_point);
+	target_pos.push_back (target);
+
+	ClearLogOutput();
+	bool res = InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres);
+	//	cout << LogOutput.str() << endl;
+	CHECK_EQUAL (true, res);
+
+	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
+
+	Vector3d effector;
+	effector = model->CalcBodyToBaseCoordinates(body_id, body_point);
+
+	CHECK_ARRAY_CLOSE (target.data(), effector.data(), 3, TEST_PREC);	
+}
+
+TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicUnreachable) {
+	std::vector<unsigned int> body_ids;
+	std::vector<Vector3d> body_points;
+	std::vector<Vector3d> target_pos;
+
+	Q[0] = 0.2;
+	Q[1] = 0.1;
+	Q[2] = 0.1;
+
+	VectorNd Qres = VectorNd::Zero ((size_t) model->dof_count);
+
+	unsigned int body_id = child_rot_x_id;
+	Vector3d body_point = Vector3d (1., 0., 0.);
+	Vector3d target (2.2, 0., 0.);
+
+	body_ids.push_back (body_id);
+	body_points.push_back (body_point);
+	target_pos.push_back (target);
+
+	ClearLogOutput();
+	bool res = InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres, 1.0e-8, 0.9, 1000);
+//	cout << LogOutput.str() << endl;
+	CHECK_EQUAL (true, res);
+
+	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
+
+	Vector3d effector;
+	effector = model->CalcBodyToBaseCoordinates(body_id, body_point);
+
+	CHECK_ARRAY_CLOSE (Vector3d (2.0, 0., 0.).data(), effector.data(), 3, 1.0e-7);	
+}
+
+TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicTwoPoints) {
+	std::vector<unsigned int> body_ids;
+	std::vector<Vector3d> body_points;
+	std::vector<Vector3d> target_pos;
+
+	Q[0] = 0.2;
+	Q[1] = 0.1;
+	Q[2] = 0.1;
+
+	VectorNd Qres = VectorNd::Zero ((size_t) model->dof_count);
+
+	unsigned int body_id = child_rot_x_id;
+	Vector3d body_point = Vector3d (1., 0., 0.);
+	Vector3d target (2., 0., 0.);
+
+	body_ids.push_back (body_id);
+	body_points.push_back (body_point);
+	target_pos.push_back (target);
+
+	body_ids.push_back (base_rot_x_id);
+	body_points.push_back (Vector3d (0.6, 1.0, 0.));
+	target_pos.push_back (Vector3d (0.5, 1.1, 0.));
+
+	ClearLogOutput();
+	bool res = InverseKinematics (*model, Q, body_ids, body_points, target_pos, Qres, 1.0e-3, 0.9, 200);
+	CHECK_EQUAL (true, res);
+
+//	cout << LogOutput.str() << endl;
+	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
+
+	Vector3d effector;
+
+	// testing with very low precision
+	effector = model->CalcBodyToBaseCoordinates(body_ids[0], body_points[0]);
+	CHECK_ARRAY_CLOSE (target_pos[0].data(), effector.data(), 3, 1.0e-1);	
+
+	effector = model->CalcBodyToBaseCoordinates(body_ids[1], body_points[1]);
+	CHECK_ARRAY_CLOSE (target_pos[1].data(), effector.data(), 3, 1.0e-1);	
+}
+

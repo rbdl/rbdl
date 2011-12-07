@@ -1,3 +1,10 @@
+/*
+ * RBDL - Rigid Body Library
+ * Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ *
+ * Licensed under the zlib license. See LICENSE for more details.
+ */
+
 #include <iostream>
 #include <limits>
 #include <cstring>
@@ -73,6 +80,105 @@ void ForwardKinematics (Model &model,
 	}
 }
 
+void ForwardKinematicsCustom (Model &model,
+		const VectorNd *Q,
+		const VectorNd *QDot,
+		const VectorNd *QDDot
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	unsigned int i;
+
+	if (Q)
+	
+	if (QDot)
+
+	if (QDDot)
+		assert (model.qddot.size() == QDDot->size() + 1);
+
+	if (model.experimental_floating_base) {
+		assert (0 && !"ForwardKinematics not supported yet for experimental floating bases");
+	}
+
+	if (Q) {
+		assert (model.q.size() == Q->size() + 1);
+		// positions
+		for (i = 0; i < model.dof_count; i++) {
+			model.q[i + 1] = (*Q)[i];
+		}
+	}
+
+	if (QDot) {
+		assert (model.qdot.size() == QDot->size() + 1);
+		// velocities
+		for (i = 0; i < model.dof_count; i++) {
+			model.qdot[i + 1] = (*QDot)[i];
+		}
+	}
+
+	if (QDDot) {
+		assert (model.qddot.size() == QDDot->size() + 1);
+		// accelerations
+		for (i = 0; i < model.dof_count; i++) {
+			model.qddot[i + 1] = (*QDDot)[i];
+		}
+	}
+
+	if (Q) {
+		for (i = 1; i < model.mBodies.size(); i++) {
+			SpatialVector v_J;
+			SpatialVector c_J;
+			SpatialMatrix X_J;
+			Joint joint = model.mJoints[i];
+			unsigned int lambda = model.lambda[i];
+
+			jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+
+			model.X_lambda[i] = X_J * model.X_T[i];
+
+			if (lambda != 0) {
+				model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
+			}	else {
+				model.X_base[i] = model.X_lambda[i];
+			}
+		}
+	}
+
+	if (QDot) {
+		for (i = 1; i < model.mBodies.size(); i++) {
+			SpatialVector v_J;
+			SpatialVector c_J;
+			SpatialMatrix X_J;
+			Joint joint = model.mJoints[i];
+			unsigned int lambda = model.lambda[i];
+
+			jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+
+			if (lambda != 0) {
+				model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
+				model.c[i] = c_J + crossm(model.v[i],v_J);
+			}	else {
+				model.v[i] = v_J;
+				model.c[i].setZero();
+			}
+		}
+	}
+
+	if (QDDot) {
+		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int lambda = model.lambda[i];
+
+			if (lambda != 0) {
+				model.a[i] = model.X_lambda[i] * model.a[lambda] + model.c[i];
+			}	else {
+				model.a[i].setZero();
+			}
+
+			model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+		}
+	}
+}
+
 void CalcPointJacobian (
 		Model &model,
 		const VectorNd &Q,
@@ -140,39 +246,15 @@ Vector3d CalcPointVelocity (
 	unsigned int i;
 
 	if (model.experimental_floating_base) {
-		// set the transformation for the base body
-		model.X_base[0] = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
-		model.X_lambda[0] = model.X_base[0];
-
-		// in this case the appropriate function has to be called, see
-		// ForwardDynamicsFloatingBase
-		model.v[0].set (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
-
-		model.v[0] = spatial_inverse(model.X_base[0]) * model.v[0];
-		
-		// global_velocities[0] = model.v[0];
-
-		if (model.mBodies.size() > 1) {
-			// Copy state values from the input to the variables in model
-			for (i = 1; i < model.mBodies.size(); i++) {
-				model.q[i] = Q[6 + i];
-				model.qdot[i] = QDot[6 + i];
-			}
-		}
-	} else {
-		assert (body_id > 0 && body_id < model.mBodies.size());
-		assert (model.q.size() == Q.size() + 1);
-		assert (model.qdot.size() == QDot.size() + 1);
-
-		// Reset the velocity of the root body
-		model.v[0].setZero();
-
-		// Copy state values from the input to the variables in model
-		for (i = 0; i < Q.size(); i++) {
-			model.q[i+1] = Q[i];
-			model.qdot[i+1] = QDot[i];
-		}
+		assert (0 && !"floating base not supported");
 	}
+		
+	assert (body_id > 0 && body_id < model.mBodies.size());
+	assert (model.q.size() == Q.size() + 1);
+	assert (model.qdot.size() == QDot.size() + 1);
+
+	// Reset the velocity of the root body
+	model.v[0].setZero();
 
 	// update the Kinematics with zero acceleration
 	if (update_kinematics) {
@@ -226,39 +308,16 @@ Vector3d CalcPointAcceleration (
 	model.a[0].setZero();
 
 	if (model.experimental_floating_base) {
-		// set the transformation for the base body
-		model.X_base[0] = XtransRotZYXEuler (Vector3d (Q[0], Q[1], Q[2]), Vector3d (Q[3], Q[4], Q[5]));
-		model.X_lambda[0] = model.X_base[0];
-
-		// in this case the appropriate function has to be called, see
-		// ForwardDynamicsFloatingBase.
-		model.v[0].set (QDot[5], QDot[4], QDot[3], QDot[0], QDot[1], QDot[2]);
-		model.a[0].set (QDDot[5], QDDot[4], QDDot[3], QDDot[0], QDDot[1], QDDot[2]);
-		
-		if (model.mBodies.size() > 1) {
-			// Copy state values from the input to the variables in model
-			for (i = 1; i < model.mBodies.size(); i++) {
-				model.q[i] = Q[6 + i];
-				model.qdot[i] = QDot[6 + i];
-				model.qddot[i] = QDDot[6 + i];
-			}
-		}
-	} else {
-		if (update_kinematics)
-			ForwardKinematics (model, Q, QDot, QDDot);
+		assert (0 && !"floating base not supported");
 	}
+
+	if (update_kinematics)
+		ForwardKinematics (model, Q, QDot, QDDot);
 
 	LOG << std::endl;
 
-	// computation of the global position of the point
-	Vector3d point_abs_pos = model.CalcBodyToBaseCoordinates (body_id, point_position);
-	LOG << "point_abs_ps = " << point_abs_pos << std::endl;
-
 	// The whole computation looks in formulae like the following:
 	SpatialVector body_global_velocity (spatial_inverse(model.X_base[body_id]) * model.v[body_id]);
-	SpatialVector body_global_acceleration (spatial_inverse(model.X_base[body_id]) * model.a[body_id]);
-	SpatialMatrix global_point_transform (Xtrans (point_abs_pos));
-	SpatialMatrix local_point_transform (Xtrans (point_position));
 
 	LOG << " orientation " << std::endl << model.GetBodyWorldOrientation(body_id) << std::endl;
 	LOG << " orientationT " << std::endl <<  model.GetBodyWorldOrientation(body_id).transpose() << std::endl;
@@ -302,6 +361,98 @@ Vector3d CalcPointAcceleration (
 			p_a_i_dash[4],
 			p_a_i_dash[5]
 			);
+}
+
+bool InverseKinematics (
+		Model &model,
+		const VectorNd &Qinit,
+		const std::vector<unsigned int>& body_id,
+		const std::vector<Vector3d>& body_point,
+		const std::vector<Vector3d>& target_pos,
+		VectorNd &Qres,
+		double step_tol,
+		double lambda,
+		unsigned int max_iter
+		) {
+
+	assert (Qinit.size() == model.dof_count);
+	assert (body_id.size() == body_point.size());
+	assert (body_id.size() == target_pos.size());
+
+	MatrixNd J = MatrixNd::Zero(3 * body_id.size(), model.dof_count);
+	VectorNd e = VectorNd::Zero(3 * body_id.size());
+
+	Qres = Qinit;
+
+	for (int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+		ForwardKinematicsCustom (model, &Qres, NULL, NULL);
+
+		for (unsigned int k = 0; k < body_id.size(); k++) {
+			MatrixNd G (3, model.dof_count);
+			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
+			Vector3d point_base = model.CalcBodyToBaseCoordinates(body_id[k], body_point[k]);
+			LOG << "current_pos = " << point_base.transpose() << std::endl;
+
+			for (unsigned int i = 0; i < 3; i++) {
+				for (unsigned int j = 0; j < model.dof_count; j++) {
+					J(k * body_id.size() + i, j) = G (i,j);
+				}
+
+				e[k * body_id.size() + i] = target_pos[k][i] - point_base[i];
+			}
+
+			// abort if we are getting "close"
+			if (e.norm() < step_tol) {
+				LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+				return true;
+			}
+		}
+
+		LOG << "J = " << J << std::endl;
+		LOG << "e = " << e.transpose() << std::endl;
+
+		MatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * MatrixNd::Identity(e.size(), e.size());
+
+		VectorNd z (body_id.size() * 3);
+#ifndef RBDL_USE_SIMPLE_MATH
+		z = JJTe_lambda2_I.colPivHouseholderQr().solve (e);
+#else
+		bool solve_successful = LinSolveGaussElimPivot (JJTe_lambda2_I, e, z);
+		assert (solve_successful);
+#endif
+
+		LOG << "z = " << z << std::endl;
+
+		VectorNd delta_theta = J.transpose() * z;
+		LOG << "change = " << delta_theta << std::endl;
+
+		Qres = Qres + delta_theta;
+		LOG << "Qres = " << Qres.transpose() << std::endl;
+
+		if (delta_theta.norm() < step_tol) {
+			LOG << "reached convergence after " << ik_iter << " steps" << std::endl;
+			return true;
+		}
+
+		VectorNd test_1 (z.size());
+		VectorNd test_res (z.size());
+
+		test_1.setZero();
+
+		for (unsigned int i = 0; i < z.size(); i++) {
+			test_1[i] = 1.;
+
+			VectorNd test_delta = J.transpose() * test_1;
+
+			test_res[i] = test_delta.squaredNorm();
+
+			test_1[i] = 0.;
+		}
+
+		LOG << "test_res = " << test_res.transpose() << std::endl;
+	}
+
+	return false;
 }
 
 }
