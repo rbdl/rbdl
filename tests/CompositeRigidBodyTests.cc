@@ -152,13 +152,14 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 
 	assert (model->dof_count == 12);
 
+	ForwardKinematicsCustom (*model, &Q, NULL, NULL);
 	CompositeRigidBodyAlgorithm (*model, Q, H_crba);
 
 	VectorNd H_col = VectorNd::Zero (model->dof_count);
 	VectorNd QDDot_zero = VectorNd::Zero (model->dof_count);
 
 	unsigned int i;
-	for (i = 0; i < 1; i++) {
+	for (i = 0; i < model->dof_count; i++) {
 		// compute each column
 		VectorNd delta_a = VectorNd::Zero (model->dof_count);
 		delta_a[i] = 1.;
@@ -177,6 +178,53 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 		H_id.block<12, 1>(0, i) = H_col;
 	}
 
-	cout << "H (crba) = " << endl << H_crba << endl;
-	cout << "H (id) = " << endl << H_id << endl;
+//	cout << "H (crba) = " << endl << H_crba << endl;
+//	cout << "H (id) = " << endl << H_id << endl;
+
+	CHECK_ARRAY_CLOSE (H_crba.data(), H_id.data(), model->dof_count * model->dof_count, TEST_PREC);
+}
+
+TEST_FIXTURE(FixedBase6DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
+	MatrixNd H_crba = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
+	MatrixNd H_id = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
+
+	Q[ 0] = 1.1;
+	Q[ 1] = 1.2;
+	Q[ 2] = 1.3;
+	Q[ 3] = 0.1;
+	Q[ 4] = 0.2;
+	Q[ 5] = 0.3;
+
+	QDot.setZero();
+
+	assert (model->dof_count == 6);
+
+	ForwardKinematicsCustom (*model, &Q, NULL, NULL);
+	CompositeRigidBodyAlgorithm (*model, Q, H_crba);
+
+	VectorNd H_col = VectorNd::Zero (model->dof_count);
+	VectorNd QDDot_zero = VectorNd::Zero (model->dof_count);
+
+	unsigned int i;
+	for (i = 0; i < 6; i++) {
+		// compute each column
+		VectorNd delta_a = VectorNd::Zero (model->dof_count);
+		delta_a[i] = 1.;
+
+		ClearLogOutput();
+		// compute ID (model, q, qdot, delta_a)
+		VectorNd id_delta = VectorNd::Zero (model->dof_count);
+		InverseDynamics (*model, Q, QDot, delta_a, id_delta);
+
+		// compute ID (model, q, qdot, zero)
+		VectorNd id_zero = VectorNd::Zero (model->dof_count);
+		InverseDynamics (*model, Q, QDot, QDDot_zero, id_zero);
+
+		H_col.setZero();
+		H_col = id_delta - id_zero;
+
+		H_id.block<6, 1>(0, i) = H_col;
+	}
+
+	CHECK_ARRAY_CLOSE (H_crba.data(), H_id.data(), model->dof_count * model->dof_count, TEST_PREC);
 }
