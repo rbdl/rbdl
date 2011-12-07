@@ -1,8 +1,14 @@
 RBDL - Rigid Body Dynamics Library
 
-This code is mainly an C++ implementation of Roy Featherstone's Articulated
-Body Algorithm (ABA) written by Martin Felis. The code tightly follows the
-notation used in Featherstone's book "Rigid Body Dynamics Algorithm".
+This library contains some essential rigid body dynamics library such as
+the Articulated Body Algorithm (ABA) for forward dynamics, Newton-Euler
+Algorithm for inverse dynamics and the Composite Rigid Body Algorithm
+(CRBA) for the efficient computation of the joint space inertia matrix.
+
+This code evolved mainly from a C++ implementation of Roy Featherstone's
+Articulated Body Algorithm (ABA) written by Martin Felis. The code tightly
+follows the notation used in Featherstone's book "Rigid Body Dynamics
+Algorithm".
 
 DOCUMENTATION
 
