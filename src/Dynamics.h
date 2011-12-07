@@ -17,6 +17,10 @@ namespace RigidBodyDynamics {
 
 class Model;
 
+/** \defgroup dynamics_group Dynamics
+ * @{
+ */
+
 /** \brief Computes forward dynamics with the Articulated Body Algorithm
  *
  * This function computes the generalized accelerations from given
@@ -31,8 +35,6 @@ class Model;
  * \param Tau   actuations of the internal joints
  * \param QDDot accelerations of the internal joints (output)
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
- *
- * \todo [high] Create a test for this function.
  */
 void ForwardDynamics (
 		Model &model,
@@ -95,18 +97,20 @@ void InverseDynamics (
  * the generalized state vector:
  *   \f$ M(q) \f$
  *
- * \warning This function does not update joint axis and body transformations,
- * \warning hence one has to call ForwardKinematics() first!
- *
  * \param model rigid body model
  * \param Q     state vector of the model
  * \param H     a matrix where the result will be stored in
+ * \param update_kinematics  whether the kinematics should be updated
+ * (safer, but at a higher computational cost!)
  */
 void CompositeRigidBodyAlgorithm (
 		Model& model,
 		const VectorNd &Q,
-		MatrixNd &H
+		MatrixNd &H,
+		bool update_kinematics = true
 		);
+
+/** @} */
 
 }
 

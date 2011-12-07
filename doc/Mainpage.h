@@ -21,8 +21,6 @@
  * Documentation of the functions can be found at the documentation page of
  * the namespace RigidBodyDynamics.
  *
- * A simple example can be found \ref SimpleExample "here".
- *
  * \section ModelConstruction Construction of Models
  *
  * The construction of \link RigidBodyDynamics::Model Models \endlink makes
@@ -33,7 +31,15 @@
  * transformation from the parent origin to the joint origin, the joint
  * specification as an object, and the body itself. These parameters are
  * then fed to the function RigidBodyDynamics::Model::AddBody().
+ *
+ * A simple example can be found \ref SimpleExample "here".
  * 
+ * \section ModuleOverview API reference separated by functional modules
+ * 
+ * \li \ref kinematics_group
+ * \li \ref dynamics_group
+ * \li \ref contacts_group
+ *
  * \section Licensing Licensing
  *
  * The library is published under the very permissive zlib free software

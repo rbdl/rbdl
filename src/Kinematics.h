@@ -15,6 +15,10 @@
 
 namespace RigidBodyDynamics {
 
+/** \defgroup kinematics_group Kinematics
+ * @{
+ */
+
 /** \brief Updates and computes velocities and accelerations of the bodies
  *
  * This function updates the kinematic variables such as body velocities
@@ -154,6 +158,8 @@ bool InverseKinematics (
 		double lambda = 0.01,
 		unsigned int max_iter = 50
 		);
+
+/** @} */
 
 }
 

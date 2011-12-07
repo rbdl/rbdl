@@ -12,6 +12,14 @@
 
 namespace RigidBodyDynamics {
 
+/** \defgroup contacts_group External Contacts
+ *
+ * Here you find information about the functions related to contact
+ * handling.
+ *
+ * @{
+ */
+
 /** \brief Structure that contains information about a one-dimensional
  *  \brief contact constraint
  *
@@ -192,24 +200,27 @@ void ComputeContactImpulsesLagrangian (
 		VectorNd &QDotPlus
 		);
 
-namespace Experimental {
-
-/** 
+/** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
  *
- * This is described as ABM_AccelerationDeltas (l, f^t_l) in the Kokkevis
- * 2005 paper.
+ * The method used here is the one described by Kokkevis and Metaxas in the
+ * Paper "Efficient Dynamic Constraints for Animating Articulated Figures,
+ * Multibody System Dynamics 2, 89-114, 1998.
  *
- * \param model rigid body model
- * \param QDDot_t the resulting accelerations due to the test force (output)
- * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
+ * This function is superseeded by \ref RigidBodyDynamics::ForwardDynamicsContacts
+ * the same approach but faster.
+ * 
+ * \todo Allow for external forces
  */
-void ForwardDynamicsAccelerationsOnly (
+void ForwardDynamicsContactsOld (
 		Model &model,
-		VectorNd &QDDot_t,
-		std::vector<SpatialAlgebra::SpatialVector> *f_ext = NULL
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		std::vector<ContactInfo> &ContactData,
+		VectorNd &QDDot
 		);
 
-/** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
+/** \brief Computes forward dynamics that accounts for active contacts in ContactData
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
  * Paper "Practical Physics for Articulated Characters", Game Developers
@@ -270,8 +281,7 @@ void ForwardDynamicsAccelerationsOnly (
  * 	the normal.
  *
  * \todo Allow for external forces
- */
-void ForwardDynamicsContacts (
+ */void ForwardDynamicsContacts (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
@@ -280,39 +290,7 @@ void ForwardDynamicsContacts (
 		VectorNd &QDDot
 		);
 
-void ForwardDynamicsContactsOpt (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
-		VectorNd &QDDot
-		);
-
-/** \brief Computes the change of the generalized velocity due to collisions
- *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Practical Physics for Articulated Characters", Game Developers
- * Conference, 2004.
- *
- * This function computes the change of the generalized velocity vector
- * QDot such that the points defined in ContactData have zero velocity.
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDotPre  generalized velocity before the collision
- * \param ContactData	a list of all contact points
- * \param QDotPost generalized velocity after the collision
- */
-void ComputeContactImpulses (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDotPre,
-		const std::vector<ContactInfo> &ContactData,
-		VectorNd &QDotPost
-		);
-
-} /* namespace Experimental */
+/** @} */
 
 } /* namespace RigidBodyDynamics */
 

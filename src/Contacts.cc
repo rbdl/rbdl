@@ -35,10 +35,6 @@ void ForwardDynamicsContactsLagrangian (
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	// Note: InverseDynamics must be called *before*
-	// CompositeRigidBodyAlgorithm() as the latter does not update
-	// transformations etc.!
-
 	// Compute C
 	VectorNd QDDot_zero = VectorNd::Zero (model.dof_count);
 	VectorNd C (model.dof_count);
@@ -47,7 +43,7 @@ void ForwardDynamicsContactsLagrangian (
 
 	// Compute H
 	MatrixNd H (model.dof_count, model.dof_count);
-	CompositeRigidBodyAlgorithm (model, Q, H);
+	CompositeRigidBodyAlgorithm (model, Q, H, false);
 
 	// Compute G
 	MatrixNd G (ContactData.size(), model.dof_count);
@@ -194,9 +190,7 @@ void ComputeContactImpulsesLagrangian (
 
 	VectorNd QZero = VectorNd::Zero (model.dof_count);
 	ForwardKinematics (model, Q, QZero, QZero);
-
-	// Note: ForwardKinematics must have been called beforehand!
-	CompositeRigidBodyAlgorithm (model, Q, H);
+	CompositeRigidBodyAlgorithm (model, Q, H, false);
 
 	// Compute G
 	MatrixNd G (ContactData.size(), model.dof_count);
@@ -285,17 +279,12 @@ void ComputeContactImpulsesLagrangian (
 
 }
 
-/*
- * Experimental Code
- */
-
-namespace Experimental {
-
 /** \brief Compute only the effects of external forces on the generalized accelerations
  *
  * This function is a reduced version of ForwardDynamics() which only
  * computes the effects of the external forces on the generalized
  * accelerations.
+ *
  */
 void ForwardDynamicsAccelerationsOnly (
 		Model &model,
@@ -400,7 +389,7 @@ void ForwardDynamicsAccelerationsOnly (
 	}
 }
 
-void ForwardDynamicsContacts (
+void ForwardDynamicsContactsOld (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
@@ -609,7 +598,7 @@ void ForwardDynamicsAccelerationDeltas (
 	}
 }
 
-void ForwardDynamicsContactsOpt (
+void ForwardDynamicsContacts (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
@@ -806,8 +795,5 @@ void ForwardDynamicsContactsOpt (
 		ForwardDynamicsAccelerationsOnly (model, QDDot, &f_ext_constraints);
 	}
 }
-
-
-} /* namespace Experimental */
 
 } /* namespace RigidBodyDynamics */

@@ -224,10 +224,8 @@ void ForwardDynamicsLagrangian (
 	// method.
 	QDDot.setZero();
 
-	// we first have to call InverseDynamics as it will update the spatial
-	// joint axes which CRBA does not do on its own!
 	InverseDynamics (model, Q, QDot, QDDot, C, f_ext);
-	CompositeRigidBodyAlgorithm (model, Q, H);
+	CompositeRigidBodyAlgorithm (model, Q, H, false);
 
 	LOG << "A = " << std::endl << H << std::endl;
 	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;
@@ -321,11 +319,14 @@ void InverseDynamics (
 	}
 }
 
-void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H) {
+void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, bool update_kinematics) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
 	if (H.rows() != Q.size() || H.cols() != Q.size()) 
 		H.resize(Q.size(), Q.size());
+
+	if (update_kinematics)
+		ForwardKinematicsCustom (model, &Q, NULL, NULL);
 
 	H.setZero();
 
