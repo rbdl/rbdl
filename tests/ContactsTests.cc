@@ -10,6 +10,8 @@
 #include "Dynamics.h"
 #include "Kinematics.h"
 
+#include "Fixtures.h"
+
 using namespace std;
 using namespace SpatialAlgebra;
 using namespace SpatialAlgebra::Operators;
@@ -18,134 +20,8 @@ using namespace RigidBodyDynamics::Experimental;
 
 const double TEST_PREC = 1.0e-11;
 
-struct ContactsFixture {
-	ContactsFixture () {
-		ClearLogOutput();
-		model = new Model;
-		model->Init();
-
-		model->gravity = Vector3d  (0., -9.81, 0.);
-
-		/* 3 DoF (rot.) joint at base
-		 * 3 DoF (rot.) joint child origin
-		 *
-		 *          X Contact point (ref child)
-		 *          |
-		 *    Base  |
-		 *   / body |
-		 *  O-------*
-		 *           \
-		 *             Child body
-		 */
-
-		// base body (3 DoF)
-		base_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_base_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		base_rot_z_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_z, base_rot_z);
-
-		base_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_base_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
-
-		base_rot_x = Body (
-				1.,
-				Vector3d (0.5, 0., 0.),
-				Vector3d (1., 1., 1.)
-				);
-		joint_base_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
-		base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
-
-		// child body (3 DoF)
-		child_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
-
-		child_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
-
-		child_rot_x = Body (
-				1.,
-				Vector3d (0., 0.5, 0.),
-				Vector3d (1., 1., 1.)
-				);
-		joint_child_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
-		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
-
-		Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-		QDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-		QDDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-		Tau = VectorNd::Constant (model->mBodies.size() - 1, 0.);
-
-		contact_body_id = child_rot_x_id;
-		contact_point = Vector3d  (0.5, 0.5, 0.);
-		contact_normal = Vector3d  (0., 1., 0.);
-
-		ClearLogOutput();
-	}
-	
-	~ContactsFixture () {
-		delete model;
-	}
-	Model *model;
-
-	unsigned int base_rot_z_id, base_rot_y_id, base_rot_x_id,
-		child_rot_z_id, child_rot_y_id, child_rot_x_id,
-		base_body_id;
-
-	Body base_rot_z, base_rot_y, base_rot_x,
-		child_rot_z, child_rot_y, child_rot_x;
-
-	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
-		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
-
-	VectorNd Q;
-	VectorNd QDot;
-	VectorNd QDDot;
-	VectorNd Tau;
-
-	unsigned int contact_body_id;
-	Vector3d contact_point;
-	Vector3d contact_normal;
-	std::vector<ContactInfo> contact_data;
-};
-
-struct ContactsFixture9DoF {
-	ContactsFixture9DoF () {
+struct FixedBase6DoF9DoF {
+	FixedBase6DoF9DoF () {
 		ClearLogOutput();
 		model = new Model;
 		model->Init();
@@ -278,7 +154,7 @@ struct ContactsFixture9DoF {
 		ClearLogOutput();
 	}
 	
-	~ContactsFixture9DoF () {
+	~FixedBase6DoF9DoF () {
 		delete model;
 	}
 	Model *model;
@@ -307,8 +183,8 @@ struct ContactsFixture9DoF {
 	std::vector<ContactInfo> contact_data;
 };
 
-struct ContactsFixture12DoFFloatingBase {
-	ContactsFixture12DoFFloatingBase () {
+struct FixedBase6DoF12DoFFloatingBase {
+	FixedBase6DoF12DoFFloatingBase () {
 		ClearLogOutput();
 		model = new Model;
 		model->Init();
@@ -414,7 +290,7 @@ struct ContactsFixture12DoFFloatingBase {
 		ClearLogOutput();
 	}
 	
-	~ContactsFixture12DoFFloatingBase () {
+	~FixedBase6DoF12DoFFloatingBase () {
 		delete model;
 	}
 	Model *model;
@@ -564,7 +440,7 @@ TEST ( TestForwardDynamicsContactsLagrangianMoving ) {
 	*/
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContact) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContact) {
 	contact_normal.set (0., 1., 0.);
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, contact_normal, 0.));
 
@@ -589,7 +465,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContact) {
 	CHECK_ARRAY_CLOSE (point_accel_lagrangian.data(), point_accel_recursive.data(), 3, TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContactRotated) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContactRotated) {
 	contact_normal.set (0., 1., 0.);
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, contact_normal, 0.));
 
@@ -617,7 +493,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContactRotated) {
 	CHECK_CLOSE (contact_force_lagrangian, contact_force_recursive, TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContact) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsMultipleContact) {
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
 
@@ -654,7 +530,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContact) {
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactRotating) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsMultipleContactRotating) {
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
 
@@ -692,7 +568,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsMultipleContactRotating) {
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptSingleContact) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptSingleContact) {
 	contact_normal.set (0., 1., 0.);
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, contact_normal, 0.));
 
@@ -735,7 +611,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptSingleContact) {
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot_contacts_opt.data(), QDDot_lagrangian.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptSingleContactRotated) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptSingleContactRotated) {
 	Q[0] = 0.6;
 	Q[3] =   M_PI * 0.6;
 	Q[4] = 0.1;
@@ -785,10 +661,10 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptSingleContactRotated) {
 // Compares the results of 
 //   - ForwardDynamicsContactsLagrangian
 //   - ForwardDynamcsContacts
-// for the example model in ContactsFixture and a moving state (i.e. a
+// for the example model in FixedBase6DoF and a moving state (i.e. a
 // nonzero QDot)
 // 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContactRotatedMoving) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContactRotatedMoving) {
 	Q[0] = 0.6;
 	Q[3] =   M_PI * 0.6;
 	Q[4] = 0.1;
@@ -830,10 +706,10 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsSingleContactRotatedMoving
 // Similiar to the previous test, this test compares the results of 
 //   - ForwardDynamicsContactsLagrangian
 //   - ForwardDynamcsContactsOpt
-// for the example model in ContactsFixture and a moving state (i.e. a
+// for the example model in FixedBase6DoF and a moving state (i.e. a
 // nonzero QDot)
 // 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptSingleContactRotatedMoving) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptSingleContactRotatedMoving) {
 	Q[0] = 0.6;
 	Q[3] =   M_PI * 0.6;
 	Q[4] = 0.1;
@@ -874,7 +750,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptSingleContactRotatedMov
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot_contacts_opt.data(), QDDot_lagrangian.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptDoubleContact) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptDoubleContact) {
 	contact_data.push_back (ContactInfo(contact_body_id, Vector3d (1., 0., 0.), contact_normal, 0.));
 	contact_data.push_back (ContactInfo(contact_body_id, Vector3d (0., 1., 0.), contact_normal, 0.));
 
@@ -921,7 +797,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptDoubleContact) {
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot_contacts_opt.data(), QDDot_lagrangian.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptMultipleContact) {
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptMultipleContact) {
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
 
@@ -968,7 +844,7 @@ TEST_FIXTURE (ContactsFixture, ForwardDynamicsContactsOptMultipleContact) {
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsMultipleContactsMultipleBodies) {
+TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsMultipleContactsMultipleBodies) {
 	// we have to resize the state vectors
 
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->mBodies.size() - 1, 0.);
@@ -1009,7 +885,7 @@ TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsMultipleContactsMultip
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsMultipleContactsMultipleBodiesMoving) {
+TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsMultipleContactsMultipleBodiesMoving) {
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
@@ -1064,7 +940,7 @@ TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsMultipleContactsMultip
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsOptMultipleContactsMultipleBodiesMoving) {
+TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsOptMultipleContactsMultipleBodiesMoving) {
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
@@ -1119,7 +995,7 @@ TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsOptMultipleContactsMul
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsOptMultipleContactsMultipleBodiesMovingAlternate) {
+TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsOptMultipleContactsMultipleBodiesMovingAlternate) {
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
@@ -1180,7 +1056,7 @@ TEST_FIXTURE (ContactsFixture9DoF, ForwardDynamicsContactsOptMultipleContactsMul
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture12DoFFloatingBase, ForwardDynamicsContactsMultipleContactsFloatingBase) {
+TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsMultipleContactsFloatingBase) {
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->dof_count, 0.);
 
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
@@ -1243,7 +1119,7 @@ TEST_FIXTURE (ContactsFixture12DoFFloatingBase, ForwardDynamicsContactsMultipleC
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
-TEST_FIXTURE (ContactsFixture12DoFFloatingBase, ForwardDynamicsContactsOptMultipleContactsFloatingBase) {
+TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsOptMultipleContactsFloatingBase) {
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->dof_count, 0.);
 
 	contact_data.push_back (ContactInfo(contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
