@@ -26,6 +26,7 @@ OPTION (BUILD_STATIC "Build the statically linked library" OFF)
 OPTION (BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
+OPTION (BUILD_ADDON_XMLREADER "Build the (experimental) xml reader" OFF)
 
 SET ( RBDL_SOURCES 
 	src/mathutils.cc
@@ -39,6 +40,10 @@ SET ( RBDL_SOURCES
 	)
 
 ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
+
+IF (BUILD_XMLREADER)
+  ADD_SUBDIRECTORY ( addons/xmlreader )
+ENDIF (BUILD_XMLREADER)
 
 IF (BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
