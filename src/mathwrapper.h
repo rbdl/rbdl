@@ -11,7 +11,7 @@
 #include <rbdlconfig.h>
 
 #ifdef RBDL_USE_SIMPLE_MATH
-  #include "SimpleMath.h"
+  #include "SimpleMath/SimpleMath.h"
 	#include <vector>
 
 	typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3d;
