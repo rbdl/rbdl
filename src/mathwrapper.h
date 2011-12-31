@@ -8,7 +8,7 @@
 #ifndef _MATHWRAPPER_H
 #define _MATHWRAPPER_H
 
-#include "rbdlconfig.h"
+#include <rbdlconfig.h>
 
 #ifdef RBDL_USE_SIMPLE_MATH
   #include "SimpleMath.h"

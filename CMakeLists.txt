@@ -5,10 +5,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
 INCLUDE_DIRECTORIES ( 
-	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl
-	src/
-	include/rbdl
-	src/SimpleMath/include
+	${CMAKE_CURRENT_BINARY_DIR}/src
+	src
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SimpleMath/include
 )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
@@ -68,12 +67,11 @@ INSTALL (TARGETS rbdl
 
 CONFIGURE_FILE (
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdlconfig.h.cmake" 
-	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdlconfig.h"
+	"${CMAKE_CURRENT_BINARY_DIR}/src/rbdlconfig.h"
 	)
 
 FILE ( GLOB headers 
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
-	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdlconfig.h"
 	)
 
 INSTALL ( FILES ${headers} DESTINATION include/rbdl )
