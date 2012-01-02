@@ -25,3 +25,8 @@ SET ( BENCHMARK_SOURCES
 	)
 
 ADD_EXECUTABLE ( benchmark ${BENCHMARK_SOURCES} )
+
+TARGET_LINK_LIBRARIES ( benchmark
+	rbdl
+	)
+
