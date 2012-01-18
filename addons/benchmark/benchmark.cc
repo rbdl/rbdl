@@ -7,12 +7,16 @@
 #include <vector>
 #include <cstdlib>
 #include <iomanip>
+#include <sstream>
 
 #include "rbdl.h"
 #include "model_generator.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
+
+int benchmark_sample_count = 1000;
+int benchmark_model_max_depth = 5;
 
 struct TimerInfo {
 	/// time stamp when timer_start() gets called
@@ -87,13 +91,62 @@ double run_forward_dynamics_benchmark (Model *model, int sample_count) {
 	return duration;
 }
 
+void print_usage () {
+	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>]" << endl;
+	cout << "Simple benchmark tool for the Rigid Body Dynamics Library." << endl;
+	cout << "  --count | -c <sample_count> : sets the number of sample states that should" << endl;
+	cout << "                be calculated (default: 1000)" << endl;
+	cout << "  --depth | -d <depth>        : sets maximum depth for the branched test model" << endl;
+	cout << "                which is created increased from 1 to <depth> (default: 5)." << endl;
+}
+
+void parse_args (int argc, char* argv[]) {
+	int argi = 1;
+	while (argi < argc) {
+		string arg = argv[argi];
+
+		if (arg == "--help" || arg == "-h") {
+			print_usage();
+			exit (1);
+		} else if (arg == "--count" || arg == "-c" ) {
+			if (argi == argc - 1) {
+				print_usage();
+
+				cerr << "Error: missing number of samples!" << endl;
+				exit (1);
+			}
+
+			argi++;
+			stringstream count_stream (argv[argi]);
+
+			count_stream >> benchmark_sample_count;
+		} else if (arg == "--depth" || arg == "-d" ) {
+			if (argi == argc - 1) {
+				print_usage();
+
+				cerr << "Error: missing number for model depth!" << endl;
+				exit (1);
+			}
+
+			argi++;
+			stringstream depth_stream (argv[argi]);
+
+			depth_stream >> benchmark_model_max_depth;
+		} else {
+			print_usage();
+			cerr << "Invalid argument '" << arg << "'." << endl;
+			exit(1);
+		}
+		argi++;
+	}
+}
+
 int main (int argc, char *argv[]) {
+	parse_args (argc, argv);
+
 	Model *model = NULL;
 
-	int max_depth = 5;
-	int sample_count = 1000;
-
-	for (int depth = 1; depth <= max_depth; depth++) {
+	for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 		model = new Model();
 		model->Init();
 		model->gravity = Vector3d (0., -9.81, 0.);
@@ -105,7 +158,7 @@ int main (int argc, char *argv[]) {
 		VectorNd qddot = VectorNd::Zero (model->dof_count);
 		VectorNd tau = VectorNd::Zero (model->dof_count);
 
-		run_forward_dynamics_benchmark (model, sample_count);
+		run_forward_dynamics_benchmark (model, benchmark_sample_count);
 
 		delete model;
 	}
