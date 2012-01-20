@@ -305,10 +305,15 @@ TEST(TestSpatialTransformToMatrixTranspose) {
 	X_st.E = X_matrix.block<3,3>(0,0);
 	X_st.r = trans;
 
-//	SpatialMatrix X_diff = X_st.toMatrixTranspose() - X_matrix.transpose();
+	// we have to copy the matrix as it is only transposed via a flag and
+	// thus data() does not return the proper data.
+	SpatialMatrix X_matrix_transposed = X_matrix.transpose();
+//	SpatialMatrix X_diff = X_st.toMatrixTranspose() - X_matrix_transposed;
 //	cout << "Error: " << endl << X_diff << endl;
+//	cout << "X_st: " << endl << X_st.toMatrixTranspose() << endl;
+//	cout << "X: " << endl << X_matrix_transposed() << endl;
 
-	CHECK_ARRAY_CLOSE (X_matrix.transpose().data(), X_st.toMatrixTranspose().data(), 36, TEST_PREC);
+	CHECK_ARRAY_CLOSE (X_matrix_transposed.data(), X_st.toMatrixTranspose().data(), 36, TEST_PREC);
 }
 	
 TEST(TestSpatialTransformMultiply) {
