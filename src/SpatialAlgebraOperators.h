@@ -17,6 +17,10 @@ struct SpatialTransform {
 		E (Matrix3d::Identity(3,3)),
 		r (Vector3d::Zero(3,1))
 	{}
+	SpatialTransform (Matrix3d rotation, Vector3d translation) :
+		E (rotation),
+		r (translation)
+	{}
 
 	/** Same as X * v.
 	 *
@@ -38,17 +42,57 @@ struct SpatialTransform {
 				);
 	}
 
-	/*
-	SpatialVector transpose_apply (const SpatialVector &v) {
+	SpatialMatrix toMatrix () {
+		Matrix3d _Erx =
+			E * Matrix3d (
+					0., -r[2], r[1],
+					r[2], 0., -r[0],
+					-r[1], r[0], 0.
+					);
+		SpatialMatrix result;
+		result.block<3,3>(0,0) = E;
+		result.block<3,3>(0,3) = Matrix3d::Zero(3,3);
+		result.block<3,3>(3,0) = -_Erx;
+		result.block<3,3>(3,3) = E;
+
+		return result;
 	}
 
-	SpatialVector adjoint_apply (const SpatialVector &v) {
+	SpatialMatrix toMatrixAdjoint () {
+		Matrix3d _Erx =
+			E * Matrix3d (
+					0., -r[2], r[1],
+					r[2], 0., -r[0],
+					-r[1], r[0], 0.
+					);
+		SpatialMatrix result;
+		result.block<3,3>(0,0) = E;
+		result.block<3,3>(0,3) = -_Erx;
+		result.block<3,3>(3,0) = Matrix3d::Zero(3,3);
+		result.block<3,3>(3,3) = E;
+
+		return result;
+	}
+
+	SpatialMatrix toMatrixTranspose () {
+		Matrix3d _Erx =
+			E * Matrix3d (
+					0., -r[2], r[1],
+					r[2], 0., -r[0],
+					-r[1], r[0], 0.
+					);
+		SpatialMatrix result;
+		result.block<3,3>(0,0) = E.transpose();
+		result.block<3,3>(0,3) = -_Erx.transpose();
+		result.block<3,3>(3,0) = Matrix3d::Zero(3,3);
+		result.block<3,3>(3,3) = E.transpose();
+
+		return result;
 	}
 
 	SpatialTransform operator* (const SpatialTransform &XT) {
-		Matrix3d R = E * XT.E;
+		return SpatialTransform (E * XT.E, XT.r + XT.E.transpose() * r);
 	}
-	*/
 
 	Matrix3d E;
 	Vector3d r;
