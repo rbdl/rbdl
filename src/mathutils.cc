@@ -137,6 +137,14 @@ bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 	return true;
 }
 
+Matrix3d VectorCrossMatrix (const Vector3d &vector) {
+	return Matrix3d (
+			0., -vector[2], vector[1],
+			vector[2], 0., -vector[0],
+			-vector[1], vector[0], 0.
+			);
+}
+
 void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix) {
 	assert (row < 2 && col < 2);
 	
@@ -246,5 +254,5 @@ SpatialMatrix Xrotz (const double &zrot) {
 }
 
 SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler) {
-	return Xtrans(displacement) * Xrotz(zyx_euler[0]) * Xroty(zyx_euler[1]) * Xrotx(zyx_euler[2]);
+	return Xrotz(zyx_euler[0]) * Xroty(zyx_euler[1]) * Xrotx(zyx_euler[2]) * Xtrans(displacement);
 }

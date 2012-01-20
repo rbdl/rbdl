@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "mathwrapper.h"
+#include "mathutils.h"
 
 using namespace std;
 using namespace SpatialAlgebra;
@@ -232,6 +233,34 @@ TEST(TestSpatialVectorCrossmCrossf) {
 	CHECK_EQUAL (crossf_s_x_t, crossf_s_t);
 }
 
+TEST(TestSpatialTransformApply) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialTransform X_st;
+	X_st.E.set (1., 2., 3.,
+			4., 5., 6.,
+			7., 8., 9.);
+	X_st.r = trans;
+
+	SpatialMatrix X_66_matrix (SpatialMatrix::Zero(6,6));
+
+	X_66_matrix = Xrotz (rot[2]) * Xroty (rot[1]) * Xrotx (rot[0]) * Xtrans(trans);
+	X_st.E = X_66_matrix.block<3,3>(0,0);
+
+	// cout << X_66_matrix << endl;
+	// cout << X_st.E << endl;
+	// cout << X_st.r.transpose() << endl;
+
+	SpatialVector v (1.1, 2.1, 3.1, 4.1, 5.1, 6.1);
+	SpatialVector v_66_res = X_66_matrix * v;
+	SpatialVector v_st_res = X_st.apply(v);
+
+	// cout << (v_66_res - v_st_res).transpose() << endl;
+
+	CHECK_ARRAY_CLOSE (v_66_res.data(), v_st_res.data(), 6, TEST_PREC);
+}
+
 #ifdef USE_SLOW_SPATIAL_ALGEBRA
 TEST(TestSpatialLinSolve) {
 	SpatialVector b (1, 2, 0, 1, 1, 1);
@@ -249,4 +278,5 @@ TEST(TestSpatialLinSolve) {
 
 	CHECK_ARRAY_CLOSE (x_test.data(), x.data(), 6, TEST_PREC);
 }
+
 #endif

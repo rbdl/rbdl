@@ -12,6 +12,48 @@
 
 namespace SpatialAlgebra {
 
+struct SpatialTransform {
+	SpatialTransform() :
+		E (Matrix3d::Identity(3,3)),
+		r (Vector3d::Zero(3,1))
+	{}
+
+	/** Same as X * v.
+	 *
+	 * \returns (E * w, -rxw + Ev)
+	 */
+	SpatialVector apply (const SpatialVector &v_sp) {
+		Vector3d v_rxw (
+				v_sp[3] - r[1]*v_sp[2] + r[2]*v_sp[1],
+				v_sp[4] - r[2]*v_sp[0] + r[0]*v_sp[2],
+				v_sp[5] - r[0]*v_sp[1] + r[1]*v_sp[0]
+				);
+		return SpatialVector (
+				E(0,0) * v_sp[0] + E(0,1) * v_sp[1] + E(0,2) * v_sp[2],
+				E(1,0) * v_sp[0] + E(1,1) * v_sp[1] + E(1,2) * v_sp[2],
+				E(2,0) * v_sp[0] + E(2,1) * v_sp[1] + E(2,2) * v_sp[2],
+				E(0,0) * v_rxw[0] + E(0,1) * v_rxw[1] + E(0,2) * v_rxw[2],
+				E(1,0) * v_rxw[0] + E(1,1) * v_rxw[1] + E(1,2) * v_rxw[2],
+				E(2,0) * v_rxw[0] + E(2,1) * v_rxw[1] + E(2,2) * v_rxw[2]
+				);
+	}
+
+	/*
+	SpatialVector transpose_apply (const SpatialVector &v) {
+	}
+
+	SpatialVector adjoint_apply (const SpatialVector &v) {
+	}
+
+	SpatialTransform operator* (const SpatialTransform &XT) {
+		Matrix3d R = E * XT.E;
+	}
+	*/
+
+	Matrix3d E;
+	Vector3d r;
+};
+
 /** \brief Contains operators such as crossf(), crossm(), etc.
  */
 namespace Operators {
@@ -94,6 +136,10 @@ namespace Operators {
 }
 
 }
+
+#ifndef RBDL_USE_SIMPLE_MATH
+inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(SpatialAlgebra::SpatialTransform)
+#endif
 
 /* _SPATIALALGEBRAOPERATORS_H*/
 #endif
