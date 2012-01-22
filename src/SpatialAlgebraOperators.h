@@ -9,6 +9,7 @@
 #define _SPATIALALGEBRAOPERATORS_H
 
 #include <iostream>
+#include <cmath>
 
 namespace SpatialAlgebra {
 
@@ -42,7 +43,7 @@ struct SpatialTransform {
 				);
 	}
 
-	SpatialMatrix toMatrix () {
+	SpatialMatrix toMatrix () const {
 		Matrix3d _Erx =
 			E * Matrix3d (
 					0., -r[2], r[1],
@@ -58,7 +59,7 @@ struct SpatialTransform {
 		return result;
 	}
 
-	SpatialMatrix toMatrixAdjoint () {
+	SpatialMatrix toMatrixAdjoint () const {
 		Matrix3d _Erx =
 			E * Matrix3d (
 					0., -r[2], r[1],
@@ -74,7 +75,7 @@ struct SpatialTransform {
 		return result;
 	}
 
-	SpatialMatrix toMatrixTranspose () {
+	SpatialMatrix toMatrixTranspose () const {
 		Matrix3d _Erx =
 			E * Matrix3d (
 					0., -r[2], r[1],
@@ -90,13 +91,73 @@ struct SpatialTransform {
 		return result;
 	}
 
-	SpatialTransform operator* (const SpatialTransform &XT) {
+	SpatialTransform operator* (const SpatialTransform &XT) const {
 		return SpatialTransform (E * XT.E, XT.r + XT.E.transpose() * r);
+	}
+
+	void operator*= (const SpatialTransform &XT) {
+		r = XT.r + XT.E.transpose() * r;
+		E *= XT.E;
 	}
 
 	Matrix3d E;
 	Vector3d r;
 };
+
+inline std::ostream& operator<<(std::ostream& output, const SpatialTransform &X) {
+	output << X.toMatrix();
+	return output;
+}
+
+
+inline SpatialTransform Xrotx (const double &xrot) {
+	double s, c;
+	s = sin (xrot);
+	c = cos (xrot);
+	return SpatialTransform (
+			Matrix3d (
+				1., 0., 0.,
+				0., c, s,
+				0., -s, c
+				),
+			Vector3d (0., 0., 0.)
+			);
+}
+
+inline SpatialTransform Xroty (const double &yrot) {
+	double s, c;
+	s = sin (yrot);
+	c = cos (yrot);
+	return SpatialTransform (
+			Matrix3d (
+				c, 0., -s,
+				0., 1., 0.,
+				s, 0., c
+				),
+			Vector3d (0., 0., 0.)
+			);
+}
+
+inline SpatialTransform Xrotz (const double &zrot) {
+	double s, c;
+	s = sin (zrot);
+	c = cos (zrot);
+	return SpatialTransform (
+			Matrix3d (
+				c, s, 0.,
+				-s, c, 0.,
+				0., 0., 1.
+				),
+			Vector3d (0., 0., 0.)
+			);
+}
+
+inline SpatialTransform Xtrans (const Vector3d &r) {
+	return SpatialTransform (
+			Matrix3d::Identity(3,3),
+			r
+			);
+}
 
 /** \brief Contains operators such as crossf(), crossm(), etc.
  */

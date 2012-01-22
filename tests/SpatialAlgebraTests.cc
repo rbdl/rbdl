@@ -244,7 +244,7 @@ TEST(TestSpatialTransformApply) {
 	X_st.r = trans;
 
 	SpatialMatrix X_66_matrix (SpatialMatrix::Zero(6,6));
-	X_66_matrix = Xrotz (rot[2]) * Xroty (rot[1]) * Xrotx (rot[0]) * Xtrans(trans);
+	X_66_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
 	X_st.E = X_66_matrix.block<3,3>(0,0);
 
 	// cout << X_66_matrix << endl;
@@ -265,7 +265,7 @@ TEST(TestSpatialTransformToMatrix) {
 	Vector3d trans (1.1, 1.2, 1.3);
 
 	SpatialMatrix X_matrix (SpatialMatrix::Zero(6,6));
-	X_matrix = Xrotz (rot[2]) * Xroty (rot[1]) * Xrotx (rot[0]) * Xtrans(trans);
+	X_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
 
 	SpatialTransform X_st;
 	X_st.E = X_matrix.block<3,3>(0,0);
@@ -282,7 +282,7 @@ TEST(TestSpatialTransformToMatrixAdjoint) {
 	Vector3d trans (1.1, 1.2, 1.3);
 
 	SpatialMatrix X_matrix (SpatialMatrix::Zero(6,6));
-	X_matrix = Xrotz (rot[2]) * Xroty (rot[1]) * Xrotx (rot[0]) * Xtrans(trans);
+	X_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
 
 	SpatialTransform X_st;
 	X_st.E = X_matrix.block<3,3>(0,0);
@@ -299,7 +299,7 @@ TEST(TestSpatialTransformToMatrixTranspose) {
 	Vector3d trans (1.1, 1.2, 1.3);
 
 	SpatialMatrix X_matrix (SpatialMatrix::Zero(6,6));
-	X_matrix = Xrotz (rot[2]) * Xroty (rot[1]) * Xrotx (rot[0]) * Xtrans(trans);
+	X_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
 
 	SpatialTransform X_st;
 	X_st.E = X_matrix.block<3,3>(0,0);
@@ -323,8 +323,8 @@ TEST(TestSpatialTransformMultiply) {
 	SpatialMatrix X_matrix_1 (SpatialMatrix::Zero(6,6));
 	SpatialMatrix X_matrix_2 (SpatialMatrix::Zero(6,6));
 
-	X_matrix_1 = Xrotz (rot[2]) * Xroty (rot[1]) * Xrotx (rot[0]) * Xtrans(trans);
-	X_matrix_2 = Xrotz (rot[2]) * Xroty (rot[1]) * Xrotx (rot[0]) * Xtrans(trans);
+	X_matrix_1 = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+	X_matrix_2 = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
 
 	SpatialTransform X_st_1;
 	SpatialTransform X_st_2;
@@ -335,6 +335,34 @@ TEST(TestSpatialTransformMultiply) {
 	X_st_2.r = trans;
 
 	SpatialTransform X_st_res = X_st_1 * X_st_2;
+	SpatialMatrix X_matrix_res = X_matrix_1 * X_matrix_2;
+
+//	SpatialMatrix X_diff = X_st_res.toMatrix() - X_matrix_res;
+//	cout << "Error: " << endl << X_diff << endl;
+
+	CHECK_ARRAY_CLOSE (X_matrix_res.data(), X_st_res.toMatrix().data(), 36, TEST_PREC);
+}
+
+TEST(TestSpatialTransformMultiplyEqual) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialMatrix X_matrix_1 (SpatialMatrix::Zero(6,6));
+	SpatialMatrix X_matrix_2 (SpatialMatrix::Zero(6,6));
+
+	X_matrix_1 = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+	X_matrix_2 = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+
+	SpatialTransform X_st_1;
+	SpatialTransform X_st_2;
+	
+	X_st_1.E = X_matrix_1.block<3,3>(0,0);
+	X_st_1.r = trans;
+	X_st_2.E = X_matrix_2.block<3,3>(0,0);
+	X_st_2.r = trans;
+
+	SpatialTransform X_st_res = X_st_1;
+	X_st_res *= X_st_2;
 	SpatialMatrix X_matrix_res = X_matrix_1 * X_matrix_2;
 
 //	SpatialMatrix X_diff = X_st_res.toMatrix() - X_matrix_res;

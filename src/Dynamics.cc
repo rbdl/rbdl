@@ -59,7 +59,7 @@ void ForwardDynamics (
 	model.v[0].setZero();
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		SpatialMatrix X_J;
+		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
 		Joint joint = model.mJoints[i];
@@ -75,7 +75,7 @@ void ForwardDynamics (
 		else
 			model.X_base[i] = model.X_lambda[i];
 
-		model.v[i] = model.X_lambda[i] * model.v.at(lambda) + v_J;
+		model.v[i] = model.X_lambda[i].apply( model.v.at(lambda)) + v_J;
 
 		/*
 		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
@@ -92,8 +92,8 @@ void ForwardDynamics (
 		model.pA[i] = crossf(model.v[i],model.IA[i] * model.v[i]);
 
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
-			LOG << "External force (" << i << ") = " << spatial_adjoint(model.X_base[i]) * (*f_ext)[i] << std::endl;
-			model.pA[i] -= spatial_adjoint(model.X_base[i]) * (*f_ext)[i];
+			LOG << "External force (" << i << ") = " << spatial_adjoint(model.X_base[i].toMatrix()) * (*f_ext)[i] << std::endl;
+			model.pA[i] -= spatial_adjoint(model.X_base[i].toMatrix()) * (*f_ext)[i];
 		}
 	}
 
@@ -136,11 +136,11 @@ void ForwardDynamics (
 		if (lambda != 0) {
 			SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
-			SpatialMatrix X_lambda = model.X_lambda[i];
+			SpatialTransform X_lambda = model.X_lambda[i];
 
 			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
-			model.IA[lambda] = model.IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
-			model.pA[lambda] = model.pA[lambda] + X_lambda.transpose() * pa;
+			model.IA[lambda] = model.IA[lambda] + X_lambda.toMatrixTranspose() * Ia * X_lambda.toMatrix();
+			model.pA[lambda] = model.pA[lambda] + X_lambda.toMatrixTranspose() * pa;
 		}
 	}
 
@@ -173,12 +173,12 @@ void ForwardDynamics (
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
-		SpatialMatrix X_lambda = model.X_lambda[i];
+		SpatialTransform X_lambda = model.X_lambda[i];
 
 		if (lambda == 0) {
-			model.a[i] = X_lambda * spatial_gravity * (-1.) + model.c[i];
+			model.a[i] = X_lambda.apply(spatial_gravity * (-1.)) + model.c[i];
 		} else {
-			model.a[i] = X_lambda * model.a[lambda] + model.c[i];
+			model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
 		}
 
 		// we can skip further processing if the joint type is fixed
@@ -275,7 +275,7 @@ void InverseDynamics (
 	model.a[0] = spatial_gravity * -1.;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		SpatialMatrix X_J;
+		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
 		Joint joint = model.mJoints[i];
@@ -289,12 +289,12 @@ void InverseDynamics (
 		if (lambda == 0) {
 			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
-			model.a[i] = model.X_base[i] * spatial_gravity * -1. + model.S[i] * model.qddot[i];
+			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.) + model.S[i] * model.qddot[i];
 		}	else {
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
-			model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
+			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);
-			model.a[i] = model.X_lambda[i] * model.a[lambda] + model.S[i] * model.qddot[i] + model.c[i];
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.S[i] * model.qddot[i] + model.c[i];
 		}
 
 		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
@@ -303,14 +303,14 @@ void InverseDynamics (
 
 		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mSpatialInertia * model.v[i]);
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
-			model.f[i] -= spatial_adjoint(model.X_base[i]) * (*f_ext)[i];
+			model.f[i] -= spatial_adjoint(model.X_base[i].toMatrix()) * (*f_ext)[i];
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		model.tau[i] = model.S[i].dot(model.f[i]);
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			model.f[lambda] = model.f[lambda] + model.X_lambda[i].transpose() * model.f[i];
+			model.f[lambda] = model.f[lambda] + model.X_lambda[i].toMatrixTranspose() * model.f[i];
 		}
 	}
 
@@ -338,7 +338,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].transpose() * model.Ic[i] * model.X_lambda[i];
+			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].toMatrixTranspose() * model.Ic[i] * model.X_lambda[i].toMatrix();
 		}
 
 		SpatialVector F = model.Ic[i] * model.S[i];
@@ -346,7 +346,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 		unsigned int j = i;
 
 		while (model.lambda[j] != 0) {
-			F = model.X_lambda[j].transpose() * F;
+			F = model.X_lambda[j].toMatrixTranspose() * F;
 			j = model.lambda[j];
 			H(i - 1,j - 1) = F.dot(model.S[j]);
 			H(j - 1,i - 1) = H(i - 1,j - 1);

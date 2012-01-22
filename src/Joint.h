@@ -129,7 +129,7 @@ struct Joint {
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
-		SpatialAlgebra::SpatialMatrix &XJ,
+		SpatialAlgebra::SpatialTransform &XJ,
 		SpatialAlgebra::SpatialVector &S,
 		SpatialAlgebra::SpatialVector &v_J,
 		SpatialAlgebra::SpatialVector &c_J,

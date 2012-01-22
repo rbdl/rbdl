@@ -207,7 +207,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
 	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint, body);
 
-	SpatialMatrix X_j;
+	SpatialTransform X_j;
 	SpatialVector S;
 	SpatialVector v_j;
 	SpatialVector c;
@@ -229,7 +229,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 			0., 0., 1., 0., 0., 0.
 			);
 
-	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j, 1.0e-16));
+	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), 1.0e-16));
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
 	CHECK_EQUAL (test_joint_axis, S);
 
@@ -244,7 +244,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 			0.,  0.,  0.,  0.,  0.,  1.
 			);
 
-	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j, TEST_PREC));
+	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), TEST_PREC));
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, TEST_PREC));
 	CHECK_EQUAL (test_joint_axis, S);
 }

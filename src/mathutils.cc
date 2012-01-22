@@ -197,7 +197,7 @@ bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVe
 	return true;
 }
 
-SpatialMatrix Xtrans (const Vector3d &r) {
+SpatialMatrix Xtrans_mat (const Vector3d &r) {
 	return SpatialMatrix (
 			   1.,    0.,    0.,  0.,  0.,  0.,
 			   0.,    1.,    0.,  0.,  0.,  0.,
@@ -208,7 +208,7 @@ SpatialMatrix Xtrans (const Vector3d &r) {
 			);
 }
 
-SpatialMatrix Xrotx (const double &xrot) {
+SpatialMatrix Xrotx_mat (const double &xrot) {
 	double s, c;
 	s = sin (xrot);
 	c = cos (xrot);
@@ -223,7 +223,7 @@ SpatialMatrix Xrotx (const double &xrot) {
 			);
 }
 
-SpatialMatrix Xroty (const double &yrot) {
+SpatialMatrix Xroty_mat (const double &yrot) {
 	double s, c;
 	s = sin (yrot);
 	c = cos (yrot);
@@ -238,7 +238,7 @@ SpatialMatrix Xroty (const double &yrot) {
 			);
 }
 
-SpatialMatrix Xrotz (const double &zrot) {
+SpatialMatrix Xrotz_mat (const double &zrot) {
 	double s, c;
 	s = sin (zrot);
 	c = cos (zrot);
@@ -254,5 +254,5 @@ SpatialMatrix Xrotz (const double &zrot) {
 }
 
 SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler) {
-	return Xrotz(zyx_euler[0]) * Xroty(zyx_euler[1]) * Xrotx(zyx_euler[2]) * Xtrans(displacement);
+	return Xrotz_mat(zyx_euler[0]) * Xroty_mat(zyx_euler[1]) * Xrotx_mat(zyx_euler[2]) * Xtrans_mat(displacement);
 }

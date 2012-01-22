@@ -54,7 +54,7 @@ void ForwardKinematics (Model &model,
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		SpatialMatrix X_J;
+		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
 		Joint joint = model.mJoints[i];
@@ -66,9 +66,9 @@ void ForwardKinematics (Model &model,
 
 		if (lambda != 0) {
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
-			model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
+			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);
-			model.a[i] = model.X_lambda[i] * model.a[lambda] + model.c[i];
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 		}	else {
 			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
@@ -128,7 +128,7 @@ void ForwardKinematicsCustom (Model &model,
 		for (i = 1; i < model.mBodies.size(); i++) {
 			SpatialVector v_J;
 			SpatialVector c_J;
-			SpatialMatrix X_J;
+			SpatialTransform X_J;
 			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
@@ -148,14 +148,14 @@ void ForwardKinematicsCustom (Model &model,
 		for (i = 1; i < model.mBodies.size(); i++) {
 			SpatialVector v_J;
 			SpatialVector c_J;
-			SpatialMatrix X_J;
+			SpatialTransform X_J;
 			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
 			jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
 
 			if (lambda != 0) {
-				model.v[i] = model.X_lambda[i] * model.v[lambda] + v_J;
+				model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 				model.c[i] = c_J + crossm(model.v[i],v_J);
 			}	else {
 				model.v[i] = v_J;
@@ -169,7 +169,7 @@ void ForwardKinematicsCustom (Model &model,
 			unsigned int lambda = model.lambda[i];
 
 			if (lambda != 0) {
-				model.a[i] = model.X_lambda[i] * model.a[lambda] + model.c[i];
+				model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 			}	else {
 				model.a[i].setZero();
 			}
@@ -201,7 +201,7 @@ void CalcPointJacobian (
 	}
 
 	Vector3d point_base_pos = model.CalcBodyToBaseCoordinates(body_id, point_position);
-	SpatialMatrix point_trans = Xtrans (point_base_pos);
+	SpatialMatrix point_trans = Xtrans_mat (point_base_pos);
 
 	assert (G.rows() == 3 && G.cols() == model.dof_count );
 
@@ -225,7 +225,7 @@ void CalcPointJacobian (
 	for (j = 1; j < model.mBodies.size(); j++) {
 		if (e[j] == 1) {
 			SpatialVector S_base;
-			S_base = point_trans * spatial_inverse(model.X_base[j]) * model.S[j];
+			S_base = point_trans * spatial_inverse(model.X_base[j].toMatrix()) * model.S[j];
 
 			G(0, j - 1) = S_base[3];
 			G(1, j - 1) = S_base[4];
@@ -268,14 +268,14 @@ Vector3d CalcPointVelocity (
 	LOG << "body_index     = " << body_id << std::endl;
 	LOG << "point_pos      = " << point_position << std::endl;
 //	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
-	LOG << "body_transf    = " << model.X_base[body_id] << std::endl;
+	LOG << "body_transf    = " << model.X_base[body_id].toMatrix() << std::endl;
 	LOG << "point_abs_ps   = " << point_abs_pos << std::endl;
-	LOG << "X   = " << Xtrans (point_abs_pos) * spatial_inverse(model.X_base[body_id]) << std::endl;
+	LOG << "X   = " << Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[body_id].toMatrix()) << std::endl;
 	LOG << "v   = " << model.v[body_id] << std::endl;
 
 	// Now we can compute the spatial velocity at the given point
 //	SpatialVector body_global_velocity (global_velocities.at(body_id));
-	SpatialVector point_spatial_velocity = Xtrans (point_abs_pos) * spatial_inverse(model.X_base[body_id]) * model.v[body_id];
+	SpatialVector point_spatial_velocity = Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[body_id].toMatrix()) * model.v[body_id];
 
 	LOG << "point_velocity = " <<	Vector3d (
 			point_spatial_velocity[3],
@@ -317,7 +317,7 @@ Vector3d CalcPointAcceleration (
 	LOG << std::endl;
 
 	// The whole computation looks in formulae like the following:
-	SpatialVector body_global_velocity (spatial_inverse(model.X_base[body_id]) * model.v[body_id]);
+	SpatialVector body_global_velocity (spatial_inverse(model.X_base[body_id].toMatrix()) * model.v[body_id]);
 
 	LOG << " orientation " << std::endl << model.GetBodyWorldOrientation(body_id) << std::endl;
 	LOG << " orientationT " << std::endl <<  model.GetBodyWorldOrientation(body_id).transpose() << std::endl;
@@ -331,7 +331,7 @@ Vector3d CalcPointAcceleration (
 	LOG << " p_X_i = " << std::endl << p_X_i << std::endl;
 	LOG << " xtrans = " << std::endl << Xtrans (point_position) << std::endl;
 
-	p_X_i *= Xtrans (point_position);
+	p_X_i *= Xtrans_mat (point_position);
 
 	SpatialVector p_v_i = p_X_i * model.v[body_id];
 	SpatialVector p_a_i = p_X_i * model.a[body_id];

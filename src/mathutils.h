@@ -44,7 +44,7 @@ bool SpatialVectorCompareEpsilon (const SpatialAlgebra::SpatialVector &vector_a,
  *
  * \param displacement The displacement as a 3D vector
  */
-SpatialAlgebra::SpatialMatrix Xtrans (const Vector3d &displacement);
+SpatialAlgebra::SpatialMatrix Xtrans_mat (const Vector3d &displacement);
 
 /** \brief Creates a rotational transformation around the Z-axis
  *
@@ -53,7 +53,7 @@ SpatialAlgebra::SpatialMatrix Xtrans (const Vector3d &displacement);
  *
  * \param zrot Rotation angle in radians.
  */
-SpatialAlgebra::SpatialMatrix Xrotz (const double &zrot);
+SpatialAlgebra::SpatialMatrix Xrotz_mat (const double &zrot);
 
 /** \brief Creates a rotational transformation around the Y-axis
  *
@@ -62,7 +62,7 @@ SpatialAlgebra::SpatialMatrix Xrotz (const double &zrot);
  *
  * \param yrot Rotation angle in radians.
  */
-SpatialAlgebra::SpatialMatrix Xroty (const double &yrot);
+SpatialAlgebra::SpatialMatrix Xroty_mat (const double &yrot);
 
 /** \brief Creates a rotational transformation around the X-axis
  *
@@ -71,7 +71,7 @@ SpatialAlgebra::SpatialMatrix Xroty (const double &yrot);
  *
  * \param xrot Rotation angle in radians.
  */
-SpatialAlgebra::SpatialMatrix Xrotx (const double &xrot);
+SpatialAlgebra::SpatialMatrix Xrotx_mat (const double &xrot);
 
 /** \brief Creates a spatial transformation for given parameters 
  *

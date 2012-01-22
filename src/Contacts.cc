@@ -310,7 +310,7 @@ void ForwardDynamicsAccelerationsOnly (
 		d_IA[i] = model.mBodies[i].mSpatialInertia;
 
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
-			d_pA[i] -= spatial_adjoint(model.X_base[i]) * (*f_ext)[i];
+			d_pA[i] -= spatial_adjoint(model.X_base[i].toMatrix()) * (*f_ext)[i];
 //			LOG << "f_t (local)[" << i << "] = " << spatial_adjoint(model.X_base[i]) * (*f_ext)[i] << std::endl;
 		}
 //		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
@@ -329,11 +329,11 @@ void ForwardDynamicsAccelerationsOnly (
 		if (lambda != 0) {
 			SpatialMatrix Ia = d_IA[i] - d_U[i] * (d_U[i] / d_d[i]).transpose();
 			SpatialVector pa = d_pA[i] + Ia * model.c[i] + d_U[i] * d_u[i] / d_d[i];
-			SpatialMatrix X_lambda = model.X_lambda[i];
+			SpatialTransform X_lambda = model.X_lambda[i];
 
 			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
-			d_IA[lambda] = d_IA[lambda] + X_lambda.transpose() * Ia * X_lambda;
-			d_pA[lambda] = d_pA[lambda] + model.X_lambda[i].transpose() * pa;
+			d_IA[lambda] = d_IA[lambda] + X_lambda.toMatrixTranspose() * Ia * X_lambda.toMatrix();
+			d_pA[lambda] = d_pA[lambda] + model.X_lambda[i].toMatrixTranspose() * pa;
 
 			assert (model.IA[lambda] == d_IA[lambda]);
 		}
@@ -368,12 +368,12 @@ void ForwardDynamicsAccelerationsOnly (
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
-		SpatialMatrix X_lambda = model.X_lambda[i];
+		SpatialTransform X_lambda = model.X_lambda[i];
 
 		if (lambda == 0) {
-			d_a[i] = X_lambda * spatial_gravity * (-1.) + model.c[i];
+			d_a[i] = X_lambda.apply(spatial_gravity * (-1.)) + model.c[i];
 		} else {
-			d_a[i] = X_lambda * d_a[lambda] + model.c[i];
+			d_a[i] = X_lambda.apply(d_a[lambda]) + model.c[i];
 		}
 
 		// we can skip further processing if the joint type is fixed
@@ -385,7 +385,7 @@ void ForwardDynamicsAccelerationsOnly (
 		QDDot_t[i - 1] = (d_u[i] - model.U[i].dot(d_a[i])) / model.d[i];
 		LOG << "QDDot_t[" << i - 1 << "] = " << QDDot_t[i - 1] << std::endl;
 		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i - 1];
-		LOG << "d_a[i] - a[i] = " << (d_a[i] - X_lambda * model.a[i]).transpose() << std::endl;
+		LOG << "d_a[i] - a[i] = " << (d_a[i] - X_lambda.apply(model.a[i])).transpose() << std::endl;
 	}
 }
 
@@ -464,7 +464,7 @@ void ForwardDynamicsContactsOld (
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
 		f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
-		f_t[ci] = spatial_adjoint(Xtrans(-point_global)) * f_t[ci];
+		f_t[ci] = spatial_adjoint(Xtrans_mat(-point_global)) * f_t[ci];
 		f_ext_constraints[body_id] = f_t[ci];
 
 		LOG << "f_t[" << ci << "] (i = ci) = " << f_t[ci].transpose() << std::endl;
@@ -560,7 +560,7 @@ void ForwardDynamicsAccelerationDeltas (
 
 	for (unsigned int i = body_id; i > 0; i--) {
 		if (i == body_id) {
-			d_p_v[i] = -spatial_adjoint(model.X_base[i]) * f_t[i];
+			d_p_v[i] = -spatial_adjoint(model.X_base[i].toMatrix()) * f_t[i];
 			d_pA[i] = d_p_v[i];
 		}
 
@@ -568,7 +568,7 @@ void ForwardDynamicsAccelerationDeltas (
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			d_pA[lambda] = d_pA[lambda] + model.X_lambda[i].transpose() * (d_pA[i] + model.U[i] * d_u[i] / model.d[i]);
+			d_pA[lambda] = d_pA[lambda] + model.X_lambda[i].toMatrixTranspose() * (d_pA[i] + model.U[i] * d_u[i] / model.d[i]);
 		}
 	}
 
@@ -589,7 +589,7 @@ void ForwardDynamicsAccelerationDeltas (
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 
-		SpatialVector Xa = model.X_lambda[i] * d_a[lambda];
+		SpatialVector Xa = model.X_lambda[i].apply(d_a[lambda]);
 		QDDot_t[i - 1] = (d_u[i] - model.U[i].dot(Xa) ) / model.d[i];
 		d_a[i] = Xa + model.S[i] * QDDot_t[i - 1];
 
@@ -672,7 +672,7 @@ void ForwardDynamicsContacts (
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
 		f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
-		f_t[ci] = spatial_adjoint(Xtrans(-point_global)) * f_t[ci];
+		f_t[ci] = spatial_adjoint(Xtrans_mat(-point_global)) * f_t[ci];
 		f_ext_constraints[body_id] = f_t[ci];
 		LOG << "f_t[" << body_id << "] = " << f_t[ci].transpose() << std::endl;
 

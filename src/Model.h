@@ -109,7 +109,7 @@ struct Model {
 	/// \brief The joint axis for joint i
 	std::vector<SpatialAlgebra::SpatialVector> S;
 	/// \brief Transformations from the parent body to the frame of the joint
-	std::vector<SpatialAlgebra::SpatialMatrix> X_T;
+	std::vector<SpatialAlgebra::SpatialTransform> X_T;
 
 	////////////////////////////////////
 	// Dynamics variables
@@ -135,9 +135,9 @@ struct Model {
 	// Bodies
 
 	/// \brief Transformation from the parent body to the current body
-	std::vector<SpatialAlgebra::SpatialMatrix> X_lambda;
+	std::vector<SpatialAlgebra::SpatialTransform> X_lambda;
 	/// \brief Transformation from the base to bodies reference frame
-	std::vector<SpatialAlgebra::SpatialMatrix> X_base;
+	std::vector<SpatialAlgebra::SpatialTransform> X_base;
 
 	/** \brief All bodies 0 ... N_B, including the base
 	 *
@@ -182,7 +182,7 @@ struct Model {
 	 */
 	unsigned int AddBody (
 			const unsigned int parent_id,
-			const SpatialAlgebra::SpatialMatrix &joint_frame,
+			const SpatialAlgebra::SpatialTransform &joint_frame,
 			const Joint &joint,
 			const Body &body,
 			std::string body_name = "" 

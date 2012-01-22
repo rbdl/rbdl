@@ -47,7 +47,7 @@ void Model::Init() {
 	// Joints
 	mJoints.push_back(root_joint);
 	S.push_back (zero_spatial);
-	X_T.push_back(SpatialMatrixIdentity);
+	X_T.push_back(SpatialTransform());
 	
 	// Dynamic variables
 	c.push_back(zero_spatial);
@@ -62,15 +62,15 @@ void Model::Init() {
 	Ic.push_back (SpatialMatrixIdentity);
 
 	// Bodies
-	X_lambda.push_back(SpatialMatrixIdentity);
-	X_base.push_back(SpatialMatrixIdentity);
+	X_lambda.push_back(SpatialTransform());
+	X_base.push_back(SpatialTransform());
 
 	mBodies.push_back(root_body);
 	mBodyNames.push_back("ROOT");
 }
 
 unsigned int Model::AddBody (const unsigned int parent_id,
-		const SpatialMatrix &joint_frame,
+		const SpatialTransform &joint_frame,
 		const Joint &joint,
 		const Body &body,
 		std::string body_name) {
@@ -113,8 +113,8 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	Ic.push_back (SpatialMatrixIdentity);
 
 	// Bodies
-	X_lambda.push_back(SpatialMatrixIdentity);
-	X_base.push_back(SpatialMatrixIdentity);
+	X_lambda.push_back(SpatialTransform());
+	X_base.push_back(SpatialTransform());
 	mBodies.push_back(body);
 	mBodyNames.push_back(body_name);
 
@@ -137,8 +137,8 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 		lambda.at(0) = std::numeric_limits<unsigned int>::max();
 
 		// Bodies
-		X_lambda.at(0) = SpatialMatrixIdentity;
-		X_base.at(0) = SpatialMatrixIdentity;
+		X_lambda.at(0) = SpatialTransform();
+		X_base.at(0) = SpatialTransform();
 		mBodies.at(0) = body;
 		return 0;
 	} else {
@@ -202,10 +202,16 @@ Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 	// coordinate vector, however in body coordinates. We have to rotate it
 	// by its orientation to be able to retrieve the bodies origin
 	// coordinates in base coordinates.
-	Matrix3d upper_left = X_base[body_id].block<3,3>(0,0).transpose();
-	Matrix3d rx = upper_left * static_cast<Matrix3d>(X_base[body_id].block<3,3>(3,0));
+	Matrix3d upper_left = X_base[body_id].E.transpose();
+	Vector3d r (X_base[body_id].r);
+	Matrix3d rx (
+			0., r[2], -r[1],
+			-r[2], 0., r[0],
+			r[1], -r[0], 0.
+			);
+	Matrix3d Erx = upper_left * rx;
 
-	return Vector3d (rx(1,2), -rx(0,2), rx(0,1));
+	return Vector3d (Erx(1,2), -Erx(0,2), Erx(0,1));
 }
 
 Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
@@ -219,18 +225,18 @@ Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
 	// We use the information from the X_base vector. In the upper left 3x3
 	// matrix contains the orientation as a 3x3 matrix which we are asking
 	// for.
-	return X_base[body_id].block<3,3>(0,0);
+	return X_base[body_id].E;
 }
 
 Vector3d Model::CalcBodyToBaseCoordinates (const unsigned int body_id, const Vector3d &body_point) {
-	Matrix3d body_rotation = X_base[body_id].block<3,3>(0,0).transpose();
+	Matrix3d body_rotation = X_base[body_id].E.transpose();
 	Vector3d body_position = GetBodyOrigin (body_id);
 
 	return body_position + body_rotation * body_point;
 }
 
 Vector3d Model::CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point) {
-	Matrix3d body_rotation = X_base[body_id].block<3,3>(0,0);
+	Matrix3d body_rotation = X_base[body_id].E;
 	Vector3d body_position = GetBodyOrigin (body_id);
 
 	return body_rotation * base_point - body_rotation * body_position;

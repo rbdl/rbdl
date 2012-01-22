@@ -623,7 +623,7 @@ class Matrix {
 		}
 
 		template <unsigned int other_rows, unsigned int other_cols>
-		Matrix<val_type, nrows, other_cols> operator*(const Matrix<val_type, other_rows, other_cols> &matrix) {
+		Matrix<val_type, nrows, other_cols> operator*(const Matrix<val_type, other_rows, other_cols> &matrix) const {
 			COMPILE_ASSERT (ncols == other_rows);
 
 			Matrix<val_type, nrows, other_cols> result;

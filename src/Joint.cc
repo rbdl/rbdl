@@ -21,7 +21,7 @@ namespace RigidBodyDynamics {
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
-		SpatialAlgebra::SpatialMatrix &XJ,
+		SpatialAlgebra::SpatialTransform &XJ,
 		SpatialAlgebra::SpatialVector &S,
 		SpatialAlgebra::SpatialVector &v_J,
 		SpatialAlgebra::SpatialVector &c_J,
@@ -44,7 +44,7 @@ void jcalc (
 	c_J.setZero();
 
 	if (joint.mJointType == JointTypeFixed) {
-		XJ = SpatialMatrixIdentity;
+		XJ = SpatialTransform();
 		v_J.setZero();
 
 		return;

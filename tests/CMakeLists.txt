@@ -7,20 +7,20 @@ LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../CMake )
 
 SET ( TESTS_SRCS
 	main.cc
-	SpatialAlgebraTests.cc
 	MathTests.cc
+	SpatialAlgebraTests.cc
+	KinematicsTests.cc
 	BodyTests.cc
 	ModelTests.cc
-	FloatingBaseTests.cc
+	#	FloatingBaseTests.cc
 	CalcVelocitiesTests.cc
 	CalcAccelerationsTests.cc
-	DynamicsTests.cc
-	KinematicsTests.cc
-	InverseDynamicsTests.cc
-	CompositeRigidBodyTests.cc
-	ImpulsesTests.cc
-	TwolegModelTests.cc
-	ContactsTests.cc
+	#	DynamicsTests.cc
+	#	InverseDynamicsTests.cc
+	#	CompositeRigidBodyTests.cc
+	#	ImpulsesTests.cc
+	#	TwolegModelTests.cc
+	#	ContactsTests.cc
 	)
 
 FIND_PACKAGE (UnitTest++ REQUIRED)
