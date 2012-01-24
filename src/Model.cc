@@ -196,22 +196,7 @@ Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
 		assert (body_id > 0 && body_id < mBodies.size());
 	}
 
-	// We use the information from the X_base vector. In the upper left 3x3
-	// matrix contains the orientation as a 3x3 matrix. The lower left 3x3
-	// matrix is the matrix form of the cross product of the origin
-	// coordinate vector, however in body coordinates. We have to rotate it
-	// by its orientation to be able to retrieve the bodies origin
-	// coordinates in base coordinates.
-	Matrix3d upper_left = X_base[body_id].E.transpose();
-	Vector3d r (X_base[body_id].r);
-	Matrix3d rx (
-			0., r[2], -r[1],
-			-r[2], 0., r[0],
-			r[1], -r[0], 0.
-			);
-	Matrix3d Erx = upper_left * rx;
-
-	return Vector3d (Erx(1,2), -Erx(0,2), Erx(0,1));
+	return X_base[body_id].r;
 }
 
 Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
