@@ -92,8 +92,8 @@ void ForwardDynamics (
 		model.pA[i] = crossf(model.v[i],model.IA[i] * model.v[i]);
 
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
-			LOG << "External force (" << i << ") = " << spatial_adjoint(model.X_base[i].toMatrix()) * (*f_ext)[i] << std::endl;
-			model.pA[i] -= spatial_adjoint(model.X_base[i].toMatrix()) * (*f_ext)[i];
+			LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * (*f_ext)[i] << std::endl;
+			model.pA[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
 		}
 	}
 
@@ -303,7 +303,7 @@ void InverseDynamics (
 
 		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mSpatialInertia * model.v[i]);
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
-			model.f[i] -= spatial_adjoint(model.X_base[i].toMatrix()) * (*f_ext)[i];
+			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
