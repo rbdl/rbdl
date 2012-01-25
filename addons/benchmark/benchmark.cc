@@ -17,6 +17,9 @@ using namespace RigidBodyDynamics;
 
 int benchmark_sample_count = 1000;
 int benchmark_model_max_depth = 5;
+bool benchmark_run_fd_aba = true;
+bool benchmark_run_fd_lagrangian = true;
+bool benchmark_run_id_rnea = true;
 
 double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
@@ -101,6 +104,13 @@ void print_usage () {
 	cout << "                be calculated (default: 1000)" << endl;
 	cout << "  --depth | -d <depth>        : sets maximum depth for the branched test model" << endl;
 	cout << "                which is created increased from 1 to <depth> (default: 5)." << endl;
+	cout << "  --no-fd                     : disables benchmarking of forward dynamics." << endl;
+	cout << "  --no-fd-aba                 : disables benchmark for forwards dynamics using" << endl;
+	cout << "                                the Articulated Body Algorithm" << endl;
+	cout << "  --no-fd-lagrangian          : disables benchmark for forward dynamics via" << endl;
+	cout << "                                solving the lagrangian equation." << endl;
+	cout << "  --no-id-rnea                : disables benchmark for inverse dynamics using" << endl;
+	cout << "                                the recursive newton euler algorithm." << endl;
 }
 
 void parse_args (int argc, char* argv[]) {
@@ -135,6 +145,15 @@ void parse_args (int argc, char* argv[]) {
 			stringstream depth_stream (argv[argi]);
 
 			depth_stream >> benchmark_model_max_depth;
+		} else if (arg == "--no-fd" ) {
+			benchmark_run_fd_aba = false;
+			benchmark_run_fd_lagrangian = false;
+		} else if (arg == "--no-fd-aba" ) {
+			benchmark_run_fd_aba = false;
+		} else if (arg == "--no-fd-lagrangian" ) {
+			benchmark_run_fd_lagrangian = false;
+		} else if (arg == "--no-id-rnea" ) {
+			benchmark_run_id_rnea = false;
 		} else {
 			print_usage();
 			cerr << "Invalid argument '" << arg << "'." << endl;
@@ -149,45 +168,51 @@ int main (int argc, char *argv[]) {
 
 	Model *model = NULL;
 
-	cout << "= ForwardDynamics ABA =" << endl;
-	for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
-		model = new Model();
-		model->Init();
-		model->gravity = Vector3d (0., -9.81, 0.);
+	if (benchmark_run_fd_aba) {
+		cout << "= ForwardDynamics ABA =" << endl;
+		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
+			model = new Model();
+			model->Init();
+			model->gravity = Vector3d (0., -9.81, 0.);
 
-		generate_planar_tree (model, depth);
+			generate_planar_tree (model, depth);
 
-		run_forward_dynamics_ABA_benchmark (model, benchmark_sample_count);
+			run_forward_dynamics_ABA_benchmark (model, benchmark_sample_count);
 
-		delete model;
+			delete model;
+		}
+		cout << endl;
 	}
-	cout << endl;
 
-	cout << "= ForwardDynamics Lagrangian =" << endl;
-	for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
-		model = new Model();
-		model->Init();
-		model->gravity = Vector3d (0., -9.81, 0.);
+	if (benchmark_run_fd_lagrangian) {
+		cout << "= ForwardDynamics Lagrangian =" << endl;
+		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
+			model = new Model();
+			model->Init();
+			model->gravity = Vector3d (0., -9.81, 0.);
 
-		generate_planar_tree (model, depth);
+			generate_planar_tree (model, depth);
 
-		run_forward_dynamics_lagrangian_benchmark (model, benchmark_sample_count);
+			run_forward_dynamics_lagrangian_benchmark (model, benchmark_sample_count);
 
-		delete model;
+			delete model;
+		}
+		cout << endl;
 	}
-	cout << endl;
 
-	cout << "= InverseDynamics RNEA =" << endl;
-	for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
-		model = new Model();
-		model->Init();
-		model->gravity = Vector3d (0., -9.81, 0.);
+	if (benchmark_run_id_rnea) {
+		cout << "= InverseDynamics RNEA =" << endl;
+		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
+			model = new Model();
+			model->Init();
+			model->gravity = Vector3d (0., -9.81, 0.);
 
-		generate_planar_tree (model, depth);
+			generate_planar_tree (model, depth);
 
-		run_inverse_dynamics_RNEA_benchmark (model, benchmark_sample_count);
+			run_inverse_dynamics_RNEA_benchmark (model, benchmark_sample_count);
 
-		delete model;
+			delete model;
+		}
 	}
 
 	return 0;
