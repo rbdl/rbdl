@@ -220,8 +220,22 @@ class Matrix {
 
 			mData = new val_type[nrows * ncols];
 		}
-
 		typedef Matrix<val_type> matrix_type;
+
+		void conservativeResize (unsigned int rows, unsigned int cols = 1) {
+			Matrix <val_type> result = Matrix<val_type>::Zero(rows, cols);
+
+			unsigned int arows = std::min (rows, nrows);
+			unsigned int acols = std::min (cols, ncols);
+
+			for (unsigned int i = 0; i < arows; i++) {
+				for (unsigned int j = 0; j < acols; j++) {
+					result(i,j) = (*this)(i,j);
+				}
+			}
+
+			*this = result;	
+		}
 
 		Matrix(const Matrix &matrix) :
 			nrows (matrix.nrows),

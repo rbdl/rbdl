@@ -47,6 +47,23 @@ std::vector<ContactInfo> contact_data_left;
 std::vector<ContactInfo> contact_data_left_flat;
 std::vector<ContactInfo> contact_data_both;
 
+ConstraintSet constraint_set_right;
+ConstraintSet constraint_set_left;
+ConstraintSet constraint_set_left_flat;
+ConstraintSet constraint_set_both;
+
+void copy_contact_info (ConstraintSet &CS, std::vector<ContactInfo> &contact_info) {
+	for (unsigned int i = 0; i < contact_info.size(); i++) {
+		CS.AddConstraint(
+				contact_info[i].body_id,
+				contact_info[i].point,
+				contact_info[i].normal,
+				NULL,
+				contact_info[i].acceleration
+				);
+	}
+}
+
 enum ParamNames {
 	ParamSteplength = 0,
 	ParamNameLast
@@ -296,6 +313,14 @@ void init_model () {
 	contact_data_both.push_back (left_heel_x);
 	contact_data_both.push_back (left_heel_y);
 	contact_data_both.push_back (left_heel_z);
+
+	copy_contact_info (constraint_set_right, contact_data_right);
+	copy_contact_info (constraint_set_left, contact_data_left);
+	copy_contact_info (constraint_set_both, contact_data_both);
+
+	constraint_set_right.Bind (*model);
+	constraint_set_left.Bind (*model);
+	constraint_set_both.Bind (*model);
 }
 
 template <typename T>
@@ -357,7 +382,7 @@ TEST ( TestForwardDynamicsContactsLagrangianFootmodel ) {
 
 	ClearLogOutput();
 
-	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, contact_data_left, QDDot);
+	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, constraint_set_left, QDDot);
 
 //	cout << "C0: " << contact_data_left[0].body_id << ", " << contact_data_left[0].point.transpose() << endl;
 //	cout << "C1: " << contact_data_left[1].body_id << ", " << contact_data_left[1].point.transpose() << endl;

@@ -25,28 +25,74 @@ using namespace SpatialAlgebra::Operators;
 
 namespace RigidBodyDynamics {
 
+unsigned int ConstraintSet::AddConstraint (
+		unsigned int body_id,
+		const Vector3d &body_point,
+		const Vector3d &world_normal,
+		const char *constraint_name,
+		double acceleration) {
+	assert (bound == false);
+
+	name.push_back (constraint_name);
+	body.push_back (body_id);
+	point.push_back (body_point);
+	normal.push_back (world_normal);
+
+	unsigned int n_constr = constraint_acceleration.size() + 1;
+
+	constraint_acceleration.conservativeResize (n_constr);
+	constraint_acceleration[n_constr - 1] = acceleration;
+
+	constraint_force.conservativeResize (n_constr);
+	constraint_force[n_constr - 1] = 0.;
+
+	return n_constr - 1;
+}
+
+bool ConstraintSet::Bind (const Model &model) {
+	assert (bound == false);
+
+	unsigned int n_constr = size();
+
+	H.conservativeResize (model.dof_count, model.dof_count);
+	H.conservativeResize (model.dof_count);
+	gamma.conservativeResize (n_constr);
+	G.conservativeResize (n_constr, model.dof_count);
+	A.conservativeResize (model.dof_count + n_constr, model.dof_count + n_constr);
+	b.conservativeResize (model.dof_count + n_constr);
+	x.conservativeResize (model.dof_count + n_constr);
+
+	K.conservativeResize (n_constr, n_constr);
+	QDDot_t.conservativeResize (model.dof_count);
+	QDDot_0.conservativeResize (model.dof_count);
+	f_t.resize (n_constr, SpatialVectorZero);
+	f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
+	point_accel_0.resize (n_constr, Vector3d::Zero());
+
+	bound = true;
+
+	return bound;
+}
+
 void ForwardDynamicsContactsLagrangian (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
+		ConstraintSet &CS,
 		VectorNd &QDDot
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
 	// Compute C
-	VectorNd QDDot_zero = VectorNd::Zero (model.dof_count);
-	VectorNd C (model.dof_count);
+	CS.QDDot_0.setZero();
 
-	InverseDynamics (model, Q, QDot, QDDot_zero, C);
+	InverseDynamics (model, Q, QDot, CS.QDDot_0, CS.C);
 
 	// Compute H
-	MatrixNd H (model.dof_count, model.dof_count);
-	CompositeRigidBodyAlgorithm (model, Q, H, false);
+	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
 
 	// Compute G
-	MatrixNd G (ContactData.size(), model.dof_count);
 
 	unsigned int i,j;
 
@@ -55,124 +101,124 @@ void ForwardDynamicsContactsLagrangian (
 	Vector3d prev_body_point = Vector3d::Zero();
 	MatrixNd Gi (3, model.dof_count);
 
-	for (i = 0; i < ContactData.size(); i++) {
+	for (i = 0; i < CS.size(); i++) {
 		// Only alow contact normals along the coordinate axes
 		unsigned int axis_index = 0;
 
-		if (ContactData[i].normal == Vector3d(1., 0., 0.))
+		if (CS.normal[i] == Vector3d(1., 0., 0.))
 			axis_index = 0;
-		else if (ContactData[i].normal == Vector3d(0., 1., 0.))
+		else if (CS.normal[i] == Vector3d(0., 1., 0.))
 			axis_index = 1;
-		else if (ContactData[i].normal == Vector3d(0., 0., 1.))
+		else if (CS.normal[i] == Vector3d(0., 0., 1.))
 			axis_index = 2;
 		else
 			assert (0 && "Invalid contact normal axis!");
 
 		// only compute the matrix Gi if actually needed
-		if (prev_body_id != ContactData[i].body_id || prev_body_point != ContactData[i].point) {
-			CalcPointJacobian (model, Q, ContactData[i].body_id, ContactData[i].point, Gi, false);
-			prev_body_id = ContactData[i].body_id;
-			prev_body_point = ContactData[i].point;
+		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
+			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
+			prev_body_id = CS.body[i];
+			prev_body_point = CS.point[i];
 		}
 
 		for (j = 0; j < model.dof_count; j++) {
-			G(i,j) = Gi(axis_index, j);
+			CS.G(i,j) = Gi(axis_index, j);
 		}
 	}
 
 	// Compute gamma
-	VectorNd gamma (ContactData.size());
 	prev_body_id = 0;
 	prev_body_point = Vector3d::Zero();
 	Vector3d gamma_i = Vector3d::Zero();
 
 	// update Kinematics just once
-	ForwardKinematics (model, Q, QDot, QDDot_zero);
+	ForwardKinematics (model, Q, QDot, CS.QDDot_0);
 
-	for (i = 0; i < ContactData.size(); i++) {
+	for (i = 0; i < CS.size(); i++) {
 		// Only alow contact normals along the coordinate axes
 		unsigned int axis_index = 0;
 
-		if (ContactData[i].normal == Vector3d(1., 0., 0.))
+		if (CS.normal[i] == Vector3d(1., 0., 0.))
 			axis_index = 0;
-		else if (ContactData[i].normal == Vector3d(0., 1., 0.))
+		else if (CS.normal[i] == Vector3d(0., 1., 0.))
 			axis_index = 1;
-		else if (ContactData[i].normal == Vector3d(0., 0., 1.))
+		else if (CS.normal[i] == Vector3d(0., 0., 1.))
 			axis_index = 2;
 		else
 			assert (0 && "Invalid contact normal axis!");
 
 		// only compute point accelerations when necessary
-		if (prev_body_id != ContactData[i].body_id || prev_body_point != ContactData[i].point) {
-			gamma_i = CalcPointAcceleration (model, Q, QDot, QDDot_zero, ContactData[i].body_id, ContactData[i].point, false);
-			prev_body_id = ContactData[i].body_id;
-			prev_body_point = ContactData[i].point;
+		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
+			gamma_i = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, CS.body[i], CS.point[i], false);
+			prev_body_id = CS.body[i];
+			prev_body_point = CS.point[i];
 		}
 	
 		// we also substract ContactData[i].acceleration such that the contact
 		// point will have the desired acceleration
-		gamma[i] = gamma_i[axis_index] - ContactData[i].acceleration;
+		CS.gamma[i] = gamma_i[axis_index] - CS.constraint_acceleration[i];
 	}
 	
 	// Build the system
-	MatrixNd A = MatrixNd::Constant (model.dof_count + ContactData.size(), model.dof_count + ContactData.size(), 0.);
-	VectorNd b = VectorNd::Constant (model.dof_count + ContactData.size(), 0.);
-	VectorNd x = VectorNd::Constant (model.dof_count + ContactData.size(), 0.);
+	CS.A.setZero();
+	CS.b.setZero();
+	CS.x.setZero();
 
 	// Build the system: Copy H
 	for (i = 0; i < model.dof_count; i++) {
 		for (j = 0; j < model.dof_count; j++) {
-			A(i,j) = H(i,j);	
+			CS.A(i,j) = CS.H(i,j);	
 		}
 	}
 
 	// Build the system: Copy G, and G^T
-	for (i = 0; i < ContactData.size(); i++) {
+	for (i = 0; i < CS.size(); i++) {
 		for (j = 0; j < model.dof_count; j++) {
-			A(i + model.dof_count, j) = G (i,j);
-			A(j, i + model.dof_count) = G (i,j);
+			CS.A(i + model.dof_count, j) = CS.G (i,j);
+			CS.A(j, i + model.dof_count) = CS.G (i,j);
 		}
 	}
 
 	// Build the system: Copy -C + \tau
 	for (i = 0; i < model.dof_count; i++) {
-		b[i] = -C[i] + Tau[i];
+		CS.b[i] = -CS.C[i] + Tau[i];
 	}
 
 	// Build the system: Copy -gamma
-	for (i = 0; i < ContactData.size(); i++) {
-		b[i + model.dof_count] = - gamma[i];
+	for (i = 0; i < CS.size(); i++) {
+		CS.b[i + model.dof_count] = - CS.gamma[i];
 	}
 
-	LOG << "A = " << std::endl << A << std::endl;
-	LOG << "b = " << std::endl << b << std::endl;
-	
-	// Solve the system
-#ifndef RBDL_USE_SIMPLE_MATH
-//	x = A.ldlt().solve(b);
-//	x = A.householderQr().solve(b);
-//	x = A.partialPivLu().solve(b);
-	x = A.colPivHouseholderQr().solve (b);
+	LOG << "A = " << std::endl << CS.A << std::endl;
+	LOG << "b = " << std::endl << CS.b << std::endl;
 
-//	LOG << "fullPivLu = " << A.fullPivLu().solve(b) << std::endl;
-//	LOG << "householderQr = " << A.householderQr().solve(b) << std::endl;
-//	LOG << "colPivHouseholderQr = " << A.colPivHouseholderQr().solve(b) << std::endl;
-//	LOG << "partialPivLu = " << A.partialPivLu().solve(b) << std::endl;
-//	LOG << "Ainv * b = " << A.inverse() * b << std::endl;
+#ifndef RBDL_USE_SIMPLE_MATH
+	switch (CS.linear_solver) {
+		case (LinearSolverPartialPivLU) :
+			CS.x = CS.A.partialPivLu().solve(CS.b);
+			break;
+		case (LinearSolverColPivHouseholderQR) :
+			CS.x = CS.A.colPivHouseholderQr().solve(CS.b);
+			break;
+		default:
+			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
+			assert (0);
+			break;
+	}
 #else
-	bool solve_successful = LinSolveGaussElimPivot (A, b, x);
+	bool solve_successful = LinSolveGaussElimPivot (CS.A, CS.b, CS.x);
 	assert (solve_successful);
 #endif
 
-	LOG << "x = " << std::endl << x << std::endl;
+	LOG << "x = " << std::endl << CS.x << std::endl;
 
 	// Copy back QDDot
 	for (i = 0; i < model.dof_count; i++)
-		QDDot[i] = x[i];
+		QDDot[i] = CS.x[i];
 
 	// Copy back contact forces
-	for (i = 0; i < ContactData.size(); i++) {
-		ContactData[i].force = x[model.dof_count + i];
+	for (i = 0; i < CS.size(); i++) {
+		CS.constraint_force[i] = CS.x[model.dof_count + i];
 	}
 }
 
@@ -774,7 +820,8 @@ void ForwardDynamicsContacts (
 
 #ifndef RBDL_USE_SIMPLE_MATH
 //	f = K.ldlt().solve (a);
-	f = K.colPivHouseholderQr().solve (a);
+//	f = K.colPivHouseholderQr().solve (a);
+	f = K.partialPivLu().solve (a);
 #else
 	bool solve_successful = LinSolveGaussElimPivot (K, a, f);
 	assert (solve_successful);

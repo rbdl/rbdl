@@ -12,6 +12,8 @@
 
 namespace RigidBodyDynamics {
 
+struct Model;
+
 /** \defgroup contacts_group External Contacts
  *
  * Here you find information about the functions related to contact
@@ -19,6 +21,84 @@ namespace RigidBodyDynamics {
  *
  * @{
  */
+
+/** Structure that contains both constraint information and memory workspace.
+ *
+ */
+struct ConstraintSet {
+	ConstraintSet() :
+		linear_solver (LinearSolverUnknown),
+		bound (false)
+	{}
+
+	enum LinearSolver {
+		LinearSolverUnknown = 0,
+		LinearSolverPartialPivLU,
+		LinearSolverColPivHouseholderQR,
+		LinearSolverLast,
+	};
+
+	unsigned int AddConstraint (
+			unsigned int body_id,
+			const Vector3d &body_point,
+			const Vector3d &world_normal,
+			const char *constraint_name = "noname",
+			double acceleration = 0.);
+
+	void SetSolver (LinearSolver solver) {
+		linear_solver = solver;
+	}
+
+	bool Bind (const Model &model);
+
+	unsigned int size() {
+		return constraint_acceleration.size();
+	}
+
+	/// Method that should be used to solve internal linear systems.
+	LinearSolver linear_solver;
+	/// Whether the constraint set was bound to a model (mandatory!).
+	bool bound;
+
+	std::vector<std::string> name;
+	std::vector<unsigned int> body;
+	std::vector<Vector3d> point;
+	std::vector<Vector3d> normal;
+
+	VectorNd constraint_acceleration;
+	VectorNd constraint_force;
+
+	// Variables used by the Lagrangian methods
+
+	/// Workspace for the joint space inertia matrix.
+	MatrixNd H;
+	/// Workspace for the coriolis forces.
+	VectorNd C;
+	/// Workspace of the lower part of b.
+	VectorNd gamma;
+	MatrixNd G;
+	/// Workspace for the Lagrangian left-hand-side matrix.
+	MatrixNd A;
+	/// Workspace for the Lagrangian right-hand-side.
+	VectorNd b;
+	/// Workspace for the Lagrangian solution.
+	VectorNd x;
+
+	// Variables used by the IABI methods
+
+	/// Workspace for the Inverse Articulated-Body Inertia.
+	MatrixNd K;
+	/// Workspace for the test accelerations.
+	VectorNd QDDot_t;
+	/// Workspace for the default accelerations.
+	VectorNd QDDot_0;
+	/// Workspace for the test forces.
+	std::vector<SpatialAlgebra::SpatialVector> f_t;
+	/// Workspace for the actual spatial forces.
+	std::vector<SpatialAlgebra::SpatialVector> f_ext_constraints;
+	/// Workspace for the default point accelerations.
+	std::vector<Vector3d> point_accel_0;
+};
 
 /** \brief Structure that contains information about a one-dimensional
  *  \brief contact constraint
@@ -136,7 +216,7 @@ void ForwardDynamicsContactsLagrangian (
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
+		ConstraintSet &CS,
 		VectorNd &QDDot
 		);
 
