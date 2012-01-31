@@ -52,7 +52,7 @@ ConstraintSet constraint_set_left;
 ConstraintSet constraint_set_left_flat;
 ConstraintSet constraint_set_both;
 
-void copy_contact_info (ConstraintSet &CS, std::vector<ContactInfo> &contact_info) {
+static void copy_contact_info (ConstraintSet &CS, std::vector<ContactInfo> &contact_info) {
 	for (unsigned int i = 0; i < contact_info.size(); i++) {
 		CS.AddConstraint(
 				contact_info[i].body_id,

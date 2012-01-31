@@ -127,9 +127,8 @@ struct FixedBase6DoF {
 	Vector3d contact_point;
 	Vector3d contact_normal;
 	std::vector<RigidBodyDynamics::ContactInfo> contact_data;
+	RigidBodyDynamics::ConstraintSet constraint_set;
 };
-
-
 
 struct FloatingBase12DoF {
 	FloatingBase12DoF () {

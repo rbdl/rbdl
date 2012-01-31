@@ -27,7 +27,7 @@ struct Model;
  */
 struct ConstraintSet {
 	ConstraintSet() :
-		linear_solver (LinearSolverUnknown),
+		linear_solver (LinearSolverColPivHouseholderQR),
 		bound (false)
 	{}
 
@@ -42,7 +42,7 @@ struct ConstraintSet {
 			unsigned int body_id,
 			const Vector3d &body_point,
 			const Vector3d &world_normal,
-			const char *constraint_name = "noname",
+			const char *constraint_name = NULL,
 			double acceleration = 0.);
 
 	void SetSolver (LinearSolver solver) {
@@ -54,6 +54,8 @@ struct ConstraintSet {
 	unsigned int size() {
 		return constraint_acceleration.size();
 	}
+
+	void clear ();
 
 	/// Method that should be used to solve internal linear systems.
 	LinearSolver linear_solver;
@@ -88,6 +90,8 @@ struct ConstraintSet {
 
 	/// Workspace for the Inverse Articulated-Body Inertia.
 	MatrixNd K;
+	/// Workspace for the accelerations of due to the test forces
+	VectorNd a;
 	/// Workspace for the test accelerations.
 	VectorNd QDDot_t;
 	/// Workspace for the default accelerations.
@@ -98,6 +102,12 @@ struct ConstraintSet {
 	std::vector<SpatialAlgebra::SpatialVector> f_ext_constraints;
 	/// Workspace for the default point accelerations.
 	std::vector<Vector3d> point_accel_0;
+
+	/// Workspace for the bias force due to the test force
+	std::vector<SpatialAlgebra::SpatialVector> d_pA;
+	/// Workspace for the acceleration due to the test force
+	std::vector<SpatialAlgebra::SpatialVector> d_a;
+	VectorNd d_u;
 };
 
 /** \brief Structure that contains information about a one-dimensional
@@ -366,7 +376,7 @@ void ForwardDynamicsContactsOld (
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
+		ConstraintSet &CS,
 		VectorNd &QDDot
 		);
 
