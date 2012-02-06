@@ -108,6 +108,13 @@ struct ConstraintSet {
 	/// Workspace for the acceleration due to the test force
 	std::vector<SpatialAlgebra::SpatialVector> d_a;
 	VectorNd d_u;
+
+	/// Workspace for the inertia when applying constraint forces
+	std::vector<SpatialAlgebra::SpatialMatrix> d_IA;
+	/// Workspace when applying constraint forces
+	std::vector<SpatialAlgebra::SpatialVector> d_U;
+	/// Workspace when applying constraint forces
+	VectorNd d_d;
 };
 
 /** \brief Structure that contains information about a one-dimensional

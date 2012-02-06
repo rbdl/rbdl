@@ -78,6 +78,10 @@ bool ConstraintSet::Bind (const Model &model) {
 	d_a = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
 	d_u = VectorNd::Zero (model.mBodies.size());
 
+	d_IA = std::vector<SpatialMatrix> (model.mBodies.size(), SpatialMatrixIdentity);
+	d_U = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
+	d_d = VectorNd::Zero (model.mBodies.size());
+
 	bound = true;
 
 	return bound;
@@ -376,31 +380,23 @@ void ComputeContactImpulsesLagrangian (
  * accelerations.
  *
  */
-void ForwardDynamicsAccelerationsOnly (
+void ForwardDynamicsApplyConstraintForces (
 		Model &model,
-		VectorNd &QDDot_t,
-		std::vector<SpatialAlgebra::SpatialVector> *f_ext
+		ConstraintSet &CS,
+		VectorNd &QDDot
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	std::vector<SpatialVector> d_pv (model.mBodies.size(), SpatialVectorZero);
-	std::vector<SpatialVector> d_pA (model.mBodies.size(), SpatialVectorZero);
-	std::vector<SpatialVector> d_a (model.mBodies.size(), SpatialVectorZero);
-	std::vector<SpatialVector> d_U (model.mBodies.size(), SpatialVectorZero);
-	std::vector<SpatialMatrix> d_IA (model.mBodies.size(), SpatialMatrixZero);
-	std::vector<double> d_u (model.mBodies.size(), 0.);
-	std::vector<double> d_d (model.mBodies.size(), 0.);
-
-	assert (QDDot_t.size() == model.dof_count);
+	assert (QDDot.size() == model.dof_count);
 
 	unsigned int i;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		d_pA[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
-		d_IA[i] = model.mBodies[i].mSpatialInertia;
+		CS.d_pA[i] = crossf(model.v[i], model.mBodies[i].mSpatialInertia * model.v[i]);
+		CS.d_IA[i] = model.mBodies[i].mSpatialInertia;
 
-		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
-			d_pA[i] -= spatial_adjoint(model.X_base[i].toMatrix()) * (*f_ext)[i];
+		if (CS.f_ext_constraints[i] != SpatialVectorZero) {
+			CS.d_pA[i] -= spatial_adjoint(model.X_base[i].toMatrix()) * (CS.f_ext_constraints)[i];
 //			LOG << "f_t (local)[" << i << "] = " << spatial_adjoint(model.X_base[i]) * (*f_ext)[i] << std::endl;
 		}
 //		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
@@ -411,21 +407,19 @@ void ForwardDynamicsAccelerationsOnly (
 		if (model.mJoints[i].mJointType == JointTypeFixed)
 			continue;
 
-		d_U[i] = d_IA[i] * model.S[i];
-		d_d[i] = model.S[i].dot(model.U[i]);
-		d_u[i] = model.tau[i] - model.S[i].dot(d_pA[i]);
+		CS.d_U[i] = CS.d_IA[i] * model.S[i];
+		CS.d_d[i] = model.S[i].dot(model.U[i]);
+		CS.d_u[i] = model.tau[i] - model.S[i].dot(CS.d_pA[i]);
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			SpatialMatrix Ia = d_IA[i] - d_U[i] * (d_U[i] / d_d[i]).transpose();
-			SpatialVector pa = d_pA[i] + Ia * model.c[i] + d_U[i] * d_u[i] / d_d[i];
+			SpatialMatrix Ia = CS.d_IA[i] - CS.d_U[i] * (CS.d_U[i] / CS.d_d[i]).transpose();
+			SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_U[i] * CS.d_u[i] / CS.d_d[i];
 			SpatialTransform X_lambda = model.X_lambda[i];
 
 			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
-			d_IA[lambda] = d_IA[lambda] + X_lambda.toMatrixTranspose() * Ia * X_lambda.toMatrix();
-			d_pA[lambda] = d_pA[lambda] + model.X_lambda[i].toMatrixTranspose() * pa;
-
-			assert (model.IA[lambda] == d_IA[lambda]);
+			CS.d_IA[lambda] = CS.d_IA[lambda] + X_lambda.toMatrixTranspose() * Ia * X_lambda.toMatrix();
+			CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].toMatrixTranspose() * pa;
 		}
 	}
 
@@ -435,23 +429,21 @@ void ForwardDynamicsAccelerationsOnly (
 	}
 	*/
 
-	if (f_ext) {
-		for (unsigned int i = 0; i < f_ext->size(); i++) {
-			LOG << "f_ext[" << i << "] = " << (*f_ext)[i].transpose();
-		}
+	for (unsigned int i = 0; i < CS.f_ext_constraints.size(); i++) {
+		LOG << "f_ext[" << i << "] = " << (CS.f_ext_constraints)[i].transpose();
 	}
 
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_pA[i] - pA[i] " << (d_pA[i] - model.pA[i]).transpose();
+		LOG << "i = " << i << ": d_pA[i] - pA[i] " << (CS.d_pA[i] - model.pA[i]).transpose();
 	}
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_u[i] - u[i] = " << (d_u[i] - model.u[i]) << std::endl;
+		LOG << "i = " << i << ": d_u[i] - u[i] = " << (CS.d_u[i] - model.u[i]) << std::endl;
 	}
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_d[i] - d[i] = " << (d_d[i] - model.d[i]) << std::endl;
+		LOG << "i = " << i << ": d_d[i] - d[i] = " << (CS.d_d[i] - model.d[i]) << std::endl;
 	}
 	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "i = " << i << ": d_U[i] - U[i] = " << (d_U[i] - model.U[i]).transpose() << std::endl;
+		LOG << "i = " << i << ": d_U[i] - U[i] = " << (CS.d_U[i] - model.U[i]).transpose() << std::endl;
 	}
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
@@ -461,9 +453,9 @@ void ForwardDynamicsAccelerationsOnly (
 		SpatialTransform X_lambda = model.X_lambda[i];
 
 		if (lambda == 0) {
-			d_a[i] = X_lambda.apply(spatial_gravity * (-1.)) + model.c[i];
+			CS.d_a[i] = X_lambda.apply(spatial_gravity * (-1.)) + model.c[i];
 		} else {
-			d_a[i] = X_lambda.apply(d_a[lambda]) + model.c[i];
+			CS.d_a[i] = X_lambda.apply(CS.d_a[lambda]) + model.c[i];
 		}
 
 		// we can skip further processing if the joint type is fixed
@@ -472,10 +464,10 @@ void ForwardDynamicsAccelerationsOnly (
 			continue;
 		}
 
-		QDDot_t[i - 1] = (d_u[i] - model.U[i].dot(d_a[i])) / model.d[i];
-		LOG << "QDDot_t[" << i - 1 << "] = " << QDDot_t[i - 1] << std::endl;
-		d_a[i] = d_a[i] + model.S[i] * QDDot_t[i - 1];
-		LOG << "d_a[i] - a[i] = " << (d_a[i] - X_lambda.apply(model.a[i])).transpose() << std::endl;
+		QDDot[i - 1] = (CS.d_u[i] - model.U[i].dot(CS.d_a[i])) / model.d[i];
+		LOG << "QDDot_t[" << i - 1 << "] = " << QDDot[i - 1] << std::endl;
+		CS.d_a[i] = CS.d_a[i] + model.S[i] * QDDot[i - 1];
+		LOG << "d_a[i] - a[i] = " << (CS.d_a[i] - X_lambda.apply(model.a[i])).transpose() << std::endl;
 	}
 }
 
@@ -899,7 +891,7 @@ void ForwardDynamicsContacts (
 
 	{
 		SUPPRESS_LOGGING;
-		ForwardDynamicsAccelerationsOnly (model, QDDot, &CS.f_ext_constraints);
+		ForwardDynamicsApplyConstraintForces (model, CS, QDDot);
 	}
 }
 
