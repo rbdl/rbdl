@@ -715,8 +715,6 @@ void ForwardDynamicsContacts (
 	assert (CS.constraint_force.size() == CS.size());
 	assert (CS.a.size() == CS.size());
 
-//	CS.clear();
-
 	Vector3d point_accel_t;
 
 	unsigned int ci = 0;
@@ -730,17 +728,7 @@ void ForwardDynamicsContacts (
 	// The vector f_ext_constraints might contain some values from previous
 	// computations so we need to reset it.
 	for (unsigned int fi = 0; fi < CS.f_ext_constraints.size(); fi++) {
-			CS.f_ext_constraints[fi].setZero();
-	}
-
-	CS.K.setZero();
-	CS.QDDot_0.setZero();
-
-	for (unsigned int i = 0; i < CS.size(); i++) {
-		CS.f_t[i].setZero();
-		CS.constraint_force[i] = 0.;
-		CS.a[i] = 0.;
-		CS.point_accel_0[i].setZero();
+//			CS.f_ext_constraints[fi].setZero();
 	}
 
 	LOG << "=== Initial Loop Start ===" << std::endl;
@@ -752,6 +740,10 @@ void ForwardDynamicsContacts (
 		Vector3d normal = CS.normal[ci];
 		double acceleration = CS.constraint_acceleration[ci];
 
+		LOG << "body_id = " << body_id << std::endl;
+		LOG << "point = " << point << std::endl;
+		LOG << "normal = " << normal << std::endl;
+		LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
 		{
 			SUPPRESS_LOGGING;
 			ForwardKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);

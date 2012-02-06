@@ -843,7 +843,10 @@ TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContact) {
 	
 	ClearLogOutput();
 	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, constraint_set_lagrangian, QDDot_lagrangian);
+	ClearLogOutput();
 	ForwardDynamicsContacts (*model, Q, QDot, Tau, constraint_set, QDDot_contacts);
+//	cout << LogOutput.str() << endl;
+	ClearLogOutput();
 	ForwardDynamicsContactsOld (*model, Q, QDot, Tau, contact_data, QDDot_contacts_old);
 
 	point_accel_lagrangian = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, contact_body_id, contact_point, true);
@@ -862,8 +865,6 @@ TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContact) {
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot_contacts.data(), QDDot_lagrangian.size(), TEST_PREC);
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot_contacts_old.data(), QDDot_lagrangian.size(), TEST_PREC);
 }
-
-/*
 
 TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContactRotated) {
 	Q[0] = 0.6;
@@ -982,6 +983,61 @@ TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptDoubleContact) {
 
 	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, constraint_set_lagrangian, QDDot_lagrangian);
 	ForwardDynamicsContactsOld (*model, Q, QDot, Tau, contact_data, QDDot_contacts);
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, constraint_set, QDDot_contacts_opt);
+
+	point_accel_lagrangian = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, contact_body_id, contact_point, true);
+	point_accel_contacts = CalcPointAcceleration (*model, Q, QDot, QDDot_contacts, contact_body_id, contact_point, true);
+	point_accel_contacts_opt = CalcPointAcceleration (*model, Q, QDot, QDDot_contacts_opt, contact_body_id, contact_point, true);
+
+	// check whether FDContactsLagrangian and FDContacts match
+	CHECK_ARRAY_CLOSE (
+			constraint_set_lagrangian.constraint_force.data(),
+			constraint_set.constraint_force.data(),
+			constraint_set.size(), TEST_PREC
+			);
+
+	// check whether FDContactsLagrangian and FDContactsOld match
+	CHECK_CLOSE (constraint_set_lagrangian.constraint_force[0], contact_data[0].force, TEST_PREC);
+	CHECK_CLOSE (constraint_set_lagrangian.constraint_force[1], contact_data[1].force, TEST_PREC);
+
+	// check whether the point accelerations match
+	CHECK_ARRAY_CLOSE (point_accel_lagrangian.data(), point_accel_contacts.data(), 3, TEST_PREC);
+	CHECK_ARRAY_CLOSE (point_accel_lagrangian.data(), point_accel_contacts_opt.data(), 3, TEST_PREC);
+
+	// check whether the generalized accelerations match
+	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot_contacts.data(), QDDot_lagrangian.size(), TEST_PREC);
+	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot_contacts_opt.data(), QDDot_lagrangian.size(), TEST_PREC);
+}
+
+TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptDoubleContactRepeated) {
+	// makes sure that all variables in the constraint set gets reset
+	// properly when making repeated calls to ForwardDynamicsContacts.
+	contact_data.push_back (ContactInfo(contact_body_id, Vector3d (1., 0., 0.), contact_normal, 0.));
+	contact_data.push_back (ContactInfo(contact_body_id, Vector3d (0., 1., 0.), contact_normal, 0.));
+
+	ConstraintSet constraint_set_lagrangian;
+	copy_contact_info (constraint_set_lagrangian, contact_data);
+	copy_contact_info (constraint_set, contact_data);
+	constraint_set_lagrangian.Bind (*model);
+	constraint_set.Bind (*model);
+	
+	Vector3d point_accel_lagrangian, point_accel_contacts, point_accel_contacts_opt;
+	double contact_force_lagrangian, contact_force_contacts, contact_force_contacts_opt;
+	
+	ClearLogOutput();
+
+	VectorNd QDDot_lagrangian = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+	VectorNd QDDot_contacts = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+	VectorNd QDDot_contacts_opt = VectorNd::Constant (model->mBodies.size() - 1, 0.);
+	
+	ClearLogOutput();
+
+	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, constraint_set_lagrangian, QDDot_lagrangian);
+	ForwardDynamicsContactsOld (*model, Q, QDot, Tau, contact_data, QDDot_contacts);
+	// Call ForwardDynamicsContacts multiple times such that old values might
+	// be re-used and thus cause erroneus values.
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, constraint_set, QDDot_contacts_opt);
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, constraint_set, QDDot_contacts_opt);
 	ForwardDynamicsContacts (*model, Q, QDot, Tau, constraint_set, QDDot_contacts_opt);
 
 	point_accel_lagrangian = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, contact_body_id, contact_point, true);
@@ -1259,4 +1315,3 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsMultipleCon
 
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
-*/
