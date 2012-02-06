@@ -10,5 +10,8 @@
 
 #cmakedefine RBDL_USE_SIMPLE_MATH
 #cmakedefine RBDL_ENABLE_LOGGING
+#cmakedefine RBDL_BUILD_REVISION "@RBDL_BUILD_REVISION@"
+#cmakedefine RBDL_BUILD_TYPE "@RBDL_BUILD_TYPE@"
+#cmakedefine RBDL_BUILD_BRANCH "@RBDL_BUILD_BRANCH@"
 
 #endif

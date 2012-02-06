@@ -168,6 +168,9 @@ int main (int argc, char *argv[]) {
 
 	Model *model = NULL;
 
+	RigidBodyDynamics::rbdl_print_version();
+	cout << endl;
+
 	if (benchmark_run_fd_aba) {
 		cout << "= ForwardDynamics ABA =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {

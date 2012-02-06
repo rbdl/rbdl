@@ -28,6 +28,7 @@ OPTION (BUILD_ADDON_XMLREADER "Build the (experimental) xml reader" OFF)
 OPTION (BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 
 SET ( RBDL_SOURCES 
+	src/rbdl_version.cc
 	src/mathutils.cc
 	src/Logging.cc
 	src/Body.cc
@@ -68,6 +69,13 @@ INSTALL (TARGETS rbdl
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	)
+
+# Set versioning information that can be queried during runtime
+EXEC_PROGRAM("hg" ${CMAKE_CURRENT_SOURCE_DIR} ARGS "id -i"
+	OUTPUT_VARIABLE RBDL_BUILD_REVISION)
+EXEC_PROGRAM("hg" ${CMAKE_CURRENT_SOURCE_DIR} ARGS "branch"
+	OUTPUT_VARIABLE RBDL_BUILD_BRANCH)
+SET (RBDL_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 
 CONFIGURE_FILE (
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdlconfig.h.cmake" 

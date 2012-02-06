@@ -21,4 +21,9 @@
 
 #include "Contacts.h"
 
+namespace RigidBodyDynamics {
+	/** Prints version information to standard output */
+	void rbdl_print_version();
+}
+
 #endif /* _RBDL_H */
