@@ -189,26 +189,3 @@ unsigned int Model::GetBodyId (const char *id) {
 	return std::numeric_limits<unsigned int>::max();
 }
 
-Vector3d Model::GetBodyOrigin (const unsigned int body_id) {
-	if (experimental_floating_base) {
-		assert (body_id <= mBodies.size());
-	} else {
-		assert (body_id > 0 && body_id < mBodies.size());
-	}
-
-	return X_base[body_id].r;
-}
-
-Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
-	if (experimental_floating_base) {
-		assert (body_id <= mBodies.size());
-	} else {
-		assert (body_id > 0);
-		assert (body_id < mBodies.size());
-	}
-
-	// We use the information from the X_base vector. In the upper left 3x3
-	// matrix contains the orientation as a 3x3 matrix which we are asking
-	// for.
-	return X_base[body_id].E;
-}

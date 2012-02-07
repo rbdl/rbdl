@@ -213,6 +213,23 @@ Vector3d CalcBaseToBodyCoordinates (
 	return body_rotation * point_base_coordinates - body_rotation * body_position;
 }
 
+Matrix3d CalcBodyWorldOrientation (
+		Model &model,
+		const VectorNd &Q,
+		const unsigned int body_id,
+		bool update_kinematics) 
+{
+	// update the Kinematics if necessary
+	if (update_kinematics) {
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	}
+
+	// We use the information from the X_base vector. In the upper left 3x3
+	// matrix contains the orientation as a 3x3 matrix which we are asking
+	// for.
+	return model.X_base[body_id].E;
+}
+
 void CalcPointJacobian (
 		Model &model,
 		const VectorNd &Q,
@@ -350,10 +367,10 @@ Vector3d CalcPointAcceleration (
 	// The whole computation looks in formulae like the following:
 	SpatialVector body_global_velocity (spatial_inverse(model.X_base[body_id].toMatrix()) * model.v[body_id]);
 
-	LOG << " orientation " << std::endl << model.GetBodyWorldOrientation(body_id) << std::endl;
-	LOG << " orientationT " << std::endl <<  model.GetBodyWorldOrientation(body_id).transpose() << std::endl;
+	LOG << " orientation " << std::endl << CalcBodyWorldOrientation (model, Q, body_id, false) << std::endl;
+	LOG << " orientationT " << std::endl <<  CalcBodyWorldOrientation (model, Q, body_id, false).transpose() << std::endl;
 
-	Matrix3d global_body_orientation_inv = model.GetBodyWorldOrientation (body_id).transpose();
+	Matrix3d global_body_orientation_inv = CalcBodyWorldOrientation (model, Q, body_id, false).transpose();
 	SpatialMatrix p_X_i = SpatialMatrixZero;
 
 	p_X_i.block<3,3>(0,0) = global_body_orientation_inv;

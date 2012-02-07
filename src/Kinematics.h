@@ -75,8 +75,8 @@ Vector3d CalcBodyToBaseCoordinates (
  * \param Q the curent genereralized positions
  * \param body_id id of the body for which the point coordinates are expressed
  * \param point_base_coordinates coordinates of the point in base coordinates
- * \param update_kinematics whether UpdateKinematics() should be called
- * or not (default: true)
+ * \param update_kinematics whether UpdateKinematics() should be called or not
+ * (default: true).
  *
  * \returns a 3-D vector with coordinates of the point in body coordinates
  */
@@ -85,6 +85,22 @@ Vector3d CalcBaseToBodyCoordinates (
 		const VectorNd &Q,
 		unsigned int body_id,
 		const Vector3d &base_point_position,
+		bool update_kinematics = true);
+
+/** \brief Returns the orientation of a given body as 3x3 matrix
+ *
+ * \param model the rigid body model
+ * \param Q the curent genereralized positions
+ * \param body_id id of the body for which the point coordinates are expressed
+ * \param update_kinematics whether UpdateKinematics() should be called or not
+ * (default: true).
+ *
+ * \returns A 3x3 matrix that contains the rotation from base
+ */
+Matrix3d CalcBodyWorldOrientation (
+		Model &model,
+		const VectorNd &Q,
+		const unsigned int body_id,
 		bool update_kinematics = true);
 
 /** \brief Computes the point jacobian for a point on a body

@@ -215,25 +215,6 @@ struct Model {
 	 */
 	unsigned int GetBodyId (const char *id);
 
-	/** \brief Returns the 3-D coordinate vector of the origin of a given body
-	 *  \brief in base coordinates
-	 *
-	 *  \param body_id id of the body of intrest
-	 *  
-	 *  \returns 3-D coordinate vector of the origin of the body in base
-	 *  \returns coordinates
-	 */
-	Vector3d GetBodyOrigin (const unsigned int body_id);
-
-	/** \brief Returns the orientation of a given body as 3x3 matrix
-	 *
-	 *  \param body_id id of the body of intrest
-	 *
-	 *  \returns A 3x3 matrix that contains the rotation from base
-	 *  \returns orientation to body orientation
-	 */
-	Matrix3d GetBodyWorldOrientation (const unsigned int body_id);
-
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 };
