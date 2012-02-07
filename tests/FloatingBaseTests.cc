@@ -49,7 +49,7 @@ TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
 
 	Vector3d test_point;
 
-	test_point = model->CalcBaseToBodyCoordinates(base_body_id, Vector3d (0., 0., 0.));
+	test_point = CalcBaseToBodyCoordinates (*model, q, base_body_id, Vector3d (0., 0., 0.), false);
 	CHECK_ARRAY_CLOSE (Vector3d (0., -1., 0.).data(), test_point.data(), 3, TEST_PREC);
 }
 
@@ -293,7 +293,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
 
 	qdot = qdot;
 
-	point_world_position = model->CalcBodyToBaseCoordinates(ref_body_id, point_body_position);
+	point_world_position = CalcBodyToBaseCoordinates (*model, q, ref_body_id, point_body_position, false);
 	point_world_velocity = CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position);
 
 	// we set the generalized acceleration to zero
@@ -370,7 +370,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
 
 //	cout << "ref_body_id = " << ref_body_id << endl;
 //	cout << "point_body_position = " << point_body_position << endl;
-	point_world_position = model->CalcBodyToBaseCoordinates(ref_body_id, point_body_position);
+	point_world_position = CalcBodyToBaseCoordinates (*model, q, ref_body_id, point_body_position, false);
 	point_world_velocity = CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position);
 
 	ClearLogOutput();
@@ -456,7 +456,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFull) {
 
 //	cout << "ref_body_id = " << ref_body_id << endl;
 //	cout << "point_body_position = " << point_body_position << endl;
-	point_world_position = model->CalcBodyToBaseCoordinates(ref_body_id, point_body_position);
+	point_world_position = CalcBodyToBaseCoordinates (*model, q, ref_body_id, point_body_position, false);
 	point_world_velocity = CalcPointVelocity (*model, q, qdot, ref_body_id, point_body_position);
 
 	ClearLogOutput();

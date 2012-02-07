@@ -231,7 +231,7 @@ void CalcPointJacobian (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
-	Vector3d point_base_pos = model.CalcBodyToBaseCoordinates(body_id, point_position);
+	Vector3d point_base_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
 	SpatialMatrix point_trans = Xtrans_mat (point_base_pos);
 
 	assert (G.rows() == 3 && G.cols() == model.dof_count );
@@ -294,7 +294,7 @@ Vector3d CalcPointVelocity (
 		UpdateKinematics (model, Q, QDot, QDDot_zero);
 	}
 
-	Vector3d point_abs_pos = model.CalcBodyToBaseCoordinates(body_id, point_position); 
+	Vector3d point_abs_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false); 
 
 	LOG << "body_index     = " << body_id << std::endl;
 	LOG << "point_pos      = " << point_position << std::endl;
@@ -421,7 +421,7 @@ bool InverseKinematics (
 		for (unsigned int k = 0; k < body_id.size(); k++) {
 			MatrixNd G (3, model.dof_count);
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
-			Vector3d point_base = model.CalcBodyToBaseCoordinates(body_id[k], body_point[k]);
+			Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
 			LOG << "current_pos = " << point_base.transpose() << std::endl;
 
 			for (unsigned int i = 0; i < 3; i++) {

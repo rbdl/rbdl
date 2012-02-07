@@ -212,17 +212,3 @@ Matrix3d Model::GetBodyWorldOrientation (const unsigned int body_id) {
 	// for.
 	return X_base[body_id].E;
 }
-
-Vector3d Model::CalcBodyToBaseCoordinates (const unsigned int body_id, const Vector3d &body_point) {
-	Matrix3d body_rotation = X_base[body_id].E.transpose();
-	Vector3d body_position = GetBodyOrigin (body_id);
-
-	return body_position + body_rotation * body_point;
-}
-
-Vector3d Model::CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point) {
-	Matrix3d body_rotation = X_base[body_id].E;
-	Vector3d body_position = GetBodyOrigin (body_id);
-
-	return body_rotation * base_point - body_rotation * body_position;
-}

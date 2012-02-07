@@ -301,8 +301,8 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	Vector3d base_coords_back;
 
 	UpdateKinematics (*model, q, qdot, qddot);
-	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);
-	base_coords_back = model->CalcBodyToBaseCoordinates (body_id, body_coords);
+	body_coords = CalcBaseToBodyCoordinates (*model, q, body_id, base_coords, false);
+	base_coords_back = CalcBodyToBaseCoordinates (*model, q, body_id, body_coords, false);
 
 	CHECK_ARRAY_CLOSE (base_coords.data(), base_coords_back.data(), 3, TEST_PREC);
 
@@ -314,8 +314,8 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	q[5] = -0.23;
 
 	UpdateKinematics (*model, q, qdot, qddot);
-	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);
-	base_coords_back = model->CalcBodyToBaseCoordinates (body_id, body_coords);
+	body_coords = CalcBaseToBodyCoordinates (*model, q, body_id, base_coords, false);
+	base_coords_back = CalcBodyToBaseCoordinates (*model, q, body_id, body_coords, false);
 
 	CHECK_ARRAY_CLOSE (base_coords.data(), base_coords_back.data(), 3, TEST_PREC);
 }

@@ -234,30 +234,6 @@ struct Model {
 	 */
 	Matrix3d GetBodyWorldOrientation (const unsigned int body_id);
 
-	/** \brief Returns the base coordinates of a point given in body coordinates
-	 *
-	 * \note The forward kinematics of the model have to be computed beforehand
-	 * (e.g. with ForwardKinematics() or ForwardDynamics())!
-	 *
-	 * \param body_id id of the body for which the point coordinates are expressed
-	 * \param body_point coordinates of the point in body coordinates
-	 *
-	 * \returns a 3-D vector with coordinates of the point in base coordinates
-	 */
-	Vector3d CalcBodyToBaseCoordinates (const unsigned int body_id, const Vector3d &body_point);
-
-	/** \brief Returns the body coordinates of a point given in base coordinates
-	 *
-	 * \note The forward kinematics of the model have to be computed beforehand
-	 * (e.g. with ForwardKinematics() or ForwardDynamics())!
-	 * 
-	 * \param body_id id of the body for which the point coordinates are expressed
-	 * \param base_point coordinates of the point in body coordinates
-	 *
-	 * \returns a 3-D vector with coordinates of the point in body coordinates
-	 */
-	Vector3d CalcBaseToBodyCoordinates (const unsigned int body_id, const Vector3d &base_point);
-
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 };

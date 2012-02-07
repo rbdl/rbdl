@@ -288,7 +288,7 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinates) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (1., 2., 0.),
-			model->CalcBodyToBaseCoordinates(body_c_id, Vector3d (0., 1., 0.)),
+			CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 1., 0.), false),
 			3, TEST_PREC
 			);
 }
@@ -308,7 +308,7 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (0., 1., 0.),
-			model->CalcBodyToBaseCoordinates(body_c_id, Vector3d (0., 1., 0.)),
+			CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 1., 0.), false),
 			3, TEST_PREC
 			);
 
@@ -327,7 +327,7 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (2., 1., 0.),
-			model->CalcBodyToBaseCoordinates(body_c_id, Vector3d (0., 1., 0.)),
+			CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 1., 0.), false),
 			3, TEST_PREC
 			);
 
@@ -347,7 +347,7 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (-2., 1., 0.),
-			model->CalcBodyToBaseCoordinates(body_c_id, Vector3d (0., 1., 0.)),
+			CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 1., 0.), false),
 			3, TEST_PREC
 			);
 
@@ -425,7 +425,7 @@ TEST_FIXTURE(KinematicsFixture, TestInverseKinematicSimple) {
 	UpdateKinematicsCustom (*model, &Qres, NULL, NULL);
 
 	Vector3d effector;
-	effector = model->CalcBodyToBaseCoordinates(body_id, body_point);
+	effector = CalcBodyToBaseCoordinates (*model, Q, body_id, body_point, false);
 
 	CHECK_ARRAY_CLOSE (target.data(), effector.data(), 3, TEST_PREC);	
 }
@@ -457,7 +457,7 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicUnreachable) {
 	UpdateKinematicsCustom (*model, &Qres, NULL, NULL);
 
 	Vector3d effector;
-	effector = model->CalcBodyToBaseCoordinates(body_id, body_point);
+	effector = CalcBodyToBaseCoordinates (*model, Q, body_id, body_point, false);
 
 	CHECK_ARRAY_CLOSE (Vector3d (2.0, 0., 0.).data(), effector.data(), 3, 1.0e-7);	
 }
@@ -495,10 +495,10 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicTwoPoints) {
 	Vector3d effector;
 
 	// testing with very low precision
-	effector = model->CalcBodyToBaseCoordinates(body_ids[0], body_points[0]);
+	effector = CalcBodyToBaseCoordinates (*model, Q, body_ids[0], body_points[0], false);
 	CHECK_ARRAY_CLOSE (target_pos[0].data(), effector.data(), 3, 1.0e-1);	
 
-	effector = model->CalcBodyToBaseCoordinates(body_ids[1], body_points[1]);
+	effector = CalcBodyToBaseCoordinates (*model, Q, body_ids[1], body_points[1], false);
 	CHECK_ARRAY_CLOSE (target_pos[1].data(), effector.data(), 3, 1.0e-1);	
 }
 

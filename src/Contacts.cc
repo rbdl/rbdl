@@ -542,7 +542,7 @@ void ForwardDynamicsContactsOld (
 		// assemble the test force
 		LOG << "normal = " << normal.transpose() << std::endl;
 
-		Vector3d point_global = model.CalcBodyToBaseCoordinates(body_id, point);
+		Vector3d point_global = CalcBodyToBaseCoordinates (model, Q, body_id, point, false);
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
 		f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
@@ -758,7 +758,7 @@ void ForwardDynamicsContacts (
 		// assemble the test force
 		LOG << "normal = " << normal.transpose() << std::endl;
 
-		Vector3d point_global = model.CalcBodyToBaseCoordinates(body_id, point);
+		Vector3d point_global = CalcBodyToBaseCoordinates (model, Q, body_id, point, false);
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
 		CS.f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
@@ -836,13 +836,13 @@ void ForwardDynamicsContacts (
 
 				// method 2: transforming the spatial acceleration
 				// appropriately.(faster: 
-//				point_global = model.CalcBodyToBaseCoordinates(ContactData[cj].body_id, ContactData[cj].point);
+//				point_global = CalcBodyToBaseCoordinates (model, Q, ContactData[cj].body_id, ContactData[cj].point, false);
 //				point_spatial_acc = Xtrans (point_global) * (spatial_inverse(model.X_base[ContactData[cj].body_id]) * model.a[ContactData[cj].body_id]);
 //				point_accel_t.set (point_spatial_acc[3], point_spatial_acc[4], point_spatial_acc[5]);
 
 				// method 3: reduce 1 Matrix-Matrix computation:
 				// \todo currently broken!
-//				point_global = model.CalcBodyToBaseCoordinates(ContactData[cj].body_id, ContactData[cj].point);
+//				point_global = CalcBodyToBaseCoordinates (model, Q, ContactData[cj].body_id, ContactData[cj].point, false);
 //				point_spatial_acc = spatial_inverse(model.X_base[ContactData[cj].body_id]) * model.a[ContactData[cj].body_id];
 //
 //				Matrix3d rx (0., point_global[2], -point_global[1], -point_global[2], 0, point_global[0], point_global[1], -point_global[0], 0.);
