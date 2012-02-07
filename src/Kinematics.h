@@ -29,13 +29,13 @@ namespace RigidBodyDynamics {
  * \param QDot  the generalized velocities of the joints
  * \param QDDot the generalized accelerations of the joints
  */
-void ForwardKinematics (Model &model,
+void UpdateKinematics (Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &QDDot
 		);
 
-/** \brief Selectively updates and computes velocities and accelerations of the bodies
+/** \brief Selectively updates model internal states of body positions, velocities and/or accelerations.
  *
  * This function updates the kinematic variables such as body velocities and
  * accelerations in the model to reflect the variables passed to this function.
@@ -45,11 +45,47 @@ void ForwardKinematics (Model &model,
  * \param QDot  the generalized velocities of the joints
  * \param QDDot the generalized accelerations of the joints
  */
-void ForwardKinematicsCustom (Model &model,
+void UpdateKinematicsCustom (Model &model,
 		const VectorNd *Q,
 		const VectorNd *QDot,
 		const VectorNd *QDDot
 		);
+
+/** \brief Returns the base coordinates of a point given in body coordinates.
+ *
+ * \param model the rigid body model
+ * \param Q the curent genereralized positions
+ * \param body_id id of the body for which the point coordinates are expressed
+ * \param point_body_coordinates coordinates of the point in body coordinates
+ * \param update_kinematics whether UpdateKinematics() should be called
+ * or not (default: true)
+ *
+ * \returns a 3-D vector with coordinates of the point in base coordinates
+ */
+Vector3d CalcBodyToBaseCoordinates (
+		Model &model,
+		const VectorNd &Q,
+		unsigned int body_id,
+		const Vector3d &body_point_position,
+		bool update_kinematics = true);
+
+/** \brief Returns the body coordinates of a point given in base coordinates.
+ *
+ * \param model the rigid body model
+ * \param Q the curent genereralized positions
+ * \param body_id id of the body for which the point coordinates are expressed
+ * \param point_base_coordinates coordinates of the point in base coordinates
+ * \param update_kinematics whether UpdateKinematics() should be called
+ * or not (default: true)
+ *
+ * \returns a 3-D vector with coordinates of the point in body coordinates
+ */
+Vector3d CalcBaseToBodyCoordinates (
+		Model &model,
+		const VectorNd &Q,
+		unsigned int body_id,
+		const Vector3d &base_point_position,
+		bool update_kinematics = true);
 
 /** \brief Computes the point jacobian for a point on a body
  *
@@ -62,7 +98,7 @@ void ForwardKinematicsCustom (Model &model,
  * \param body_id the id of the body
  * \param point_position the position of the point in body-local data
  * \param G       a matrix where the result will be stored in
- * \param update_kinematics whether ForwardKinematics() should be called or not (default: true)
+ * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
  *
  * \returns A 3 x \#dof_count matrix of the point jacobian
  */
@@ -81,7 +117,7 @@ void CalcPointJacobian (Model &model,
  * \param QDot    velocity vector of the internal joints
  * \param body_id the id of the body
  * \param point_position the position of the point in body-local data
- * \param update_kinematics whether ForwardKinematics() should be called or not (default: true)
+ * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
  *
  * \returns The cartesian velocity of the point in global frame (output)
  */
@@ -102,7 +138,7 @@ Vector3d CalcPointVelocity (
  * \param QDDot    velocity vector of the internal joints
  * \param body_id the id of the body
  * \param point_position the position of the point in body-local data
- * \param update_kinematics whether ForwardKinematics() should be called or not (default: true)
+ * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
  *
  * \returns The cartesian acceleration of the point in global frame (output)
  */

@@ -300,7 +300,7 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	Vector3d body_coords;
 	Vector3d base_coords_back;
 
-	ForwardKinematics (*model, q, qdot, qddot);
+	UpdateKinematics (*model, q, qdot, qddot);
 	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);
 	base_coords_back = model->CalcBodyToBaseCoordinates (body_id, body_coords);
 
@@ -313,7 +313,7 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	q[4] = 0.03;
 	q[5] = -0.23;
 
-	ForwardKinematics (*model, q, qdot, qddot);
+	UpdateKinematics (*model, q, qdot, qddot);
 	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);
 	base_coords_back = model->CalcBodyToBaseCoordinates (body_id, body_coords);
 

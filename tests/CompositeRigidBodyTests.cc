@@ -152,7 +152,7 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 
 	assert (model->dof_count == 12);
 
-	ForwardKinematicsCustom (*model, &Q, NULL, NULL);
+	UpdateKinematicsCustom (*model, &Q, NULL, NULL);
 	CompositeRigidBodyAlgorithm (*model, Q, H_crba, false);
 
 	VectorNd H_col = VectorNd::Zero (model->dof_count);
@@ -199,7 +199,7 @@ TEST_FIXTURE(FixedBase6DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 
 	assert (model->dof_count == 6);
 
-	ForwardKinematicsCustom (*model, &Q, NULL, NULL);
+	UpdateKinematicsCustom (*model, &Q, NULL, NULL);
 	CompositeRigidBodyAlgorithm (*model, Q, H_crba, false);
 
 	VectorNd H_col = VectorNd::Zero (model->dof_count);

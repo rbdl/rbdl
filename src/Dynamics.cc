@@ -326,7 +326,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 		H.resize(Q.size(), Q.size());
 
 	if (update_kinematics)
-		ForwardKinematicsCustom (model, &Q, NULL, NULL);
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 
 	H.setZero();
 

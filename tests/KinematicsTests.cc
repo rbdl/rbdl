@@ -208,8 +208,6 @@ struct KinematicsFixture6DoF {
 	VectorNd Tau;
 };
 
-
-
 TEST_FIXTURE(KinematicsFixture, TestPositionNeutral) {
 	// We call ForwardDynamics() as it updates the spatial transformation
 	// matrices
@@ -217,10 +215,10 @@ TEST_FIXTURE(KinematicsFixture, TestPositionNeutral) {
 
 	Vector3d body_position;
 
-	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), model->GetBodyOrigin(body_a_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (1., 0., 0.), model->GetBodyOrigin(body_b_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (1., 1., 0.), model->GetBodyOrigin(body_c_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (1., 1., -1.), model->GetBodyOrigin(body_d_id), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), CalcBaseToBodyCoordinates (*model, Q, body_a_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (1., 0., 0.), CalcBodyToBaseCoordinates (*model, Q, body_b_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (1., 1., 0.), CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (1., 1., -1.), CalcBodyToBaseCoordinates (*model, Q, body_d_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
 }
 
 TEST_FIXTURE(KinematicsFixture, TestPositionBaseRotated90Deg) {
@@ -233,10 +231,10 @@ TEST_FIXTURE(KinematicsFixture, TestPositionBaseRotated90Deg) {
 	Vector3d body_position;
 
 //	cout << LogOutput.str() << endl;
-	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), model->GetBodyOrigin(body_a_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (0., 1., 0.), model->GetBodyOrigin(body_b_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (-1., 1., 0.),model->GetBodyOrigin(body_c_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (-1., 1., -1.), model->GetBodyOrigin(body_d_id), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), CalcBaseToBodyCoordinates (*model, Q, body_a_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (0., 1., 0.), CalcBodyToBaseCoordinates (*model, Q, body_b_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (-1., 1., 0.),CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (-1., 1., -1.), CalcBodyToBaseCoordinates (*model, Q, body_d_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
 }
 
 TEST_FIXTURE(KinematicsFixture, TestPositionBaseRotatedNeg45Deg) {
@@ -249,10 +247,10 @@ TEST_FIXTURE(KinematicsFixture, TestPositionBaseRotatedNeg45Deg) {
 	Vector3d body_position;
 
 //	cout << LogOutput.str() << endl;
-	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), model->GetBodyOrigin(body_a_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (0.707106781186547, -0.707106781186547, 0.), model->GetBodyOrigin(body_b_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (sqrt(2), 0., 0.),model->GetBodyOrigin(body_c_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (sqrt(2), 0., -1.), model->GetBodyOrigin(body_d_id), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), CalcBaseToBodyCoordinates (*model, Q, body_a_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (0.707106781186547, -0.707106781186547, 0.), CalcBodyToBaseCoordinates (*model, Q, body_b_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (sqrt(2), 0., 0.),CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (sqrt(2), 0., -1.), CalcBodyToBaseCoordinates (*model, Q, body_d_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
 }
 
 TEST_FIXTURE(KinematicsFixture, TestPositionBodyBRotated90Deg) {
@@ -263,10 +261,10 @@ TEST_FIXTURE(KinematicsFixture, TestPositionBodyBRotated90Deg) {
 
 	Vector3d body_position;
 
-	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), model->GetBodyOrigin(body_a_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (1., 0., 0.), model->GetBodyOrigin(body_b_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (1., 1., 0.),model->GetBodyOrigin(body_c_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (0., 1., 0.),model->GetBodyOrigin(body_d_id), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), CalcBaseToBodyCoordinates (*model, Q, body_a_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (1., 0., 0.), CalcBodyToBaseCoordinates (*model, Q, body_b_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (1., 1., 0.),CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (0., 1., 0.),CalcBodyToBaseCoordinates (*model, Q, body_d_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
 }
 
 TEST_FIXTURE(KinematicsFixture, TestPositionBodyBRotatedNeg45Deg) {
@@ -277,10 +275,10 @@ TEST_FIXTURE(KinematicsFixture, TestPositionBodyBRotatedNeg45Deg) {
 
 	Vector3d body_position;
 
-	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), model->GetBodyOrigin(body_a_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (1., 0., 0.), model->GetBodyOrigin(body_b_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (1., 1., 0.),model->GetBodyOrigin(body_c_id), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (1 + 0.707106781186547, 1., -0.707106781186547), model->GetBodyOrigin(body_d_id), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), CalcBaseToBodyCoordinates (*model, Q, body_a_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (1., 0., 0.), CalcBodyToBaseCoordinates (*model, Q, body_b_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (1., 1., 0.),CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (1 + 0.707106781186547, 1., -0.707106781186547), CalcBodyToBaseCoordinates (*model, Q, body_d_id, Vector3d (0., 0., 0.), false), 3, TEST_PREC );
 }
 
 TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinates) {
@@ -304,7 +302,7 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (1., 1., 0.),
-			model->GetBodyOrigin(body_c_id),
+			CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 0., 0.), false),
 			3, TEST_PREC
 			);
 
@@ -323,7 +321,7 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (1., 1., 0.),
-			model->GetBodyOrigin(body_c_id),
+			CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 0., 0.), false),
 			3, TEST_PREC
 			);
 
@@ -343,7 +341,7 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 
 	CHECK_ARRAY_CLOSE (
 			Vector3d (-1., 1., 0.),
-			model->GetBodyOrigin(body_c_id),
+			CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (0., 0., 0.), false),
 			3, TEST_PREC
 			);
 
@@ -424,7 +422,7 @@ TEST_FIXTURE(KinematicsFixture, TestInverseKinematicSimple) {
 	//	cout << LogOutput.str() << endl;
 	CHECK_EQUAL (true, res);
 
-	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
+	UpdateKinematicsCustom (*model, &Qres, NULL, NULL);
 
 	Vector3d effector;
 	effector = model->CalcBodyToBaseCoordinates(body_id, body_point);
@@ -456,7 +454,7 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicUnreachable) {
 //	cout << LogOutput.str() << endl;
 	CHECK_EQUAL (true, res);
 
-	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
+	UpdateKinematicsCustom (*model, &Qres, NULL, NULL);
 
 	Vector3d effector;
 	effector = model->CalcBodyToBaseCoordinates(body_id, body_point);
@@ -492,7 +490,7 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicTwoPoints) {
 	CHECK_EQUAL (true, res);
 
 //	cout << LogOutput.str() << endl;
-	ForwardKinematicsCustom (*model, &Qres, NULL, NULL);
+	UpdateKinematicsCustom (*model, &Qres, NULL, NULL);
 
 	Vector3d effector;
 

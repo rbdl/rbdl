@@ -21,7 +21,7 @@ using namespace SpatialAlgebra::Operators;
 
 namespace RigidBodyDynamics {
 
-void ForwardKinematics (Model &model,
+void UpdateKinematics (Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &QDDot
@@ -35,7 +35,7 @@ void ForwardKinematics (Model &model,
 	assert (model.qddot.size() == QDDot.size() + 1);
 
 	if (model.experimental_floating_base) {
-		assert (0 && !"ForwardKinematics not supported yet for experimental floating bases");
+		assert (0 && !"UpdateKinematics not supported yet for experimental floating bases");
 	}
 	
 	// positions
@@ -80,7 +80,7 @@ void ForwardKinematics (Model &model,
 	}
 }
 
-void ForwardKinematicsCustom (Model &model,
+void UpdateKinematicsCustom (Model &model,
 		const VectorNd *Q,
 		const VectorNd *QDot,
 		const VectorNd *QDDot
@@ -97,7 +97,7 @@ void ForwardKinematicsCustom (Model &model,
 		assert (model.qddot.size() == QDDot->size() + 1);
 
 	if (model.experimental_floating_base) {
-		assert (0 && !"ForwardKinematics not supported yet for experimental floating bases");
+		assert (0 && !"UpdateKinematics not supported yet for experimental floating bases");
 	}
 
 	if (Q) {
@@ -179,6 +179,40 @@ void ForwardKinematicsCustom (Model &model,
 	}
 }
 
+Vector3d CalcBodyToBaseCoordinates (
+		Model &model,
+		const VectorNd &Q,
+		unsigned int body_id,
+		const Vector3d &point_body_coordinates,
+		bool update_kinematics) {
+	// update the Kinematics if necessary
+	if (update_kinematics) {
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	}
+
+	Matrix3d body_rotation = model.X_base[body_id].E.transpose();
+	Vector3d body_position = model.X_base[body_id].r;
+
+	return body_position + body_rotation * point_body_coordinates;
+}
+
+Vector3d CalcBaseToBodyCoordinates (
+		Model &model,
+		const VectorNd &Q,
+		unsigned int body_id,
+		const Vector3d &point_base_coordinates,
+		bool update_kinematics) {
+	// update the Kinematics if necessary
+	if (update_kinematics) {
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	}
+
+	Matrix3d body_rotation = model.X_base[body_id].E;
+	Vector3d body_position = model.X_base[body_id].r;
+
+	return body_rotation * point_base_coordinates - body_rotation * body_position;
+}
+
 void CalcPointJacobian (
 		Model &model,
 		const VectorNd &Q,
@@ -192,12 +226,9 @@ void CalcPointJacobian (
 		assert (0 && "CalcPointJacobian() not yet supported for experimental floating base models");
 	};
 
-	// update the Kinematics with zero acceleration
+	// update the Kinematics if necessary
 	if (update_kinematics) {
-		VectorNd QDDot_zero = VectorNd::Zero(Q.size());
-		VectorNd QDot_zero = VectorNd::Zero(Q.size());
-		
-		ForwardKinematics (model, Q, QDot_zero, QDDot_zero);
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
 	Vector3d point_base_pos = model.CalcBodyToBaseCoordinates(body_id, point_position);
@@ -260,7 +291,7 @@ Vector3d CalcPointVelocity (
 	if (update_kinematics) {
 		VectorNd QDDot_zero = VectorNd::Zero(Q.size());
 		
-		ForwardKinematics (model, Q, QDot, QDDot_zero);
+		UpdateKinematics (model, Q, QDot, QDDot_zero);
 	}
 
 	Vector3d point_abs_pos = model.CalcBodyToBaseCoordinates(body_id, point_position); 
@@ -312,7 +343,7 @@ Vector3d CalcPointAcceleration (
 	}
 
 	if (update_kinematics)
-		ForwardKinematics (model, Q, QDot, QDDot);
+		UpdateKinematics (model, Q, QDot, QDDot);
 
 	LOG << std::endl;
 
@@ -385,7 +416,7 @@ bool InverseKinematics (
 	Qres = Qinit;
 
 	for (int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
-		ForwardKinematicsCustom (model, &Qres, NULL, NULL);
+		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
 			MatrixNd G (3, model.dof_count);

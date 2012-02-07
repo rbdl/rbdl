@@ -180,7 +180,7 @@ void ForwardDynamicsContactsLagrangian (
 	Vector3d gamma_i = Vector3d::Zero();
 
 	// update Kinematics just once
-	ForwardKinematics (model, Q, QDot, CS.QDDot_0);
+	UpdateKinematics (model, Q, QDot, CS.QDDot_0);
 
 	for (i = 0; i < CS.size(); i++) {
 		// Only alow contact normals along the coordinate axes
@@ -283,7 +283,7 @@ void ComputeContactImpulsesLagrangian (
 	MatrixNd H (model.dof_count, model.dof_count);
 
 	VectorNd QZero = VectorNd::Zero (model.dof_count);
-	ForwardKinematics (model, Q, QZero, QZero);
+	UpdateKinematics (model, Q, QZero, QZero);
 	CompositeRigidBodyAlgorithm (model, Q, H, false);
 
 	// Compute G
@@ -522,7 +522,7 @@ void ForwardDynamicsContactsOld (
 
 		{
 			SUPPRESS_LOGGING;
-			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_0);
+			UpdateKinematicsCustom (model, NULL, NULL, &QDDot_0);
 			point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, QDDot_0, body_id, point, false);
 
 			a[ci] = acceleration - ContactData[ci].normal.dot(point_accel_0[ci]);
@@ -565,7 +565,7 @@ void ForwardDynamicsContactsOld (
 		// compute the resulting acceleration
 		{
 			SUPPRESS_LOGGING;
-			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_t);
+			UpdateKinematicsCustom (model, NULL, NULL, &QDDot_t);
 		}
 
 		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {
@@ -738,7 +738,7 @@ void ForwardDynamicsContacts (
 		LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
 		{
 			SUPPRESS_LOGGING;
-			ForwardKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
+			UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
 			CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, body_id, point, false);
 
 			CS.a[ci] = acceleration - normal.dot(CS.point_accel_0[ci]);
@@ -781,7 +781,7 @@ void ForwardDynamicsContacts (
 		// compute the resulting acceleration
 		{
 			SUPPRESS_LOGGING;
-			ForwardKinematicsCustom (model, NULL, NULL, &CS.QDDot_t);
+			UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_t);
 		}
 
 		for (unsigned int cj = 0; cj < CS.size(); cj++) {
@@ -817,7 +817,7 @@ void ForwardDynamicsContacts (
 
 		{
 			SUPPRESS_LOGGING;
-			ForwardKinematicsCustom (model, NULL, NULL, &QDDot_t);
+			UpdateKinematicsCustom (model, NULL, NULL, &QDDot_t);
 		}
 		
 		LOG << "SUUUHUUM = " << (QDDot_t).transpose() << std::endl;
