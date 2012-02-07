@@ -32,6 +32,40 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
  */
 namespace RigidBodyDynamics {
 
+/** \defgroup model_group Modelling
+ * @{
+ *
+ * All model related values are stored in the model structure \link
+ * RigidBodyDynamics::Model\endlink. The functions 
+ * \link RigidBodyDynamics::Model::Init Model::Init()\endlink,
+ * \link RigidBodyDynamics::Model::AddBody Model::AddBody(...)\endlink,
+ * \link RigidBodyDynamics::Model::AppendBody Model::AppendBody(...)\endlink, and
+ * \link RigidBodyDynamics::Model::GetBodyId Model::GetBodyId(...)\endlink,
+ * are used to initialize and construct the \ref model_structure.
+ *
+ * Once this is done, the model structure can be used with the functions of \ref
+ * kinematics_group, \ref dynamics_group, \ref contacts_group, to perform
+ * computations.
+ *
+ * \section model_structure Model Structure
+ *
+ * The model structure contains all the parameters of the rigid multi-body
+ * model such as joint informations, mass and inertial parameters of the
+ * rigid bodies, etc.
+ *
+ * Furthermore the current state of the model, such as the
+ * generalized positions, velocities and accelerations is also stored
+ * within the model. Angles are always stored as radians. This internal
+ * state is used when functions such as \link
+ * RigidBodyDynamics::Kinematics::CalcBodyToBaseCoordinates
+ * Kinematics::CalcBodyToBaseCoordinates(...)\endlink, \link
+ * RigidBodyDynamics::Kinematics::CalcPointJacobian
+ * Kinematics::CalcPointJacobian\endlink are called.
+ *
+ * \note Please note that in the Rigid %Body Dynamics Library all angles
+ * are specified in radians.
+ */
+
 /** \brief Contains all information about the rigid body model
  *
  * This class contains all information required to perform the forward
@@ -43,7 +77,7 @@ namespace RigidBodyDynamics {
  * An important note is that body 0 is the root body and the moving bodies
  * start at index 1. Additionally the vectors for the states q, qdot, etc.
  * have \#Model::dof_count + 1 entries where always the first entry (e.g. q[0])
- * contains the value for the base (or "root" body. Thus the numbering might be
+ * contains the value for the base (or "root" body). Thus the numbering might be
  * confusing as q[1] holds the position variable of the first degree of
  * freedom. This numbering scheme is very beneficial in terms of readability
  * of the code as the resulting code is very similar to the pseudo-code in
@@ -207,6 +241,15 @@ struct Model {
 	 * which are connected with joints. The body that is specified as a
 	 * parameter of this function is then added by a 6th joint to the model.
 	 *
+	 * The floating base has the following order of degrees of freedom:
+	 * 
+	 * \li translation X
+	 * \li translation Y
+	 * \li translation Z
+	 * \li rotation Z
+	 * \li rotation Y
+	 * \li rotation X
+	 *
 	 * \param body Properties of the floating base body.
 	 *
 	 *  \returns id of the body with 6 DoF
@@ -230,6 +273,8 @@ struct Model {
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 };
+
+/** @} */
 
 }
 

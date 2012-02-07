@@ -40,6 +40,10 @@ void UpdateKinematics (Model &model,
  * This function updates the kinematic variables such as body velocities and
  * accelerations in the model to reflect the variables passed to this function.
  *
+ * In contrast to UpdateKinematics() this function allows to update the model
+ * state with values one is interested and thus reduce computations (e.g. only
+ * positions, only positions + accelerations, only velocities, etc.).
+ 
  * \param model the model
  * \param Q     the positional variables of the model
  * \param QDot  the generalized velocities of the joints

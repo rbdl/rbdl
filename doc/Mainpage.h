@@ -36,6 +36,7 @@
  * 
  * \section ModuleOverview API reference separated by functional modules
  * 
+ * \li \ref model_group
  * \li \ref kinematics_group
  * \li \ref dynamics_group
  * \li \ref contacts_group

@@ -127,7 +127,8 @@ unsigned int Model::AppendBody (
 			const Body &body,
 			std::string body_name
 		) {
-	unsigned int last_body = q.size();
+	// body id 0 is the base which is initialized when calling Model::Init()
+	unsigned int last_body = q.size() - 1;
 
 	return AddBody (
 			last_body,
@@ -163,36 +164,31 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 		// 		tx ty tz rz ry rx
 		//
 
-		unsigned body_tx_id;
 		Body body_tx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_tx (JointTypePrismatic, Vector3d (1., 0., 0.));
-		body_tx_id = this->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
+		this->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
 
-		unsigned body_ty_id;
 		Body body_ty (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_ty (JointTypePrismatic, Vector3d (0., 1., 0.));
-		body_ty_id = this->AddBody(body_tx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
+		this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
 
-		unsigned body_tz_id;
 		Body body_tz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_tz (JointTypePrismatic, Vector3d (0., 0., 1.));
-		body_tz_id = this->AddBody(body_ty_id, Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
+		this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
 
-		unsigned body_rz_id;
 		Body body_rz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_rz (JointTypeRevolute, Vector3d (0., 0., 1.));
-		body_rz_id = this->AddBody(body_tz_id, Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
+		this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
 
-		unsigned body_ry_id;
 		Body body_ry (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_ry (JointTypeRevolute, Vector3d (0., 1., 0.));
-		body_ry_id = this->AddBody(body_rz_id, Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
+		this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
 
-		unsigned body_rx_id;
+		unsigned floating_base_id;
 		Joint joint_rx (JointTypeRevolute, Vector3d (1., 0., 0.));
-		body_rx_id = this->AddBody(body_ry_id, Xtrans (Vector3d (0., 0., 0.)), joint_rx, body);
+		floating_base_id = this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_rx, body);
 
-		return body_rx_id;
+		return floating_base_id;
 	}
 }
 
