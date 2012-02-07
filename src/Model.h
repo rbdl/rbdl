@@ -188,6 +188,18 @@ struct Model {
 			std::string body_name = "" 
 			);
 
+	/** \brief Adds a Body to the model such that the previously added Body is the Parent.
+	 *
+	 * This function is basically the same as Model::AddBody() however the
+	 * most recently added body (or body 0) is taken as parent.
+	 */
+	unsigned int AppendBody (
+			const SpatialAlgebra::SpatialTransform &joint_frame,
+			const Joint &joint,
+			const Body &body,
+			std::string body_name = "" 
+			);
+
 	/** \brief Specifies the dynamical parameters of the first body and
 	 *  \brief assigns it a 6 DoF joint.
 	 *
