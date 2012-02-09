@@ -97,6 +97,7 @@ bool ConstraintSet::Bind (const Model &model) {
 void ConstraintSet::clear() {
 	constraint_acceleration.setZero();
 	constraint_force.setZero();
+	constraint_impulse.setZero();
 
 	H.setZero();
 	C.setZero();

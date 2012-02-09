@@ -24,6 +24,7 @@ OPTION (BUILD_STATIC "Build the statically linked library" ON)
 OPTION (BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
+OPTION (RBDL_STORE_VERSION "Enable storing of version information in the library (requires build from valid repository)" OFF)
 OPTION (BUILD_ADDON_XMLREADER "Build the (experimental) xml reader" OFF)
 OPTION (BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 
@@ -70,12 +71,18 @@ INSTALL (TARGETS rbdl
 	ARCHIVE DESTINATION lib
 	)
 
-# Set versioning information that can be queried during runtime
-EXEC_PROGRAM("hg" ${CMAKE_CURRENT_SOURCE_DIR} ARGS "id -i"
-	OUTPUT_VARIABLE RBDL_BUILD_REVISION)
-EXEC_PROGRAM("hg" ${CMAKE_CURRENT_SOURCE_DIR} ARGS "branch"
-	OUTPUT_VARIABLE RBDL_BUILD_BRANCH)
-SET (RBDL_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+IF (RBDL_STORE_VERSION)
+	# Set versioning information that can be queried during runtime
+	EXEC_PROGRAM("hg" ${CMAKE_CURRENT_SOURCE_DIR} ARGS "id -i"
+		OUTPUT_VARIABLE RBDL_BUILD_REVISION)
+	EXEC_PROGRAM("hg" ${CMAKE_CURRENT_SOURCE_DIR} ARGS "branch"
+		OUTPUT_VARIABLE RBDL_BUILD_BRANCH)
+	SET (RBDL_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+ELSE (RBDL_STORE_VERSION)
+	SET (RBDL_BUILD_REVISION "unknown")
+	SET (RBDL_BUILD_BRANCH "unknown")
+	SET (RBDL_BUILD_TYPE "unknown")
+ENDIF (RBDL_STORE_VERSION)
 
 CONFIGURE_FILE (
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdlconfig.h.cmake" 

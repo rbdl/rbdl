@@ -26,6 +26,11 @@ void rbdl_print_version() {
 		<< "  simplemath   : off" << std::endl
 #endif
 		;
+
+	std::string build_revision (RBDL_BUILD_REVISION);
+	if (build_revision == "unknown") {
+		std::cout << std::endl << "Version information incomplete: to enable version information re-build" << std::endl << "library from valid repository and enable RBDL_STORE_VERSION." << std::endl;
+	}
 }
 
 }
