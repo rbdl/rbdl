@@ -11,8 +11,16 @@
 #include <iostream>
 #include <cmath>
 
+/** \brief Spatial algebra matrices, vectors, and operators. */
 namespace SpatialAlgebra {
 
+/** \brief Compact representation of spatial transformations.
+ *
+ * Instead of using a verbose 6x6 matrix, this structure only stores a 3x3
+ * matrix and a 3-d vector to store spatial transformations. It also
+ * encapsulates efficient operations such as concatenations and
+ * transformation of spatial vectors.
+ */
 struct SpatialTransform {
 	SpatialTransform() :
 		E (Matrix3d::Identity(3,3)),

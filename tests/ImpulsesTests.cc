@@ -16,6 +16,18 @@ using namespace RigidBodyDynamics;
 
 const double TEST_PREC = 1.0e-14;
 
+static void copy_contact_info (ConstraintSet &CS, std::vector<ContactInfo> &contact_info) {
+	for (unsigned int i = 0; i < contact_info.size(); i++) {
+		CS.AddConstraint(
+				contact_info[i].body_id,
+				contact_info[i].point,
+				contact_info[i].normal,
+				NULL,
+				contact_info[i].acceleration
+				);
+	}
+}
+
 struct ImpulsesFixture {
 	ImpulsesFixture () {
 		ClearLogOutput();
@@ -142,6 +154,7 @@ struct ImpulsesFixture {
 	unsigned int contact_body_id;
 	Vector3d contact_point;
 	Vector3d contact_normal;
+	ConstraintSet constraint_set;
 	std::vector<ContactInfo> contact_data;
 };
 
@@ -162,8 +175,11 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
 
 	// cout << "Point Velocity = " << point_velocity << endl;
 
+	copy_contact_info (constraint_set, contact_data);
+	constraint_set.Bind(*model);
+
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesLagrangian (*model, Q, QDot, contact_data, qdot_post);
+	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
 
@@ -199,9 +215,11 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
 	}
 
 	// cout << "Point Velocity = " << point_velocity << endl;
+	copy_contact_info (constraint_set, contact_data);
+	constraint_set.Bind(*model);
 
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesLagrangian (*model, Q, QDot, contact_data, qdot_post);
+	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
 
@@ -237,9 +255,12 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
 	}
 
 	// cout << "Point Velocity = " << point_velocity << endl;
+	copy_contact_info (constraint_set, contact_data);
+	constraint_set.Bind(*model);
 
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesLagrangian (*model, Q, QDot, contact_data, qdot_post);
+	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
+	
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
 

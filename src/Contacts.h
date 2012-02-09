@@ -12,8 +12,6 @@
 
 namespace RigidBodyDynamics {
 
-struct Model;
-
 /** \defgroup contacts_group External Contacts
  *
  * Here you find information about the functions related to contact
@@ -22,8 +20,16 @@ struct Model;
  * @{
  */
 
-/** Structure that contains both constraint information and memory workspace.
+struct Model;
+
+/** \brief Structure that contains both constraint information and workspace memory.
  *
+ * This structure is used to reduce the amount of memory allocations that
+ * are needed when computing constraint forces.
+ *
+ * The ConstraintSet has to be bound to a model using ConstraintSet::Bind()
+ * before it can be used in \link RigidBodyDynamics::ForwardDynamicsContacts
+ * ForwardDynamicsContacts \endlink.
  */
 struct ConstraintSet {
 	ConstraintSet() :
@@ -31,6 +37,14 @@ struct ConstraintSet {
 		bound (false)
 	{}
 
+	/** \brief Available solver methods for the linear systems.
+	 *
+	 * Please note that these methods are only available when Eigen3 is used.
+	 * When the math library SimpleMath is used it will always use a slow
+	 * column pivoting gauss elimination.
+	 *
+	 * Use ConstraintSet::SetSolver() to specify which solver should be used.
+	 */
 	enum LinearSolver {
 		LinearSolverUnknown = 0,
 		LinearSolverPartialPivLU,
@@ -38,6 +52,17 @@ struct ConstraintSet {
 		LinearSolverLast,
 	};
 
+	/** \brief Adds a constraint to the constraint set.
+	 *
+	 * \param body_id the body which is affected directly by the constraint
+	 * \param body_point the point that is constrained relative to the
+	 * contact body
+	 * \param world_normal the normal along the constraint acts (in base
+	 * coordinates)
+	 * \param constraint_name a human readable name (optional, default: NULL)
+	 * \param acceleration the acceleration of the contact along the normal
+	 * (optional, default: 0.)
+	 */
 	unsigned int AddConstraint (
 			unsigned int body_id,
 			const Vector3d &body_point,
@@ -45,16 +70,31 @@ struct ConstraintSet {
 			const char *constraint_name = NULL,
 			double acceleration = 0.);
 
+	/** \brief Specifies which method should be used for solving undelying linear systems.
+	 */
 	void SetSolver (LinearSolver solver) {
 		linear_solver = solver;
 	}
 
+	/** \brief Initializes and allocates memory for the constraint set.
+	 *
+	 * This function allocates memory for temporary values and matrices that
+	 * are required for contact force computation. Both model and constraint
+	 * set must not be changed after a binding as the required memory is
+	 * dependent on the model size (i.e. the number of bodies and degrees of
+	 * freedom) and the number of constraints in the Constraint set.
+	 *
+	 * The values of ConstraintSet::constraint_acceleration may still be
+	 * modified after the set is bound to the model.
+	 */
 	bool Bind (const Model &model);
 
+	/** \brief Returns the number of constraints. */
 	unsigned int size() {
 		return constraint_acceleration.size();
 	}
 
+	/** \brief Clears all variables in the constraint set. */
 	void clear ();
 
 	/// Method that should be used to solve internal linear systems.
@@ -67,8 +107,13 @@ struct ConstraintSet {
 	std::vector<Vector3d> point;
 	std::vector<Vector3d> normal;
 
+	/** Enforced accelerations of the contact points along the contact
+	 * normal. */
 	VectorNd constraint_acceleration;
+	/** Actual constraint forces along the contact normals. */
 	VectorNd constraint_force;
+	/** Actual constraint impulses along the contact normals. */
+	VectorNd constraint_impulse;
 
 	// Variables used by the Lagrangian methods
 
@@ -117,11 +162,16 @@ struct ConstraintSet {
 	VectorNd d_d;
 };
 
-/** \brief Structure that contains information about a one-dimensional
+/** \brief [Deprecated] Structure that contains information about a one-dimensional
  *  \brief contact constraint
  *
  *  This structure is also used to describe contact points that undergo an
  *  impulse, see alse ComputeContactImpulses().
+ *
+ * 	\warning This structure is deprecated. Use \link RigidBodyDynamics::ConstraintSet
+ * 	ConstraintSet \endlink instead.
+ *
+ *  \deprecated
  */
 struct ContactInfo {
 	ContactInfo() :
@@ -282,7 +332,7 @@ void ForwardDynamicsContactsLagrangian (
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDotMinus  velocity vector of the internal joints before the impact
- * \param ContactData	a list of all contact points
+ * \param CS the set of active constraints
  * \param QDotPlus velocities of the internals joints after the impact (output)
  *
  * \note During execution of this function the values ContactInfo::force
@@ -293,7 +343,7 @@ void ComputeContactImpulsesLagrangian (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDotMinus,
-		std::vector<ContactInfo> &ContactData,
+		ConstraintSet &CS,
 		VectorNd &QDotPlus
 		);
 
