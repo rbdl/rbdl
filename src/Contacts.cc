@@ -20,10 +20,9 @@
 #include "Dynamics_experimental.h"
 #include "Kinematics.h"
 
-using namespace SpatialAlgebra;
-using namespace SpatialAlgebra::Operators;
-
 namespace RigidBodyDynamics {
+
+using namespace Math;
 
 unsigned int ConstraintSet::AddConstraint (
 		unsigned int body_id,

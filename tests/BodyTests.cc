@@ -7,7 +7,7 @@
 
 using namespace std;
 using namespace RigidBodyDynamics;
-using namespace SpatialAlgebra;
+using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 

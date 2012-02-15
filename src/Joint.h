@@ -61,7 +61,7 @@ struct Joint {
 	 */
 	Joint (
 			const JointType joint_type,
-			const Vector3d &joint_axis
+			const Math::Vector3d &joint_axis
 			) {
 		// Some assertions, as we concentrate on simple cases
 
@@ -74,9 +74,9 @@ struct Joint {
 			// make sure we have a unit axis
 			assert (joint_axis.squaredNorm() == 1.);
 
-			assert ( joint_axis == Vector3d (1., 0., 0.)
-					|| joint_axis == Vector3d (0., 1., 0.)
-					|| joint_axis == Vector3d (0., 0., 1.));
+			assert ( joint_axis == Math::Vector3d (1., 0., 0.)
+					|| joint_axis == Math::Vector3d (0., 1., 0.)
+					|| joint_axis == Math::Vector3d (0., 0., 1.));
 
 			mJointAxis.set (
 					joint_axis[0],
@@ -107,7 +107,7 @@ struct Joint {
 	}
 
 	/// \brief The spatial axis of the joint
-	SpatialAlgebra::SpatialVector mJointAxis;
+	Math::SpatialVector mJointAxis;
 	/// \brief Type of joint (rotational or prismatic)
 	JointType mJointType;
 };
@@ -129,10 +129,10 @@ struct Joint {
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
-		SpatialAlgebra::SpatialTransform &XJ,
-		SpatialAlgebra::SpatialVector &S,
-		SpatialAlgebra::SpatialVector &v_J,
-		SpatialAlgebra::SpatialVector &c_J,
+		Math::SpatialTransform &XJ,
+		Math::SpatialVector &S,
+		Math::SpatialVector &v_J,
+		Math::SpatialVector &c_J,
 		const double &q,
 		const double &qdot
 		);

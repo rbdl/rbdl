@@ -38,11 +38,11 @@ class Model;
  */
 void ForwardDynamics (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		VectorNd &QDDot,
-		std::vector<SpatialAlgebra::SpatialVector> *f_ext = NULL
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		Math::VectorNd &QDDot,
+		std::vector<Math::SpatialVector> *f_ext = NULL
 		);
 
 /** \brief Computes forward dynamics by building and solving the full Lagrangian equation
@@ -62,11 +62,11 @@ void ForwardDynamics (
  */
 void ForwardDynamicsLagrangian (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		VectorNd &QDDot,
-		std::vector<SpatialAlgebra::SpatialVector> *f_ext = NULL
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		Math::VectorNd &QDDot,
+		std::vector<Math::SpatialVector> *f_ext = NULL
 		);
 
 /** \brief Computes inverse dynamics with the Newton-Euler Algorithm
@@ -84,11 +84,11 @@ void ForwardDynamicsLagrangian (
  */
 void InverseDynamics (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &QDDot,
-		VectorNd &Tau,
-		std::vector<SpatialAlgebra::SpatialVector> *f_ext = NULL
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &QDDot,
+		Math::VectorNd &Tau,
+		std::vector<Math::SpatialVector> *f_ext = NULL
 		);
 
 /** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm
@@ -105,8 +105,8 @@ void InverseDynamics (
  */
 void CompositeRigidBodyAlgorithm (
 		Model& model,
-		const VectorNd &Q,
-		MatrixNd &H,
+		const Math::VectorNd &Q,
+		Math::MatrixNd &H,
 		bool update_kinematics = true
 		);
 

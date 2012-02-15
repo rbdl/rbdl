@@ -65,8 +65,8 @@ struct ConstraintSet {
 	 */
 	unsigned int AddConstraint (
 			unsigned int body_id,
-			const Vector3d &body_point,
-			const Vector3d &world_normal,
+			const Math::Vector3d &body_point,
+			const Math::Vector3d &world_normal,
 			const char *constraint_name = NULL,
 			double acceleration = 0.);
 
@@ -104,62 +104,62 @@ struct ConstraintSet {
 
 	std::vector<std::string> name;
 	std::vector<unsigned int> body;
-	std::vector<Vector3d> point;
-	std::vector<Vector3d> normal;
+	std::vector<Math::Vector3d> point;
+	std::vector<Math::Vector3d> normal;
 
 	/** Enforced accelerations of the contact points along the contact
 	 * normal. */
-	VectorNd constraint_acceleration;
+	Math::VectorNd constraint_acceleration;
 	/** Actual constraint forces along the contact normals. */
-	VectorNd constraint_force;
+	Math::VectorNd constraint_force;
 	/** Actual constraint impulses along the contact normals. */
-	VectorNd constraint_impulse;
+	Math::VectorNd constraint_impulse;
 
 	// Variables used by the Lagrangian methods
 
 	/// Workspace for the joint space inertia matrix.
-	MatrixNd H;
+	Math::MatrixNd H;
 	/// Workspace for the coriolis forces.
-	VectorNd C;
+	Math::VectorNd C;
 	/// Workspace of the lower part of b.
-	VectorNd gamma;
-	MatrixNd G;
+	Math::VectorNd gamma;
+	Math::MatrixNd G;
 	/// Workspace for the Lagrangian left-hand-side matrix.
-	MatrixNd A;
+	Math::MatrixNd A;
 	/// Workspace for the Lagrangian right-hand-side.
-	VectorNd b;
+	Math::VectorNd b;
 	/// Workspace for the Lagrangian solution.
-	VectorNd x;
+	Math::VectorNd x;
 
 	// Variables used by the IABI methods
 
 	/// Workspace for the Inverse Articulated-Body Inertia.
-	MatrixNd K;
+	Math::MatrixNd K;
 	/// Workspace for the accelerations of due to the test forces
-	VectorNd a;
+	Math::VectorNd a;
 	/// Workspace for the test accelerations.
-	VectorNd QDDot_t;
+	Math::VectorNd QDDot_t;
 	/// Workspace for the default accelerations.
-	VectorNd QDDot_0;
+	Math::VectorNd QDDot_0;
 	/// Workspace for the test forces.
-	std::vector<SpatialAlgebra::SpatialVector> f_t;
+	std::vector<Math::SpatialVector> f_t;
 	/// Workspace for the actual spatial forces.
-	std::vector<SpatialAlgebra::SpatialVector> f_ext_constraints;
+	std::vector<Math::SpatialVector> f_ext_constraints;
 	/// Workspace for the default point accelerations.
-	std::vector<Vector3d> point_accel_0;
+	std::vector<Math::Vector3d> point_accel_0;
 
 	/// Workspace for the bias force due to the test force
-	std::vector<SpatialAlgebra::SpatialVector> d_pA;
+	std::vector<Math::SpatialVector> d_pA;
 	/// Workspace for the acceleration due to the test force
-	std::vector<SpatialAlgebra::SpatialVector> d_a;
-	VectorNd d_u;
+	std::vector<Math::SpatialVector> d_a;
+	Math::VectorNd d_u;
 
 	/// Workspace for the inertia when applying constraint forces
-	std::vector<SpatialAlgebra::SpatialMatrix> d_IA;
+	std::vector<Math::SpatialMatrix> d_IA;
 	/// Workspace when applying constraint forces
-	std::vector<SpatialAlgebra::SpatialVector> d_U;
+	std::vector<Math::SpatialVector> d_U;
 	/// Workspace when applying constraint forces
-	VectorNd d_d;
+	Math::VectorNd d_d;
 };
 
 /** \brief [Deprecated] Structure that contains information about a one-dimensional
@@ -201,7 +201,7 @@ struct ContactInfo {
 	}
 	~ContactInfo() {};
 
-	ContactInfo (unsigned int body, const Vector3d &contact_point, const Vector3d &contact_normal):
+	ContactInfo (unsigned int body, const Math::Vector3d &contact_point, const Math::Vector3d &contact_normal):
 		body_id (body),
 		point (contact_point),
 		normal (contact_normal),
@@ -209,7 +209,7 @@ struct ContactInfo {
 		force (0.)
 	{	}
 
-	ContactInfo (unsigned int body, const Vector3d &contact_point, const Vector3d &contact_normal, const double accel):
+	ContactInfo (unsigned int body, const Math::Vector3d &contact_point, const Math::Vector3d &contact_normal, const double accel):
 		body_id (body),
 		point (contact_point),
 		normal (contact_normal),
@@ -220,9 +220,9 @@ struct ContactInfo {
 	/// \brief The id of the body of which the motion is constrained
 	unsigned int body_id;
 	/// \brief Coordinate of the contact point in base coordinates
-	Vector3d point;
+	Math::Vector3d point;
 	/// \brief Normal of the contact point in base coordinates
-	Vector3d normal;
+	Math::Vector3d normal;
 	/// \brief Acceleration value of the constraint along the normal
 	double acceleration;
 	/// \brief Force acting along the normal
@@ -280,11 +280,11 @@ struct ContactInfo {
  */
 void ForwardDynamicsContactsLagrangian (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
 		ConstraintSet &CS,
-		VectorNd &QDDot
+		Math::VectorNd &QDDot
 		);
 
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
@@ -341,10 +341,10 @@ void ForwardDynamicsContactsLagrangian (
  */
 void ComputeContactImpulsesLagrangian (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDotMinus,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDotMinus,
 		ConstraintSet &CS,
-		VectorNd &QDotPlus
+		Math::VectorNd &QDotPlus
 		);
 
 /** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
@@ -360,11 +360,11 @@ void ComputeContactImpulsesLagrangian (
  */
 void ForwardDynamicsContactsOld (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
 		std::vector<ContactInfo> &ContactData,
-		VectorNd &QDDot
+		Math::VectorNd &QDDot
 		);
 
 /** \brief Computes forward dynamics that accounts for active contacts in ContactData
@@ -430,11 +430,11 @@ void ForwardDynamicsContactsOld (
  * \todo Allow for external forces
  */void ForwardDynamicsContacts (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
 		ConstraintSet &CS,
-		VectorNd &QDDot
+		Math::VectorNd &QDDot
 		);
 
 /** @} */

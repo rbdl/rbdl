@@ -16,10 +16,9 @@
 #include "Model.h"
 #include "Kinematics.h"
 
-using namespace SpatialAlgebra;
-using namespace SpatialAlgebra::Operators;
-
 namespace RigidBodyDynamics {
+
+using namespace Math;
 
 void UpdateKinematics (Model &model,
 		const VectorNd &Q,

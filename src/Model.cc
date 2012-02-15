@@ -16,8 +16,8 @@
 #include "Body.h"
 #include "Joint.h"
 
-using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 void Model::Init() {
 	experimental_floating_base = false;
@@ -121,23 +121,6 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	return q.size() - 1;
 }
 
-unsigned int Model::AppendBody (
-			const SpatialAlgebra::SpatialTransform &joint_frame,
-			const Joint &joint,
-			const Body &body,
-			std::string body_name
-		) {
-	// body id 0 is the base which is initialized when calling Model::Init()
-	unsigned int last_body = q.size() - 1;
-
-	return AddBody (
-			last_body,
-			joint_frame,
-			joint,
-			body,
-			body_name);
-}
-
 unsigned int Model::SetFloatingBaseBody (const Body &body) {
 	assert (lambda.size() >= 0);
 
@@ -164,31 +147,36 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 		// 		tx ty tz rz ry rx
 		//
 
+		unsigned body_tx_id;
 		Body body_tx (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_tx (JointTypePrismatic, Vector3d (1., 0., 0.));
-		this->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
+		body_tx_id = this->AddBody(0, Xtrans (Vector3d (0., 0., 0.)), joint_tx, body_tx);
 
+		unsigned body_ty_id;
 		Body body_ty (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_ty (JointTypePrismatic, Vector3d (0., 1., 0.));
-		this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
+		body_ty_id = this->AddBody(body_tx_id, Xtrans (Vector3d (0., 0., 0.)), joint_ty, body_ty);
 
+		unsigned body_tz_id;
 		Body body_tz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_tz (JointTypePrismatic, Vector3d (0., 0., 1.));
-		this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
+		body_tz_id = this->AddBody(body_ty_id, Xtrans (Vector3d (0., 0., 0.)), joint_tz, body_tz);
 
+		unsigned body_rz_id;
 		Body body_rz (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_rz (JointTypeRevolute, Vector3d (0., 0., 1.));
-		this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
+		body_rz_id = this->AddBody(body_tz_id, Xtrans (Vector3d (0., 0., 0.)), joint_rz, body_rz);
 
+		unsigned body_ry_id;
 		Body body_ry (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		Joint joint_ry (JointTypeRevolute, Vector3d (0., 1., 0.));
-		this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
+		body_ry_id = this->AddBody(body_rz_id, Xtrans (Vector3d (0., 0., 0.)), joint_ry, body_ry);
 
-		unsigned floating_base_id;
+		unsigned body_rx_id;
 		Joint joint_rx (JointTypeRevolute, Vector3d (1., 0., 0.));
-		floating_base_id = this->AppendBody(Xtrans (Vector3d (0., 0., 0.)), joint_rx, body);
+		body_rx_id = this->AddBody(body_ry_id, Xtrans (Vector3d (0., 0., 0.)), joint_rx, body);
 
-		return floating_base_id;
+		return body_rx_id;
 	}
 }
 
@@ -200,4 +188,3 @@ unsigned int Model::GetBodyId (const char *id) {
 
 	return std::numeric_limits<unsigned int>::max();
 }
-

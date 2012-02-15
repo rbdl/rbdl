@@ -13,13 +13,17 @@
 
 #include "mathwrapper.h"
 
+namespace RigidBodyDynamics {
+
+namespace Math {
+
 extern Vector3d Vector3dZero;
 extern Matrix3d Matrix3dIdentity;
 extern Matrix3d Matrix3dZero;
 
-extern SpatialAlgebra::SpatialVector SpatialVectorZero;
-extern SpatialAlgebra::SpatialMatrix SpatialMatrixIdentity;
-extern SpatialAlgebra::SpatialMatrix SpatialMatrixZero;
+extern SpatialVector SpatialVectorZero;
+extern SpatialMatrix SpatialMatrixIdentity;
+extern SpatialMatrix SpatialMatrixZero;
 
 /// \brief Solves a linear system using gaussian elimination with pivoting
 bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
@@ -27,12 +31,12 @@ bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 /// \brief Creates the skew symmetric matrix of the cross product of a given 3D vector
 Matrix3d VectorCrossMatrix (const Vector3d &vector);
 // \todo write test 
-void SpatialMatrixSetSubmatrix(SpatialAlgebra::SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix);
+void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix);
 
-bool SpatialMatrixCompareEpsilon (const SpatialAlgebra::SpatialMatrix &matrix_a,
-		const SpatialAlgebra::SpatialMatrix &matrix_b, double epsilon);
-bool SpatialVectorCompareEpsilon (const SpatialAlgebra::SpatialVector &vector_a,
-		const SpatialAlgebra::SpatialVector &vector_b, double epsilon);
+bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a,
+		const SpatialMatrix &matrix_b, double epsilon);
+bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a,
+		const SpatialVector &vector_b, double epsilon);
 
 /** \brief Creates a transformation of a linear displacement
  *
@@ -44,7 +48,7 @@ bool SpatialVectorCompareEpsilon (const SpatialAlgebra::SpatialVector &vector_a,
  *
  * \param displacement The displacement as a 3D vector
  */
-SpatialAlgebra::SpatialMatrix Xtrans_mat (const Vector3d &displacement);
+SpatialMatrix Xtrans_mat (const Vector3d &displacement);
 
 /** \brief Creates a rotational transformation around the Z-axis
  *
@@ -53,7 +57,7 @@ SpatialAlgebra::SpatialMatrix Xtrans_mat (const Vector3d &displacement);
  *
  * \param zrot Rotation angle in radians.
  */
-SpatialAlgebra::SpatialMatrix Xrotz_mat (const double &zrot);
+SpatialMatrix Xrotz_mat (const double &zrot);
 
 /** \brief Creates a rotational transformation around the Y-axis
  *
@@ -62,7 +66,7 @@ SpatialAlgebra::SpatialMatrix Xrotz_mat (const double &zrot);
  *
  * \param yrot Rotation angle in radians.
  */
-SpatialAlgebra::SpatialMatrix Xroty_mat (const double &yrot);
+SpatialMatrix Xroty_mat (const double &yrot);
 
 /** \brief Creates a rotational transformation around the X-axis
  *
@@ -71,7 +75,7 @@ SpatialAlgebra::SpatialMatrix Xroty_mat (const double &yrot);
  *
  * \param xrot Rotation angle in radians.
  */
-SpatialAlgebra::SpatialMatrix Xrotx_mat (const double &xrot);
+SpatialMatrix Xrotx_mat (const double &xrot);
 
 /** \brief Creates a spatial transformation for given parameters 
  *
@@ -82,6 +86,9 @@ SpatialAlgebra::SpatialMatrix Xrotx_mat (const double &xrot);
  * \param zyx_euler The orientation of the new coordinate system, specifyed
  * by ZYX-Euler angles.
  */
-SpatialAlgebra::SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler);
+SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler);
 
+} /* Math */
+
+} /* RigidBodyDynamics */
 #endif /* _MATHUTILS_H */

@@ -13,9 +13,8 @@
 #include "Fixtures.h"
 
 using namespace std;
-using namespace SpatialAlgebra;
-using namespace SpatialAlgebra::Operators;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-11;
 

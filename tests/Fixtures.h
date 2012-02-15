@@ -2,8 +2,8 @@
 
 struct FixedBase6DoF {
 	FixedBase6DoF () {
-		using namespace SpatialAlgebra;
 		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
 
 		ClearLogOutput();
 		model = new Model;
@@ -118,22 +118,22 @@ struct FixedBase6DoF {
 	RigidBodyDynamics::Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
 		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
 
-	VectorNd Q;
-	VectorNd QDot;
-	VectorNd QDDot;
-	VectorNd Tau;
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
 
 	unsigned int contact_body_id;
-	Vector3d contact_point;
-	Vector3d contact_normal;
+	RigidBodyDynamics::Math::Vector3d contact_point;
+	RigidBodyDynamics::Math::Vector3d contact_normal;
 	std::vector<RigidBodyDynamics::ContactInfo> contact_data;
 	RigidBodyDynamics::ConstraintSet constraint_set;
 };
 
 struct FloatingBase12DoF {
 	FloatingBase12DoF () {
-		using namespace SpatialAlgebra;
 		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
 
 		ClearLogOutput();
 		model = new Model;
@@ -254,10 +254,10 @@ struct FloatingBase12DoF {
 		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x,
 		joint_child_2_rot_z, joint_child_2_rot_y, joint_child_2_rot_x;
 
-	VectorNd Q;
-	VectorNd QDot;
-	VectorNd QDDot;
-	VectorNd Tau;
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
 };
 
 

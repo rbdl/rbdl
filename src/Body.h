@@ -61,22 +61,22 @@ struct Body {
 	 * \param gyration_radii the radii of gyration at the center of mass of the body
 	 */
 	Body(const double &mass,
-			const Vector3d &com,
-			const Vector3d &gyration_radii) :
+			const Math::Vector3d &com,
+			const Math::Vector3d &gyration_radii) :
 		mMass (mass),
 		mCenterOfMass(com) {
-			Matrix3d com_cross (
+			Math::Matrix3d com_cross (
 					0., -com[2],  com[1],
 					com[2],      0., -com[0],
 					-com[1],  com[0],      0.
 					);
-			Matrix3d parallel_axis;
+			Math::Matrix3d parallel_axis;
 			parallel_axis = mass * com_cross * com_cross.transpose();
 
-			Vector3d gr (gyration_radii);
-			Matrix3d pa (parallel_axis);
-			Matrix3d mcc = mass * com_cross;
-			Matrix3d mccT = mcc.transpose();
+			Math::Vector3d gr (gyration_radii);
+			Math::Matrix3d pa (parallel_axis);
+			Math::Matrix3d mcc = mass * com_cross;
+			Math::Matrix3d mccT = mcc.transpose();
 
 			mSpatialInertia.set (
 					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
@@ -99,25 +99,25 @@ struct Body {
 	 * \param inertia_C the inertia at the center of mass
 	 */
 	Body(const double &mass,
-			const Vector3d &com,
-			const Matrix3d &inertia_C) :
+			const Math::Vector3d &com,
+			const Math::Matrix3d &inertia_C) :
 		mMass (mass),
 		mCenterOfMass(com) {
-			Matrix3d com_cross (
+			Math::Matrix3d com_cross (
 					0., -com[2],  com[1],
 					com[2],      0., -com[0],
 					-com[1],  com[0],      0.
 					);
-			Matrix3d parallel_axis;
-			Matrix3d com_crossT = com_cross;
+			Math::Matrix3d parallel_axis;
+			Math::Matrix3d com_crossT = com_cross;
 			com_crossT.transpose();
 			parallel_axis = mass * com_cross * com_crossT;
 
 			LOG << "parrallel axis = " << parallel_axis << std::endl;
 
-			Matrix3d pa (parallel_axis);
-			Matrix3d mcc = mass * com_cross;
-			Matrix3d mccT = mcc;
+			Math::Matrix3d pa (parallel_axis);
+			Math::Matrix3d mcc = mass * com_cross;
+			Math::Matrix3d mccT = mcc;
 			mccT.transpose();
 
 			mSpatialInertia.set (
@@ -142,29 +142,29 @@ struct Body {
 	 * \param gyration_radii the radii of gyration at the center of mass of the body in percentage of the segment length
 	 */
 	Body(const double &mass,
-			const Vector3d &com,
+			const Math::Vector3d &com,
 			const double &length,
-			const Vector3d &gyration_radii) :
+			const Math::Vector3d &gyration_radii) :
 		mMass (mass),
 		mCenterOfMass(com) {
-			Matrix3d com_cross (
+			Math::Matrix3d com_cross (
 					0., -com[2],  com[1],
 					com[2],      0., -com[0],
 					-com[1],  com[0],      0.
 					);
-			Matrix3d parallel_axis;
+			Math::Matrix3d parallel_axis;
 			parallel_axis = mass * com_cross * com_cross.transpose();
 
 			LOG << "parrallel axis = " << parallel_axis << std::endl;
 
-			Vector3d gr = mass * Vector3d(
+			Math::Vector3d gr = mass * Math::Vector3d(
 					gyration_radii[0] * gyration_radii[0] * length * length,
 					gyration_radii[1] * gyration_radii[1] * length * length,
 					gyration_radii[2] * gyration_radii[2] * length * length
 					);
-			Matrix3d pa (parallel_axis);
-			Matrix3d mcc = mass * com_cross;
-			Matrix3d mccT = mcc.transpose();
+			Math::Matrix3d pa (parallel_axis);
+			Math::Matrix3d mcc = mass * com_cross;
+			Math::Matrix3d mccT = mcc.transpose();
 
 			mSpatialInertia.set (
 					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
@@ -184,9 +184,9 @@ struct Body {
 	/// \brief The mass of the body
 	double mMass;
 	/// \brief The position of the center of mass in body coordinates
-	Vector3d mCenterOfMass;
+	Math::Vector3d mCenterOfMass;
 	/// \brief The spatial inertia that contains both mass and inertia information
-	SpatialAlgebra::SpatialMatrix mSpatialInertia;
+	Math::SpatialMatrix mSpatialInertia;
 };
 
 }

@@ -6,8 +6,7 @@
 #include "mathutils.h"
 
 using namespace std;
-using namespace SpatialAlgebra;
-using namespace SpatialAlgebra::Operators;
+using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 

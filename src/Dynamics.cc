@@ -19,10 +19,9 @@
 #include "Dynamics_experimental.h"
 #include "Kinematics.h"
 
-using namespace SpatialAlgebra;
-using namespace SpatialAlgebra::Operators;
-
 namespace RigidBodyDynamics {
+
+using namespace Math;
 
 void ForwardDynamics (
 		Model &model,
@@ -30,7 +29,7 @@ void ForwardDynamics (
 		const VectorNd &QDot,
 		const VectorNd &Tau,
 		VectorNd &QDDot,
-		std::vector<SpatialAlgebra::SpatialVector> *f_ext
+		std::vector<SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
@@ -213,7 +212,7 @@ void ForwardDynamicsLagrangian (
 		const VectorNd &QDot,
 		const VectorNd &Tau,
 		VectorNd &QDDot,
-		std::vector<SpatialAlgebra::SpatialVector> *f_ext
+		std::vector<SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
@@ -246,7 +245,7 @@ void InverseDynamics (
 		const VectorNd &QDot,
 		const VectorNd &QDDot,
 		VectorNd &Tau,
-		std::vector<SpatialAlgebra::SpatialVector> *f_ext
+		std::vector<SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 

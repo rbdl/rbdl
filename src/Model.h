@@ -106,7 +106,7 @@ struct Model {
 	unsigned int dof_count;
 
 	/// \brief the cartesian vector of the gravity
-	Vector3d gravity;
+	Math::Vector3d gravity;
 
 	// State information
 
@@ -122,17 +122,17 @@ struct Model {
 	 * q[NDOF] - joint NDOF <br>
 	 *
 	 */
-	VectorNd q;
+	Math::VectorNd q;
 	/// \brief The joint velocity
-	VectorNd qdot;
+	Math::VectorNd qdot;
 	/// \brief The joint acceleration
-	VectorNd qddot;
+	Math::VectorNd qddot;
 	/// \brief The force / torque applied at joint i
-	VectorNd tau;
+	Math::VectorNd tau;
 	/// \brief The spatial velocity of body i
-	std::vector<SpatialAlgebra::SpatialVector> v;
+	std::vector<Math::SpatialVector> v;
 	/// \brief The spatial acceleration of body i
-	std::vector<SpatialAlgebra::SpatialVector> a;
+	std::vector<Math::SpatialVector> a;
 
 	////////////////////////////////////
 	// Joints
@@ -141,37 +141,37 @@ struct Model {
 	
 	std::vector<Joint> mJoints;
 	/// \brief The joint axis for joint i
-	std::vector<SpatialAlgebra::SpatialVector> S;
+	std::vector<Math::SpatialVector> S;
 	/// \brief Transformations from the parent body to the frame of the joint
-	std::vector<SpatialAlgebra::SpatialTransform> X_T;
+	std::vector<Math::SpatialTransform> X_T;
 
 	////////////////////////////////////
 	// Dynamics variables
 
 	/// \brief The velocity dependent spatial acceleration
-	std::vector<SpatialAlgebra::SpatialVector> c;
+	std::vector<Math::SpatialVector> c;
 	/// \brief The spatial inertia of body i
-	std::vector<SpatialAlgebra::SpatialMatrix> IA;
+	std::vector<Math::SpatialMatrix> IA;
 	/// \brief The spatial bias force
-	std::vector<SpatialAlgebra::SpatialVector> pA;
+	std::vector<Math::SpatialVector> pA;
 	/// \brief Temporary variable U_i (RBDA p. 130)
-	std::vector<SpatialAlgebra::SpatialVector> U;
+	std::vector<Math::SpatialVector> U;
 	/// \brief Temporary variable D_i (RBDA p. 130)
-	VectorNd d;
+	Math::VectorNd d;
 	/// \brief Temporary variable u (RBDA p. 130)
-	VectorNd u;
+	Math::VectorNd u;
 	/// \brief Internal forces on the body (used only InverseDynamics())
-	std::vector<SpatialAlgebra::SpatialVector> f;
+	std::vector<Math::SpatialVector> f;
 	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
-	std::vector<SpatialAlgebra::SpatialMatrix> Ic;
+	std::vector<Math::SpatialMatrix> Ic;
 
 	////////////////////////////////////
 	// Bodies
 
 	/// \brief Transformation from the parent body to the current body
-	std::vector<SpatialAlgebra::SpatialTransform> X_lambda;
+	std::vector<Math::SpatialTransform> X_lambda;
 	/// \brief Transformation from the base to bodies reference frame
-	std::vector<SpatialAlgebra::SpatialTransform> X_base;
+	std::vector<Math::SpatialTransform> X_base;
 
 	/** \brief All bodies 0 ... N_B, including the base
 	 *
@@ -216,7 +216,7 @@ struct Model {
 	 */
 	unsigned int AddBody (
 			const unsigned int parent_id,
-			const SpatialAlgebra::SpatialTransform &joint_frame,
+			const Math::SpatialTransform &joint_frame,
 			const Joint &joint,
 			const Body &body,
 			std::string body_name = "" 
@@ -228,7 +228,7 @@ struct Model {
 	 * most recently added body (or body 0) is taken as parent.
 	 */
 	unsigned int AppendBody (
-			const SpatialAlgebra::SpatialTransform &joint_frame,
+			const Math::SpatialTransform &joint_frame,
 			const Joint &joint,
 			const Body &body,
 			std::string body_name = "" 

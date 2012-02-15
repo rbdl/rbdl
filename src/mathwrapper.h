@@ -14,16 +14,14 @@
   #include "SimpleMath/SimpleMath.h"
 	#include <vector>
 
-	typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3d;
-	typedef SimpleMath::Fixed::Matrix<double, 3,3> Matrix3d;
+	typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3_t;
+	typedef SimpleMath::Fixed::Matrix<double, 3,3> Matrix3_t;
 
-	namespace SpatialAlgebra {
-		typedef SimpleMath::Fixed::Matrix<double, 6,1> SpatialVector;
-		typedef SimpleMath::Fixed::Matrix<double, 6,6> SpatialMatrix;
-	}
+	typedef SimpleMath::Fixed::Matrix<double, 6,1> SpatialVector_t;
+	typedef SimpleMath::Fixed::Matrix<double, 6,6> SpatialMatrix_t;
 
-	typedef SimpleMath::Dynamic::Matrix<double> MatrixNd;
-	typedef SimpleMath::Dynamic::Matrix<double> VectorNd;
+	typedef SimpleMath::Dynamic::Matrix<double> MatrixNd_t;
+	typedef SimpleMath::Dynamic::Matrix<double> VectorNd_t;
 
 #else
 	#define EIGEN_DEFAULT_TO_ROW_MAJOR
@@ -46,6 +44,17 @@
 	inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(SpatialAlgebra::SpatialVector)
 	inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(SpatialAlgebra::SpatialMatrix)
 #endif
+
+namespace RigidBodyDynamics {
+namespace Math {
+	typedef Vector3_t Vector3d;
+	typedef Matrix3_t Matrix3d;
+	typedef SpatialVector_t SpatialVector;
+	typedef SpatialMatrix_t SpatialMatrix;
+	typedef VectorNd_t VectorNd;
+	typedef MatrixNd_t MatrixNd;
+} /* Math */
+} /* RigidBodyDynamics */
 
 #include "SpatialAlgebraOperators.h"
 

@@ -30,9 +30,9 @@ namespace RigidBodyDynamics {
  * \param QDDot the generalized accelerations of the joints
  */
 void UpdateKinematics (Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &QDDot
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &QDDot
 		);
 
 /** \brief Selectively updates model internal states of body positions, velocities and/or accelerations.
@@ -50,9 +50,9 @@ void UpdateKinematics (Model &model,
  * \param QDDot the generalized accelerations of the joints
  */
 void UpdateKinematicsCustom (Model &model,
-		const VectorNd *Q,
-		const VectorNd *QDot,
-		const VectorNd *QDDot
+		const Math::VectorNd *Q,
+		const Math::VectorNd *QDot,
+		const Math::VectorNd *QDDot
 		);
 
 /** \brief Returns the base coordinates of a point given in body coordinates.
@@ -66,11 +66,11 @@ void UpdateKinematicsCustom (Model &model,
  *
  * \returns a 3-D vector with coordinates of the point in base coordinates
  */
-Vector3d CalcBodyToBaseCoordinates (
+Math::Vector3d CalcBodyToBaseCoordinates (
 		Model &model,
-		const VectorNd &Q,
+		const Math::VectorNd &Q,
 		unsigned int body_id,
-		const Vector3d &body_point_position,
+		const Math::Vector3d &body_point_position,
 		bool update_kinematics = true);
 
 /** \brief Returns the body coordinates of a point given in base coordinates.
@@ -84,11 +84,11 @@ Vector3d CalcBodyToBaseCoordinates (
  *
  * \returns a 3-D vector with coordinates of the point in body coordinates
  */
-Vector3d CalcBaseToBodyCoordinates (
+Math::Vector3d CalcBaseToBodyCoordinates (
 		Model &model,
-		const VectorNd &Q,
+		const Math::VectorNd &Q,
 		unsigned int body_id,
-		const Vector3d &base_point_position,
+		const Math::Vector3d &base_point_position,
 		bool update_kinematics = true);
 
 /** \brief Returns the orientation of a given body as 3x3 matrix
@@ -101,9 +101,9 @@ Vector3d CalcBaseToBodyCoordinates (
  *
  * \returns A 3x3 matrix that contains the rotation from base
  */
-Matrix3d CalcBodyWorldOrientation (
+Math::Matrix3d CalcBodyWorldOrientation (
 		Model &model,
-		const VectorNd &Q,
+		const Math::VectorNd &Q,
 		const unsigned int body_id,
 		bool update_kinematics = true);
 
@@ -123,10 +123,10 @@ Matrix3d CalcBodyWorldOrientation (
  * \returns A 3 x \#dof_count matrix of the point jacobian
  */
 void CalcPointJacobian (Model &model,
-		const VectorNd &Q,
+		const Math::VectorNd &Q,
 		unsigned int body_id,
-		const Vector3d &point_position,
-		MatrixNd &G,
+		const Math::Vector3d &point_position,
+		Math::MatrixNd &G,
 		bool update_kinematics = true
 		);
 
@@ -141,12 +141,12 @@ void CalcPointJacobian (Model &model,
  *
  * \returns The cartesian velocity of the point in global frame (output)
  */
-Vector3d CalcPointVelocity (
+Math::Vector3d CalcPointVelocity (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
 		unsigned int body_id,
-		const Vector3d &point_position,
+		const Math::Vector3d &point_position,
 		bool update_kinematics = true
 		);
 
@@ -162,13 +162,13 @@ Vector3d CalcPointVelocity (
  *
  * \returns The cartesian acceleration of the point in global frame (output)
  */
-Vector3d CalcPointAcceleration (
+Math::Vector3d CalcPointAcceleration (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &QDDot,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &QDDot,
 		unsigned int body_id,
-		const Vector3d &point_position,
+		const Math::Vector3d &point_position,
 		bool update_kinematics = true
 	);
 
@@ -205,11 +205,11 @@ Vector3d CalcPointAcceleration (
  */
 bool InverseKinematics (
 		Model &model,
-		const VectorNd &Qinit,
+		const Math::VectorNd &Qinit,
 		const std::vector<unsigned int>& body_id,
-		const std::vector<Vector3d>& body_point,
-		const std::vector<Vector3d>& target_pos,
-		VectorNd &Qres,
+		const std::vector<Math::Vector3d>& body_point,
+		const std::vector<Math::Vector3d>& target_pos,
+		Math::VectorNd &Qres,
 		double step_tol = 1.0e-12,
 		double lambda = 0.01,
 		unsigned int max_iter = 50

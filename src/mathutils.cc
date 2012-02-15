@@ -15,7 +15,8 @@
 
 #include "Logging.h"
 
-using namespace SpatialAlgebra;
+namespace RigidBodyDynamics {
+namespace Math {
 
 Vector3d Vector3dZero (0., 0., 0.);
 Matrix3d Matrix3dIdentity (
@@ -29,7 +30,7 @@ Matrix3d Matrix3dZero (
 		0., 0., 0.
 		);
 
-SpatialAlgebra::SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
+SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
 
 SpatialMatrix SpatialMatrixIdentity (
 		1., 0., 0., 0., 0., 0.,
@@ -256,3 +257,6 @@ SpatialMatrix Xrotz_mat (const double &zrot) {
 SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler) {
 	return Xrotz_mat(zyx_euler[0]) * Xroty_mat(zyx_euler[1]) * Xrotx_mat(zyx_euler[2]) * Xtrans_mat(displacement);
 }
+
+} /* Math */
+} /* RigidBodyDynamics */

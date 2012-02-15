@@ -15,16 +15,17 @@
 #include "Model.h"
 #include "Joint.h"
 
-using namespace SpatialAlgebra;
 namespace RigidBodyDynamics {
+
+using namespace Math;
 
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,
-		SpatialAlgebra::SpatialTransform &XJ,
-		SpatialAlgebra::SpatialVector &S,
-		SpatialAlgebra::SpatialVector &v_J,
-		SpatialAlgebra::SpatialVector &c_J,
+		SpatialTransform &XJ,
+		SpatialVector &S,
+		SpatialVector &v_J,
+		SpatialVector &c_J,
 		const double &q,
 		const double &qdot
 		) {
