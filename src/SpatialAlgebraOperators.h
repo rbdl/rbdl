@@ -247,10 +247,6 @@ inline Vector3d get_translation (const SpatialMatrix &m) {
 	return Vector3d (-m(4,2), m(3,2), -m(3,1));
 }
 
-#ifndef RBDL_USE_SIMPLE_MATH
-inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(SpatialAlgebra::SpatialTransform)
-#endif
-
 } /* Math */
 
 } /* RigidBodyDynamics */

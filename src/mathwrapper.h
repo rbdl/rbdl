@@ -20,8 +20,8 @@
 	typedef SimpleMath::Fixed::Matrix<double, 6,1> SpatialVector_t;
 	typedef SimpleMath::Fixed::Matrix<double, 6,6> SpatialMatrix_t;
 
-	typedef SimpleMath::Dynamic::Matrix<double> MatrixNd_t;
-	typedef SimpleMath::Dynamic::Matrix<double> VectorNd_t;
+	typedef SimpleMath::Dynamic::Matrix<double> MatrixN_t;
+	typedef SimpleMath::Dynamic::Matrix<double> VectorN_t;
 
 #else
 	#define EIGEN_DEFAULT_TO_ROW_MAJOR
@@ -30,19 +30,14 @@
 	#include "Eigen/Dense"
 	#include "Eigen/StdVector"
 
-	typedef Eigen::Matrix< double, 3, 1> Vector3d;
-	typedef Eigen::Matrix< double, 3, 3> Matrix3d;
+	typedef Eigen::Matrix< double, 3, 1> Vector3_t;
+	typedef Eigen::Matrix< double, 3, 3> Matrix3_t;
 
-	typedef Eigen::VectorXd VectorNd;
-	typedef Eigen::MatrixXd MatrixNd;
+	typedef Eigen::VectorXd VectorN_t;
+	typedef Eigen::MatrixXd MatrixN_t;
 
-	namespace SpatialAlgebra {
-		typedef Eigen::Matrix< double, 6, 1> SpatialVector;
-		typedef Eigen::Matrix< double, 6, 6> SpatialMatrix;
-	}
-
-	inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(SpatialAlgebra::SpatialVector)
-	inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(SpatialAlgebra::SpatialMatrix)
+	typedef Eigen::Matrix< double, 6, 1> SpatialVector_t;
+	typedef Eigen::Matrix< double, 6, 6> SpatialMatrix_t;
 #endif
 
 namespace RigidBodyDynamics {
@@ -51,11 +46,19 @@ namespace Math {
 	typedef Matrix3_t Matrix3d;
 	typedef SpatialVector_t SpatialVector;
 	typedef SpatialMatrix_t SpatialMatrix;
-	typedef VectorNd_t VectorNd;
-	typedef MatrixNd_t MatrixNd;
+	typedef VectorN_t VectorNd;
+	typedef MatrixN_t MatrixNd;
 } /* Math */
 } /* RigidBodyDynamics */
 
 #include "SpatialAlgebraOperators.h"
+
+// If we use Eigen3 we have to create specializations of the STL
+// std::vector such that the alignment is done properly.
+#ifndef RBDL_USE_SIMPLE_MATH
+inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialVector)
+inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialMatrix)
+inline EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialTransform)
+#endif
 
 #endif /* _MATHWRAPPER_H */
