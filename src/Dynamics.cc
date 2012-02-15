@@ -170,15 +170,13 @@ void ForwardDynamics (
 
 	LOG << "spatial gravity = " << spatial_gravity.transpose() << std::endl;
 
+	model.a[0] = spatial_gravity * -1.;
+
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 		SpatialTransform X_lambda = model.X_lambda[i];
 
-		if (lambda == 0) {
-			model.a[i] = X_lambda.apply(spatial_gravity * (-1.)) + model.c[i];
-		} else {
-			model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
-		}
+		model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
 
 		// we can skip further processing if the joint type is fixed
 		if (model.mJoints[i].mJointType == JointTypeFixed) {
@@ -191,13 +189,13 @@ void ForwardDynamics (
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "c[" << i << "] = " << model.c[i] << std::endl;
+		LOG << "c[" << i << "] = " << model.c[i].transpose() << std::endl;
 	}
 
 	LOG << std::endl;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "a[" << i << "] = " << model.a[i] << std::endl;
+		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
 	}
 
 

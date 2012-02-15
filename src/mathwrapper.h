@@ -41,6 +41,8 @@
 #endif
 
 namespace RigidBodyDynamics {
+
+/** \brief Math types such as vectors and matrices and utility functions. */
 namespace Math {
 	typedef Vector3_t Vector3d;
 	typedef Matrix3_t Matrix3d;
@@ -49,6 +51,7 @@ namespace Math {
 	typedef VectorN_t VectorNd;
 	typedef MatrixN_t MatrixNd;
 } /* Math */
+
 } /* RigidBodyDynamics */
 
 #include "SpatialAlgebraOperators.h"

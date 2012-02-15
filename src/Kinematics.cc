@@ -77,6 +77,11 @@ void UpdateKinematics (Model &model,
 
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
 	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
+	}
+
 }
 
 void UpdateKinematicsCustom (Model &model,
