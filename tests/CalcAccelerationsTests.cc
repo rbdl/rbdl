@@ -251,10 +251,10 @@ TEST_FIXTURE (FloatingBase12DoF, TestAccelerationFloatingBaseWithUpdateKinematic
 TEST_FIXTURE (FloatingBase12DoF, TestAccelerationFloatingBaseWithoutUpdateKinematics ) {
 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 
-//	ClearLogOutput();
+	//ClearLogOutput();
 	Vector3d accel = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_rot_x_id, Vector3d (0., 0., 0.), false);
 
-	CHECK_ARRAY_CLOSE (Vector3d (0., -9.81, 0.), accel.data(), 3, TEST_PREC);
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), accel.data(), 3, TEST_PREC);
 //	cout << LogOutput.str() << endl;
 //	cout << accel.transpose() << endl;
 }

@@ -52,6 +52,11 @@ void UpdateKinematics (Model &model,
 		model.qddot[i + 1] = QDDot[i];
 	}
 
+	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
+
+	model.a[0].setZero();
+	//model.a[0] = spatial_gravity;
+
 	for (i = 1; i < model.mBodies.size(); i++) {
 		SpatialTransform X_J;
 		SpatialVector v_J;
@@ -67,14 +72,13 @@ void UpdateKinematics (Model &model,
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);
-			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 		}	else {
 			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
 			model.c[i].setZero();
-			model.a[i].setZero();
 		}
-
+		
+		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
 	}
 

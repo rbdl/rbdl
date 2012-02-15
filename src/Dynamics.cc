@@ -105,6 +105,10 @@ void ForwardDynamics (
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
+		LOG << "X_lambda[" << i << "] = " << model.X_lambda[i] << std::endl;
+	}
+
+	for (i = 1; i < model.mBodies.size(); i++) {
 		LOG << "Xup[" << i << "] = " << model.X_lambda[i] << std::endl;
 	}
 
@@ -194,10 +198,11 @@ void ForwardDynamics (
 
 	LOG << std::endl;
 
-	for (i = 1; i < model.mBodies.size(); i++) {
+	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
 	}
 
+	LOG << "qddot = " << model.qddot.transpose() << std::endl;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		QDDot[i - 1] = model.qddot[i];

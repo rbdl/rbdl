@@ -161,7 +161,22 @@ Math::Vector3d CalcPointVelocity (
  * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
  *
  * \returns The cartesian acceleration of the point in global frame (output)
+ *
+ * The kinematic state of the model has to be updated before valid
+ * values can be obtained. This can either be done by calling
+ * UpdateKinematics() or setting the last parameter update_kinematics to
+ * true (default).
+ *
+ * \note During the execution of ForwardDynamics() the acceleration
+ * is only applied on the root body and propagated form there. Therefore
+ * in the internal state the accelerations of the bodies only represent
+ * the relative accelerations without any gravitational effects.
+ *
+ * \warning  If this function is called after ForwardDynamics() without
+ * an update of the kinematic state one has to add the gravity
+ * acceleration has to be added to the result.
  */
+
 Math::Vector3d CalcPointAcceleration (
 		Model &model,
 		const Math::VectorNd &Q,
