@@ -14,8 +14,24 @@ namespace RigidBodyDynamics {
 
 /** \defgroup contacts_group External Contacts
  *
- * Here you find information about the functions related to contact
- * handling.
+ * External contacts are handled by specification of a \link
+ * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
+ * ConstraintSet \endlink which contains all informations about the
+ * current contacts and workspace memory.
+ *
+ * Separate contacts can be specified by calling
+ * ConstraintSet::AddConstraint(). After all constraints have been
+ * specified, this \link
+ * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
+ * ConstraintSet \endlink has to be bound to the model via
+ * ConstraintSet::Bind(). This initializes workspace memory that is
+ * later used when calling one of the contact functions, such as
+ * ForwardDynamicsContacts() or ForwardDynamicsContactsLagrangian().
+ *
+ * The values in the vectors ConstraintSet::constraint_force and
+ * ConstraintSet::constraint_impulse contain the computed force or
+ * impulse values for each constraint when returning from one of the
+ * contact functions.
  *
  * @{
  */
@@ -317,8 +333,6 @@ void ForwardDynamicsContactsLagrangian (
  * velocity of each constraint after the impact (known beforehand, usually
  * 0).
  *
- * The desired velocity can be specified by ContactInfo::acceleration.
- * 
  * \note So far, only constraints acting along cartesian coordinate axes
  * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
  * not specify redundant constraints!
@@ -334,10 +348,6 @@ void ForwardDynamicsContactsLagrangian (
  * \param QDotMinus  velocity vector of the internal joints before the impact
  * \param CS the set of active constraints
  * \param QDotPlus velocities of the internals joints after the impact (output)
- *
- * \note During execution of this function the values ContactInfo::force
- * 	get modified and will contain the value of the impulse acting along
- * 	the normal.
  */
 void ComputeContactImpulsesLagrangian (
 		Model &model,
@@ -347,10 +357,10 @@ void ComputeContactImpulsesLagrangian (
 		Math::VectorNd &QDotPlus
 		);
 
-/** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
+/** \brief Computes forward dynamics that accounts for active contacts.
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures,
+ * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
  * Multibody System Dynamics 2, 89-114, 1998.
  *
  * This function is superseeded by \ref RigidBodyDynamics::ForwardDynamicsContacts
