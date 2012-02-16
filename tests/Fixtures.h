@@ -44,7 +44,7 @@ struct FixedBase6DoF {
 				JointTypeRevolute,
 				Vector3d (0., 1., 0.)
 				);
-		base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
+		base_rot_y_id = model->AppendBody (Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
 
 		base_rot_x = Body (
 				1.,

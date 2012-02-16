@@ -121,6 +121,17 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	return q.size() - 1;
 }
 
+unsigned int Model::AppendBody (
+		const Math::SpatialTransform &joint_frame,
+		const Joint &joint,
+		const Body &body,
+		std::string body_name 
+		) {
+	unsigned int prev_body_id = q.size() - 1;
+	return Model::AddBody (prev_body_id, joint_frame,
+			joint, body, body_name);
+}
+
 unsigned int Model::SetFloatingBaseBody (const Body &body) {
 	assert (lambda.size() >= 0);
 
