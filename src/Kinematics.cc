@@ -451,11 +451,15 @@ bool InverseKinematics (
 
 			for (unsigned int i = 0; i < 3; i++) {
 				for (unsigned int j = 0; j < model.dof_count; j++) {
-					J(k * body_id.size() + i, j) = G (i,j);
+					unsigned int row = k * 3 + i;
+					LOG << "i = " << i << " j = " << j << " k = " << k << " row = " << row << " col = " << j << std::endl;
+					J(row, j) = G (i,j);
 				}
 
-				e[k * body_id.size() + i] = target_pos[k][i] - point_base[i];
+				e[k * 3 + i] = target_pos[k][i] - point_base[i];
 			}
+
+			LOG << J << std::endl;
 
 			// abort if we are getting "close"
 			if (e.norm() < step_tol) {
