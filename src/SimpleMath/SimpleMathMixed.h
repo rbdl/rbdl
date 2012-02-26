@@ -1,7 +1,11 @@
-/*
+/**
  * This is a highly inefficient math library. It was conceived by Martin
  * Felis <martin.felis@iwr.uni-heidelberg.de> while he was compiling code
  * that uses a highly efficient math library.
+ *
+ * It is intended to be used as a fast compiling substitute for the
+ * blazingly fast Eigen3 library and tries to mimic its API to a certain
+ * extend.
  *
  * Feel free to use it wherever you like. However, no guarantees are given
  * that this code does what it says it would.
@@ -16,6 +20,9 @@
 
 #include "compileassert.h"
 
+/** \brief Namespace for a highly inefficient math library
+ *
+ */
 namespace SimpleMath {
 
 // multiplication

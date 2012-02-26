@@ -5,7 +5,7 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#include "rbdlconfig.h"
+#include <rbdlconfig.h>
 
 #include <iostream>
 namespace RigidBodyDynamics {

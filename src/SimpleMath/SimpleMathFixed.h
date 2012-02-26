@@ -1,7 +1,11 @@
-/*
+/**
  * This is a highly inefficient math library. It was conceived by Martin
  * Felis <martin.felis@iwr.uni-heidelberg.de> while he was compiling code
  * that uses a highly efficient math library.
+ *
+ * It is intended to be used as a fast compiling substitute for the
+ * blazingly fast Eigen3 library and tries to mimic its API to a certain
+ * extend.
  *
  * Feel free to use it wherever you like. However, no guarantees are given
  * that this code does what it says it would.
@@ -16,6 +20,9 @@
 
 #include "compileassert.h"
 
+/** \brief Namespace for a highly inefficient math library
+ *
+ */
 namespace SimpleMath {
 
 /** \brief Namespace for fixed size elements
@@ -675,15 +682,19 @@ class Matrix {
 
 template <typename val_type, unsigned int blockrows, unsigned int blockcols>
 inline std::ostream& operator<<(std::ostream& output, const Block<val_type, blockrows, blockcols> &block) {
-	output << std::endl;
-
 	unsigned int i,j;
 	for (i = 0; i < blockrows; i++) {
 		output << "[ ";
 		for (j = 0; j < blockcols; j++) {
-			output << block(i,j) << " ";
+			output << block(i,j);
+
+			if (j < blockcols - 1)
+				output << ", ";
 		}
-		output << "]" << std::endl;
+		output << " ]";
+		
+		if (blockrows > 1 && i < blockrows - 1)
+			output << std::endl;
 	}
 
 	return output;
@@ -711,13 +722,18 @@ inline Matrix<val_type, nrows, ncols> operator*(const Matrix<val_type, nrows, nc
 
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type, nrows, ncols> &matrix) {
-	output << std::endl;
 	for (unsigned int i = 0; i < nrows; i++) {
 		output << "[ ";
 		for (unsigned int j = 0; j < ncols; j++) {
-			output << matrix(i,j) << " ";
+			output << matrix(i,j);
+
+			if (j < ncols - 1)
+				output << ", ";
 		}
-		output << "]" << std::endl;
+		output << " ]";
+		
+		if (nrows > 1 && i < nrows - 1)
+			output << std::endl;
 	}
 	return output;
 }
