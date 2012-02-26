@@ -12,4 +12,10 @@ cmake_install.cmake
 Makefile
 tags
 *.log
-src/rbdlconfig.h
+
+src/rbdl_config.h
+
+examples/CMakeCache.txt
+examples/example
+examples/librbdl.so
+examples/rbdlexample
