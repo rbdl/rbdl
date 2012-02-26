@@ -9,7 +9,8 @@
 #include <limits>
 #include <assert.h>
 
-#include "mathutils.h"
+#include "rbdl_mathutils.h"
+
 #include "Logging.h"
 
 #include "Model.h"

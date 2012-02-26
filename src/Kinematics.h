@@ -8,7 +8,7 @@
 #ifndef _KINEMATICS_H
 #define _KINEMATICS_H
 
-#include <mathwrapper.h>
+#include <rbdl_math.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"

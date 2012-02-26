@@ -8,7 +8,7 @@
 #ifndef _DYNAMICS_H
 #define _DYNAMICS_H
 
-#include <mathwrapper.h>
+#include <rbdl_math.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"

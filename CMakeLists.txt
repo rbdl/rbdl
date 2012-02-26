@@ -30,7 +30,7 @@ OPTION (BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 
 SET ( RBDL_SOURCES 
 	src/rbdl_version.cc
-	src/mathutils.cc
+	src/rbdl_mathutils.cc
 	src/Logging.cc
 	src/Body.cc
 	src/Joint.cc
@@ -85,13 +85,13 @@ ELSE (RBDL_STORE_VERSION)
 ENDIF (RBDL_STORE_VERSION)
 
 CONFIGURE_FILE (
-	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdlconfig.h.cmake" 
-	"${CMAKE_CURRENT_BINARY_DIR}/src/rbdlconfig.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdl_config.h.cmake" 
+	"${CMAKE_CURRENT_BINARY_DIR}/src/rbdl_config.h"
 	)
 
 FILE ( GLOB headers 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
-	${CMAKE_CURRENT_BINARY_DIR}/src/rbdlconfig.h
+	${CMAKE_CURRENT_BINARY_DIR}/src/rbdl_config.h
 	)
 
 INSTALL ( FILES ${headers} DESTINATION include/rbdl )

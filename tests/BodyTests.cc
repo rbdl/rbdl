@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "mathutils.h"
+#include "rbdl_mathutils.h"
 #include "Body.h"
 
 using namespace std;

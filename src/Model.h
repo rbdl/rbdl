@@ -8,7 +8,7 @@
 #ifndef _MODEL_H
 #define _MODEL_H
 
-#include <mathwrapper.h>
+#include <rbdl_math.h>
 #include <map>
 #include <list>
 #include <assert.h>

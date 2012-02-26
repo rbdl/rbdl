@@ -8,7 +8,7 @@
 #ifndef _CONTACTS_H
 #define _CONTACTS_H
 
-#include "mathwrapper.h"
+#include "rbdl_math.h"
 
 namespace RigidBodyDynamics {
 

@@ -8,8 +8,8 @@
 #ifndef _RBDL_H
 #define _RBDL_H
 
-#include "mathwrapper.h"
-#include "mathutils.h"
+#include "rbdl_math.h"
+#include "rbdl_mathutils.h"
 
 #include "Body.h"
 #include "Model.h"

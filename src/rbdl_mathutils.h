@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <cmath>
 
-#include "mathwrapper.h"
+#include "rbdl_math.h"
 
 namespace RigidBodyDynamics {
 

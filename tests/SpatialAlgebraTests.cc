@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "mathwrapper.h"
-#include "mathutils.h"
+#include "rbdl_math.h"
+#include "rbdl_mathutils.h"
 
 using namespace std;
 using namespace RigidBodyDynamics::Math;

@@ -8,7 +8,7 @@
 #ifndef _BODY_H
 #define _BODY_H
 
-#include <mathwrapper.h>
+#include <rbdl_math.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"

@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "mathutils.h"
 #include "Logging.h"
 
 #include "Model.h"

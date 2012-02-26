@@ -11,7 +11,7 @@
 #include <iostream>
 #include <assert.h>
 
-#include <mathutils.h>
+#include <rbdl_mathutils.h>
 
 #include "Logging.h"
 
