@@ -9,10 +9,10 @@ struct SampleData {
 		delete_data();
 	}
 
-	VectorNd *q_data;
-	VectorNd *qdot_data;
-	VectorNd *qddot_data;
-	VectorNd *tau_data;
+	RigidBodyDynamics::Math::VectorNd *q_data;
+	RigidBodyDynamics::Math::VectorNd *qdot_data;
+	RigidBodyDynamics::Math::VectorNd *qddot_data;
+	RigidBodyDynamics::Math::VectorNd *tau_data;
 
 	void delete_data() {
 		if (q_data)
@@ -35,10 +35,10 @@ struct SampleData {
 	void fill_random_data (int dof_count, int sample_count) {
 		delete_data();
 
-		q_data = new VectorNd[sample_count];
-		qdot_data = new VectorNd[sample_count];
-		qddot_data = new VectorNd[sample_count];
-		tau_data = new VectorNd[sample_count];
+		q_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
+		qdot_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
+		qddot_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
+		tau_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
 
 		for (int si = 0; si < sample_count; si++) {
 			q_data[si].resize (dof_count);

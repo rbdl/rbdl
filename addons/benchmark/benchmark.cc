@@ -14,6 +14,7 @@
 
 using namespace std;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 int benchmark_sample_count = 1000;
 int benchmark_model_max_depth = 5;

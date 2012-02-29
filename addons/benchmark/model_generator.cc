@@ -3,7 +3,7 @@
 #include "rbdl.h"
 
 using namespace RigidBodyDynamics;
-using namespace SpatialAlgebra;
+using namespace RigidBodyDynamics::Math;
 
 void generate_planar_tree_recursive (Model *model,
 		unsigned int parent_body_id,
