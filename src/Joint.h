@@ -27,6 +27,7 @@ enum JointType {
 	JointTypeRevolute,
 	JointTypePrismatic,
 
+	JointType1DoF,
 	JointType2DoF,
 	JointType3DoF,
 	JointType4DoF,
@@ -132,6 +133,27 @@ struct Joint {
 					joint_axis[2]
 					);
 		}
+	}
+
+	/** \brief Constructs a 1 DoF joint with the given motion subspaces.
+	 *
+	 * The motion subspaces are of the format:
+	 * \f[ (r_x, r_y, r_z, t_x, t_y, t_z) \f]
+	 *
+	 * \note So far only pure rotations or pure translations are supported.
+	 *
+	 * \param axis_0 Motion subspace for axis 0
+	 */
+	Joint (
+			const Math::SpatialVector &axis_0
+			) {
+		mJointType = JointType1DoF;
+		mDoFCount = 1;
+
+		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes[0] = axis_0;
+
+		validate_spatial_axis (mJointAxes[0]);
 	}
 
 	/** \brief Constructs a 2 DoF joint with the given motion subspaces.

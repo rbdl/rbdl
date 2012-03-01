@@ -81,7 +81,9 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 			&& joint.mJointType != JointTypeRevolute
 			&& joint.mJointType != JointTypeFixed) {
 		unsigned int joint_count;
-		if (joint.mJointType == JointType2DoF)
+		if (joint.mJointType == JointType1DoF)
+			joint_count = 1;
+		else if (joint.mJointType == JointType2DoF)
 			joint_count = 2;
 		else if (joint.mJointType == JointType3DoF)
 			joint_count = 3;
@@ -98,7 +100,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 
 		Body null_body (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 		unsigned int null_parent = parent_id;
-		SpatialTransform null_transform;
+		SpatialTransform joint_frame_transform;
 
 		for (unsigned int j = 0; j < joint_count; j++) {
 			Joint single_dof_joint;
@@ -118,16 +120,19 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 				single_dof_joint = Joint (JointTypeRevolute, rotation);
 			}
 
+			// the first joint has to be transformed by joint_frame, all the
+			// others must have a null transformation
 			if (j == 0)
-				// if we are adding the first joint, we have to use the original
-				// transformation!
-				null_parent = AddBody (null_parent, joint_frame, single_dof_joint, null_body);
-			else if (j == joint_count - 1)
+				joint_frame_transform = joint_frame;
+			else
+				joint_frame_transform = SpatialTransform();
+
+			if (j == joint_count - 1)
 				// if we are at the last we must add the real body
-				return AddBody (null_parent, null_transform, single_dof_joint, body, body_name);
+				return AddBody (null_parent, joint_frame_transform, single_dof_joint, body, body_name);
 			else
 				// otherwise we just add an intermediate body
-				null_parent = AddBody (null_parent, null_transform, single_dof_joint, null_body);
+				null_parent = AddBody (null_parent, joint_frame_transform, single_dof_joint, null_body);
 		}
 	}
 
