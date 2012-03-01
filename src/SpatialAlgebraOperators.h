@@ -120,6 +120,29 @@ inline std::ostream& operator<<(std::ostream& output, const SpatialTransform &X)
 	return output;
 }
 
+inline SpatialTransform Xrot (double angle_rad, const Vector3d &axis) {
+	double s, c;
+	s = sin(angle_rad);
+	c = cos(angle_rad);
+
+	return SpatialTransform (
+			Matrix3d (
+				axis[0] * axis[0] * (1.0f - c) + c,
+				axis[1] * axis[0] * (1.0f - c) + axis[2] * s,
+				axis[0] * axis[2] * (1.0f - c) - axis[1] * s,
+
+				axis[0] * axis[1] * (1.0f - c) - axis[2] * s,
+				axis[1] * axis[1] * (1.0f - c) + c,
+				axis[1] * axis[2] * (1.0f - c) + axis[0] * s,
+
+				axis[0] * axis[2] * (1.0f - c) + axis[1] * s,
+				axis[1] * axis[2] * (1.0f - c) - axis[0] * s,
+				axis[2] * axis[2] * (1.0f - c) + c
+
+				),
+			Vector3d (0., 0., 0.)
+			);
+}
 
 inline SpatialTransform Xrotx (const double &xrot) {
 	double s, c;
