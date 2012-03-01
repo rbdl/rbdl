@@ -61,7 +61,6 @@ void ForwardDynamics (
 		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
-		Joint joint = model.mJoints[i];
 		unsigned int lambda = model.lambda[i];
 
 		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
@@ -280,7 +279,6 @@ void InverseDynamics (
 		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
-		Joint joint = model.mJoints[i];
 		unsigned int lambda = model.lambda[i];
 
 		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);

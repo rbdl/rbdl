@@ -178,7 +178,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
 	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
 	SpatialVector spatial_joint_axis(0., 0., 1., 0., 0., 0.);
-	CHECK_EQUAL (spatial_joint_axis, joint.mJointAxis);
+	CHECK_EQUAL (spatial_joint_axis, joint.mJointAxes[0]);
 
 	// \Todo: Dynamic properties
 }

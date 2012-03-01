@@ -25,7 +25,9 @@ enum JointType {
 	JointTypeUndefined = 0,
 	JointTypeFixed,
 	JointTypeRevolute,
-	JointTypePrismatic
+	JointTypePrismatic,
+
+	JointType2DoF,
 };
 
 /** \brief Describes a joint relative to the predecessor body 
@@ -35,20 +37,39 @@ enum JointType {
  */
 struct Joint {
 	Joint() :
-		mJointAxis (
-				0., 0., 0.,
-				0., 0., 0.
-				),
-		mJointType (JointTypeUndefined) {};
+		mJointAxes (NULL),
+		mJointType (JointTypeUndefined),
+		mDoFCount (0) {};
 	Joint (const Joint &joint) :
-		mJointAxis (joint.mJointAxis),
-		mJointType (joint.mJointType) {};
+		mJointType (joint.mJointType),
+		mDoFCount (joint.mDoFCount) {
+			mJointAxes = new Math::SpatialVector[mDoFCount];
+
+			for (unsigned int i = 0; i < mDoFCount; i++)
+				mJointAxes[i] = joint.mJointAxes[i];
+		};
 	Joint& operator= (const Joint &joint) {
 		if (this != &joint) {
-			mJointAxis = joint.mJointAxis;
+			if (mDoFCount > 0) {
+				assert (mJointAxes);
+				delete[] mJointAxes;
+			}
 			mJointType = joint.mJointType;
+			mDoFCount = joint.mDoFCount;
+
+			mJointAxes = new Math::SpatialVector[mDoFCount];
+
+			for (unsigned int i = 0; i < mDoFCount; i++)
+				mJointAxes[i] = joint.mJointAxes[i];
 		}
 		return *this;
+	}
+	~Joint() {
+		if (mDoFCount) {
+			assert (mJointAxes);
+			delete[] mJointAxes;
+			mJointAxes = NULL;
+		}
 	}
 
 	/** \brief Constructs a joint from the given cartesian parameters
@@ -63,8 +84,11 @@ struct Joint {
 			const JointType joint_type,
 			const Math::Vector3d &joint_axis
 			) {
-		// Some assertions, as we concentrate on simple cases
+		mDoFCount = 1;
+		mJointAxes = new Math::SpatialVector[mDoFCount];
 
+		// Some assertions, as we concentrate on simple cases
+	
 		// Only rotation around the Z-axis
 		assert ( joint_type == JointTypeRevolute || joint_type == JointTypeFixed || joint_type == JointTypePrismatic );
 
@@ -78,7 +102,7 @@ struct Joint {
 					|| joint_axis == Math::Vector3d (0., 1., 0.)
 					|| joint_axis == Math::Vector3d (0., 0., 1.));
 
-			mJointAxis.set (
+			mJointAxes[0].set (
 					joint_axis[0],
 					joint_axis[1], 
 					joint_axis[2], 
@@ -86,18 +110,18 @@ struct Joint {
 					);
 
 		} else if (joint_type == JointTypeFixed) {
-			mJointAxis.set (
+			mJointAxes[0].set (
 					joint_axis[0],
 					joint_axis[1], 
 					joint_axis[2], 
 					0., 0., 0.
 					);
-			mJointAxis.set (0., 0., 0., 0., 0., 0.);
+			mJointAxes[0].set (0., 0., 0., 0., 0., 0.);
 		} else if (joint_type == JointTypePrismatic) {
 			// make sure we have a unit axis
 			assert (joint_axis.squaredNorm() == 1.);
 
-			mJointAxis.set (
+			mJointAxes[0].set (
 					0., 0., 0.,
 					joint_axis[0],
 					joint_axis[1],
@@ -107,9 +131,10 @@ struct Joint {
 	}
 
 	/// \brief The spatial axis of the joint
-	Math::SpatialVector mJointAxis;
+	Math::SpatialVector* mJointAxes;
 	/// \brief Type of joint (rotational or prismatic)
 	JointType mJointType;
+	unsigned int mDoFCount;
 };
 
 /** \brief Computes all variables for a joint model

@@ -96,7 +96,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 
 	// Joints
 	mJoints.push_back(joint);
-	S.push_back (joint.mJointAxis);
+	S.push_back (joint.mJointAxes[0]);
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.
 	X_T.push_back(joint_frame);

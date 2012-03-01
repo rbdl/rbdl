@@ -31,24 +31,24 @@ void jcalc (
 	// exception if we calculate it for the root body
 	assert (joint_id > 0);
 
-	Joint joint = model.mJoints[joint_id];
+//	Joint joint = model.mJoints[joint_id];
 
 	// Calculate the spatial joint velocity
 	v_J = model.S.at(joint_id);
 
 	// Set the joint axis
-	S = joint.mJointAxis;
+	S = model.mJoints[joint_id].mJointAxes[0];
 
 	// the velocity dependent spatial acceleration is != 0 only for rhenomic
 	// constraints (see RBDA, p. 55)
 	c_J.setZero();
 
-	if (joint.mJointType == JointTypeFixed) {
+	if (model.mJoints[joint_id].mJointType == JointTypeFixed) {
 		XJ = SpatialTransform();
 		v_J.setZero();
 
 		return;
-	} else if (joint.mJointType == JointTypeRevolute) {
+	} else if (model.mJoints[joint_id].mJointType == JointTypeRevolute) {
 		// Only rotations around coordinate axes are supported so far!
 		if (S == SpatialVector(1., 0., 0., 0., 0., 0.)) {
 			XJ = Xrotx (q);
@@ -59,11 +59,11 @@ void jcalc (
 		} else {
 			assert (0 && !"Invalid joint axis!");
 		}
-	} else if (joint.mJointType == JointTypePrismatic) {
+	} else if (model.mJoints[joint_id].mJointType == JointTypePrismatic) {
 		XJ = Xtrans ( Vector3d (
-					joint.mJointAxis[3] * q,
-					joint.mJointAxis[4] * q,
-					joint.mJointAxis[5] * q
+					model.mJoints[joint_id].mJointAxes[0][3] * q,
+					model.mJoints[joint_id].mJointAxes[0][4] * q,
+					model.mJoints[joint_id].mJointAxes[0][5] * q
 					)
 				);
 	} else {
