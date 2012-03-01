@@ -75,6 +75,62 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		const Joint &joint,
 		const Body &body,
 		std::string body_name) {
+	// Here we emulate multi DoF joints by simply adding nullbodies. This
+	// may be changed in the future, but so far it is reasonably fast.
+	if (joint.mJointType != JointTypePrismatic 
+			&& joint.mJointType != JointTypeRevolute
+			&& joint.mJointType != JointTypeFixed) {
+		unsigned int joint_count;
+		if (joint.mJointType == JointType2DoF)
+			joint_count = 2;
+		else if (joint.mJointType == JointType3DoF)
+			joint_count = 3;
+		else if (joint.mJointType == JointType4DoF)
+			joint_count = 4;
+		else if (joint.mJointType == JointType5DoF)
+			joint_count = 5;
+		else if (joint.mJointType == JointType6DoF)
+			joint_count = 6;
+		else {
+			std::cerr << "Error: Invalid joint type: " << joint.mJointType << std::endl;
+			assert (0 && !"Invalid joint type!");
+		}
+
+		Body null_body (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+		unsigned int null_parent = parent_id;
+		SpatialTransform null_transform;
+
+		for (unsigned int j = 0; j < joint_count; j++) {
+			Joint single_dof_joint;
+
+			Vector3d rotation (
+					joint.mJointAxes[j][0],
+					joint.mJointAxes[j][1],
+					joint.mJointAxes[j][2]);
+			Vector3d translation (
+					joint.mJointAxes[j][3],
+					joint.mJointAxes[j][4],
+					joint.mJointAxes[j][5]);
+
+			if (rotation == Vector3d (0., 0., 0.)) {
+				single_dof_joint = Joint (JointTypePrismatic, translation);
+			} else if (translation == Vector3d (0., 0., 0.)) {
+				single_dof_joint = Joint (JointTypeRevolute, rotation);
+			}
+
+			if (j == 0)
+				// if we are adding the first joint, we have to use the original
+				// transformation!
+				null_parent = AddBody (null_parent, joint_frame, single_dof_joint, null_body);
+			else if (j == joint_count - 1)
+				// if we are at the last we must add the real body
+				return AddBody (null_parent, null_transform, single_dof_joint, body, body_name);
+			else
+				// otherwise we just add an intermediate body
+				null_parent = AddBody (null_parent, null_transform, single_dof_joint, null_body);
+		}
+	}
+
 	assert (lambda.size() > 0);
 	assert (joint.mJointType != JointTypeUndefined);
 

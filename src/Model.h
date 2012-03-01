@@ -41,11 +41,17 @@ namespace RigidBodyDynamics {
  * \link RigidBodyDynamics::Model::AddBody Model::AddBody(...)\endlink,
  * \link RigidBodyDynamics::Model::AppendBody Model::AppendBody(...)\endlink, and
  * \link RigidBodyDynamics::Model::GetBodyId Model::GetBodyId(...)\endlink,
- * are used to initialize and construct the \ref model_structure.
+ * are used to initialize and construct the \ref model_structure. To
+ * create a model with a floating base (a.k.a a model with a free-flyer
+ * joint) it is recommended to use
+ * \link RigidBodyDynamics::Model::SetFloatingBaseBody Model::SetFloatingBaseBody(...)\endlink.
  *
  * Once this is done, the model structure can be used with the functions of \ref
  * kinematics_group, \ref dynamics_group, \ref contacts_group, to perform
  * computations.
+ *
+ * See also \link RigidBodyDynamics::Joint Joint\endlink for joint
+ * modeling.
  *
  * \section model_structure Model Structure
  *
@@ -249,6 +255,10 @@ struct Model {
 	 * \li rotation Z
 	 * \li rotation Y
 	 * \li rotation X
+	 *
+	 * To specify a different ordering, it is recommended to create a 6 DoF
+	 * joint. See \link RigidBodyDynamics::Joint Joint\endlink for more
+	 * information.
 	 *
 	 * \param body Properties of the floating base body.
 	 *

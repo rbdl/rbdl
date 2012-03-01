@@ -28,9 +28,13 @@ enum JointType {
 	JointTypePrismatic,
 
 	JointType2DoF,
+	JointType3DoF,
+	JointType4DoF,
+	JointType5DoF,
+	JointType6DoF
 };
 
-/** \brief Describes a joint relative to the predecessor body 
+/** \brief Describes a joint relative to the predecessor body.
  *
  * This class contains all information required for one single joint. This
  * contains the joint type and the axis of the joint.
@@ -72,7 +76,7 @@ struct Joint {
 		}
 	}
 
-	/** \brief Constructs a joint from the given cartesian parameters
+	/** \brief Constructs a joint from the given cartesian parameters.
 	 *
 	 * This constructor creates all the required spatial values for the given
 	 * cartesian parameters.
@@ -128,6 +132,200 @@ struct Joint {
 					joint_axis[2]
 					);
 		}
+	}
+
+	/** \brief Constructs a 2 DoF joint with the given motion subspaces.
+	 *
+	 * The motion subspaces are of the format:
+	 * \f[ (r_x, r_y, r_z, t_x, t_y, t_z) \f]
+	 *
+	 * \note So far only pure rotations or pure translations are supported.
+	 *
+	 * \param axis_0 Motion subspace for axis 0
+	 * \param axis_1 Motion subspace for axis 1
+	 */
+	Joint (
+			const Math::SpatialVector &axis_0,
+			const Math::SpatialVector &axis_1
+			) {
+		mJointType = JointType2DoF;
+		mDoFCount = 2;
+
+		mJointAxes = new Math::SpatialVector[mDoFCount];
+		mJointAxes[0] = axis_0;
+		mJointAxes[1] = axis_1;
+
+		validate_spatial_axis (mJointAxes[0]);
+		validate_spatial_axis (mJointAxes[1]);
+	}
+
+	/** \brief Constructs a 3 DoF joint with the given motion subspaces.
+	 *
+	 * The motion subspaces are of the format:
+	 * \f[ (r_x, r_y, r_z, t_x, t_y, t_z) \f]
+	 *
+	 * \note So far only pure rotations or pure translations are supported.
+	 *
+	 * \param axis_0 Motion subspace for axis 0
+	 * \param axis_1 Motion subspace for axis 1
+	 * \param axis_2 Motion subspace for axis 2
+	 */
+	Joint (
+			const Math::SpatialVector &axis_0,
+			const Math::SpatialVector &axis_1,
+			const Math::SpatialVector &axis_2
+			) {
+		mJointType = JointType3DoF;
+		mDoFCount = 3;
+
+		mJointAxes = new Math::SpatialVector[mDoFCount];
+
+		mJointAxes[0] = axis_0;
+		mJointAxes[1] = axis_1;
+		mJointAxes[2] = axis_2;
+
+		validate_spatial_axis (mJointAxes[0]);
+		validate_spatial_axis (mJointAxes[1]);
+		validate_spatial_axis (mJointAxes[2]);
+	}
+
+	/** \brief Constructs a 4 DoF joint with the given motion subspaces.
+	 *
+	 * The motion subspaces are of the format:
+	 * \f[ (r_x, r_y, r_z, t_x, t_y, t_z) \f]
+	 *
+	 * \note So far only pure rotations or pure translations are supported.
+	 *
+	 * \param axis_0 Motion subspace for axis 0
+	 * \param axis_1 Motion subspace for axis 1
+	 * \param axis_2 Motion subspace for axis 2
+	 * \param axis_3 Motion subspace for axis 3
+	 */
+	Joint (
+			const Math::SpatialVector &axis_0,
+			const Math::SpatialVector &axis_1,
+			const Math::SpatialVector &axis_2,
+			const Math::SpatialVector &axis_3
+			) {
+		mJointType = JointType4DoF;
+		mDoFCount = 4;
+
+		mJointAxes = new Math::SpatialVector[mDoFCount];
+
+		mJointAxes[0] = axis_0;
+		mJointAxes[1] = axis_1;
+		mJointAxes[2] = axis_2;
+		mJointAxes[3] = axis_3;
+
+		validate_spatial_axis (mJointAxes[0]);
+		validate_spatial_axis (mJointAxes[1]);
+		validate_spatial_axis (mJointAxes[2]);
+		validate_spatial_axis (mJointAxes[3]);
+	}
+
+	/** \brief Constructs a 5 DoF joint with the given motion subspaces.
+	 *
+	 * The motion subspaces are of the format:
+	 * \f[ (r_x, r_y, r_z, t_x, t_y, t_z) \f]
+	 *
+	 * \note So far only pure rotations or pure translations are supported.
+	 *
+	 * \param axis_0 Motion subspace for axis 0
+	 * \param axis_1 Motion subspace for axis 1
+	 * \param axis_2 Motion subspace for axis 2
+	 * \param axis_3 Motion subspace for axis 3
+	 * \param axis_4 Motion subspace for axis 4
+	 */
+	Joint (
+			const Math::SpatialVector &axis_0,
+			const Math::SpatialVector &axis_1,
+			const Math::SpatialVector &axis_2,
+			const Math::SpatialVector &axis_3,
+			const Math::SpatialVector &axis_4
+			) {
+		mJointType = JointType5DoF;
+		mDoFCount = 5;
+
+		mJointAxes = new Math::SpatialVector[mDoFCount];
+
+		mJointAxes[0] = axis_0;
+		mJointAxes[1] = axis_1;
+		mJointAxes[2] = axis_2;
+		mJointAxes[3] = axis_3;
+		mJointAxes[4] = axis_4;
+
+		validate_spatial_axis (mJointAxes[0]);
+		validate_spatial_axis (mJointAxes[1]);
+		validate_spatial_axis (mJointAxes[2]);
+		validate_spatial_axis (mJointAxes[3]);
+		validate_spatial_axis (mJointAxes[4]);
+	}
+
+	/** \brief Constructs a 6 DoF joint with the given motion subspaces.
+	 *
+	 * The motion subspaces are of the format:
+	 * \f[ (r_x, r_y, r_z, t_x, t_y, t_z) \f]
+	 *
+	 * \note So far only pure rotations or pure translations are supported.
+	 *
+	 * \param axis_0 Motion subspace for axis 0
+	 * \param axis_1 Motion subspace for axis 1
+	 * \param axis_2 Motion subspace for axis 2
+	 * \param axis_3 Motion subspace for axis 3
+	 * \param axis_4 Motion subspace for axis 4
+	 * \param axis_5 Motion subspace for axis 5
+	 */
+	Joint (
+			const Math::SpatialVector &axis_0,
+			const Math::SpatialVector &axis_1,
+			const Math::SpatialVector &axis_2,
+			const Math::SpatialVector &axis_3,
+			const Math::SpatialVector &axis_4,
+			const Math::SpatialVector &axis_5
+			) {
+		mJointType = JointType6DoF;
+		mDoFCount = 6;
+
+		mJointAxes = new Math::SpatialVector[mDoFCount];
+
+		mJointAxes[0] = axis_0;
+		mJointAxes[1] = axis_1;
+		mJointAxes[2] = axis_2;
+		mJointAxes[3] = axis_3;
+		mJointAxes[4] = axis_4;
+		mJointAxes[5] = axis_5;
+
+		validate_spatial_axis (mJointAxes[0]);
+		validate_spatial_axis (mJointAxes[1]);
+		validate_spatial_axis (mJointAxes[2]);
+		validate_spatial_axis (mJointAxes[3]);
+		validate_spatial_axis (mJointAxes[4]);
+		validate_spatial_axis (mJointAxes[5]);
+	}
+
+	/** \brief Checks whether we have pure rotational or translational axis.
+	 *
+	 * This function is mainly used to print out warnings when specifying an
+	 * axis that might not be intended.
+	 */
+	bool validate_spatial_axis (Math::SpatialVector &axis) {
+		if (fabs(axis.norm() - 1.0) > 1.0e-8) {
+			std::cerr << "Warning: joint axis is not unit!" << std::endl;
+			return false;
+		}
+
+		bool axis_rotational = false;
+		bool axis_translational = false;
+
+		Math::Vector3d rotation (axis[0], axis[1], axis[2]);
+		if (fabs(rotation.norm() - 1.0) < 1.0e-8)
+			axis_rotational = true;
+
+		Math::Vector3d translation (axis[3], axis[4], axis[5]);
+		if (fabs(translation.norm() - 1.0) < 1.0e-8)
+			axis_translational = true;
+
+		return axis_rotational || axis_translational;
 	}
 
 	/// \brief The spatial axis of the joint

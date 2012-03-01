@@ -49,16 +49,11 @@ void jcalc (
 
 		return;
 	} else if (model.mJoints[joint_id].mJointType == JointTypeRevolute) {
-		// Only rotations around coordinate axes are supported so far!
-		if (S == SpatialVector(1., 0., 0., 0., 0., 0.)) {
-			XJ = Xrotx (q);
-		} else if (S == SpatialVector(0., 1., 0., 0., 0., 0.)) {
-			XJ = Xroty (q);
-		} else if (S == SpatialVector(0., 0., 1., 0., 0., 0.)) {
-			XJ = Xrotz (q);
-		} else {
-			assert (0 && !"Invalid joint axis!");
-		}
+		XJ = Xrot (q, Vector3d (
+					model.mJoints[joint_id].mJointAxes[0][0],
+					model.mJoints[joint_id].mJointAxes[0][1],
+					model.mJoints[joint_id].mJointAxes[0][2]
+					));
 	} else if (model.mJoints[joint_id].mJointType == JointTypePrismatic) {
 		XJ = Xtrans ( Vector3d (
 					model.mJoints[joint_id].mJointAxes[0][3] * q,
