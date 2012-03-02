@@ -253,7 +253,7 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 	}
 }
 
-unsigned int Model::GetBodyId (const char *id) {
+unsigned int Model::GetBodyId (const char *id) const {
 	for (unsigned int i = 0; i < mBodyNames.size(); i++) {
 		if (mBodyNames[i] == id)
 			return i;

@@ -278,7 +278,7 @@ struct Model {
 	 *
 	 * \returns the id of the body or \c std::numeric_limits<unsigned int>::max() if the id was not found.
 	 */
-	unsigned int GetBodyId (const char *id);
+	unsigned int GetBodyId (const char *id) const;
 
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
