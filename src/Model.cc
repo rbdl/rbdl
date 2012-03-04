@@ -144,13 +144,20 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	mu.push_back(std::vector<unsigned int>());
 	mu.at(parent_id).push_back(q.size());
 
-	dof_count += 1;
+	// Bodies
+	X_lambda.push_back(SpatialTransform());
+	X_base.push_back(SpatialTransform());
+	mBodies.push_back(body);
+	mBodyNames.push_back(body_name);
+
+	if (joint.mJointType != JointTypeFixed)
+		dof_count += 1;
 
 	// state information
-	q.resize (dof_count + 1);
-	qdot.resize (dof_count + 1);
-	qddot.resize (dof_count + 1);
-	tau.resize (dof_count + 1);
+	q.resize (mBodies.size());
+	qdot.resize (mBodies.size());
+	qddot.resize (mBodies.size());
+	tau.resize (mBodies.size());
 
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
@@ -168,19 +175,13 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 
-	d = VectorNd::Zero (dof_count + 1);
-	u = VectorNd::Zero (dof_count + 1);
+	d = VectorNd::Zero (mBodies.size());
+	u = VectorNd::Zero (mBodies.size());
 
 	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 	Ic.push_back (SpatialMatrixIdentity);
 
-	// Bodies
-	X_lambda.push_back(SpatialTransform());
-	X_base.push_back(SpatialTransform());
-	mBodies.push_back(body);
-	mBodyNames.push_back(body_name);
-
-	return q.size() - 1;
+	return mBodies.size() - 1;
 }
 
 unsigned int Model::AppendBody (

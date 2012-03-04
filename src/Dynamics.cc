@@ -39,20 +39,12 @@ void ForwardDynamics (
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
-	unsigned int i;
+	unsigned int i = 0;
 
 	// Copy state values from the input to the variables in model
-	assert (model.q.size() == Q.size() + 1);
-	assert (model.qdot.size() == QDot.size() + 1);
-	assert (model.qddot.size() == QDDot.size() + 1);
-	assert (model.tau.size() == Tau.size() + 1);
-
-	for (i = 0; i < Q.size(); i++) {
-		model.q[i+1] = Q[i];
-		model.qdot[i+1] = QDot[i];
-		model.qddot[i+1] = QDDot[i];
-		model.tau[i+1] = Tau[i];
-	}
+	CopyDofVectorToModelStateVector (model, model.q, Q);
+	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
+	CopyDofVectorToModelStateVector (model, model.tau, Tau);
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -203,9 +195,8 @@ void ForwardDynamics (
 
 	LOG << "qddot = " << model.qddot.transpose() << std::endl;
 
-	for (i = 1; i < model.mBodies.size(); i++) {
-		QDDot[i - 1] = model.qddot[i];
-	}
+	// copy back values
+	CopyModelStateVectorToDofVector (model, QDDot, model.qddot);
 }
 
 void ForwardDynamicsLagrangian (
@@ -260,16 +251,9 @@ void InverseDynamics (
 	unsigned int i;
 
 	// Copy state values from the input to the variables in model
-	assert (model.q.size() == Q.size() + 1);
-	assert (model.qdot.size() == QDot.size() + 1);
-	assert (model.qddot.size() == QDDot.size() + 1);
-	assert (model.tau.size() == Tau.size() + 1);
-
-	for (i = 0; i < Q.size(); i++) {
-		model.q[i+1] = Q[i];
-		model.qdot[i+1] = QDot[i];
-		model.qddot[i+1] = QDDot[i];
-	}
+	CopyDofVectorToModelStateVector (model, model.q, Q);
+	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
+	CopyDofVectorToModelStateVector (model, model.qddot, QDDot);
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -314,16 +298,14 @@ void InverseDynamics (
 		}
 	}
 
-	for (i = 0; i < Tau.size(); i++) {
-		Tau[i] = model.tau[i + 1];
-	}
+	// copy back values
+	CopyModelStateVectorToDofVector (model, Tau, model.tau);
 }
 
 void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, bool update_kinematics) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	if (H.rows() != Q.size() || H.cols() != Q.size()) 
-		H.resize(Q.size(), Q.size());
+	assert (H.rows() == model.dof_count && H.cols() == model.dof_count);
 
 	if (update_kinematics)
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
