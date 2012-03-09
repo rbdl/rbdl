@@ -29,28 +29,15 @@ void UpdateKinematics (Model &model,
 
 	unsigned int i;
 
-	assert (model.q.size() == Q.size() + 1);
-	assert (model.qdot.size() == QDot.size() + 1);
-	assert (model.qddot.size() == QDDot.size() + 1);
-
 	if (model.experimental_floating_base) {
 		assert (0 && !"UpdateKinematics not supported yet for experimental floating bases");
 	}
 	
-	// positions
-	for (i = 0; i < model.dof_count; i++) {
-		model.q[i + 1] = Q[i];
-	}
-
-	// velocities
-	for (i = 0; i < model.dof_count; i++) {
-		model.qdot[i + 1] = QDot[i];
-	}
-
-	// accelerations
-	for (i = 0; i < model.dof_count; i++) {
-		model.qddot[i + 1] = QDDot[i];
-	}
+	// Copy positions, velocities, and accelerations while taking account for
+	// fixed joints
+	CopyDofVectorToModelStateVector (model, model.q, Q);
+	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
+	CopyDofVectorToModelStateVector (model, model.qddot, QDDot);
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
@@ -97,39 +84,20 @@ void UpdateKinematicsCustom (Model &model,
 
 	unsigned int i;
 
-	if (Q)
-	
-	if (QDot)
-
-	if (QDDot)
-		assert (model.qddot.size() == QDDot->size() + 1);
-
 	if (model.experimental_floating_base) {
 		assert (0 && !"UpdateKinematics not supported yet for experimental floating bases");
 	}
 
 	if (Q) {
-		assert (model.q.size() == Q->size() + 1);
-		// positions
-		for (i = 0; i < model.dof_count; i++) {
-			model.q[i + 1] = (*Q)[i];
-		}
+		CopyDofVectorToModelStateVector (model, model.q, *Q);
 	}
 
 	if (QDot) {
-		assert (model.qdot.size() == QDot->size() + 1);
-		// velocities
-		for (i = 0; i < model.dof_count; i++) {
-			model.qdot[i + 1] = (*QDot)[i];
-		}
+		CopyDofVectorToModelStateVector (model, model.qdot, *QDot);
 	}
 
 	if (QDDot) {
-		assert (model.qddot.size() == QDDot->size() + 1);
-		// accelerations
-		for (i = 0; i < model.dof_count; i++) {
-			model.qddot[i + 1] = (*QDDot)[i];
-		}
+		CopyDofVectorToModelStateVector (model, model.qddot, *QDDot);
 	}
 
 	if (Q) {

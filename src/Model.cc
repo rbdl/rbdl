@@ -49,6 +49,7 @@ void Model::Init() {
 	mJoints.push_back(root_joint);
 	S.push_back (zero_spatial);
 	X_T.push_back(SpatialTransform());
+	mFixedJointCount = std::vector<unsigned int> (1, 0);
 	
 	// Dynamic variables
 	c.push_back(zero_spatial);
@@ -168,6 +169,14 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.
 	X_T.push_back(joint_frame);
+
+	// compute the proper fixed joint count
+	unsigned int fixed_joint_count = mFixedJointCount[mBodies.size() - 2];
+
+	if (joint.mJointType == JointTypeFixed)
+		fixed_joint_count++;
+
+	mFixedJointCount.push_back (fixed_joint_count);
 
 	// Dynamic variables
 	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));

@@ -82,12 +82,17 @@ namespace RigidBodyDynamics {
  *
  * An important note is that body 0 is the root body and the moving bodies
  * start at index 1. Additionally the vectors for the states q, qdot, etc.
- * have \#Model::dof_count + 1 entries where always the first entry (e.g. q[0])
- * contains the value for the base (or "root" body). Thus the numbering might be
- * confusing as q[1] holds the position variable of the first degree of
- * freedom. This numbering scheme is very beneficial in terms of readability
- * of the code as the resulting code is very similar to the pseudo-code in
- * the RBDA book.
+ * have \#Model::mBodies + 1 entries where always the first entry (e.g.
+ * q[0]) contains the value for the base (or "root" body). Thus the
+ * numbering might be confusing as q[1] holds the position variable of the
+ * first added joint. This numbering scheme is very beneficial in terms of
+ * readability of the code as the resulting code is very similar to the
+ * pseudo-code in the RBDA book.
+ *
+ * \note The dimensions of q, qdot, qddot, and tau are increased whenever
+ * a body is added. This is also true for bodies that are added with a
+ * fixed joint. To query the actual number of degrees of freedom use
+ * Model::dof_count.
  */
 struct Model {
 	// Structural information
@@ -119,14 +124,18 @@ struct Model {
 	/** \brief The joint position
 	 * 
 	 * Warning: to have an easier numbering in the algorithm the state vector
-	 * has NDOF + 1 elements. However element with index 0 is not used!
+	 * has #Bodies + 1 elements. However element with index 0 is not used!
 	 * 
 	 * q[0] - unused <br>
 	 * q[1] - joint 1 <br>
 	 * q[2] - joint 2 <br>
 	 * ... <br>
-	 * q[NDOF] - joint NDOF <br>
+	 * q[#Bodies] - joint #Bodies <br>
 	 *
+	 * \note The dimensions of q, qdot, qddot, and tau are increased whenever
+	 * a body is added. This is also true for bodies that are added with a
+	 * fixed joint. To query the actual number of degrees of freedom use
+	 * Model::dof_count.
 	 */
 	Math::VectorNd q;
 	/// \brief The joint velocity
@@ -150,6 +159,8 @@ struct Model {
 	std::vector<Math::SpatialVector> S;
 	/// \brief Transformations from the parent body to the frame of the joint
 	std::vector<Math::SpatialTransform> X_T;
+	/// \brief The number of fixed joints that have been declared before each joint.
+	std::vector<unsigned int> mFixedJointCount;
 
 	////////////////////////////////////
 	// Dynamics variables

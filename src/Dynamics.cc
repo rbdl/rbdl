@@ -327,26 +327,60 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 	H.setZero();
 
+	std::vector<unsigned int> fixed_joints_count (model.mBodies.size(), 0.);
+
 	unsigned int i;
 	for (i = 1; i < model.mBodies.size(); i++) {
+		if (model.mJoints[i].mJointType == JointTypeFixed)
+			fixed_joints_count[i] = fixed_joints_count[i - 1] + 1;
+		else
+			fixed_joints_count[i] = fixed_joints_count[i - 1];
 		model.Ic[i] = model.mBodies[i].mSpatialInertia;
 	}
 
+	LOG << "-- initialization --" << std::endl;
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "Ic[" << i << "] = " << std::endl << model.Ic[i] << std::endl;
+	}
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "mFixedJointCount[" << i << "] = " << std::endl << model.mFixedJointCount[i] << std::endl;
+	}
+
+	unsigned int dof_i = model.dof_count;
+
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int lambda = model.lambda[i];
+
 		if (lambda != 0) {
 			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].toMatrixTranspose() * model.Ic[i] * model.X_lambda[i].toMatrix();
 		}
 
+		if (model.mJoints[i].mJointType == JointTypeFixed) {
+			continue;
+		}
+
+		dof_i = i - model.mFixedJointCount[i] - 1;
+
 		SpatialVector F = model.Ic[i] * model.S[i];
-		H(i - 1, i - 1) = model.S[i].dot(F);
+		H(dof_i, dof_i) = model.S[i].dot(F);
+
 		unsigned int j = i;
+		unsigned int dof_j = dof_i;
 
 		while (model.lambda[j] != 0) {
 			F = model.X_lambda[j].toMatrixTranspose() * F;
 			j = model.lambda[j];
-			H(i - 1,j - 1) = F.dot(model.S[j]);
-			H(j - 1,i - 1) = H(i - 1,j - 1);
+
+			if (model.mJoints[j].mJointType == JointTypeFixed) {
+				continue;
+			}
+
+			dof_j = j - model.mFixedJointCount[j] - 1;
+
+			LOG << "i,j         = " << i << ", " << j << std::endl;
+			LOG << "dof_i,dof_j = " << dof_i << ", " << dof_j << std::endl;
+			H(dof_i,dof_j) = F.dot(model.S[j]);
+			H(dof_j,dof_i) = H(dof_i,dof_j);
 		}
 	}
 }
