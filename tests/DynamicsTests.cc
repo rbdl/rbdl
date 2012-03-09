@@ -9,6 +9,7 @@
 #include "Kinematics.h"
 #include "Dynamics.h"
 #include "Contacts.h"
+#include "Fixtures.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -627,3 +628,120 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 	delete model;
 }
 
+TEST_FIXTURE(SimpleFixture, TestForwardDynamicsFixedJointSimple) {
+	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	Body null_body (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint fixed_joint (
+			JointTypeFixed,
+			Vector3d (0., 0., 0.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), fixed_joint, null_body);
+	model->AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint, body);
+	model->AppendBody(Xtrans(Vector3d(1., 0., 0.)), fixed_joint, null_body);
+	model->AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint, body);
+
+	// proper initialization of Q, QDot, QDDot, Tau
+	ResizeVectors();
+
+	// create a reference model
+	Model *ref_model = new Model;
+	ref_model->gravity = Vector3d (0., -9.81, 0.);
+	ref_model->Init();
+
+	ref_model->AddBody(0,Xtrans(Vector3d(1., 0., 0.)), joint, body);
+	ref_model->AppendBody(Xtrans(Vector3d(1., 0., 0.)), joint, body);
+
+	VectorNd QDDot_ref (ref_model->dof_count);
+
+	Q.setZero();
+	QDot.setZero();
+	QDDot.setZero();
+	Tau.setZero();
+
+	// make sure the models are equivalent in terms of their dynamics
+	Q[0] = 1.1;
+	Q[1] = 2.3;
+
+	QDot[0] = 3.1;
+	QDot[1] = -9.2;
+
+	Tau[0] = 3.2;
+	Tau[1] = -5.;
+
+	ClearLogOutput();
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+//	cout << LogOutput.str() << endl;
+
+	ClearLogOutput();
+	ForwardDynamics (*ref_model, Q, QDot, Tau, QDDot_ref);
+//	cout << LogOutput.str() << endl;
+
+	CHECK_ARRAY_CLOSE (QDDot_ref.data(), QDDot.data(), 2, TEST_PREC);
+
+	delete ref_model;
+}
+
+TEST_FIXTURE(SimpleFixture, TestInverseDynamicsFixedJointSimple) {
+	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+	Joint joint (
+			JointTypeRevolute,
+			Vector3d (0., 0., 1.)
+			);
+
+	Body null_body (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	Joint fixed_joint (
+			JointTypeFixed,
+			Vector3d (0., 0., 0.)
+			);
+
+	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), fixed_joint, null_body);
+	model->AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint, body);
+	model->AppendBody(Xtrans(Vector3d(1., 0., 0.)), fixed_joint, null_body);
+	model->AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint, body);
+
+	// proper initialization of Q, QDot, QDDot, Tau
+	ResizeVectors();
+
+	// create a reference model
+	Model *ref_model = new Model;
+	ref_model->gravity = Vector3d (0., -9.81, 0.);
+	ref_model->Init();
+
+	ref_model->AddBody(0,Xtrans(Vector3d(1., 0., 0.)), joint, body);
+	ref_model->AppendBody(Xtrans(Vector3d(1., 0., 0.)), joint, body);
+
+	VectorNd Tau_ref (ref_model->dof_count);
+
+	Q.setZero();
+	QDot.setZero();
+	QDDot.setZero();
+	Tau.setZero();
+
+	// make sure the models are equivalent in terms of their dynamics
+	Q[0] = 1.1;
+	Q[1] = 2.3;
+
+	QDot[0] = 3.1;
+	QDot[1] = -9.2;
+
+	QDDot[0] = 3.2;
+	QDDot[1] = -5.;
+
+	ClearLogOutput();
+	InverseDynamics (*model, Q, QDot, QDDot, Tau);
+//	cout << LogOutput.str() << endl;
+
+	ClearLogOutput();
+	InverseDynamics (*ref_model, Q, QDot, QDDot, Tau_ref);
+//	cout << LogOutput.str() << endl;
+
+	CHECK_ARRAY_CLOSE (Tau_ref.data(), Tau.data(), 2, TEST_PREC);
+
+	delete ref_model;
+}

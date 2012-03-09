@@ -41,6 +41,14 @@
  * \li \ref dynamics_group
  * \li \ref contacts_group
  *
+ * \section KnownRestrictions Known Restrictions / Bugs
+ *
+ * \li Fixed joints are currently under active development and are not properly
+ * tested. Use with great care.
+ * \li External forces that are supplied by optional arguments f_ext e.g. to
+ * RigidBodyDynamics::ForwardDynamics() are not properly tested in
+ * combination with fixed joints.
+ *
  * \section Licensing Licensing
  *
  * The library is published under the very permissive zlib free software

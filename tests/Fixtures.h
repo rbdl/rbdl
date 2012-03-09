@@ -260,4 +260,29 @@ struct FloatingBase12DoF {
 	RigidBodyDynamics::Math::VectorNd Tau;
 };
 
+struct SimpleFixture {
+	SimpleFixture () {
+		ClearLogOutput();
+		model = new RigidBodyDynamics::Model;
+		model->Init();
+		model->gravity = RigidBodyDynamics::Math::Vector3d (0., -9.81, 0.);
+	}
+	~SimpleFixture () {
+		delete model;
+	}
+	void ResizeVectors () {
+		Q = RigidBodyDynamics::Math::VectorNd::Zero (model->dof_count);
+		QDot = RigidBodyDynamics::Math::VectorNd::Zero (model->dof_count);
+		QDDot = RigidBodyDynamics::Math::VectorNd::Zero (model->dof_count);
+		Tau = RigidBodyDynamics::Math::VectorNd::Zero (model->dof_count);
+	}
+
+	RigidBodyDynamics::Model *model;
+
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
+};
+
 

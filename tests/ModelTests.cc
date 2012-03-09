@@ -288,11 +288,11 @@ TEST_FIXTURE(ModelFixture, TestAddFixedJoint) {
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 	CHECK_EQUAL (-1., model->q[fixed_body]);
 
-	ForwardDynamicsLagrangian(*model, Q, QDot, Tau, QDDot);
-	CHECK_EQUAL (-1., model->q[fixed_body]);
-
 	InverseDynamics(*model, Q, QDot, QDDot, Tau);
 	CHECK_EQUAL (-1., model->q[fixed_body]);
+
+	// Note: checking of the lagrangian formulation and the CRBA is done in
+	// tests/CompositeRigidBodyTests.cc
 }
 
 /*

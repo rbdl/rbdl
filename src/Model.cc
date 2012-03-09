@@ -154,10 +154,10 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		dof_count += 1;
 
 	// state information
-	q.resize (mBodies.size());
-	qdot.resize (mBodies.size());
-	qddot.resize (mBodies.size());
-	tau.resize (mBodies.size());
+	q = VectorNd::Zero (mBodies.size());
+	qdot = VectorNd::Zero (mBodies.size());
+	qddot = VectorNd::Zero (mBodies.size());
+	tau = VectorNd::Zero (mBodies.size());
 
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));

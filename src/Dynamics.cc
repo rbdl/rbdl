@@ -46,6 +46,16 @@ void ForwardDynamics (
 	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
 	CopyDofVectorToModelStateVector (model, model.tau, Tau);
 
+	LOG << "Q          = " << Q.transpose() << std::endl;
+	LOG << "QDot       = " << QDot.transpose() << std::endl;
+	LOG << "Tau        = " << Tau.transpose() << std::endl;
+	LOG << "---" << std::endl;
+	LOG << "model.q    = " << model.q.transpose() << std::endl;
+	LOG << "model.qdot = " << model.qdot.transpose() << std::endl;
+	LOG << "model.tau  = " << model.tau.transpose() << std::endl;
+	LOG << "---" << std::endl;
+
+
 	// Reset the velocity of the root body
 	model.v[0].setZero();
 
@@ -104,7 +114,7 @@ void ForwardDynamics (
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "v[" << i << "]   = " << model.v[i] << std::endl;
+		LOG << "v[" << i << "]   = " << model.v[i].transpose() << std::endl;
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -112,25 +122,30 @@ void ForwardDynamics (
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
+		LOG << "pA[" << i << "]  = " << model.pA[i].transpose() << std::endl;
 	}
 
 	LOG << std::endl;
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
-		// we can skip further processing if the joint is fixed
-		if (model.mJoints[i].mJointType == JointTypeFixed)
-			continue;
-
 		model.U[i] = model.IA[i] * model.S[i];
 		model.d[i] = model.S[i].dot(model.U[i]);
 		model.u[i] = model.tau[i] - model.S[i].dot(model.pA[i]);
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
+			SpatialTransform X_lambda = model.X_lambda[i];
+
+			// for fixed joints we simply transform the spatial inertia and the
+			// spatial bias force to the parent body
+			if (model.mJoints[i].mJointType == JointTypeFixed) {
+				model.IA[lambda] = model.IA[lambda] + X_lambda.toMatrixTranspose() * model.IA[i] * X_lambda.toMatrix();
+				model.pA[lambda] = model.pA[lambda] + X_lambda.toMatrixTranspose() * model.pA[i];
+				continue;
+			}
+
 			SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
-			SpatialTransform X_lambda = model.X_lambda[i];
 
 			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
 			model.IA[lambda] = model.IA[lambda] + X_lambda.toMatrixTranspose() * Ia * X_lambda.toMatrix();
@@ -143,7 +158,7 @@ void ForwardDynamics (
 	LOG << "--- second loop ---" << std::endl;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "U[" << i << "]   = " << model.U[i] << std::endl;
+		LOG << "U[" << i << "]   = " << model.U[i].transpose() << std::endl;
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -158,7 +173,7 @@ void ForwardDynamics (
 		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
 	}
 	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "pA[" << i << "]  = " << model.pA[i] << std::endl;
+		LOG << "pA[" << i << "]  = " << model.pA[i].transpose() << std::endl;
 	}
 
 	LOG << std::endl << "--- third loop ---" << std::endl;
