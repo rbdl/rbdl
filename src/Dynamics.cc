@@ -281,7 +281,6 @@ void InverseDynamics (
 		unsigned int lambda = model.lambda[i];
 
 		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
-		LOG << "X_T (" << i << "):" << std::endl << model.X_T[i] << std::endl;
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
@@ -296,13 +295,26 @@ void InverseDynamics (
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.S[i] * model.qddot[i] + model.c[i];
 		}
 
-		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
-		LOG << "v (" << i << "):" << std::endl << v_J << std::endl;
-		LOG << "a (" << i << "):" << std::endl << v_J << std::endl;
-
 		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mSpatialInertia * model.v[i]);
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
+
+		if (model.mJoints[i].mJointType == JointTypeFixed) {
+		}
+	}
+
+	LOG << "-- first loop --" << std::endl;
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "X_base[" << i << "] = " << std::endl << model.X_base[i] << std::endl;
+	}
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "v[" << i << "] = " << model.v[i].transpose() << std::endl;
+	}
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
+	}
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "f[" << i << "] = " << model.f[i].transpose() << std::endl;
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
@@ -312,6 +324,16 @@ void InverseDynamics (
 			model.f[lambda] = model.f[lambda] + model.X_lambda[i].toMatrixTranspose() * model.f[i];
 		}
 	}
+
+	LOG << "-- second loop" << std::endl;
+	LOG << "tau = " << model.tau.transpose() << std::endl;
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "f[" << i << "] = " << model.f[i].transpose() << std::endl;
+	}
+	for (i = 0; i < model.mBodies.size(); i++) {
+		LOG << "S[" << i << "] = " << model.S[i].transpose() << std::endl;
+	}
+
 
 	// copy back values
 	CopyModelStateVectorToDofVector (model, Tau, model.tau);
