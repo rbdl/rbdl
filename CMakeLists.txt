@@ -32,7 +32,6 @@ SET ( RBDL_SOURCES
 	src/rbdl_version.cc
 	src/rbdl_mathutils.cc
 	src/Logging.cc
-	src/Body.cc
 	src/Joint.cc
 	src/Model.cc
 	src/Kinematics.cc

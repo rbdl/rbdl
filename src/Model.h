@@ -50,9 +50,6 @@ namespace RigidBodyDynamics {
  * kinematics_group, \ref dynamics_group, \ref contacts_group, to perform
  * computations.
  *
- * See also \link RigidBodyDynamics::Joint Joint\endlink for joint
- * modeling.
- *
  * \section model_structure Model Structure
  *
  * The model structure contains all the parameters of the rigid multi-body
@@ -68,8 +65,39 @@ namespace RigidBodyDynamics {
  * RigidBodyDynamics::Kinematics::CalcPointJacobian
  * Kinematics::CalcPointJacobian\endlink are called.
  *
+ * \section joint_models Joint Models
+ *
+ * The Rigid Body Dynamics Library supports models with multiple degrees of
+ * freedom. When a joint with more than one degrees of freedom is used,
+ * additional virtual bodies with zero mass that are connected by 1 degree
+ * of freedom joints to simulate the multiple degrees of freedom joint. Even
+ * though this adds some overhead in terms of memory usage, it allows to
+ * exploit fast computations on fixed size elements of the underlying math
+ * library Eigen3.
+ *
+ * Joints are defined by their motion subspace. For each degree of freedom
+ * a one dimensional motion subspace is specified as a Math::SpatialVector.
+ * This vector follows the following convention:
+ *   \f[ (r_x, r_y, r_z, t_x, t_y, t_z) \f]
+ *
+ * To specify a planar joint with three degrees of freedom for which the
+ * first two are translations in \f$x\f$ and \f$y\f$ direction and the last
+ * is a rotation around \f$z\f$, the following joint definition can be used:
+ *
+ * \code
+ * Joint planar_joint = Joint ( 
+ *     Math::SpatialVector (0., 0., 0., 1., 0., 0.),
+ *     Math::SpatialVector (0., 0., 0., 0., 1., 0.),
+ *     Math::SpatialVector (0., 0., 1., 0., 0., 0.)
+ *     );
+ * \endcode
+ *
+ * See also: \link RigidBodyDynamics::Joint Joint\endlink.
+ *
  * \note Please note that in the Rigid %Body Dynamics Library all angles
  * are specified in radians.
+ *
+ *
  */
 
 /** \brief Contains all information about the rigid body model

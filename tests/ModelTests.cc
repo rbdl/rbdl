@@ -295,7 +295,6 @@ TEST_FIXTURE(ModelFixture, TestAddFixedJoint) {
 	// tests/CompositeRigidBodyTests.cc
 }
 
-/*
 TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
 	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint (
@@ -333,7 +332,6 @@ TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
 	CHECK_EQUAL (spatial_body_velocity, model->v.at(2));
 	// std::cout << LogOutput.str() << std::endl;
 }
-*/
 
 TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	Body body;

@@ -55,7 +55,6 @@ void ForwardDynamics (
 	LOG << "model.tau  = " << model.tau.transpose() << std::endl;
 	LOG << "---" << std::endl;
 
-
 	// Reset the velocity of the root body
 	model.v[0].setZero();
 
@@ -300,6 +299,7 @@ void InverseDynamics (
 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
 
 		if (model.mJoints[i].mJointType == JointTypeFixed) {
+			model.f[lambda].setZero();
 		}
 	}
 
@@ -319,7 +319,9 @@ void InverseDynamics (
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		model.tau[i] = model.S[i].dot(model.f[i]);
+
 		unsigned int lambda = model.lambda[i];
+
 		if (lambda != 0) {
 			model.f[lambda] = model.f[lambda] + model.X_lambda[i].toMatrixTranspose() * model.f[i];
 		}
@@ -333,7 +335,6 @@ void InverseDynamics (
 	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "S[" << i << "] = " << model.S[i].transpose() << std::endl;
 	}
-
 
 	// copy back values
 	CopyModelStateVectorToDofVector (model, Tau, model.tau);

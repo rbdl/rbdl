@@ -761,7 +761,7 @@ TEST_FIXTURE(SimpleFixture, TestInverseDynamicsFixedJointNonNullBody) {
 
 	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint, null_body);
 	model->AppendBody(Xtrans(Vector3d(0., 0., 0.)), fixed_joint, body);
-	model->AppendBody(Xtrans(Vector3d(1., 0., 0.)), joint, null_body);
+	model->AppendBody(Xtrans(Vector3d(1., 0., 0.)), joint, body);
 	model->AppendBody(Xtrans(Vector3d(0., 0., 0.)), fixed_joint, body);
 
 	// proper initialization of Q, QDot, QDDot, Tau

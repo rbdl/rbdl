@@ -786,7 +786,6 @@ void ForwardDynamicsContacts (
 		}
 		CS.f_ext_constraints[body_id].setZero();
 
-		////////////////////////////
 		CS.QDDot_t += CS.QDDot_0;
 
 		// compute the resulting acceleration
@@ -806,68 +805,6 @@ void ForwardDynamicsContacts (
 			CS.K(ci,cj) = CS.normal[cj].dot(point_accel_t - CS.point_accel_0[cj]);
 			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
 		}
-		//////////////////////////////////
-
-		/*
-		// update the spatial accelerations due to the test force
-		for (unsigned j = 1; j < model.mBodies.size(); j++) {
-			if (model.lambda[j] != 0) {
-				model.a[j] = model.X_lambda[j] * model.a[model.lambda[j]] + model.c[j];
-			}	else {
-				model.a[j].setZero();
-			}
-
-			model.a[j] = model.a[j] + model.S[j] * QDDot_t[j - 1];
-		}
-		*/
-
-		/////////////i
-		/*
-
-		QDDot_t += QDDot_0;
-
-		{
-			SUPPRESS_LOGGING;
-			UpdateKinematicsCustom (model, NULL, NULL, &QDDot_t);
-		}
-		
-		LOG << "SUUUHUUM = " << (QDDot_t).transpose() << std::endl;
-	
-		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {
-			static SpatialVector point_spatial_acc;
-			{
-				SUPPRESS_LOGGING;
-
-				// computation of the net effect (acceleration due to the test
-				// force)
-
-				// method 1: simply compute the acceleration by calling
-				// CalcPointAcceleration() (slow)
-				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
-
-				// method 2: transforming the spatial acceleration
-				// appropriately.(faster: 
-//				point_global = CalcBodyToBaseCoordinates (model, Q, ContactData[cj].body_id, ContactData[cj].point, false);
-//				point_spatial_acc = Xtrans (point_global) * (spatial_inverse(model.X_base[ContactData[cj].body_id]) * model.a[ContactData[cj].body_id]);
-//				point_accel_t.set (point_spatial_acc[3], point_spatial_acc[4], point_spatial_acc[5]);
-
-				// method 3: reduce 1 Matrix-Matrix computation:
-				// \todo currently broken!
-//				point_global = CalcBodyToBaseCoordinates (model, Q, ContactData[cj].body_id, ContactData[cj].point, false);
-//				point_spatial_acc = spatial_inverse(model.X_base[ContactData[cj].body_id]) * model.a[ContactData[cj].body_id];
-//
-//				Matrix3d rx (0., point_global[2], -point_global[1], -point_global[2], 0, point_global[0], point_global[1], -point_global[0], 0.);
-//				Matrix3d R = model.X_base[ContactData[cj].body_id].block<3,3>(0,0).transpose();
-//				point_accel_t = rx * R * Vector3d (point_spatial_acc[0], point_spatial_acc[1], point_spatial_acc[2]) + Vector3d(point_spatial_acc[3], point_spatial_acc[4], point_spatial_acc[5]) ;
-			}
-
-			LOG << "point_spatial_a= " << point_spatial_acc.transpose() << std::endl;
-			LOG << "point_accel_0  = [" << point_accel_0.transpose() << " ]" << std::endl;
-			K(ci,cj) = ContactData[cj].normal.dot(point_accel_t);
-			LOG << "point_accel_t = [" << (point_accel_t).transpose() << " ]" << std::endl;
-		}
-		*/
-		////////////////
 	}
 
 	LOG << "K = " << std::endl << CS.K << std::endl;
