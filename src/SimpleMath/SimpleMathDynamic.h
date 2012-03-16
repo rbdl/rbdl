@@ -297,7 +297,8 @@ class Matrix {
 
 		// access operators
 		const val_type& operator[](const unsigned int &index) const {
-			assert (index	>= 0 && index < nrows * ncols);
+			assert (index	>= 0);
+			assert (index < nrows * ncols);
 			return mData[index];
 		};
 		val_type& operator[](const unsigned int &index) {
