@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <assert.h>
+#include <string.h>
 
 #include "rbdl_mathutils.h"
 #include "Logging.h"
@@ -265,9 +266,9 @@ void InverseDynamics (
 	unsigned int i;
 
 	// Copy state values from the input to the variables in model
-	CopyDofVectorToModelStateVector (model, model.q, Q);
-	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
-	CopyDofVectorToModelStateVector (model, model.qddot, QDDot);
+//	CopyDofVectorToModelStateVector (model, model.q, Q);
+//	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
+//	CopyDofVectorToModelStateVector (model, model.qddot, QDDot);
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -279,19 +280,19 @@ void InverseDynamics (
 		SpatialVector c_J;
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+		jcalc (model, i, X_J, model.S[i], v_J, c_J, Q[i - 1], QDot[i - 1]);
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
 		if (lambda == 0) {
 			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
-			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.) + model.S[i] * model.qddot[i];
+			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.) + model.S[i] * QDDot[i - 1];
 		}	else {
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);
-			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.S[i] * model.qddot[i] + model.c[i];
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.S[i] * QDDot[i - 1] + model.c[i];
 		}
 
 		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mSpatialInertia * model.v[i]);
@@ -318,7 +319,7 @@ void InverseDynamics (
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
-		model.tau[i] = model.S[i].dot(model.f[i]);
+		Tau[i - 1] = model.S[i].dot(model.f[i]);
 
 		unsigned int lambda = model.lambda[i];
 
@@ -337,7 +338,7 @@ void InverseDynamics (
 	}
 
 	// copy back values
-	CopyModelStateVectorToDofVector (model, Tau, model.tau);
+	// CopyModelStateVectorToDofVector (model, Tau, model.tau);
 }
 
 void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, bool update_kinematics) {
