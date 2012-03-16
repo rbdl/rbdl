@@ -1,6 +1,6 @@
 /*
- * RBDL - Rigid Body Library
- * Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * RBDL - Rigid Body Dynamics Library
+ * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -10,6 +10,7 @@
 #include <rbdl.h>
 
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 int main (int argc, char* argv[]) {
 	Model* model = NULL;

@@ -94,7 +94,9 @@ double run_inverse_dynamics_RNEA_benchmark (Model *model, int sample_count) {
 		<< " #samples: " << sample_count 
 		<< " duration = " << setw(10) << duration << "(s)"
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
-	
+
+	cout << "36 DOF estimate: " << (duration / sample_count) * (36. / model->dof_count) << endl;;
+
 	return duration;
 }
 

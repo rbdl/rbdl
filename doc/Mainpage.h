@@ -1,11 +1,16 @@
 /** \file Mainpage.h 
  * \mainpage Rigid Body Dynamics Library
+ 
+ * This is the documentation the Rigid Body Dynamics Library. The library
+ * contains highly efficient code for both forward and inverse dynamics. It
+ * includes:
+ * 
+ * \li Recursive Newton Euler Algorithm
+ * \li Composite Rigid Body Algorithm
+ * \li Articulated Body Algorithm.
  *
- * This is the documentation of a yet to be named rigid body simulation
- * code. So far the code supports forward and inverse dynamics by using the
- * Articulated Body Algorathm and the Newton-Euler algorithm, respectively.
- * Additionally it also containes the Composite Rigid Body Algorithm that
- * computes the joint space inertia matrix.
+ * Furthermore it contains functions for forward and inverse kinematics and
+ * contact handling.
  *
  * The code is written by <a
  * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
@@ -17,9 +22,6 @@
  * <a href="http://eigen.tuxfamily.org/">Eigen</a> math library. More
  * information about it can be found here:
  * <a href="http://eigen.tuxfamily.org/">http://eigen.tuxfamily.org/</a>.
- *
- * Documentation of the functions can be found at the documentation page of
- * the namespace RigidBodyDynamics.
  *
  * \section ModelConstruction Construction of Models
  *
@@ -56,7 +58,7 @@
  * Here is the full license text:
  * \verbatim
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
