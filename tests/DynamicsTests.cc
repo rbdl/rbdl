@@ -628,6 +628,7 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 	delete model;
 }
 
+/*
 TEST_FIXTURE(SimpleFixture, TestForwardDynamicsFixedJointSimple) {
 	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint (
@@ -804,3 +805,4 @@ TEST_FIXTURE(SimpleFixture, TestInverseDynamicsFixedJointNonNullBody) {
 
 	delete ref_model;
 }
+*/

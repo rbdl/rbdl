@@ -252,6 +252,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 /** Checks that the model internal position variable does not get
  * updated during a call to ForwardDynamics
  */
+/*
 TEST_FIXTURE(ModelFixture, TestAddFixedJoint) {
 	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 	Joint joint (
@@ -294,6 +295,7 @@ TEST_FIXTURE(ModelFixture, TestAddFixedJoint) {
 	// Note: checking of the lagrangian formulation and the CRBA is done in
 	// tests/CompositeRigidBodyTests.cc
 }
+*/
 
 TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
 	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
