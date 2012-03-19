@@ -1,10 +1,11 @@
 /** \file Mainpage.h 
- * \mainpage Rigid Body Dynamics Library
- 
- * This is the documentation the Rigid Body Dynamics Library. The library
- * contains highly efficient code for both forward and inverse dynamics. It
- * includes:
- * 
+ * \mainpage RBDL - Rigid Body Dynamics Library
+ * \image html logo/rbdl_logo_64x64.png
+ *
+ * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
+ * library contains highly efficient code for both forward and inverse
+ * dynamics. It includes:
+ *
  * \li Recursive Newton Euler Algorithm
  * \li Composite Rigid Body Algorithm
  * \li Articulated Body Algorithm.
