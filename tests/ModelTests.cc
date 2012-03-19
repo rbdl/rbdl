@@ -33,10 +33,6 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 	CHECK_EQUAL (1u, model->mu.size());
 	CHECK_EQUAL (0u, model->dof_count);
 
-	CHECK_EQUAL (1u, model->q.size());
-	CHECK_EQUAL (1u, model->qdot.size());
-	CHECK_EQUAL (1u, model->qddot.size());
-	CHECK_EQUAL (1u, model->tau.size());
 	CHECK_EQUAL (1u, model->v.size());
 	CHECK_EQUAL (1u, model->a.size());
 	
@@ -71,10 +67,6 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2u, model->mu.size());
 	CHECK_EQUAL (1u, model->dof_count);
 
-	CHECK_EQUAL (2u, model->q.size());
-	CHECK_EQUAL (2u, model->qdot.size());
-	CHECK_EQUAL (2u, model->qddot.size());
-	CHECK_EQUAL (2u, model->tau.size());
 	CHECK_EQUAL (2u, model->v.size());
 	CHECK_EQUAL (2u, model->a.size());
 	
@@ -107,10 +99,6 @@ TEST_FIXTURE(ModelFixture, TestExperimentalFloatingBodyDimensions) {
 	CHECK_EQUAL (1u, model->mu.size());
 	CHECK_EQUAL (6u, model->dof_count);
 
-	CHECK_EQUAL (7u, model->q.size());
-	CHECK_EQUAL (7u, model->qdot.size());
-	CHECK_EQUAL (7u, model->qddot.size());
-	CHECK_EQUAL (7u, model->tau.size());
 	CHECK_EQUAL (1u, model->v.size());
 	CHECK_EQUAL (1u, model->a.size());
 	
@@ -141,10 +129,6 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	CHECK_EQUAL (7u, model->mu.size());
 	CHECK_EQUAL (6u, model->dof_count);
 
-	CHECK_EQUAL (7u, model->q.size());
-	CHECK_EQUAL (7u, model->qdot.size());
-	CHECK_EQUAL (7u, model->qddot.size());
-	CHECK_EQUAL (7u, model->tau.size());
 	CHECK_EQUAL (7u, model->v.size());
 	CHECK_EQUAL (7u, model->a.size());
 	

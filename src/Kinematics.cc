@@ -33,12 +33,6 @@ void UpdateKinematics (Model &model,
 		assert (0 && !"UpdateKinematics not supported yet for experimental floating bases");
 	}
 	
-	// Copy positions, velocities, and accelerations while taking account for
-	// fixed joints
-	CopyDofVectorToModelStateVector (model, model.q, Q);
-	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
-	CopyDofVectorToModelStateVector (model, model.qddot, QDDot);
-
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	model.a[0].setZero();
@@ -51,7 +45,7 @@ void UpdateKinematics (Model &model,
 		Joint joint = model.mJoints[i];
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+		jcalc (model, i, X_J, model.S[i], v_J, c_J, Q[i - 1], QDot[i - 1]);
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
@@ -66,7 +60,7 @@ void UpdateKinematics (Model &model,
 		}
 		
 		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
-		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+		model.a[i] = model.a[i] + model.S[i] * QDDot[i - 1];
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -89,18 +83,6 @@ void UpdateKinematicsCustom (Model &model,
 	}
 
 	if (Q) {
-		CopyDofVectorToModelStateVector (model, model.q, *Q);
-	}
-
-	if (QDot) {
-		CopyDofVectorToModelStateVector (model, model.qdot, *QDot);
-	}
-
-	if (QDDot) {
-		CopyDofVectorToModelStateVector (model, model.qddot, *QDDot);
-	}
-
-	if (Q) {
 		for (i = 1; i < model.mBodies.size(); i++) {
 			SpatialVector v_J;
 			SpatialVector c_J;
@@ -108,7 +90,7 @@ void UpdateKinematicsCustom (Model &model,
 			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
-			jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+			jcalc (model, i, X_J, model.S[i], v_J, c_J, (*Q)[i - 1], 0.);
 
 			model.X_lambda[i] = X_J * model.X_T[i];
 
@@ -128,7 +110,7 @@ void UpdateKinematicsCustom (Model &model,
 			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
-			jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+			jcalc (model, i, X_J, model.S[i], v_J, c_J, (*Q)[i - 1], (*QDot)[i - 1]);
 
 			if (lambda != 0) {
 				model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
@@ -150,7 +132,7 @@ void UpdateKinematicsCustom (Model &model,
 				model.a[i].setZero();
 			}
 
-			model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+			model.a[i] = model.a[i] + model.S[i] * (*QDDot)[i - 1];
 		}
 	}
 }
@@ -274,8 +256,8 @@ Vector3d CalcPointVelocity (
 	}
 		
 	assert (body_id > 0 && body_id < model.mBodies.size());
-	assert (model.q.size() == Q.size() + 1);
-	assert (model.qdot.size() == QDot.size() + 1);
+	assert (model.mBodies.size() == Q.size() + 1);
+	assert (model.mBodies.size() == QDot.size() + 1);
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();

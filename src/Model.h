@@ -55,16 +55,8 @@ namespace RigidBodyDynamics {
  *
  * The model structure contains all the parameters of the rigid multi-body
  * model such as joint informations, mass and inertial parameters of the
- * rigid bodies, etc.
- *
- * Furthermore the current state of the model, such as the
- * generalized positions, velocities and accelerations is also stored
- * within the model. Angles are always stored as radians. This internal
- * state is used when functions such as \link
- * RigidBodyDynamics::Kinematics::CalcBodyToBaseCoordinates
- * Kinematics::CalcBodyToBaseCoordinates(...)\endlink, \link
- * RigidBodyDynamics::Kinematics::CalcPointJacobian
- * Kinematics::CalcPointJacobian\endlink are called.
+ * rigid bodies, etc. It also contains storage for the transformations and
+ * current state, such as velocity and acceleration of each body.
  *
  * \section joint_models Joint Models
  *
@@ -97,8 +89,6 @@ namespace RigidBodyDynamics {
  *
  * \note Please note that in the Rigid %Body Dynamics Library all angles
  * are specified in radians.
- *
- *
  */
 
 /** \brief Contains all information about the rigid body model
@@ -149,30 +139,6 @@ struct Model {
 	Math::Vector3d gravity;
 
 	// State information
-
-	/** \brief The joint position
-	 * 
-	 * Warning: to have an easier numbering in the algorithm the state vector
-	 * has #Bodies + 1 elements. However element with index 0 is not used!
-	 * 
-	 * q[0] - unused <br>
-	 * q[1] - joint 1 <br>
-	 * q[2] - joint 2 <br>
-	 * ... <br>
-	 * q[#Bodies] - joint #Bodies <br>
-	 *
-	 * \note The dimensions of q, qdot, qddot, and tau are increased whenever
-	 * a body is added. This is also true for bodies that are added with a
-	 * fixed joint. To query the actual number of degrees of freedom use
-	 * Model::dof_count.
-	 */
-	Math::VectorNd q;
-	/// \brief The joint velocity
-	Math::VectorNd qdot;
-	/// \brief The joint acceleration
-	Math::VectorNd qddot;
-	/// \brief The force / torque applied at joint i
-	Math::VectorNd tau;
 	/// \brief The spatial velocity of body i
 	std::vector<Math::SpatialVector> v;
 	/// \brief The spatial acceleration of body i
@@ -323,30 +289,6 @@ struct Model {
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 };
-
-/** \brief Copies values from a DoF-vector to a model state vector.
- *
- * All values for the generalized vectors such as Q, QDot, QDDot, and Tau
- * are copied to the values within the model structure. As the model
- * structure uses a different numbering, all values have to be shifted by
- * one.
- */
-inline void CopyDofVectorToModelStateVector (const Model &model, Math::VectorNd &dest_model_state, const Math::VectorNd &dof_src) {
-	assert (dest_model_state.size() == model.mBodies.size());
-	assert (dof_src.size() == model.dof_count);
-
-	for (unsigned int i = 0; i < model.dof_count; i++)
-		dest_model_state[i + 1] = dof_src[i];
-}
-
-/** \brief Inverse operation to CopyDofVectorToModelStateVector() */
-inline void CopyModelStateVectorToDofVector (const Model &model, Math::VectorNd &dof_dest, const Math::VectorNd &src_model_state) {
-	assert (dof_dest.size() == model.dof_count);
-	assert (src_model_state.size() == model.mBodies.size());
-
-	for (unsigned int i = 0; i < model.dof_count; i++)
-		dof_dest[i] = src_model_state[i + 1];	
-}
 
 /** @} */
 

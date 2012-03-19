@@ -17,6 +17,10 @@ namespace RigidBodyDynamics {
 
 /** \defgroup kinematics_group Kinematics
  * @{
+ *
+ * \note Please note that in the Rigid %Body Dynamics Library all angles
+ * are specified in radians.
+ *
  */
 
 /** \brief Updates and computes velocities and accelerations of the bodies

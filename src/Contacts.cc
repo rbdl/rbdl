@@ -393,6 +393,7 @@ void ComputeContactImpulsesLagrangian (
  */
 void ForwardDynamicsApplyConstraintForces (
 		Model &model,
+		const VectorNd &Tau,
 		ConstraintSet &CS,
 		VectorNd &QDDot
 		) {
@@ -416,7 +417,7 @@ void ForwardDynamicsApplyConstraintForces (
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		CS.d_U[i] = CS.d_IA[i] * model.S[i];
 		CS.d_d[i] = model.S[i].dot(model.U[i]);
-		CS.d_u[i] = model.tau[i] - model.S[i].dot(CS.d_pA[i]);
+		CS.d_u[i] = Tau[i - 1] - model.S[i].dot(CS.d_pA[i]);
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
@@ -829,7 +830,7 @@ void ForwardDynamicsContacts (
 
 	{
 		SUPPRESS_LOGGING;
-		ForwardDynamicsApplyConstraintForces (model, CS, QDDot);
+		ForwardDynamicsApplyConstraintForces (model, Tau, CS, QDDot);
 	}
 }
 

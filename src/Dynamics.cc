@@ -42,18 +42,9 @@ void ForwardDynamics (
 
 	unsigned int i = 0;
 
-	// Copy state values from the input to the variables in model
-	CopyDofVectorToModelStateVector (model, model.q, Q);
-	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
-	CopyDofVectorToModelStateVector (model, model.tau, Tau);
-
 	LOG << "Q          = " << Q.transpose() << std::endl;
 	LOG << "QDot       = " << QDot.transpose() << std::endl;
 	LOG << "Tau        = " << Tau.transpose() << std::endl;
-	LOG << "---" << std::endl;
-	LOG << "model.q    = " << model.q.transpose() << std::endl;
-	LOG << "model.qdot = " << model.qdot.transpose() << std::endl;
-	LOG << "model.tau  = " << model.tau.transpose() << std::endl;
 	LOG << "---" << std::endl;
 
 	// Reset the velocity of the root body
@@ -65,7 +56,7 @@ void ForwardDynamics (
 		SpatialVector c_J;
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S[i], v_J, c_J, model.q[i], model.qdot[i]);
+		jcalc (model, i, X_J, model.S[i], v_J, c_J, Q[i - 1], QDot[i - 1]);
 		LOG << "X_T (" << i << "):" << std::endl << model.X_T[i] << std::endl;
 
 		model.X_lambda[i] = X_J * model.X_T[i];
@@ -130,7 +121,7 @@ void ForwardDynamics (
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		model.U[i] = model.IA[i] * model.S[i];
 		model.d[i] = model.S[i].dot(model.U[i]);
-		model.u[i] = model.tau[i] - model.S[i].dot(model.pA[i]);
+		model.u[i] = Tau[i - 1] - model.S[i].dot(model.pA[i]);
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
@@ -180,8 +171,8 @@ void ForwardDynamics (
 
 		model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
 
-		model.qddot[i] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
-		model.a[i] = model.a[i] + model.S[i] * model.qddot[i];
+		QDDot[i - 1] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
+		model.a[i] = model.a[i] + model.S[i] * QDDot[i - 1];
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -194,10 +185,7 @@ void ForwardDynamics (
 		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
 	}
 
-	LOG << "qddot = " << model.qddot.transpose() << std::endl;
-
-	// copy back values
-	CopyModelStateVectorToDofVector (model, QDDot, model.qddot);
+	LOG << "QDDot = " << QDDot.transpose() << std::endl;
 }
 
 void ForwardDynamicsLagrangian (
@@ -250,11 +238,6 @@ void InverseDynamics (
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	unsigned int i;
-
-	// Copy state values from the input to the variables in model
-//	CopyDofVectorToModelStateVector (model, model.q, Q);
-//	CopyDofVectorToModelStateVector (model, model.qdot, QDot);
-//	CopyDofVectorToModelStateVector (model, model.qddot, QDDot);
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -311,16 +294,13 @@ void InverseDynamics (
 	}
 
 	LOG << "-- second loop" << std::endl;
-	LOG << "tau = " << model.tau.transpose() << std::endl;
+	LOG << "Tau = " << Tau.transpose() << std::endl;
 	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "f[" << i << "] = " << model.f[i].transpose() << std::endl;
 	}
 	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "S[" << i << "] = " << model.S[i].transpose() << std::endl;
 	}
-
-	// copy back values
-	// CopyModelStateVectorToDofVector (model, Tau, model.tau);
 }
 
 void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, bool update_kinematics) {

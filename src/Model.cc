@@ -37,11 +37,6 @@ void Model::Init() {
 	gravity = Vector3d (0., -9.81, 0.);
 
 	// state information
-	q = VectorNd::Zero(1);
-	qdot = VectorNd::Zero(1);
-	qddot = VectorNd::Zero(1);
-	tau = VectorNd::Zero(1);
-
 	v.push_back(zero_spatial);
 	a.push_back(zero_spatial);
 
@@ -141,7 +136,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	// structural information
 	lambda.push_back(parent_id);
 	mu.push_back(std::vector<unsigned int>());
-	mu.at(parent_id).push_back(q.size());
+	mu.at(parent_id).push_back(mBodies.size());
 
 	// Bodies
 	X_lambda.push_back(SpatialTransform());
@@ -152,11 +147,6 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	dof_count++;
 
 	// state information
-	q = VectorNd::Zero (mBodies.size());
-	qdot = VectorNd::Zero (mBodies.size());
-	qddot = VectorNd::Zero (mBodies.size());
-	tau = VectorNd::Zero (mBodies.size());
-
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 
@@ -188,7 +178,7 @@ unsigned int Model::AppendBody (
 		const Body &body,
 		std::string body_name 
 		) {
-	unsigned int prev_body_id = q.size() - 1;
+	unsigned int prev_body_id = mBodies.size() - 1;
 	return Model::AddBody (prev_body_id, joint_frame,
 			joint, body, body_name);
 }
@@ -199,11 +189,6 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 	if (experimental_floating_base) {
 		// we also will have 6 more degrees of freedom
 		dof_count += 6;
-
-		q.resize (dof_count + 1);
-		qdot.resize (dof_count + 1);
-		qddot.resize (dof_count + 1);
-		tau.resize (dof_count + 1);
 
 		// parent is the maximum possible value to mark it as having no parent
 		lambda.at(0) = std::numeric_limits<unsigned int>::max();
