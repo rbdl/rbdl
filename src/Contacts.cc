@@ -414,10 +414,6 @@ void ForwardDynamicsApplyConstraintForces (
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
-		// we can skip further processing if the joint is fixed
-		if (model.mJoints[i].mJointType == JointTypeFixed)
-			continue;
-
 		CS.d_U[i] = CS.d_IA[i] * model.S[i];
 		CS.d_d[i] = model.S[i].dot(model.U[i]);
 		CS.d_u[i] = model.tau[i] - model.S[i].dot(CS.d_pA[i]);
@@ -467,12 +463,6 @@ void ForwardDynamicsApplyConstraintForces (
 			CS.d_a[i] = X_lambda.apply(spatial_gravity * (-1.)) + model.c[i];
 		} else {
 			CS.d_a[i] = X_lambda.apply(CS.d_a[lambda]) + model.c[i];
-		}
-
-		// we can skip further processing if the joint type is fixed
-		if (model.mJoints[i].mJointType == JointTypeFixed) {
-			model.qddot[i] = 0.;
-			continue;
 		}
 
 		QDDot[i - 1] = (CS.d_u[i] - model.U[i].dot(CS.d_a[i])) / model.d[i];

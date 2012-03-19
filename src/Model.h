@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <iostream>
 #include <limits>
+#include <cstring>
 
 #include "Logging.h"
 #include "Joint.h"
@@ -323,64 +324,28 @@ struct Model {
 	void Init ();
 };
 
-/** \brief Copies values from a DoF-vector to a model state vector while
- * taking account for fixed joints.
+/** \brief Copies values from a DoF-vector to a model state vector.
  *
- * Fixed joints do not have a DoF and must therefore be handled
- * differently. This functions copies values from a vector with
- * Model::dof_count variables into a vector of Model::mBodies.size()
- * (such as Model::q, Model::qdot, Model::qddot, and Model::tau) and
- * always skips the values which correspond to a fixed joint.
+ * All values for the generalized vectors such as Q, QDot, QDDot, and Tau
+ * are copied to the values within the model structure. As the model
+ * structure uses a different numbering, all values have to be shifted by
+ * one.
  */
 inline void CopyDofVectorToModelStateVector (const Model &model, Math::VectorNd &dest_model_state, const Math::VectorNd &dof_src) {
-	unsigned int body_index = 1;
-	unsigned int dof_index = 0;
-
 	assert (dest_model_state.size() == model.mBodies.size());
 	assert (dof_src.size() == model.dof_count);
 
-	do {
-		// bodies that are connected by fixed joints are skipped
-		if (model.mJoints[body_index].mJointType == JointTypeFixed) {
-			body_index++;
-			continue;
-		}
-
-		dest_model_state[body_index] = dof_src[dof_index];
-
-		dof_index++;
-		body_index++;
-	} while (body_index < model.mBodies.size());
+	for (unsigned int i = 0; i < model.dof_count; i++)
+		dest_model_state[i + 1] = dof_src[i];
 }
 
-/** \brief Inverse operation to CopyDofVectorToModelStateVector()
- * 
- * Fixed joints do not have a DoF and must therefore be handled
- * differently. This functions copies values from a vector with
- * Model::mBodies.size() variables (such as Model::q, Model::qdot,
- * Model::qddot, and Model::tau) into a vector of Model::dof_count
- * variables and skips the values which correspond to a fixed
- * joint.
- */
+/** \brief Inverse operation to CopyDofVectorToModelStateVector() */
 inline void CopyModelStateVectorToDofVector (const Model &model, Math::VectorNd &dof_dest, const Math::VectorNd &src_model_state) {
-	unsigned int body_index = 1;
-	unsigned int dof_index = 0;
-
 	assert (dof_dest.size() == model.dof_count);
 	assert (src_model_state.size() == model.mBodies.size());
 
-	do {
-		// bodies that are connected by fixed joints are skipped
-		if (model.mJoints[body_index].mJointType == JointTypeFixed) {
-			body_index++;
-			continue;
-		}
-
-		dof_dest[dof_index] = src_model_state[body_index];
-
-		dof_index++;
-		body_index++;
-	} while (body_index < model.mBodies.size());
+	for (unsigned int i = 0; i < model.dof_count; i++)
+		dof_dest[i] = src_model_state[i + 1];	
 }
 
 /** @} */

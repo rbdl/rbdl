@@ -23,7 +23,6 @@ class Model;
  */
 enum JointType {
 	JointTypeUndefined = 0,
-	JointTypeFixed,
 	JointTypeRevolute,
 	JointTypePrismatic,
 
@@ -95,7 +94,7 @@ struct Joint {
 		// Some assertions, as we concentrate on simple cases
 	
 		// Only rotation around the Z-axis
-		assert ( joint_type == JointTypeRevolute || joint_type == JointTypeFixed || joint_type == JointTypePrismatic );
+		assert ( joint_type == JointTypeRevolute || joint_type == JointTypePrismatic );
 
 		mJointType = joint_type;
 
@@ -114,14 +113,6 @@ struct Joint {
 					0., 0., 0.
 					);
 
-		} else if (joint_type == JointTypeFixed) {
-			mJointAxes[0].set (
-					joint_axis[0],
-					joint_axis[1], 
-					joint_axis[2], 
-					0., 0., 0.
-					);
-			mJointAxes[0].set (0., 0., 0., 0., 0., 0.);
 		} else if (joint_type == JointTypePrismatic) {
 			// make sure we have a unit axis
 			assert (joint_axis.squaredNorm() == 1.);

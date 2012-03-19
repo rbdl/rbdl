@@ -41,12 +41,7 @@ void jcalc (
 	// constraints (see RBDA, p. 55)
 	c_J.setZero();
 
-	if (model.mJoints[joint_id].mJointType == JointTypeFixed) {
-		XJ = SpatialTransform();
-		v_J.setZero();
-
-		return;
-	} else if (model.mJoints[joint_id].mJointType == JointTypeRevolute) {
+	if (model.mJoints[joint_id].mJointType == JointTypeRevolute) {
 		XJ = Xrot (q, Vector3d (
 					model.mJoints[joint_id].mJointAxes[0][0],
 					model.mJoints[joint_id].mJointAxes[0][1],

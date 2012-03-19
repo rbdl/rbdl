@@ -49,7 +49,6 @@ void Model::Init() {
 	mJoints.push_back(root_joint);
 	S.push_back (zero_spatial);
 	X_T.push_back(SpatialTransform());
-	mFixedJointCount = std::vector<unsigned int> (1, 0);
 	
 	// Dynamic variables
 	c.push_back(zero_spatial);
@@ -79,8 +78,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	// Here we emulate multi DoF joints by simply adding nullbodies. This
 	// may be changed in the future, but so far it is reasonably fast.
 	if (joint.mJointType != JointTypePrismatic 
-			&& joint.mJointType != JointTypeRevolute
-			&& joint.mJointType != JointTypeFixed) {
+			&& joint.mJointType != JointTypeRevolute) {
 		unsigned int joint_count;
 		if (joint.mJointType == JointType1DoF)
 			joint_count = 1;
@@ -151,8 +149,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	mBodies.push_back(body);
 	mBodyNames.push_back(body_name);
 
-	if (joint.mJointType != JointTypeFixed)
-		dof_count += 1;
+	dof_count++;
 
 	// state information
 	q = VectorNd::Zero (mBodies.size());
@@ -169,14 +166,6 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.
 	X_T.push_back(joint_frame);
-
-	// compute the proper fixed joint count
-	unsigned int fixed_joint_count = mFixedJointCount[mBodies.size() - 2];
-
-	if (joint.mJointType == JointTypeFixed)
-		fixed_joint_count++;
-
-	mFixedJointCount.push_back (fixed_joint_count);
 
 	// Dynamic variables
 	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
