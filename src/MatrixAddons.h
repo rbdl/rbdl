@@ -1,3 +1,10 @@
+/*
+ * RBDL - Rigid Body Dynamics Library
+ * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ *
+ * Licensed under the zlib license. See LICENSE for more details.
+ */
+
 #ifndef _MATRIXADDONS_H
 #define _MATRIXADDONS_H
 

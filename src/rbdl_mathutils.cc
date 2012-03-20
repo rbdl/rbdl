@@ -1,6 +1,6 @@
 /*
- * RBDL - Rigid Body Library
- * Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * RBDL - Rigid Body Dynamics Library
+ * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -11,11 +11,12 @@
 #include <iostream>
 #include <assert.h>
 
-#include <mathutils.h>
+#include <rbdl_mathutils.h>
 
 #include "Logging.h"
 
-using namespace SpatialAlgebra;
+namespace RigidBodyDynamics {
+namespace Math {
 
 Vector3d Vector3dZero (0., 0., 0.);
 Matrix3d Matrix3dIdentity (
@@ -29,7 +30,7 @@ Matrix3d Matrix3dZero (
 		0., 0., 0.
 		);
 
-SpatialAlgebra::SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
+SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
 
 SpatialMatrix SpatialMatrixIdentity (
 		1., 0., 0., 0., 0., 0.,
@@ -137,6 +138,14 @@ bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 	return true;
 }
 
+Matrix3d VectorCrossMatrix (const Vector3d &vector) {
+	return Matrix3d (
+			0., -vector[2], vector[1],
+			vector[2], 0., -vector[0],
+			-vector[1], vector[0], 0.
+			);
+}
+
 void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix) {
 	assert (row < 2 && col < 2);
 	
@@ -189,7 +198,7 @@ bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVe
 	return true;
 }
 
-SpatialMatrix Xtrans (const Vector3d &r) {
+SpatialMatrix Xtrans_mat (const Vector3d &r) {
 	return SpatialMatrix (
 			   1.,    0.,    0.,  0.,  0.,  0.,
 			   0.,    1.,    0.,  0.,  0.,  0.,
@@ -200,7 +209,7 @@ SpatialMatrix Xtrans (const Vector3d &r) {
 			);
 }
 
-SpatialMatrix Xrotx (const double &xrot) {
+SpatialMatrix Xrotx_mat (const double &xrot) {
 	double s, c;
 	s = sin (xrot);
 	c = cos (xrot);
@@ -215,7 +224,7 @@ SpatialMatrix Xrotx (const double &xrot) {
 			);
 }
 
-SpatialMatrix Xroty (const double &yrot) {
+SpatialMatrix Xroty_mat (const double &yrot) {
 	double s, c;
 	s = sin (yrot);
 	c = cos (yrot);
@@ -230,7 +239,7 @@ SpatialMatrix Xroty (const double &yrot) {
 			);
 }
 
-SpatialMatrix Xrotz (const double &zrot) {
+SpatialMatrix Xrotz_mat (const double &zrot) {
 	double s, c;
 	s = sin (zrot);
 	c = cos (zrot);
@@ -246,5 +255,8 @@ SpatialMatrix Xrotz (const double &zrot) {
 }
 
 SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler) {
-	return Xtrans(displacement) * Xrotz(zyx_euler[0]) * Xroty(zyx_euler[1]) * Xrotx(zyx_euler[2]);
+	return Xrotz_mat(zyx_euler[0]) * Xroty_mat(zyx_euler[1]) * Xrotx_mat(zyx_euler[2]) * Xtrans_mat(displacement);
 }
+
+} /* Math */
+} /* RigidBodyDynamics */

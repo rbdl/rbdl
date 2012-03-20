@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "mathutils.h"
 #include "Logging.h"
 
 #include "Model.h"
@@ -11,8 +10,8 @@
 #include "Kinematics.h"
 
 using namespace std;
-using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
@@ -142,13 +141,15 @@ struct ImpulsesFixture {
 	unsigned int contact_body_id;
 	Vector3d contact_point;
 	Vector3d contact_normal;
-	std::vector<ContactInfo> contact_data;
+	ConstraintSet constraint_set;
 };
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 0.));
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
+
+	constraint_set.Bind (*model);
 
 	QDot[0] = 0.1;
 	QDot[1] = -0.2;
@@ -163,7 +164,7 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
 	// cout << "Point Velocity = " << point_velocity << endl;
 
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesLagrangian (*model, Q, QDot, contact_data, qdot_post);
+	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
 
@@ -177,9 +178,11 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
 }
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 0.));
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
+
+	constraint_set.Bind (*model);
 
 	Q[0] = 0.2;
 	Q[1] = -0.5;
@@ -199,9 +202,8 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
 	}
 
 	// cout << "Point Velocity = " << point_velocity << endl;
-
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesLagrangian (*model, Q, QDot, contact_data, qdot_post);
+	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
 
@@ -215,9 +217,11 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
 }
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 1.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 2.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 3.));
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
+
+	constraint_set.Bind (*model);
 
 	Q[0] = 0.2;
 	Q[1] = -0.5;
@@ -239,7 +243,8 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
 	// cout << "Point Velocity = " << point_velocity << endl;
 
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesLagrangian (*model, Q, QDot, contact_data, qdot_post);
+	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
+	
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
 

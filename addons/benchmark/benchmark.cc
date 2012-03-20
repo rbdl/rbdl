@@ -14,6 +14,7 @@
 
 using namespace std;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 int benchmark_sample_count = 1000;
 int benchmark_model_max_depth = 5;
@@ -167,6 +168,9 @@ int main (int argc, char *argv[]) {
 	parse_args (argc, argv);
 
 	Model *model = NULL;
+
+	RigidBodyDynamics::rbdl_print_version();
+	cout << endl;
 
 	if (benchmark_run_fd_aba) {
 		cout << "= ForwardDynamics ABA =" << endl;

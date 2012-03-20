@@ -5,10 +5,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
 INCLUDE_DIRECTORIES ( 
-	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl
-	src/
-	include/rbdl
-	src/SimpleMath/include
+	${CMAKE_CURRENT_BINARY_DIR}/src
+	src
 )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
@@ -22,16 +20,18 @@ SET (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
-OPTION (BUILD_STATIC "Build the statically linked library" OFF)
+OPTION (BUILD_STATIC "Build the statically linked library" ON)
 OPTION (BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
+OPTION (RBDL_STORE_VERSION "Enable storing of version information in the library (requires build from valid repository)" OFF)
+OPTION (BUILD_ADDON_XMLREADER "Build the (experimental) xml reader" OFF)
 OPTION (BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 
 SET ( RBDL_SOURCES 
-	src/mathutils.cc
+	src/rbdl_version.cc
+	src/rbdl_mathutils.cc
 	src/Logging.cc
-	src/Body.cc
 	src/Joint.cc
 	src/Model.cc
 	src/Kinematics.cc
@@ -40,6 +40,10 @@ SET ( RBDL_SOURCES
 	)
 
 ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
+
+IF (BUILD_ADDON_XMLREADER)
+  ADD_SUBDIRECTORY ( addons/xmlreader )
+ENDIF (BUILD_ADDON_XMLREADER)
 
 IF (BUILD_ADDON_BENCHMARK)
   ADD_SUBDIRECTORY ( addons/benchmark )
@@ -66,14 +70,27 @@ INSTALL (TARGETS rbdl
 	ARCHIVE DESTINATION lib
 	)
 
+IF (RBDL_STORE_VERSION)
+	# Set versioning information that can be queried during runtime
+	EXEC_PROGRAM("hg" ${CMAKE_CURRENT_SOURCE_DIR} ARGS "id -i"
+		OUTPUT_VARIABLE RBDL_BUILD_REVISION)
+	EXEC_PROGRAM("hg" ${CMAKE_CURRENT_SOURCE_DIR} ARGS "branch"
+		OUTPUT_VARIABLE RBDL_BUILD_BRANCH)
+	SET (RBDL_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+ELSE (RBDL_STORE_VERSION)
+	SET (RBDL_BUILD_REVISION "unknown")
+	SET (RBDL_BUILD_BRANCH "unknown")
+	SET (RBDL_BUILD_TYPE "unknown")
+ENDIF (RBDL_STORE_VERSION)
+
 CONFIGURE_FILE (
-	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdlconfig.h.cmake" 
-	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdlconfig.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdl_config.h.cmake" 
+	"${CMAKE_CURRENT_BINARY_DIR}/src/rbdl_config.h"
 	)
 
 FILE ( GLOB headers 
-	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
-	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdlconfig.h"
+	${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+	${CMAKE_CURRENT_BINARY_DIR}/src/rbdl_config.h
 	)
 
 INSTALL ( FILES ${headers} DESTINATION include/rbdl )
@@ -83,7 +100,7 @@ IF (NOT RBDL_USE_SIMPLE_MATH)
 		DESTINATION include/rbdl
 	)
 ELSE (NOT RBDL_USE_SIMPLE_MATH)
-	INSTALL ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/SimpleMath/include"
+	INSTALL ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/SimpleMath"
 		DESTINATION include/rbdl
 	)
 ENDIF (NOT RBDL_USE_SIMPLE_MATH)

@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "mathutils.h"
 #include "Logging.h"
 #include "Fixtures.h"
 
@@ -10,10 +9,10 @@
 #include "Dynamics.h"
 
 using namespace std;
-using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
-const double TEST_PREC = 1.0e-13;
+const double TEST_PREC = 1.0e-12;
 
 struct CompositeRigidBodyFixture {
 	CompositeRigidBodyFixture () {
@@ -152,7 +151,7 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 
 	assert (model->dof_count == 12);
 
-	ForwardKinematicsCustom (*model, &Q, NULL, NULL);
+	UpdateKinematicsCustom (*model, &Q, NULL, NULL);
 	CompositeRigidBodyAlgorithm (*model, Q, H_crba, false);
 
 	VectorNd H_col = VectorNd::Zero (model->dof_count);
@@ -199,7 +198,7 @@ TEST_FIXTURE(FixedBase6DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 
 	assert (model->dof_count == 6);
 
-	ForwardKinematicsCustom (*model, &Q, NULL, NULL);
+	UpdateKinematicsCustom (*model, &Q, NULL, NULL);
 	CompositeRigidBodyAlgorithm (*model, Q, H_crba, false);
 
 	VectorNd H_col = VectorNd::Zero (model->dof_count);

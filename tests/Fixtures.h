@@ -2,8 +2,8 @@
 
 struct FixedBase6DoF {
 	FixedBase6DoF () {
-		using namespace SpatialAlgebra;
 		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
 
 		ClearLogOutput();
 		model = new Model;
@@ -44,7 +44,7 @@ struct FixedBase6DoF {
 				JointTypeRevolute,
 				Vector3d (0., 1., 0.)
 				);
-		base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
+		base_rot_y_id = model->AppendBody (Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
 
 		base_rot_x = Body (
 				1.,
@@ -118,23 +118,21 @@ struct FixedBase6DoF {
 	RigidBodyDynamics::Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
 		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
 
-	VectorNd Q;
-	VectorNd QDot;
-	VectorNd QDDot;
-	VectorNd Tau;
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
 
 	unsigned int contact_body_id;
-	Vector3d contact_point;
-	Vector3d contact_normal;
-	std::vector<RigidBodyDynamics::ContactInfo> contact_data;
+	RigidBodyDynamics::Math::Vector3d contact_point;
+	RigidBodyDynamics::Math::Vector3d contact_normal;
+	RigidBodyDynamics::ConstraintSet constraint_set;
 };
-
-
 
 struct FloatingBase12DoF {
 	FloatingBase12DoF () {
-		using namespace SpatialAlgebra;
 		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
 
 		ClearLogOutput();
 		model = new Model;
@@ -255,10 +253,35 @@ struct FloatingBase12DoF {
 		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x,
 		joint_child_2_rot_z, joint_child_2_rot_y, joint_child_2_rot_x;
 
-	VectorNd Q;
-	VectorNd QDot;
-	VectorNd QDDot;
-	VectorNd Tau;
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
+};
+
+struct SimpleFixture {
+	SimpleFixture () {
+		ClearLogOutput();
+		model = new RigidBodyDynamics::Model;
+		model->Init();
+		model->gravity = RigidBodyDynamics::Math::Vector3d (0., -9.81, 0.);
+	}
+	~SimpleFixture () {
+		delete model;
+	}
+	void ResizeVectors () {
+		Q = RigidBodyDynamics::Math::VectorNd::Zero (model->dof_count);
+		QDot = RigidBodyDynamics::Math::VectorNd::Zero (model->dof_count);
+		QDDot = RigidBodyDynamics::Math::VectorNd::Zero (model->dof_count);
+		Tau = RigidBodyDynamics::Math::VectorNd::Zero (model->dof_count);
+	}
+
+	RigidBodyDynamics::Model *model;
+
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
 };
 
 

@@ -2,11 +2,11 @@
 
 #include <iostream>
 
-#include "mathwrapper.h"
+#include "rbdl_math.h"
+#include "rbdl_mathutils.h"
 
 using namespace std;
-using namespace SpatialAlgebra;
-using namespace SpatialAlgebra::Operators;
+using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
@@ -230,6 +230,168 @@ TEST(TestSpatialVectorCrossmCrossf) {
 	
 	CHECK_EQUAL (crossm_s_x_t, crossm_s_t);
 	CHECK_EQUAL (crossf_s_x_t, crossf_s_t);
+}
+
+TEST(TestSpatialTransformApply) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialTransform X_st;
+	X_st.E.set (1., 2., 3.,
+			4., 5., 6.,
+			7., 8., 9.);
+	X_st.r = trans;
+
+	SpatialMatrix X_66_matrix (SpatialMatrix::Zero(6,6));
+	X_66_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+	X_st.E = X_66_matrix.block<3,3>(0,0);
+
+	// cout << X_66_matrix << endl;
+	// cout << X_st.E << endl;
+	// cout << X_st.r.transpose() << endl;
+
+	SpatialVector v (1.1, 2.1, 3.1, 4.1, 5.1, 6.1);
+	SpatialVector v_66_res = X_66_matrix * v;
+	SpatialVector v_st_res = X_st.apply(v);
+
+	// cout << (v_66_res - v_st_res).transpose() << endl;
+
+	CHECK_ARRAY_CLOSE (v_66_res.data(), v_st_res.data(), 6, TEST_PREC);
+}
+
+TEST(TestSpatialTransformToMatrix) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialMatrix X_matrix (SpatialMatrix::Zero(6,6));
+	X_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+
+	SpatialTransform X_st;
+	X_st.E = X_matrix.block<3,3>(0,0);
+	X_st.r = trans;
+
+//	SpatialMatrix X_diff = X_st.toMatrix() - X_matrix;
+//	cout << "Error: " << endl << X_diff << endl;
+
+	CHECK_ARRAY_CLOSE (X_matrix.data(), X_st.toMatrix().data(), 36, TEST_PREC);
+}
+
+TEST(TestSpatialTransformToMatrixAdjoint) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialMatrix X_matrix (SpatialMatrix::Zero(6,6));
+	X_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+
+	SpatialTransform X_st;
+	X_st.E = X_matrix.block<3,3>(0,0);
+	X_st.r = trans;
+
+//	SpatialMatrix X_diff = X_st.toMatrixAdjoint() - spatial_adjoint(X_matrix);
+//	cout << "Error: " << endl << X_diff << endl;
+
+	CHECK_ARRAY_CLOSE (spatial_adjoint(X_matrix).data(), X_st.toMatrixAdjoint().data(), 36, TEST_PREC);
+}
+
+TEST(TestSpatialTransformToMatrixTranspose) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialMatrix X_matrix (SpatialMatrix::Zero(6,6));
+	X_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+
+	SpatialTransform X_st;
+	X_st.E = X_matrix.block<3,3>(0,0);
+	X_st.r = trans;
+
+	// we have to copy the matrix as it is only transposed via a flag and
+	// thus data() does not return the proper data.
+	SpatialMatrix X_matrix_transposed = X_matrix.transpose();
+//	SpatialMatrix X_diff = X_st.toMatrixTranspose() - X_matrix_transposed;
+//	cout << "Error: " << endl << X_diff << endl;
+//	cout << "X_st: " << endl << X_st.toMatrixTranspose() << endl;
+//	cout << "X: " << endl << X_matrix_transposed() << endl;
+
+	CHECK_ARRAY_CLOSE (X_matrix_transposed.data(), X_st.toMatrixTranspose().data(), 36, TEST_PREC);
+}
+	
+TEST(TestSpatialTransformMultiply) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialMatrix X_matrix_1 (SpatialMatrix::Zero(6,6));
+	SpatialMatrix X_matrix_2 (SpatialMatrix::Zero(6,6));
+
+	X_matrix_1 = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+	X_matrix_2 = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+
+	SpatialTransform X_st_1;
+	SpatialTransform X_st_2;
+	
+	X_st_1.E = X_matrix_1.block<3,3>(0,0);
+	X_st_1.r = trans;
+	X_st_2.E = X_matrix_2.block<3,3>(0,0);
+	X_st_2.r = trans;
+
+	SpatialTransform X_st_res = X_st_1 * X_st_2;
+	SpatialMatrix X_matrix_res = X_matrix_1 * X_matrix_2;
+
+//	SpatialMatrix X_diff = X_st_res.toMatrix() - X_matrix_res;
+//	cout << "Error: " << endl << X_diff << endl;
+
+	CHECK_ARRAY_CLOSE (X_matrix_res.data(), X_st_res.toMatrix().data(), 36, TEST_PREC);
+}
+
+TEST(TestSpatialTransformMultiplyEqual) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialMatrix X_matrix_1 (SpatialMatrix::Zero(6,6));
+	SpatialMatrix X_matrix_2 (SpatialMatrix::Zero(6,6));
+
+	X_matrix_1 = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+	X_matrix_2 = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+
+	SpatialTransform X_st_1;
+	SpatialTransform X_st_2;
+	
+	X_st_1.E = X_matrix_1.block<3,3>(0,0);
+	X_st_1.r = trans;
+	X_st_2.E = X_matrix_2.block<3,3>(0,0);
+	X_st_2.r = trans;
+
+	SpatialTransform X_st_res = X_st_1;
+	X_st_res *= X_st_2;
+	SpatialMatrix X_matrix_res = X_matrix_1 * X_matrix_2;
+
+//	SpatialMatrix X_diff = X_st_res.toMatrix() - X_matrix_res;
+//	cout << "Error: " << endl << X_diff << endl;
+
+	CHECK_ARRAY_CLOSE (X_matrix_res.data(), X_st_res.toMatrix().data(), 36, TEST_PREC);
+}
+
+TEST(TestXrotAxis) {
+	SpatialTransform X_rotX = Xrotx (M_PI * 0.15);
+	SpatialTransform X_rotX_axis = Xrot (M_PI * 0.15, Vector3d (1., 0., 0.));
+
+	CHECK_ARRAY_CLOSE (X_rotX.toMatrix().data(), X_rotX_axis.toMatrix().data(), 16, TEST_PREC);
+
+	// all the other axes
+	SpatialTransform X_rotX_90 = Xrotx (M_PI * 0.5);
+	SpatialTransform X_rotX_90_axis = Xrot (M_PI * 0.5, Vector3d (1., 0., 0.));
+
+	CHECK_ARRAY_CLOSE (X_rotX_90.toMatrix().data(), X_rotX_90_axis.toMatrix().data(), 16, TEST_PREC);
+
+	SpatialTransform X_rotY_90 = Xroty (M_PI * 0.5);
+	SpatialTransform X_rotY_90_axis = Xrot (M_PI * 0.5, Vector3d (0., 1., 0.));
+
+	CHECK_ARRAY_CLOSE (X_rotY_90.toMatrix().data(), X_rotY_90_axis.toMatrix().data(), 16, TEST_PREC);
+
+	SpatialTransform X_rotZ_90 = Xrotz (M_PI * 0.5);
+	SpatialTransform X_rotZ_90_axis = Xrot (M_PI * 0.5, Vector3d (0., 0., 1.));
+
+	CHECK_ARRAY_CLOSE (X_rotZ_90.toMatrix().data(), X_rotZ_90_axis.toMatrix().data(), 16, TEST_PREC);
+
 }
 
 #ifdef USE_SLOW_SPATIAL_ALGEBRA

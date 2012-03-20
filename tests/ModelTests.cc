@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "mathutils.h"
+#include "rbdl_mathutils.h"
 #include "Logging.h"
 
 #include "Model.h"
@@ -10,8 +10,8 @@
 #include "Dynamics.h"
 
 using namespace std;
-using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
@@ -33,10 +33,6 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 	CHECK_EQUAL (1u, model->mu.size());
 	CHECK_EQUAL (0u, model->dof_count);
 
-	CHECK_EQUAL (1u, model->q.size());
-	CHECK_EQUAL (1u, model->qdot.size());
-	CHECK_EQUAL (1u, model->qddot.size());
-	CHECK_EQUAL (1u, model->tau.size());
 	CHECK_EQUAL (1u, model->v.size());
 	CHECK_EQUAL (1u, model->a.size());
 	
@@ -71,10 +67,6 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2u, model->mu.size());
 	CHECK_EQUAL (1u, model->dof_count);
 
-	CHECK_EQUAL (2u, model->q.size());
-	CHECK_EQUAL (2u, model->qdot.size());
-	CHECK_EQUAL (2u, model->qddot.size());
-	CHECK_EQUAL (2u, model->tau.size());
 	CHECK_EQUAL (2u, model->v.size());
 	CHECK_EQUAL (2u, model->a.size());
 	
@@ -97,41 +89,6 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2u, model->mBodies.size());
 }
 
-TEST_FIXTURE(ModelFixture, TestExperimentalFloatingBodyDimensions) {
-	Body body;
-
-	model->experimental_floating_base = true;
-	model->SetFloatingBaseBody(body);
-
-	CHECK_EQUAL (1u, model->lambda.size());
-	CHECK_EQUAL (1u, model->mu.size());
-	CHECK_EQUAL (6u, model->dof_count);
-
-	CHECK_EQUAL (7u, model->q.size());
-	CHECK_EQUAL (7u, model->qdot.size());
-	CHECK_EQUAL (7u, model->qddot.size());
-	CHECK_EQUAL (7u, model->tau.size());
-	CHECK_EQUAL (1u, model->v.size());
-	CHECK_EQUAL (1u, model->a.size());
-	
-	CHECK_EQUAL (1u, model->mJoints.size());
-	CHECK_EQUAL (1u, model->S.size());
-
-	CHECK_EQUAL (1u, model->c.size());
-	CHECK_EQUAL (1u, model->IA.size());
-	CHECK_EQUAL (1u, model->pA.size());
-	CHECK_EQUAL (1u, model->U.size());
-	CHECK_EQUAL (1u, model->d.size());
-	CHECK_EQUAL (1u, model->u.size());
-
-	SpatialVector spatial_zero;
-	spatial_zero.setZero();
-	
-	CHECK_EQUAL (1u, model->X_lambda.size());
-	CHECK_EQUAL (1u, model->X_base.size());
-	CHECK_EQUAL (1u, model->mBodies.size());
-}
-
 TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	Body body;
 
@@ -141,10 +98,6 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	CHECK_EQUAL (7u, model->mu.size());
 	CHECK_EQUAL (6u, model->dof_count);
 
-	CHECK_EQUAL (7u, model->q.size());
-	CHECK_EQUAL (7u, model->qdot.size());
-	CHECK_EQUAL (7u, model->qddot.size());
-	CHECK_EQUAL (7u, model->tau.size());
 	CHECK_EQUAL (7u, model->v.size());
 	CHECK_EQUAL (7u, model->a.size());
 	
@@ -178,7 +131,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
 	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
 	SpatialVector spatial_joint_axis(0., 0., 1., 0., 0., 0.);
-	CHECK_EQUAL (spatial_joint_axis, joint.mJointAxis);
+	CHECK_EQUAL (spatial_joint_axis, joint.mJointAxes[0]);
 
 	// \Todo: Dynamic properties
 }
@@ -207,7 +160,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
 	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint, body);
 
-	SpatialMatrix X_j;
+	SpatialTransform X_j;
 	SpatialVector S;
 	SpatialVector v_j;
 	SpatialVector c;
@@ -229,7 +182,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 			0., 0., 1., 0., 0., 0.
 			);
 
-	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j, 1.0e-16));
+	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), 1.0e-16));
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
 	CHECK_EQUAL (test_joint_axis, S);
 
@@ -244,47 +197,9 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 			0.,  0.,  0.,  0.,  0.,  1.
 			);
 
-	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j, TEST_PREC));
+	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), TEST_PREC));
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, TEST_PREC));
 	CHECK_EQUAL (test_joint_axis, S);
-}
-
-TEST_FIXTURE(ModelFixture, TestCalcVelocitiesSimple) {
-	Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint joint (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
-
-	Body endeffector (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-	Joint fixed_joint (
-			JointTypeFixed,
-			Vector3d (0., 0., 0.)
-			);
-
-	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
-	model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), fixed_joint, endeffector);
-
-	// Initialization of the input vectors
-	VectorNd Q = VectorNd::Zero ((size_t) model->dof_count);
-	VectorNd QDot = VectorNd::Zero ((size_t) model->dof_count);
-	VectorNd QDDot = VectorNd::Zero ((size_t) model->dof_count);
-	VectorNd Tau = VectorNd::Zero ((size_t) model->dof_count);
-
-	QDot[0] = 1.;
-	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
-
-	SpatialVector spatial_body_velocity (0., 0., 1., 0., 1., 0.);
-	CHECK_EQUAL (spatial_body_velocity, model->v.at(2));
-	// std::cout << LogOutput.str() << std::endl;
-	ClearLogOutput();
-
-	QDot[0] = -1.;
-	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
-
-	spatial_body_velocity.set (0., 0., -1., 0., -1., 0.);
-	CHECK_EQUAL (spatial_body_velocity, model->v.at(2));
-	// std::cout << LogOutput.str() << std::endl;
 }
 
 TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
@@ -300,9 +215,9 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	Vector3d body_coords;
 	Vector3d base_coords_back;
 
-	ForwardKinematics (*model, q, qdot, qddot);
-	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);
-	base_coords_back = model->CalcBodyToBaseCoordinates (body_id, body_coords);
+	UpdateKinematics (*model, q, qdot, qddot);
+	body_coords = CalcBaseToBodyCoordinates (*model, q, body_id, base_coords, false);
+	base_coords_back = CalcBodyToBaseCoordinates (*model, q, body_id, body_coords, false);
 
 	CHECK_ARRAY_CLOSE (base_coords.data(), base_coords_back.data(), 3, TEST_PREC);
 
@@ -313,9 +228,187 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	q[4] = 0.03;
 	q[5] = -0.23;
 
-	ForwardKinematics (*model, q, qdot, qddot);
-	body_coords = model->CalcBaseToBodyCoordinates (body_id, base_coords);
-	base_coords_back = model->CalcBodyToBaseCoordinates (body_id, body_coords);
+	UpdateKinematics (*model, q, qdot, qddot);
+	body_coords = CalcBaseToBodyCoordinates (*model, q, body_id, base_coords, false);
+	base_coords_back = CalcBodyToBaseCoordinates (*model, q, body_id, body_coords, false);
 
 	CHECK_ARRAY_CLOSE (base_coords.data(), base_coords_back.data(), 3, TEST_PREC);
+}
+
+TEST ( Model2DoFJoint ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	Joint joint_rot_x (
+			JointTypeRevolute,
+			Vector3d(1., 0., 0.)
+			);
+
+	Model model_std;
+	model_std.Init();
+	model_std.gravity = Vector3d (0., -9.81, 0.);
+
+	model_std.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
+	model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+
+	// using a model with a 2 DoF joint
+	Joint joint_rot_zx (
+		SpatialVector (0., 0., 1., 0., 0., 0.),
+		SpatialVector (1., 0., 0., 0., 0., 0.)
+		);
+
+	Model model_2;
+	model_2.Init();
+	model_2.gravity = Vector3d (0., -9.81, 0.);
+
+	model_2.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zx, body);
+
+	VectorNd Q = VectorNd::Zero(model_std.dof_count);
+	VectorNd QDot = VectorNd::Zero(model_std.dof_count);
+	VectorNd Tau = VectorNd::Zero(model_std.dof_count);
+
+	VectorNd QDDot_2 = VectorNd::Zero(model_std.dof_count);
+	VectorNd QDDot_std = VectorNd::Zero(model_std.dof_count);
+
+	ForwardDynamics (model_std, Q, QDot, Tau, QDDot_std);
+	ForwardDynamics (model_2, Q, QDot, Tau, QDDot_2);
+
+	CHECK_ARRAY_CLOSE (QDDot_std.data(), QDDot_2.data(), model_std.dof_count, TEST_PREC);
+}
+
+TEST ( Model3DoFJoint ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	Joint joint_rot_y (
+			JointTypeRevolute,
+			Vector3d(0., 1., 0.)
+			);
+	Joint joint_rot_x (
+			JointTypeRevolute,
+			Vector3d(1., 0., 0.)
+			);
+
+	Model model_std;
+	model_std.Init();
+	model_std.gravity = Vector3d (0., -9.81, 0.);
+
+	unsigned int body_id;
+
+	// in total we add two bodies to make sure that the transformations are
+	// correct.
+	model_std.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
+	model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
+	body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+
+	model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
+	model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
+	body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+
+	// using a model with a 2 DoF joint
+	Joint joint_rot_zyx (
+		SpatialVector (0., 0., 1., 0., 0., 0.),
+		SpatialVector (0., 1., 0., 0., 0., 0.),
+		SpatialVector (1., 0., 0., 0., 0., 0.)
+		);
+
+	Model model_2;
+	model_2.Init();
+	model_2.gravity = Vector3d (0., -9.81, 0.);
+
+	// in total we add two bodies to make sure that the transformations are
+	// correct.
+	body_id = model_2.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx, body);
+	body_id = model_2.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx, body);
+
+	VectorNd Q = VectorNd::Zero(model_std.dof_count);
+	VectorNd QDot = VectorNd::Zero(model_std.dof_count);
+	VectorNd Tau = VectorNd::Zero(model_std.dof_count);
+
+	VectorNd QDDot_2 = VectorNd::Zero(model_std.dof_count);
+	VectorNd QDDot_std = VectorNd::Zero(model_std.dof_count);
+
+	ForwardDynamics (model_std, Q, QDot, Tau, QDDot_std);
+	ForwardDynamics (model_2, Q, QDot, Tau, QDDot_2);
+
+	CHECK_ARRAY_CLOSE (QDDot_std.data(), QDDot_2.data(), model_std.dof_count, TEST_PREC);
+}
+
+TEST ( Model6DoFJoint ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	Joint joint_rot_y (
+			JointTypeRevolute,
+			Vector3d(0., 1., 0.)
+			);
+	Joint joint_rot_x (
+			JointTypeRevolute,
+			Vector3d(1., 0., 0.)
+			);
+
+	Model model_std;
+	model_std.Init();
+	model_std.gravity = Vector3d (0., -9.81, 0.);
+
+	unsigned int body_id;
+
+	// in total we add two bodies to make sure that the transformations are
+	// correct.
+	body_id = model_std.SetFloatingBaseBody (body);
+
+	model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
+	model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
+	body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+
+	// using a model with a 2 DoF joint
+	Joint joint_floating_base (
+		SpatialVector (0., 0., 0., 1., 0., 0.),
+		SpatialVector (0., 0., 0., 0., 1., 0.),
+		SpatialVector (0., 0., 0., 0., 0., 1.),
+		SpatialVector (0., 0., 1., 0., 0., 0.),
+		SpatialVector (0., 1., 0., 0., 0., 0.),
+		SpatialVector (1., 0., 0., 0., 0., 0.)
+		);
+
+	Joint joint_rot_zyx (
+		SpatialVector (0., 0., 1., 0., 0., 0.),
+		SpatialVector (0., 1., 0., 0., 0., 0.),
+		SpatialVector (1., 0., 0., 0., 0., 0.)
+		);
+
+	Model model_2;
+	model_2.Init();
+	model_2.gravity = Vector3d (0., -9.81, 0.);
+
+	// in total we add two bodies to make sure that the transformations are
+	// correct.
+	body_id = model_2.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_floating_base, body);
+	body_id = model_2.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx, body);
+
+	VectorNd Q = VectorNd::Zero(model_std.dof_count);
+	VectorNd QDot = VectorNd::Zero(model_std.dof_count);
+	VectorNd Tau = VectorNd::Zero(model_std.dof_count);
+
+	VectorNd QDDot_2 = VectorNd::Zero(model_std.dof_count);
+	VectorNd QDDot_std = VectorNd::Zero(model_std.dof_count);
+
+	ForwardDynamics (model_std, Q, QDot, Tau, QDDot_std);
+	ForwardDynamics (model_2, Q, QDot, Tau, QDDot_2);
+
+	CHECK_ARRAY_CLOSE (QDDot_std.data(), QDDot_2.data(), model_std.dof_count, TEST_PREC);
 }

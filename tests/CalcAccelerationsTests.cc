@@ -2,15 +2,15 @@
 
 #include <iostream>
 
-#include "mathutils.h"
 #include "Logging.h"
 
 #include "Model.h"
 #include "Kinematics.h"
+#include "Fixtures.h"
 
 using namespace std;
-using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
@@ -236,4 +236,24 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestAccelerationLinearFuncOfQddot) {
 	Vector3d acc_new = acc_1 - acc_2;
 
 	CHECK_ARRAY_CLOSE (net_acc.data(), acc_new.data(), 3, TEST_PREC);
+}
+
+TEST_FIXTURE (FloatingBase12DoF, TestAccelerationFloatingBaseWithUpdateKinematics ) {
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+
+	ClearLogOutput();
+	Vector3d accel = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_rot_x_id, Vector3d (0., 0., 0.), true);
+
+	CHECK_ARRAY_CLOSE (Vector3d (0., -9.81, 0.), accel.data(), 3, TEST_PREC);
+}
+
+TEST_FIXTURE (FloatingBase12DoF, TestAccelerationFloatingBaseWithoutUpdateKinematics ) {
+	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+
+	//ClearLogOutput();
+	Vector3d accel = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_rot_x_id, Vector3d (0., 0., 0.), false);
+
+	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), accel.data(), 3, TEST_PREC);
+//	cout << LogOutput.str() << endl;
+//	cout << accel.transpose() << endl;
 }

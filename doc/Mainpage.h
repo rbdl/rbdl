@@ -1,11 +1,17 @@
 /** \file Mainpage.h 
- * \mainpage Rigid Body Dynamics Library
+ * \mainpage RBDL - Rigid Body Dynamics Library
+ * \image html logo/rbdl_logo.png
  *
- * This is the documentation of a yet to be named rigid body simulation
- * code. So far the code supports forward and inverse dynamics by using the
- * Articulated Body Algorathm and the Newton-Euler algorithm, respectively.
- * Additionally it also containes the Composite Rigid Body Algorithm that
- * computes the joint space inertia matrix.
+ * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
+ * library contains highly efficient code for both forward and inverse
+ * dynamics. It includes:
+ *
+ * \li Recursive Newton Euler Algorithm
+ * \li Composite Rigid Body Algorithm
+ * \li Articulated Body Algorithm.
+ *
+ * Furthermore it contains functions for forward and inverse kinematics and
+ * contact handling.
  *
  * The code is written by <a
  * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
@@ -13,29 +19,24 @@
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
  * href="http://users.cecs.anu.edu.au/~roy/">Roy Featherstone</a>.
  * 
+ * Development is taking place on <a
+ * href="http://bitbucket.org">bitbucket.org</a>. The official repository
+ * can be found at:
+ * <a href="http://bitbucket.org/rbdl/rbdl/">http://bitbucket.org/rbdl/rbdl/</a>.
+ * 
  * The library comes with version 3 of the the
  * <a href="http://eigen.tuxfamily.org/">Eigen</a> math library. More
  * information about it can be found here:
- * <a href="http://eigen.tuxfamily.org/">http://eigen.tuxfamily.org/</a>.
+ * <a href="http://eigen.tuxfamily.org/">http://eigen.tuxfamily.org/</a>
  *
- * Documentation of the functions can be found at the documentation page of
- * the namespace RigidBodyDynamics.
+ * \section Example Example
  *
- * \section ModelConstruction Construction of Models
- *
- * The construction of \link RigidBodyDynamics::Model Models \endlink makes
- * use of carefully designed constructors of the classes \link
- * RigidBodyDynamics::Body Body \endlink and \link RigidBodyDynamics::Joint
- * Joint \endlink to ease the process of creating bodies.  Adding bodies to
- * the model is done by specifying the parent body by its id, the
- * transformation from the parent origin to the joint origin, the joint
- * specification as an object, and the body itself. These parameters are
- * then fed to the function RigidBodyDynamics::Model::AddBody().
- *
- * A simple example can be found \ref SimpleExample "here".
+ * A simple example for creation of a model and computation of the forward
+ * dynamics can be found \ref SimpleExample "here".
  * 
  * \section ModuleOverview API reference separated by functional modules
  * 
+ * \li \ref model_group
  * \li \ref kinematics_group
  * \li \ref dynamics_group
  * \li \ref contacts_group
@@ -47,7 +48,7 @@
  * Here is the full license text:
  * \verbatim
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

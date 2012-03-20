@@ -1,6 +1,6 @@
 /*
- * RBDL - Rigid Body Library
- * Copyright (c) 2011 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * RBDL - Rigid Body Dynamics Library
+ * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -8,78 +8,184 @@
 #ifndef _CONTACTS_H
 #define _CONTACTS_H
 
-#include "mathwrapper.h"
+#include "rbdl_math.h"
 
 namespace RigidBodyDynamics {
 
 /** \defgroup contacts_group External Contacts
  *
- * Here you find information about the functions related to contact
- * handling.
+ * External contacts are handled by specification of a \link
+ * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
+ * ConstraintSet \endlink which contains all informations about the
+ * current contacts and workspace memory.
+ *
+ * Separate contacts can be specified by calling
+ * ConstraintSet::AddConstraint(). After all constraints have been
+ * specified, this \link
+ * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
+ * ConstraintSet \endlink has to be bound to the model via
+ * ConstraintSet::Bind(). This initializes workspace memory that is
+ * later used when calling one of the contact functions, such as
+ * ForwardDynamicsContacts() or ForwardDynamicsContactsLagrangian().
+ *
+ * The values in the vectors ConstraintSet::constraint_force and
+ * ConstraintSet::constraint_impulse contain the computed force or
+ * impulse values for each constraint when returning from one of the
+ * contact functions.
  *
  * @{
  */
 
-/** \brief Structure that contains information about a one-dimensional
- *  \brief contact constraint
+struct Model;
+
+/** \brief Structure that contains both constraint information and workspace memory.
  *
- *  This structure is also used to describe contact points that undergo an
- *  impulse, see alse ComputeContactImpulses().
+ * This structure is used to reduce the amount of memory allocations that
+ * are needed when computing constraint forces.
+ *
+ * The ConstraintSet has to be bound to a model using ConstraintSet::Bind()
+ * before it can be used in \link RigidBodyDynamics::ForwardDynamicsContacts
+ * ForwardDynamicsContacts \endlink.
  */
-struct ContactInfo {
-	ContactInfo() :
-		body_id (0),
-		point (0., 0., 0.),
-		normal (0., 0., 0.),
-		acceleration (0.),
-		force (0.)
-	{	}
-	ContactInfo (const ContactInfo &contact_info) :
-		body_id (contact_info.body_id),
-		point (contact_info.point),
-		normal (contact_info.normal),
-		acceleration (contact_info.acceleration),
-		force (contact_info.force)
+struct ConstraintSet {
+	ConstraintSet() :
+		linear_solver (LinearSolverColPivHouseholderQR),
+		bound (false)
 	{}
-	ContactInfo& operator= (const ContactInfo &contact_info) {
-		if (this != &contact_info) {
-			body_id = contact_info.body_id;
-			point = contact_info.point;
-			normal = contact_info.normal;
-			acceleration = contact_info.acceleration;
-			force = contact_info.force;
-		}
 
-		return *this;
+	/** \brief Available solver methods for the linear systems.
+	 *
+	 * Please note that these methods are only available when Eigen3 is used.
+	 * When the math library SimpleMath is used it will always use a slow
+	 * column pivoting gauss elimination.
+	 *
+	 * Use ConstraintSet::SetSolver() to specify which solver should be used.
+	 */
+	enum LinearSolver {
+		LinearSolverUnknown = 0,
+		LinearSolverPartialPivLU,
+		LinearSolverColPivHouseholderQR,
+		LinearSolverLast,
+	};
+
+	/** \brief Adds a constraint to the constraint set.
+	 *
+	 * \param body_id the body which is affected directly by the constraint
+	 * \param body_point the point that is constrained relative to the
+	 * contact body
+	 * \param world_normal the normal along the constraint acts (in base
+	 * coordinates)
+	 * \param constraint_name a human readable name (optional, default: NULL)
+	 * \param acceleration the acceleration of the contact along the normal
+	 * (optional, default: 0.)
+	 */
+	unsigned int AddConstraint (
+			unsigned int body_id,
+			const Math::Vector3d &body_point,
+			const Math::Vector3d &world_normal,
+			const char *constraint_name = NULL,
+			double acceleration = 0.);
+
+	/** \brief Copies the constraints and resets its ConstraintSet::bound
+	 * flag.
+	 */
+	ConstraintSet Copy() {
+		ConstraintSet result (*this);
+		result.bound = false;
+
+		return result;
 	}
-	~ContactInfo() {};
 
-	ContactInfo (unsigned int body, const Vector3d &contact_point, const Vector3d &contact_normal):
-		body_id (body),
-		point (contact_point),
-		normal (contact_normal),
-		acceleration (0.),
-		force (0.)
-	{	}
+	/** \brief Specifies which method should be used for solving undelying linear systems.
+	 */
+	void SetSolver (LinearSolver solver) {
+		linear_solver = solver;
+	}
 
-	ContactInfo (unsigned int body, const Vector3d &contact_point, const Vector3d &contact_normal, const double accel):
-		body_id (body),
-		point (contact_point),
-		normal (contact_normal),
-		acceleration (accel),
-		force (force)
-	{	}
+	/** \brief Initializes and allocates memory for the constraint set.
+	 *
+	 * This function allocates memory for temporary values and matrices that
+	 * are required for contact force computation. Both model and constraint
+	 * set must not be changed after a binding as the required memory is
+	 * dependent on the model size (i.e. the number of bodies and degrees of
+	 * freedom) and the number of constraints in the Constraint set.
+	 *
+	 * The values of ConstraintSet::constraint_acceleration may still be
+	 * modified after the set is bound to the model.
+	 */
+	bool Bind (const Model &model);
 
-	/// \brief The id of the body of which the motion is constrained
-	unsigned int body_id;
-	/// \brief Coordinate of the contact point in base coordinates
-	Vector3d point;
-	/// \brief Normal of the contact point in base coordinates
-	Vector3d normal;
-	/// \brief Acceleration value of the constraint along the normal
-	double acceleration;
-	/// \brief Force acting along the normal
-	double force;
+	/** \brief Returns the number of constraints. */
+	unsigned int size() {
+		return constraint_acceleration.size();
+	}
+
+	/** \brief Clears all variables in the constraint set. */
+	void clear ();
+
+	/// Method that should be used to solve internal linear systems.
+	LinearSolver linear_solver;
+	/// Whether the constraint set was bound to a model (mandatory!).
+	bool bound;
+
+	std::vector<std::string> name;
+	std::vector<unsigned int> body;
+	std::vector<Math::Vector3d> point;
+	std::vector<Math::Vector3d> normal;
+
+	/** Enforced accelerations of the contact points along the contact
+	 * normal. */
+	Math::VectorNd constraint_acceleration;
+	/** Actual constraint forces along the contact normals. */
+	Math::VectorNd constraint_force;
+	/** Actual constraint impulses along the contact normals. */
+	Math::VectorNd constraint_impulse;
+
+	// Variables used by the Lagrangian methods
+
+	/// Workspace for the joint space inertia matrix.
+	Math::MatrixNd H;
+	/// Workspace for the coriolis forces.
+	Math::VectorNd C;
+	/// Workspace of the lower part of b.
+	Math::VectorNd gamma;
+	Math::MatrixNd G;
+	/// Workspace for the Lagrangian left-hand-side matrix.
+	Math::MatrixNd A;
+	/// Workspace for the Lagrangian right-hand-side.
+	Math::VectorNd b;
+	/// Workspace for the Lagrangian solution.
+	Math::VectorNd x;
+
+	// Variables used by the IABI methods
+
+	/// Workspace for the Inverse Articulated-Body Inertia.
+	Math::MatrixNd K;
+	/// Workspace for the accelerations of due to the test forces
+	Math::VectorNd a;
+	/// Workspace for the test accelerations.
+	Math::VectorNd QDDot_t;
+	/// Workspace for the default accelerations.
+	Math::VectorNd QDDot_0;
+	/// Workspace for the test forces.
+	std::vector<Math::SpatialVector> f_t;
+	/// Workspace for the actual spatial forces.
+	std::vector<Math::SpatialVector> f_ext_constraints;
+	/// Workspace for the default point accelerations.
+	std::vector<Math::Vector3d> point_accel_0;
+
+	/// Workspace for the bias force due to the test force
+	std::vector<Math::SpatialVector> d_pA;
+	/// Workspace for the acceleration due to the test force
+	std::vector<Math::SpatialVector> d_a;
+	Math::VectorNd d_u;
+
+	/// Workspace for the inertia when applying constraint forces
+	std::vector<Math::SpatialMatrix> d_IA;
+	/// Workspace when applying constraint forces
+	std::vector<Math::SpatialVector> d_U;
+	/// Workspace when applying constraint forces
+	Math::VectorNd d_d;
 };
 
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
@@ -118,26 +224,27 @@ struct ContactInfo {
  *
  * \note To increase performance group constraints body and pointwise such
  * that constraints acting on the same body point are sequentially in
- * ContactData. This can save computation of point jacobians \f$G\f$.
-  *
+ * ConstraintSet. This can save computation of point jacobians \f$G\f$.
+ *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points
+ * \param ConstraintSet list of all contact points
  * \param QDDot accelerations of the internals joints (output)
  *
- * \note During execution of this function the values ContactData[i].force
- * 	get modified and will contain the value of the force acting along
- * 	the normal.
+ * \note During execution of this function values such as
+ * ConstraintSet::constraint_force get modified and will contain the value
+ * of the force acting along the normal.
+ *
  */
 void ForwardDynamicsContactsLagrangian (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
-		VectorNd &QDDot
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		ConstraintSet &CS,
+		Math::VectorNd &QDDot
 		);
 
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
@@ -170,8 +277,6 @@ void ForwardDynamicsContactsLagrangian (
  * velocity of each constraint after the impact (known beforehand, usually
  * 0).
  *
- * The desired velocity can be specified by ContactInfo::acceleration.
- * 
  * \note So far, only constraints acting along cartesian coordinate axes
  * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
  * not specify redundant constraints!
@@ -180,47 +285,23 @@ void ForwardDynamicsContactsLagrangian (
  *
  * \note To increase performance group constraints body and pointwise such
  * that constraints acting on the same body point are sequentially in
- * ContactData. This can save computation of point jacobians \f$G\f$.
+ * ConstraintSet. This can save computation of point jacobians \f$G\f$.
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDotMinus  velocity vector of the internal joints before the impact
- * \param ContactData	a list of all contact points
+ * \param CS the set of active constraints
  * \param QDotPlus velocities of the internals joints after the impact (output)
- *
- * \note During execution of this function the values ContactInfo::force
- * 	get modified and will contain the value of the impulse acting along
- * 	the normal.
  */
 void ComputeContactImpulsesLagrangian (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDotMinus,
-		std::vector<ContactInfo> &ContactData,
-		VectorNd &QDotPlus
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDotMinus,
+		ConstraintSet &CS,
+		Math::VectorNd &QDotPlus
 		);
 
-/** \brief Computes forward dynamics that accounts for active contacts in mContactInfoMap
- *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures,
- * Multibody System Dynamics 2, 89-114, 1998.
- *
- * This function is superseeded by \ref RigidBodyDynamics::ForwardDynamicsContacts
- * the same approach but faster.
- * 
- * \todo Allow for external forces
- */
-void ForwardDynamicsContactsOld (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
-		VectorNd &QDDot
-		);
-
-/** \brief Computes forward dynamics that accounts for active contacts in ContactData
+/** \brief Computes forward dynamics that accounts for active contacts in ConstraintSet.
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
  * Paper "Practical Physics for Articulated Characters", Game Developers
@@ -273,21 +354,21 @@ void ForwardDynamicsContactsOld (
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points
+ * \param CS a list of all contact points
  * \param QDDot accelerations of the internals joints (output)
  *
- * \note During execution of this function the values ContactData[i].force
- * 	get modified and will contain the value of the force acting along
- * 	the normal.
+ * \note During execution of this function values such as
+ * ConstraintSet::constraint_force get modified and will contain the value
+ * of the force acting along the normal.
  *
  * \todo Allow for external forces
  */void ForwardDynamicsContacts (
 		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
-		VectorNd &QDDot
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		ConstraintSet &CS,
+		Math::VectorNd &QDDot
 		);
 
 /** @} */

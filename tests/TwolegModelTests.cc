@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-#include "mathutils.h"
 #include "Logging.h"
 
 #include "Model.h"
@@ -11,8 +10,8 @@
 #include "Kinematics.h"
 
 using namespace std;
-using namespace SpatialAlgebra;
 using namespace RigidBodyDynamics;
+using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-13;
 
@@ -42,10 +41,10 @@ VectorNd QDot;
 VectorNd QDDot;
 VectorNd Tau;
 
-std::vector<ContactInfo> contact_data_right;
-std::vector<ContactInfo> contact_data_left;
-std::vector<ContactInfo> contact_data_left_flat;
-std::vector<ContactInfo> contact_data_both;
+ConstraintSet constraint_set_right;
+ConstraintSet constraint_set_left;
+ConstraintSet constraint_set_left_flat;
+ConstraintSet constraint_set_both;
 
 enum ParamNames {
 	ParamSteplength = 0,
@@ -256,46 +255,24 @@ void init_model () {
 	// the contact points for heel and toe
 	heel_point.set (-0.05, -0.0317, 0.);
 	medial_point.set  (-0.05, -0.0317 + segment_lengths[SegmentLengthsFoot], 0.);
-	
-	ContactInfo right_heel_x (foot_right_id, heel_point, Vector3d (1., 0., 0.));
-	ContactInfo right_heel_y (foot_right_id, heel_point, Vector3d (0., 1., 0.));
-	ContactInfo right_heel_z (foot_right_id, heel_point, Vector3d (0., 0., 1.));
 
-	ContactInfo left_heel_x (foot_left_id, heel_point, Vector3d (1., 0., 0.));
-	ContactInfo left_heel_y (foot_left_id, heel_point, Vector3d (0., 1., 0.));
-	ContactInfo left_heel_z (foot_left_id, heel_point, Vector3d (0., 0., 1.));
+	constraint_set_right.AddConstraint(foot_right_id, heel_point, Vector3d (1., 0., 0.), "right_heel_x");
+	constraint_set_right.AddConstraint(foot_right_id, heel_point, Vector3d (0., 1., 0.), "right_heel_y");
 
-	ContactInfo right_medial_x (foot_right_id, medial_point, Vector3d (1., 0., 0.));
-	ContactInfo right_medial_y (foot_right_id, medial_point, Vector3d (0., 1., 0.));
-	ContactInfo right_medial_z (foot_right_id, medial_point, Vector3d (0., 0., 1.));
+	constraint_set_left.AddConstraint(foot_left_id, heel_point, Vector3d (1., 0., 0.), "left_heel_x");
+	constraint_set_left.AddConstraint(foot_left_id, heel_point, Vector3d (0., 1., 0.), "left_heel_y");
 
-	ContactInfo left_medial_x (foot_left_id, medial_point, Vector3d (1., 0., 0.));
-	ContactInfo left_medial_y (foot_left_id, medial_point, Vector3d (0., 1., 0.));
-	ContactInfo left_medial_z (foot_left_id, medial_point, Vector3d (0., 0., 1.));
+	constraint_set_both.AddConstraint(foot_right_id, heel_point, Vector3d (1., 0., 0.), "right_heel_x");
+	constraint_set_both.AddConstraint(foot_right_id, heel_point, Vector3d (0., 1., 0.), "right_heel_y");
+	constraint_set_both.AddConstraint(foot_right_id, heel_point, Vector3d (0., 0., 1.), "right_heel_z");
 
-	// right contact
-	contact_data_right.push_back (right_heel_x);
-	contact_data_right.push_back (right_heel_y);
-//	contact_data_right.push_back (right_heel_z);
+	constraint_set_both.AddConstraint(foot_left_id, heel_point, Vector3d (1., 0., 0.), "left_heel_x");
+	constraint_set_both.AddConstraint(foot_left_id, heel_point, Vector3d (0., 1., 0.), "left_heel_y");
+	constraint_set_both.AddConstraint(foot_left_id, heel_point, Vector3d (0., 0., 1.), "left_heel_z");
 
-	// left contact
-	contact_data_left.push_back (left_heel_x);
-	contact_data_left.push_back (left_heel_y);
-//	contact_data_left.push_back (left_heel_z);
-
-	// left flat
-	contact_data_left_flat.push_back (left_heel_x);
-	contact_data_left_flat.push_back (left_heel_y);
-//	contact_data_left_flat.push_back (left_medial_y);
-
-	// both contact
-	contact_data_both.push_back (right_heel_x);
-	contact_data_both.push_back (right_heel_y);
-	contact_data_both.push_back (right_heel_z);
-
-	contact_data_both.push_back (left_heel_x);
-	contact_data_both.push_back (left_heel_y);
-	contact_data_both.push_back (left_heel_z);
+	constraint_set_right.Bind (*model);
+	constraint_set_left.Bind (*model);
+	constraint_set_both.Bind (*model);
 }
 
 template <typename T>
@@ -347,8 +324,8 @@ TEST ( TestForwardDynamicsContactsLagrangianFootmodel ) {
 //	cout << "QDDot_aba = " << QDDot_aba.transpose() << endl;
 //	cout << "QDDot_lag = " << QDDot_lag.transpose() << endl;
 
-	unsigned int body_id = contact_data_left[0].body_id;
-	Vector3d contact_point = contact_data_left[0].point;
+	unsigned int body_id = constraint_set_left.body[0];
+	Vector3d contact_point = constraint_set_left.point[0];
 
 	MatrixNd G (3, Q.size());
 	CalcPointJacobian (*model, Q, body_id, contact_point, G, true);
@@ -357,14 +334,14 @@ TEST ( TestForwardDynamicsContactsLagrangianFootmodel ) {
 
 	ClearLogOutput();
 
-	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, contact_data_left, QDDot);
+	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, constraint_set_left, QDDot);
 
 //	cout << "C0: " << contact_data_left[0].body_id << ", " << contact_data_left[0].point.transpose() << endl;
 //	cout << "C1: " << contact_data_left[1].body_id << ", " << contact_data_left[1].point.transpose() << endl;
 //	cout << "td: " << foot_left_id << ", " << heel_point.transpose() << endl;
 
-	contact_force[0] = contact_data_left[0].force;
-	contact_force[1] = contact_data_left[1].force;
+	contact_force[0] = constraint_set_left.constraint_force[0];
+	contact_force[1] = constraint_set_left.constraint_force[1];
 
 	CHECK_EQUAL (body_id, foot_left_id);
 	CHECK_EQUAL (contact_point, heel_point);
