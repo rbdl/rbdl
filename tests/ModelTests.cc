@@ -89,37 +89,6 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2u, model->mBodies.size());
 }
 
-TEST_FIXTURE(ModelFixture, TestExperimentalFloatingBodyDimensions) {
-	Body body;
-
-	model->experimental_floating_base = true;
-	model->SetFloatingBaseBody(body);
-
-	CHECK_EQUAL (1u, model->lambda.size());
-	CHECK_EQUAL (1u, model->mu.size());
-	CHECK_EQUAL (6u, model->dof_count);
-
-	CHECK_EQUAL (1u, model->v.size());
-	CHECK_EQUAL (1u, model->a.size());
-	
-	CHECK_EQUAL (1u, model->mJoints.size());
-	CHECK_EQUAL (1u, model->S.size());
-
-	CHECK_EQUAL (1u, model->c.size());
-	CHECK_EQUAL (1u, model->IA.size());
-	CHECK_EQUAL (1u, model->pA.size());
-	CHECK_EQUAL (1u, model->U.size());
-	CHECK_EQUAL (1u, model->d.size());
-	CHECK_EQUAL (1u, model->u.size());
-
-	SpatialVector spatial_zero;
-	spatial_zero.setZero();
-	
-	CHECK_EQUAL (1u, model->X_lambda.size());
-	CHECK_EQUAL (1u, model->X_base.size());
-	CHECK_EQUAL (1u, model->mBodies.size());
-}
-
 TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	Body body;
 

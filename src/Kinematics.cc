@@ -29,10 +29,6 @@ void UpdateKinematics (Model &model,
 
 	unsigned int i;
 
-	if (model.experimental_floating_base) {
-		assert (0 && !"UpdateKinematics not supported yet for experimental floating bases");
-	}
-	
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	model.a[0].setZero();
@@ -77,10 +73,6 @@ void UpdateKinematicsCustom (Model &model,
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
 	unsigned int i;
-
-	if (model.experimental_floating_base) {
-		assert (0 && !"UpdateKinematics not supported yet for experimental floating bases");
-	}
 
 	if (Q) {
 		for (i = 1; i < model.mBodies.size(); i++) {
@@ -197,9 +189,6 @@ void CalcPointJacobian (
 		bool update_kinematics
 	) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	if (model.experimental_floating_base) {
-		assert (0 && "CalcPointJacobian() not yet supported for experimental floating base models");
-	};
 
 	// update the Kinematics if necessary
 	if (update_kinematics) {
@@ -251,10 +240,6 @@ Vector3d CalcPointVelocity (
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 	unsigned int i;
 
-	if (model.experimental_floating_base) {
-		assert (0 && !"floating base not supported");
-	}
-		
 	assert (body_id > 0 && body_id < model.mBodies.size());
 	assert (model.mBodies.size() == Q.size() + 1);
 	assert (model.mBodies.size() == QDot.size() + 1);
@@ -312,10 +297,6 @@ Vector3d CalcPointAcceleration (
 	// Reset the velocity of the root body
 	model.v[0].setZero();
 	model.a[0].setZero();
-
-	if (model.experimental_floating_base) {
-		assert (0 && !"floating base not supported");
-	}
 
 	if (update_kinematics)
 		UpdateKinematics (model, Q, QDot, QDDot);

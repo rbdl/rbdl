@@ -34,10 +34,6 @@ void ForwardDynamics (
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	if (model.experimental_floating_base) {
-		assert (0 && "Experimental floating base not supported");
-	}
-
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	unsigned int i = 0;
@@ -230,10 +226,6 @@ void InverseDynamics (
 		std::vector<SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-
-	if (model.experimental_floating_base) {
-		assert (0 && !"InverseDynamics not supported for experimental floating base models!");
-	}
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 

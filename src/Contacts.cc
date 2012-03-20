@@ -381,7 +381,6 @@ void ComputeContactImpulsesLagrangian (
 	for (i = 0; i < CS.size(); i++) {
 		CS.constraint_impulse[i] = CS.x[model.dof_count + i];
 	}
-
 }
 
 /** \brief Compute only the effects of external forces on the generalized accelerations
@@ -552,10 +551,6 @@ void ForwardDynamicsContacts (
 		VectorNd &QDDot
 		) {
 	LOG << "-------- " << __func__ << " ------" << std::endl;
-
-//	LOG << "Q    = " << Q.transpose() << std::endl;
-//	LOG << "QDot = " << QDot.transpose() << std::endl;
-//	assert (ContactData.size() == 1);
 
 	assert (CS.f_ext_constraints.size() == model.mBodies.size());
 	assert (CS.QDDot_0.size() == model.dof_count);

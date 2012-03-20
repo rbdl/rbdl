@@ -121,13 +121,6 @@ struct Model {
 	/// \brief Contains the ids of all the children of a given body
 	std::vector<std::vector<unsigned int> >mu;
 
-	/** \brief Use floating base extension as described in RBDA chapter 9.4
-	 *
-	 * \warning This function is experimental and produces wrong results. Do
-	 * \warning not use!
-	 */
-	bool experimental_floating_base;
-
 	/** \brief number of degrees of freedoms of the model
 	 *
 	 * This value contains the number of entries in the generalized state (q)
