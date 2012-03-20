@@ -126,7 +126,6 @@ struct FixedBase6DoF {
 	unsigned int contact_body_id;
 	RigidBodyDynamics::Math::Vector3d contact_point;
 	RigidBodyDynamics::Math::Vector3d contact_normal;
-	std::vector<RigidBodyDynamics::ContactInfo> contact_data;
 	RigidBodyDynamics::ConstraintSet constraint_set;
 };
 

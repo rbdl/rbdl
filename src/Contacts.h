@@ -86,6 +86,16 @@ struct ConstraintSet {
 			const char *constraint_name = NULL,
 			double acceleration = 0.);
 
+	/** \brief Copies the constraints and resets its ConstraintSet::bound
+	 * flag.
+	 */
+	ConstraintSet Copy() {
+		ConstraintSet result (*this);
+		result.bound = false;
+
+		return result;
+	}
+
 	/** \brief Specifies which method should be used for solving undelying linear systems.
 	 */
 	void SetSolver (LinearSolver solver) {

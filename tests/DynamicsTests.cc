@@ -469,9 +469,9 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 	Joint joint_rot_z, joint_rot_y, joint_rot_x;
 	Joint joint_trans_z, joint_trans_y, joint_trans_x;
 
-	std::vector<ContactInfo> contact_data_right;
-	std::vector<ContactInfo> contact_data_left;
-	std::vector<ContactInfo> contact_data_both;
+	ConstraintSet CS_right;
+	ConstraintSet CS_left;
+	ConstraintSet CS_both;
 
 	model = new Model();
 
@@ -545,32 +545,24 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 	LOG << "--- model created (" << model->dof_count << " DOF) ---" << endl;
 	
 	// contact data
-	ContactInfo right_x (foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.));
-	ContactInfo right_y (foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.));
-	ContactInfo right_z (foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.));
+	CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
+	CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
+	CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
 
-	ContactInfo left_x (foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.));
-	ContactInfo left_y (foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.));
-	ContactInfo left_z (foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.));
+	CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
+	CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
+	CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
+	
+	CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
+	CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
+	CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
+	CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
+	CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
+	CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
 
-	// right contact
-	contact_data_right.push_back (right_x);
-	contact_data_right.push_back (right_y);
-	//	contact_data_right.push_back (right_z);
-
-	// left contact
-	contact_data_left.push_back (left_x);
-	contact_data_left.push_back (left_y);
-	//	contact_data_left.push_back (left_z);
-
-	// both contact
-	contact_data_both.push_back (right_x);
-	contact_data_both.push_back (right_y);
-	contact_data_both.push_back (right_z);
-
-	contact_data_both.push_back (left_x);
-	contact_data_both.push_back (left_y);
-	contact_data_both.push_back (left_z);
+	CS_right.Bind(*model);
+	CS_left.Bind(*model);
+	CS_both.Bind(*model);
 
 	VectorNd Q(model->dof_count);
 	VectorNd QDot(model->dof_count);

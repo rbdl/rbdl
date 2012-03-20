@@ -15,18 +15,6 @@ using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
-static void copy_contact_info (ConstraintSet &CS, std::vector<ContactInfo> &contact_info) {
-	for (unsigned int i = 0; i < contact_info.size(); i++) {
-		CS.AddConstraint(
-				contact_info[i].body_id,
-				contact_info[i].point,
-				contact_info[i].normal,
-				NULL,
-				contact_info[i].acceleration
-				);
-	}
-}
-
 struct ImpulsesFixture {
 	ImpulsesFixture () {
 		ClearLogOutput();
@@ -154,13 +142,14 @@ struct ImpulsesFixture {
 	Vector3d contact_point;
 	Vector3d contact_normal;
 	ConstraintSet constraint_set;
-	std::vector<ContactInfo> contact_data;
 };
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 0.));
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
+
+	constraint_set.Bind (*model);
 
 	QDot[0] = 0.1;
 	QDot[1] = -0.2;
@@ -173,9 +162,6 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
 	}
 
 	// cout << "Point Velocity = " << point_velocity << endl;
-
-	copy_contact_info (constraint_set, contact_data);
-	constraint_set.Bind(*model);
 
 	VectorNd qdot_post (QDot.size());
 	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
@@ -192,9 +178,11 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
 }
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 0.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 0.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 0.));
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
+
+	constraint_set.Bind (*model);
 
 	Q[0] = 0.2;
 	Q[1] = -0.5;
@@ -214,9 +202,6 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
 	}
 
 	// cout << "Point Velocity = " << point_velocity << endl;
-	copy_contact_info (constraint_set, contact_data);
-	constraint_set.Bind(*model);
-
 	VectorNd qdot_post (QDot.size());
 	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
 	// cout << LogOutput.str() << endl;
@@ -232,9 +217,11 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
 }
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (1., 0., 0.), 1.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 1., 0.), 2.));
-	contact_data.push_back (ContactInfo (contact_body_id, contact_point, Vector3d (0., 0., 1.), 3.));
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
+	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
+
+	constraint_set.Bind (*model);
 
 	Q[0] = 0.2;
 	Q[1] = -0.5;
@@ -254,8 +241,6 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
 	}
 
 	// cout << "Point Velocity = " << point_velocity << endl;
-	copy_contact_info (constraint_set, contact_data);
-	constraint_set.Bind(*model);
 
 	VectorNd qdot_post (QDot.size());
 	ComputeContactImpulsesLagrangian (*model, Q, QDot, constraint_set, qdot_post);
