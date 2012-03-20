@@ -42,14 +42,27 @@ namespace RigidBodyDynamics {
  * \link RigidBodyDynamics::Model::AddBody Model::AddBody(...)\endlink,
  * \link RigidBodyDynamics::Model::AppendBody Model::AppendBody(...)\endlink, and
  * \link RigidBodyDynamics::Model::GetBodyId Model::GetBodyId(...)\endlink,
- * are used to initialize and construct the \ref model_structure. To
- * create a model with a floating base (a.k.a a model with a free-flyer
- * joint) it is recommended to use
- * \link RigidBodyDynamics::Model::SetFloatingBaseBody Model::SetFloatingBaseBody(...)\endlink.
+ * are used to initialize and construct the \ref model_structure.
+ *
+ * The construction of \link RigidBodyDynamics::Model Models \endlink makes
+ * use of carefully designed constructors of the classes \link
+ * RigidBodyDynamics::Body Body \endlink and \link RigidBodyDynamics::Joint
+ * Joint \endlink to ease the process of creating bodies.  Adding bodies to
+ * the model is done by specifying the parent body by its id, the
+ * transformation from the parent origin to the joint origin, the joint
+ * specification as an object, and the body itself. These parameters are
+ * then fed to the function RigidBodyDynamics::Model::AddBody().
+ *
+ * To create a model with a floating base (a.k.a a model with a free-flyer
+ * joint) it is recommended to use \link
+ * RigidBodyDynamics::Model::SetFloatingBaseBody
+ * Model::SetFloatingBaseBody(...)\endlink.
  *
  * Once this is done, the model structure can be used with the functions of \ref
  * kinematics_group, \ref dynamics_group, \ref contacts_group, to perform
  * computations.
+ *
+ * A simple example can be found \ref SimpleExample "here".
  *
  * \section model_structure Model Structure
  *

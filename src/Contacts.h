@@ -224,18 +224,19 @@ struct ConstraintSet {
  *
  * \note To increase performance group constraints body and pointwise such
  * that constraints acting on the same body point are sequentially in
- * ContactData. This can save computation of point jacobians \f$G\f$.
-  *
+ * ConstraintSet. This can save computation of point jacobians \f$G\f$.
+ *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points
+ * \param ConstraintSet list of all contact points
  * \param QDDot accelerations of the internals joints (output)
  *
- * \note During execution of this function the values ContactData[i].force
- * 	get modified and will contain the value of the force acting along
- * 	the normal.
+ * \note During execution of this function values such as
+ * ConstraintSet::constraint_force get modified and will contain the value
+ * of the force acting along the normal.
+ *
  */
 void ForwardDynamicsContactsLagrangian (
 		Model &model,
@@ -284,7 +285,7 @@ void ForwardDynamicsContactsLagrangian (
  *
  * \note To increase performance group constraints body and pointwise such
  * that constraints acting on the same body point are sequentially in
- * ContactData. This can save computation of point jacobians \f$G\f$.
+ * ConstraintSet. This can save computation of point jacobians \f$G\f$.
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
@@ -300,7 +301,7 @@ void ComputeContactImpulsesLagrangian (
 		Math::VectorNd &QDotPlus
 		);
 
-/** \brief Computes forward dynamics that accounts for active contacts in ContactData
+/** \brief Computes forward dynamics that accounts for active contacts in ConstraintSet.
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
  * Paper "Practical Physics for Articulated Characters", Game Developers
@@ -353,12 +354,12 @@ void ComputeContactImpulsesLagrangian (
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param ContactData	a list of all contact points
+ * \param CS a list of all contact points
  * \param QDDot accelerations of the internals joints (output)
  *
- * \note During execution of this function the values ContactData[i].force
- * 	get modified and will contain the value of the force acting along
- * 	the normal.
+ * \note During execution of this function values such as
+ * ConstraintSet::constraint_force get modified and will contain the value
+ * of the force acting along the normal.
  *
  * \todo Allow for external forces
  */void ForwardDynamicsContacts (
