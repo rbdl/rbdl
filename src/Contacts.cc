@@ -478,7 +478,7 @@ void ForwardDynamicsContactsOld (
 		const VectorNd &Q,
 		const VectorNd &QDot,
 		const VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
+		ConstraintSet &CS,
 		VectorNd &QDDot
 		) {
 	LOG << "-------- " << __func__ << " ------" << std::endl;
@@ -487,16 +487,6 @@ void ForwardDynamicsContactsOld (
 //	LOG << "QDot = " << QDot.transpose() << std::endl;
 
 //	assert (ContactData.size() == 1);
-	std::vector<SpatialVector> f_t (ContactData.size(), SpatialVectorZero);
-	std::vector<SpatialVector> f_ext_constraints (model.mBodies.size(), SpatialVectorZero);
-	std::vector<Vector3d> point_accel_0 (ContactData.size(), Vector3d::Zero());
-	VectorNd QDDot_0 = VectorNd::Zero(model.dof_count);
-	VectorNd QDDot_t = VectorNd::Zero(model.dof_count);
-
-	MatrixNd K = MatrixNd::Zero(ContactData.size(), ContactData.size());
-	VectorNd f = VectorNd::Zero(ContactData.size());
-	VectorNd a = VectorNd::Zero(ContactData.size());
-
 	Vector3d point_accel_t;
 
 	unsigned int ci = 0;
@@ -504,42 +494,42 @@ void ForwardDynamicsContactsOld (
 	// The default acceleration only needs to be computed once
 	{
 		SUPPRESS_LOGGING;
-		ForwardDynamics (model, Q, QDot, Tau, QDDot_0);
+		ForwardDynamics (model, Q, QDot, Tau, CS.QDDot_0);
 	}
 
 	// The vector f_ext_constraints might contain some values from previous
 	// computations so we need to reset it.
-	for (unsigned int fi = 0; fi < f_ext_constraints.size(); fi++) {
-			f_ext_constraints[fi].setZero();
+	for (unsigned int fi = 0; fi < CS.f_ext_constraints.size(); fi++) {
+			CS.f_ext_constraints[fi].setZero();
 		}
 
 	// we have to compute the standard accelerations first as we use them to
 	// compute the effects of each test force
 	LOG << "=== Initial Loop Start ===" << std::endl;
-	for (ci = 0; ci < ContactData.size(); ci++) {
-		unsigned int body_id = ContactData[ci].body_id;
-		Vector3d point = ContactData[ci].point;
-		Vector3d normal = ContactData[ci].normal;
-		double acceleration = ContactData[ci].acceleration;
+	for (ci = 0; ci < CS.size(); ci++) {
+		unsigned int body_id = CS.body[ci];
+		Vector3d point = CS.point[ci];
+		Vector3d normal = CS.normal[ci];
+		double acceleration = CS.constraint_acceleration[ci];
 
 		{
 			SUPPRESS_LOGGING;
-			UpdateKinematicsCustom (model, NULL, NULL, &QDDot_0);
-			point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, QDDot_0, body_id, point, false);
+			UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
+			CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, body_id, point, false);
 
-			a[ci] = acceleration - ContactData[ci].normal.dot(point_accel_0[ci]);
+			CS.a[ci] = acceleration - normal.dot(CS.point_accel_0[ci]);
 		}
-		LOG << "point_accel_0 = " << point_accel_0[ci].transpose();
+		LOG << "point_accel_0 = " << CS.point_accel_0[ci].transpose();
 	}
 
 	// Now we can compute and apply the test forces and use their net effect
 	// to compute the inverse articlated inertia to fill K.
-	for (ci = 0; ci < ContactData.size(); ci++) {
+	for (ci = 0; ci < CS.size(); ci++) {
 		LOG << "=== Testforce Loop Start ===" << std::endl;
-		unsigned int body_id = ContactData[ci].body_id;
-		Vector3d point = ContactData[ci].point;
-		Vector3d normal = ContactData[ci].normal;
-		double acceleration = ContactData[ci].acceleration;
+		unsigned int body_id = CS.body[ci];
+		Vector3d point = CS.point[ci];
+		Vector3d normal = CS.normal[ci];
+		double acceleration = CS.constraint_acceleration[ci];
 
 		// assemble the test force
 		LOG << "normal = " << normal.transpose() << std::endl;
@@ -547,71 +537,78 @@ void ForwardDynamicsContactsOld (
 		Vector3d point_global = CalcBodyToBaseCoordinates (model, Q, body_id, point, false);
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
-		f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
-		f_t[ci] = spatial_adjoint(Xtrans_mat(-point_global)) * f_t[ci];
-		f_ext_constraints[body_id] = f_t[ci];
-
-		LOG << "f_t[" << ci << "] (i = ci) = " << f_t[ci].transpose() << std::endl;
-		LOG << "f_t[" << body_id << "] (i = body_id) = " << f_t[body_id].transpose() << std::endl;
+		CS.f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
+		CS.f_t[ci] = spatial_adjoint(Xtrans_mat(-point_global)) * CS.f_t[ci];
+		CS.f_ext_constraints[body_id] = CS.f_t[ci];
+		LOG << "f_t[" << body_id << "] = " << CS.f_t[ci].transpose() << std::endl;
 
 		{
 //			SUPPRESS_LOGGING;
 //			ForwardDynamicsAccelerationsOnly (model, QDDot_t, &f_ext_constraints);
-			ForwardDynamics (model, Q, QDot, Tau, QDDot_t, &f_ext_constraints);
-			LOG << "QDDot_0 = " << QDDot_0.transpose() << std::endl;
-			LOG << "QDDot_t = " << QDDot_t.transpose() << std::endl;
-			LOG << "QDDot_t - QDDot_0= " << (QDDot_t - QDDot_0).transpose() << std::endl;
+			ForwardDynamics (model, Q, QDot, Tau, CS.QDDot_t, &CS.f_ext_constraints);
+			LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
+			LOG << "QDDot_t = " << CS.QDDot_t.transpose() << std::endl;
+			LOG << "QDDot_t - QDDot_0= " << (CS.QDDot_t - CS.QDDot_0).transpose() << std::endl;
 		}
-		f_ext_constraints[body_id].setZero();
+		CS.f_ext_constraints[body_id].setZero();
 
 		// compute the resulting acceleration
 		{
 			SUPPRESS_LOGGING;
-			UpdateKinematicsCustom (model, NULL, NULL, &QDDot_t);
+			UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_t);
 		}
 
-		for (unsigned int cj = 0; cj < ContactData.size(); cj++) {
+		for (unsigned int cj = 0; cj < CS.size(); cj++) {
 			{
 				SUPPRESS_LOGGING;
 
-				point_accel_t = CalcPointAcceleration (model, Q, QDot, QDDot_t, ContactData[cj].body_id, ContactData[cj].point, false);
+				point_accel_t = CalcPointAcceleration (model, Q, QDot, CS.QDDot_t, CS.body[cj], CS.point[cj], false);
 			}
-	
-			LOG << "point_accel_0  = " << point_accel_0[ci].transpose() << std::endl;
-			K(cj,ci) = ContactData[cj].normal.dot(- point_accel_0[cj] + point_accel_t);
+
+			LOG << "point_accel_0  = " << CS.point_accel_0[ci].transpose() << std::endl;
+			CS.K(ci,cj) = CS.normal[cj].dot(point_accel_t - CS.point_accel_0[cj]);
 			LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
 		}
 	}
 
-	LOG << "K = " << std::endl << K << std::endl;
-	LOG << "a = " << std::endl << a << std::endl;
+	LOG << "K = " << std::endl << CS.K << std::endl;
+	LOG << "a = " << std::endl << CS.a << std::endl;
 
 #ifndef RBDL_USE_SIMPLE_MATH
-//	f = K.ldlt().solve (a);
-	f = K.colPivHouseholderQr().solve (a);
+	switch (CS.linear_solver) {
+		case (ConstraintSet::LinearSolverPartialPivLU) :
+			CS.constraint_force = CS.K.partialPivLu().solve(CS.a);
+			break;
+		case (ConstraintSet::LinearSolverColPivHouseholderQR) :
+			CS.constraint_force = CS.K.colPivHouseholderQr().solve(CS.a);
+			break;
+		default:
+			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
+			assert (0);
+			break;
+	}
 #else
-	bool solve_successful = LinSolveGaussElimPivot (K, a, f);
+	bool solve_successful = LinSolveGaussElimPivot (CS.K, CS.a, CS.constraint_force);
 	assert (solve_successful);
 #endif
 
-	LOG << "f = " << f << std::endl;
+	LOG << "f = " << CS.constraint_force.transpose() << std::endl;
 
-	for (unsigned int i = 0; i < f_ext_constraints.size(); i++) {
-		f_ext_constraints[i].setZero();
+	for (unsigned int i = 0; i < CS.f_ext_constraints.size(); i++) {
+		CS.f_ext_constraints[i].setZero();
 	}
 
-	for (ci = 0; ci < ContactData.size(); ci++) {
-		ContactData[ci].force = f[ci];
-		unsigned int body_id = ContactData[ci].body_id;
+	for (ci = 0; ci < CS.size(); ci++) {
+		unsigned int body_id = CS.body[ci];
 
-		f_ext_constraints[body_id] += f_t[ci] * f[ci]; 
-		LOG << "f_ext[" << body_id << "] = " << f_ext_constraints[body_id].transpose() << std::endl;
+		CS.f_ext_constraints[body_id] += CS.f_t[ci] * CS.constraint_force[ci]; 
+		LOG << "f_ext[" << body_id << "] = " << CS.f_ext_constraints[body_id].transpose() << std::endl;
 	}
 
 	{
 		SUPPRESS_LOGGING;
 //		ForwardDynamicsAccelerationsOnly (model, QDDot, &f_ext_constraints);
-		ForwardDynamics (model, Q, QDot, Tau, QDDot, &f_ext_constraints);
+		ForwardDynamics (model, Q, QDot, Tau, QDDot, &CS.f_ext_constraints);
 	}
 }
 
@@ -717,12 +714,6 @@ void ForwardDynamicsContacts (
 	{
 		SUPPRESS_LOGGING;
 		ForwardDynamics (model, Q, QDot, Tau, CS.QDDot_0);
-	}
-
-	// The vector f_ext_constraints might contain some values from previous
-	// computations so we need to reset it.
-	for (unsigned int fi = 0; fi < CS.f_ext_constraints.size(); fi++) {
-//			CS.f_ext_constraints[fi].setZero();
 	}
 
 	LOG << "=== Initial Loop Start ===" << std::endl;

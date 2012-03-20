@@ -178,73 +178,6 @@ struct ConstraintSet {
 	Math::VectorNd d_d;
 };
 
-/** \brief [Deprecated] Structure that contains information about a one-dimensional
- *  \brief contact constraint
- *
- *  This structure is also used to describe contact points that undergo an
- *  impulse, see alse ComputeContactImpulses().
- *
- * 	\warning This structure is deprecated. Use \link RigidBodyDynamics::ConstraintSet
- * 	ConstraintSet \endlink instead.
- *
- *  \deprecated
- */
-struct ContactInfo {
-	ContactInfo() :
-		body_id (0),
-		point (0., 0., 0.),
-		normal (0., 0., 0.),
-		acceleration (0.),
-		force (0.)
-	{	}
-	ContactInfo (const ContactInfo &contact_info) :
-		body_id (contact_info.body_id),
-		point (contact_info.point),
-		normal (contact_info.normal),
-		acceleration (contact_info.acceleration),
-		force (contact_info.force)
-	{}
-	ContactInfo& operator= (const ContactInfo &contact_info) {
-		if (this != &contact_info) {
-			body_id = contact_info.body_id;
-			point = contact_info.point;
-			normal = contact_info.normal;
-			acceleration = contact_info.acceleration;
-			force = contact_info.force;
-		}
-
-		return *this;
-	}
-	~ContactInfo() {};
-
-	ContactInfo (unsigned int body, const Math::Vector3d &contact_point, const Math::Vector3d &contact_normal):
-		body_id (body),
-		point (contact_point),
-		normal (contact_normal),
-		acceleration (0.),
-		force (0.)
-	{	}
-
-	ContactInfo (unsigned int body, const Math::Vector3d &contact_point, const Math::Vector3d &contact_normal, const double accel):
-		body_id (body),
-		point (contact_point),
-		normal (contact_normal),
-		acceleration (accel),
-		force (force)
-	{	}
-
-	/// \brief The id of the body of which the motion is constrained
-	unsigned int body_id;
-	/// \brief Coordinate of the contact point in base coordinates
-	Math::Vector3d point;
-	/// \brief Normal of the contact point in base coordinates
-	Math::Vector3d normal;
-	/// \brief Acceleration value of the constraint along the normal
-	double acceleration;
-	/// \brief Force acting along the normal
-	double force;
-};
-
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
  *
  * This method builds and solves the linear system \f[
@@ -355,26 +288,6 @@ void ComputeContactImpulsesLagrangian (
 		const Math::VectorNd &QDotMinus,
 		ConstraintSet &CS,
 		Math::VectorNd &QDotPlus
-		);
-
-/** \brief Computes forward dynamics that accounts for active contacts.
- *
- * The method used here is the one described by Kokkevis and Metaxas in the
- * Paper "Efficient Dynamic Constraints for Animating Articulated Figures",
- * Multibody System Dynamics 2, 89-114, 1998.
- *
- * This function is superseeded by \ref RigidBodyDynamics::ForwardDynamicsContacts
- * the same approach but faster.
- * 
- * \todo Allow for external forces
- */
-void ForwardDynamicsContactsOld (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &Tau,
-		std::vector<ContactInfo> &ContactData,
-		Math::VectorNd &QDDot
 		);
 
 /** \brief Computes forward dynamics that accounts for active contacts in ContactData
