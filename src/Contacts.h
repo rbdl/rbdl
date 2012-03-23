@@ -8,7 +8,8 @@
 #ifndef _CONTACTS_H
 #define _CONTACTS_H
 
-#include "rbdl_math.h"
+#include <rbdl_math.h>
+#include <rbdl_mathutils.h>
 
 namespace RigidBodyDynamics {
 
@@ -49,24 +50,9 @@ struct Model;
  */
 struct ConstraintSet {
 	ConstraintSet() :
-		linear_solver (LinearSolverColPivHouseholderQR),
+		linear_solver (Math::LinearSolverColPivHouseholderQR),
 		bound (false)
 	{}
-
-	/** \brief Available solver methods for the linear systems.
-	 *
-	 * Please note that these methods are only available when Eigen3 is used.
-	 * When the math library SimpleMath is used it will always use a slow
-	 * column pivoting gauss elimination.
-	 *
-	 * Use ConstraintSet::SetSolver() to specify which solver should be used.
-	 */
-	enum LinearSolver {
-		LinearSolverUnknown = 0,
-		LinearSolverPartialPivLU,
-		LinearSolverColPivHouseholderQR,
-		LinearSolverLast,
-	};
 
 	/** \brief Adds a constraint to the constraint set.
 	 *
@@ -98,7 +84,7 @@ struct ConstraintSet {
 
 	/** \brief Specifies which method should be used for solving undelying linear systems.
 	 */
-	void SetSolver (LinearSolver solver) {
+	void SetSolver (Math::LinearSolver solver) {
 		linear_solver = solver;
 	}
 
@@ -124,7 +110,7 @@ struct ConstraintSet {
 	void clear ();
 
 	/// Method that should be used to solve internal linear systems.
-	LinearSolver linear_solver;
+	Math::LinearSolver linear_solver;
 	/// Whether the constraint set was bound to a model (mandatory!).
 	bool bound;
 

@@ -59,7 +59,8 @@ double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count
 				sample_data.q_data[i],
 				sample_data.qdot_data[i],
 				sample_data.tau_data[i],
-				sample_data.qddot_data[i]);
+				sample_data.qddot_data[i],
+				LinearSolverPartialPivLU);
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -189,7 +190,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	if (benchmark_run_fd_lagrangian) {
-		cout << "= ForwardDynamics Lagrangian =" << endl;
+		cout << "= ForwardDynamics Lagrangian (Piv. LU decomposition) =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 			model = new Model();
 			model->Init();

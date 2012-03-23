@@ -17,6 +17,19 @@ namespace RigidBodyDynamics {
 
 namespace Math {
 
+/** \brief Available solver methods for the linear systems.
+ *
+ * Please note that these methods are only available when Eigen3 is used.
+ * When the math library SimpleMath is used it will always use a slow
+ * column pivoting gauss elimination.
+ */
+enum LinearSolver {
+	LinearSolverUnknown = 0,
+	LinearSolverPartialPivLU,
+	LinearSolverColPivHouseholderQR,
+	LinearSolverLast,
+};
+
 extern Vector3d Vector3dZero;
 extern Matrix3d Matrix3dIdentity;
 extern Matrix3d Matrix3dZero;
