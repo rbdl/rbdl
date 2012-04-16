@@ -11,11 +11,66 @@
 #include <iostream>
 #include <cmath>
 
-
 namespace RigidBodyDynamics {
 
 namespace Math {
+
 /** \brief Spatial algebra matrices, vectors, and operators. */
+
+struct SpatialRigidBodyInertia {
+	SpatialRigidBodyInertia (
+			double mass, const Vector3d &com, const Matrix3d &inertia) : 
+		m (mass), h (com), I (inertia)
+	{ }
+
+	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
+		return Matrix3d (
+				0., -vector[2], vector[1],
+				vector[2], 0., -vector[0],
+				-vector[1], vector[0], 0.
+				);
+	}
+
+	SpatialVector operator* (const SpatialVector &mv) {
+		Matrix3d h_cross (
+				0., -h[2], h[1],
+				h[2], 0., -h[0],
+				-h[1], h[0], 0.
+				);
+		Vector3d mv_upper (mv[0], mv[1], mv[2]);
+		Vector3d mv_lower (mv[3], mv[4], mv[5]);
+
+		Vector3d res_upper = I * mv_upper + m * h_cross * mv_lower;
+		Vector3d res_lower = -m * h_cross * mv_upper + m * mv_lower;
+
+		return SpatialVector (
+				res_upper[0], res_upper[1], res_upper[2],
+				res_lower[0], res_lower[1], res_lower[2]
+				);
+	}
+
+	SpatialRigidBodyInertia operator+ (const SpatialRigidBodyInertia &rbi) {
+		return SpatialRigidBodyInertia (
+				m + rbi.m,
+				h + rbi.h,
+				I + rbi.I
+				);
+	}
+
+	SpatialMatrix toMatrix() {
+		SpatialMatrix result;
+		result.block<3,3>(0,0) = I;
+		result.block<3,3>(0,3) = m * VectorCrossMatrix(h);
+		result.block<3,3>(3,0) = - m * VectorCrossMatrix(h);
+		result.block<3,3>(3,3) = Matrix3d::Identity(3,3) * m;
+
+		return result;
+	}
+
+	Vector3d h;
+	Matrix3d I;
+	double m;
+};
 
 /** \brief Compact representation of spatial transformations.
  *
@@ -51,6 +106,24 @@ struct SpatialTransform {
 				E(0,0) * v_rxw[0] + E(0,1) * v_rxw[1] + E(0,2) * v_rxw[2],
 				E(1,0) * v_rxw[0] + E(1,1) * v_rxw[1] + E(1,2) * v_rxw[2],
 				E(2,0) * v_rxw[0] + E(2,1) * v_rxw[1] + E(2,2) * v_rxw[2]
+				);
+	}
+
+	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
+		return Matrix3d (
+				0., -vector[2], vector[1],
+				vector[2], 0., -vector[0],
+				-vector[1], vector[0], 0.
+				);
+	}
+
+	SpatialRigidBodyInertia apply (const SpatialRigidBodyInertia &rbi) {
+		return SpatialRigidBodyInertia (
+				rbi.m,
+				E.transpose() * rbi.h + rbi.m * r,
+				E.transpose() * rbi.I * E
+					- VectorCrossMatrix(r) * VectorCrossMatrix (E.transpose() * rbi.h)
+					- VectorCrossMatrix(E.transpose() * rbi.h + rbi.m * r) * VectorCrossMatrix (r)
 				);
 	}
 

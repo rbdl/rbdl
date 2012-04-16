@@ -66,7 +66,11 @@ TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsFlo
 	Tau[5] = 1.3;
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+
+	ClearLogOutput();
 	CompositeRigidBodyAlgorithm (*model, Q, H);
+	cout << LogOutput.str() << endl;
+
 	InverseDynamics (*model, Q, QDot, QDDot_zero, C);
 
 	CHECK (LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot_crba));

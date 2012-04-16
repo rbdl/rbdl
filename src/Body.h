@@ -26,25 +26,21 @@ struct Body {
 	Body() :
 		mMass (1.),
 		mCenterOfMass (0., 0., 0.),
-		mSpatialInertia (
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.,	
-				0., 0., 0., 0., 0., 0.
-				)
+		mInertia (Math::Matrix3d::Zero(3,3)),
+		mSpatialInertia (Math::SpatialMatrix::Zero(6,6))
 	{ };
 	Body(const Body &body) :
 		mMass (body.mMass),
 		mCenterOfMass (body.mCenterOfMass),
+		mInertia (body.mInertia),
 		mSpatialInertia (body.mSpatialInertia)
 	{};
 	Body& operator= (const Body &body) {
 		if (this != &body) {
-			mSpatialInertia = body.mSpatialInertia;
-			mCenterOfMass = body.mCenterOfMass;
 			mMass = body.mMass;
+			mInertia = body.mInertia;
+			mCenterOfMass = body.mCenterOfMass;
+			mSpatialInertia = body.mSpatialInertia;
 		}
 
 		return *this;
@@ -86,6 +82,8 @@ struct Body {
 					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
 					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
 					);
+
+			mInertia = mSpatialInertia.block<3,3>(0,0);
 		}
 
 	/** \brief Constructs a body from mass, center of mass, and a 3x3 inertia matrix 
@@ -102,6 +100,7 @@ struct Body {
 			const Math::Vector3d &com,
 			const Math::Matrix3d &inertia_C) :
 		mMass (mass),
+		mInertia (inertia_C),
 		mCenterOfMass(com) {
 			Math::Matrix3d com_cross (
 					0., -com[2],  com[1],
@@ -166,6 +165,12 @@ struct Body {
 			Math::Matrix3d mcc = mass * com_cross;
 			Math::Matrix3d mccT = mcc.transpose();
 
+			mInertia.set (
+					gr[0], 0., 0.,
+					0., gr[1], 0.,
+					0., 0., gr[2]
+					);
+
 			mSpatialInertia.set (
 					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
 					pa(1, 0), gr[1] + pa(1, 1), pa(1, 2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
@@ -185,6 +190,8 @@ struct Body {
 	double mMass;
 	/// \brief The position of the center of mass in body coordinates
 	Math::Vector3d mCenterOfMass;
+	/// \brief Inertia matrix at the center of mass
+	Math::Matrix3d mInertia;
 	/// \brief The spatial inertia that contains both mass and inertia information
 	Math::SpatialMatrix mSpatialInertia;
 };

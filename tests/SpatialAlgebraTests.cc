@@ -1,6 +1,7 @@
 #include <UnitTest++.h>
 
 #include <iostream>
+#include <iomanip>
 
 #include "rbdl_math.h"
 #include "rbdl_mathutils.h"
@@ -374,24 +375,51 @@ TEST(TestXrotAxis) {
 	SpatialTransform X_rotX = Xrotx (M_PI * 0.15);
 	SpatialTransform X_rotX_axis = Xrot (M_PI * 0.15, Vector3d (1., 0., 0.));
 
-	CHECK_ARRAY_CLOSE (X_rotX.toMatrix().data(), X_rotX_axis.toMatrix().data(), 16, TEST_PREC);
+	CHECK_ARRAY_CLOSE (X_rotX.toMatrix().data(), X_rotX_axis.toMatrix().data(), 36, TEST_PREC);
 
 	// all the other axes
 	SpatialTransform X_rotX_90 = Xrotx (M_PI * 0.5);
 	SpatialTransform X_rotX_90_axis = Xrot (M_PI * 0.5, Vector3d (1., 0., 0.));
 
-	CHECK_ARRAY_CLOSE (X_rotX_90.toMatrix().data(), X_rotX_90_axis.toMatrix().data(), 16, TEST_PREC);
+	CHECK_ARRAY_CLOSE (X_rotX_90.toMatrix().data(), X_rotX_90_axis.toMatrix().data(), 36, TEST_PREC);
 
 	SpatialTransform X_rotY_90 = Xroty (M_PI * 0.5);
 	SpatialTransform X_rotY_90_axis = Xrot (M_PI * 0.5, Vector3d (0., 1., 0.));
 
-	CHECK_ARRAY_CLOSE (X_rotY_90.toMatrix().data(), X_rotY_90_axis.toMatrix().data(), 16, TEST_PREC);
+	CHECK_ARRAY_CLOSE (X_rotY_90.toMatrix().data(), X_rotY_90_axis.toMatrix().data(), 36, TEST_PREC);
 
 	SpatialTransform X_rotZ_90 = Xrotz (M_PI * 0.5);
 	SpatialTransform X_rotZ_90_axis = Xrot (M_PI * 0.5, Vector3d (0., 0., 1.));
 
-	CHECK_ARRAY_CLOSE (X_rotZ_90.toMatrix().data(), X_rotZ_90_axis.toMatrix().data(), 16, TEST_PREC);
+	CHECK_ARRAY_CLOSE (X_rotZ_90.toMatrix().data(), X_rotZ_90_axis.toMatrix().data(), 36, TEST_PREC);
+}
 
+TEST(TestSpatialTransformApplySpatialRigidBodyInertia) {
+	SpatialRigidBodyInertia rbi (
+			11.,
+			Vector3d (1.1, 1.2, 1.3),
+			Matrix3d (2.1, 2.2, 2.3,
+				2.4, 2.5, 2.6,
+				2.7, 2.8, 2.9)
+			);
+
+	SpatialTransform X (
+			Xrot (0.2, Vector3d (0., 0., 1.))
+			* Xrot (0.2, Vector3d (0., 1., 0.))
+			* Xrot (0.2, Vector3d (1., 0., 0.))
+			* Xtrans (Vector3d (1.1, 1.2, 1.3))
+		);
+
+	SpatialRigidBodyInertia rbi_transformed = X.apply (rbi);
+
+	SpatialMatrix rbi_matrix_transformed = X.toMatrix().transpose() * rbi.toMatrix() * X.toMatrix();
+
+	CHECK_ARRAY_CLOSE (
+			rbi_matrix_transformed.data(),
+			rbi_transformed.toMatrix().data(),
+			36,
+			TEST_PREC
+			);
 }
 
 #ifdef USE_SLOW_SPATIAL_ALGEBRA
