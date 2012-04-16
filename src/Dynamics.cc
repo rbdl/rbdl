@@ -190,6 +190,7 @@ void ForwardDynamicsLagrangian (
 		const VectorNd &QDot,
 		const VectorNd &Tau,
 		VectorNd &QDDot,
+		Math::LinearSolver linear_solver,
 		std::vector<SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
@@ -208,7 +209,18 @@ void ForwardDynamicsLagrangian (
 	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;
 
 #ifndef RBDL_USE_SIMPLE_MATH
-	QDDot = H.colPivHouseholderQr().solve (C * -1. + Tau);
+	switch (linear_solver) {
+		case (LinearSolverPartialPivLU) :
+			QDDot = H.partialPivLu().solve (C * -1. + Tau);
+			break;
+		case (LinearSolverColPivHouseholderQR) :
+			QDDot = H.colPivHouseholderQr().solve (C * -1. + Tau);
+			break;
+		default:
+			LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
+			assert (0);
+			break;
+	}
 #else
 	bool solve_successful = LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
 	assert (solve_successful);

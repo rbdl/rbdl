@@ -249,10 +249,10 @@ void ForwardDynamicsContactsLagrangian (
 
 #ifndef RBDL_USE_SIMPLE_MATH
 	switch (CS.linear_solver) {
-		case (ConstraintSet::LinearSolverPartialPivLU) :
+		case (LinearSolverPartialPivLU) :
 			CS.x = CS.A.partialPivLu().solve(CS.b);
 			break;
-		case (ConstraintSet::LinearSolverColPivHouseholderQR) :
+		case (LinearSolverColPivHouseholderQR) :
 			CS.x = CS.A.colPivHouseholderQr().solve(CS.b);
 			break;
 		default:
@@ -357,10 +357,10 @@ void ComputeContactImpulsesLagrangian (
 
 #ifndef RBDL_USE_SIMPLE_MATH
 	switch (CS.linear_solver) {
-		case (ConstraintSet::LinearSolverPartialPivLU) :
+		case (LinearSolverPartialPivLU) :
 			CS.x = CS.A.partialPivLu().solve(CS.b);
 			break;
-		case (ConstraintSet::LinearSolverColPivHouseholderQR) :
+		case (LinearSolverColPivHouseholderQR) :
 			CS.x = CS.A.colPivHouseholderQr().solve(CS.b);
 			break;
 		default:
@@ -650,10 +650,10 @@ void ForwardDynamicsContacts (
 
 #ifndef RBDL_USE_SIMPLE_MATH
 	switch (CS.linear_solver) {
-		case (ConstraintSet::LinearSolverPartialPivLU) :
+		case (LinearSolverPartialPivLU) :
 			CS.constraint_force = CS.K.partialPivLu().solve(CS.a);
 			break;
-		case (ConstraintSet::LinearSolverColPivHouseholderQR) :
+		case (LinearSolverColPivHouseholderQR) :
 			CS.constraint_force = CS.K.colPivHouseholderQr().solve(CS.a);
 			break;
 		default:

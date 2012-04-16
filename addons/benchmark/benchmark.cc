@@ -21,6 +21,7 @@ int benchmark_model_max_depth = 5;
 bool benchmark_run_fd_aba = true;
 bool benchmark_run_fd_lagrangian = true;
 bool benchmark_run_id_rnea = true;
+bool benchmark_run_crba = true;
 
 double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
@@ -59,7 +60,8 @@ double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count
 				sample_data.q_data[i],
 				sample_data.qdot_data[i],
 				sample_data.tau_data[i],
-				sample_data.qddot_data[i]);
+				sample_data.qddot_data[i],
+				LinearSolverPartialPivLU);
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -98,6 +100,29 @@ double run_inverse_dynamics_RNEA_benchmark (Model *model, int sample_count) {
 	return duration;
 }
 
+double run_CRBA_benchmark (Model *model, int sample_count) {
+	SampleData sample_data;
+	sample_data.fill_random_data(model->dof_count, sample_count);
+
+	TimerInfo tinfo;
+	timer_start (&tinfo);
+
+	Math::MatrixNd H = Math::MatrixNd(model->dof_count, model->dof_count);
+
+	for (int i = 0; i < sample_count; i++) {
+		CompositeRigidBodyAlgorithm (*model, sample_data.q_data[i], H, true);
+	}
+
+	double duration = timer_stop (&tinfo);
+
+	cout << "#DOF: " << setw(3) << model->dof_count 
+		<< " #samples: " << sample_count 
+		<< " duration = " << setw(10) << duration << "(s)"
+		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
+
+	return duration;
+}
+
 void print_usage () {
 	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>]" << endl;
 	cout << "Simple benchmark tool for the Rigid Body Dynamics Library." << endl;
@@ -112,6 +137,9 @@ void print_usage () {
 	cout << "                                solving the lagrangian equation." << endl;
 	cout << "  --no-id-rnea                : disables benchmark for inverse dynamics using" << endl;
 	cout << "                                the recursive newton euler algorithm." << endl;
+	cout << "  --no-crba                   : disables benchmark for joint space inertia" << endl;
+	cout << "                                matrix computation using the composite rigid." << endl;
+	cout << "                                body algorithm." << endl;
 }
 
 void parse_args (int argc, char* argv[]) {
@@ -155,6 +183,8 @@ void parse_args (int argc, char* argv[]) {
 			benchmark_run_fd_lagrangian = false;
 		} else if (arg == "--no-id-rnea" ) {
 			benchmark_run_id_rnea = false;
+		} else if (arg == "--no-crba" ) {
+			benchmark_run_crba = false;
 		} else {
 			print_usage();
 			cerr << "Invalid argument '" << arg << "'." << endl;
@@ -173,7 +203,7 @@ int main (int argc, char *argv[]) {
 	cout << endl;
 
 	if (benchmark_run_fd_aba) {
-		cout << "= ForwardDynamics ABA =" << endl;
+		cout << "= Forward Dynamics: ABA =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 			model = new Model();
 			model->Init();
@@ -189,7 +219,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	if (benchmark_run_fd_lagrangian) {
-		cout << "= ForwardDynamics Lagrangian =" << endl;
+		cout << "= Forward Dynamics: Lagrangian (Piv. LU decomposition) =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 			model = new Model();
 			model->Init();
@@ -205,7 +235,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	if (benchmark_run_id_rnea) {
-		cout << "= InverseDynamics RNEA =" << endl;
+		cout << "= Inverse Dynamics: RNEA =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 			model = new Model();
 			model->Init();
@@ -217,6 +247,23 @@ int main (int argc, char *argv[]) {
 
 			delete model;
 		}
+		cout << endl;
+	}
+
+	if (benchmark_run_crba) {
+		cout << "= Joint Space Inertia Matrix: CRBA =" << endl;
+		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
+			model = new Model();
+			model->Init();
+			model->gravity = Vector3d (0., -9.81, 0.);
+
+			generate_planar_tree (model, depth);
+
+			run_CRBA_benchmark (model, benchmark_sample_count);
+
+			delete model;
+		}
+		cout << endl;
 	}
 
 	return 0;

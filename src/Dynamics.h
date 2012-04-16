@@ -8,9 +8,12 @@
 #ifndef _DYNAMICS_H
 #define _DYNAMICS_H
 
-#include <rbdl_math.h>
 #include <assert.h>
 #include <iostream>
+
+#include <rbdl_math.h>
+#include <rbdl_mathutils.h>
+
 #include "Logging.h"
 
 namespace RigidBodyDynamics {
@@ -58,6 +61,7 @@ void ForwardDynamics (
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
  * \param QDDot accelerations of the internal joints (output)
+ * \param linear_solver specification which method should be used for solving the linear system
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
 void ForwardDynamicsLagrangian (
@@ -66,6 +70,7 @@ void ForwardDynamicsLagrangian (
 		const Math::VectorNd &QDot,
 		const Math::VectorNd &Tau,
 		Math::VectorNd &QDDot,
+		Math::LinearSolver linear_solver = Math::LinearSolverColPivHouseholderQR,
 		std::vector<Math::SpatialVector> *f_ext = NULL
 		);
 
