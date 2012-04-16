@@ -103,7 +103,8 @@ Math::Vector3d CalcBaseToBodyCoordinates (
  * \param update_kinematics whether UpdateKinematics() should be called or not
  * (default: true).
  *
- * \returns A 3x3 matrix that contains the rotation from base
+ * \returns An orthonormal 3x3 matrix that rotates vectors from base coordinates
+ * to body coordinates.
  */
 Math::Matrix3d CalcBodyWorldOrientation (
 		Model &model,

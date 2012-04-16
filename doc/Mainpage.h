@@ -17,17 +17,17 @@
  * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
  * <martin.felis@iwr.uni-heidelberg.de></a> and heavily inspired by the
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
- * href="http://users.cecs.anu.edu.au/~roy/">Roy Featherstone</a>.
+ * href="http://users.cecs.anu.edu.au/~roy/" target="_parent">Roy Featherstone</a>.
  * 
  * Development is taking place on <a
- * href="http://bitbucket.org">bitbucket.org</a>. The official repository
+ * href="http://bitbucket.org" target="_parent">bitbucket.org</a>. The official repository
  * can be found at:
- * <a href="http://bitbucket.org/rbdl/rbdl/">http://bitbucket.org/rbdl/rbdl/</a>.
+ * <a href="http://bitbucket.org/rbdl/rbdl/" target="_parent">http://bitbucket.org/rbdl/rbdl/</a>.
  * 
  * The library comes with version 3 of the the
- * <a href="http://eigen.tuxfamily.org/">Eigen</a> math library. More
+ * <a href="http://eigen.tuxfamily.org/" target="_parent">Eigen</a> math library. More
  * information about it can be found here:
- * <a href="http://eigen.tuxfamily.org/">http://eigen.tuxfamily.org/</a>
+ * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>
  *
  * \section Example Example
  *
