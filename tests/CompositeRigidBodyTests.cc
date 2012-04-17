@@ -126,7 +126,9 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoF) {
 	Tau[11] = -0.3;
 
 	ForwardDynamics(*model, Q, QDot, Tau, QDDot);
+	ClearLogOutput();
 	CompositeRigidBodyAlgorithm (*model, Q, H);
+	cout << LogOutput.str() << endl;
 	InverseDynamics (*model, Q, QDot, QDDot_zero, C);
 
 	CHECK (LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot_crba));

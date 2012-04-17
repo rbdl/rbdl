@@ -57,6 +57,15 @@ int main (int argc, char* argv[]) {
 
 	std::cout << QDDot.transpose() << std::endl;
 
+	QDot(0) = 1;
+	QDDot(0) = 1;
+	std::cout << "QDot  : " << QDot.transpose() << std::endl;
+	std::cout << "QDDot  : " << QDDot.transpose() << std::endl;
+	Vector3d accel = CalcPointAcceleration ( *model, Q, QDot, QDDot, body_a_id, Vector3d(1,0,0), true );
+	Vector3d velo = CalcPointVelocity ( *model, Q, QDot, body_a_id, Vector3d(1,0,0), false );
+	std::cout << "A_velo : " << velo.transpose() << std::endl;
+	std::cout << "A_accel: " << accel.transpose() << std::endl;
+
 	delete model;
 
  	return 0;

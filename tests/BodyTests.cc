@@ -58,15 +58,15 @@ TEST ( TestBodyConstructorSpatialRigidBodyInertia ) {
 	SpatialMatrix spatial_inertia = body.mSpatialInertia;
 	SpatialRigidBodyInertia rbi = SpatialRigidBodyInertia(
 				body.mMass,
-				body.mCenterOfMass,
+				body.mMass * body.mCenterOfMass,
 				body.mInertia
 				);
 
-	cout << "Spatial Inertia = " << endl << spatial_inertia << endl;
-	cout << "rbi = " << endl << rbi.toMatrix() << endl;
-	cout << "rbi.m = " << rbi.m << endl;
-	cout << "rbi.h = " << rbi.h.transpose() << endl;
-	cout << "rbi.I = " << endl << rbi.I << endl;
+//	cout << "Spatial Inertia = " << endl << spatial_inertia << endl;
+//	cout << "rbi = " << endl << rbi.toMatrix() << endl;
+//	cout << "rbi.m = " << rbi.m << endl;
+//	cout << "rbi.h = " << rbi.h.transpose() << endl;
+//	cout << "rbi.I = " << endl << rbi.I << endl;
 
 	CHECK_ARRAY_CLOSE (
 			spatial_inertia.data(),

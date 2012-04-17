@@ -60,8 +60,8 @@ struct SpatialRigidBodyInertia {
 	SpatialMatrix toMatrix() {
 		SpatialMatrix result;
 		result.block<3,3>(0,0) = I;
-		result.block<3,3>(0,3) = m * VectorCrossMatrix(h);
-		result.block<3,3>(3,0) = - m * VectorCrossMatrix(h);
+		result.block<3,3>(0,3) = VectorCrossMatrix(h);
+		result.block<3,3>(3,0) = - VectorCrossMatrix(h);
 		result.block<3,3>(3,3) = Matrix3d::Identity(3,3) * m;
 
 		return result;
