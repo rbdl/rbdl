@@ -52,15 +52,38 @@ TEST ( TestBodyConstructorSpatialRigidBodyInertiaMultiplyMotion ) {
 			TEST_PREC
 			);
 }
+
 TEST ( TestBodyConstructorSpatialRigidBodyInertia ) {
 	Body body(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
 
 	SpatialMatrix spatial_inertia = body.mSpatialInertia;
 	SpatialRigidBodyInertia rbi = SpatialRigidBodyInertia(
 				body.mMass,
-				body.mMass * body.mCenterOfMass,
+				body.mCenterOfMass,
 				body.mInertia
 				);
+
+//	cout << "Spatial Inertia = " << endl << spatial_inertia << endl;
+//	cout << "rbi = " << endl << rbi.toMatrix() << endl;
+//	cout << "rbi.m = " << rbi.m << endl;
+//	cout << "rbi.h = " << rbi.h.transpose() << endl;
+//	cout << "rbi.I = " << endl << rbi.I << endl;
+
+	CHECK_ARRAY_CLOSE (
+			spatial_inertia.data(),
+			rbi.toMatrix().data(),
+			36,
+			TEST_PREC
+			);
+}
+
+TEST ( TestBodyConstructorCopySpatialRigidBodyInertia ) {
+	Body body(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
+
+	SpatialMatrix spatial_inertia = body.mSpatialInertia;
+
+	SpatialRigidBodyInertia rbi;
+	rbi.copyFromMatrix (spatial_inertia);
 
 //	cout << "Spatial Inertia = " << endl << spatial_inertia << endl;
 //	cout << "rbi = " << endl << rbi.toMatrix() << endl;

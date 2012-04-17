@@ -17,7 +17,7 @@ SET ( TESTS_SRCS
 	#	CalcAccelerationsTests.cc
 	#	DynamicsTests.cc
 	#	InverseDynamicsTests.cc
-	# CompositeRigidBodyTests.cc
+	CompositeRigidBodyTests.cc
 	#	ImpulsesTests.cc
 	#	TwolegModelTests.cc
 	#	ContactsTests.cc

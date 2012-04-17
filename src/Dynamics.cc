@@ -323,7 +323,12 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "Ic[" << i << "] = " << std::endl << model.Ic[i].toMatrix() << std::endl;
 	}
+
 	unsigned int dof_i = model.dof_count;
+	for (i = 1; i < model.mBodies.size(); i++) {
+		model.Ic[i].copyFromMatrix(model.mBodies[i].mSpatialInertia);
+	}
+
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int lambda = model.lambda[i];

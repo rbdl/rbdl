@@ -179,11 +179,6 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 				)
 			);
 
-	std::cerr << "Added body inertia = " << std::endl
-		<< Ic[mBodies.size() - 1].toMatrix() << std::endl;
-	std::cerr << "spatial inertia = " << std::endl
-		<< mBodies[mBodies.size() - 1].mSpatialInertia << std::endl << std::endl;
-
 	return mBodies.size() - 1;
 }
 

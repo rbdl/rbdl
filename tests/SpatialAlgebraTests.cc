@@ -415,6 +415,8 @@ TEST(TestSpatialTransformApplySpatialRigidBodyInertia) {
 
 	cout << "rbi_transformed = " << endl << rbi_transformed.toMatrix() << endl;
 	cout << "rbi_matrix_transformed = " << endl << rbi_matrix_transformed << endl;
+	cout << "diff = " << endl << 
+		rbi_transformed.toMatrix() - rbi_matrix_transformed << endl;
 
 	CHECK_ARRAY_CLOSE (
 			rbi_matrix_transformed.data(),

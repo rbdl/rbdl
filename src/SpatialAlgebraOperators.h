@@ -18,9 +18,14 @@ namespace Math {
 /** \brief Spatial algebra matrices, vectors, and operators. */
 
 struct SpatialRigidBodyInertia {
+	SpatialRigidBodyInertia() :
+		m (0.),
+		h (Vector3d::Zero(3,1)),
+		I (Matrix3d::Zero(3,3))
+	{}
 	SpatialRigidBodyInertia (
 			double mass, const Vector3d &com, const Matrix3d &inertia) : 
-		m (mass), h (com), I (inertia)
+		m (mass), h (com * mass), I (inertia)
 	{ }
 
 	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
@@ -40,8 +45,8 @@ struct SpatialRigidBodyInertia {
 		Vector3d mv_upper (mv[0], mv[1], mv[2]);
 		Vector3d mv_lower (mv[3], mv[4], mv[5]);
 
-		Vector3d res_upper = I * mv_upper + m * h_cross * mv_lower;
-		Vector3d res_lower = -m * h_cross * mv_upper + m * mv_lower;
+		Vector3d res_upper = I * mv_upper + h_cross * mv_lower;
+		Vector3d res_lower = - h_cross * mv_upper + m * mv_lower;
 
 		return SpatialVector (
 				res_upper[0], res_upper[1], res_upper[2],
@@ -55,6 +60,12 @@ struct SpatialRigidBodyInertia {
 				h + rbi.h,
 				I + rbi.I
 				);
+	}
+
+	void copyFromMatrix (const SpatialMatrix &Ic) {
+		m = Ic(3,3);
+		h.set (-Ic(1,5), Ic(0,5), -Ic(0,4));
+		I = Ic.block<3,3>(0,0);
 	}
 
 	SpatialMatrix toMatrix() {
