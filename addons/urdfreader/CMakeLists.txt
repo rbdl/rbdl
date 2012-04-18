@@ -1,4 +1,4 @@
-PROJECT (RBDL_ADDON_XMLREADER)
+PROJECT (RBDL_ADDON_URDFREADER)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
@@ -20,29 +20,37 @@ SET (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
-SET ( XMLREADER_SOURCES 
-	rbdl_xmlreader.cc
+SET ( URDFREADER_SOURCES 
+	rbdl_urdfreader.cc
 	tinyxml/tinystr.cpp
 	tinyxml/tinyxml.cpp
 	tinyxml/tinyxmlerror.cpp
 	tinyxml/tinyxmlparser.cpp
 	)
 
-ADD_LIBRARY ( rbdl_xmlreader SHARED ${XMLREADER_SOURCES} )
+ADD_LIBRARY ( rbdl_urdfreader SHARED ${URDFREADER_SOURCES} )
+
+ADD_DEFINITIONS (-DTIXML_USE_STL)
 
 IF (BUILD_STATIC)
-  ADD_LIBRARY ( rbdl_xmlreader-static STATIC ${RBDL_SOURCES} )
-  SET_TARGET_PROPERTIES ( rbdl_xmlreader-static PROPERTIES PREFIX "lib")
-  SET_TARGET_PROPERTIES ( rbdl_xmlreader-static PROPERTIES OUTPUT_NAME "rbdl_xmlreader")
+  ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${RBDL_SOURCES} )
+  SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES PREFIX "lib")
+  SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES OUTPUT_NAME "rbdl_urdfreader")
 
-	INSTALL (TARGETS rbdl_xmlreader-static
+	INSTALL (TARGETS rbdl_urdfreader-static
 	  LIBRARY DESTINATION lib
   	ARCHIVE DESTINATION lib
 	)
 ENDIF (BUILD_STATIC)
 
+ADD_EXECUTABLE (rbdl_urdf_test rbdl_urdf_test.cc)
+
+TARGET_LINK_LIBRARIES (rbdl_urdf_test
+	rbdl_urdfreader
+	)
+
 # Installing
-INSTALL (TARGETS rbdl_xmlreader
+INSTALL (TARGETS rbdl_urdfreader
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	)
@@ -51,4 +59,4 @@ FILE ( GLOB headers
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 	)
 
-INSTALL ( FILES ${headers} DESTINATION include/rbdl/addons/xmlreader )
+INSTALL ( FILES ${headers} DESTINATION include/rbdl/addons/urdfreader )
