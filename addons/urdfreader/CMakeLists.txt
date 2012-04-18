@@ -45,6 +45,10 @@ ENDIF (BUILD_STATIC)
 
 ADD_EXECUTABLE (rbdl_urdf_test rbdl_urdf_test.cc)
 
+TARGET_LINK_LIBRARIES (rbdl_urdfreader
+	rbdl
+	)
+
 TARGET_LINK_LIBRARIES (rbdl_urdf_test
 	rbdl_urdfreader
 	)

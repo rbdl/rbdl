@@ -80,10 +80,13 @@ struct URDFJoint {
 
 typedef std::map<std::string, URDFLink> LinkMap;
 typedef std::map<std::string, URDFJoint> JointMap;
+typedef std::vector<std::string> JointNamesVector;
 
 namespace RigidBodyDynamics {
 
 class Model;
+
+using namespace Math;
 
 namespace Addons {
 
@@ -302,7 +305,7 @@ bool read_single_joint (TiXmlHandle handle, URDFJoint &joint) {
 	return true;
 }
 
-bool read_joints (TiXmlDocument &doc, JointMap &joints) {
+bool read_joints (TiXmlDocument &doc, JointMap &joints, JointNamesVector &joint_names) {
 	TiXmlHandle doc_handle (&doc);
 	TiXmlHandle joint_handle = doc_handle.FirstChild("robot").FirstChild("joint");
 
@@ -323,11 +326,85 @@ bool read_joints (TiXmlDocument &doc, JointMap &joints) {
 		}
 
 		joints[joint_name] = joint;
+		joint_names.push_back(joint_name);
 
 		child = child->NextSiblingElement();
 	}
 
 	return true;
+}
+
+bool construct_model (Model* model, LinkMap &links, JointMap &joints, JointNamesVector &joint_names) {
+	unsigned int j;
+	for (j = 0; j < joint_names.size(); j++) {
+		URDFJoint urdf_joint = joints[joint_names[j]];
+		URDFLink urdf_parent = links[urdf_joint.parent];
+		URDFLink urdf_child = links[urdf_joint.child];
+
+		// determine where to add the current joint and child body
+		unsigned int rbdl_parent_id = 0;
+		
+		if (urdf_parent.name != "base_joint" && model->mBodies.size() != 1)
+			rbdl_parent_id = model->GetBodyId (urdf_parent.name.c_str());
+
+//		cout << "joint: " << urdf_joint.name << "\tparent = " << urdf_parent.name << " child = " << urdf_child.name << " parent_id = " << rbdl_parent_id << endl;
+
+		// create the joint
+		Joint rbdl_joint;
+		if (urdf_joint.type == URDFJointTypeRevolute || urdf_joint.type == URDFJointTypeContinuous) {
+			rbdl_joint = Joint (SpatialVector (urdf_joint.axis[0], urdf_joint.axis[1], urdf_joint.axis[2], 0., 0., 0.));
+		} else if (urdf_joint.type == URDFJointTypePrismatic) {
+			rbdl_joint = Joint (SpatialVector (0., 0., 0., urdf_joint.axis[0], urdf_joint.axis[1], urdf_joint.axis[2]));
+		} else if (urdf_joint.type == URDFJointTypeFixed) {
+			// todo: add fixed joint support to rbdl
+			cerr << "Error while processing joint '" << urdf_joint.name << "': fixed joints not yet supported!" << endl;
+			return false;
+		} else if (urdf_joint.type == URDFJointTypeFloating) {
+			// todo: what order of DoF should be used?
+			rbdl_joint = Joint (
+					SpatialVector (0., 0., 0., 1., 0., 0.),
+					SpatialVector (0., 0., 0., 0., 1., 0.),
+					SpatialVector (0., 0., 0., 0., 0., 1.),
+					SpatialVector (1., 0., 0., 0., 0., 0.),
+					SpatialVector (0., 1., 0., 0., 0., 0.),
+					SpatialVector (0., 0., 1., 0., 0., 0.));
+		} else if (urdf_joint.type == URDFJointTypePlanar) {
+			// todo: which two directions should be used that are perpendicular
+			// to the specified axis?
+			cerr << "Error while processing joint '" << urdf_joint.name << "': planar joints not yet supported!" << endl;
+			return false;
+		}
+
+		// compute the joint transformation
+		SpatialTransform rbdl_joint_frame = Xrot (urdf_joint.origin_rot_r, Vector3d (1., 0., 0.))
+				* Xrot (urdf_joint.origin_rot_p, Vector3d (0., 1., 0.))
+				* Xrot (urdf_joint.origin_rot_y, Vector3d (0., 0., 1.))
+				* Xtrans (Vector3d (
+							urdf_joint.origin_x,
+							urdf_joint.origin_y,
+							urdf_joint.origin_z
+							));
+
+		// assemble the body
+		Vector3d body_com (urdf_child.origin_x, urdf_child.origin_y, urdf_child.origin_z);
+		Vector3d body_rpy (urdf_child.origin_rot_r, urdf_child.origin_rot_p, urdf_child.origin_rot_y);
+
+		if (body_rpy != Vector3d (0., 0., 0.)) {
+			cerr << "Error while processing joint '" << urdf_joint.name << "': rotation of body frames not yet supported. Please rotate the joint frame instead." << endl;
+			return false;
+		}
+
+		Matrix3d inertia (
+			urdf_child.ixx, urdf_child.ixy, urdf_child.ixz,
+			urdf_child.ixy, urdf_child.iyy, urdf_child.iyz,
+			urdf_child.ixz, urdf_child.iyz, urdf_child.izz
+			);
+		Body rbdl_body = Body (urdf_child.mass, body_com, inertia);
+
+		model->AddBody (rbdl_parent_id, rbdl_joint_frame, rbdl_joint, rbdl_body, urdf_child.name);
+	}
+
+	return false;
 }
 
 bool read_urdf_model (const char* filename, Model* model, bool verbose) {
@@ -342,6 +419,7 @@ bool read_urdf_model (const char* filename, Model* model, bool verbose) {
 
 	LinkMap links;
 	JointMap joints;
+	JointNamesVector joint_names; // keeps track of the ordering of the joints
 
 	if (!read_links(doc, links)) {
 		return false;
@@ -351,7 +429,7 @@ bool read_urdf_model (const char* filename, Model* model, bool verbose) {
 		cout << "Read " << links.size() << " links." << endl;
 	}
 
-	if (!read_joints(doc, joints)) {
+	if (!read_joints(doc, joints, joint_names)) {
 		return false;
 	}
 
@@ -359,6 +437,10 @@ bool read_urdf_model (const char* filename, Model* model, bool verbose) {
 		cout << "Read " << joints.size() << " joints." << endl;
 	}
 
+	model->Init();
+	construct_model (model, links, joints, joint_names);
+
+	cout << "Created model with " << model->dof_count << " DoF" << endl;
 
 	return false;
 }
