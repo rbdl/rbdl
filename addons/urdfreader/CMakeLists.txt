@@ -4,6 +4,14 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
+INCLUDE ( CMake/ros.cmake)
+INCLUDE ( CMake/pkg-config.cmake)
+
+
+ADD_ROSPACK_DEPENDENCY ("urdf")
+ADD_ROSPACK_DEPENDENCY ("urdf_interface")
+ADD_ROSPACK_DEPENDENCY ("urdf_parser")
+
 INCLUDE_DIRECTORIES ( 
 	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl
 	${CMAKE_CURRENT_SOURCE_DIR}/tinyxml/
@@ -22,13 +30,12 @@ SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # Options
 SET ( URDFREADER_SOURCES 
 	rbdl_urdfreader.cc
-	tinyxml/tinystr.cpp
-	tinyxml/tinyxml.cpp
-	tinyxml/tinyxmlerror.cpp
-	tinyxml/tinyxmlparser.cpp
 	)
 
 ADD_LIBRARY ( rbdl_urdfreader SHARED ${URDFREADER_SOURCES} )
+
+ROSPACK_USE_DEPENDENCY (rbdl_urdfreader urdf)
+ROSPACK_USE_DEPENDENCY (rbdl_urdfreader urdf_interface)
 
 ADD_DEFINITIONS (-DTIXML_USE_STL)
 
