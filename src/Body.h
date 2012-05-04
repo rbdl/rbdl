@@ -117,7 +117,7 @@ struct Body {
 
 			Math::Matrix3d pa (parallel_axis);
 			Math::Matrix3d mcc = mass * com_cross;
-			Math::Matrix3d mccT = mcc;
+			Math::Matrix3d mccT = mcc.transpose();
 			mccT.transpose();
 
 			mSpatialInertia.set (
