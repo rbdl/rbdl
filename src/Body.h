@@ -9,6 +9,7 @@
 #define _BODY_H
 
 #include <rbdl_math.h>
+#include <rbdl_mathutils.h>
 #include <assert.h>
 #include <iostream>
 #include "Logging.h"
@@ -21,6 +22,10 @@ namespace RigidBodyDynamics {
  * mass, and the ineria tensor in the center of mass. This class is
  * designed to use the given information and transform it such that it can
  * directly be used by the spatial algebra.
+ * 
+ * The spatial inertia of the member variable Body::mSpatialInertia is
+ * expressed at the origin of the coordinate frame.
+ *
  */
 struct Body {
 	Body() :
@@ -51,11 +56,12 @@ struct Body {
 	}
 
 	/** \brief Constructs a body from mass, center of mass and radii of gyration 
-	 *
-	 * This constructor eases the construction of a new body as all the required
-	 * parameters can simply be specified as parameters to the constructor.
-	 * These are then used to generate the spatial inertia matrix.
-	 *
+	 * 
+	 * This constructor eases the construction of a new body as all the
+	 * required parameters can simply be specified as parameters to the
+	 * constructor. These are then used to generate the spatial inertia
+	 * matrix which is expressed at the origin.
+	 * 
 	 * \param mass the mass of the body
 	 * \param com  the position of the center of mass in the bodies coordinates
 	 * \param gyration_radii the radii of gyration at the center of mass of the body
@@ -89,10 +95,11 @@ struct Body {
 		}
 
 	/** \brief Constructs a body from mass, center of mass, and a 3x3 inertia matrix 
-	 *
-	 * This constructor eases the construction of a new body as all the required
-	 * parameters can simply be specified as parameters to the constructor.
-	 * These are then used to generate the spatial inertia matrix.
+	 * 
+	 * This constructor eases the construction of a new body as all the
+	 * required parameters can simply be specified as parameters to the
+	 * constructor. These are then used to generate the spatial inertia
+	 * matrix which is expressed at the origin.
 	 *
 	 * \param mass the mass of the body
 	 * \param com  the position of the center of mass in the bodies coordinates
@@ -113,7 +120,7 @@ struct Body {
 			com_crossT.transpose();
 			parallel_axis = mass * com_cross * com_crossT;
 
-			LOG << "parrallel axis = " << parallel_axis << std::endl;
+			LOG << "parrallel axis = " << std::endl << parallel_axis << std::endl;
 
 			Math::Matrix3d pa (parallel_axis);
 			Math::Matrix3d mcc = mass * com_cross;
@@ -131,11 +138,12 @@ struct Body {
 		}
 
 	/** \brief Constructs a body out of the given parameters
-	 *
-	 * This constructor eases the construction of a new body as all the required
-	 * parameters can simply be specified as parameters to the constructor.
-	 * These are then used to generate the spatial inertia matrix.
-	 *
+	 * 
+	 * This constructor eases the construction of a new body as all the
+	 * required parameters can simply be specified as parameters to the
+	 * constructor. These are then used to generate the spatial inertia
+	 * matrix which is expressed at the origin.
+	 * 
 	 * \param mass the mass of the body
 	 * \param com  the position of the center of mass in the bodies coordinates
 	 * \param length the length of the segment (needed to compute the inertia at the CoM
@@ -178,8 +186,50 @@ struct Body {
 			LOG << "spatial inertia = " << mSpatialInertia << std::endl;
 		}
 
-
 	~Body() {};
+
+	/** \brief Joins inertial parameters of two bodies to create a composite
+	 * body.
+	 *
+	 * This function can be used to joint inertial parameters of two bodies
+	 * to create a composite body that has the inertial properties as if the
+	 * two bodies were joined by a fixed joint.
+	 *
+	 * \note Both bodies have to have their inertial parameters expressed in
+	 * the same orientation.
+	 *
+	 * \param displacement the displacement of other_body with respect to the
+	 * origin the body that other_body is being attached to.
+	 */
+	void Join (const Math::Vector3d &displacement, const Body &other_body) {
+		double other_mass = other_body.mMass;
+		double new_mass = mMass + other_mass;
+
+		if (new_mass == 0.) {
+			std::cerr << "Error: cannot join bodies as both have zero mass!" << std::endl;
+			assert (false);
+			exit(1);
+		}
+
+		Math::Vector3d other_com = other_body.mCenterOfMass + displacement;
+		Math::Vector3d new_com = (1 / new_mass ) * (mMass * mCenterOfMass + other_mass * other_com);
+	
+		// first translate the inertia to the origin of the current body and
+		// then to the new center of mass 
+		Math::Matrix3d new_inertia_other = Math::parallel_axis (other_body.mSpatialInertia.block<3,3>(0,0), other_mass, -displacement);
+		new_inertia_other = Math::parallel_axis (new_inertia_other, other_mass, new_com);
+
+		Math::Matrix3d new_inertia_this = Math::parallel_axis (mSpatialInertia.block<3,3>(0,0), mMass, new_com);
+		Math::Matrix3d new_inertia = new_inertia_this + new_inertia_other;
+
+		LOG << "new_mass = " << new_mass << std::endl;
+		LOG << "new_com  = " << new_com.transpose() << std::endl;
+		LOG << "new_inertia_this  = " << std::endl << new_inertia_this << std::endl;
+		LOG << "new_inertia_other  = " << std::endl << new_inertia_other << std::endl;
+		LOG << "new_inertia  = " << std::endl << new_inertia << std::endl;
+
+		*this = Body (new_mass, new_com, new_inertia);
+	}
 
 	/// \brief The mass of the body
 	double mMass;

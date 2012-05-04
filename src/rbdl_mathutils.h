@@ -51,6 +51,9 @@ bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a,
 bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a,
 		const SpatialVector &vector_b, double epsilon);
 
+/** \brief Translates the inertia matrix to a new center. */
+Matrix3d parallel_axis (const Matrix3d &inertia, double mass, const Vector3d &com);
+
 /** \brief Creates a transformation of a linear displacement
  *
  * This can be used to specify the translation to the joint center when
