@@ -49,11 +49,11 @@ Licensing
 The library is published under the very permissive zlib free software
 license which should allow you to use the software wherever you need. 
 
-This is the full license text:
+This is the full license text (zlib license):
+
+
     RBDL - Rigid Body Dynamics Library
 		Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
-
-    (zlib license)
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
