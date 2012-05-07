@@ -23,7 +23,9 @@ The documentation is contained in the code and can be extracted with the
 tool [doxygen](http://www.doxygen.org).
 
 To create the documentation simply run
+
     doxygen Doxyfile
+
 which will generate the documentation in the subdirectory ./doc/html. The
 main page will then be located in ./doc/html/index.html.
 
@@ -35,6 +37,7 @@ Building and Installation
 
 The RBDL is built using CMake (http://www.cmake.org). To compile the
 library in a separate directory in Release mode use:
+
     mkdir build
     cd build/
     cmake ../ -D CMAKE_BUILD_TYPE=Release
