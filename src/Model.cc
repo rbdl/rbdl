@@ -62,7 +62,7 @@ void Model::Init() {
 	mBodies.push_back(root_body);
 	mBodyNames.push_back("ROOT");
 
-	fixed_body_discriminator = 16777216;
+	fixed_body_discriminator = std::numeric_limits<unsigned int>::max() / 2;
 }
 
 unsigned int Model::AddBody (const unsigned int parent_id,
@@ -86,6 +86,13 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		mBodies[parent_id] = parent_body;
 
 		mFixedBodies.push_back (fbody);
+
+		if (mFixedBodies.size() > std::numeric_limits<unsigned int>::max() - fixed_body_discriminator) {
+			std::cerr << "Error: cannot add more than " << std::numeric_limits<unsigned int>::max() - mFixedBodies.size() << " fixed bodies. You need to modify Model::fixed_body_discriminator for this." << std::endl;
+			assert (0);
+			exit(1);
+		}
+
 		return mFixedBodies.size() + fixed_body_discriminator - 1;
 	}
 	else if (joint.mJointType != JointTypePrismatic 
@@ -186,6 +193,12 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 
 	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
 	Ic.push_back (SpatialMatrixIdentity);
+
+	if (mBodies.size() == fixed_body_discriminator) {
+		std::cerr << "Error: cannot add more than " << fixed_body_discriminator << " movable bodies. You need to modify Model::fixed_body_discriminator for this." << std::endl;
+		assert (0);
+		exit(1);
+	}
 
 	return mBodies.size() - 1;
 }

@@ -192,7 +192,20 @@ struct Model {
 	/// \brief Transformation from the base to bodies reference frame
 	std::vector<Math::SpatialTransform> X_base;
 
+	/// \brief All bodies that are attached to a body via a fixed joint.
 	std::vector<FixedBody> mFixedBodies;
+	/** \brief Value that is used to discriminate between fixed and movable
+	 * bodies.
+	 *
+	 * Bodies with id 1 .. (fixed_body_discriminator - 1) are moving bodies
+	 * while bodies with id fixed_body_discriminator .. max (unsigned int)
+	 * are fixed to a moving body. The value of max(unsigned int) is
+	 * determined via std::numeric_limits<unsigned int>::max() and the
+	 * default value of fixed_body_discriminator is max (unsigned int) / 2.
+	 * 
+	 * On normal systems max (unsigned int) is 4294967294 which means there
+	 * could be a total of 2147483647 movable and / or fixed bodies.
+	 */
 	unsigned int fixed_body_discriminator;
 
 	/** \brief All bodies 0 ... N_B, including the base
