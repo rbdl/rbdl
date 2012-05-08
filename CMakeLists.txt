@@ -25,7 +25,7 @@ OPTION (BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
 OPTION (RBDL_STORE_VERSION "Enable storing of version information in the library (requires build from valid repository)" OFF)
-OPTION (BUILD_ADDON_XMLREADER "Build the (experimental) xml reader" OFF)
+OPTION (BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" OFF)
 OPTION (BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 
 SET ( RBDL_SOURCES 
@@ -41,9 +41,9 @@ SET ( RBDL_SOURCES
 
 ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
 
-IF (BUILD_ADDON_XMLREADER)
-  ADD_SUBDIRECTORY ( addons/xmlreader )
-ENDIF (BUILD_ADDON_XMLREADER)
+IF (BUILD_ADDON_URDFREADER)
+  ADD_SUBDIRECTORY ( addons/urdfreader )
+ENDIF (BUILD_ADDON_URDFREADER)
 
 IF (BUILD_ADDON_BENCHMARK)
   ADD_SUBDIRECTORY ( addons/benchmark )
