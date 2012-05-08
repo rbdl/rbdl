@@ -125,5 +125,4 @@ TEST ( TestBodyConstructorMassComInertia ) {
 			);
 
 	CHECK_ARRAY_CLOSE (reference_inertia.data(), body.mSpatialInertia.data(), 36, TEST_PREC);
-
 }

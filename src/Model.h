@@ -27,6 +27,7 @@
 #ifdef EIGEN_CORE_H
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint);
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody);
 #endif
 
 /** \brief Namespace for all structures of the RigidBodyDynamics library
@@ -190,6 +191,9 @@ struct Model {
 	std::vector<Math::SpatialTransform> X_lambda;
 	/// \brief Transformation from the base to bodies reference frame
 	std::vector<Math::SpatialTransform> X_base;
+
+	std::vector<FixedBody> mFixedBodies;
+	unsigned int fixed_body_discriminator;
 
 	/** \brief All bodies 0 ... N_B, including the base
 	 *

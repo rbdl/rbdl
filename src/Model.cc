@@ -61,6 +61,8 @@ void Model::Init() {
 
 	mBodies.push_back(root_body);
 	mBodyNames.push_back("ROOT");
+
+	fixed_body_discriminator = 16777216;
 }
 
 unsigned int Model::AddBody (const unsigned int parent_id,
@@ -68,10 +70,28 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		const Joint &joint,
 		const Body &body,
 		std::string body_name) {
-	// Here we emulate multi DoF joints by simply adding nullbodies. This
-	// may be changed in the future, but so far it is reasonably fast.
-	if (joint.mJointType != JointTypePrismatic 
+	if (joint.mJointType == JointTypeFixed) {
+		if (parent_id >= fixed_body_discriminator) {
+			std::cerr << "Error: cannot attach Body with a fixed joint to another fixed body!" << std::endl;
+			assert (0);
+			exit(1);
+		}
+		FixedBody fbody = FixedBody::CreateFromBody (body);
+		fbody.mMovableParent = parent_id;
+		fbody.mParentTransform = joint_frame;
+
+		// merge the two bodies
+		Body parent_body = mBodies[parent_id];
+		parent_body.Join (joint_frame.r, body);
+		mBodies[parent_id] = parent_body;
+
+		mFixedBodies.push_back (fbody);
+		return mFixedBodies.size() + fixed_body_discriminator - 1;
+	}
+	else if (joint.mJointType != JointTypePrismatic 
 			&& joint.mJointType != JointTypeRevolute) {
+		// Here we emulate multi DoF joints by simply adding nullbodies. This
+		// may be changed in the future, but so far it is reasonably fast.
 		unsigned int joint_count;
 		if (joint.mJointType == JointType1DoF)
 			joint_count = 1;

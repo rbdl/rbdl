@@ -239,6 +239,29 @@ struct Body {
 	Math::SpatialMatrix mSpatialInertia;
 };
 
+struct FixedBody {
+	/// \brief The mass of the body
+	double mMass;
+	/// \brief The position of the center of mass in body coordinates
+	Math::Vector3d mCenterOfMass;
+	/// \brief The spatial inertia that contains both mass and inertia information
+	Math::SpatialMatrix mSpatialInertia;
+
+	/// \brief Id of the movable body that this fixed body is attached to.
+	unsigned int mMovableParent;
+	/// \brief Transforms spatial quantities expressed for the parent to the
+	// fixed body. 
+	Math::SpatialTransform mParentTransform;
+	Math::SpatialTransform mBaseTransform;
+
+	static FixedBody CreateFromBody (const Body& body) {
+		FixedBody fbody;
+		fbody.mMass = body.mMass;
+		fbody.mCenterOfMass = body.mCenterOfMass;
+		fbody.mSpatialInertia = body.mSpatialInertia;
+	}
+};
+
 }
 
 #endif /* _BODY_H */

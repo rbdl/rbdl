@@ -140,6 +140,16 @@ Vector3d CalcBodyToBaseCoordinates (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
+	if (body_id >= model.fixed_body_discriminator) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		model.mFixedBodies[fbody_id].mBaseTransform = model.X_base[model.mFixedBodies[fbody_id].mMovableParent] * model.mFixedBodies[fbody_id].mParentTransform;
+
+		Matrix3d body_rotation = model.mFixedBodies[fbody_id].mBaseTransform.E.transpose();
+		Vector3d body_position = model.mFixedBodies[fbody_id].mBaseTransform.r;
+
+		return body_position + body_rotation * point_body_coordinates;
+	}
+
 	Matrix3d body_rotation = model.X_base[body_id].E.transpose();
 	Vector3d body_position = model.X_base[body_id].r;
 
@@ -155,6 +165,16 @@ Vector3d CalcBaseToBodyCoordinates (
 	// update the Kinematics if necessary
 	if (update_kinematics) {
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	}
+
+	if (body_id >= model.fixed_body_discriminator) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		model.mFixedBodies[fbody_id].mBaseTransform = model.X_base[model.mFixedBodies[fbody_id].mMovableParent] * model.mFixedBodies[fbody_id].mParentTransform;
+
+		Matrix3d body_rotation = model.mFixedBodies[fbody_id].mBaseTransform.E.transpose();
+		Vector3d body_position = model.mFixedBodies[fbody_id].mBaseTransform.r;
+
+		return body_rotation * point_base_coordinates - body_rotation * body_position;
 	}
 
 	Matrix3d body_rotation = model.X_base[body_id].E;
