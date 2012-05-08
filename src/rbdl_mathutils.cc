@@ -190,6 +190,12 @@ bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVe
 	return true;
 }
 
+Matrix3d parallel_axis (const Matrix3d &inertia, double mass, const Vector3d &com) {
+	Matrix3d com_cross = VectorCrossMatrix (com);
+
+	return inertia + mass * com_cross * com_cross.transpose();
+}
+
 SpatialMatrix Xtrans_mat (const Vector3d &r) {
 	return SpatialMatrix (
 			   1.,    0.,    0.,  0.,  0.,  0.,

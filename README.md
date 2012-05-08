@@ -23,7 +23,9 @@ The documentation is contained in the code and can be extracted with the
 tool [doxygen](http://www.doxygen.org).
 
 To create the documentation simply run
+
     doxygen Doxyfile
+
 which will generate the documentation in the subdirectory ./doc/html. The
 main page will then be located in ./doc/html/index.html.
 
@@ -35,6 +37,7 @@ Building and Installation
 
 The RBDL is built using CMake (http://www.cmake.org). To compile the
 library in a separate directory in Release mode use:
+
     mkdir build
     cd build/
     cmake ../ -D CMAKE_BUILD_TYPE=Release
@@ -46,11 +49,10 @@ Licensing
 The library is published under the very permissive zlib free software
 license which should allow you to use the software wherever you need. 
 
-This is the full license text:
-    RBDL - Rigid Body Dynamics Library
-		Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+This is the full license text (zlib license):
 
-    (zlib license)
+    RBDL - Rigid Body Dynamics Library
+    Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
