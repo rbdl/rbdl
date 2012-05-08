@@ -82,7 +82,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 
 		// merge the two bodies
 		Body parent_body = mBodies[parent_id];
-		parent_body.Join (joint_frame.r, body);
+		parent_body.Join (joint_frame, body);
 		mBodies[parent_id] = parent_body;
 
 		mFixedBodies.push_back (fbody);
