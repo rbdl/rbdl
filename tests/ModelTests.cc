@@ -428,7 +428,6 @@ TEST ( ModelFixedJointQueryBodyId ) {
 			);
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
-	model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
 
 	CHECK_EQUAL (fixed_body_id, model.GetBodyId("fixed_body"));
 }

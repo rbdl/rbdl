@@ -214,7 +214,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	if (mBodies.size() == fixed_body_discriminator) {
 		std::cerr << "Error: cannot add more than " << fixed_body_discriminator << " movable bodies. You need to modify Model::fixed_body_discriminator for this." << std::endl;
 		assert (0);
-		exit(1);
+		abort();
 	}
 
 	return mBodies.size() - 1;

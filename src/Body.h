@@ -208,7 +208,7 @@ struct Body {
 		if (new_mass == 0.) {
 			std::cerr << "Error: cannot join bodies as both have zero mass!" << std::endl;
 			assert (false);
-			exit(1);
+			abort();
 		}
 
 		Math::Vector3d other_com = transform.E.transpose() * other_body.mCenterOfMass + transform.r;

@@ -52,7 +52,7 @@ struct Joint {
 			if (type != JointTypeFixed) {
 				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed." << std::endl;
 				assert (0);
-				exit(1);
+				abort();
 			}
 		}
 	Joint (const Joint &joint) :

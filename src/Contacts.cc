@@ -60,7 +60,7 @@ bool ConstraintSet::Bind (const Model &model) {
 
 	if (bound) {
 		std::cerr << "Error: binding an already bound constraint set!" << std::endl;
-		exit (-1);
+		abort();
 	}
 	unsigned int n_constr = size();
 
