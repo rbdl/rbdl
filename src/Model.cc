@@ -60,7 +60,7 @@ void Model::Init() {
 	X_base.push_back(SpatialTransform());
 
 	mBodies.push_back(root_body);
-	mBodyNames.push_back("ROOT");
+	mBodyNameMap["ROOT"] = 0;
 
 	fixed_body_discriminator = std::numeric_limits<unsigned int>::max() / 2;
 }
@@ -74,7 +74,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		if (parent_id >= fixed_body_discriminator) {
 			std::cerr << "Error: cannot attach Body with a fixed joint to another fixed body!" << std::endl;
 			assert (0);
-			exit(1);
+			abort();
 		}
 		FixedBody fbody = FixedBody::CreateFromBody (body);
 		fbody.mMovableParent = parent_id;
@@ -90,7 +90,16 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		if (mFixedBodies.size() > std::numeric_limits<unsigned int>::max() - fixed_body_discriminator) {
 			std::cerr << "Error: cannot add more than " << std::numeric_limits<unsigned int>::max() - mFixedBodies.size() << " fixed bodies. You need to modify Model::fixed_body_discriminator for this." << std::endl;
 			assert (0);
-			exit(1);
+			abort();
+		}
+
+		if (body_name.size() != 0) {
+			if (mBodyNameMap.find(body_name) != mBodyNameMap.end()) {
+				std::cerr << "Error: Body with name '" << body_name << "' already exists!" << std::endl;
+				assert (0);
+				abort();
+			}
+			mBodyNameMap[body_name] = mFixedBodies.size() + fixed_body_discriminator - 1;
 		}
 
 		return mFixedBodies.size() + fixed_body_discriminator - 1;
@@ -167,7 +176,15 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	X_lambda.push_back(SpatialTransform());
 	X_base.push_back(SpatialTransform());
 	mBodies.push_back(body);
-	mBodyNames.push_back(body_name);
+
+	if (body_name.size() != 0) {
+		if (mBodyNameMap.find(body_name) != mBodyNameMap.end()) {
+			std::cerr << "Error: Body with name '" << body_name << "' already exists!" << std::endl;
+			assert (0);
+			abort();
+		}
+		mBodyNameMap[body_name] = mBodies.size() - 1;
+	}
 
 	dof_count++;
 
@@ -255,10 +272,9 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 }
 
 unsigned int Model::GetBodyId (const char *id) const {
-	for (unsigned int i = 0; i < mBodyNames.size(); i++) {
-		if (mBodyNames[i] == id)
-			return i;
+	if (mBodyNameMap.count(id) == 0) {
+		return std::numeric_limits<unsigned int>::max();
 	}
 
-	return std::numeric_limits<unsigned int>::max();
+	return mBodyNameMap.find(id)->second;
 }

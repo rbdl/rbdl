@@ -218,7 +218,7 @@ struct Model {
 	std::vector<Body> mBodies;
 
 	/// \brief Human readable names for the bodies
-	std::vector<std::string> mBodyNames;
+	std::map<std::string, unsigned int> mBodyNameMap;
 
 	/** \brief Connects a given body to the model
 	 *

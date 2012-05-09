@@ -412,3 +412,23 @@ TEST ( Model6DoFJoint ) {
 
 	CHECK_ARRAY_CLOSE (QDDot_std.data(), QDDot_2.data(), model_std.dof_count, TEST_PREC);
 }
+
+TEST ( ModelFixedJointQueryBodyId ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+	model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+
+	CHECK_EQUAL (fixed_body_id, model.GetBodyId("fixed_body"));
+}
