@@ -211,7 +211,7 @@ struct Body {
 			exit(1);
 		}
 
-		Math::Vector3d other_com = transform.E * other_body.mCenterOfMass + transform.r;
+		Math::Vector3d other_com = transform.E.transpose() * other_body.mCenterOfMass + transform.r;
 		Math::Vector3d new_com = (1 / new_mass ) * (mMass * mCenterOfMass + other_mass * other_com);
 
 		LOG << "other_com = " << std::endl << other_com.transpose() << std::endl;
@@ -222,14 +222,19 @@ struct Body {
 		Math::Matrix3d inertia_other = other_body.mSpatialInertia.block<3,3>(0,0);
 		LOG << "inertia_other = " << std::endl << inertia_other << std::endl;
 
-		Math::Matrix3d inertia_other_rotated = transform.E.transpose() * inertia_other * transform.E;
-		LOG << "inertia_other_rotated = " << std::endl << inertia_other_rotated << std::endl;
+		// Math::Matrix3d inertia_other_rotated = transform.E.transpose() * inertia_other * transform.E;
+		// LOG << "inertia_other_rotated = " << std::endl << inertia_other_rotated << std::endl;
 
-		Math::Matrix3d inertia_other_rotated_origin = Math::parallel_axis (inertia_other_rotated, other_mass, -transform.r);
-		LOG << "inertia_other_rotated_origin = " << std::endl << inertia_other_rotated_origin << std::endl;
+		// Math::Matrix3d inertia_other_rotated_origin = Math::parallel_axis (inertia_other_rotated, other_mass, -transform.r);
+		// LOG << "inertia_other_rotated_origin = " << std::endl << inertia_other_rotated_origin << std::endl;
 
-		Math::Matrix3d inertia_other_origin = Math::parallel_axis (inertia_other, other_mass, -transform.r);
-		LOG << "inertia_other_origin  = " << std::endl << inertia_other_origin << std::endl;
+		LOG << "---" << std::endl;
+
+		Math::Matrix3d inertia_other_origin = Math::parallel_axis (inertia_other, other_mass, other_body.mCenterOfMass);
+		LOG << "inertia_other_origin (COM) = " << std::endl << inertia_other_origin << std::endl;
+
+		inertia_other_origin = Math::parallel_axis (inertia_other, other_mass, -transform.r);
+		LOG << "inertia_other_origin (this)  = " << std::endl << inertia_other_origin << std::endl;
 
 		Math::Matrix3d inertia_other_origin_rotated = transform.E.transpose() * inertia_other_origin * transform.E;
 		LOG << "other_inertia_origin_rotated = " << std::endl << inertia_other_origin_rotated << std::endl;

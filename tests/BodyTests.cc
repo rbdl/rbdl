@@ -32,6 +32,7 @@ TEST ( TestComputeSpatialInertiaFromAbsoluteRadiiGyration ) {
 }
 
 TEST ( TestBodyJoinNullbody ) {
+	ClearLogOutput();
 	Body body(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
 	Body nullbody (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 
@@ -135,13 +136,13 @@ TEST ( TestBodyJoinTwoBodiesRotated ) {
 TEST ( TestBodyJoinTwoBodiesRotatedAndTranslated ) {
 	ClearLogOutput();
 	Body body_a(1.1, Vector3d (0., 0., 0.), Vector3d (3.1, 3.2, 3.3));
-	Body body_b(1.1, Vector3d (0., 0., 0.), Vector3d (3.1, 3.3, 3.2));
+	Body body_b(1.1, Vector3d (-1., 1., 0.), Vector3d (3.2, 3.1, 3.3));
 
-	// cout << "body_a = " << endl << body_a.mSpatialInertia << endl;
-	// cout << "body_b = " << endl << body_b.mSpatialInertia << endl;
+	cout << "body_a = " << endl << body_a.mSpatialInertia << endl;
+	cout << "body_b = " << endl << body_b.mSpatialInertia << endl;
 
 	Body body_joined (body_a);
-	body_joined.Join (Xrotx(-M_PI*0.5) * Xtrans(Vector3d (0., -1., 0.)), body_b);
+	body_joined.Join (Xrotz(M_PI*0.5) * Xtrans(Vector3d (1., 1., 0.)), body_b);
 	
 	cout << LogOutput.str() << endl;
 	// cout << "body_joined = " << endl << body_joined.mSpatialInertia << endl;
