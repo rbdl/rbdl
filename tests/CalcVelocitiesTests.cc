@@ -200,7 +200,6 @@ TEST ( FixedJointCalcPointVelocity ) {
 	CHECK_ARRAY_CLOSE (Vector3d (0., 2., 0.).data(), point1_velocity.data(), 3, TEST_PREC);
 }
 
-/*
 TEST ( FixedJointCalcPointVelocityRotated ) {
 	// the standard modeling using a null body
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -226,10 +225,9 @@ TEST ( FixedJointCalcPointVelocityRotated ) {
 
 	ClearLogOutput();
 	Vector3d point0_velocity = CalcPointVelocity (model, Q, QDot, fixed_body_id, Vector3d (0., 0., 0.));
-	cout << LogOutput.str() << endl;
+	// cout << LogOutput.str() << endl;
 	Vector3d point1_velocity = CalcPointVelocity (model, Q, QDot, fixed_body_id, Vector3d (1., 0., 0.));
 
 	CHECK_ARRAY_CLOSE (Vector3d (-1., 0., 0.).data(), point0_velocity.data(), 3, TEST_PREC);
 	CHECK_ARRAY_CLOSE (Vector3d (-2., 0., 0.).data(), point1_velocity.data(), 3, TEST_PREC);
 }
-*/
