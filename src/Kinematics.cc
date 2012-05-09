@@ -194,9 +194,13 @@ Matrix3d CalcBodyWorldOrientation (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
-	// We use the information from the X_base vector. In the upper left 3x3
-	// matrix contains the orientation as a 3x3 matrix which we are asking
-	// for.
+	if (body_id >= model.fixed_body_discriminator) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		model.mFixedBodies[fbody_id].mBaseTransform = model.X_base[model.mFixedBodies[fbody_id].mMovableParent] * model.mFixedBodies[fbody_id].mParentTransform;
+
+		return model.mFixedBodies[fbody_id].mBaseTransform.E;
+	}
+
 	return model.X_base[body_id].E;
 }
 
