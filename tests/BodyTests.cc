@@ -138,8 +138,8 @@ TEST ( TestBodyJoinTwoBodiesRotatedAndTranslated ) {
 	Body body_a(1.1, Vector3d (0., 0., 0.), Vector3d (3.1, 3.2, 3.3));
 	Body body_b(1.1, Vector3d (-1., 1., 0.), Vector3d (3.2, 3.1, 3.3));
 
-	cout << "body_a = " << endl << body_a.mSpatialInertia << endl;
-	cout << "body_b = " << endl << body_b.mSpatialInertia << endl;
+	// cout << "body_a = " << endl << body_a.mSpatialInertia << endl;
+	// cout << "body_b = " << endl << body_b.mSpatialInertia << endl;
 
 	Body body_joined (body_a);
 	body_joined.Join (Xrotz(M_PI*0.5) * Xtrans(Vector3d (1., 1., 0.)), body_b);

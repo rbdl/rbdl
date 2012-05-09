@@ -216,33 +216,33 @@ struct Body {
 
 		LOG << "other_com = " << std::endl << other_com.transpose() << std::endl;
 		LOG << "rotation = " << std::endl << transform.E << std::endl;
-	
-		// first translate the inertia to the origin of the current body and
-		// then to the new center of mass
+
+		// We have to transform the inertia of other_body to the new COM. This
+		// is done in 4 steps:
+		//
+		// 1. Transform the inertia from other origin to other COM
+		// 2. Rotate the inertia that it is aligned to the frame of this body
+		// 3. Transform the inertia that it is expressed at the origin of this
+		//    body.
+		// 4. Transform the inertia that it is expressed at the new COM.
+
 		Math::Matrix3d inertia_other = other_body.mSpatialInertia.block<3,3>(0,0);
 		LOG << "inertia_other = " << std::endl << inertia_other << std::endl;
 
-		// Math::Matrix3d inertia_other_rotated = transform.E.transpose() * inertia_other * transform.E;
-		// LOG << "inertia_other_rotated = " << std::endl << inertia_other_rotated << std::endl;
+		Math::Matrix3d other_com_cross = Math::VectorCrossMatrix(other_body.mCenterOfMass);
+		Math::Matrix3d inertia_other_com = inertia_other - other_mass * other_com_cross * other_com_cross.transpose();
+		LOG << "inertia_other_com = " << std::endl << inertia_other_com << std::endl;
 
-		// Math::Matrix3d inertia_other_rotated_origin = Math::parallel_axis (inertia_other_rotated, other_mass, -transform.r);
-		// LOG << "inertia_other_rotated_origin = " << std::endl << inertia_other_rotated_origin << std::endl;
+		Math::Matrix3d inertia_other_com_rotated = transform.E.transpose() * inertia_other_com * transform.E;
+		LOG << "inertia_other_com_rotated = " << std::endl << inertia_other_com_rotated << std::endl;
 
-		LOG << "---" << std::endl;
+		Math::Matrix3d inertia_other_com_rotated_this_origin = Math::parallel_axis (inertia_other_com_rotated, other_mass, other_com);
+		LOG << "inertia_other_com_rotated_this_origin = " << std::endl << inertia_other_com_rotated_this_origin << std::endl;
 
-		Math::Matrix3d inertia_other_origin = Math::parallel_axis (inertia_other, other_mass, other_body.mCenterOfMass);
-		LOG << "inertia_other_origin (COM) = " << std::endl << inertia_other_origin << std::endl;
-
-		inertia_other_origin = Math::parallel_axis (inertia_other, other_mass, -transform.r);
-		LOG << "inertia_other_origin (this)  = " << std::endl << inertia_other_origin << std::endl;
-
-		Math::Matrix3d inertia_other_origin_rotated = transform.E.transpose() * inertia_other_origin * transform.E;
-		LOG << "other_inertia_origin_rotated = " << std::endl << inertia_other_origin_rotated << std::endl;
-
-		Math::Matrix3d inertia_other_newcom = Math::parallel_axis (inertia_other_origin_rotated, other_mass, new_com);
+		Math::Matrix3d inertia_other_newcom = Math::parallel_axis (inertia_other_com_rotated_this_origin, other_mass, new_com);
 		LOG << "inertia_other_newcom  = " << std::endl << inertia_other_newcom << std::endl;
 
-			Math::Matrix3d inertia_this_newcom = Math::parallel_axis (mSpatialInertia.block<3,3>(0,0), mMass, new_com);
+		Math::Matrix3d inertia_this_newcom = Math::parallel_axis (mSpatialInertia.block<3,3>(0,0), mMass, new_com);
 		LOG << "inertia_this_newcom  = " << std::endl << inertia_this_newcom << std::endl;
 		Math::Matrix3d new_inertia = inertia_this_newcom + inertia_other_newcom;
 
