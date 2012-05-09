@@ -142,12 +142,15 @@ Vector3d CalcBodyToBaseCoordinates (
 
 	if (body_id >= model.fixed_body_discriminator) {
 		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
-		model.mFixedBodies[fbody_id].mBaseTransform = model.X_base[model.mFixedBodies[fbody_id].mMovableParent] * model.mFixedBodies[fbody_id].mParentTransform;
+		unsigned int parent_id = model.mFixedBodies[fbody_id].mMovableParent;
 
-		Matrix3d body_rotation = model.mFixedBodies[fbody_id].mBaseTransform.E.transpose();
-		Vector3d body_position = model.mFixedBodies[fbody_id].mBaseTransform.r;
+		Matrix3d fixed_rotation = model.mFixedBodies[fbody_id].mParentTransform.E.transpose();
+		Vector3d fixed_position = model.mFixedBodies[fbody_id].mParentTransform.r;
 
-		return body_position + body_rotation * point_body_coordinates;
+		Matrix3d parent_body_rotation = model.X_base[parent_id].E.transpose();
+		Vector3d parent_body_position = model.X_base[parent_id].r;
+
+		return parent_body_position + parent_body_rotation * (fixed_position + fixed_rotation * (point_body_coordinates));
 	}
 
 	Matrix3d body_rotation = model.X_base[body_id].E.transpose();
@@ -162,25 +165,27 @@ Vector3d CalcBaseToBodyCoordinates (
 		unsigned int body_id,
 		const Vector3d &point_base_coordinates,
 		bool update_kinematics) {
-	// update the Kinematics if necessary
 	if (update_kinematics) {
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
 	if (body_id >= model.fixed_body_discriminator) {
 		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
-		model.mFixedBodies[fbody_id].mBaseTransform = model.X_base[model.mFixedBodies[fbody_id].mMovableParent] * model.mFixedBodies[fbody_id].mParentTransform;
+		unsigned int parent_id = model.mFixedBodies[fbody_id].mMovableParent;
 
-		Matrix3d body_rotation = model.mFixedBodies[fbody_id].mBaseTransform.E.transpose();
-		Vector3d body_position = model.mFixedBodies[fbody_id].mBaseTransform.r;
+		Matrix3d fixed_rotation = model.mFixedBodies[fbody_id].mParentTransform.E;
+		Vector3d fixed_position = model.mFixedBodies[fbody_id].mParentTransform.r;
 
-		return body_rotation * point_base_coordinates - body_rotation * body_position;
+		Matrix3d parent_body_rotation = model.X_base[parent_id].E;
+		Vector3d parent_body_position = model.X_base[parent_id].r;
+
+		return fixed_rotation * ( - fixed_position - parent_body_rotation * (parent_body_position - point_base_coordinates));
 	}
 
 	Matrix3d body_rotation = model.X_base[body_id].E;
 	Vector3d body_position = model.X_base[body_id].r;
 
-	return body_rotation * point_base_coordinates - body_rotation * body_position;
+	return body_rotation * (point_base_coordinates - body_position);
 }
 
 Matrix3d CalcBodyWorldOrientation (
@@ -262,9 +267,7 @@ Vector3d CalcPointVelocity (
 		bool update_kinematics
 	) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	unsigned int i;
-
-	assert (body_id > 0 && body_id < model.mBodies.size());
+	assert (model.IsBodyId(body_id));
 	assert (model.mBodies.size() == Q.size() + 1);
 	assert (model.mBodies.size() == QDot.size() + 1);
 
@@ -278,17 +281,24 @@ Vector3d CalcPointVelocity (
 
 	Vector3d point_abs_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false); 
 
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
 	LOG << "body_index     = " << body_id << std::endl;
-	LOG << "point_pos      = " << point_position << std::endl;
+	LOG << "point_pos      = " << point_position.transpose() << std::endl;
 //	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
-	LOG << "body_transf    = " << model.X_base[body_id].toMatrix() << std::endl;
-	LOG << "point_abs_ps   = " << point_abs_pos << std::endl;
-	LOG << "X   = " << Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[body_id].toMatrix()) << std::endl;
-	LOG << "v   = " << model.v[body_id] << std::endl;
+	LOG << "body_transf    = " << std::endl << model.X_base[body_id].toMatrix() << std::endl;
+	LOG << "point_abs_ps   = " << point_abs_pos.transpose() << std::endl;
+	LOG << "X   = " << std::endl << Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) << std::endl;
+	LOG << "v   = " << model.v[reference_body_id].transpose() << std::endl;
 
 	// Now we can compute the spatial velocity at the given point
 //	SpatialVector body_global_velocity (global_velocities.at(body_id));
-	SpatialVector point_spatial_velocity = Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[body_id].toMatrix()) * model.v[body_id];
+	SpatialVector point_spatial_velocity = Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) * model.v[reference_body_id];
 
 	LOG << "point_velocity = " <<	Vector3d (
 			point_spatial_velocity[3],

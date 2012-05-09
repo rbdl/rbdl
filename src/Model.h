@@ -309,6 +309,25 @@ struct Model {
 	 */
 	unsigned int GetBodyId (const char *id) const;
 
+
+	bool IsFixedBodyId (unsigned int body_id) {
+		if (body_id >= fixed_body_discriminator 
+				&& body_id < std::numeric_limits<unsigned int>::max() 
+				&& body_id - fixed_body_discriminator < mFixedBodies.size()) {
+			return true;
+		}
+		return false;
+	}
+
+	bool IsBodyId (unsigned int id) {
+		if (id > 0 && id < mBodies.size())
+			return true;
+		if (id >= fixed_body_discriminator && id < std::numeric_limits<unsigned int>::max()) {
+			if (id - fixed_body_discriminator < mFixedBodies.size())
+				return true;
+		}
+		return false;
+	}
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 };
