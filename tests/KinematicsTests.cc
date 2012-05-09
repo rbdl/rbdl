@@ -503,3 +503,47 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicTwoPoints) {
 	effector = CalcBodyToBaseCoordinates(*model, Qres, body_ids[1], body_points[1], false);
 	CHECK_ARRAY_CLOSE (target_pos[1].data(), effector.data(), 3, 1.0e-1);	
 }
+
+TEST ( FixedJointBodyCalcBodyToBase ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body);
+
+	VectorNd Q_zero = VectorNd::Zero (model.dof_count);
+	Vector3d base_coords = CalcBodyToBaseCoordinates (model, Q_zero, fixed_body_id, Vector3d (1., 1., 0.1));
+
+	CHECK_ARRAY_CLOSE (Vector3d (1., 2., 0.1).data(), base_coords.data(), 3, TEST_PREC);
+}
+
+TEST ( FixedJointBodyCalcBaseToBody ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body);
+
+	VectorNd Q_zero = VectorNd::Zero (model.dof_count);
+	Vector3d base_coords = CalcBaseToBodyCoordinates (model, Q_zero, fixed_body_id, Vector3d (1., 2., 0.1));
+
+	CHECK_ARRAY_CLOSE (Vector3d (1., 1., 0.1).data(), base_coords.data(), 3, TEST_PREC);
+}
