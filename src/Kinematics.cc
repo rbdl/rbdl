@@ -273,9 +273,7 @@ Vector3d CalcPointVelocity (
 
 	// update the Kinematics with zero acceleration
 	if (update_kinematics) {
-		VectorNd QDDot_zero = VectorNd::Zero(Q.size());
-		
-		UpdateKinematics (model, Q, QDot, QDDot_zero);
+		UpdateKinematicsCustom (model, &Q, &QDot, NULL);
 	}
 
 	Vector3d point_abs_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false); 
