@@ -15,7 +15,7 @@
 
 namespace RigidBodyDynamics {
 
-class Model;
+struct Model;
 
 /** \brief General types of joints
  *

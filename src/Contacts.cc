@@ -602,7 +602,6 @@ void ForwardDynamicsContacts (
 		unsigned int body_id = CS.body[ci];
 		Vector3d point = CS.point[ci];
 		Vector3d normal = CS.normal[ci];
-		double acceleration = CS.constraint_acceleration[ci];
 
 		// assemble the test force
 		LOG << "normal = " << normal.transpose() << std::endl;

@@ -238,7 +238,6 @@ Vector3d CalcPointVelocity (
 		bool update_kinematics
 	) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	unsigned int i;
 
 	assert (body_id > 0 && body_id < model.mBodies.size());
 	assert (model.mBodies.size() == Q.size() + 1);
@@ -292,7 +291,6 @@ Vector3d CalcPointAcceleration (
 	)
 {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	unsigned int i;
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -371,7 +369,7 @@ bool InverseKinematics (
 
 	Qres = Qinit;
 
-	for (int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+	for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {

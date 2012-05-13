@@ -21,18 +21,18 @@
 #define JOIN( X, Y ) JOIN2(X,Y)
 #define JOIN2( X, Y ) X##Y
 
-namespace static_assert
+namespace custom_static_assert
 {
     template <bool> struct STATIC_ASSERT_FAILURE;
     template <> struct STATIC_ASSERT_FAILURE<true> { enum { value = 1 }; };
 
-    template<int x> struct static_assert_test{};
+    template<int x> struct custom_static_assert_test{};
 }
 
 #define COMPILE_ASSERT(x) \
-    typedef ::static_assert::static_assert_test<\
-        sizeof(::static_assert::STATIC_ASSERT_FAILURE< (bool)( x ) >)>\
-            JOIN(_static_assert_typedef, __LINE__)
+    typedef ::custom_static_assert::custom_static_assert_test<\
+        sizeof(::custom_static_assert::STATIC_ASSERT_FAILURE< (bool)( x ) >)>\
+            JOIN(_custom_static_assert_typedef, __LINE__)
 
 #else // __cplusplus
 
