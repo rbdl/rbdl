@@ -147,7 +147,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
 
 	unsigned int body_id = model->GetBodyId("mybody");
 
-	CHECK_EQUAL (1, body_id);
+	CHECK_EQUAL (1u, body_id);
 	CHECK_EQUAL (std::numeric_limits<unsigned int>::max(), model->GetBodyId("unknownbody"));
 }
 

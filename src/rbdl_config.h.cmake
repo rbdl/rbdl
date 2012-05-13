@@ -15,7 +15,7 @@
 #cmakedefine RBDL_BUILD_BRANCH "@RBDL_BUILD_BRANCH@"
 
 /* compatibility defines */
-#ifdef _WIN32 || _WIN64
+#ifdef _WIN32
 	#define __func__ __FUNCTION__
 #endif
 

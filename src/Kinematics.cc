@@ -208,7 +208,11 @@ void CalcPointJacobian (
 
 	unsigned int j = body_id;
 
-	char e[(Q.size() + 1)];
+	char *e = new char[Q.size() + 1];
+	if (e == NULL) {
+		std::cerr << "Error: allocating memory." << std::endl;
+		abort();
+	}
 	memset (&e[0], 0, Q.size() + 1);
 
 	// e will contain 
@@ -227,6 +231,8 @@ void CalcPointJacobian (
 			G(2, j - 1) = S_base[5];
 		}
 	}
+	
+	delete[] e;
 }
 
 Vector3d CalcPointVelocity (

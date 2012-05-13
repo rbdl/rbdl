@@ -8,6 +8,7 @@
 #include <rbdl_config.h>
 
 #include <iostream>
+#include <string>
 
 namespace RigidBodyDynamics {
 
