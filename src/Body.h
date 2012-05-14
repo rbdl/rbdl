@@ -115,17 +115,13 @@ struct Body {
 					com[2],      0., -com[0],
 					-com[1],  com[0],      0.
 					);
-			Math::Matrix3d parallel_axis;
-			Math::Matrix3d com_crossT = com_cross;
-			com_crossT.transpose();
-			parallel_axis = mass * com_cross * com_crossT;
+			Math::Matrix3d parallel_axis = mass * com_cross * com_cross.transpose();
 
 			LOG << "parrallel axis = " << std::endl << parallel_axis << std::endl;
 
 			Math::Matrix3d pa (parallel_axis);
 			Math::Matrix3d mcc = mass * com_cross;
 			Math::Matrix3d mccT = mcc.transpose();
-			mccT.transpose();
 
 			mSpatialInertia.set (
 					inertia_C(0,0) + pa(0, 0), inertia_C(0,1) + pa(0, 1), inertia_C(0,2) + pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
@@ -187,49 +183,6 @@ struct Body {
 		}
 
 	~Body() {};
-
-	/** \brief Joins inertial parameters of two bodies to create a composite
-	 * body.
-	 *
-	 * This function can be used to joint inertial parameters of two bodies
-	 * to create a composite body that has the inertial properties as if the
-	 * two bodies were joined by a fixed joint.
-	 *
-	 * \note Both bodies have to have their inertial parameters expressed in
-	 * the same orientation.
-	 *
-	 * \param displacement the displacement of other_body with respect to the
-	 * origin the body that other_body is being attached to.
-	 */
-	void Join (const Math::Vector3d &displacement, const Body &other_body) {
-		double other_mass = other_body.mMass;
-		double new_mass = mMass + other_mass;
-
-		if (new_mass == 0.) {
-			std::cerr << "Error: cannot join bodies as both have zero mass!" << std::endl;
-			assert (false);
-			exit(1);
-		}
-
-		Math::Vector3d other_com = other_body.mCenterOfMass + displacement;
-		Math::Vector3d new_com = (1 / new_mass ) * (mMass * mCenterOfMass + other_mass * other_com);
-	
-		// first translate the inertia to the origin of the current body and
-		// then to the new center of mass 
-		Math::Matrix3d new_inertia_other = Math::parallel_axis (other_body.mSpatialInertia.block<3,3>(0,0), other_mass, -displacement);
-		new_inertia_other = Math::parallel_axis (new_inertia_other, other_mass, new_com);
-
-		Math::Matrix3d new_inertia_this = Math::parallel_axis (mSpatialInertia.block<3,3>(0,0), mMass, new_com);
-		Math::Matrix3d new_inertia = new_inertia_this + new_inertia_other;
-
-		LOG << "new_mass = " << new_mass << std::endl;
-		LOG << "new_com  = " << new_com.transpose() << std::endl;
-		LOG << "new_inertia_this  = " << std::endl << new_inertia_this << std::endl;
-		LOG << "new_inertia_other  = " << std::endl << new_inertia_other << std::endl;
-		LOG << "new_inertia  = " << std::endl << new_inertia << std::endl;
-
-		*this = Body (new_mass, new_com, new_inertia);
-	}
 
 	/// \brief The mass of the body
 	double mMass;
