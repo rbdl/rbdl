@@ -237,7 +237,11 @@ void CalcPointJacobian (
 
 	unsigned int j = body_id;
 
-	char e[(Q.size() + 1)];
+	char *e = new char[Q.size() + 1];
+	if (e == NULL) {
+		std::cerr << "Error: allocating memory." << std::endl;
+		abort();
+	}
 	memset (&e[0], 0, Q.size() + 1);
 
 	// e will contain 
@@ -256,6 +260,8 @@ void CalcPointJacobian (
 			G(2, j - 1) = S_base[5];
 		}
 	}
+	
+	delete[] e;
 }
 
 Vector3d CalcPointVelocity (
@@ -291,7 +297,7 @@ Vector3d CalcPointVelocity (
 	LOG << "body_index     = " << body_id << std::endl;
 	LOG << "point_pos      = " << point_position.transpose() << std::endl;
 //	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
-	LOG << "body_transf    = " << std::endl << model.X_base[body_id].toMatrix() << std::endl;
+	LOG << "body_transf    = " << std::endl << model.X_base[reference_body_id].toMatrix() << std::endl;
 	LOG << "point_abs_ps   = " << point_abs_pos.transpose() << std::endl;
 	LOG << "X   = " << std::endl << Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) << std::endl;
 	LOG << "v   = " << model.v[reference_body_id].transpose() << std::endl;
@@ -324,7 +330,6 @@ Vector3d CalcPointAcceleration (
 	)
 {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	unsigned int i;
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -403,7 +408,7 @@ bool InverseKinematics (
 
 	Qres = Qinit;
 
-	for (int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+	for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {

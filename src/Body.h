@@ -115,17 +115,13 @@ struct Body {
 					com[2],      0., -com[0],
 					-com[1],  com[0],      0.
 					);
-			Math::Matrix3d parallel_axis;
-			Math::Matrix3d com_crossT = com_cross;
-			com_crossT.transpose();
-			parallel_axis = mass * com_cross * com_crossT;
+			Math::Matrix3d parallel_axis = mass * com_cross * com_cross.transpose();
 
 			LOG << "parrallel axis = " << std::endl << parallel_axis << std::endl;
 
 			Math::Matrix3d pa (parallel_axis);
 			Math::Matrix3d mcc = mass * com_cross;
 			Math::Matrix3d mccT = mcc.transpose();
-			mccT.transpose();
 
 			mSpatialInertia.set (
 					inertia_C(0,0) + pa(0, 0), inertia_C(0,1) + pa(0, 1), inertia_C(0,2) + pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
@@ -185,9 +181,7 @@ struct Body {
 
 			LOG << "spatial inertia = " << mSpatialInertia << std::endl;
 		}
-
-	~Body() {};
-
+		
 	/** \brief Joins inertial parameters of two bodies to create a composite
 	 * body.
 	 *
@@ -252,6 +246,9 @@ struct Body {
 
 		*this = Body (new_mass, new_com, new_inertia);
 	}
+
+	~Body() {};
+
 
 	/// \brief The mass of the body
 	double mMass;
