@@ -216,29 +216,33 @@ struct Body {
 		//
 		// 1. Transform the inertia from other origin to other COM
 		// 2. Rotate the inertia that it is aligned to the frame of this body
-		// 3. Transform the inertia that it is expressed at the origin of this
-		//    body.
-		// 4. Transform the inertia that it is expressed at the new COM.
+		// 3. Transform inertia of other_body to the origin of the frame of
+		// this body
+		// 4. Sum the two inertias
+		// 5. Transform the summed inertia to the new COM
 
 		Math::Matrix3d inertia_other = other_body.mSpatialInertia.block<3,3>(0,0);
 		LOG << "inertia_other = " << std::endl << inertia_other << std::endl;
 
+		// 1. Transform the inertia from other origin to other COM
 		Math::Matrix3d other_com_cross = Math::VectorCrossMatrix(other_body.mCenterOfMass);
 		Math::Matrix3d inertia_other_com = inertia_other - other_mass * other_com_cross * other_com_cross.transpose();
 		LOG << "inertia_other_com = " << std::endl << inertia_other_com << std::endl;
 
+		// 2. Rotate the inertia that it is aligned to the frame of this body
 		Math::Matrix3d inertia_other_com_rotated = transform.E.transpose() * inertia_other_com * transform.E;
 		LOG << "inertia_other_com_rotated = " << std::endl << inertia_other_com_rotated << std::endl;
 
+		// 3. Transform inertia of other_body to the origin of the frame of this body
 		Math::Matrix3d inertia_other_com_rotated_this_origin = Math::parallel_axis (inertia_other_com_rotated, other_mass, other_com);
 		LOG << "inertia_other_com_rotated_this_origin = " << std::endl << inertia_other_com_rotated_this_origin << std::endl;
 
-		Math::Matrix3d inertia_other_newcom = Math::parallel_axis (inertia_other_com_rotated_this_origin, other_mass, new_com);
-		LOG << "inertia_other_newcom  = " << std::endl << inertia_other_newcom << std::endl;
+		// 4. Sum the two inertias
+		Math::Matrix3d inertia_summed = Math::Matrix3d (mSpatialInertia.block<3,3>(0,0)) + inertia_other_com_rotated_this_origin;
+		LOG << "inertia_summed  = " << std::endl << inertia_summed << std::endl;
 
-		Math::Matrix3d inertia_this_newcom = Math::parallel_axis (mSpatialInertia.block<3,3>(0,0), mMass, new_com);
-		LOG << "inertia_this_newcom  = " << std::endl << inertia_this_newcom << std::endl;
-		Math::Matrix3d new_inertia = inertia_this_newcom + inertia_other_newcom;
+		// 5. Transform the summed inertia to the new COM
+		Math::Matrix3d new_inertia = inertia_summed - new_mass * Math::VectorCrossMatrix (new_com) * Math::VectorCrossMatrix(new_com).transpose();
 
 		LOG << "new_mass = " << new_mass << std::endl;
 		LOG << "new_com  = " << new_com.transpose() << std::endl;
