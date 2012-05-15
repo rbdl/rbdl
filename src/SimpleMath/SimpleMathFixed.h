@@ -25,6 +25,11 @@
  */
 namespace SimpleMath {
 
+namespace Dynamic {
+template <typename val_type> class Matrix;
+}
+
+
 /** \brief Namespace for fixed size elements
  */
 namespace Fixed {
@@ -221,6 +226,10 @@ class Matrix {
 			}
 			return *this;
 		}
+
+		// conversion Dynamic->Fixed
+		Matrix(const Dynamic::Matrix<val_type> &dynamic_matrix);
+		Matrix& operator=(const Dynamic::Matrix<val_type> &dynamic_matrix);
 
 		~Matrix() {};
 

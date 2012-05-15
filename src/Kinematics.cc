@@ -224,6 +224,13 @@ void CalcPointJacobian (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
 	Vector3d point_base_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
 	SpatialMatrix point_trans = Xtrans_mat (point_base_pos);
 
@@ -235,7 +242,7 @@ void CalcPointJacobian (
 	// bodies motion also get non-zero columns in the jacobian.
 	//VectorNd e = VectorNd::Zero(Q.size() + 1);
 
-	unsigned int j = body_id;
+	unsigned int j = reference_body_id;
 
 	char *e = new char[Q.size() + 1];
 	if (e == NULL) {

@@ -16,6 +16,7 @@
 
 #include <sstream>
 #include <cstdlib>
+#include <iostream>
 #include <assert.h>
 
 #include "compileassert.h"
@@ -24,6 +25,36 @@
  *
  */
 namespace SimpleMath {
+
+// conversion Dynamic->Fixed
+template <typename val_type, unsigned int nrows, unsigned int ncols>
+inline Fixed::Matrix<val_type, nrows, ncols>::Matrix(const Dynamic::Matrix<val_type> &dynamic_matrix) {
+	if (dynamic_matrix.cols() != ncols 
+		|| dynamic_matrix.rows() != nrows) {
+		std::cerr << "Error: dimension mismatch!" << std::endl;
+		abort();
+	}
+	
+	for (unsigned int i = 0; i < nrows * ncols; i++) {
+		mData[i] = dynamic_matrix[i];
+	}
+}
+
+template <typename val_type, unsigned int nrows, unsigned int ncols>
+inline Fixed::Matrix<val_type, nrows, ncols>& Fixed::Matrix<val_type, nrows, ncols>::operator=(const Dynamic::Matrix<val_type> &dynamic_matrix) {
+	if (dynamic_matrix.cols() != ncols 
+		|| dynamic_matrix.rows() != nrows) {
+		std::cerr << "Error: dimension mismatch!" << std::endl;
+		abort();
+	}
+	
+	for (unsigned int i = 0; i < nrows * ncols; i++) {
+		mData[i] = dynamic_matrix[i];
+	}
+
+	return *this;
+}
+
 
 // multiplication
 template <typename val_type, unsigned int nrows, unsigned int ncols>

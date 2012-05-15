@@ -283,5 +283,3 @@ struct SimpleFixture {
 	RigidBodyDynamics::Math::VectorNd QDDot;
 	RigidBodyDynamics::Math::VectorNd Tau;
 };
-
-
