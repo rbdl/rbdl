@@ -332,7 +332,7 @@ Vector3d CalcPointAcceleration (
 		const VectorNd &QDDot,
 		unsigned int body_id,
 		const Vector3d &point_position,
-			bool update_kinematics
+		bool update_kinematics
 	)
 {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
@@ -351,22 +351,17 @@ Vector3d CalcPointAcceleration (
 
 	if (model.IsFixedBodyId(body_id)) {
 		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
-		reference_point = model.mFixedBodies[fbody_id].mParentTransform.r + model.mFixedBodies[fbody_id].mParentTransform.E.transpose() * point_position;
 		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		Vector3d base_coords = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
+		reference_point = CalcBaseToBodyCoordinates (model, Q, reference_body_id, base_coords, false);
 	}
 
-	// The whole computation looks in formulae like the following:
 	SpatialVector body_global_velocity (spatial_inverse(model.X_base[reference_body_id].toMatrix()) * model.v[reference_body_id]);
 
-	if (model.IsFixedBodyId(body_id)) {
-		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
-		body_global_velocity = (spatial_inverse(model.mFixedBodies[fbody_id].mParentTransform.toMatrix() * model.X_base[reference_body_id].toMatrix()) * model.v[reference_body_id]);
-	}
+	LOG << " orientation " << std::endl << CalcBodyWorldOrientation (model, Q, reference_body_id, false) << std::endl;
+	LOG << " orientationT " << std::endl <<  CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose() << std::endl;
 
-	LOG << " orientation " << std::endl << CalcBodyWorldOrientation (model, Q, body_id, false) << std::endl;
-	LOG << " orientationT " << std::endl <<  CalcBodyWorldOrientation (model, Q, body_id, false).transpose() << std::endl;
-
-	Matrix3d global_body_orientation_inv = CalcBodyWorldOrientation (model, Q, body_id, false).transpose();
+	Matrix3d global_body_orientation_inv = CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose();
 
 	SpatialTransform p_X_i (global_body_orientation_inv, reference_point);
 
