@@ -115,7 +115,8 @@ struct SpatialTransform {
 };
 
 inline std::ostream& operator<<(std::ostream& output, const SpatialTransform &X) {
-	output << X.toMatrix();
+	output << "X.E = " << std::endl << X.E << std::endl;
+	output << "X.r = " << X.r.transpose();
 	return output;
 }
 

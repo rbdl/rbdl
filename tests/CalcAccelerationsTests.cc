@@ -257,3 +257,46 @@ TEST_FIXTURE (FloatingBase12DoF, TestAccelerationFloatingBaseWithoutUpdateKinema
 //	cout << LogOutput.str() << endl;
 //	cout << accel.transpose() << endl;
 }
+
+TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotationFixedJoint) {
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	unsigned int fixed_body_id = model->AddBody (body_c_id, Xtrans (Vector3d (1., -1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+
+	QDot[0] = 1.;
+	point_position = Vector3d (0., 0., 0.);
+	Vector3d point_acceleration_reference = CalcPointAcceleration (*model, Q, QDot, QDDot, body_c_id, Vector3d (1., -1., 0.));
+
+	ClearLogOutput();
+	point_acceleration = CalcPointAcceleration(*model, Q, QDot, QDDot, fixed_body_id, point_position);
+//	cout << LogOutput.str() << endl;
+
+	CHECK_ARRAY_CLOSE (point_acceleration_reference.data(),
+			point_acceleration.data(),
+			3, 
+			TEST_PREC);
+}
+
+TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotationFixedJointRotatedTransform) {
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	SpatialTransform fixed_transform = Xtrans (Vector3d (1., -1., 0.)) * Xrotz(M_PI * 0.5);
+	unsigned int fixed_body_id = model->AddBody (body_c_id, fixed_transform, Joint(JointTypeFixed), fixed_body, "fixed_body");
+
+	QDot[0] = 1.;
+	point_position = Vector3d (0., 0., 0.);
+	ClearLogOutput();
+	Vector3d point_acceleration_reference = CalcPointAcceleration (*model, Q, QDot, QDDot, body_c_id, Vector3d (1., 1., 0.));
+	cout << LogOutput.str() << endl;
+
+	cout << "Point position = " << CalcBodyToBaseCoordinates (*model, Q, fixed_body_id, Vector3d (0., 0., 0.)).transpose() << endl;
+	cout << "Point position_ref = " << CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (1., 1., 0.)).transpose() << endl;
+
+	ClearLogOutput();
+	point_acceleration = CalcPointAcceleration(*model, Q, QDot, QDDot, fixed_body_id, point_position);
+	cout << LogOutput.str() << endl;
+
+	CHECK_ARRAY_CLOSE (point_acceleration_reference.data(),
+			point_acceleration.data(),
+			3, 
+			TEST_PREC);
+}
