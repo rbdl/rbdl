@@ -25,6 +25,7 @@ enum JointType {
 	JointTypeUndefined = 0,
 	JointTypeRevolute,
 	JointTypePrismatic,
+	JointTypeFixed,
 
 	JointType1DoF,
 	JointType2DoF,
@@ -44,6 +45,16 @@ struct Joint {
 		mJointAxes (NULL),
 		mJointType (JointTypeUndefined),
 		mDoFCount (0) {};
+	Joint (JointType type) :
+		mJointAxes (NULL),
+		mJointType (type),
+	  mDoFCount (0) {
+			if (type != JointTypeFixed) {
+				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed." << std::endl;
+				assert (0);
+				abort();
+			}
+		}
 	Joint (const Joint &joint) :
 		mJointType (joint.mJointType),
 		mDoFCount (joint.mDoFCount) {

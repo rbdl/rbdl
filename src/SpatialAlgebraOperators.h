@@ -11,7 +11,6 @@
 #include <iostream>
 #include <cmath>
 
-
 namespace RigidBodyDynamics {
 
 namespace Math {
@@ -116,7 +115,8 @@ struct SpatialTransform {
 };
 
 inline std::ostream& operator<<(std::ostream& output, const SpatialTransform &X) {
-	output << X.toMatrix();
+	output << "X.E = " << std::endl << X.E << std::endl;
+	output << "X.r = " << X.r.transpose();
 	return output;
 }
 
@@ -253,19 +253,10 @@ inline SpatialMatrix spatial_inverse(const SpatialMatrix &m) {
 	return res;
 }
 
-inline SpatialVector SpatialLinSolve (const SpatialMatrix &A, const SpatialVector &b) {
-#ifdef RBDL_USE_SIMPLE_MATH
-	std::cerr << "Cannot solve linear systems with slow math library! Use eigen instead" << std::endl;
-	return b;
-	//		exit (-1);
-#else
-	return A.partialPivLu().solve(b);
-#endif
-}
-
 inline Matrix3d get_rotation (const SpatialMatrix &m) {
 	return m.block<3,3>(0,0);
 }
+
 inline Vector3d get_translation (const SpatialMatrix &m) {
 	return Vector3d (-m(4,2), m(3,2), -m(3,1));
 }

@@ -27,6 +27,7 @@
 #ifdef EIGEN_CORE_H
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint);
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody);
 #endif
 
 /** \brief Namespace for all structures of the RigidBodyDynamics library
@@ -191,6 +192,22 @@ struct Model {
 	/// \brief Transformation from the base to bodies reference frame
 	std::vector<Math::SpatialTransform> X_base;
 
+	/// \brief All bodies that are attached to a body via a fixed joint.
+	std::vector<FixedBody> mFixedBodies;
+	/** \brief Value that is used to discriminate between fixed and movable
+	 * bodies.
+	 *
+	 * Bodies with id 1 .. (fixed_body_discriminator - 1) are moving bodies
+	 * while bodies with id fixed_body_discriminator .. max (unsigned int)
+	 * are fixed to a moving body. The value of max(unsigned int) is
+	 * determined via std::numeric_limits<unsigned int>::max() and the
+	 * default value of fixed_body_discriminator is max (unsigned int) / 2.
+	 * 
+	 * On normal systems max (unsigned int) is 4294967294 which means there
+	 * could be a total of 2147483647 movable and / or fixed bodies.
+	 */
+	unsigned int fixed_body_discriminator;
+
 	/** \brief All bodies 0 ... N_B, including the base
 	 *
 	 * mBodies[0] - base body <br>
@@ -201,7 +218,7 @@ struct Model {
 	std::vector<Body> mBodies;
 
 	/// \brief Human readable names for the bodies
-	std::vector<std::string> mBodyNames;
+	std::map<std::string, unsigned int> mBodyNameMap;
 
 	/** \brief Connects a given body to the model
 	 *
@@ -292,6 +309,25 @@ struct Model {
 	 */
 	unsigned int GetBodyId (const char *id) const;
 
+
+	bool IsFixedBodyId (unsigned int body_id) {
+		if (body_id >= fixed_body_discriminator 
+				&& body_id < std::numeric_limits<unsigned int>::max() 
+				&& body_id - fixed_body_discriminator < mFixedBodies.size()) {
+			return true;
+		}
+		return false;
+	}
+
+	bool IsBodyId (unsigned int id) {
+		if (id > 0 && id < mBodies.size())
+			return true;
+		if (id >= fixed_body_discriminator && id < std::numeric_limits<unsigned int>::max()) {
+			if (id - fixed_body_discriminator < mFixedBodies.size())
+				return true;
+		}
+		return false;
+	}
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 };
