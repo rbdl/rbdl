@@ -48,7 +48,7 @@ namespace RigidBodyDynamics {
  * The construction of \link RigidBodyDynamics::Model Models \endlink makes
  * use of carefully designed constructors of the classes \link
  * RigidBodyDynamics::Body Body \endlink and \link RigidBodyDynamics::Joint
- * Joint \endlink to ease the process of creating bodies.  Adding bodies to
+ * Joint \endlink to ease the process of articulated models. Adding bodies to
  * the model is done by specifying the parent body by its id, the
  * transformation from the parent origin to the joint origin, the joint
  * specification as an object, and the body itself. These parameters are
@@ -72,7 +72,7 @@ namespace RigidBodyDynamics {
  * rigid bodies, etc. It also contains storage for the transformations and
  * current state, such as velocity and acceleration of each body.
  *
- * \section joint_models Joint Models
+ * \section joint_models Joint Modeling
  *
  * The Rigid Body Dynamics Library supports models with multiple degrees of
  * freedom. When a joint with more than one degrees of freedom is used,
@@ -98,6 +98,24 @@ namespace RigidBodyDynamics {
  *     Math::SpatialVector (0., 0., 1., 0., 0., 0.)
  *     );
  * \endcode
+ *
+ * \subsection joint_models_fixed Fixed Joints
+ *
+ * Fixed joints do not add an additional degree of freedom to the model. 
+ * When adding a body that via a fixed joint (i.e. when the type is
+ * JointTypeFixed) then the dynamical parameters mass and inertia are
+ * merged onto its moving parent. By doing so fixed bodies do not add
+ * computational costs when performing dynamics computations.
+ 
+ * To ensure a consistent API for the Kinematics such fixed bodies have a
+ * different range of ids. Where as the ids start at 1 get incremented for
+ * each added body, fixed bodies start at Model::fixed_body_discriminator
+ * which has a default value of std::numeric_limits<unsigned int>::max() /
+ * 2. This means theoretical a maximum of each 2147483646 movable and fixed
+ * bodies are possible.
+ 
+ * To check whether a body is connected by a fixed joint you can use the
+ * function Model::IsFixedBodyId().
  *
  * See also: \link RigidBodyDynamics::Joint Joint\endlink.
  *
@@ -204,7 +222,7 @@ struct Model {
 	 * default value of fixed_body_discriminator is max (unsigned int) / 2.
 	 * 
 	 * On normal systems max (unsigned int) is 4294967294 which means there
-	 * could be a total of 2147483647 movable and / or fixed bodies.
+	 * could be a total of 2147483646 movable and / or fixed bodies.
 	 */
 	unsigned int fixed_body_discriminator;
 
@@ -329,6 +347,8 @@ struct Model {
 		return "";
 	}
 
+	/** \brief Checks whether the body is rigidly attached to another body.
+	 */
 	bool IsFixedBodyId (unsigned int body_id) {
 		if (body_id >= fixed_body_discriminator 
 				&& body_id < std::numeric_limits<unsigned int>::max() 
