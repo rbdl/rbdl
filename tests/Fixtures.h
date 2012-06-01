@@ -1,5 +1,78 @@
 #include "rbdl.h"
 
+struct FixedBase3DoF {
+	FixedBase3DoF () {
+		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
+
+		ClearLogOutput();
+		model = new Model;
+		model->Init();
+
+		/* Basically a model like this, where X are the Center of Masses
+		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
+		 *
+		 *      Z
+		 *      *---* 
+		 *      |
+		 *      |
+		 *  Z   |
+		 *  O---*
+		 *      Y
+		 */
+
+		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+		joint_a = Joint(
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+
+		body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+
+		body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+		joint_b = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 1., 0.)
+				);
+
+		body_b_id = model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+
+		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+		joint_c = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+
+		body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+
+		Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+
+		point_position = Vector3d::Zero (3);
+		point_acceleration = Vector3d::Zero (3);
+
+		ref_body_id = 0;
+
+		ClearLogOutput();
+	}
+	~FixedBase3DoF () {
+		delete model;
+	}
+	
+	RigidBodyDynamics::Model *model;
+
+	unsigned int body_a_id, body_b_id, body_c_id, ref_body_id;
+	RigidBodyDynamics::Body body_a, body_b, body_c;
+	RigidBodyDynamics::Joint joint_a, joint_b, joint_c;
+
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+
+	RigidBodyDynamics::Math::Vector3d point_position, point_acceleration;
+};
+
 struct FixedBase6DoF {
 	FixedBase6DoF () {
 		using namespace RigidBodyDynamics;
