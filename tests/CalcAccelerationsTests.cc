@@ -231,3 +231,4 @@ TEST_FIXTURE(FixedBase3DoF, TestCalcPointRotationFixedJointRotatedTransform) {
 			3, 
 			TEST_PREC);
 }
+

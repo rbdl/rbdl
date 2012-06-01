@@ -48,6 +48,7 @@ struct FixedBase3DoF {
 		Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
 		QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
 		QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
 		point_position = Vector3d::Zero (3);
 		point_acceleration = Vector3d::Zero (3);
@@ -69,6 +70,7 @@ struct FixedBase3DoF {
 	RigidBodyDynamics::Math::VectorNd Q;
 	RigidBodyDynamics::Math::VectorNd QDot;
 	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
 
 	RigidBodyDynamics::Math::Vector3d point_position, point_acceleration;
 };
@@ -356,3 +358,206 @@ struct SimpleFixture {
 	RigidBodyDynamics::Math::VectorNd QDDot;
 	RigidBodyDynamics::Math::VectorNd Tau;
 };
+
+struct FixedJoint2DoF {
+	FixedJoint2DoF () {
+		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
+
+		ClearLogOutput();
+		model = new Model;
+		model->Init();
+
+		/* Basically a model like this, where X are the Center of Masses
+		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
+		 *
+		 *      Z
+		 *      *---* 
+		 *      |
+		 *      |
+		 *  Z   |
+		 *  O---*
+		 *      Y
+		 */
+
+		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+		joint_a = Joint(
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+
+		body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+
+		body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+		joint_b = Joint (JointTypeFixed);
+
+		body_b_id = model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+
+		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+		joint_c = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+
+		body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+
+		Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+
+		point_position = Vector3d::Zero (3);
+		point_acceleration = Vector3d::Zero (3);
+
+		ref_body_id = 0;
+
+		ClearLogOutput();
+	}
+	~FixedJoint2DoF () {
+		delete model;
+	}
+	
+	RigidBodyDynamics::Model *model;
+
+	unsigned int body_a_id, body_b_id, body_c_id, ref_body_id;
+	RigidBodyDynamics::Body body_a, body_b, body_c;
+	RigidBodyDynamics::Joint joint_a, joint_b, joint_c;
+
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+
+	RigidBodyDynamics::Math::Vector3d point_position, point_acceleration;
+};
+
+/** \brief Fixture that contains two models of which one has one joint fixed.
+ */
+struct FixedAndMovableJoint {
+	FixedAndMovableJoint () {
+		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
+
+		ClearLogOutput();
+		model_movable = new Model;
+		model_movable->Init();
+
+		/* Basically a model like this, where X are the Center of Masses
+		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
+		 *
+		 *      Z
+		 *      *---* 
+		 *      |
+		 *      |
+		 *  Z   |
+		 *  O---*
+		 *      Y
+		 */
+
+		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
+		joint_a = Joint(
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+
+		body_a_id = model_movable->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+
+		body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
+		joint_b = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 1., 0.)
+				);
+
+		body_b_id = model_movable->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+
+		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
+		joint_c = Joint (
+				JointTypeRevolute,
+				Vector3d (0., 0., 1.)
+				);
+
+		body_c_id = model_movable->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+
+		Q = VectorNd::Constant ((size_t) model_movable->dof_count, 0.);
+		QDot = VectorNd::Constant ((size_t) model_movable->dof_count, 0.);
+		QDDot = VectorNd::Constant ((size_t) model_movable->dof_count, 0.);
+		Tau = VectorNd::Constant ((size_t) model_movable->dof_count, 0.);
+		C_movable = VectorNd::Zero ((size_t) model_movable->dof_count);
+		H_movable = MatrixNd::Zero ((size_t) model_movable->dof_count, (size_t) model_movable->dof_count);
+
+		// Assemble the fixed joint model
+		model_fixed = new Model;
+		model_fixed->Init();
+
+		body_a_fixed_id = model_fixed->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
+		Joint joint_fixed (JointTypeFixed);
+		body_b_fixed_id = model_fixed->AddBody(body_a_fixed_id, Xtrans(Vector3d(1., 0., 0.)), joint_fixed, body_b);
+		body_c_fixed_id = model_fixed->AddBody(body_b_fixed_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+
+		Q_fixed = VectorNd::Constant ((size_t) model_fixed->dof_count, 0.);
+		QDot_fixed = VectorNd::Constant ((size_t) model_fixed->dof_count, 0.);
+		QDDot_fixed = VectorNd::Constant ((size_t) model_fixed->dof_count, 0.);
+		Tau_fixed = VectorNd::Constant ((size_t) model_fixed->dof_count, 0.);
+		C_fixed = VectorNd::Zero ((size_t) model_fixed->dof_count);
+		H_fixed = MatrixNd::Zero ((size_t) model_fixed->dof_count, (size_t) model_fixed->dof_count);
+
+		point_position = Vector3d::Zero (3);
+		point_acceleration = Vector3d::Zero (3);
+
+		ref_body_id = 0;
+
+		ClearLogOutput();
+	}
+
+	~FixedAndMovableJoint () {
+		delete model_movable;
+		delete model_fixed;
+	}
+	RigidBodyDynamics::Math::VectorNd CreateDofVectorFromReducedVector (const RigidBodyDynamics::Math::VectorNd &q_fixed) {
+		assert (q_fixed.size() == model_fixed->dof_count);
+
+		RigidBodyDynamics::Math::VectorNd q_movable (model_movable->dof_count);
+
+		q_movable[0] = q_fixed[0];
+		q_movable[1] = 0.;
+		q_movable[2] = q_fixed[1];
+
+		return q_movable;
+	}
+
+	RigidBodyDynamics::Math::MatrixNd CreateReducedInertiaMatrix(const RigidBodyDynamics::Math::MatrixNd &H_movable) {
+		assert (H_movable.rows() == model_movable->dof_count);
+		assert (H_movable.cols() == model_movable->dof_count);
+		RigidBodyDynamics::Math::MatrixNd H (model_fixed->dof_count, model_fixed->dof_count);
+
+		H (0,0) = H_movable(0,0); H (0,1) = H_movable(0,2);
+		H (1,0) = H_movable(2,0); H (1,1) = H_movable(2,2);
+
+		return H;
+	}
+	
+	RigidBodyDynamics::Model *model_fixed;
+	RigidBodyDynamics::Model *model_movable;
+
+	unsigned int body_a_id, body_b_id, body_c_id, ref_body_id;
+	unsigned int body_a_fixed_id, body_b_fixed_id, body_c_fixed_id;
+
+	RigidBodyDynamics::Body body_a, body_b, body_c;
+	RigidBodyDynamics::Joint joint_a, joint_b, joint_c;
+
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
+	RigidBodyDynamics::Math::VectorNd C_movable;
+	RigidBodyDynamics::Math::MatrixNd H_movable;
+	
+	RigidBodyDynamics::Math::VectorNd Q_fixed;
+	RigidBodyDynamics::Math::VectorNd QDot_fixed;
+	RigidBodyDynamics::Math::VectorNd QDDot_fixed;
+	RigidBodyDynamics::Math::VectorNd Tau_fixed;
+	RigidBodyDynamics::Math::VectorNd C_fixed;
+	RigidBodyDynamics::Math::MatrixNd H_fixed;
+
+	RigidBodyDynamics::Math::Vector3d point_position, point_acceleration;
+};
+
+

@@ -187,10 +187,21 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	assert (lambda.size() > 0);
 	assert (joint.mJointType != JointTypeUndefined);
 
+	// If we add the body to a fixed body we have to make sure that we
+	// actually add it to its movable parent.
+	unsigned int movable_parent_id = parent_id;
+	SpatialTransform movable_parent_transform;
+
+	if (IsFixedBodyId(parent_id)) {
+		unsigned int fbody_id = parent_id - fixed_body_discriminator;
+		movable_parent_id = mFixedBodies[fbody_id].mMovableParent;
+		movable_parent_transform = mFixedBodies[fbody_id].mParentTransform;
+	}
+
 	// structural information
-	lambda.push_back(parent_id);
+	lambda.push_back(movable_parent_id);
 	mu.push_back(std::vector<unsigned int>());
-	mu.at(parent_id).push_back(mBodies.size());
+	mu.at(movable_parent_id).push_back(mBodies.size());
 
 	// Bodies
 	X_lambda.push_back(SpatialTransform());
@@ -217,7 +228,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	S.push_back (joint.mJointAxes[0]);
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.
-	X_T.push_back(joint_frame);
+	X_T.push_back(movable_parent_transform * joint_frame);
 
 	// Dynamic variables
 	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));

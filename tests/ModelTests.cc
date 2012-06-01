@@ -431,3 +431,28 @@ TEST ( ModelFixedJointQueryBodyId ) {
 
 	CHECK_EQUAL (fixed_body_id, model.GetBodyId("fixed_body"));
 }
+
+/* 
+ * Makes sure that when appending a body to a fixed joint the parent of the
+ * newly added parent is actually the moving body that the fixed body is
+ * attached to.
+ */
+TEST ( ModelAppendToFixedBody ) {
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+	unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
+
+	CHECK_EQUAL (movable_body + 1, appended_body_id);
+	CHECK_EQUAL (movable_body, model.lambda[appended_body_id]);
+}
