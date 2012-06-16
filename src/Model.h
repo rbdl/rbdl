@@ -307,8 +307,27 @@ struct Model {
 	 *
 	 * \returns the id of the body or \c std::numeric_limits<unsigned int>::max() if the id was not found.
 	 */
-	unsigned int GetBodyId (const char *id) const;
+	unsigned int GetBodyId (const char *body_name) const {
+		if (mBodyNameMap.count(body_name) == 0) {
+			return std::numeric_limits<unsigned int>::max();
+		}
 
+		return mBodyNameMap.find(body_name)->second;
+	}
+
+	/** \brief Returns the name of a body for a given body id */
+	std::string GetBodyName (unsigned int body_id) const {
+		std::map<std::string, unsigned int>::const_iterator iter = mBodyNameMap.begin();
+
+		while (iter != mBodyNameMap.end()) {
+			if (iter->second == body_id)
+				return iter->first;
+
+			iter++;
+		}
+
+		return "";
+	}
 
 	bool IsFixedBodyId (unsigned int body_id) {
 		if (body_id >= fixed_body_discriminator 
