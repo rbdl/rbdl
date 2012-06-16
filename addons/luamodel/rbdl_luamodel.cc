@@ -27,7 +27,8 @@ namespace Addons {
 
 using namespace Math;
 
-map<void *, unsigned int> body_table_id_map;
+typedef map<void *, unsigned int> PtrUIntMap;
+PtrUIntMap body_table_id_map;
 
 SpatialVector get_spatial_vector (lua_State *L, const string &path, int index = -1) {
 	SpatialVector result;
@@ -100,24 +101,33 @@ Matrix3d get_matrix3d (lua_State *L, const string &path) {
 bool read_frame_params (lua_State *L,
 		const string &path,
 		unsigned int &parent_id,
-		SpatialTransform &joint_transform,
+		SpatialTransform &joint_frame,
 		Joint &joint,
 		Body &body,
-		std::string &body_name) {
+		std::string &body_name,
+		bool verbose) {
 
 	void *parent_table = (void*) get_pointer (L, path + ".parent_body");
 	void *body_table = (void*) get_pointer (L, path + ".child_body");
+	body_name = get_string (L, path + ".name");
+
+	PtrUIntMap::iterator parent_iter = body_table_id_map.find (parent_table);
+	if (parent_iter == body_table_id_map.end()) {
+		cerr << "Error: could not find table parent_body for frame '" << body_name << "'!" << endl;
+		return false;
+	}
 	parent_id = body_table_id_map[parent_table];
 
-	cout << "frame name = " << get_string (L, path + ".name") << endl;
-	cout << "  parent_table = " << hex << parent_table << endl;
-	cout << "  parent_id = " << parent_id << endl;
-	cout << "  body_table   = " << hex << body_table << endl;
+	if (verbose) {
+		cout << "frame name = " << body_name << endl;
+		cout << "  parent_table = " << hex << parent_table << endl;
+		cout << "  parent_id = " << parent_id << endl;
+		cout << "  body_table   = " << hex << body_table << endl;
+	}
 
-
-	// create the joint_transform
+	// create the joint_frame
 	if (get_pointer (L, path + ".joint_frame") == NULL) {
-		joint_transform = SpatialTransform();
+		joint_frame = SpatialTransform();
 	} else {
 		Vector3d r (0., 0., 0.);
 		Matrix3d E (Matrix3d::Identity(3,3));
@@ -130,17 +140,20 @@ bool read_frame_params (lua_State *L,
 			E = get_matrix3d (L, path + ".joint_frame.E");
 		}
 
-		joint_transform = SpatialTransform (E, r);
+		joint_frame = SpatialTransform (E, r);
 	}
 
-	cout << "  joint_transform = " << joint_transform << endl;
+	if (verbose)
+		cout << "  joint_frame = " << joint_frame << endl;
 
 	// create the joint
 	if (get_pointer (L, path + ".joint") == NULL) {
-		joint = Joint();
+		joint = Joint(JointTypeFixed);
 	} else {
 		unsigned int joint_dofs = static_cast<unsigned int> (get_length (L, path + ".joint"));
-		cout << "  joint_dofs   = " << joint_dofs << endl;
+
+		if (verbose)
+			cout << "  joint_dofs   = " << joint_dofs << endl;
 
 		switch (joint_dofs) {
 			case 0: joint = Joint(JointTypeFixed);
@@ -188,7 +201,6 @@ bool read_frame_params (lua_State *L,
 		}
 	}
 
-	body_name = "";
 	if (get_pointer (L, path + ".child_body") == NULL) {
 		body = Body();
 	} else {
@@ -200,23 +212,25 @@ bool read_frame_params (lua_State *L,
 			mass = get_number (L, path + ".child_body.mass");
 		}
 
-		cout << "  mass = " << mass << endl;
-
 		if (get_pointer (L, path + ".child_body.com") != NULL) {
 			com = get_vector3d (L, path + ".child_body.com");
 		}
-
-		cout << "  com = " << com << endl;
 
 		if (get_pointer (L, path + ".child_body.inertia") != NULL) {
 			inertia = get_matrix3d (L, path + ".child_body.inertia");
 		}
 
-		cout << "  inertia = " << inertia << endl;
+		if (verbose) {
+			cout << "  mass = " << mass << endl;
+			cout << "  com = " << com << endl;
+			cout << "  inertia = " << inertia << endl;
+		}
 
 		body = Body (mass, com, inertia);
 	}
-	cout << "  Body = " << endl << body.mSpatialInertia << endl;
+
+	if (verbose)
+		cout << "  Body = " << endl << body.mSpatialInertia << endl;
 
 	return true;
 }
@@ -239,7 +253,7 @@ bool read_luamodel (const char* filename, Model* model, bool verbose) {
 	vector<string> frame_names = get_keys (L, "frames");
 
 	unsigned int parent_id;
-	Math::SpatialTransform joint_transform;
+	Math::SpatialTransform joint_frame;
 	Joint joint;
 	Body body;
 	string body_name;
@@ -249,16 +263,20 @@ bool read_luamodel (const char* filename, Model* model, bool verbose) {
 
 		if (!read_frame_params(L, frame_path,
 					parent_id,
-					joint_transform,
+					joint_frame,
 					joint,
 					body,
-					body_name
+					body_name,
+					verbose
 					)) {
 			cerr << "Error reading frame " << frame_names[i] << "." << endl;
 			return false;
 		}
 
-		unsigned int body_id = model->AddBody (parent_id, joint_transform, joint, body, body_name);
+		if (verbose)
+			cout << "   Adding Body name = " << body_name << endl;
+
+		unsigned int body_id = model->AddBody (parent_id, joint_frame, joint, body, body_name);
 		void *body_table = (void*) get_pointer (L, frame_path + ".child_body");
 		body_table_id_map[body_table] = body_id;
 	}
