@@ -1,0 +1,157 @@
+rbdl_luamodel - load RBDL models from Lua files
+Copyright (c) 2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+
+DESCRIPTION
+
+rbdl_luamodel allows to load models that are specified as Lua scripts. Lua
+is an open-source light-weight scripting language (http://www.lua.org).
+
+Note: this addon is not even remotely as thoroughly tested as the RBDL
+itself so please use it with some suspicion.
+
+DOCUMENTATION
+
+Models have to be specified as a specially formatted Lua table which must
+be returned by the script, i.e. if the model is specified in the table
+"model = { ... }" the script has to return this when executed. Within the
+returned table, rbdl_luamodel goes through the table "frames" and builds
+the model from the individual Frame Information Tables (see further down
+for more information about those).
+
+A valid file could look like this:
+
+--
+model = { 
+	frames = {
+		{
+			<frame 1 information table>
+		},
+		{
+			<frame 2 information table>
+		}
+	}
+}
+
+return model
+--
+
+Note: the table frames must contain all Frame Information Tables as a list
+and individual tables must not be specified with a key, i.e.
+  frames = {
+	  some_frame = {
+		  ...
+		},
+		{
+		  ..
+		}
+	}
+is not possible!
+
+FRAME INFORMATION TABLE
+
+The Frame Information Table is searched for values needed to call
+Model::AddBody(). The following entries are used by rbdl_luamodel
+(everything else is ignored):
+
+  name (optional, type: string):
+	  Name of the body that is being added.
+
+  parent_body (type: 0 or table of the parent body):
+	  In case of 0 the parent is assumed to be the base coordinate system,
+		otherwise it should be the same table as used for the "child_body"
+		field of the parent frame.
+	
+	child_body (optional, type: table)
+	  Specification of the dynamical parameters of the body. It uses the
+		values (if existing):
+		  mass (scalar value, default 0.),
+			com (3-d vector, default:	(0., 0., 0.))
+			inertia (3x3	matrix, default: identity matrix)
+    to build create a body.
+
+	joint (optional, type: table)
+	  Specifies the type of joint, fixed or up to 6 degrees of freedom. Each
+		entry in the joint table should be a 6-d that defines the motion
+		subspace of a single degree of freedom.
+
+		Default joint type is a fixed joint that attaches the body rigidly to
+		its parent.
+		
+		Examples
+      joint_fixed = {}
+			joint_translate_x = { {0., 0., 0., 1., 0., 0.} }
+			joint_translate_xy = { 
+				{0., 0., 0., 1., 0., 0.},
+				{0., 0., 0., 0., 1., 0.}
+			}
+			joint_rotate_zyx = {
+				{0., 0., 1., 0., 0., 0.},
+				{0., 1., 0., 0., 0., 0.},
+				{1., 0., 0., 0., 0., 0.},
+			}
+			
+	joint_frame (optional, type: table)
+	  Specifies the origin of the joint in the frame of the parent. It uses
+		the values (if existing):
+		  r (3-d vector, default: (0., 0., 0.))
+			E (3x3 matrix, default: identity matrix)
+	  for which r is the translation and E the rotation of the joint frame.
+
+Note: it is highly recommended to define the child body tables outside of
+the Frame Information Table. As the field parent_body has to point to the
+exact same table that was previously used as child_body. Best practise
+would be something like this:
+
+--
+  some_body = { mass = ..., com = ... }
+  other_body = { mass = ..., com = ... }
+
+	model = {
+	  frames = {
+ 		  {
+			  parent_body = 0.
+		 		child_body = some_body
+				...
+			},
+			{
+			  parent_body = some_body
+				child_body = other_body
+				...
+			},
+			...
+		}
+	}
+
+	return model
+--
+
+LICENSING
+
+This code is published under the zlib license, however some parts of the
+CMake scripts are taken from other projects and are licensed under
+different terms.
+
+Full license text:
+
+-------
+rbdl_luamodel - load RBDL models from Lua files
+Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+   1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would be
+   appreciated but is not required.
+
+   2. Altered source versions must be plainly marked as such, and must not be
+   misrepresented as being the original software.
+
+   3. This notice may not be removed or altered from any source
+   distribution.

@@ -283,11 +283,3 @@ unsigned int Model::SetFloatingBaseBody (const Body &body) {
 
 	return body_id;
 }
-
-unsigned int Model::GetBodyId (const char *id) const {
-	if (mBodyNameMap.count(id) == 0) {
-		return std::numeric_limits<unsigned int>::max();
-	}
-
-	return mBodyNameMap.find(id)->second;
-}
