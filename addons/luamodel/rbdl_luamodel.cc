@@ -92,7 +92,7 @@ Matrix3d get_matrix3d (lua_State *L, const string &path) {
 	}
 
 	for (unsigned int i = 0; i < 9; i++) {
-		result[i] = array[i];
+		result.data()[i] = array[i];
 	}
 
 	return result;
