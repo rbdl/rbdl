@@ -45,6 +45,13 @@ string get_dof_name (const SpatialVector &joint_dof) {
 	return dof_stream.str();
 }
 
+void print_dof_overview (const RigidBodyDynamics::Model &model) {
+	cout << "Degree of freedom overview:" << endl;
+	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		cout << setfill(' ') << setw(3) << i - 1 << ": " << get_body_name (model, i) << "_" << get_dof_name (model.S[i]) << endl;
+	}
+}
+
 void usage (const char* argv_0) {
 	cerr << "Usage: " << argv_0 << "[-v] <model.lua>" << endl;
 	exit (1);
@@ -77,10 +84,7 @@ int main (int argc, char *argv[]) {
 
 	cout << "Model loading successful!" << endl;
 
-	cout << "Degree of freedom overview:" << endl;
-	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		cout << setfill(' ') << setw(3) << i - 1 << ": " << get_body_name (model, i) << "_" << get_dof_name (model.S[i]) << endl;
-	}
+	print_dof_overview(model);
 
 	return 0;
 }

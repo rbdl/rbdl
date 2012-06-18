@@ -27,8 +27,8 @@ namespace Addons {
 
 using namespace Math;
 
-typedef map<void *, unsigned int> PtrUIntMap;
-PtrUIntMap body_table_id_map;
+typedef map<string, unsigned int> StringIntMap;
+StringIntMap body_table_id_map;
 
 SpatialVector get_spatial_vector (lua_State *L, const string &path, int index = -1) {
 	SpatialVector result;
@@ -107,22 +107,30 @@ bool read_frame_params (lua_State *L,
 		std::string &body_name,
 		bool verbose) {
 
-	void *parent_table = (void*) get_pointer (L, path + ".parent_body");
-	void *body_table = (void*) get_pointer (L, path + ".child_body");
-	body_name = get_string (L, path + ".name");
-
-	PtrUIntMap::iterator parent_iter = body_table_id_map.find (parent_table);
-	if (parent_iter == body_table_id_map.end()) {
-		cerr << "Error: could not find table parent_body for frame '" << body_name << "'!" << endl;
+	if (!value_exists (L, path + ".name") != 0.) {
+		cerr << "Error: could not find required value '" << path << ".name'." << endl;
 		return false;
 	}
-	parent_id = body_table_id_map[parent_table];
+
+	if (!value_exists (L, path + ".parent_frame") != 0.) {
+		cerr << "Error: could not find required value '" << path << ".parent_frame'." << endl;
+		return false;
+	}
+
+	string parent_frame = get_string (L, path + ".parent_frame");
+	body_name = get_string (L, path + ".name");
+
+	StringIntMap::iterator parent_iter = body_table_id_map.find (parent_frame);
+	if (parent_iter == body_table_id_map.end()) {
+		cerr << "Error: could not find the parent frame for frame '" << body_name << "'!" << endl;
+		return false;
+	}
+	parent_id = body_table_id_map[parent_frame];
 
 	if (verbose) {
 		cout << "frame name = " << body_name << endl;
-		cout << "  parent_table = " << hex << parent_table << endl;
+		cout << "  parent_frame = "  << parent_frame << endl;
 		cout << "  parent_id = " << parent_id << endl;
-		cout << "  body_table   = " << hex << body_table << endl;
 	}
 
 	// create the joint_frame
@@ -239,7 +247,7 @@ bool read_luamodel (const char* filename, Model* model, bool verbose) {
 	assert (model);
 
 	model->Init();
-	body_table_id_map[NULL] = 0;
+	body_table_id_map["BASE"] = 0;
 
 	lua_State *L;
 
@@ -277,8 +285,7 @@ bool read_luamodel (const char* filename, Model* model, bool verbose) {
 			cout << "   Adding Body name = " << body_name << endl;
 
 		unsigned int body_id = model->AddBody (parent_id, joint_frame, joint, body, body_name);
-		void *body_table = (void*) get_pointer (L, frame_path + ".child_body");
-		body_table_id_map[body_table] = body_id;
+		body_table_id_map[body_name] = body_id;
 	}
 
 	return true;

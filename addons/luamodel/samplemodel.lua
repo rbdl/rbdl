@@ -41,14 +41,14 @@ model = {
 	frames = {
 		{
 			name = "pelvis",
-			parent_body = 0,
-			child_body = bodies.pelvis,
+			parent_frame = "BASE",
+			body = bodies.pelvis,
 			joint = joints.freeflyer,
 		},
 		{
 			name = "thigh_right",
-			parent_body = bodies.pelvis,
-			child_body = bodies.thigh_right,
+			parent_frame = "pelvis",
+			body = bodies.thigh_right,
 			joint = joints.spherical_zyx
 		},
 	}
