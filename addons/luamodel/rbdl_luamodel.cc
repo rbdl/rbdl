@@ -111,14 +111,14 @@ bool read_frame_params (lua_State *L,
 		cerr << "Error: could not find required value '" << path << ".name'." << endl;
 		return false;
 	}
+	body_name = get_string (L, path + ".name");
 
 	if (!value_exists (L, path + ".parent_frame") != 0.) {
-		cerr << "Error: could not find required value '" << path << ".parent_frame'." << endl;
+		cerr << "Error: could not find required value '" << path << ".parent_frame' for body '" << body_name << "'." << endl;
 		return false;
 	}
 
 	string parent_frame = get_string (L, path + ".parent_frame");
-	body_name = get_string (L, path + ".name");
 
 	StringIntMap::iterator parent_iter = body_table_id_map.find (parent_frame);
 	if (parent_iter == body_table_id_map.end()) {
@@ -286,6 +286,9 @@ bool read_luamodel (const char* filename, Model* model, bool verbose) {
 
 		unsigned int body_id = model->AddBody (parent_id, joint_frame, joint, body, body_name);
 		body_table_id_map[body_name] = body_id;
+
+		if (verbose)
+			cout << "   Body id = " << body_id << endl;
 	}
 
 	return true;

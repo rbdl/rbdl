@@ -6,6 +6,11 @@ DESCRIPTION
 rbdl_luamodel allows to load models that are specified as Lua scripts. Lua
 is an open-source light-weight scripting language (http://www.lua.org).
 
+This addon comes with a standalone utility that can show various
+information of a lua model such as degree of freedom overview or model
+hierarchy. It is located in addons/luamodel/rbdl_luamodel_test. Use the -h
+switch to see available options.
+
 Note: this addon is not even remotely as thoroughly tested as the RBDL
 itself so please use it with some suspicion.
 

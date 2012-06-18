@@ -34,6 +34,9 @@ joints = {
 		{ 0., 1., 0., 0., 0., 0.},
 		{ 1., 0., 0., 0., 0., 0.}
 	},
+	rotational_y = {
+		{ 0., 1., 0., 0., 0., 0.}
+	},
 	fixed = {}
 }
 
@@ -50,6 +53,33 @@ model = {
 			parent_frame = "pelvis",
 			body = bodies.thigh_right,
 			joint = joints.spherical_zyx
+		},
+		{
+			name = "fixed_thing",
+			parent_frame = "thigh_right",
+			body = bodies.thigh_right,
+		},
+		{
+			name = "shank_right",
+			parent_frame = "thigh_right",
+			body = bodies.thigh_right,
+			joint = joints.rotational_y
+		},
+		{
+			name = "thigh_left",
+			parent_frame = "pelvis",
+			body = bodies.thigh_left,
+			joint = joints.spherical_zyx
+		},
+		{
+			name = "shank_left",
+			parent_frame = "thigh_left",
+			body = bodies.thigh_left,
+			joint = joints.rotational_y
+		},
+		{
+			name = "minimum_body",
+			parent_frame = "thigh_right",
 		},
 	}
 }
