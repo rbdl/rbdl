@@ -37,6 +37,27 @@ namespace RigidBodyDynamics {
 /** \defgroup model_group Modelling
  * @{
  *
+ * There are two ways of creating models for RBDL:
+ *
+ *   \li Using \ref luamodel_introduction that uses Lua files or
+ *   \li using the C++ interface.
+ *
+ * The first approach requires the addon \ref luamodel_introduction to be
+ * activated which is done by enabling BUILD_ADDON_LUAMODEL in CMake and is
+ * recommended when one is not interested in the details of RBDL and simply
+ * wants to create a model.
+ *
+ * \section modeling_lua Modeling using Lua
+ *
+ * For this see the documentation of \ref luamodel_introduction.
+ *
+ * \section modeling_cpp Modeling using C++
+ *
+ * Using the C++ interface is more advanced but gives some overview about the
+ * internals of RBDL.
+ *
+ * \subsection modeling_overview Overview
+ *
  * All model related values are stored in the model structure \link
  * RigidBodyDynamics::Model\endlink. The functions 
  * \link RigidBodyDynamics::Model::Init Model::Init()\endlink,
@@ -65,14 +86,14 @@ namespace RigidBodyDynamics {
  *
  * A simple example can be found \ref SimpleExample "here".
  *
- * \section model_structure Model Structure
+ * \subsection model_structure Model Structure
  *
  * The model structure contains all the parameters of the rigid multi-body
  * model such as joint informations, mass and inertial parameters of the
  * rigid bodies, etc. It also contains storage for the transformations and
  * current state, such as velocity and acceleration of each body.
  *
- * \section joint_models Joint Modeling
+ * \subsection joint_models Joint Modeling
  *
  * The Rigid Body Dynamics Library supports models with multiple degrees of
  * freedom. When a joint with more than one degrees of freedom is used,
@@ -99,7 +120,7 @@ namespace RigidBodyDynamics {
  *     );
  * \endcode
  *
- * \subsection joint_models_fixed Fixed Joints
+ * \subsubsection joint_models_fixed Fixed Joints
  *
  * Fixed joints do not add an additional degree of freedom to the model. 
  * When adding a body that via a fixed joint (i.e. when the type is

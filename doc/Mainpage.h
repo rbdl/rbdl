@@ -29,10 +29,24 @@
  * information about it can be found here:
  * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>
  *
+ * \section recent_changes Recent Changes :
+ * <ul>
+ * <li> 18. June 2012: added support of \ref luamodel_introduction</li>
+ * <li> 01. June 2012: added support of \ref joint_models_fixed</li>
+ * <li> 14. May 2012: fixed Body constructor as reported by Maxime Reis</li>
+ * <li> 04. April 2012: added benchmark tool for CRBA</li>
+ * <li> 01. March 2012: added multi degree of freedom \ref joint_models</li>
+ * <li> 06. Februry 2012: restructured constraint handling using \ref RigidBodyDynamics::ConstraintSet</li>
+ * <li> 24. January 2012: implemented compact and fast representation of \ref RigidBodyDynamics::Math::SpatialTransform </li>
+ * </ul>
+ *
  * \section Example Example
  *
  * A simple example for creation of a model and computation of the forward
- * dynamics can be found \ref SimpleExample "here".
+ * dynamics using the C++ API can be found \ref SimpleExample "here".
+ *
+ * Another example that uses the \ref luamodel_introduction Addon can be found \ref
+ * LuaModelExample "here".
  * 
  * \section ModuleOverview API reference separated by functional modules
  * 
@@ -69,14 +83,4 @@ freely, subject to the following restrictions:
    3. This notice may not be removed or altered from any source
    distribution.
 \endverbatim
- *
- * \subsection recent_changes Recent Changes :
- * <ul>
- * <li> 01. June 2012: added support of \ref joint_models_fixed</li>
- * <li> 14. May 2012: fixed Body constructor as reported by Maxime Reis</li>
- * <li> 04. April 2012: added benchmark tool for CRBA</li>
- * <li> 01. March 2012: added multi degree of freedom \ref joint_models</li>
- * <li> 06. Februry 2012: restructured constraint handling using \ref RigidBodyDynamics::ConstraintSet</li>
- * <li> 24. January 2012: implemented compact and fast representation of \ref RigidBodyDynamics::Math::SpatialTransform </li>
- * </ul>
  */

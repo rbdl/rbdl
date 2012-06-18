@@ -27,6 +27,11 @@ void rbdl_print_version() {
 #else
 		<< "  simplemath   : off" << std::endl
 #endif
+#ifdef BUILD_ADDON_LUAMODEL
+		<< "  luamodel     : on" << std::endl;
+#else
+	  << "  luamodel     : off" << std::endl;
+#endif
 		;
 
 	std::string build_revision (RBDL_BUILD_REVISION);

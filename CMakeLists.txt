@@ -27,7 +27,7 @@ OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (
 OPTION (RBDL_STORE_VERSION "Enable storing of version information in the library (requires build from valid repository)" OFF)
 OPTION (BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" OFF)
 OPTION (BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
-OPTION (BUILD_ADDON_LUAMODEL "Build the (experimental) lua model reader" OFF)
+OPTION (BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
 
 SET ( RBDL_SOURCES 
 	src/rbdl_version.cc
@@ -52,12 +52,19 @@ ENDIF (BUILD_ADDON_BENCHMARK)
 
 IF (BUILD_ADDON_LUAMODEL)
   ADD_SUBDIRECTORY ( addons/luamodel )
+	TARGET_LINK_LIBRARIES ( rbdl
+		rbdl_luamodel
+		)
 ENDIF (BUILD_ADDON_LUAMODEL)
 
 IF (BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
   SET_TARGET_PROPERTIES ( rbdl-static PROPERTIES PREFIX "lib")
   SET_TARGET_PROPERTIES ( rbdl-static PROPERTIES OUTPUT_NAME "rbdl")
+
+	TARGET_LINK_LIBRARIES ( rbdl
+		rbdl_luamodel-static
+		)
 
 	INSTALL (TARGETS rbdl-static
 	  LIBRARY DESTINATION lib

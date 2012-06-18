@@ -1,5 +1,5 @@
 #include "rbdl.h"
-#include "rbdl_luamodel.h"
+#include "luamodel.h"
 
 #include <assert.h>
 #include <iostream>
@@ -31,7 +31,7 @@ typedef map<string, unsigned int> StringIntMap;
 StringIntMap body_table_id_map;
 
 SpatialVector get_spatial_vector (lua_State *L, const string &path, int index = -1) {
-	SpatialVector result;
+	SpatialVector result (0., 0., 0., 0., 0., 0.);
 
 	std::vector<double> array = get_array (L, path, index);
 	if (array.size() != 6) {
@@ -209,23 +209,23 @@ bool read_frame_params (lua_State *L,
 		}
 	}
 
-	if (get_pointer (L, path + ".child_body") == NULL) {
+	if (get_pointer (L, path + ".body") == NULL) {
 		body = Body();
 	} else {
 		double mass = 0.;
 		Vector3d com (0., 0., 0.);
 		Matrix3d inertia (Matrix3d::Zero(3,3));
 
-		if (value_exists (L, path + ".child_body.mass") != 0.) {
-			mass = get_number (L, path + ".child_body.mass");
+		if (value_exists (L, path + ".body.mass")) {
+			mass = get_number (L, path + ".body.mass");
 		}
 
-		if (get_pointer (L, path + ".child_body.com") != NULL) {
-			com = get_vector3d (L, path + ".child_body.com");
+		if (value_exists (L, path + ".body.com")) {
+			com = get_vector3d (L, path + ".body.com");
 		}
 
-		if (get_pointer (L, path + ".child_body.inertia") != NULL) {
-			inertia = get_matrix3d (L, path + ".child_body.inertia");
+		if (value_exists (L, path + ".body.inertia")) {
+			inertia = get_matrix3d (L, path + ".body.inertia");
 		}
 
 		if (verbose) {
@@ -237,17 +237,16 @@ bool read_frame_params (lua_State *L,
 		body = Body (mass, com, inertia);
 	}
 
-	if (verbose)
-		cout << "  Body = " << endl << body.mSpatialInertia << endl;
+//	if (verbose)
+//		cout << "  Body = " << endl << body.mSpatialInertia << endl;
 
 	return true;
 }
 
-bool read_luamodel (const char* filename, Model* model, bool verbose) {
+bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 	assert (model);
 
-	model->Init();
-	body_table_id_map["BASE"] = 0;
+	body_table_id_map["ROOT"] = 0;
 
 	lua_State *L;
 
@@ -256,6 +255,13 @@ bool read_luamodel (const char* filename, Model* model, bool verbose) {
 
 	if (luaL_loadfile(L, filename) || lua_pcall (L, 0, 1, 0)) {
 		bail (L, "Error running file: ");
+	}
+
+	if (value_exists(L, "gravity")) {
+		model->gravity = get_vector3d (L, "gravity");
+
+		if (verbose)
+			cout << "gravity = " << model->gravity.transpose() << endl;
 	}
 
 	vector<string> frame_names = get_keys (L, "frames");
@@ -281,14 +287,24 @@ bool read_luamodel (const char* filename, Model* model, bool verbose) {
 			return false;
 		}
 
-		if (verbose)
-			cout << "   Adding Body name = " << body_name << endl;
+		if (verbose) {
+			cout << "+ Adding Body " << endl;
+			cout << "  parent_id  : " << parent_id << endl;
+			cout << "  joint_frame: " << joint_frame << endl;
+			cout << "  joint dofs : " << joint.mDoFCount << endl;
+			for (unsigned int j = 0; j < joint.mDoFCount; j++) {
+				cout << "    " << j << ": " << joint.mJointAxes[j].transpose() << endl;
+			}
+			cout << "  body inertia: " << endl << body.mSpatialInertia << endl;
+			cout << "  body_name  : " << body_name << endl;
+
+		}
 
 		unsigned int body_id = model->AddBody (parent_id, joint_frame, joint, body, body_name);
 		body_table_id_map[body_name] = body_id;
 
 		if (verbose)
-			cout << "   Body id = " << body_id << endl;
+			cout << "  body id    : " << body_id << endl;
 	}
 
 	return true;

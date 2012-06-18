@@ -24,7 +24,7 @@ SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
 SET ( LUAMODEL_SOURCES 
-	rbdl_luamodel.cc
+	luamodel.cc
 	luatables.cc
 	)
 
@@ -41,19 +41,20 @@ IF (BUILD_STATIC)
 	)
 ENDIF (BUILD_STATIC)
 
-ADD_EXECUTABLE (rbdl_luamodel_test rbdl_luamodel_test.cc)
+ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
 
 TARGET_LINK_LIBRARIES (rbdl_luamodel
 	${LUA_LIBRARIES}
+	)
+
+TARGET_LINK_LIBRARIES (rbdl_luamodel_util
+	rbdl_luamodel
 	rbdl
 	)
 
-TARGET_LINK_LIBRARIES (rbdl_luamodel_test
-	rbdl_luamodel
-	)
-
 # Installing
-INSTALL (TARGETS rbdl_luamodel
+INSTALL (TARGETS rbdl_luamodel_util rbdl_luamodel 
+	RUNTIME DESTINATION bin
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	)

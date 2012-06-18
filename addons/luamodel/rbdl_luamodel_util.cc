@@ -1,5 +1,5 @@
 #include "rbdl.h"
-#include "rbdl_luamodel.h"
+#include "luamodel.h"
 
 #include <iostream>
 #include <iomanip>
@@ -56,13 +56,13 @@ void print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int body_i
 	for (int j = 0; j < indent; j++)
 		cout << "  ";
 
+	cout << get_body_name (model, body_index);
+
 	if (body_index == 0) {
-		cout << "BASE [fixed]" << endl;
+		cout << endl;
 		print_hierarchy (model, 1, 1);
 		return;
-	} else {
-		cout << get_body_name (model, body_index);
-	}
+	} 
 
 	// print the dofs
 	cout << " [ ";
@@ -131,7 +131,9 @@ int main (int argc, char *argv[]) {
 	}
 
 	RigidBodyDynamics::Model model;
-	if (!RigidBodyDynamics::Addons::read_luamodel(filename.c_str(), &model, verbose)) {
+	model.Init();
+
+	if (!RigidBodyDynamics::Addons::LuaModelReadFromFile(filename.c_str(), &model, verbose)) {
 		cerr << "Loading of lua model failed!" << endl;
 		return -1;
 	}

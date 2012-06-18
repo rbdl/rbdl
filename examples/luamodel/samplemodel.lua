@@ -1,3 +1,10 @@
+--[[
+--  This is an example model for the RBDL addon luamodel. You need to
+--  enable BUILD_ADDON_LUAMODEL to be able to use this file.
+--]]
+
+print ("This is some output from the model file")
+
 inertia = { 
 	{1.1, 0.1, 0.2},
 	{0.3, 1.2, 0.4},
@@ -38,10 +45,12 @@ joints = {
 }
 
 model = {
+	gravity = {0., 0., -9.81},
+
 	frames = {
 		{
 			name = "pelvis",
-			parent_frame = "BASE",
+			parent_frame = "ROOT",
 			body = bodies.pelvis,
 			joint = joints.freeflyer,
 		},
@@ -50,35 +59,62 @@ model = {
 			parent_frame = "pelvis",
 			body = bodies.thigh_right,
 			joint = joints.spherical_zyx,
+			joint_transform = {
+				r = {0.0, -0.15, 0.},
+				E = {
+					{1., 0., 0.},
+					{0., 1., 0.},
+					{0., 0., 0.}
+				}
+			}
+		},
+		{
+			name = "shank_right",
+			parent_frame = "thigh_right",
+			body = bodies.thigh_right,
+			joint = joints.rotational_y,
+			joint_transform = {
+				r = {0.0, 0., -0.42},
+			},
 		},
 		{
 			name = "foot_right",
-			parent_frame = "thigh_right",
+			parent_frame = "shank_right",
 			body = bodies.thigh_right,
-			joint = joints.fixed
-		},
-		{
-			name = "foot_left",
-			parent_frame = "thigh_right",
-			body = bodies.thigh_right,
+			joint_transform = {
+				r = {0.0, 0., -0.41}
+			},
 		},
 		{
 			name = "thigh_left",
 			parent_frame = "pelvis",
 			body = bodies.thigh_left,
-			joint = joints.spherical_zyx
+			joint = joints.spherical_zyx,
+			joint_transform = {
+				r = {0.0, 0.15, 0.},
+				E = {
+					{1., 0., 0.},
+					{0., 1., 0.},
+					{0., 0., 0.}
+				}
+			}
 		},
 		{
 			name = "shank_left",
 			parent_frame = "thigh_left",
 			body = bodies.thigh_left,
-			joint = joints.rotational_y
+			joint = joints.rotational_y,
+			joint_transform = {
+				r = {0.0, 0., -0.42},
+			},
 		},
 		{
 			name = "foot_left",
-			parent_frame = "thigh_left",
+			parent_frame = "shank_left",
 			body = bodies.thigh_left,
-			joint = joints.fixed
+			joint_transform = {
+				r = {0.0, 0., -0.41},
+			},
 		},
 	}
 }
