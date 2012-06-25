@@ -35,7 +35,7 @@ struct SpatialTransform {
 
 	/** Same as X * v.
 	 *
-	 * \returns (E * w, -rxw + Ev)
+	 * \returns (E * w, - E * rxw + E * v)
 	 */
 	SpatialVector apply (const SpatialVector &v_sp) {
 		Vector3d v_rxw (
@@ -50,6 +50,27 @@ struct SpatialTransform {
 				E(0,0) * v_rxw[0] + E(0,1) * v_rxw[1] + E(0,2) * v_rxw[2],
 				E(1,0) * v_rxw[0] + E(1,1) * v_rxw[1] + E(1,2) * v_rxw[2],
 				E(2,0) * v_rxw[0] + E(2,1) * v_rxw[1] + E(2,2) * v_rxw[2]
+				);
+	}
+
+	/** Same as X^T * f.
+	 *
+	 * \returns (E^T * n + rx * E^T * f, E^T * f)
+	 */
+	SpatialVector applyTranspose (const SpatialVector &f_sp) {
+		Vector3d E_T_f (
+				E(0,0) * f_sp[3] + E(1,0) * f_sp[4] + E(2,0) * f_sp[5],
+				E(0,1) * f_sp[3] + E(1,1) * f_sp[4] + E(2,1) * f_sp[5],
+				E(0,2) * f_sp[3] + E(1,2) * f_sp[4] + E(2,2) * f_sp[5]
+				);
+
+		return SpatialVector (
+				E(0,0) * f_sp[0] + E(1,0) * f_sp[1] + E(2,0) * f_sp[2] - r[2] * E_T_f[1] + r[1] * E_T_f[2],
+				E(0,1) * f_sp[0] + E(1,1) * f_sp[1] + E(2,1) * f_sp[2] + r[2] * E_T_f[0] - r[0] * E_T_f[2],
+				E(0,2) * f_sp[0] + E(1,2) * f_sp[1] + E(2,2) * f_sp[2] - r[1] * E_T_f[0] + r[0] * E_T_f[1],
+				E_T_f [0],
+				E_T_f [1],
+				E_T_f [2]
 				);
 	}
 

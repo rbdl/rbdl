@@ -1,6 +1,6 @@
 /** \file Mainpage.h 
  * \mainpage RBDL - Rigid Body Dynamics Library
- * \image html logo/rbdl_logo.png
+ * \image html rbdl_logo.png
  *
  * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
  * library contains highly efficient code for both forward and inverse

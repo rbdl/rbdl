@@ -293,7 +293,7 @@ void InverseDynamics (
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
-			model.f[lambda] = model.f[lambda] + model.X_lambda[i].toMatrixTranspose() * model.f[i];
+			model.f[lambda] = model.f[lambda] + model.X_lambda[i].applyTranspose(model.f[i]);
 		}
 	}
 
@@ -344,7 +344,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 		unsigned int dof_j = dof_i;
 
 		while (model.lambda[j] != 0) {
-			F = model.X_lambda[j].toMatrixTranspose() * F;
+			F = model.X_lambda[j].applyTranspose(F);
 			j = model.lambda[j];
 
 			dof_j = j - 1;
