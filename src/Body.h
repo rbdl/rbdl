@@ -262,6 +262,12 @@ struct Body {
 	Math::SpatialMatrix mSpatialInertia;
 };
 
+/** \brief Keeps the information of a body and how it is attached to another body.
+ *
+ * When using fixed bodies, i.e. a body that is attached to anothe via a
+ * fixed joint, the attached body is merged onto its parent. By doing so
+ * adding fixed joints do not have an impact on runtime.
+ */
 struct FixedBody {
 	/// \brief The mass of the body
 	double mMass;

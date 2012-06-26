@@ -445,7 +445,7 @@ class Matrix {
 			return result;
 		}
 
-		// Operators with other spatial matrices
+		// Operators with other matrices
 		Matrix operator+(const Matrix &matrix) const {
 			matrix_type result (*this);
 
