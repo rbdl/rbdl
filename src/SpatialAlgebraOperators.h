@@ -60,7 +60,7 @@ struct SpatialRigidBodyInertia {
 	SpatialRigidBodyInertia operator+ (const SpatialRigidBodyInertia &rbi) {
 		return SpatialRigidBodyInertia (
 				m + rbi.m,
-				h + rbi.h,
+				(h + rbi.h) / (m + rbi.m),
 				I + rbi.I
 				);
 	}

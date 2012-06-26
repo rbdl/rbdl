@@ -328,13 +328,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
-			SpatialMatrix test = model.Ic[lambda].toMatrix() + model.X_lambda[i].toMatrixTranspose() * model.Ic[i].toMatrix() * model.X_lambda[i].toMatrix();
-
 			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply(model.Ic[i]);
-
-			LOG << "Ic[" << lambda << "] = " << std::endl << model.Ic[lambda].toMatrix() << std::endl;
-			LOG << "test =" << std::endl << test << std::endl;
-			LOG << "diff = " << std::endl << test - model.Ic[lambda].toMatrix() << std::endl << std::endl;
 		}
 
 		dof_i = i - 1;

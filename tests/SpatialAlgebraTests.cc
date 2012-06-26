@@ -417,7 +417,34 @@ TEST(TestXrotAxis) {
 	CHECK_ARRAY_CLOSE (X_rotZ_90.toMatrix().data(), X_rotZ_90_axis.toMatrix().data(), 36, TEST_PREC);
 }
 
-TEST(TestSpatialTransformApplySpatialRigidBodyInertia) {
+TEST(TestSpatialTransformApplySpatialRigidBodyInertiaAdd) {
+	SpatialRigidBodyInertia rbi (
+			1.1,
+			Vector3d (1.2, 1.3, 1.4),
+			Matrix3d (
+				1.1, 0.5, 0.3,
+				0.5, 1.2, 0.4,
+				0.3, 0.4, 1.3
+				));
+
+	SpatialMatrix rbi_matrix_added = rbi.toMatrix() + rbi.toMatrix();
+	SpatialRigidBodyInertia rbi_added = rbi + rbi;
+
+	// cout << "rbi = " << endl << rbi.toMatrix() << endl;
+	// cout << "rbi_added = " << endl << rbi_added.toMatrix() << endl;
+	// cout << "rbi_matrix_added = " << endl << rbi_matrix_added << endl;
+	// cout << "diff = " << endl << 
+	//  	rbi_added.toMatrix() - rbi_matrix_added << endl;
+
+	CHECK_ARRAY_CLOSE (
+			rbi_matrix_added.data(),
+			rbi_added.toMatrix().data(),
+			36,
+			TEST_PREC
+			);
+}
+
+TEST(TestSpatialTransformApplySpatialRigidBodyInertiaFull) {
 	SpatialRigidBodyInertia rbi (
 			1.1,
 			Vector3d (1.2, 1.3, 1.4),

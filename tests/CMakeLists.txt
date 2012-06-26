@@ -9,18 +9,18 @@ SET ( TESTS_SRCS
 	main.cc
 	MathTests.cc
 	SpatialAlgebraTests.cc
-	#	KinematicsTests.cc
+	KinematicsTests.cc
 	BodyTests.cc
-	#	ModelTests.cc
-	#	FloatingBaseTests.cc
-	#	CalcVelocitiesTests.cc
-	#	CalcAccelerationsTests.cc
-	#	DynamicsTests.cc
-	#	InverseDynamicsTests.cc
+	ModelTests.cc
+	FloatingBaseTests.cc
+	CalcVelocitiesTests.cc
+	CalcAccelerationsTests.cc
+	DynamicsTests.cc
+	InverseDynamicsTests.cc
 	CompositeRigidBodyTests.cc
-	#	ImpulsesTests.cc
-	#	TwolegModelTests.cc
-	#	ContactsTests.cc
+	ImpulsesTests.cc
+	TwolegModelTests.cc
+	ContactsTests.cc
 	)
 
 FIND_PACKAGE (UnitTest++ REQUIRED)
