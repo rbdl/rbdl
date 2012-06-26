@@ -53,7 +53,13 @@ void Model::Init() {
 	d = VectorNd::Zero(1);
 
 	f.push_back (zero_spatial);
-	Ic.push_back (SpatialMatrixIdentity);
+	Ic.push_back (
+			SpatialRigidBodyInertia(
+				0.,
+				Vector3d (0., 0., 0.),
+				Matrix3d::Zero(3,3)
+				)
+			);
 
 	// Bodies
 	X_lambda.push_back(SpatialTransform());
@@ -240,7 +246,13 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	u = VectorNd::Zero (mBodies.size());
 
 	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
-	Ic.push_back (SpatialMatrixIdentity);
+	Ic.push_back (
+			SpatialRigidBodyInertia(
+				body.mMass,
+				body.mCenterOfMass,
+				body.mInertia
+				)
+			);
 
 	if (mBodies.size() == fixed_body_discriminator) {
 		std::cerr << "Error: cannot add more than " << fixed_body_discriminator << " movable bodies. You need to modify Model::fixed_body_discriminator for this." << std::endl;

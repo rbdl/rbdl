@@ -66,6 +66,8 @@ namespace RigidBodyDynamics {
  * \link RigidBodyDynamics::Model::GetBodyId Model::GetBodyId(...)\endlink,
  * are used to initialize and construct the \ref model_structure.
  *
+ * \section model_construction Model Construction
+ *
  * The construction of \link RigidBodyDynamics::Model Models \endlink makes
  * use of carefully designed constructors of the classes \link
  * RigidBodyDynamics::Body Body \endlink and \link RigidBodyDynamics::Joint
@@ -217,8 +219,8 @@ struct Model {
 	Math::VectorNd u;
 	/// \brief Internal forces on the body (used only InverseDynamics())
 	std::vector<Math::SpatialVector> f;
-	/// \brief The spatial inertia of the bodies (used only in CompositeRigidBodyAlgorithm())
-	std::vector<Math::SpatialMatrix> Ic;
+	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
+	std::vector<Math::SpatialRigidBodyInertia> Ic;
 
 	////////////////////////////////////
 	// Bodies

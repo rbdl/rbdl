@@ -138,14 +138,6 @@ bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 	return true;
 }
 
-Matrix3d VectorCrossMatrix (const Vector3d &vector) {
-	return Matrix3d (
-			0., -vector[2], vector[1],
-			vector[2], 0., -vector[0],
-			-vector[1], vector[0], 0.
-			);
-}
-
 void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix) {
 	assert (row < 2 && col < 2);
 	

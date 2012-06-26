@@ -318,21 +318,17 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 	H.setZero();
 
 	unsigned int i;
-	for (i = 1; i < model.mBodies.size(); i++) {
-		model.Ic[i] = model.mBodies[i].mSpatialInertia;
-	}
-
-	LOG << "-- initialization --" << std::endl;
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "Ic[" << i << "] = " << std::endl << model.Ic[i] << std::endl;
-	}
 	unsigned int dof_i = model.dof_count;
+
+	for (i = 1; i < model.mBodies.size(); i++) {
+		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
+	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
-			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].toMatrixTranspose() * model.Ic[i] * model.X_lambda[i].toMatrix();
+			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply(model.Ic[i]);
 		}
 
 		dof_i = i - 1;
@@ -349,8 +345,6 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 			dof_j = j - 1;
 
-			LOG << "i,j         = " << i << ", " << j << std::endl;
-			LOG << "dof_i,dof_j = " << dof_i << ", " << dof_j << std::endl;
 			H(dof_i,dof_j) = F.dot(model.S[j]);
 			H(dof_j,dof_i) = H(dof_i,dof_j);
 		}
