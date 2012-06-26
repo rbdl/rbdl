@@ -438,7 +438,6 @@ TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContact) {
 	constraint_set.Bind (*model);
 	
 	Vector3d point_accel_lagrangian, point_accel_contacts;
-	double contact_force_lagrangian, contact_force_contacts;
 	
 	ClearLogOutput();
 
@@ -475,7 +474,6 @@ TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContactRotated) {
 	constraint_set.Bind (*model);
 	
 	Vector3d point_accel_lagrangian, point_accel_contacts, point_accel_contacts_opt;
-	double contact_force_lagrangian, contact_force_contacts, contact_force_contacts_opt;
 	
 	ClearLogOutput();
 
@@ -521,7 +519,6 @@ TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContactRotatedMoving) 
 	constraint_set.Bind (*model);
 	
 	Vector3d point_accel_lagrangian, point_accel_contacts;
-	double contact_force_lagrangian, contact_force_contacts;
 	
 	VectorNd QDDot_lagrangian = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 	VectorNd QDDot_contacts = VectorNd::Constant (model->mBodies.size() - 1, 0.);
@@ -555,7 +552,6 @@ TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptDoubleContact) {
 	constraint_set.Bind (*model);
 	
 	Vector3d point_accel_lagrangian, point_accel_contacts;
-	double contact_force_lagrangian, contact_force_contacts;
 	
 	ClearLogOutput();
 
@@ -597,7 +593,6 @@ TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsOptDoubleContactRepeated) {
 	constraint_set.Bind (*model);
 	
 	Vector3d point_accel_lagrangian, point_accel_contacts;
-	double contact_force_lagrangian, contact_force_contacts;
 	
 	ClearLogOutput();
 

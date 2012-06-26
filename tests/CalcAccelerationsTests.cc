@@ -14,76 +14,7 @@ using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
-struct ModelAccelerationsFixture {
-	ModelAccelerationsFixture () {
-		ClearLogOutput();
-		model = new Model;
-		model->Init();
-
-		/* Basically a model like this, where X are the Center of Masses
-		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
-		 *
-		 *      Z
-		 *      *---* 
-		 *      |
-		 *      |
-		 *  Z   |
-		 *  O---*
-		 *      Y
-		 */
-
-		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-		joint_a = Joint(
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-
-		body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
-
-		body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-		joint_b = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-
-		body_b_id = model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
-
-		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
-		joint_c = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-
-		body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
-
-		Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
-		QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
-		QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
-
-		point_position = Vector3d::Zero (3);
-		point_acceleration = Vector3d::Zero (3);
-
-		ref_body_id = 0;
-
-		ClearLogOutput();
-	}
-	~ModelAccelerationsFixture () {
-		delete model;
-	}
-	Model *model;
-
-	unsigned int body_a_id, body_b_id, body_c_id, ref_body_id;
-	Body body_a, body_b, body_c;
-	Joint joint_a, joint_b, joint_c;
-
-	VectorNd Q;
-	VectorNd QDot;
-	VectorNd QDDot;
-
-	Vector3d point_position, point_acceleration;
-};
-
-TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimple) {
+TEST_FIXTURE(FixedBase3DoF, TestCalcPointSimple) {
 	QDDot[0] = 1.;
 	ref_body_id = body_a_id;
 	point_position = Vector3d (1., 0., 0.);
@@ -98,7 +29,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimple) {
 	// LOG << "Point accel = " << point_acceleration << endl;
 }
 
-TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimpleRotated) {
+TEST_FIXTURE(FixedBase3DoF, TestCalcPointSimpleRotated) {
 	Q[0] = 0.5 * M_PI;
 
 	ref_body_id = body_a_id;
@@ -115,7 +46,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointSimpleRotated) {
 	// LOG << "Point accel = " << point_acceleration << endl;
 }
 
-TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotation) {
+TEST_FIXTURE(FixedBase3DoF, TestCalcPointRotation) {
 	ref_body_id = 1;
 	QDot[0] = 1.;
 	point_position = Vector3d (1., 0., 0.);
@@ -140,7 +71,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotation) {
 	CHECK_CLOSE( 0., point_acceleration[2], TEST_PREC);
 }
 
-TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotatedBaseSimple) {
+TEST_FIXTURE(FixedBase3DoF, TestCalcPointRotatedBaseSimple) {
 	// rotated first joint
 
 	ref_body_id = 1;
@@ -162,7 +93,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotatedBaseSimple) {
 //	cout << LogOutput.str() << endl;
 }
 
-TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotatingBodyB) {
+TEST_FIXTURE(FixedBase3DoF, TestCalcPointRotatingBodyB) {
 	// rotating second joint, point at third body
 	
 	ref_body_id = 3;
@@ -187,7 +118,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointRotatingBodyB) {
 	CHECK_CLOSE(  0., point_acceleration[2], TEST_PREC);
 }
 
-TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointBodyOrigin) {
+TEST_FIXTURE(FixedBase3DoF, TestCalcPointBodyOrigin) {
 	// rotating second joint, point at third body
 	
 	QDot[0] = 1.;
@@ -203,7 +134,7 @@ TEST_FIXTURE(ModelAccelerationsFixture, TestCalcPointBodyOrigin) {
 	CHECK_CLOSE(  0., point_acceleration[2], TEST_PREC);
 }
 
-TEST_FIXTURE(ModelAccelerationsFixture, TestAccelerationLinearFuncOfQddot) {
+TEST_FIXTURE(FixedBase3DoF, TestAccelerationLinearFuncOfQddot) {
 	// rotating second joint, point at third body
 	
 	QDot[0] = 1.1;
@@ -257,3 +188,47 @@ TEST_FIXTURE (FloatingBase12DoF, TestAccelerationFloatingBaseWithoutUpdateKinema
 //	cout << LogOutput.str() << endl;
 //	cout << accel.transpose() << endl;
 }
+
+TEST_FIXTURE(FixedBase3DoF, TestCalcPointRotationFixedJoint) {
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	unsigned int fixed_body_id = model->AddBody (body_c_id, Xtrans (Vector3d (1., -1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+
+	QDot[0] = 1.;
+	point_position = Vector3d (0., 0., 0.);
+	Vector3d point_acceleration_reference = CalcPointAcceleration (*model, Q, QDot, QDDot, body_c_id, Vector3d (1., -1., 0.));
+
+	ClearLogOutput();
+	point_acceleration = CalcPointAcceleration(*model, Q, QDot, QDDot, fixed_body_id, point_position);
+//	cout << LogOutput.str() << endl;
+
+	CHECK_ARRAY_CLOSE (point_acceleration_reference.data(),
+			point_acceleration.data(),
+			3, 
+			TEST_PREC);
+}
+
+TEST_FIXTURE(FixedBase3DoF, TestCalcPointRotationFixedJointRotatedTransform) {
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	SpatialTransform fixed_transform = Xtrans (Vector3d (1., -1., 0.)) * Xrotz(M_PI * 0.5);
+	unsigned int fixed_body_id = model->AddBody (body_c_id, fixed_transform, Joint(JointTypeFixed), fixed_body, "fixed_body");
+
+	QDot[0] = 1.;
+	point_position = Vector3d (0., 0., 0.);
+	ClearLogOutput();
+	Vector3d point_acceleration_reference = CalcPointAcceleration (*model, Q, QDot, QDDot, body_c_id, Vector3d (1., 1., 0.));
+	// cout << LogOutput.str() << endl;
+
+	// cout << "Point position = " << CalcBodyToBaseCoordinates (*model, Q, fixed_body_id, Vector3d (0., 0., 0.)).transpose() << endl;
+	// cout << "Point position_ref = " << CalcBodyToBaseCoordinates (*model, Q, body_c_id, Vector3d (1., 1., 0.)).transpose() << endl;
+
+	ClearLogOutput();
+	point_acceleration = CalcPointAcceleration(*model, Q, QDot, QDDot, fixed_body_id, point_position);
+	// cout << LogOutput.str() << endl;
+
+	CHECK_ARRAY_CLOSE (point_acceleration_reference.data(),
+			point_acceleration.data(),
+			3, 
+			TEST_PREC);
+}
+

@@ -293,7 +293,7 @@ void InverseDynamics (
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
-			model.f[lambda] = model.f[lambda] + model.X_lambda[i].toMatrixTranspose() * model.f[i];
+			model.f[lambda] = model.f[lambda] + model.X_lambda[i].applyTranspose(model.f[i]);
 		}
 	}
 
@@ -318,23 +318,23 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 	H.setZero();
 
 	unsigned int i;
-
-	LOG << "-- initialization --" << std::endl;
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "Ic[" << i << "] = " << std::endl << model.Ic[i].toMatrix() << std::endl;
-	}
-
 	unsigned int dof_i = model.dof_count;
-	for (i = 1; i < model.mBodies.size(); i++) {
-		model.Ic[i].copyFromMatrix(model.mBodies[i].mSpatialInertia);
-	}
 
+	for (i = 1; i < model.mBodies.size(); i++) {
+		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
+	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
+			SpatialMatrix test = model.Ic[lambda].toMatrix() + model.X_lambda[i].toMatrixTranspose() * model.Ic[i].toMatrix() * model.X_lambda[i].toMatrix();
+
 			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply(model.Ic[i]);
+
+			LOG << "Ic[" << lambda << "] = " << std::endl << model.Ic[lambda].toMatrix() << std::endl;
+			LOG << "test =" << std::endl << test << std::endl;
+			LOG << "diff = " << std::endl << test - model.Ic[lambda].toMatrix() << std::endl << std::endl;
 		}
 
 		dof_i = i - 1;
@@ -346,13 +346,11 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 		unsigned int dof_j = dof_i;
 
 		while (model.lambda[j] != 0) {
-			F = model.X_lambda[j].toMatrixTranspose() * F;
+			F = model.X_lambda[j].applyTranspose(F);
 			j = model.lambda[j];
 
 			dof_j = j - 1;
 
-			LOG << "i,j         = " << i << ", " << j << std::endl;
-			LOG << "dof_i,dof_j = " << dof_i << ", " << dof_j << std::endl;
 			H(dof_i,dof_j) = F.dot(model.S[j]);
 			H(dof_j,dof_i) = H(dof_i,dof_j);
 		}

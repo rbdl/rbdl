@@ -60,7 +60,7 @@ bool ConstraintSet::Bind (const Model &model) {
 
 	if (bound) {
 		std::cerr << "Error: binding an already bound constraint set!" << std::endl;
-		exit (-1);
+		abort();
 	}
 	unsigned int n_constr = size();
 
@@ -602,7 +602,6 @@ void ForwardDynamicsContacts (
 		unsigned int body_id = CS.body[ci];
 		Vector3d point = CS.point[ci];
 		Vector3d normal = CS.normal[ci];
-		double acceleration = CS.constraint_acceleration[ci];
 
 		// assemble the test force
 		LOG << "normal = " << normal.transpose() << std::endl;

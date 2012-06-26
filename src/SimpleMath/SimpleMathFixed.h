@@ -25,6 +25,11 @@
  */
 namespace SimpleMath {
 
+namespace Dynamic {
+template <typename val_type> class Matrix;
+}
+
+
 /** \brief Namespace for fixed size elements
  */
 namespace Fixed {
@@ -33,7 +38,7 @@ namespace Fixed {
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 class Matrix;
 
-/** \brief Block class that can be used to access blocks of a spatial matrix
+/** \brief Block class that can be used to access blocks of a matrix
  *
  * This class is a proxy class and only contains data on where to find the
  * desired information.
@@ -187,7 +192,7 @@ class Block {
 	val_type *parent;
 };
 
-/** \brief Matrix class for spatial matrices (both spatial transformations and inertias)
+/** \brief Fixed size matrix class 
  */
 
 template <typename val_type, unsigned int nrows, unsigned int ncols>
@@ -221,6 +226,10 @@ class Matrix {
 			}
 			return *this;
 		}
+
+		// conversion Dynamic->Fixed
+		Matrix(const Dynamic::Matrix<val_type> &dynamic_matrix);
+		Matrix& operator=(const Dynamic::Matrix<val_type> &dynamic_matrix);
 
 		~Matrix() {};
 
@@ -596,7 +605,7 @@ class Matrix {
 			return result;
 		}
 
-		// Operators with other spatial matrices
+		// Operators with other matrices
 		Matrix operator+(const Matrix &matrix) const {
 			matrix_type result (*this);
 

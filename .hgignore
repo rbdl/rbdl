@@ -12,13 +12,17 @@ build/*
 .*.swp
 CMakeFiles/*
 cmake_install.cmake
+CMakeCache.txt
 Makefile
 tags
 *.log
 
 src/rbdl_config.h
 
-examples/CMakeCache.txt
-examples/example
-examples/librbdl.so
-examples/rbdlexample
+examples/simple/CMakeCache.txt
+examples/simple/example
+examples/simple/librbdl.so
+
+examples/luamodel/example_luamodel
+examples/luamodel/CMakeCache.txt
+

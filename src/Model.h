@@ -27,6 +27,7 @@
 #ifdef EIGEN_CORE_H
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint);
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody);
 #endif
 
 /** \brief Namespace for all structures of the RigidBodyDynamics library
@@ -35,6 +36,27 @@ namespace RigidBodyDynamics {
 
 /** \defgroup model_group Modelling
  * @{
+ *
+ * There are two ways of creating models for RBDL:
+ *
+ *   \li Using \ref luamodel_introduction that uses Lua files or
+ *   \li using the C++ interface.
+ *
+ * The first approach requires the addon \ref luamodel_introduction to be
+ * activated which is done by enabling BUILD_ADDON_LUAMODEL in CMake and is
+ * recommended when one is not interested in the details of RBDL and simply
+ * wants to create a model.
+ *
+ * \section modeling_lua Modeling using Lua
+ *
+ * For this see the documentation of \ref luamodel_introduction.
+ *
+ * \section modeling_cpp Modeling using C++
+ *
+ * Using the C++ interface is more advanced but gives some overview about the
+ * internals of RBDL.
+ *
+ * \subsection modeling_overview Overview
  *
  * All model related values are stored in the model structure \link
  * RigidBodyDynamics::Model\endlink. The functions 
@@ -49,7 +71,7 @@ namespace RigidBodyDynamics {
  * The construction of \link RigidBodyDynamics::Model Models \endlink makes
  * use of carefully designed constructors of the classes \link
  * RigidBodyDynamics::Body Body \endlink and \link RigidBodyDynamics::Joint
- * Joint \endlink to ease the process of creating bodies.  Adding bodies to
+ * Joint \endlink to ease the process of articulated models. Adding bodies to
  * the model is done by specifying the parent body by its id, the
  * transformation from the parent origin to the joint origin, the joint
  * specification as an object, and the body itself. These parameters are
@@ -66,14 +88,14 @@ namespace RigidBodyDynamics {
  *
  * A simple example can be found \ref SimpleExample "here".
  *
- * \section model_structure Model Structure
+ * \subsection model_structure Model Structure
  *
  * The model structure contains all the parameters of the rigid multi-body
  * model such as joint informations, mass and inertial parameters of the
  * rigid bodies, etc. It also contains storage for the transformations and
  * current state, such as velocity and acceleration of each body.
  *
- * \section joint_models Joint Models
+ * \subsection joint_models Joint Modeling
  *
  * The Rigid Body Dynamics Library supports models with multiple degrees of
  * freedom. When a joint with more than one degrees of freedom is used,
@@ -100,6 +122,24 @@ namespace RigidBodyDynamics {
  *     );
  * \endcode
  *
+ * \subsubsection joint_models_fixed Fixed Joints
+ *
+ * Fixed joints do not add an additional degree of freedom to the model. 
+ * When adding a body that via a fixed joint (i.e. when the type is
+ * JointTypeFixed) then the dynamical parameters mass and inertia are
+ * merged onto its moving parent. By doing so fixed bodies do not add
+ * computational costs when performing dynamics computations.
+ 
+ * To ensure a consistent API for the Kinematics such fixed bodies have a
+ * different range of ids. Where as the ids start at 1 get incremented for
+ * each added body, fixed bodies start at Model::fixed_body_discriminator
+ * which has a default value of std::numeric_limits<unsigned int>::max() /
+ * 2. This means theoretical a maximum of each 2147483646 movable and fixed
+ * bodies are possible.
+ 
+ * To check whether a body is connected by a fixed joint you can use the
+ * function Model::IsFixedBodyId().
+ *
  * See also: \link RigidBodyDynamics::Joint Joint\endlink.
  *
  * \note Please note that in the Rigid %Body Dynamics Library all angles
@@ -123,10 +163,7 @@ namespace RigidBodyDynamics {
  * readability of the code as the resulting code is very similar to the
  * pseudo-code in the RBDA book.
  *
- * \note The dimensions of q, qdot, qddot, and tau are increased whenever
- * a body is added. This is also true for bodies that are added with a
- * fixed joint. To query the actual number of degrees of freedom use
- * Model::dof_count.
+ * \note To query the number of degrees of freedom use Model::dof_count.
  */
 struct Model {
 	// Structural information
@@ -147,9 +184,9 @@ struct Model {
 	Math::Vector3d gravity;
 
 	// State information
-	/// \brief The spatial velocity of body i
+	/// \brief The spatial velocity of the bodies
 	std::vector<Math::SpatialVector> v;
-	/// \brief The spatial acceleration of body i
+	/// \brief The spatial acceleration of the bodies
 	std::vector<Math::SpatialVector> a;
 
 	////////////////////////////////////
@@ -170,7 +207,7 @@ struct Model {
 
 	/// \brief The velocity dependent spatial acceleration
 	std::vector<Math::SpatialVector> c;
-	/// \brief The spatial inertia of body i
+	/// \brief The spatial inertia of the bodies 
 	std::vector<Math::SpatialMatrix> IA;
 	/// \brief The spatial bias force
 	std::vector<Math::SpatialVector> pA;
@@ -193,6 +230,22 @@ struct Model {
 	/// \brief Transformation from the base to bodies reference frame
 	std::vector<Math::SpatialTransform> X_base;
 
+	/// \brief All bodies that are attached to a body via a fixed joint.
+	std::vector<FixedBody> mFixedBodies;
+	/** \brief Value that is used to discriminate between fixed and movable
+	 * bodies.
+	 *
+	 * Bodies with id 1 .. (fixed_body_discriminator - 1) are moving bodies
+	 * while bodies with id fixed_body_discriminator .. max (unsigned int)
+	 * are fixed to a moving body. The value of max(unsigned int) is
+	 * determined via std::numeric_limits<unsigned int>::max() and the
+	 * default value of fixed_body_discriminator is max (unsigned int) / 2.
+	 * 
+	 * On normal systems max (unsigned int) is 4294967294 which means there
+	 * could be a total of 2147483646 movable and / or fixed bodies.
+	 */
+	unsigned int fixed_body_discriminator;
+
 	/** \brief All bodies 0 ... N_B, including the base
 	 *
 	 * mBodies[0] - base body <br>
@@ -203,7 +256,7 @@ struct Model {
 	std::vector<Body> mBodies;
 
 	/// \brief Human readable names for the bodies
-	std::vector<std::string> mBodyNames;
+	std::map<std::string, unsigned int> mBodyNameMap;
 
 	/** \brief Connects a given body to the model
 	 *
@@ -292,8 +345,48 @@ struct Model {
 	 *
 	 * \returns the id of the body or \c std::numeric_limits<unsigned int>::max() if the id was not found.
 	 */
-	unsigned int GetBodyId (const char *id) const;
+	unsigned int GetBodyId (const char *body_name) const {
+		if (mBodyNameMap.count(body_name) == 0) {
+			return std::numeric_limits<unsigned int>::max();
+		}
 
+		return mBodyNameMap.find(body_name)->second;
+	}
+
+	/** \brief Returns the name of a body for a given body id */
+	std::string GetBodyName (unsigned int body_id) const {
+		std::map<std::string, unsigned int>::const_iterator iter = mBodyNameMap.begin();
+
+		while (iter != mBodyNameMap.end()) {
+			if (iter->second == body_id)
+				return iter->first;
+
+			iter++;
+		}
+
+		return "";
+	}
+
+	/** \brief Checks whether the body is rigidly attached to another body.
+	 */
+	bool IsFixedBodyId (unsigned int body_id) {
+		if (body_id >= fixed_body_discriminator 
+				&& body_id < std::numeric_limits<unsigned int>::max() 
+				&& body_id - fixed_body_discriminator < mFixedBodies.size()) {
+			return true;
+		}
+		return false;
+	}
+
+	bool IsBodyId (unsigned int id) {
+		if (id > 0 && id < mBodies.size())
+			return true;
+		if (id >= fixed_body_discriminator && id < std::numeric_limits<unsigned int>::max()) {
+			if (id - fixed_body_discriminator < mFixedBodies.size())
+				return true;
+		}
+		return false;
+	}
 	/// \brief Initializes the helper values for the dynamics algorithm
 	void Init ();
 };

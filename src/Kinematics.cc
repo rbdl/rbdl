@@ -140,6 +140,18 @@ Vector3d CalcBodyToBaseCoordinates (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
+	if (body_id >= model.fixed_body_discriminator) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		unsigned int parent_id = model.mFixedBodies[fbody_id].mMovableParent;
+
+		Matrix3d fixed_rotation = model.mFixedBodies[fbody_id].mParentTransform.E.transpose();
+		Vector3d fixed_position = model.mFixedBodies[fbody_id].mParentTransform.r;
+
+		Matrix3d parent_body_rotation = model.X_base[parent_id].E.transpose();
+		Vector3d parent_body_position = model.X_base[parent_id].r;
+		return parent_body_position + parent_body_rotation * (fixed_position + fixed_rotation * (point_body_coordinates));
+	}
+
 	Matrix3d body_rotation = model.X_base[body_id].E.transpose();
 	Vector3d body_position = model.X_base[body_id].r;
 
@@ -152,15 +164,27 @@ Vector3d CalcBaseToBodyCoordinates (
 		unsigned int body_id,
 		const Vector3d &point_base_coordinates,
 		bool update_kinematics) {
-	// update the Kinematics if necessary
 	if (update_kinematics) {
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	}
+
+	if (body_id >= model.fixed_body_discriminator) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		unsigned int parent_id = model.mFixedBodies[fbody_id].mMovableParent;
+
+		Matrix3d fixed_rotation = model.mFixedBodies[fbody_id].mParentTransform.E;
+		Vector3d fixed_position = model.mFixedBodies[fbody_id].mParentTransform.r;
+
+		Matrix3d parent_body_rotation = model.X_base[parent_id].E;
+		Vector3d parent_body_position = model.X_base[parent_id].r;
+
+		return fixed_rotation * ( - fixed_position - parent_body_rotation * (parent_body_position - point_base_coordinates));
 	}
 
 	Matrix3d body_rotation = model.X_base[body_id].E;
 	Vector3d body_position = model.X_base[body_id].r;
 
-	return body_rotation * point_base_coordinates - body_rotation * body_position;
+	return body_rotation * (point_base_coordinates - body_position);
 }
 
 Matrix3d CalcBodyWorldOrientation (
@@ -174,9 +198,13 @@ Matrix3d CalcBodyWorldOrientation (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
-	// We use the information from the X_base vector. In the upper left 3x3
-	// matrix contains the orientation as a 3x3 matrix which we are asking
-	// for.
+	if (body_id >= model.fixed_body_discriminator) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		model.mFixedBodies[fbody_id].mBaseTransform = model.X_base[model.mFixedBodies[fbody_id].mMovableParent] * model.mFixedBodies[fbody_id].mParentTransform;
+
+		return model.mFixedBodies[fbody_id].mBaseTransform.E;
+	}
+
 	return model.X_base[body_id].E;
 }
 
@@ -195,6 +223,13 @@ void CalcPointJacobian (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
 	Vector3d point_base_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
 	SpatialMatrix point_trans = Xtrans_mat (point_base_pos);
 
@@ -206,9 +241,13 @@ void CalcPointJacobian (
 	// bodies motion also get non-zero columns in the jacobian.
 	//VectorNd e = VectorNd::Zero(Q.size() + 1);
 
-	unsigned int j = body_id;
+	unsigned int j = reference_body_id;
 
-	char e[(Q.size() + 1)];
+	char *e = new char[Q.size() + 1];
+	if (e == NULL) {
+		std::cerr << "Error: allocating memory." << std::endl;
+		abort();
+	}
 	memset (&e[0], 0, Q.size() + 1);
 
 	// e will contain 
@@ -227,6 +266,8 @@ void CalcPointJacobian (
 			G(2, j - 1) = S_base[5];
 		}
 	}
+	
+	delete[] e;
 }
 
 Vector3d CalcPointVelocity (
@@ -238,9 +279,7 @@ Vector3d CalcPointVelocity (
 		bool update_kinematics
 	) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	unsigned int i;
-
-	assert (body_id > 0 && body_id < model.mBodies.size());
+	assert (model.IsBodyId(body_id));
 	assert (model.mBodies.size() == Q.size() + 1);
 	assert (model.mBodies.size() == QDot.size() + 1);
 
@@ -249,24 +288,29 @@ Vector3d CalcPointVelocity (
 
 	// update the Kinematics with zero acceleration
 	if (update_kinematics) {
-		VectorNd QDDot_zero = VectorNd::Zero(Q.size());
-		
-		UpdateKinematics (model, Q, QDot, QDDot_zero);
+		UpdateKinematicsCustom (model, &Q, &QDot, NULL);
 	}
 
 	Vector3d point_abs_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false); 
 
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
 	LOG << "body_index     = " << body_id << std::endl;
-	LOG << "point_pos      = " << point_position << std::endl;
+	LOG << "point_pos      = " << point_position.transpose() << std::endl;
 //	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
-	LOG << "body_transf    = " << model.X_base[body_id].toMatrix() << std::endl;
-	LOG << "point_abs_ps   = " << point_abs_pos << std::endl;
-	LOG << "X   = " << Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[body_id].toMatrix()) << std::endl;
-	LOG << "v   = " << model.v[body_id] << std::endl;
+	LOG << "body_transf    = " << std::endl << model.X_base[reference_body_id].toMatrix() << std::endl;
+	LOG << "point_abs_ps   = " << point_abs_pos.transpose() << std::endl;
+	LOG << "X   = " << std::endl << Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) << std::endl;
+	LOG << "v   = " << model.v[reference_body_id].transpose() << std::endl;
 
 	// Now we can compute the spatial velocity at the given point
 //	SpatialVector body_global_velocity (global_velocities.at(body_id));
-	SpatialVector point_spatial_velocity = Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[body_id].toMatrix()) * model.v[body_id];
+	SpatialVector point_spatial_velocity = Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) * model.v[reference_body_id];
 
 	LOG << "point_velocity = " <<	Vector3d (
 			point_spatial_velocity[3],
@@ -288,11 +332,10 @@ Vector3d CalcPointAcceleration (
 		const VectorNd &QDDot,
 		unsigned int body_id,
 		const Vector3d &point_position,
-			bool update_kinematics
+		bool update_kinematics
 	)
 {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	unsigned int i;
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -303,37 +346,40 @@ Vector3d CalcPointAcceleration (
 
 	LOG << std::endl;
 
-	// The whole computation looks in formulae like the following:
-	SpatialVector body_global_velocity (spatial_inverse(model.X_base[body_id].toMatrix()) * model.v[body_id]);
+	unsigned int reference_body_id = body_id;
+	Vector3d reference_point = point_position;
 
-	LOG << " orientation " << std::endl << CalcBodyWorldOrientation (model, Q, body_id, false) << std::endl;
-	LOG << " orientationT " << std::endl <<  CalcBodyWorldOrientation (model, Q, body_id, false).transpose() << std::endl;
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		Vector3d base_coords = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
+		reference_point = CalcBaseToBodyCoordinates (model, Q, reference_body_id, base_coords, false);
+	}
 
-	Matrix3d global_body_orientation_inv = CalcBodyWorldOrientation (model, Q, body_id, false).transpose();
-	SpatialMatrix p_X_i = SpatialMatrixZero;
+	SpatialVector body_global_velocity (spatial_inverse(model.X_base[reference_body_id].toMatrix()) * model.v[reference_body_id]);
 
-	p_X_i.block<3,3>(0,0) = global_body_orientation_inv;
-	p_X_i.block<3,3>(3,3) = global_body_orientation_inv;
+	LOG << " orientation " << std::endl << CalcBodyWorldOrientation (model, Q, reference_body_id, false) << std::endl;
+	LOG << " orientationT " << std::endl <<  CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose() << std::endl;
 
-	LOG << " p_X_i = " << std::endl << p_X_i << std::endl;
-	LOG << " xtrans = " << std::endl << Xtrans (point_position) << std::endl;
+	Matrix3d global_body_orientation_inv = CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose();
 
-	p_X_i *= Xtrans_mat (point_position);
+	SpatialTransform p_X_i (global_body_orientation_inv, reference_point);
 
-	SpatialVector p_v_i = p_X_i * model.v[body_id];
-	SpatialVector p_a_i = p_X_i * model.a[body_id];
+	LOG << "p_X_i = " << std::endl << p_X_i << std::endl;
+
+	SpatialVector p_v_i = p_X_i.apply(model.v[reference_body_id]);
+	SpatialVector p_a_i = p_X_i.apply(model.a[reference_body_id]);
 
 	SpatialVector frame_acceleration = 
 		crossm( SpatialVector(0., 0., 0., p_v_i[3], p_v_i[4], p_v_i[5]), (body_global_velocity));
 
-	LOG << model.X_base[body_id] << std::endl;
-	LOG << "v_i                = " << model.v[body_id] << std::endl;
-	LOG << "a_i                = " << model.a[body_id] << std::endl;
-	LOG << "p_X_i              = " << p_X_i << std::endl;
-	LOG << "p_v_i              = " << p_v_i << std::endl;
-	LOG << "p_a_i              = " << p_a_i << std::endl;
-	LOG << "body_global_vel    = " << body_global_velocity << std::endl;
-	LOG << "frame_acceleration = " << frame_acceleration << std::endl;
+	LOG << "v_i                = " << model.v[reference_body_id].transpose() << std::endl;
+	LOG << "a_i                = " << model.a[reference_body_id].transpose() << std::endl;
+	LOG << "p_X_i              = " << std::endl << p_X_i << std::endl;
+	LOG << "p_v_i              = " << p_v_i.transpose() << std::endl;
+	LOG << "p_a_i              = " << p_a_i.transpose() << std::endl;
+	LOG << "body_global_vel    = " << body_global_velocity.transpose() << std::endl;
+	LOG << "frame_acceleration = " << frame_acceleration.transpose() << std::endl;
 
 	SpatialVector p_a_i_dash = p_a_i - frame_acceleration;
 
@@ -341,7 +387,7 @@ Vector3d CalcPointAcceleration (
 			p_a_i_dash[3],
 			p_a_i_dash[4],
 			p_a_i_dash[5]
-			) << std::endl;
+			).transpose() << std::endl;
 
 	return Vector3d (
 			p_a_i_dash[3],
@@ -371,7 +417,7 @@ bool InverseKinematics (
 
 	Qres = Qinit;
 
-	for (int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
+	for (unsigned int ik_iter = 0; ik_iter < max_iter; ik_iter++) {
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {

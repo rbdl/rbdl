@@ -3,10 +3,12 @@
 #include <iostream>
 #include <iomanip>
 
+#include "Body.h"
 #include "rbdl_math.h"
 #include "rbdl_mathutils.h"
 
 using namespace std;
+using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
@@ -238,9 +240,6 @@ TEST(TestSpatialTransformApply) {
 	Vector3d trans (1.1, 1.2, 1.3);
 
 	SpatialTransform X_st;
-	X_st.E.set (1., 2., 3.,
-			4., 5., 6.,
-			7., 8., 9.);
 	X_st.r = trans;
 
 	SpatialMatrix X_66_matrix (SpatialMatrix::Zero(6,6));
@@ -254,6 +253,30 @@ TEST(TestSpatialTransformApply) {
 	SpatialVector v (1.1, 2.1, 3.1, 4.1, 5.1, 6.1);
 	SpatialVector v_66_res = X_66_matrix * v;
 	SpatialVector v_st_res = X_st.apply(v);
+
+	// cout << (v_66_res - v_st_res).transpose() << endl;
+
+	CHECK_ARRAY_CLOSE (v_66_res.data(), v_st_res.data(), 6, TEST_PREC);
+}
+
+TEST(TestSpatialTransformApplyTranspose) {
+	Vector3d rot (1.1, 1.2, 1.3);
+	Vector3d trans (1.1, 1.2, 1.3);
+
+	SpatialTransform X_st;
+	X_st.r = trans;
+
+	SpatialMatrix X_66_matrix (SpatialMatrix::Zero(6,6));
+	X_66_matrix = Xrotz_mat (rot[2]) * Xroty_mat (rot[1]) * Xrotx_mat (rot[0]) * Xtrans_mat(trans);
+	X_st.E = X_66_matrix.block<3,3>(0,0);
+
+	// cout << X_66_matrix << endl;
+	// cout << X_st.E << endl;
+	// cout << X_st.r.transpose() << endl;
+
+	SpatialVector v (1.1, 2.1, 3.1, 4.1, 5.1, 6.1);
+	SpatialVector v_66_res = X_66_matrix.transpose() * v;
+	SpatialVector v_st_res = X_st.applyTranspose(v);
 
 	// cout << (v_66_res - v_st_res).transpose() << endl;
 
@@ -396,27 +419,29 @@ TEST(TestXrotAxis) {
 
 TEST(TestSpatialTransformApplySpatialRigidBodyInertia) {
 	SpatialRigidBodyInertia rbi (
-			11.,
-			Vector3d (1.1, 1.2, 1.3),
-			Matrix3d (2.1, 2.2, 2.3,
-				2.4, 2.5, 2.6,
-				2.7, 2.8, 2.9)
-			);
+			1.1,
+			Vector3d (1.2, 1.3, 1.4),
+			Matrix3d (
+				1.1, 0.5, 0.3,
+				0.5, 1.2, 0.4,
+				0.3, 0.4, 1.3
+				));
 
 	SpatialTransform X (
-			Xrot (0.2, Vector3d (0., 0., 1.))
-			* Xrot (0.2, Vector3d (0., 1., 0.))
-			* Xrot (0.2, Vector3d (1., 0., 0.))
-			* Xtrans (Vector3d (1.1, 1.2, 1.3))
+			Xrotz (0.5) *
+			Xroty (0.9) *
+			Xrotx (0.2) *
+			Xtrans (Vector3d (1.1, 1.2, 1.3))
 		);
 
 	SpatialRigidBodyInertia rbi_transformed = X.apply (rbi);
-	SpatialMatrix rbi_matrix_transformed = X.toMatrix().transpose() * rbi.toMatrix() * X.toMatrix();
+	SpatialMatrix rbi_matrix_transformed = X.toMatrixTranspose() * rbi.toMatrix() * X.toMatrix();
 
-	cout << "rbi_transformed = " << endl << rbi_transformed.toMatrix() << endl;
-	cout << "rbi_matrix_transformed = " << endl << rbi_matrix_transformed << endl;
-	cout << "diff = " << endl << 
-		rbi_transformed.toMatrix() - rbi_matrix_transformed << endl;
+	// cout << "rbi = " << endl << rbi.toMatrix() << endl;
+	// cout << "rbi_transformed = " << endl << rbi_transformed.toMatrix() << endl;
+	// cout << "rbi_matrix_transformed = " << endl << rbi_matrix_transformed << endl;
+	// cout << "diff = " << endl << 
+	// 	rbi_transformed.toMatrix() - rbi_matrix_transformed << endl;
 
 	CHECK_ARRAY_CLOSE (
 			rbi_matrix_transformed.data(),
@@ -424,6 +449,26 @@ TEST(TestSpatialTransformApplySpatialRigidBodyInertia) {
 			36,
 			TEST_PREC
 			);
+}
+
+TEST(TestSpatialRigidBodyInertiaCreateFromMatrix) {
+	double mass = 1.1;
+	Vector3d com (0., 0., 0.);
+	Matrix3d inertia (
+				1.1, 0.5, 0.3,
+				0.5, 1.2, 0.4,
+				0.3, 0.4, 1.3
+			);
+	Body body(mass, com , inertia);
+
+	SpatialMatrix spatial_inertia = body.mSpatialInertia;
+
+	SpatialRigidBodyInertia rbi;
+	rbi.createFromMatrix (spatial_inertia);
+
+	CHECK_EQUAL (mass, rbi.m);
+	CHECK_ARRAY_EQUAL ((com * mass).data(), rbi.h.data(), 3);
+	CHECK_ARRAY_EQUAL (inertia.data(), rbi.I, 9);
 }
 
 #ifdef USE_SLOW_SPATIAL_ALGEBRA

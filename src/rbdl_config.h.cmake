@@ -13,5 +13,11 @@
 #cmakedefine RBDL_BUILD_REVISION "@RBDL_BUILD_REVISION@"
 #cmakedefine RBDL_BUILD_TYPE "@RBDL_BUILD_TYPE@"
 #cmakedefine RBDL_BUILD_BRANCH "@RBDL_BUILD_BRANCH@"
+#cmakedefine BUILD_ADDON_LUAMODEL
+
+/* compatibility defines */
+#ifdef _WIN32
+	#define __func__ __FUNCTION__
+#endif
 
 #endif

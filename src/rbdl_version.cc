@@ -8,6 +8,7 @@
 #include <rbdl_config.h>
 
 #include <iostream>
+#include <string>
 
 namespace RigidBodyDynamics {
 
@@ -25,6 +26,11 @@ void rbdl_print_version() {
 		<< "  simplemath   : on (warning: reduces performance!)" << std::endl
 #else
 		<< "  simplemath   : off" << std::endl
+#endif
+#ifdef BUILD_ADDON_LUAMODEL
+		<< "  luamodel     : on" << std::endl;
+#else
+	  << "  luamodel     : off" << std::endl;
 #endif
 		;
 

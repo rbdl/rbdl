@@ -147,7 +147,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
 
 	unsigned int body_id = model->GetBodyId("mybody");
 
-	CHECK_EQUAL (1, body_id);
+	CHECK_EQUAL (1u, body_id);
 	CHECK_EQUAL (std::numeric_limits<unsigned int>::max(), model->GetBodyId("unknownbody"));
 }
 
@@ -411,4 +411,69 @@ TEST ( Model6DoFJoint ) {
 	ForwardDynamics (model_2, Q, QDot, Tau, QDDot_2);
 
 	CHECK_ARRAY_CLOSE (QDDot_std.data(), QDDot_2.data(), model_std.dof_count, TEST_PREC);
+}
+
+TEST ( ModelFixedJointQueryBodyId ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+
+	CHECK_EQUAL (fixed_body_id, model.GetBodyId("fixed_body"));
+}
+
+/* 
+ * Makes sure that when appending a body to a fixed joint the parent of the
+ * newly added parent is actually the moving body that the fixed body is
+ * attached to.
+ */
+TEST ( ModelAppendToFixedBody ) {
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+	unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
+
+	CHECK_EQUAL (movable_body + 1, appended_body_id);
+	CHECK_EQUAL (movable_body, model.lambda[appended_body_id]);
+}
+
+TEST ( ModelGetBodyName ) {
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+	unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
+
+	CHECK_EQUAL (string("fixed_body"), model.GetBodyName(fixed_body_id));
+	CHECK_EQUAL (string("appended_body"), model.GetBodyName(appended_body_id));
+	CHECK_EQUAL (string(""), model.GetBodyName(123));
 }

@@ -37,16 +37,19 @@ struct SpatialRigidBodyInertia {
 	}
 
 	SpatialVector operator* (const SpatialVector &mv) {
-		Matrix3d h_cross (
-				0., -h[2], h[1],
-				h[2], 0., -h[0],
-				-h[1], h[0], 0.
-				);
 		Vector3d mv_upper (mv[0], mv[1], mv[2]);
 		Vector3d mv_lower (mv[3], mv[4], mv[5]);
 
-		Vector3d res_upper = I * mv_upper + h_cross * mv_lower;
-		Vector3d res_lower = - h_cross * mv_upper + m * mv_lower;
+		Vector3d res_upper = I * mv_upper + Vector3d (
+				mv_lower[2] * h[1] - mv_lower[1] * h[2],
+				mv_lower[0] * h[2] - mv_lower[2] * h[0],
+				mv_lower[1] * h[0] - mv_lower[0] * h[1]
+				);
+		Vector3d res_lower = m* mv_lower - Vector3d(
+				mv_upper[2] * h[1] - mv_upper[1] * h[2],
+				mv_upper[0] * h[2] - mv_upper[2] * h[0],
+				mv_upper[1] * h[0] - mv_upper[0] * h[1]
+				);
 
 		return SpatialVector (
 				res_upper[0], res_upper[1], res_upper[2],
@@ -62,7 +65,7 @@ struct SpatialRigidBodyInertia {
 				);
 	}
 
-	void copyFromMatrix (const SpatialMatrix &Ic) {
+	void createFromMatrix (const SpatialMatrix &Ic) {
 		m = Ic(3,3);
 		h.set (-Ic(1,5), Ic(0,5), -Ic(0,4));
 		I = Ic.block<3,3>(0,0);
@@ -102,7 +105,7 @@ struct SpatialTransform {
 
 	/** Same as X * v.
 	 *
-	 * \returns (E * w, -rxw + Ev)
+	 * \returns (E * w, - E * rxw + E * v)
 	 */
 	SpatialVector apply (const SpatialVector &v_sp) {
 		Vector3d v_rxw (
@@ -127,14 +130,34 @@ struct SpatialTransform {
 				-vector[1], vector[0], 0.
 				);
 	}
+	/** Same as X^T * f.
+	 *
+	 * \returns (E^T * n + rx * E^T * f, E^T * f)
+	 */
+	SpatialVector applyTranspose (const SpatialVector &f_sp) {
+		Vector3d E_T_f (
+				E(0,0) * f_sp[3] + E(1,0) * f_sp[4] + E(2,0) * f_sp[5],
+				E(0,1) * f_sp[3] + E(1,1) * f_sp[4] + E(2,1) * f_sp[5],
+				E(0,2) * f_sp[3] + E(1,2) * f_sp[4] + E(2,2) * f_sp[5]
+				);
+
+		return SpatialVector (
+				E(0,0) * f_sp[0] + E(1,0) * f_sp[1] + E(2,0) * f_sp[2] - r[2] * E_T_f[1] + r[1] * E_T_f[2],
+				E(0,1) * f_sp[0] + E(1,1) * f_sp[1] + E(2,1) * f_sp[2] + r[2] * E_T_f[0] - r[0] * E_T_f[2],
+				E(0,2) * f_sp[0] + E(1,2) * f_sp[1] + E(2,2) * f_sp[2] - r[1] * E_T_f[0] + r[0] * E_T_f[1],
+				E_T_f [0],
+				E_T_f [1],
+				E_T_f [2]
+				);
+	}
 
 	SpatialRigidBodyInertia apply (const SpatialRigidBodyInertia &rbi) {
 		return SpatialRigidBodyInertia (
 				rbi.m,
-				E.transpose() * rbi.h + rbi.m * r,
+				E.transpose() * (rbi.h / rbi.m) + r,
 				E.transpose() * rbi.I * E
-					- VectorCrossMatrix(r) * VectorCrossMatrix (E.transpose() * rbi.h)
-					- VectorCrossMatrix(E.transpose() * rbi.h + rbi.m * r) * VectorCrossMatrix (r)
+				- VectorCrossMatrix (r) * VectorCrossMatrix(E.transpose() * rbi.h)
+				- VectorCrossMatrix (E.transpose() * (rbi.h) + r * rbi.m) * VectorCrossMatrix (r)
 				);
 	}
 
@@ -200,7 +223,8 @@ struct SpatialTransform {
 };
 
 inline std::ostream& operator<<(std::ostream& output, const SpatialTransform &X) {
-	output << X.toMatrix();
+	output << "X.E = " << std::endl << X.E << std::endl;
+	output << "X.r = " << X.r.transpose();
 	return output;
 }
 
@@ -337,19 +361,10 @@ inline SpatialMatrix spatial_inverse(const SpatialMatrix &m) {
 	return res;
 }
 
-inline SpatialVector SpatialLinSolve (const SpatialMatrix &A, const SpatialVector &b) {
-#ifdef RBDL_USE_SIMPLE_MATH
-	std::cerr << "Cannot solve linear systems with slow math library! Use eigen instead" << std::endl;
-	return b;
-	//		exit (-1);
-#else
-	return A.partialPivLu().solve(b);
-#endif
-}
-
 inline Matrix3d get_rotation (const SpatialMatrix &m) {
 	return m.block<3,3>(0,0);
 }
+
 inline Vector3d get_translation (const SpatialMatrix &m) {
 	return Vector3d (-m(4,2), m(3,2), -m(3,1));
 }

@@ -1,6 +1,6 @@
 /** \file Mainpage.h 
  * \mainpage RBDL - Rigid Body Dynamics Library
- * \image html logo/rbdl_logo.png
+ * \image html rbdl_logo.png
  *
  * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
  * library contains highly efficient code for both forward and inverse
@@ -17,7 +17,7 @@
  * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
  * <martin.felis@iwr.uni-heidelberg.de></a> and heavily inspired by the
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
- * href="http://users.cecs.anu.edu.au/~roy/" target="_parent">Roy Featherstone</a>.
+ * href="http://royfeatherstone.org" target="_parent">Roy Featherstone</a>.
  * 
  * Development is taking place on <a
  * href="http://bitbucket.org" target="_parent">bitbucket.org</a>. The official repository
@@ -29,10 +29,24 @@
  * information about it can be found here:
  * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>
  *
+ * \section recent_changes Recent Changes :
+ * <ul>
+ * <li> 18. June 2012: added support of \ref luamodel_introduction</li>
+ * <li> 01. June 2012: added support of \ref joint_models_fixed</li>
+ * <li> 14. May 2012: fixed Body constructor as reported by Maxime Reis</li>
+ * <li> 04. April 2012: added benchmark tool for CRBA</li>
+ * <li> 01. March 2012: added multi degree of freedom \ref joint_models</li>
+ * <li> 06. Februry 2012: restructured constraint handling using \ref RigidBodyDynamics::ConstraintSet</li>
+ * <li> 24. January 2012: implemented compact and fast representation of \ref RigidBodyDynamics::Math::SpatialTransform </li>
+ * </ul>
+ *
  * \section Example Example
  *
  * A simple example for creation of a model and computation of the forward
- * dynamics can be found \ref SimpleExample "here".
+ * dynamics using the C++ API can be found \ref SimpleExample "here".
+ *
+ * Another example that uses the \ref luamodel_introduction Addon can be found \ref
+ * LuaModelExample "here".
  * 
  * \section ModuleOverview API reference separated by functional modules
  * 
@@ -69,14 +83,4 @@ freely, subject to the following restrictions:
    3. This notice may not be removed or altered from any source
    distribution.
 \endverbatim
- *
- * \todo [low] incorporate GiNaC (http://www.ginac.de) to generate code (some work done in 'ginac' branch)
- * \todo [low] serialization of the model?
- *
- * \subsection ToDo_done Done:
- * <ul>
- *   <li>[high] check impulse computation 2011-06-07</li>
- *   <li>[med] add specification for the visualization to the model</li>
- *   <li>[med] get replace std::vector<> vectors with proper math vectors in Model</li>
- * </ul>
  */

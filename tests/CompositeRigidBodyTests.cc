@@ -69,7 +69,7 @@ TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsFlo
 
 	ClearLogOutput();
 	CompositeRigidBodyAlgorithm (*model, Q, H);
-	cout << LogOutput.str() << endl;
+	// cout << LogOutput.str() << endl;
 
 	InverseDynamics (*model, Q, QDot, QDDot_zero, C);
 
@@ -136,6 +136,7 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoF) {
 	CHECK_ARRAY_CLOSE (QDDot.data(), QDDot_crba.data(), QDDot.size(), TEST_PREC);
 }
 
+/*
 TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 	MatrixNd H_crba = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
 	MatrixNd H_id = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
@@ -233,3 +234,4 @@ TEST_FIXTURE(FixedBase6DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 
 	CHECK_ARRAY_CLOSE (H_crba.data(), H_id.data(), model->dof_count * model->dof_count, TEST_PREC);
 }
+*/

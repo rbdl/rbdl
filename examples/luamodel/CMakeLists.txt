@@ -13,9 +13,9 @@ FIND_PACKAGE (RBDL REQUIRED)
 INCLUDE_DIRECTORIES ( ${RBDL_INCLUDE_DIR} )
 
 # Create an executable
-ADD_EXECUTABLE (rbdlexample example.cc)
+ADD_EXECUTABLE (example_luamodel example_luamodel.cc)
 
 # And link the library against the executable
-TARGET_LINK_LIBRARIES ( rbdlexample
+TARGET_LINK_LIBRARIES ( example_luamodel
 	${RBDL_LIBRARY}
 	)

@@ -18,7 +18,7 @@
 
 namespace RigidBodyDynamics {
 
-class Model;
+struct Model;
 
 /** \defgroup dynamics_group Dynamics
  * @{
