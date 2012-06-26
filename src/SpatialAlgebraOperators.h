@@ -28,7 +28,7 @@ struct SpatialRigidBodyInertia {
 		m (mass), h (com * mass), I (inertia)
 	{ }
 
-	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
+	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) const {
 		return Matrix3d (
 				0., -vector[2], vector[1],
 				vector[2], 0., -vector[0],
@@ -40,17 +40,9 @@ struct SpatialRigidBodyInertia {
 		Vector3d mv_upper (mv[0], mv[1], mv[2]);
 		Vector3d mv_lower (mv[3], mv[4], mv[5]);
 
-		Vector3d res_upper = I * mv_upper + Vector3d (
-				mv_lower[2] * h[1] - mv_lower[1] * h[2],
-				mv_lower[0] * h[2] - mv_lower[2] * h[0],
-				mv_lower[1] * h[0] - mv_lower[0] * h[1]
-				);
-		Vector3d res_lower = m* mv_lower - Vector3d(
-				mv_upper[2] * h[1] - mv_upper[1] * h[2],
-				mv_upper[0] * h[2] - mv_upper[2] * h[0],
-				mv_upper[1] * h[0] - mv_upper[0] * h[1]
-				);
-
+		Vector3d res_upper = I * Vector3d (mv[0], mv[1], mv[2]) + h.cross(mv_lower);
+		Vector3d res_lower = m * mv_lower - h.cross (mv_upper);
+			
 		return SpatialVector (
 				res_upper[0], res_upper[1], res_upper[2],
 				res_lower[0], res_lower[1], res_lower[2]
@@ -71,7 +63,7 @@ struct SpatialRigidBodyInertia {
 		I = Ic.block<3,3>(0,0);
 	}
 
-	SpatialMatrix toMatrix() {
+	SpatialMatrix toMatrix() const {
 		SpatialMatrix result;
 		result.block<3,3>(0,0) = I;
 		result.block<3,3>(0,3) = VectorCrossMatrix(h);
@@ -221,6 +213,13 @@ struct SpatialTransform {
 	Matrix3d E;
 	Vector3d r;
 };
+
+inline std::ostream& operator<<(std::ostream& output, const SpatialRigidBodyInertia &rbi) {
+	output << "rbi.m = " << rbi.m << std::endl;
+	output << "rbi.h = " << rbi.h.transpose();
+	output << "rbi.I = " << std::endl << rbi.I << std::endl;
+	return output;
+}
 
 inline std::ostream& operator<<(std::ostream& output, const SpatialTransform &X) {
 	output << "X.E = " << std::endl << X.E << std::endl;
