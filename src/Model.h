@@ -161,10 +161,7 @@ namespace RigidBodyDynamics {
  * readability of the code as the resulting code is very similar to the
  * pseudo-code in the RBDA book.
  *
- * \note The dimensions of q, qdot, qddot, and tau are increased whenever
- * a body is added. This is also true for bodies that are added with a
- * fixed joint. To query the actual number of degrees of freedom use
- * Model::dof_count.
+ * \note To query the number of degrees of freedom use Model::dof_count.
  */
 struct Model {
 	// Structural information
@@ -185,9 +182,9 @@ struct Model {
 	Math::Vector3d gravity;
 
 	// State information
-	/// \brief The spatial velocity of body i
+	/// \brief The spatial velocity of the bodies
 	std::vector<Math::SpatialVector> v;
-	/// \brief The spatial acceleration of body i
+	/// \brief The spatial acceleration of the bodies
 	std::vector<Math::SpatialVector> a;
 
 	////////////////////////////////////
@@ -208,7 +205,7 @@ struct Model {
 
 	/// \brief The velocity dependent spatial acceleration
 	std::vector<Math::SpatialVector> c;
-	/// \brief The spatial inertia of body i
+	/// \brief The spatial inertia of the bodies 
 	std::vector<Math::SpatialMatrix> IA;
 	/// \brief The spatial bias force
 	std::vector<Math::SpatialVector> pA;
@@ -220,7 +217,7 @@ struct Model {
 	Math::VectorNd u;
 	/// \brief Internal forces on the body (used only InverseDynamics())
 	std::vector<Math::SpatialVector> f;
-	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
+	/// \brief The spatial inertia of the bodies (used only in CompositeRigidBodyAlgorithm())
 	std::vector<Math::SpatialMatrix> Ic;
 
 	////////////////////////////////////
