@@ -80,10 +80,11 @@ struct Joint {
 		return *this;
 	}
 	~Joint() {
-		if (mDoFCount) {
+		if (mJointAxes) {
 			assert (mJointAxes);
 			delete[] mJointAxes;
 			mJointAxes = NULL;
+			mDoFCount = 0;
 		}
 	}
 

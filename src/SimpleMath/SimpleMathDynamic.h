@@ -265,7 +265,7 @@ class Matrix {
 		}
 
 		~Matrix() {
-			if (nrows * ncols > 0 && mData != NULL)
+			if (nrows * ncols > 0 || mData != NULL)
 				delete[] mData;
 
 			nrows = 0;
