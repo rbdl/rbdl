@@ -113,12 +113,12 @@ bool read_frame_params (lua_State *L,
 	}
 	body_name = get_string (L, path + ".name");
 
-	if (!value_exists (L, path + ".parent_frame") != 0.) {
-		cerr << "Error: could not find required value '" << path << ".parent_frame' for body '" << body_name << "'." << endl;
+	if (!value_exists (L, path + ".parent") != 0.) {
+		cerr << "Error: could not find required value '" << path << ".parent' for body '" << body_name << "'." << endl;
 		return false;
 	}
 
-	string parent_frame = get_string (L, path + ".parent_frame");
+	string parent_frame = get_string (L, path + ".parent");
 
 	StringIntMap::iterator parent_iter = body_table_id_map.find (parent_frame);
 	if (parent_iter == body_table_id_map.end()) {
@@ -129,7 +129,7 @@ bool read_frame_params (lua_State *L,
 
 	if (verbose) {
 		cout << "frame name = " << body_name << endl;
-		cout << "  parent_frame = "  << parent_frame << endl;
+		cout << "  parent = "  << parent_frame << endl;
 		cout << "  parent_id = " << parent_id << endl;
 	}
 

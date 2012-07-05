@@ -90,7 +90,7 @@ namespace Addons {
    * \par name (required, type: string):
    *     Name of the body that is being added. This name must be unique.
    * 
-   * \par parent_frame (required, type: string):
+   * \par parent (required, type: string):
    *     If the value is "ROOT" the parent frame of this body is assumed to be
    *     the base coordinate system, otherwise it must be the exact same string
    *     as was used for the "name"-field of the parent frame.
