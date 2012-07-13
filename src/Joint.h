@@ -18,8 +18,6 @@ namespace RigidBodyDynamics {
 struct Model;
 
 /** \brief General types of joints
- *
- * \todo add proper fixed joint handling
  */
 enum JointType {
 	JointTypeUndefined = 0,
