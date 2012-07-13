@@ -50,16 +50,16 @@ model = {
 	frames = {
 		{
 			name = "pelvis",
-			parent_frame = "ROOT",
+			parent = "ROOT",
 			body = bodies.pelvis,
 			joint = joints.freeflyer,
 		},
 		{
 			name = "thigh_right",
-			parent_frame = "pelvis",
+			parent = "pelvis",
 			body = bodies.thigh_right,
 			joint = joints.spherical_zyx,
-			joint_transform = {
+			joint_frame = {
 				r = {0.0, -0.15, 0.},
 				E = {
 					{1., 0., 0.},
@@ -70,27 +70,27 @@ model = {
 		},
 		{
 			name = "shank_right",
-			parent_frame = "thigh_right",
+			parent = "thigh_right",
 			body = bodies.thigh_right,
 			joint = joints.rotational_y,
-			joint_transform = {
+			joint_frame = {
 				r = {0.0, 0., -0.42},
 			},
 		},
 		{
 			name = "foot_right",
-			parent_frame = "shank_right",
+			parent = "shank_right",
 			body = bodies.thigh_right,
-			joint_transform = {
+			joint_frame = {
 				r = {0.0, 0., -0.41}
 			},
 		},
 		{
 			name = "thigh_left",
-			parent_frame = "pelvis",
+			parent = "pelvis",
 			body = bodies.thigh_left,
 			joint = joints.spherical_zyx,
-			joint_transform = {
+			joint_frame = {
 				r = {0.0, 0.15, 0.},
 				E = {
 					{1., 0., 0.},
@@ -101,18 +101,18 @@ model = {
 		},
 		{
 			name = "shank_left",
-			parent_frame = "thigh_left",
+			parent = "thigh_left",
 			body = bodies.thigh_left,
 			joint = joints.rotational_y,
-			joint_transform = {
+			joint_frame = {
 				r = {0.0, 0., -0.42},
 			},
 		},
 		{
 			name = "foot_left",
-			parent_frame = "shank_left",
+			parent = "shank_left",
 			body = bodies.thigh_left,
-			joint_transform = {
+			joint_frame = {
 				r = {0.0, 0., -0.41},
 			},
 		},
