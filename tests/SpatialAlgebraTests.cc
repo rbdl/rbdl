@@ -283,6 +283,23 @@ TEST(TestSpatialTransformApplyTranspose) {
 	CHECK_ARRAY_CLOSE (v_66_res.data(), v_st_res.data(), 6, TEST_PREC);
 }
 
+TEST(TestSpatialTransformApplyAdjoint) {
+	SpatialTransform X (
+			Xrotz (0.5) *
+			Xroty (0.9) *
+			Xrotx (0.2) *
+			Xtrans (Vector3d (1.1, 1.2, 1.3))
+		);
+
+	SpatialMatrix X_adjoint = X.toMatrixAdjoint();
+
+	SpatialVector f (1.1, 2.1, 4.1, 9.2, 3.3, 0.8);
+	SpatialVector f_apply = X.applyAdjoint(f);
+	SpatialVector f_matrix = X_adjoint * f;
+
+	CHECK_ARRAY_CLOSE (f_matrix.data(), f_apply.data(), 6, TEST_PREC);
+}
+
 TEST(TestSpatialTransformToMatrix) {
 	Vector3d rot (1.1, 1.2, 1.3);
 	Vector3d trans (1.1, 1.2, 1.3);

@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <cmath>
+#include "Eigen/src/Core/Map.h"
 
 namespace RigidBodyDynamics {
 
@@ -126,6 +127,16 @@ struct SpatialTransform {
 	 *
 	 * \returns (E^T * n + rx * E^T * f, E^T * f)
 	 */
+	SpatialRigidBodyInertia apply (const SpatialRigidBodyInertia &rbi) {
+		return SpatialRigidBodyInertia (
+				rbi.m,
+				E.transpose() * (rbi.h / rbi.m) + r,
+				E.transpose() * rbi.I * E
+				- VectorCrossMatrix (r) * VectorCrossMatrix(E.transpose() * rbi.h)
+				- VectorCrossMatrix (E.transpose() * (rbi.h) + r * rbi.m) * VectorCrossMatrix (r)
+				);
+	}
+
 	SpatialVector applyTranspose (const SpatialVector &f_sp) {
 		Vector3d E_T_f (
 				E(0,0) * f_sp[3] + E(1,0) * f_sp[4] + E(2,0) * f_sp[5],
@@ -143,13 +154,17 @@ struct SpatialTransform {
 				);
 	}
 
-	SpatialRigidBodyInertia apply (const SpatialRigidBodyInertia &rbi) {
-		return SpatialRigidBodyInertia (
-				rbi.m,
-				E.transpose() * (rbi.h / rbi.m) + r,
-				E.transpose() * rbi.I * E
-				- VectorCrossMatrix (r) * VectorCrossMatrix(E.transpose() * rbi.h)
-				- VectorCrossMatrix (E.transpose() * (rbi.h) + r * rbi.m) * VectorCrossMatrix (r)
+	SpatialVector applyAdjoint (const SpatialVector &f_sp) {
+		Vector3d En_rxf = E * (Vector3d (f_sp[0], f_sp[1], f_sp[2]) - r.cross(Vector3d (f_sp[3], f_sp[4], f_sp[5])));
+//		Vector3d En_rxf = E * (Vector3d (f_sp[0], f_sp[1], f_sp[2]) - r.cross(Eigen::Map<Vector3d> (&(f_sp[3]))));
+
+		return SpatialVector (
+				En_rxf[0],
+				En_rxf[1],
+				En_rxf[2],
+				E(0,0) * f_sp[3] + E(0,1) * f_sp[4] + E(0,2) * f_sp[5],
+				E(1,0) * f_sp[3] + E(1,1) * f_sp[4] + E(1,2) * f_sp[5],
+				E(2,0) * f_sp[3] + E(2,1) * f_sp[4] + E(2,2) * f_sp[5]
 				);
 	}
 

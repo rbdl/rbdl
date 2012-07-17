@@ -176,10 +176,10 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 	unsigned int hand_l = model->GetBodyId ("hand_l");
 
 	ConstraintSet one_body_one_constraint;
-
 	ConstraintSet two_bodies_one_constraint;
 	ConstraintSet four_bodies_one_constraint;
 
+	ConstraintSet one_body_four_constraints;
 	ConstraintSet two_bodies_four_constraints;
 	ConstraintSet four_bodies_four_constraints;
 
@@ -198,6 +198,13 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 	four_bodies_one_constraint.AddConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
 	four_bodies_one_constraint.AddConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
 	four_bodies_one_constraint.Bind (*model);
+
+	// one_body_four
+	one_body_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+	one_body_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+	one_body_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+	one_body_four_constraints.AddConstraint (foot_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+	one_body_four_constraints.Bind (*model);	
 
 	// two_bodies_four
 	two_bodies_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
@@ -276,6 +283,16 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 		<< " duration = " << setw(10) << duration << "(s)"
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
+	// one_body_four
+	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+		duration = run_contacts_lagrangian_benchmark (model, &one_body_four_constraints, sample_count);
+	} else {
+		duration = run_contacts_kokkevis_benchmark (model, &one_body_four_constraints, sample_count);
+	}
+
+	cout << "ConstraintSet: 1 Body 4 Constraints  : "
+		<< " duration = " << setw(10) << duration << "(s)"
+		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
 	// two_bodies_four
 	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
@@ -377,7 +394,7 @@ void parse_args (int argc, char* argv[]) {
 			benchmark_run_id_rnea = false;
 		} else if (arg == "--no-crba" ) {
 			benchmark_run_crba = false;
-		} else if (arg == "--only-contacts") {
+		} else if (arg == "--only-contacts" || arg == "-C") {
 			disable_all_benchmarks();
 			benchmark_run_contacts = true;
 		} else {
