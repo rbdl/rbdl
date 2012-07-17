@@ -21,6 +21,7 @@ SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # Options
 SET ( BENCHMARK_SOURCES 
 	model_generator.cc
+	Human36Model.cc
 	benchmark.cc
 	)
 
