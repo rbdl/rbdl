@@ -26,9 +26,9 @@ MACRO(ADD_ROSPACK_DEPENDENCY PKG)
   ENDIF()
 
   SET(${PREFIX}_FOUND 1)
-  EXEC_PROGRAM("${ROSPACK} export --lang=cpp --attrib=cflags ${PKG}"
+  EXEC_PROGRAM("${ROSPACK} export --lang=cpp --attrib=cflags -q ${PKG}"
     OUTPUT_VARIABLE "${PREFIX}_CFLAGS")
-  EXEC_PROGRAM("${ROSPACK} export --lang=cpp --attrib=lflags ${PKG}"
+  EXEC_PROGRAM("${ROSPACK} export --lang=cpp --attrib=lflags -q ${PKG}"
     OUTPUT_VARIABLE "${PREFIX}_LIBS")
 
   # Add flags to package pkg-config file.
@@ -76,6 +76,14 @@ MACRO(ROSPACK_USE_DEPENDENCY TARGET PKG)
   # Append new flags.
   SET(CFLAGS "${CFLAGS} ${${PREFIX}_CFLAGS}")
   SET(LDFLAGS "${LDFLAGS} ${${PREFIX}_LIBS}")
+
+	# MESSAGE (STATUS "Linkerflags for ${TARGET}: ${LDFLAGS}")
+
+	# Explicitly link against the shared object file
+	EXEC_PROGRAM("${ROSPACK} export find ${PKG}"
+		OUTPUT_VARIABLE "${PKG_FULL_PATH}")
+
+	#	SET (LDFLAGS "${LDFLAGS} ${PKG_FULL_PATH}/lib/lib${PKG}.so")
 
   # Update the flags.
   SET_TARGET_PROPERTIES(${TARGET}
