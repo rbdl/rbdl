@@ -40,7 +40,7 @@ ROSPACK_USE_DEPENDENCY (rbdl_urdfreader urdf_interface)
 ADD_DEFINITIONS (-DTIXML_USE_STL)
 
 IF (BUILD_STATIC)
-  ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${RBDL_SOURCES} )
+	ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${URDFREADER_SOURCES} )
   SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES PREFIX "lib")
   SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES OUTPUT_NAME "rbdl_urdfreader")
 
