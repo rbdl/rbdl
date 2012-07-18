@@ -10,7 +10,6 @@
 
 #include <iostream>
 #include <cmath>
-#include "Eigen/src/Core/Map.h"
 
 namespace RigidBodyDynamics {
 
