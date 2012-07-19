@@ -186,8 +186,6 @@ bool construct_model (Model* rbdl_model, urdf::Model *urdf_model, bool verbose) 
 bool read_urdf_model (const char* filename, Model* model, bool verbose) {
 	assert (model);
 
-	model->Init();
-
 	urdf::Model urdf_model;
 
 	bool urdf_result = urdf_model.initFile (filename);
@@ -201,8 +199,6 @@ bool read_urdf_model (const char* filename, Model* model, bool verbose) {
 	}
 
 	model->gravity.set (0., 0., -9.81);
-
-	cout << "Model loading succcessful!" << endl;
 
 	return true;
 }

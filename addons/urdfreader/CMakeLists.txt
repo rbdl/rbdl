@@ -36,13 +36,13 @@ SET ( URDFREADER_SOURCES
 
 ADD_LIBRARY ( rbdl_urdfreader SHARED ${URDFREADER_SOURCES} )
 
-ADD_EXECUTABLE (rbdl_urdf_test rbdl_urdf_test.cc)
+ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
 
 ROSPACK_USE_DEPENDENCY (rbdl_urdfreader urdf)
 ROSPACK_USE_DEPENDENCY (rbdl_urdfreader urdf_interface)
 
-ROSPACK_USE_DEPENDENCY (rbdl_urdf_test urdf)
-ROSPACK_USE_DEPENDENCY (rbdl_urdf_test urdf_interface)
+ROSPACK_USE_DEPENDENCY (rbdl_urdfreader_util urdf)
+ROSPACK_USE_DEPENDENCY (rbdl_urdfreader_util urdf_interface)
 
 IF (BUILD_STATIC)
 	ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${URDFREADER_SOURCES} )
@@ -64,7 +64,7 @@ TARGET_LINK_LIBRARIES (rbdl_urdfreader
 	${URDF_LIBRARY}
 	)
 
-TARGET_LINK_LIBRARIES (rbdl_urdf_test
+TARGET_LINK_LIBRARIES (rbdl_urdfreader_util
 	rbdl_urdfreader
 	)
 

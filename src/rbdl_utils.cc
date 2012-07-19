@@ -77,8 +77,14 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 	result << " [ ";
 
 	while (model.mBodies[body_index].mMass == 0.) {
-		if (model.mu[body_index].size() != 1) {
-			cerr << endl << "Error: Cannot determine multi-dof joint as massless body with id " << body_index << " has more than 1 child." << endl;
+		if (model.mu[body_index].size() == 0) {
+			result << " end";
+			break;
+		} else if (model.mu[body_index].size() > 1) {
+			cerr << endl << "Error: Cannot determine multi-dof joint as massless body with id " << body_index << " (name: " << model.GetBodyName(body_index) << ") has more than one child:" << endl;
+			for (unsigned int ci = 0; ci < model.mu[body_index].size(); ci++) {
+				cerr << "  id: " << model.mu[body_index][ci] << " name: " << model.GetBodyName(model.mu[body_index][ci]) << endl;
+			}
 			abort();
 		}
 
