@@ -457,6 +457,46 @@ TEST ( ModelAppendToFixedBody ) {
 	CHECK_EQUAL (movable_body, model.lambda[appended_body_id]);
 }
 
+// Adds a fixed body to another fixed body.
+TEST ( ModelAppendFixedToFixedBody ) {
+	Body null_body;
+
+	double movable_mass = 1.1;
+	Vector3d movable_com (1., 0.4, 0.4);
+
+	double fixed_mass = 1.2;
+	Vector3d fixed_com (1.1, 0.5, 0.5);
+
+	Vector3d fixed_displacement (0., 1., 0.);
+
+	Body body(movable_mass, movable_com, Vector3d (1., 1., 1.));
+	Body fixed_body(fixed_mass, fixed_com, Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (Xtrans(fixed_displacement), Joint(JointTypeFixed), fixed_body, "fixed_body");
+	unsigned int fixed_body_2_id = model.AppendBody (Xtrans(fixed_displacement), Joint(JointTypeFixed), fixed_body, "fixed_body_2");
+	unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
+
+	CHECK_EQUAL (movable_body + 1, appended_body_id);
+	CHECK_EQUAL (movable_body, model.lambda[appended_body_id]);
+	CHECK_EQUAL (movable_mass + fixed_mass * 2., model.mBodies[movable_body].mMass);
+
+	CHECK_EQUAL (movable_body, model.mFixedBodies[fixed_body_id - model.fixed_body_discriminator].mMovableParent);
+	CHECK_EQUAL (movable_body, model.mFixedBodies[fixed_body_2_id - model.fixed_body_discriminator].mMovableParent);
+
+	double new_mass = 3.5;
+	Vector3d new_com = (1. / new_mass) * (movable_mass * movable_com + fixed_mass * (fixed_com + fixed_displacement) + fixed_mass * (fixed_com + fixed_displacement * 2.));
+
+	CHECK_ARRAY_EQUAL (new_com.data(), model.mBodies[movable_body].mCenterOfMass.data(), 3);
+}
+
 TEST ( ModelGetBodyName ) {
 	Body null_body;
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));

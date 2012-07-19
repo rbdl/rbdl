@@ -31,6 +31,7 @@ void Model::Init() {
 	lambda.push_back(0.);
 	mu.push_back(std::vector<unsigned int>());
 	dof_count = 0;
+	previously_added_body_id = 0;
 
 	gravity = Vector3d (0., -9.81, 0.);
 
@@ -78,19 +79,21 @@ unsigned int AddBodyFixedJoint (
 		const Joint &joint,
 		const Body &body,
 		std::string body_name) {
-	if (parent_id >= model.fixed_body_discriminator) {
-		std::cerr << "Error: cannot attach Body with a fixed joint to another fixed body!" << std::endl;
-		assert (0);
-		abort();
-	}
 	FixedBody fbody = FixedBody::CreateFromBody (body);
 	fbody.mMovableParent = parent_id;
 	fbody.mParentTransform = joint_frame;
 
+	if (model.IsFixedBodyId(parent_id)) {
+		FixedBody fixed_parent = model.mFixedBodies[parent_id - model.fixed_body_discriminator];
+
+		fbody.mMovableParent = fixed_parent.mMovableParent;
+		fbody.mParentTransform = fixed_parent.mParentTransform * joint_frame;
+	}
+
 	// merge the two bodies
-	Body parent_body = model.mBodies[parent_id];
-	parent_body.Join (joint_frame, body);
-	model.mBodies[parent_id] = parent_body;
+	Body parent_body = model.mBodies[fbody.mMovableParent];
+	parent_body.Join (fbody.mParentTransform, body);
+	model.mBodies[fbody.mMovableParent] = parent_body;
 
 	model.mFixedBodies.push_back (fbody);
 
@@ -109,7 +112,9 @@ unsigned int AddBodyFixedJoint (
 		model.mBodyNameMap[body_name] = model.mFixedBodies.size() + model.fixed_body_discriminator - 1;
 	}
 
-	return model.mFixedBodies.size() + model.fixed_body_discriminator - 1;
+	model.previously_added_body_id = model.mFixedBodies.size() + model.fixed_body_discriminator - 1;
+
+	return model.previously_added_body_id;
 }
 
 unsigned int AddBodyMultiDofJoint (
@@ -168,9 +173,10 @@ unsigned int AddBodyMultiDofJoint (
 		else
 			joint_frame_transform = SpatialTransform();
 
-		if (j == joint_count - 1)
+		if (j == joint_count - 1) {
 			// if we are at the last we must add the real body
 			return model.AddBody (null_parent, joint_frame_transform, single_dof_joint, body, body_name);
+		}
 		else
 			// otherwise we just add an intermediate body
 			null_parent = model.AddBody (null_parent, joint_frame_transform, single_dof_joint, null_body);
@@ -259,8 +265,10 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		assert (0);
 		abort();
 	}
+	
+	previously_added_body_id = mBodies.size() - 1;
 
-	return mBodies.size() - 1;
+	return previously_added_body_id;
 }
 
 unsigned int Model::AppendBody (
@@ -269,8 +277,7 @@ unsigned int Model::AppendBody (
 		const Body &body,
 		std::string body_name 
 		) {
-	unsigned int prev_body_id = mBodies.size() - 1;
-	return Model::AddBody (prev_body_id, joint_frame,
+	return Model::AddBody (previously_added_body_id, joint_frame,
 			joint, body, body_name);
 }
 
