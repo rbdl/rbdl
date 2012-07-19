@@ -188,6 +188,10 @@ bool read_urdf_model (const char* filename, Model* model, bool verbose) {
 
 	urdf::Model urdf_model;
 
+	cerr << "Warning: this code (RigidBodyDynamics::Addons::" << __func__ << "()) is not properly tested as" << endl;
+	cerr << "         I do not have a proper urdf model that I can use to validate the model loading." << endl;
+	cerr << "         Please use with care." << endl;
+
 	bool urdf_result = urdf_model.initFile (filename);
 	if (!urdf_result) {
 		cerr << "Error opening urdf file" << endl;

@@ -13,6 +13,13 @@ far only the ROS release "Fuerte" can be used with this code.
 See http://www.ros.org/wiki/ROS/Installation for more details on how to
 install ROS.
 
+Warning
+=======
+
+This code is not properly tested as I do not have a proper urdf robot
+model. If anyone has one and also some reference values that should come
+out for the dynamics computations, please let me know.
+
 Licensing
 =========
 
