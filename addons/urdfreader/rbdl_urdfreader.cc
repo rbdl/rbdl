@@ -24,7 +24,7 @@ typedef vector<JointPtr> URDFJointVector;
 typedef map<string, LinkPtr > URDFLinkMap;
 typedef map<string, JointPtr > URDFJointMap;
 
-bool construct_model (Model* rbdl_model, urdf::Model *urdf_model) {
+bool construct_model (Model* rbdl_model, urdf::Model *urdf_model, bool verbose) {
 	boost::shared_ptr<urdf::Link> urdf_root_link;
 
 	URDFLinkMap link_map;
@@ -59,10 +59,13 @@ bool construct_model (Model* rbdl_model, urdf::Model *urdf_model) {
 			link_stack.push (link_map[cur_joint->child_link_name]);
 			joint_index_stack.push(0);
 
-			for (int i = 1; i < joint_index_stack.size() - 1; i++) {
-				cout << "  ";
+			if (verbose) {
+				for (int i = 1; i < joint_index_stack.size() - 1; i++) {
+					cout << "  ";
+				}
+				cout << "joint '" << cur_joint->name << "' child link '" << link_stack.top()->name << " type = " << cur_joint->type << endl;
 			}
-			cout << "joint '" << cur_joint->name << "' child link '" << link_stack.top()->name << " type = " << cur_joint->type << endl;
+
 			joint_names.push_back(cur_joint->name);
 		} else {
 			link_stack.pop();
@@ -162,10 +165,22 @@ bool construct_model (Model* rbdl_model, urdf::Model *urdf_model) {
 
 		Body rbdl_body = Body (link_inertial_mass, link_inertial_position, link_inertial_inertia);
 
+		if (verbose) {
+			cout << "+ Adding Body " << endl;
+			cout << "  parent_id  : " << rbdl_parent_id << endl;
+			cout << "  joint_frame: " << rbdl_joint_frame << endl;
+			cout << "  joint dofs : " << rbdl_joint.mDoFCount << endl;
+			for (unsigned int j = 0; j < rbdl_joint.mDoFCount; j++) {
+				cout << "    " << j << ": " << rbdl_joint.mJointAxes[j].transpose() << endl;
+			}
+			cout << "  body inertia: " << endl << rbdl_body.mSpatialInertia << endl;
+			cout << "  body_name  : " << urdf_child->name << endl;
+		}
+
 		rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, rbdl_joint, rbdl_body, urdf_child->name);
 	}
 
-	return false;
+	return true;
 }
 
 bool read_urdf_model (const char* filename, Model* model, bool verbose) {
@@ -180,10 +195,14 @@ bool read_urdf_model (const char* filename, Model* model, bool verbose) {
 		cerr << "Error opening urdf file" << endl;
 	}
 
-	if (!construct_model (model, &urdf_model)) {
+	if (!construct_model (model, &urdf_model, verbose)) {
 		cerr << "Error constructing model from urdf file." << endl;
 		return false;
 	}
+
+	model->gravity.set (0., 0., -9.81);
+
+	cout << "Model loading succcessful!" << endl;
 
 	return true;
 }
