@@ -32,6 +32,7 @@ OPTION (BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
 SET ( RBDL_SOURCES 
 	src/rbdl_version.cc
 	src/rbdl_mathutils.cc
+	src/rbdl_utils.cc
 	src/Logging.cc
 	src/Joint.cc
 	src/Model.cc
