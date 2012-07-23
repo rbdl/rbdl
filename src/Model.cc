@@ -112,9 +112,7 @@ unsigned int AddBodyFixedJoint (
 		model.mBodyNameMap[body_name] = model.mFixedBodies.size() + model.fixed_body_discriminator - 1;
 	}
 
-	model.previously_added_body_id = model.mFixedBodies.size() + model.fixed_body_discriminator - 1;
-
-	return model.previously_added_body_id;
+	return model.mFixedBodies.size() + model.fixed_body_discriminator - 1;
 }
 
 unsigned int AddBodyMultiDofJoint (
@@ -125,7 +123,8 @@ unsigned int AddBodyMultiDofJoint (
 		const Body &body,
 		std::string body_name) {
 	// Here we emulate multi DoF joints by simply adding nullbodies. This
-	// may be changed in the future, but so far it is reasonably fast.
+	// allows us to use fixed size elements for S,v,a, etc. which is very
+	// fast in Eigen.
 	unsigned int joint_count;
 	if (joint.mJointType == JointType1DoF)
 		joint_count = 1;
@@ -148,9 +147,13 @@ unsigned int AddBodyMultiDofJoint (
 	unsigned int null_parent = parent_id;
 	SpatialTransform joint_frame_transform;
 
-	for (unsigned int j = 0; j < joint_count; j++) {
-		Joint single_dof_joint;
+	Joint single_dof_joint;
+	unsigned int j;
 
+	// Here we add multiple virtual bodies that have no mass or inertia for
+	// which each is attached to the model with a single degree of freedom
+	// joint.
+	for (j = 0; j < joint_count; j++) {
 		Vector3d rotation (
 				joint.mJointAxes[j][0],
 				joint.mJointAxes[j][1],
@@ -173,14 +176,15 @@ unsigned int AddBodyMultiDofJoint (
 		else
 			joint_frame_transform = SpatialTransform();
 
-		if (j == joint_count - 1) {
+		if (j == joint_count - 1) 
 			// if we are at the last we must add the real body
-			return model.AddBody (null_parent, joint_frame_transform, single_dof_joint, body, body_name);
-		}
+			break;
 		else
 			// otherwise we just add an intermediate body
 			null_parent = model.AddBody (null_parent, joint_frame_transform, single_dof_joint, null_body);
 	}
+
+	return model.AddBody (null_parent, joint_frame_transform, single_dof_joint, body, body_name);
 }
 
 unsigned int Model::AddBody (const unsigned int parent_id,
@@ -189,11 +193,13 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		const Body &body,
 		std::string body_name) {
 	if (joint.mJointType == JointTypeFixed) {
-		return AddBodyFixedJoint (*this, parent_id, joint_frame, joint, body, body_name);
+		previously_added_body_id = AddBodyFixedJoint (*this, parent_id, joint_frame, joint, body, body_name);
+		return previously_added_body_id;
 	}
 	else if (joint.mJointType != JointTypePrismatic 
 			&& joint.mJointType != JointTypeRevolute) {
-		return AddBodyMultiDofJoint (*this, parent_id, joint_frame, joint, body, body_name);
+		previously_added_body_id = AddBodyMultiDofJoint (*this, parent_id, joint_frame, joint, body, body_name);
+		return previously_added_body_id;
 	}
 
 	assert (lambda.size() > 0);
