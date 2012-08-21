@@ -297,9 +297,12 @@ struct FixedBody {
 
 	static FixedBody CreateFromBody (const Body& body) {
 		FixedBody fbody;
+
 		fbody.mMass = body.mMass;
 		fbody.mCenterOfMass = body.mCenterOfMass;
 		fbody.mSpatialInertia = body.mSpatialInertia;
+
+		return fbody;
 	}
 };
 
