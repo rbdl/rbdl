@@ -17,5 +17,5 @@ ADD_EXECUTABLE (example_luamodel example_luamodel.cc)
 
 # And link the library against the executable
 TARGET_LINK_LIBRARIES ( example_luamodel
-	${RBDL_LIBRARY}
+	${RBDL_LIBRARIES}
 	)

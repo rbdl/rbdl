@@ -1,17 +1,27 @@
 urdfreader - load models from (URDF Unified Robot Description Format) files
 Copyright (c) 2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
-REQUIREMENTS
+Requirements
+============
 
 This addon depends on ROS, the Robot Operating System (http://www.ros.org)
 and uses its urdf_parser and urdf_interface to load and access the model
 data in the files. You therefore need to have ROS and the package
-"robot-model" installed on your system to be able to compile this addon.
+"robot-model" installed on your system to be able to compile this addon. So
+far only the ROS release "Fuerte" can be used with this code.
 
 See http://www.ros.org/wiki/ROS/Installation for more details on how to
 install ROS.
 
-LICENSING
+Warning
+=======
+
+This code is not properly tested as I do not have a proper urdf robot
+model. If anyone has one and also some reference values that should come
+out for the dynamics computations, please let me know.
+
+Licensing
+=========
 
 This code is published under the zlib license, however some parts of the
 CMake scripts are taken from other projects and are licensed under

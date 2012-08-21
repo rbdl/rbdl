@@ -41,42 +41,43 @@ model = {
 	frames = {
 		{
 			name = "pelvis",
-			parent_frame = "BASE",
+			parent = "ROOT",
 			body = bodies.pelvis,
 			joint = joints.freeflyer,
 		},
 		{
 			name = "thigh_right",
-			parent_frame = "pelvis",
+			parent = "pelvis",
 			body = bodies.thigh_right,
 			joint = joints.spherical_zyx,
 		},
 		{
+			name = "shank_right",
+			parent = "thigh_right",
+			body = bodies.thigh_right,
+			joint = joints.rotational_y
+		},
+		{
 			name = "foot_right",
-			parent_frame = "thigh_right",
+			parent = "shank_right",
 			body = bodies.thigh_right,
 			joint = joints.fixed
 		},
 		{
-			name = "foot_left",
-			parent_frame = "thigh_right",
-			body = bodies.thigh_right,
-		},
-		{
 			name = "thigh_left",
-			parent_frame = "pelvis",
+			parent = "pelvis",
 			body = bodies.thigh_left,
 			joint = joints.spherical_zyx
 		},
 		{
 			name = "shank_left",
-			parent_frame = "thigh_left",
+			parent = "thigh_left",
 			body = bodies.thigh_left,
 			joint = joints.rotational_y
 		},
 		{
 			name = "foot_left",
-			parent_frame = "thigh_left",
+			parent = "shank_left",
 			body = bodies.thigh_left,
 			joint = joints.fixed
 		},

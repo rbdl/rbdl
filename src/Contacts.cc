@@ -407,7 +407,7 @@ void ForwardDynamicsApplyConstraintForces (
 		CS.d_IA[i] = model.mBodies[i].mSpatialInertia;
 
 		if (CS.f_ext_constraints[i] != SpatialVectorZero) {
-			CS.d_pA[i] -= spatial_adjoint(model.X_base[i].toMatrix()) * (CS.f_ext_constraints)[i];
+			CS.d_pA[i] -= model.X_base[i].applyAdjoint ((CS.f_ext_constraints)[i]);
 //			LOG << "f_t (local)[" << i << "] = " << spatial_adjoint(model.X_base[i]) * (*f_ext)[i] << std::endl;
 		}
 //		LOG << "i = " << i << " d_p[i] = " << d_p[i].transpose() << std::endl;
@@ -422,11 +422,14 @@ void ForwardDynamicsApplyConstraintForces (
 		if (lambda != 0) {
 			SpatialMatrix Ia = CS.d_IA[i] - CS.d_U[i] * (CS.d_U[i] / CS.d_d[i]).transpose();
 			SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_U[i] * CS.d_u[i] / CS.d_d[i];
-			SpatialTransform X_lambda = model.X_lambda[i];
 
-			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
-			CS.d_IA[lambda] = CS.d_IA[lambda] + X_lambda.toMatrixTranspose() * Ia * X_lambda.toMatrix();
-			CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].toMatrixTranspose() * pa;
+#ifdef EIGEN_CORE_H
+			CS.d_IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+			CS.d_pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
+#else
+			CS.d_IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+			CS.d_pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+#endif
 		}
 	}
 
@@ -500,14 +503,14 @@ void ForwardDynamicsAccelerationDeltas (
 
 	for (unsigned int i = body_id; i > 0; i--) {
 		if (i == body_id) {
-			CS.d_pA[i] = -spatial_adjoint(model.X_base[i].toMatrix()) * f_t[i];
+			CS.d_pA[i] = -model.X_base[i].applyAdjoint(f_t[i]);
 		}
 
 		CS.d_u[i] = - model.S[i].dot(CS.d_pA[i]);
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].toMatrixTranspose() * (CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
+			CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
 		}
 	}
 

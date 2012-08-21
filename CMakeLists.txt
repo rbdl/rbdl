@@ -20,7 +20,7 @@ SET (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
-OPTION (BUILD_STATIC "Build the statically linked library" ON)
+OPTION (BUILD_STATIC "Build the statically linked library" OFF)
 OPTION (BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
@@ -32,6 +32,7 @@ OPTION (BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
 SET ( RBDL_SOURCES 
 	src/rbdl_version.cc
 	src/rbdl_mathutils.cc
+	src/rbdl_utils.cc
 	src/Logging.cc
 	src/Joint.cc
 	src/Model.cc
@@ -52,29 +53,28 @@ ENDIF (BUILD_ADDON_BENCHMARK)
 
 IF (BUILD_ADDON_LUAMODEL)
   ADD_SUBDIRECTORY ( addons/luamodel )
-	TARGET_LINK_LIBRARIES ( rbdl
-		rbdl_luamodel
-		)
 ENDIF (BUILD_ADDON_LUAMODEL)
+
+IF (BUILD_TESTS)
+  ADD_SUBDIRECTORY ( tests )
+ENDIF (BUILD_TESTS)
 
 IF (BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
   SET_TARGET_PROPERTIES ( rbdl-static PROPERTIES PREFIX "lib")
   SET_TARGET_PROPERTIES ( rbdl-static PROPERTIES OUTPUT_NAME "rbdl")
 
-	TARGET_LINK_LIBRARIES ( rbdl
-		rbdl_luamodel-static
-		)
+	IF (BUILD_ADDON_LUAMODEL)
+		TARGET_LINK_LIBRARIES ( rbdl-static
+			rbdl_luamodel-static
+			)
+	ENDIF (BUILD_ADDON_LUAMODEL)
 
 	INSTALL (TARGETS rbdl-static
 	  LIBRARY DESTINATION lib
   	ARCHIVE DESTINATION lib
 	)
 ENDIF (BUILD_STATIC)
-
-IF (BUILD_TESTS)
-  ADD_SUBDIRECTORY ( tests )
-ENDIF (BUILD_TESTS)
 
 # Installing
 INSTALL (TARGETS rbdl

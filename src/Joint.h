@@ -18,8 +18,6 @@ namespace RigidBodyDynamics {
 struct Model;
 
 /** \brief General types of joints
- *
- * \todo add proper fixed joint handling
  */
 enum JointType {
 	JointTypeUndefined = 0,
@@ -80,10 +78,11 @@ struct Joint {
 		return *this;
 	}
 	~Joint() {
-		if (mDoFCount) {
+		if (mJointAxes) {
 			assert (mJointAxes);
 			delete[] mJointAxes;
 			mJointAxes = NULL;
+			mDoFCount = 0;
 		}
 	}
 
@@ -111,12 +110,6 @@ struct Joint {
 
 		if (joint_type == JointTypeRevolute) {
 			// make sure we have a unit axis
-			assert (joint_axis.squaredNorm() == 1.);
-
-			assert ( joint_axis == Math::Vector3d (1., 0., 0.)
-					|| joint_axis == Math::Vector3d (0., 1., 0.)
-					|| joint_axis == Math::Vector3d (0., 0., 1.));
-
 			mJointAxes[0].set (
 					joint_axis[0],
 					joint_axis[1], 
@@ -335,18 +328,18 @@ struct Joint {
 	bool validate_spatial_axis (Math::SpatialVector &axis) {
 		if (fabs(axis.norm() - 1.0) > 1.0e-8) {
 			std::cerr << "Warning: joint axis is not unit!" << std::endl;
-			return false;
 		}
 
 		bool axis_rotational = false;
 		bool axis_translational = false;
 
 		Math::Vector3d rotation (axis[0], axis[1], axis[2]);
-		if (fabs(rotation.norm() - 1.0) < 1.0e-8)
+		Math::Vector3d translation (axis[3], axis[4], axis[5]);
+
+		if (fabs(translation.norm()) < 1.0e-8)
 			axis_rotational = true;
 
-		Math::Vector3d translation (axis[3], axis[4], axis[5]);
-		if (fabs(translation.norm() - 1.0) < 1.0e-8)
+		if (fabs(rotation.norm()) < 1.0e-8)
 			axis_translational = true;
 
 		return axis_rotational || axis_translational;

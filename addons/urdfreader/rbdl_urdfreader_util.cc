@@ -1,23 +1,23 @@
 #include "rbdl.h"
 #include "rbdl_utils.h"
-#include "luamodel.h"
+#include "rbdl_urdfreader.h"
 
 #include <iostream>
-#include <iomanip>
-#include <sstream>
 
 using namespace std;
 
-using namespace RigidBodyDynamics::Math;
+bool verbose = false;
+string filename = "";
 
 void usage (const char* argv_0) {
-	cerr << "Usage: " << argv_0 << "[-v] [-m] [-d] <model.lua>" << endl;
+	cerr << "Usage: " << argv_0 << "[-v] [-m] [-d] <robot.urdf>" << endl;
 	cerr << "  -v | --verbose            enable additional output" << endl;
 	cerr << "  -d | --dof-overview       print an overview of the degress of freedom" << endl;
 	cerr << "  -m | --model-hierarchy    print the hierarchy of the model" << endl;
 	cerr << "  -h | --help               print this help" << endl;
 	exit (1);
 }
+
 
 int main (int argc, char *argv[]) {
 	if (argc < 2 || argc > 4) {
@@ -46,8 +46,8 @@ int main (int argc, char *argv[]) {
 	RigidBodyDynamics::Model model;
 	model.Init();
 
-	if (!RigidBodyDynamics::Addons::LuaModelReadFromFile(filename.c_str(), &model, verbose)) {
-		cerr << "Loading of lua model failed!" << endl;
+	if (!RigidBodyDynamics::Addons::read_urdf_model(filename.c_str(), &model, verbose)) {
+		cerr << "Loading of urdf model failed!" << endl;
 		return -1;
 	}
 

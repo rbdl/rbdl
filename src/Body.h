@@ -201,6 +201,11 @@ struct Body {
 	 * original body to the origin of the added body
 	 */
 	void Join (const Math::SpatialTransform &transform, const Body &other_body) {
+		// nothing to do if we join a massles body to the current.
+		if (other_body.mMass == 0. && other_body.mInertia == Math::Matrix3d::Zero()) {
+			return;
+		}
+
 		double other_mass = other_body.mMass;
 		double new_mass = mMass + other_mass;
 
@@ -292,9 +297,12 @@ struct FixedBody {
 
 	static FixedBody CreateFromBody (const Body& body) {
 		FixedBody fbody;
+
 		fbody.mMass = body.mMass;
 		fbody.mCenterOfMass = body.mCenterOfMass;
 		fbody.mSpatialInertia = body.mSpatialInertia;
+
+		return fbody;
 	}
 };
 

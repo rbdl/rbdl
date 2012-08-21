@@ -121,14 +121,15 @@ void ForwardDynamics (
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
-			SpatialTransform X_lambda = model.X_lambda[i];
-
 			SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
 			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
-
-			// note: X_lambda.inverse().spatial_adjoint() = X_lambda.transpose()
-			model.IA[lambda] = model.IA[lambda] + X_lambda.toMatrixTranspose() * Ia * X_lambda.toMatrix();
-			model.pA[lambda] = model.pA[lambda] + X_lambda.toMatrixTranspose() * pa;
+#ifdef EIGEN_CORE_H
+			model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+			model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
+#else
+			model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+			model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+#endif
 		}
 	}
 

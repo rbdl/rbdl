@@ -179,6 +179,8 @@ struct Model {
 	 * velocity (qdot), acceleration (qddot), and force (tau) vector.
 	 */
 	unsigned int dof_count;
+	/// \brief Id of the previously added body, required for Model::AppendBody()
+	unsigned int previously_added_body_id;
 
 	/// \brief the cartesian vector of the gravity
 	Math::Vector3d gravity;
