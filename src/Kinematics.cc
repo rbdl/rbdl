@@ -223,13 +223,6 @@ void CalcPointJacobian (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
-	unsigned int reference_body_id = body_id;
-
-	if (model.IsFixedBodyId(body_id)) {
-		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
-		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
-	}
-
 	Vector3d point_base_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
 	SpatialMatrix point_trans = Xtrans_mat (point_base_pos);
 
@@ -239,10 +232,7 @@ void CalcPointJacobian (
 
 	// we have to make sure that only the joints that contribute to the
 	// bodies motion also get non-zero columns in the jacobian.
-	//VectorNd e = VectorNd::Zero(Q.size() + 1);
-
-	unsigned int j = reference_body_id;
-
+	// VectorNd e = VectorNd::Zero(Q.size() + 1);
 	char *e = new char[Q.size() + 1];
 	if (e == NULL) {
 		std::cerr << "Error: allocating memory." << std::endl;
@@ -250,7 +240,17 @@ void CalcPointJacobian (
 	}
 	memset (&e[0], 0, Q.size() + 1);
 
-	// e will contain 
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
+	unsigned int j = reference_body_id;
+
+	// e[j] is set to 1 if joint j contributes to the jacobian that we are
+	// computing. For all other joints the column will be zero.
 	while (j != 0) {
 		e[j] = 1;
 		j = model.lambda[j];
