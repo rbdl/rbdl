@@ -45,6 +45,7 @@ ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
 
 TARGET_LINK_LIBRARIES (rbdl_luamodel
 	${LUA_LIBRARIES}
+	rbdl
 	)
 
 TARGET_LINK_LIBRARIES (rbdl_luamodel_util
