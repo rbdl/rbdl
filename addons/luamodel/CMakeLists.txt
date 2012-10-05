@@ -4,12 +4,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
-FIND_PACKAGE (Lua51 REQUIRED)
-
 INCLUDE_DIRECTORIES ( 
 	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl
 	${CMAKE_CURRENT_SOURCE_DIR}/luatables
-	${LUA_INCLUDE_DIR}
 )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
@@ -28,12 +25,19 @@ SET ( LUAMODEL_SOURCES
 	luatables.cc
 	)
 
+ADD_DEFINITIONS (-DLUA_COMPAT_ALL)
+
 ADD_LIBRARY ( rbdl_luamodel SHARED ${LUAMODEL_SOURCES} )
 
 IF (BUILD_STATIC)
   ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
   SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES PREFIX "lib")
   SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES OUTPUT_NAME "rbdl_luamodel")
+
+	TARGET_LINK_LIBRARIES (rbdl_luamodel-static
+		lua-static
+		rbdl
+	)
 
 	INSTALL (TARGETS rbdl_luamodel-static
 	  LIBRARY DESTINATION lib
@@ -44,7 +48,7 @@ ENDIF (BUILD_STATIC)
 ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
 
 TARGET_LINK_LIBRARIES (rbdl_luamodel
-	${LUA_LIBRARIES}
+	lua-static
 	rbdl
 	)
 
