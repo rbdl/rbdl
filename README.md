@@ -32,6 +32,20 @@ main page will then be located in ./doc/html/index.html.
 An online version of the generated documentation can be found at
 [http://rbdl.bitbucket.org](http://rbdl.bitbucket.org).
 
+Getting RBDL
+============
+
+The latest stable code can be obtained from
+
+    https://bitbucket.org/rbdl/rbdl/get/default.zip
+
+The official mercurial repository can be cloned from
+
+    https://bitbucket.org/rbdl/rbdl
+
+(See [http://mercurial.selenic.com/](http://mercurial.selenic.com) for
+mercurial clients.)
+
 Building and Installation
 =========================
 
@@ -74,5 +88,9 @@ This is the full license text (zlib license):
        distribution.
 
 Please note that this library also comes with the Eigen3 library which is
-licensed under the GNU Lesser General Public License 3 or (at your option)
-later. See http://eigen.tuxfamily.org for licensing details.
+primarily licensed under the MPL2 license. More information about these
+can be found at:
+	
+ * [http://www.mozilla.org/MPL/2.0/] (http://www.mozilla.org/MPL/2.0/)
+ * [http://www.mozilla.org/MPL/2.0/FAQ.html] (http://www.mozilla.org/MPL/2.0/FAQ.html)
+ * [http://eigen.tuxfamily.org] ([http://eigen.tuxfamily.org])
