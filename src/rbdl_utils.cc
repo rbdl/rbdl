@@ -2,6 +2,7 @@
 
 #include "rbdl_math.h"
 #include "Model.h"
+#include "Kinematics.h"
 
 #include <sstream>
 #include <iomanip>
@@ -119,6 +120,26 @@ std::string GetModelHierarchy (const Model &model) {
 	stringstream result ("");
 
 	result << print_hierarchy (model);
+
+	return result.str();
+}
+
+std::string GetNamedBodyOriginsOverview (Model &model) {
+	stringstream result ("");
+
+	VectorNd Q (VectorNd::Zero(model.dof_count));
+	UpdateKinematicsCustom (model, &Q, NULL, NULL);
+
+	for (unsigned int body_id = 0; body_id < model.mBodies.size(); body_id++) {
+		std::string body_name = model.GetBodyName (body_id);
+
+		if (body_name.size() == 0) 
+			continue;
+
+		Vector3d position = CalcBodyToBaseCoordinates (model, Q, body_id, Vector3d (0., 0., 0.), false);
+
+		result << body_name << ": " << position.transpose() << endl;
+	}
 
 	return result.str();
 }

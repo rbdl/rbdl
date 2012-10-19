@@ -15,6 +15,7 @@ void usage (const char* argv_0) {
 	cerr << "  -v | --verbose            enable additional output" << endl;
 	cerr << "  -d | --dof-overview       print an overview of the degress of freedom" << endl;
 	cerr << "  -m | --model-hierarchy    print the hierarchy of the model" << endl;
+	cerr << "  -o | --body-origins       print the origins of all bodies that have names" << endl;
 	cerr << "  -h | --help               print this help" << endl;
 	exit (1);
 }
@@ -27,6 +28,7 @@ int main (int argc, char *argv[]) {
 	bool verbose = false;
 	bool dof_overview = false;
 	bool model_hierarchy = false;
+	bool body_origins = false;
 
 	string filename = argv[1];
 
@@ -37,6 +39,8 @@ int main (int argc, char *argv[]) {
 			dof_overview = true;
 		else if (string(argv[i]) == "-m" || string (argv[i]) == "--model-hierarchy")
 			model_hierarchy = true;
+		else if (string(argv[i]) == "-o" || string (argv[i]) == "--body-origins")
+			body_origins = true;
 		else if (string(argv[i]) == "-h" || string (argv[i]) == "--help")
 			usage(argv[0]);
 		else
@@ -61,6 +65,11 @@ int main (int argc, char *argv[]) {
 	if (model_hierarchy) {
 		cout << "Model Hierarchy:" << endl;
 		cout << RigidBodyDynamics::Utils::GetModelHierarchy (model);
+	}
+
+	if (body_origins) {
+		cout << "Body Origins:" << endl;
+		cout << RigidBodyDynamics::Utils::GetNamedBodyOriginsOverview(model);
 	}
 
 	return 0;
