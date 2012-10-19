@@ -91,6 +91,6 @@ Please note that this library also comes with the Eigen3 library which is
 primarily licensed under the MPL2 license. More information about these
 can be found at:
 	
- * [http://www.mozilla.org/MPL/2.0/] (http://www.mozilla.org/MPL/2.0/)
- * [http://www.mozilla.org/MPL/2.0/FAQ.html] (http://www.mozilla.org/MPL/2.0/FAQ.html)
- * [http://eigen.tuxfamily.org] ([http://eigen.tuxfamily.org])
+ * [http://www.mozilla.org/MPL/2.0/](http://www.mozilla.org/MPL/2.0/)
+ * [http://www.mozilla.org/MPL/2.0/FAQ.html](http://www.mozilla.org/MPL/2.0/FAQ.html)
+ * [http://eigen.tuxfamily.org]([http://eigen.tuxfamily.org])
