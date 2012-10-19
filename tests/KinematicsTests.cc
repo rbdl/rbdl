@@ -251,8 +251,8 @@ TEST_FIXTURE(KinematicsFixture, TestPositionBaseRotatedNeg45Deg) {
 //	cout << LogOutput.str() << endl;
 	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.), CalcBodyToBaseCoordinates(*model, Q, body_a_id, Vector3d (0., 0., 0.), true), 3, TEST_PREC );
 	CHECK_ARRAY_CLOSE (Vector3d (0.707106781186547, -0.707106781186547, 0.), CalcBodyToBaseCoordinates(*model, Q, body_b_id, Vector3d (0., 0., 0.), true), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (sqrt(2), 0., 0.),CalcBodyToBaseCoordinates(*model, Q, body_c_id, Vector3d (0., 0., 0.), true), 3, TEST_PREC );
-	CHECK_ARRAY_CLOSE (Vector3d (sqrt(2), 0., -1.), CalcBodyToBaseCoordinates(*model, Q, body_d_id, Vector3d (0., 0., 0.), true), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (sqrt(2.0), 0., 0.),CalcBodyToBaseCoordinates(*model, Q, body_c_id, Vector3d (0., 0., 0.), true), 3, TEST_PREC );
+	CHECK_ARRAY_CLOSE (Vector3d (sqrt(2.0), 0., -1.), CalcBodyToBaseCoordinates(*model, Q, body_d_id, Vector3d (0., 0., 0.), true), 3, TEST_PREC );
 }
 
 TEST_FIXTURE(KinematicsFixture, TestPositionBodyBRotated90Deg) {
