@@ -37,16 +37,16 @@ SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
 	)
 
 TARGET_LINK_LIBRARIES ( rbdl_tests
-	unittest++
-	rbdl	
+		unittest++
+		rbdl	
 	)
-
+	
 OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)
 
 IF (RUN_AUTOMATIC_TESTS)
-	ADD_CUSTOM_COMMAND (TARGET runtests
-		POST_BUILD
-		COMMAND ./runtests
-		COMMENT "Running automated tests..."
-		)
+ADD_CUSTOM_COMMAND (TARGET runtests
+	POST_BUILD
+	COMMAND ./runtests
+	COMMENT "Running automated tests..."
+	)
 ENDIF (RUN_AUTOMATIC_TESTS)
