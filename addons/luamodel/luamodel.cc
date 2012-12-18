@@ -1,7 +1,6 @@
 #include "rbdl.h"
 #include "luamodel.h"
 
-#include <assert.h>
 #include <iostream>
 #include <map>
 
@@ -16,7 +15,7 @@ extern "C"
 
 using namespace std;
 
-void bail(lua_State *L, const char *msg){
+static void bail(lua_State *L, const char *msg){
 	std::cerr << msg << lua_tostring(L, -1) << endl;
 	abort();
 }
@@ -33,7 +32,7 @@ StringIntMap body_table_id_map;
 SpatialVector get_spatial_vector (lua_State *L, const string &path, int index = -1) {
 	SpatialVector result (0., 0., 0., 0., 0., 0.);
 
-	std::vector<double> array = get_array (L, path, index);
+	std::vector<double> array = ltGetDoubleArrayAt (L, path.c_str(), index);
 	if (array.size() != 6) {
 		cerr << "Invalid array size for spatial vector variable '" << path << "'." << endl;
 		abort();
@@ -49,7 +48,7 @@ SpatialVector get_spatial_vector (lua_State *L, const string &path, int index = 
 Vector3d get_vector3d (lua_State *L, const string &path, int index = -1) {
 	Vector3d result;
 
-	std::vector<double> array = get_array (L, path, index);
+	std::vector<double> array = ltGetDoubleArrayAt (L, path.c_str(), index);
 	if (array.size() != 3) {
 		cerr << "Invalid array size for 3d vector variable '" << path << "'." << endl;
 		abort();
@@ -66,7 +65,7 @@ Matrix3d get_matrix3d (lua_State *L, const string &path) {
 	Matrix3d result;
 
 	// two ways either as flat array or as a lua table with three columns
-	if (get_length (L, path, -1) == 3) {
+	if (ltGetLengthAt (L, path.c_str(), -1) == 3) {
 		Vector3d row = get_vector3d (L, path, 1);
 		result(0,0) = row[0];
 		result(0,1) = row[1];
@@ -85,7 +84,7 @@ Matrix3d get_matrix3d (lua_State *L, const string &path) {
 		return result;
 	}
 
-	std::vector<double> array = get_array (L, path, -1);
+	std::vector<double> array = ltGetDoubleArrayAt (L, path.c_str(), -1);
 	if (array.size() != 9) {
 		cerr << "Invalid array size for 3d matrix variable '" << path << "'." << endl;
 		abort();
@@ -107,18 +106,18 @@ bool read_frame_params (lua_State *L,
 		std::string &body_name,
 		bool verbose) {
 
-	if (!value_exists (L, path + ".name") != 0.) {
+	if (!ltIsExisting (L, (path + ".name").c_str())) {
 		cerr << "Error: could not find required value '" << path << ".name'." << endl;
 		return false;
 	}
-	body_name = get_string (L, path + ".name");
+	body_name = ltGetString (L, (path + ".name").c_str());
 
-	if (!value_exists (L, path + ".parent") != 0.) {
+	if (!ltIsExisting (L, (path + ".parent").c_str())) {
 		cerr << "Error: could not find required value '" << path << ".parent' for body '" << body_name << "'." << endl;
 		return false;
 	}
 
-	string parent_frame = get_string (L, path + ".parent");
+	string parent_frame = ltGetString (L, (path + ".parent").c_str());
 
 	StringIntMap::iterator parent_iter = body_table_id_map.find (parent_frame);
 	if (parent_iter == body_table_id_map.end()) {
@@ -134,17 +133,17 @@ bool read_frame_params (lua_State *L,
 	}
 
 	// create the joint_frame
-	if (get_pointer (L, path + ".joint_frame") == NULL) {
+	if (!ltIsExisting(L, (path + ".joint_frame").c_str())) {
 		joint_frame = SpatialTransform();
 	} else {
 		Vector3d r (0., 0., 0.);
 		Matrix3d E (Matrix3d::Identity(3,3));
 	
-		if (get_pointer (L, path + ".joint_frame.r") != NULL) {
+		if (ltIsExisting(L, (path + ".joint_frame.r").c_str())) {
 			r = get_vector3d (L, path + ".joint_frame.r");
 		}
 
-		if (get_pointer (L, path + ".joint_frame.E") != NULL) {
+		if (ltIsExisting(L, (path + ".joint_frame.E").c_str())) {
 			E = get_matrix3d (L, path + ".joint_frame.E");
 		}
 
@@ -155,76 +154,87 @@ bool read_frame_params (lua_State *L,
 		cout << "  joint_frame = " << joint_frame << endl;
 
 	// create the joint
-	if (get_pointer (L, path + ".joint") == NULL) {
+	if (!ltIsExisting (L, (path + ".joint").c_str())) {
 		joint = Joint(JointTypeFixed);
 	} else {
-		unsigned int joint_dofs = static_cast<unsigned int> (get_length (L, path + ".joint"));
+		unsigned int joint_dofs = static_cast<unsigned int> (ltGetLength (L, (path + ".joint").c_str()));
 
-		if (verbose)
-			cout << "  joint_dofs   = " << joint_dofs << endl;
+		// special case: joint_dof specified as { X., X., X., X., X., X.}. In
+		if (ltIsNumberAt (L, (path + ".joint").c_str(), 1)
+				&& ltIsNumberAt (L, (path + ".joint").c_str(), 2)
+				&& ltIsNumberAt (L, (path + ".joint").c_str(), 3)
+				&& ltIsNumberAt (L, (path + ".joint").c_str(), 4)
+				&& ltIsNumberAt (L, (path + ".joint").c_str(), 5)
+				&& ltIsNumberAt (L, (path + ".joint").c_str(), 6) ) {
+			joint = Joint (get_spatial_vector (L, path + ".joint"));
+		} else {
+			// otherwise: joint_dof specified as { { DOF1}, { DOF2}, ... }. In
+			if (verbose)
+				cout << "  joint_dofs   = " << joint_dofs << endl;
 
-		switch (joint_dofs) {
-			case 0: joint = Joint(JointTypeFixed);
-							break;
-			case 1: joint = Joint(get_spatial_vector(L, path + ".joint", 1));
-							break;
-			case 2: joint = Joint(
-									get_spatial_vector(L, path + ".joint", 1),
-									get_spatial_vector(L, path + ".joint", 2)
-									);
-							break;
-			case 3: joint = Joint(
-									get_spatial_vector(L, path + ".joint", 1),
-									get_spatial_vector(L, path + ".joint", 2),
-									get_spatial_vector(L, path + ".joint", 3)
-									);
-							break;
-			case 4: joint = Joint(
-									get_spatial_vector(L, path + ".joint", 1),
-									get_spatial_vector(L, path + ".joint", 2),
-									get_spatial_vector(L, path + ".joint", 3),
-									get_spatial_vector(L, path + ".joint", 4)
-									);
-							break;
-			case 5: joint = Joint(
-									get_spatial_vector(L, path + ".joint", 1),
-									get_spatial_vector(L, path + ".joint", 2),
-									get_spatial_vector(L, path + ".joint", 3),
-									get_spatial_vector(L, path + ".joint", 4),
-									get_spatial_vector(L, path + ".joint", 5)
-									);
-							break;
-			case 6: joint = Joint(
-									get_spatial_vector(L, path + ".joint", 1),
-									get_spatial_vector(L, path + ".joint", 2),
-									get_spatial_vector(L, path + ".joint", 3),
-									get_spatial_vector(L, path + ".joint", 4),
-									get_spatial_vector(L, path + ".joint", 5),
-									get_spatial_vector(L, path + ".joint", 6)
-									);
-							break;
-			default:
-							cerr << "Invalid number of DOFs for joint in frame '" << path << ".joint'" << endl;
-							return false;
+			switch (joint_dofs) {
+				case 0: joint = Joint(JointTypeFixed);
+								break;
+				case 1: joint = Joint(get_spatial_vector(L, path + ".joint", 1));
+								break;
+				case 2: joint = Joint(
+										get_spatial_vector(L, path + ".joint", 1),
+										get_spatial_vector(L, path + ".joint", 2)
+										);
+								break;
+				case 3: joint = Joint(
+										get_spatial_vector(L, path + ".joint", 1),
+										get_spatial_vector(L, path + ".joint", 2),
+										get_spatial_vector(L, path + ".joint", 3)
+										);
+								break;
+				case 4: joint = Joint(
+										get_spatial_vector(L, path + ".joint", 1),
+										get_spatial_vector(L, path + ".joint", 2),
+										get_spatial_vector(L, path + ".joint", 3),
+										get_spatial_vector(L, path + ".joint", 4)
+										);
+								break;
+				case 5: joint = Joint(
+										get_spatial_vector(L, path + ".joint", 1),
+										get_spatial_vector(L, path + ".joint", 2),
+										get_spatial_vector(L, path + ".joint", 3),
+										get_spatial_vector(L, path + ".joint", 4),
+										get_spatial_vector(L, path + ".joint", 5)
+										);
+								break;
+				case 6: joint = Joint(
+										get_spatial_vector(L, path + ".joint", 1),
+										get_spatial_vector(L, path + ".joint", 2),
+										get_spatial_vector(L, path + ".joint", 3),
+										get_spatial_vector(L, path + ".joint", 4),
+										get_spatial_vector(L, path + ".joint", 5),
+										get_spatial_vector(L, path + ".joint", 6)
+										);
+								break;
+				default:
+								cerr << "Invalid number of DOFs for joint in frame '" << path << ".joint'" << endl;
+								return false;
+			}
 		}
 	}
 
-	if (get_pointer (L, path + ".body") == NULL) {
+	if (!ltIsExisting (L, (path + ".body").c_str())) {
 		body = Body();
 	} else {
 		double mass = 0.;
 		Vector3d com (0., 0., 0.);
 		Matrix3d inertia (Matrix3d::Zero(3,3));
 
-		if (value_exists (L, path + ".body.mass")) {
-			mass = get_number (L, path + ".body.mass");
+		if (ltIsExisting (L, (path + ".body.mass").c_str()) ) {
+			mass = ltGetDouble (L, (path + ".body.mass").c_str());
 		}
 
-		if (value_exists (L, path + ".body.com")) {
+		if (ltIsExisting (L, (path + ".body.com").c_str() )) {
 			com = get_vector3d (L, path + ".body.com");
 		}
 
-		if (value_exists (L, path + ".body.inertia")) {
+		if (ltIsExisting (L, (path + ".body.inertia").c_str() )) {
 			inertia = get_matrix3d (L, path + ".body.inertia");
 		}
 
@@ -257,14 +267,14 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 		bail (L, "Error running file: ");
 	}
 
-	if (value_exists(L, "gravity")) {
+	if (ltIsExisting (L, "gravity")) {
 		model->gravity = get_vector3d (L, "gravity");
 
 		if (verbose)
 			cout << "gravity = " << model->gravity.transpose() << endl;
 	}
 
-	vector<string> frame_names = get_keys (L, "frames");
+	vector<string> frame_names = ltGetKeys (L, "frames");
 
 	unsigned int parent_id;
 	Math::SpatialTransform joint_frame;

@@ -40,38 +40,9 @@ extern "C"
 
 using namespace std;
 
-/** \brief Extracts a single token from a path string */
-static std::string path_get_next_token (std::string &path) {
-	std::string token = path;
-
-	bool is_index = false;
-	bool have_bracket = false;
-
-	if (token.find(".") != std::string::npos) {
-		token = token.substr(0, token.find("."));
-	}
-
-	if (token.find("[") != std::string::npos) {
-		have_bracket = true;
-
-		if (token.find("[") == 0) {
-			token = token.substr (token.find("[") + 1, token.find("]") - 1);
-			path = path.substr (token.size() + 2, path.size());
-		} else {
-			token = token.substr (0, token.find("["));
-			path = path.substr (token.size(), path.size());
-		}
-	} else {
-		if (path.size() > token.size())
-			path = path.substr (token.size() + 1, path.size());
-		else
-			path = "";
-	}
-
-	if (path[0] == '.')
-		path = path.substr (1, path.size());
-
-	return token;
+static void bail(lua_State *L, const char *msg){
+	std::cerr << msg << lua_tostring(L, -1) << endl;
+	abort();
 }
 
 /** \brief Puts a lua value at a given path with optional index onto the stack.
@@ -81,64 +52,55 @@ static std::string path_get_next_token (std::string &path) {
  * optional last parameter is used to ease iteration over multiple
  * elements.
  */
-bool get_table_from_path (lua_State *L, const string &path_str, int index) {
-	std::string path = path_str;
-	std::string token = path;
+bool get_table_from_path (lua_State *L, const char *path_str, int index = -1);
 
-	// backup of the current stack
-	int stack_top = lua_gettop(L);
 
-	do {
-		token = path_get_next_token (path);
-
-		istringstream convert (token);
-		int token_int;
-		if (!(convert >> token_int)) 
-			lua_pushstring(L, token.c_str());
-		else
-			lua_pushnumber (L, token_int);
-
-		lua_gettable (L, -2);
-
-		if (path.size() == 0 && index > 0) {
-			lua_pushnumber (L, index);
-			lua_gettable (L, -2);
-		}
-
-		if (lua_isnil(L, -1)) {
-			// clean up the stack
-			lua_pop (L, lua_gettop(L) - stack_top);
-			return false;
-		}
-
-	} while (path.size() > 0);
-
-	return true;
+/* Proxy functions for ltXXXAt() calls */
+std::string ltGetString (lua_State *L, const char *path_str, const std::string &default_result) {
+	return ltGetStringAt (L, path_str, -1, default_result);
 }
 
-bool value_exists (lua_State *L, const std::string &path_str, int index) {
-	int stack_top = lua_gettop(L);
+double ltGetDouble (lua_State *L, const char *path_str, const double &default_result) {
+	return ltGetDoubleAt (L, path_str, -1, default_result);
+}
 
-	if (!get_table_from_path(L, path_str, index)) {
+size_t ltGetLength (lua_State *L, const char *path_str) {
+	return ltGetLengthAt (L, path_str, -1);
+}
+
+std::vector<std::string> ltGetKeys (lua_State *L, const char *path_str) {
+	return ltGetKeysAt (L, path_str, -1);
+}
+
+std::vector<double> ltGetDoubleArray (lua_State *L, const char *path_str) {
+	return ltGetDoubleArrayAt (L, path_str, -1);
+}
+/* Actual interesting code */
+
+bool ltOpenFile (lua_State **L, const char *filename) {
+	*L = luaL_newstate();
+	luaL_openlibs(*L);
+
+	if (luaL_loadfile (*L, filename) || lua_pcall (*L, 0, 1, 0)) {
+		bail (*L, "Error running file: ");
 		return false;
 	}
 
-	lua_pop (L, lua_gettop(L) - stack_top);
 	return true;
 }
 
-std::string get_string (lua_State *L, const string &path_str, int index) {
+void ltClose (lua_State **L) {
+	lua_close(*L);
+	*L = NULL;
+}
+
+std::string ltGetStringAt (lua_State *L, const char *path_str, int index, const std::string &default_result) {
 	std::string result;
-	
+
 	int stack_top = lua_gettop(L);
 
-	if (!get_table_from_path(L, path_str, index)) {
-		cout << "Error: could not find table '" << path_str;
-		if (index > 0)
-			cout << "[" << index << "]";
-		cout << "'." << endl;
-		return result;
-	}
+	if (!get_table_from_path(L, path_str, index)) 
+		return default_result;
 
 	if (!lua_isstring(L, -1)) {
 		cout << "Error: value at " << path_str;
@@ -146,7 +108,7 @@ std::string get_string (lua_State *L, const string &path_str, int index) {
 			cout << "[" << index << "]";
 		cout << " is not a string!" << endl;
 
-		return result;
+		return default_result;
 	}
 
 	result = lua_tostring(L, -1);
@@ -157,19 +119,13 @@ std::string get_string (lua_State *L, const string &path_str, int index) {
 	return result;
 }
 
-double get_number (lua_State *L, const string &path_str, int index) {
+double ltGetDoubleAt (lua_State *L, const char *path_str, int index, const double &default_result) {
 	double result;
 	
 	int stack_top = lua_gettop(L);
 
-	if (!get_table_from_path(L, path_str, index)) {
-		cout << "Error: could not find table '" << path_str;
-		if (index > 0)
-			cout << "[" << index << "]";
-		cout << "'." << endl;
-		return result;
-	}
-
+	if (!get_table_from_path(L, path_str, index)) 
+		return default_result;
 
 	if (!lua_isnumber(L, -1)) {
 		cout << "Error: value at " << path_str;
@@ -177,7 +133,7 @@ double get_number (lua_State *L, const string &path_str, int index) {
 			cout << "[" << index << "]";
 		cout << " is not a number!" << endl;
 
-		return result;
+		return default_result;
 	}
 
 	result = lua_tonumber(L, -1);
@@ -188,36 +144,13 @@ double get_number (lua_State *L, const string &path_str, int index) {
 	return result;
 }
 
-const void* get_pointer (lua_State *L, const string &path_str, int index) {
-	int stack_top = lua_gettop(L);
-
-	if (!get_table_from_path(L, path_str, index)) 
-		return NULL;
-
-	if (lua_isnil(L, -1)) {
-		return NULL;
-	}
-
-	const void* result = lua_topointer(L, -1);
-
-	// clean up the stack
-	lua_pop (L, lua_gettop(L) - stack_top);
-
-	return result;
-}
-
-size_t get_length (lua_State *L, const string &path_str, int index) {
+size_t ltGetLengthAt (lua_State *L, const char *path_str, int index) {
 	size_t result = 0;
 	
 	int stack_top = lua_gettop(L);
 
-	if (!get_table_from_path(L, path_str, index)) {
-		cout << "Error: could not find table '" << path_str;
-		if (index > 0)
-			cout << "[" << index << "]";
-		cout << "'." << endl;
+	if (!get_table_from_path(L, path_str, index)) 
 		return result;
-	}
 
 	result = lua_objlen (L, -1);
 
@@ -227,68 +160,13 @@ size_t get_length (lua_State *L, const string &path_str, int index) {
 	return result;
 }
 
-std::vector<double> get_array (lua_State *L, const string &path_str, int index) {
-	std::vector<double> result;
-	
-	int stack_top = lua_gettop(L);
-
-	if (!get_table_from_path(L, path_str, index)) {
-		cout << "Error: could not find table '" << path_str;
-		if (index > 0)
-			cout << "[" << index << "]";
-		cout << "'." << endl;
-		return result;
-	}
-
-	if (!lua_istable(L, -1)) {
-		cout << "Error: value at " << path_str;
-		if (index > 0)
-			cout << "[" << index << "]";
-		cout << " is not a table!" << endl;
-
-		// clean up the stack
-		lua_pop (L, lua_gettop(L) - stack_top);
-		return result;
-	}
-
-	lua_pushnil(L);
-
-	int i = 1;
-	while (lua_next(L, -2)) {
-		if (lua_isnumber (L, -1)) {
-			result.push_back (lua_tonumber(L, -1));
-		} else {
-			cout << "Error: values at " << path_str;
-			if (index > 0)
-				cout << "[" << index << "]";
-			cout << " are not numbers only!" << endl;
-
-			// clean up the stack
-			lua_pop (L, lua_gettop(L) - stack_top);
-			return std::vector<double>();
-		}
-		lua_pop(L, 1);
-		i++;
-	}
-
-	// clean up the stack
-	lua_pop (L, lua_gettop(L) - stack_top);
-
-	return result;
-}
-
-std::vector<string> get_keys (lua_State *L, const string &path_str, int index) {
+std::vector<std::string> ltGetKeysAt (lua_State *L, const char *path_str, int index) {
 	std::vector<string> result;
 	
 	int stack_top = lua_gettop(L);
 
-	if (!get_table_from_path(L, path_str, index)) {
-		cout << "Error: could not find table '" << path_str;
-		if (index > 0)
-			cout << "[" << index << "]";
-		cout << "'." << endl;
+	if (!get_table_from_path(L, path_str, index)) 
 		return result;
-	}
 
 	if (!lua_istable(L, -1)) {
 		cout << "Error: value at " << path_str;
@@ -336,4 +214,165 @@ std::vector<string> get_keys (lua_State *L, const string &path_str, int index) {
 	return result;
 }
 
+std::vector<double> ltGetDoubleArrayAt (lua_State *L, const char *path_str, int index) {
+	std::vector<double> result;
+	
+	int stack_top = lua_gettop(L);
 
+	if (!get_table_from_path(L, path_str, index)) 
+		return result;
+
+	if (!lua_istable(L, -1)) {
+		cout << "Error: value at " << path_str;
+		if (index > 0)
+			cout << "[" << index << "]";
+		cout << " is not a table!" << endl;
+
+		// clean up the stack
+		lua_pop (L, lua_gettop(L) - stack_top);
+		return result;
+	}
+
+	lua_pushnil(L);
+
+	int i = 1;
+	while (lua_next(L, -2)) {
+		if (lua_isnumber (L, -1)) {
+			result.push_back (lua_tonumber(L, -1));
+		} else {
+			cout << "Error: values at " << path_str;
+			if (index > 0)
+				cout << "[" << index << "]";
+			cout << " are not numbers only!" << endl;
+
+			// clean up the stack
+			lua_pop (L, lua_gettop(L) - stack_top);
+			return std::vector<double>();
+		}
+		lua_pop(L, 1);
+		i++;
+	}
+
+	// clean up the stack
+	lua_pop (L, lua_gettop(L) - stack_top);
+
+	return result;
+}
+
+bool ltIsNumber (lua_State *L, const char *path_str) {
+	return ltIsNumberAt (L, path_str, -1);
+}
+
+bool ltIsNumberAt (lua_State *L, const char *path_str, int index) {
+	bool result = false;
+
+	int stack_top = lua_gettop(L);
+
+	if (!get_table_from_path(L, path_str, index)) 
+		result = false;
+
+	if (lua_isnumber(L, -1)) {
+		result = true;
+	}
+
+	// clean up the stack
+	lua_pop (L, lua_gettop(L) - stack_top);
+
+	return result;
+}
+
+bool ltIsExisting (lua_State *L, const char *path_str) {
+	return ltIsExistingAt (L, path_str, -1);
+}
+
+bool ltIsExistingAt (lua_State *L, const char *path_str, int index) {
+	int stack_top = lua_gettop(L);
+
+	if (!get_table_from_path(L, path_str, index)) {
+		return false;
+	}
+
+	lua_pop (L, lua_gettop(L) - stack_top);
+	return true;
+}
+
+/** \brief Extracts a single token from a path string */
+static std::string path_get_next_token (std::string &path) {
+	std::string token = path;
+
+	bool is_index = false;
+	bool have_bracket = false;
+
+	if (token.find(".") != std::string::npos) {
+		token = token.substr(0, token.find("."));
+	}
+
+	if (token.find("[") != std::string::npos) {
+		have_bracket = true;
+
+		if (token.find("[") == 0) {
+			token = token.substr (token.find("[") + 1, token.find("]") - 1);
+			path = path.substr (token.size() + 2, path.size());
+		} else {
+			token = token.substr (0, token.find("["));
+			path = path.substr (token.size(), path.size());
+		}
+	} else {
+		if (path.size() > token.size())
+			path = path.substr (token.size() + 1, path.size());
+		else
+			path = "";
+	}
+
+	if (path[0] == '.')
+		path = path.substr (1, path.size());
+
+	return token;
+}
+
+/** \brief Puts a lua value at a given path with optional index onto the stack.
+ *
+ * This function allows to navigate tables by specifying the path to an
+ * element just as within lua, e.g. "model.bodies[2].inertia[2][3]". The
+ * optional last parameter is used to ease iteration over multiple
+ * elements.
+ */
+bool get_table_from_path (lua_State *L, const char *path_str, int index) {
+	std::string path = path_str;
+	std::string token = path;
+
+	// backup of the current stack
+	int stack_top = lua_gettop(L);
+
+	do {
+		token = path_get_next_token (path);
+
+		istringstream convert (token);
+		int token_int;
+		if (!(convert >> token_int)) 
+			lua_pushstring(L, token.c_str());
+		else
+			lua_pushnumber (L, token_int);
+
+		lua_gettable (L, -2);
+
+		if (path.size() == 0 && index > 0) {
+			lua_pushnumber (L, index);
+			lua_gettable (L, -2);
+		}
+
+		if (lua_isnil(L, -1)) {
+			cout << "Error: could not find table '" << path_str;
+			if (path.size() == 0 && index > 0)
+				cout << "[" << index << "]";
+			cout << "'." << endl;
+			
+			// clean up the stack
+			lua_pop (L, lua_gettop(L) - stack_top);
+			return false;
+		}
+
+	} while (path.size() > 0);
+
+	return true;
+}

@@ -53,7 +53,7 @@ SET ( LUA_SOURCES
 	lua-5.2.1/src/lua.c
 	lua-5.2.1/src/lundump.c
 	lua-5.2.1/src/lvm.c
-	lua-5.2.1/src/lzio.c
+	lua-5.2.1/src/lzio.c	
 	)
 
 # Options
@@ -67,9 +67,9 @@ ADD_DEFINITIONS (-DLUA_COMPAT_ALL)
 ADD_LIBRARY ( rbdl_luamodel SHARED ${LUA_SOURCES} ${LUAMODEL_SOURCES} )
 
 IF (BUILD_STATIC)
-  ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
-  SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES PREFIX "lib")
-  SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES OUTPUT_NAME "rbdl_luamodel")
+	ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
+	SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES PREFIX "lib")
+	SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES OUTPUT_NAME "rbdl_luamodel")
 
 	TARGET_LINK_LIBRARIES (rbdl_luamodel-static
 		rbdl
