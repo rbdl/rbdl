@@ -362,11 +362,6 @@ bool get_table_from_path (lua_State *L, const char *path_str, int index) {
 		}
 
 		if (lua_isnil(L, -1)) {
-			cout << "Error: could not find table '" << path_str;
-			if (path.size() == 0 && index > 0)
-				cout << "[" << index << "]";
-			cout << "'." << endl;
-			
 			// clean up the stack
 			lua_pop (L, lua_gettop(L) - stack_top);
 			return false;
