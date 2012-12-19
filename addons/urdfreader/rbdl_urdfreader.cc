@@ -136,7 +136,7 @@ bool construct_model (Model* rbdl_model, urdf::Model *urdf_model, bool verbose) 
 
 		// but only if we actually have inertial data
 		if (urdf_child->inertial) {
-			double link_inertial_mass = urdf_child->inertial->mass;
+			link_inertial_mass = urdf_child->inertial->mass;
 
 			link_inertial_position.set (
 					urdf_child->inertial->origin.position.x,
