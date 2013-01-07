@@ -497,6 +497,66 @@ TEST ( ModelAppendFixedToFixedBody ) {
 	CHECK_ARRAY_EQUAL (new_com.data(), model.mBodies[movable_body].mCenterOfMass.data(), 3);
 }
 
+// Ensures that the transformations of the movable parent and fixed joint
+// frame is in proper order
+TEST ( ModelFixedJointRotationOrderTranslationRotation ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+
+	SpatialTransform trans_x = Xtrans (Vector3d (1., 0., 0.));
+	SpatialTransform rot_z = Xrotz (45. * M_PI / 180.);
+
+	model.AddBody (0, trans_x, joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (rot_z, Joint(JointTypeFixed), fixed_body, "fixed_body");
+	unsigned int body_after_fixed = model.AppendBody (trans_x, joint_rot_z, body);
+
+	VectorNd Q (VectorNd::Zero(model.dof_count));
+	Q[0] = 45 * M_PI / 180.;
+	Vector3d point = CalcBodyToBaseCoordinates (model, Q, body_after_fixed, Vector3d (0., 1., 0.));
+
+	CHECK_ARRAY_CLOSE (Vector3d (0., 1., 0.).data(), point.data(), 3, TEST_PREC);
+}
+
+// Ensures that the transformations of the movable parent and fixed joint
+// frame is in proper order
+TEST ( ModelFixedJointRotationOrderRotationTranslation ) {
+	// the standard modeling using a null body
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+	model.Init();
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+
+	SpatialTransform rot_z = Xrotz (45. * M_PI / 180.);
+	SpatialTransform trans_x = Xtrans (Vector3d (1., 0., 0.));
+
+	model.AddBody (0, rot_z, joint_rot_z, body);
+	unsigned int fixed_body_id = model.AppendBody (trans_x, Joint(JointTypeFixed), fixed_body, "fixed_body");
+	unsigned int body_after_fixed = model.AppendBody (trans_x, joint_rot_z, body);
+
+	VectorNd Q (VectorNd::Zero(model.dof_count));
+	Q[0] = 45 * M_PI / 180.;
+	Vector3d point = CalcBodyToBaseCoordinates (model, Q, body_after_fixed, Vector3d (0., 1., 0.));
+
+	CHECK_ARRAY_CLOSE (Vector3d (-1., 2., 0.).data(), point.data(), 3, TEST_PREC);
+}
+
 TEST ( ModelGetBodyName ) {
 	Body null_body;
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));

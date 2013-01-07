@@ -87,7 +87,7 @@ unsigned int AddBodyFixedJoint (
 		FixedBody fixed_parent = model.mFixedBodies[parent_id - model.fixed_body_discriminator];
 
 		fbody.mMovableParent = fixed_parent.mMovableParent;
-		fbody.mParentTransform = fixed_parent.mParentTransform * joint_frame;
+		fbody.mParentTransform = joint_frame * fixed_parent.mParentTransform;
 	}
 
 	// merge the two bodies
@@ -244,9 +244,10 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	// Joints
 	mJoints.push_back(joint);
 	S.push_back (joint.mJointAxes[0]);
+
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.
-	X_T.push_back(movable_parent_transform * joint_frame);
+	X_T.push_back(joint_frame * movable_parent_transform);
 
 	// Dynamic variables
 	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));

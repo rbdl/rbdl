@@ -73,9 +73,9 @@ struct SpatialRigidBodyInertia {
 		return result;
 	}
 
+	double m;
 	Vector3d h;
 	Matrix3d I;
-	double m;
 };
 
 /** \brief Compact representation of spatial transformations.

@@ -107,8 +107,8 @@ struct Body {
 			const Math::Vector3d &com,
 			const Math::Matrix3d &inertia_C) :
 		mMass (mass),
-		mInertia (inertia_C),
-		mCenterOfMass(com) {
+		mCenterOfMass(com),
+		mInertia (inertia_C) {
 			Math::Matrix3d com_cross (
 					0., -com[2],  com[1],
 					com[2],      0., -com[0],

@@ -14,7 +14,8 @@ namespace Utils {
 	std::string GetModelHierarchy (const Model &model);
 	/** \brief Creates a human readable overview of the Degrees of Freedom. */
 	std::string GetModelDOFOverview (const Model &model);
-
+	/** \brief Creates a human readable overview of the locations of all bodies that have names. */
+	std::string GetNamedBodyOriginsOverview (Model &model);
 }
 }
 

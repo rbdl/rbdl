@@ -1,27 +1,26 @@
 /*
  * luatables
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
- * 
- * (zlib license)
- * 
- * This software is provided 'as-is', without any express or implied
- * warranty. In no event will the authors be held liable for any damages
- * arising from the use of this software.
- * 
- * Permission is granted to anyone to use this software for any purpose,
- * including commercial applications, and to alter it and redistribute it
- * freely, subject to the following restrictions:
- * 
- *    1. The origin of this software must not be misrepresented; you must not
- *    claim that you wrote the original software. If you use this software
- *    in a product, an acknowledgment in the product documentation would be
- *    appreciated but is not required.
- * 
- *    2. Altered source versions must be plainly marked as such, and must not be
- *    misrepresented as being the original software.
- * 
- *    3. This notice may not be removed or altered from any source
- *    distribution.
+ * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>.
+ * All rights reserved.
+*
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #ifndef _LUATABLES_H
@@ -30,32 +29,33 @@
 #include <vector>
 #include <string>
 
-extern "C"
-{
-   #include <lua.h>
-   #include <lauxlib.h>
-   #include <lualib.h>
+extern "C" {
+#include <lua.h>
 }
 
-/** \brief Puts a lua value at a given path with optional index onto the stack.
- *
- * This function allows to navigate tables by specifying the path to an
- * element just as within lua, e.g. "model.bodies[2].inertia[2][3]". The
- * optional last parameter is used to ease iteration over multiple
- * elements.
- */
-bool get_table_from_path (lua_State *L, const std::string &path_str, int index = -1);
+bool ltOpenFile (lua_State **L, const char *filename);
+void ltClose (lua_State **L);
 
-bool value_exists (lua_State *L, const std::string &path_str, int index = -1);
+std::string ltGetStringAt (lua_State *L, const char *path_str, int index, const std::string &default_result = "");
+std::string ltGetString (lua_State *L, const char *path_str, const std::string &default_result = "");
 
-std::string get_string (lua_State *L, const std::string &path_str, int index = -1);
-double get_number (lua_State *L, const std::string &path_str, int index = -1);
-const void* get_pointer (lua_State *L, const std::string &path_str, int index = -1);
+double ltGetDoubleAt (lua_State *L, const char *path_str, int index, const double &default_result = 0.);
+double ltGetDouble (lua_State *L, const char *path_str, const double &default_result = 0.);
 
-size_t get_length (lua_State *L, const std::string &path_str, int index = -1);
+size_t ltGetLengthAt (lua_State *L, const char *path_str, int index);
+size_t ltGetLength (lua_State *L, const char *path_str);
 
-std::vector<double> get_array (lua_State *L, const std::string &path_str, int index = -1);
-std::vector<std::string> get_keys (lua_State *L, const std::string &path_str, int index = -1);
+std::vector<std::string> ltGetKeysAt (lua_State *L, const char *path_str, int index);
+std::vector<std::string> ltGetKeys (lua_State *L, const char *path_str);
+
+std::vector<double> ltGetDoubleArrayAt (lua_State *L, const char *path_str, int index);
+std::vector<double> ltGetDoubleArray (lua_State *L, const char *path_str); 
+
+bool ltIsNumber (lua_State *L, const char *path_str);
+bool ltIsNumberAt (lua_State *L, const char *path_str, int index);
+
+bool ltIsExisting (lua_State *L, const char *path_str);
+bool ltIsExistingAt (lua_State *L, const char *path_str, int index);
 
 /* _LUATABLES_H */
 #endif
