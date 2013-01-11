@@ -13,6 +13,17 @@ SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
 		LINKER_LANGUAGE CXX
 	)
 
+# Find and use the system's Eigen3 library
+FIND_PACKAGE (Eigen3 3.0.0)
+
+IF (NOT EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
+	MESSAGE (WARNING "Could not find Eigen3 on your system. Install it or use the slower SimpleMath library by enabling RBDL_USE_SIMPLE_MATH.")
+ENDIF (NOT EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
+
+IF (EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
+	INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
+ENDIF (EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
+
 # Perform the proper linking
 SET (CMAKE_SKIP_BUILD_RPATH FALSE)
 SET (CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
@@ -33,12 +44,12 @@ SET ( RBDL_SOURCES
 	src/rbdl_version.cc
 	src/rbdl_mathutils.cc
 	src/rbdl_utils.cc
+	src/Contacts.cc
+	src/Dynamics.cc
 	src/Logging.cc
 	src/Joint.cc
 	src/Model.cc
 	src/Kinematics.cc
-	src/Dynamics.cc
-	src/Contacts.cc
 	)
 
 ADD_LIBRARY ( rbdl SHARED ${RBDL_SOURCES} )
@@ -109,12 +120,10 @@ FILE ( GLOB headers
 
 INSTALL ( FILES ${headers} DESTINATION include/rbdl )
 
-IF (NOT RBDL_USE_SIMPLE_MATH)
-	INSTALL ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/Eigen"
-		DESTINATION include/rbdl
-	)
-ELSE (NOT RBDL_USE_SIMPLE_MATH)
+# Setup of SimpleMath install settings
+IF (RBDL_USE_SIMPLE_MATH)
 	INSTALL ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/SimpleMath"
 		DESTINATION include/rbdl
 	)
-ENDIF (NOT RBDL_USE_SIMPLE_MATH)
+ENDIF (RBDL_USE_SIMPLE_MATH)
+
