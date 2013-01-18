@@ -8,10 +8,10 @@
 #ifndef _MATHWRAPPER_H
 #define _MATHWRAPPER_H
 
-#include <rbdl_config.h>
+#include <rbdl/rbdl_config.h>
 
 #ifdef RBDL_USE_SIMPLE_MATH
-  #include "SimpleMath/SimpleMath.h"
+  #include "rbdl/SimpleMath/SimpleMath.h"
 	#include <vector>
 
 	typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3_t;
@@ -25,7 +25,7 @@
 
 #else
 	#define EIGEN_DEFAULT_TO_ROW_MAJOR
-	#define EIGEN_MATRIX_PLUGIN "MatrixAddons.h"
+	#define EIGEN_MATRIX_PLUGIN "rbdl/MatrixAddons.h"
 
 	#include "Eigen/Dense"
 	#include "Eigen/StdVector"
@@ -54,7 +54,7 @@ namespace Math {
 
 } /* RigidBodyDynamics */
 
-#include "SpatialAlgebraOperators.h"
+#include "rbdl/SpatialAlgebraOperators.h"
 
 // If we use Eigen3 we have to create specializations of the STL
 // std::vector such that the alignment is done properly.

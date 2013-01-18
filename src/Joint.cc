@@ -9,10 +9,10 @@
 #include <limits>
 #include <assert.h>
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Joint.h"
+#include "rbdl/Model.h"
+#include "rbdl/Joint.h"
 
 namespace RigidBodyDynamics {
 

@@ -8,18 +8,18 @@
 #ifndef _RBDL_H
 #define _RBDL_H
 
-#include "rbdl_math.h"
-#include "rbdl_mathutils.h"
+#include "rbdl/rbdl_math.h"
+#include "rbdl/rbdl_mathutils.h"
 
-#include "Body.h"
-#include "Model.h"
+#include "rbdl/Body.h"
+#include "rbdl/Model.h"
 
-#include "Dynamics.h"
-#include "Joint.h"
-#include "Kinematics.h"
-#include "Logging.h"
+#include "rbdl/Dynamics.h"
+#include "rbdl/Joint.h"
+#include "rbdl/Kinematics.h"
+#include "rbdl/Logging.h"
 
-#include "Contacts.h"
+#include "rbdl/Contacts.h"
 
 namespace RigidBodyDynamics {
 	/** Prints version information to standard output */

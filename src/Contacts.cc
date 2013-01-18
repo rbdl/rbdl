@@ -9,16 +9,16 @@
 #include <limits>
 #include <assert.h>
 
-#include "rbdl_mathutils.h"
-#include "Logging.h"
+#include "rbdl/rbdl_mathutils.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Joint.h"
-#include "Body.h"
-#include "Contacts.h"
-#include "Dynamics.h"
-#include "Dynamics_experimental.h"
-#include "Kinematics.h"
+#include "rbdl/Model.h"
+#include "rbdl/Joint.h"
+#include "rbdl/Body.h"
+#include "rbdl/Contacts.h"
+#include "rbdl/Dynamics.h"
+#include "rbdl/Dynamics_experimental.h"
+#include "rbdl/Kinematics.h"
 
 namespace RigidBodyDynamics {
 

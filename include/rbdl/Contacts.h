@@ -8,8 +8,8 @@
 #ifndef _CONTACTS_H
 #define _CONTACTS_H
 
-#include <rbdl_math.h>
-#include <rbdl_mathutils.h>
+#include <rbdl/rbdl_math.h>
+#include <rbdl/rbdl_mathutils.h>
 
 namespace RigidBodyDynamics {
 

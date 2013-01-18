@@ -19,7 +19,7 @@
 #include <iostream>
 #include <assert.h>
 
-#include "compileassert.h"
+#include "rbdl/compileassert.h"
 
 /** \brief Namespace for a highly inefficient math library
  *

@@ -5,8 +5,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
 INCLUDE_DIRECTORIES ( 
-	${CMAKE_CURRENT_BINARY_DIR}/src
-	src
+	${CMAKE_CURRENT_SOURCE_DIR}/include
+	${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
@@ -109,20 +109,20 @@ ELSE (RBDL_STORE_VERSION)
 ENDIF (RBDL_STORE_VERSION)
 
 CONFIGURE_FILE (
-	"${CMAKE_CURRENT_SOURCE_DIR}/src/rbdl_config.h.cmake" 
-	"${CMAKE_CURRENT_BINARY_DIR}/src/rbdl_config.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/rbdl_config.h.cmake" 
+	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdl_config.h"
 	)
 
 FILE ( GLOB headers 
-	${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
-	${CMAKE_CURRENT_BINARY_DIR}/src/rbdl_config.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/*.h
+	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl//rbdl_config.h
 	)
 
 INSTALL ( FILES ${headers} DESTINATION include/rbdl )
 
 # Setup of SimpleMath install settings
 IF (RBDL_USE_SIMPLE_MATH)
-	INSTALL ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/SimpleMath"
+	INSTALL ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/SimpleMath"
 		DESTINATION include/rbdl
 	)
 ENDIF (RBDL_USE_SIMPLE_MATH)

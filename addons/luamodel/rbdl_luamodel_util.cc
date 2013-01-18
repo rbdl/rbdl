@@ -1,5 +1,5 @@
-#include "rbdl.h"
-#include "rbdl_utils.h"
+#include "rbdl/rbdl.h"
+#include "rbdl/rbdl_utils.h"
 #include "luamodel.h"
 
 #include <iostream>

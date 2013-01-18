@@ -3,12 +3,13 @@
 #include <iostream>
 #include <limits>
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Kinematics.h"
-#include "Dynamics.h"
-#include "Contacts.h"
+#include "rbdl/Model.h"
+#include "rbdl/Kinematics.h"
+#include "rbdl/Dynamics.h"
+#include "rbdl/Contacts.h"
+
 #include "Fixtures.h"
 
 using namespace std;

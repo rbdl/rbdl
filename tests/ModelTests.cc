@@ -2,12 +2,12 @@
 
 #include <iostream>
 
-#include "rbdl_mathutils.h"
-#include "Logging.h"
+#include "rbdl/rbdl_mathutils.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Kinematics.h"
-#include "Dynamics.h"
+#include "rbdl/Model.h"
+#include "rbdl/Kinematics.h"
+#include "rbdl/Dynamics.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;

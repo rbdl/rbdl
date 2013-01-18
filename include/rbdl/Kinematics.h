@@ -8,10 +8,10 @@
 #ifndef _KINEMATICS_H
 #define _KINEMATICS_H
 
-#include <rbdl_math.h>
+#include <rbdl/rbdl_math.h>
 #include <assert.h>
 #include <iostream>
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
 namespace RigidBodyDynamics {
 

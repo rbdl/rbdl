@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <sstream>
 
-#include "rbdl.h"
+#include "rbdl/rbdl.h"
 #include "model_generator.h"
 #include "Human36Model.h"
 #include "SampleData.h"

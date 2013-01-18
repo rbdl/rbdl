@@ -8,12 +8,12 @@
 #ifndef _DYNAMICS_EXPERIMENTAL_H
 #define _DYNAMICS_EXPERIMENTAL_H
 
-#include <rbdl_math.h>
+#include <rbdl/rbdl_math.h>
 #include <assert.h>
 #include <iostream>
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
+#include "rbdl/Model.h"
 
 namespace RigidBodyDynamics {
 

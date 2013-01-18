@@ -5,7 +5,7 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
 std::ostringstream LogOutput;
 

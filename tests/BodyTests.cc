@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "rbdl_mathutils.h"
-#include "Body.h"
+#include "rbdl/rbdl_mathutils.h"
+#include "rbdl/Body.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
