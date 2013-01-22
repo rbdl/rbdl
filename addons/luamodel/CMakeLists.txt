@@ -56,7 +56,6 @@ SET ( LUA_SOURCES
 	lua-5.2.1/src/lzio.c	
 	)
 
-# Options
 SET ( LUAMODEL_SOURCES 
 	luamodel.cc
 	luatables.cc
@@ -67,7 +66,7 @@ ADD_DEFINITIONS (-DLUA_COMPAT_ALL)
 ADD_LIBRARY ( rbdl_luamodel SHARED ${LUA_SOURCES} ${LUAMODEL_SOURCES} )
 
 IF (BUILD_STATIC)
-	ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
+	ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUA_SOURCES} ${LUAMODEL_SOURCES} )
 	SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES PREFIX "lib")
 	SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES OUTPUT_NAME "rbdl_luamodel")
 
@@ -89,7 +88,6 @@ TARGET_LINK_LIBRARIES (rbdl_luamodel
 
 TARGET_LINK_LIBRARIES (rbdl_luamodel_util
 	rbdl_luamodel
-	rbdl
 	)
 
 # Installing

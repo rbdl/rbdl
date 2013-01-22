@@ -6,13 +6,6 @@
 
 #include "luatables.h"
 
-extern "C"
-{
-   #include <lua.h>
-   #include <lauxlib.h>
-   #include <lualib.h>
-}
-
 using namespace std;
 
 static void bail(lua_State *L, const char *msg){
@@ -32,7 +25,7 @@ StringIntMap body_table_id_map;
 SpatialVector get_spatial_vector (lua_State *L, const string &path, int index = -1) {
 	SpatialVector result (0., 0., 0., 0., 0., 0.);
 
-	std::vector<double> array = ltGetDoubleArrayAt (L, path.c_str(), index);
+	std::vector<double> array = ltGetDoubleVectorAt (L, path.c_str(), index);
 	if (array.size() != 6) {
 		cerr << "Invalid array size for spatial vector variable '" << path << "'." << endl;
 		abort();
@@ -48,7 +41,7 @@ SpatialVector get_spatial_vector (lua_State *L, const string &path, int index = 
 Vector3d get_vector3d (lua_State *L, const string &path, int index = -1) {
 	Vector3d result;
 
-	std::vector<double> array = ltGetDoubleArrayAt (L, path.c_str(), index);
+	std::vector<double> array = ltGetDoubleVectorAt (L, path.c_str(), index);
 	if (array.size() != 3) {
 		cerr << "Invalid array size for 3d vector variable '" << path << "'." << endl;
 		abort();
@@ -84,7 +77,7 @@ Matrix3d get_matrix3d (lua_State *L, const string &path) {
 		return result;
 	}
 
-	std::vector<double> array = ltGetDoubleArrayAt (L, path.c_str(), -1);
+	std::vector<double> array = ltGetDoubleVectorAt (L, path.c_str(), -1);
 	if (array.size() != 9) {
 		cerr << "Invalid array size for 3d matrix variable '" << path << "'." << endl;
 		abort();
