@@ -29,12 +29,8 @@
 #include <vector>
 #include <string>
 
-extern "C"
-{
-   #include <lua.h>
-   #include <lauxlib.h>
-   #include <lualib.h>
-}
+// forward declaration so we do not need to #include lua.h
+struct lua_State;
 
 bool ltOpenFile (lua_State **L, const char *filename);
 void ltClose (lua_State **L);
