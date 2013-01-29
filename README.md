@@ -16,6 +16,17 @@ The code was written by Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 and tightly follows the notation used in Roy Featherstone''s book "Rigid
 Body Dynamics Algorithm".
 
+Recent Changes
+==============
+ *  29 January 2013: added code for api_version_checking
+ *  18 June 2012: added support of luamodel_introduction
+ *  01 June 2012: added support of joint_models_fixed
+ *  14 May 2012: fixed Body constructor as reported by Maxime Reis
+ *  04 April 2012: added benchmark tool for CRBA
+ *  01 March 2012: added multi degree of freedom joint_models
+ *  06 Februry 2012: restructured constraint handling using RigidBodyDynamics::ConstraintSet
+ *  24 January 2012: implemented compact and fast representation of RigidBodyDynamics::Math::SpatialTransform
+
 Documentation
 =============
 
