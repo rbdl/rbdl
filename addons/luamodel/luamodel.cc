@@ -225,6 +225,9 @@ bool read_frame_params (lua_State *L,
 		double mass = 0.;
 		Vector3d com (0., 0., 0.);
 		Matrix3d inertia (Matrix3d::Zero(3,3));
+		inertia(0,0) = 1.;
+		inertia(1,1) = 1.;
+		inertia(2,2) = 1.;
 
 		if (ltIsExisting (L, (path + ".body.mass").c_str()) ) {
 			mass = ltGetDouble (L, (path + ".body.mass").c_str());
