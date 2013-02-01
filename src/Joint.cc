@@ -31,9 +31,6 @@ void jcalc (
 	// exception if we calculate it for the root body
 	assert (joint_id > 0);
 
-	// Calculate the spatial joint velocity
-	v_J = model.S.at(joint_id);
-
 	// Set the joint axis
 	S = model.mJoints[joint_id].mJointAxes[0];
 
