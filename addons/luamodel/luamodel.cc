@@ -297,6 +297,9 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 					verbose
 					)) {
 			cerr << "Error reading frame " << frame_names[i] << "." << endl;
+
+			lua_close (L);
+
 			return false;
 		}
 
@@ -319,6 +322,8 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 		if (verbose)
 			cout << "  body id    : " << body_id << endl;
 	}
+
+	lua_close (L);
 
 	return true;
 }
