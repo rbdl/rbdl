@@ -417,7 +417,7 @@ int main (int argc, char *argv[]) {
 	cout << "Human dofs = " << model->dof_count << endl;
 	delete model;
 
-	RigidBodyDynamics::rbdl_print_version();
+	rbdl_print_version();
 	cout << endl;
 
 	if (benchmark_run_fd_aba) {

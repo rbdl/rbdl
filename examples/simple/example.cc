@@ -13,6 +13,8 @@ using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
 int main (int argc, char* argv[]) {
+	rbdl_check_api_version (RBDL_API_VERSION);
+
 	Model* model = NULL;
 
 	unsigned int body_a_id, body_b_id, body_c_id;

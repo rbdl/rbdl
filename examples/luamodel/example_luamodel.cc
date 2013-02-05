@@ -19,6 +19,8 @@ using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
 int main (int argc, char* argv[]) {
+	rbdl_check_api_version (RBDL_API_VERSION);
+
 	Model* model = NULL;
 
 	model = new Model();

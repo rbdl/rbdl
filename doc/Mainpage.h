@@ -31,6 +31,7 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li> 29. January 2013: added code for \ref api_version_checking</li>
  * <li> 11. January 2013: removed Eigen3 sources and relying on an already installed Eigen3 library. Optionally RBDL can be used with the included but slower SimpleMath library.</li>
  * <li> 18. June 2012: added support of \ref luamodel_introduction</li>
  * <li> 01. June 2012: added support of \ref joint_models_fixed</li>

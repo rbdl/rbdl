@@ -6,6 +6,13 @@
 
 #include "luatables.h"
 
+extern "C"
+{
+   #include <lua.h>
+   #include <lauxlib.h>
+   #include <lualib.h>
+}
+
 using namespace std;
 
 static void bail(lua_State *L, const char *msg){
@@ -218,6 +225,9 @@ bool read_frame_params (lua_State *L,
 		double mass = 0.;
 		Vector3d com (0., 0., 0.);
 		Matrix3d inertia (Matrix3d::Zero(3,3));
+		inertia(0,0) = 1.;
+		inertia(1,1) = 1.;
+		inertia(2,2) = 1.;
 
 		if (ltIsExisting (L, (path + ".body.mass").c_str()) ) {
 			mass = ltGetDouble (L, (path + ".body.mass").c_str());
@@ -287,6 +297,9 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 					verbose
 					)) {
 			cerr << "Error reading frame " << frame_names[i] << "." << endl;
+
+			lua_close (L);
+
 			return false;
 		}
 
@@ -309,6 +322,8 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 		if (verbose)
 			cout << "  body id    : " << body_id << endl;
 	}
+
+	lua_close (L);
 
 	return true;
 }

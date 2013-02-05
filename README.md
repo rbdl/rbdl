@@ -19,14 +19,15 @@ Body Dynamics Algorithm".
 Recent Changes
 ==============
 
+   * 29 January 2013: added code for api_version_checking
    * 11 January 2013: removed Eigen3 sources and relying on an already installed Eigen3 library. Optionally RBDL can be used with the included but slower SimpleMath library.
-   * 18 June 2012: added support of \ref luamodel_introduction
-   * 01 June 2012: added support of \ref joint_models_fixed
+   * 18 June 2012: added support of luamodel_introduction
+   * 01 June 2012: added support of joint_models_fixed
    * 14 May 2012: fixed Body constructor as reported by Maxime Reis
    * 04 April 2012: added benchmark tool for CRBA
-   * 01 March 2012: added multi degree of freedom \ref joint_models
-   * 06 Februry 2012: restructured constraint handling using \ref RigidBodyDynamics::ConstraintSet
-   * 24 January 2012: implemented compact and fast representation of \ref RigidBodyDynamics::Math::SpatialTransform 
+   * 01 March 2012: added multi degree of freedom joint_models
+   * 06 Februry 2012: restructured constraint handling using RigidBodyDynamics::ConstraintSet
+   * 24 January 2012: implemented compact and fast representation of RigidBodyDynamics::Math::SpatialTransform 
 
 Documentation
 =============
