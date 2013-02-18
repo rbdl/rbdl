@@ -16,10 +16,10 @@
 
 #include <sstream>
 #include <cstdlib>
-#include <iostream>
 #include <assert.h>
+#include <iostream>
 
-#include "rbdl/compileassert.h"
+#include "compileassert.h"
 
 /** \brief Namespace for a highly inefficient math library
  *
@@ -54,7 +54,6 @@ inline Fixed::Matrix<val_type, nrows, ncols>& Fixed::Matrix<val_type, nrows, nco
 
 	return *this;
 }
-
 
 // multiplication
 template <typename val_type, unsigned int nrows, unsigned int ncols>

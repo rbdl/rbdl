@@ -16,9 +16,10 @@
 
 #include <sstream>
 #include <cstdlib>
+#include <cmath>
 #include <assert.h>
 
-#include "rbdl/compileassert.h"
+#include "compileassert.h"
 
 /** \brief Namespace for a highly inefficient math library
  *
@@ -28,7 +29,6 @@ namespace SimpleMath {
 namespace Dynamic {
 template <typename val_type> class Matrix;
 }
-
 
 /** \brief Namespace for fixed size elements
  */
@@ -192,12 +192,14 @@ class Block {
 	val_type *parent;
 };
 
-/** \brief Fixed size matrix class 
+/** \brief Fixed size matrix class
  */
-
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 class Matrix {
 	public:
+		typedef Matrix<val_type, nrows, ncols> matrix_type;
+		typedef val_type value_type;
+
 		unsigned int rows() const {
 			return nrows;
 		}
@@ -209,8 +211,6 @@ class Matrix {
 		unsigned int size() const {
 			return nrows * ncols;
 		}
-
-		typedef Matrix<val_type, nrows, ncols> matrix_type;
 
 		Matrix() {};
 		Matrix(const Matrix &matrix) {
@@ -294,6 +294,89 @@ class Matrix {
 			mData[2 * 3 + 0] = v20;
 			mData[2 * 3 + 1] = v21;
 			mData[2 * 3 + 2] = v22;
+		}
+
+		Matrix (
+				const val_type &v00, const val_type &v01, const val_type &v02, const val_type &v03
+				) {
+			assert (nrows == 4);
+			assert (ncols == 1);
+
+			mData[0] = v00;
+			mData[1] = v01;
+			mData[2] = v02;
+			mData[3] = v03;
+		}
+
+		void set(
+				const val_type &v00, const val_type &v01, const val_type &v02, const val_type &v03
+				) {
+			COMPILE_ASSERT (nrows * ncols == 4);
+
+			mData[0] = v00;
+			mData[1] = v01;
+			mData[2] = v02;
+			mData[3] = v03;
+		}
+
+		Matrix (
+				const val_type &v00, const val_type &v01, const val_type &v02, const val_type &v03,
+				const val_type &v10, const val_type &v11, const val_type &v12, const val_type &v13,
+				const val_type &v20, const val_type &v21, const val_type &v22, const val_type &v23,
+				const val_type &v30, const val_type &v31, const val_type &v32, const val_type &v33
+				) {
+			COMPILE_ASSERT (nrows == 4);
+			COMPILE_ASSERT (ncols == 4);
+
+			mData[0] = v00;
+			mData[1] = v01;
+			mData[2] = v02;
+			mData[3] = v03;
+
+			mData[1 * 4 + 0] = v10;
+			mData[1 * 4 + 1] = v11;
+			mData[1 * 4 + 2] = v12;
+			mData[1 * 4 + 3] = v13;
+			
+			mData[2 * 4 + 0] = v20;
+			mData[2 * 4 + 1] = v21;
+			mData[2 * 4 + 2] = v22;
+			mData[2 * 4 + 3] = v23;
+
+			mData[3 * 4 + 0] = v30;
+			mData[3 * 4 + 1] = v31;
+			mData[3 * 4 + 2] = v32;
+			mData[3 * 4 + 3] = v33;
+		}
+
+		void set(
+				const val_type &v00, const val_type &v01, const val_type &v02, const val_type &v03,
+				const val_type &v10, const val_type &v11, const val_type &v12, const val_type &v13,
+				const val_type &v20, const val_type &v21, const val_type &v22, const val_type &v23,
+				const val_type &v30, const val_type &v31, const val_type &v32, const val_type &v33
+				) {
+			COMPILE_ASSERT (nrows == 4);
+			COMPILE_ASSERT (ncols == 4);
+
+			mData[0] = v00;
+			mData[1] = v01;
+			mData[2] = v02;
+			mData[3] = v03;
+
+			mData[1 * 4 + 0] = v10;
+			mData[1 * 4 + 1] = v11;
+			mData[1 * 4 + 2] = v12;
+			mData[1 * 4 + 3] = v13;
+			
+			mData[2 * 4 + 0] = v20;
+			mData[2 * 4 + 1] = v21;
+			mData[2 * 4 + 2] = v22;
+			mData[2 * 4 + 3] = v23;
+
+			mData[3 * 4 + 0] = v30;
+			mData[3 * 4 + 1] = v31;
+			mData[3 * 4 + 2] = v32;
+			mData[3 * 4 + 3] = v33;
 		}
 
 		Matrix (
@@ -454,7 +537,7 @@ class Matrix {
 			mData[30 + 4] = v54;
 			mData[30 + 5] = v55;
 		}
-
+		
 		// comparison
 		bool operator==(const Matrix &matrix) const {
 			for (unsigned int i = 0; i < nrows * ncols; i++) {
@@ -502,11 +585,13 @@ class Matrix {
 			return sqrt(this->squaredNorm());
 		}
 
-		void normalize() {
+		matrix_type normalize() {
 			val_type length = this->norm();
 
 			for (unsigned int i = 0; i < ncols * nrows; i++)
 				mData[i] /= length;
+
+			return *this;
 		}
 
 		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) {
@@ -538,6 +623,11 @@ class Matrix {
 			return result;
 		}
 
+		static matrix_type Identity() {
+			matrix_type result;
+			result.identity();
+			return result;
+		}
 
 		static matrix_type Identity(int ignore_me, int ignore_me_too) {
 			matrix_type result;

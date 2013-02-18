@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <assert.h>
 
-#include "rbdl/compileassert.h"
+#include "compileassert.h"
 
 /** \brief Namespace for a highly inefficient math library
  *
@@ -186,21 +186,33 @@ template <typename val_type>
 class Matrix {
 	public:
 		typedef Matrix<val_type> matrix_type;
+		typedef val_type value_type;
 
 		Matrix() :
 			nrows (0),
 			ncols (0),
+			mapped_data (false),
 			mData (NULL) {};
 		Matrix(unsigned int rows) :
 			nrows (rows),
-			ncols (1) {
+			ncols (1),
+			mapped_data (false) {
 				mData = new val_type[rows];
 			}
 		Matrix(unsigned int rows, unsigned int cols) :
 			nrows (rows),
-			ncols (cols) {
+			ncols (cols),
+			mapped_data (false) {
 				mData = new val_type[rows * cols];
 			}
+
+		Matrix(unsigned int rows, unsigned int cols, val_type *data_ptr) :
+			nrows (rows),
+			ncols (cols),
+			mapped_data (true) {
+				mData = data_ptr;
+			}
+	
 		unsigned int rows() const {
 			return nrows;
 		}
@@ -213,7 +225,7 @@ class Matrix {
 			return nrows * ncols;
 		}
 		void resize (unsigned int rows, unsigned int cols=1) {
-			if (nrows * ncols > 0 && mData != NULL) {
+			if (nrows * ncols > 0 && mData != NULL && mapped_data == false) {
 				delete[] mData;
 			}
 
@@ -240,7 +252,8 @@ class Matrix {
 
 		Matrix(const Matrix &matrix) :
 			nrows (matrix.nrows),
-			ncols (matrix.ncols) {
+			ncols (matrix.ncols),
+			mapped_data (false) {
 			unsigned int i;
 		
 			mData = new val_type[nrows * ncols];
@@ -250,27 +263,40 @@ class Matrix {
 		}
 		Matrix& operator=(const Matrix &matrix) {
 			if (this != &matrix) {
-				delete[] mData;
+				if (!mapped_data) {
+					delete[] mData;
 
-				nrows = matrix.nrows;
-				ncols = matrix.ncols;
+					nrows = matrix.nrows;
+					ncols = matrix.ncols;
+					mapped_data = false;
 
-				mData = new val_type[nrows * ncols];
+					mData = new val_type[nrows * ncols];
 
-				unsigned int i;
-				for (i = 0; i < nrows * ncols; i++)
-					mData[i] = matrix.mData[i];
+					unsigned int i;
+					for (i = 0; i < nrows * ncols; i++)
+						mData[i] = matrix.mData[i];
+				} else {
+					// we overwrite any existing data
+					nrows = matrix.nrows;
+					ncols = matrix.ncols;
+					mapped_data = true;
+
+					unsigned int i;
+					for (i = 0; i < nrows * ncols; i++)
+						mData[i] = matrix.mData[i];
+				}
 			}
 			return *this;
 		}
 
 		~Matrix() {
-			if (nrows * ncols > 0 || mData != NULL)
+			if (nrows * ncols > 0 && mData != NULL && mapped_data == false) {
 				delete[] mData;
+				mData = NULL;
+			}
 
 			nrows = 0;
 			ncols = 0;
-			mData = NULL;
 		};
 
 		// comparison
@@ -523,6 +549,7 @@ class Matrix {
 	private:
 		unsigned int nrows;
 		unsigned int ncols;
+		bool mapped_data;
 
 		val_type* mData;
 };
