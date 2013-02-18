@@ -19,7 +19,6 @@ struct ModelFixture {
 	ModelFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 		model->gravity = Vector3d (0., -9.81, 0.);
 	}
 	~ModelFixture () {
@@ -249,7 +248,6 @@ TEST ( Model2DoFJoint ) {
 			);
 
 	Model model_std;
-	model_std.Init();
 	model_std.gravity = Vector3d (0., -9.81, 0.);
 
 	model_std.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
@@ -262,7 +260,6 @@ TEST ( Model2DoFJoint ) {
 		);
 
 	Model model_2;
-	model_2.Init();
 	model_2.gravity = Vector3d (0., -9.81, 0.);
 
 	model_2.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zx, body);
@@ -299,7 +296,6 @@ TEST ( Model3DoFJoint ) {
 			);
 
 	Model model_std;
-	model_std.Init();
 	model_std.gravity = Vector3d (0., -9.81, 0.);
 
 	unsigned int body_id;
@@ -322,7 +318,6 @@ TEST ( Model3DoFJoint ) {
 		);
 
 	Model model_2;
-	model_2.Init();
 	model_2.gravity = Vector3d (0., -9.81, 0.);
 
 	// in total we add two bodies to make sure that the transformations are
@@ -362,7 +357,6 @@ TEST ( Model6DoFJoint ) {
 			);
 
 	Model model_std;
-	model_std.Init();
 	model_std.gravity = Vector3d (0., -9.81, 0.);
 
 	unsigned int body_id;
@@ -392,7 +386,6 @@ TEST ( Model6DoFJoint ) {
 		);
 
 	Model model_2;
-	model_2.Init();
 	model_2.gravity = Vector3d (0., -9.81, 0.);
 
 	// in total we add two bodies to make sure that the transformations are
@@ -420,7 +413,6 @@ TEST ( ModelFixedJointQueryBodyId ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -443,7 +435,6 @@ TEST ( ModelAppendToFixedBody ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -473,7 +464,6 @@ TEST ( ModelAppendFixedToFixedBody ) {
 	Body fixed_body(fixed_mass, fixed_com, Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -506,7 +496,6 @@ TEST ( ModelFixedJointRotationOrderTranslationRotation ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -536,7 +525,6 @@ TEST ( ModelFixedJointRotationOrderRotationTranslation ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -563,7 +551,6 @@ TEST ( ModelGetBodyName ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,

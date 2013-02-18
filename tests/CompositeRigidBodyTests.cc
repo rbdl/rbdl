@@ -18,7 +18,6 @@ struct CompositeRigidBodyFixture {
 	CompositeRigidBodyFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 		model->gravity = Vector3d (0., -9.81, 0.);
 	}
 	~CompositeRigidBodyFixture () {

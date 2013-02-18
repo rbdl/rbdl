@@ -181,8 +181,6 @@ Vector3d medial_point (0., 0., 0.);
 void init_model () {
 	assert (model);
 
-	model->Init();
-
 	model->gravity = Vector3d (0., -9.81, 0.);
 
 	joint_rot_z = Joint (JointTypeRevolute, Vector3d (0., 0., 1.));

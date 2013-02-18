@@ -20,7 +20,7 @@
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-void Model::Init() {
+Model::Model() {
 	Body root_body;
 	Joint root_joint;
 

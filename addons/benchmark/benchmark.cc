@@ -166,7 +166,6 @@ double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_
 double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmark) {
 	// initialize the human model
 	Model *model = new Model();
-	model->Init();
 	generate_human36model(model);
 
 	// initialize the constraint sets
@@ -412,7 +411,6 @@ int main (int argc, char *argv[]) {
 	Model *model = NULL;
 
 	model = new Model();
-	model->Init();
 	generate_human36model (model);
 	cout << "Human dofs = " << model->dof_count << endl;
 	delete model;
@@ -424,7 +422,6 @@ int main (int argc, char *argv[]) {
 		cout << "= Forward Dynamics: ABA =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 			model = new Model();
-			model->Init();
 			model->gravity = Vector3d (0., -9.81, 0.);
 
 			generate_planar_tree (model, depth);
@@ -440,7 +437,6 @@ int main (int argc, char *argv[]) {
 		cout << "= Forward Dynamics: Lagrangian (Piv. LU decomposition) =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 			model = new Model();
-			model->Init();
 			model->gravity = Vector3d (0., -9.81, 0.);
 
 			generate_planar_tree (model, depth);
@@ -456,7 +452,6 @@ int main (int argc, char *argv[]) {
 		cout << "= Inverse Dynamics: RNEA =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 			model = new Model();
-			model->Init();
 			model->gravity = Vector3d (0., -9.81, 0.);
 
 			generate_planar_tree (model, depth);
@@ -472,7 +467,6 @@ int main (int argc, char *argv[]) {
 		cout << "= Joint Space Inertia Matrix: CRBA =" << endl;
 		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
 			model = new Model();
-			model->Init();
 			model->gravity = Vector3d (0., -9.81, 0.);
 
 			generate_planar_tree (model, depth);

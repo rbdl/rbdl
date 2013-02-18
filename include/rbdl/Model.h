@@ -60,11 +60,10 @@ namespace RigidBodyDynamics {
  *
  * All model related values are stored in the model structure \link
  * RigidBodyDynamics::Model\endlink. The functions 
- * \link RigidBodyDynamics::Model::Init Model::Init()\endlink,
  * \link RigidBodyDynamics::Model::AddBody Model::AddBody(...)\endlink,
  * \link RigidBodyDynamics::Model::AppendBody Model::AppendBody(...)\endlink, and
  * \link RigidBodyDynamics::Model::GetBodyId Model::GetBodyId(...)\endlink,
- * are used to initialize and construct the \ref model_structure.
+ * are used to construct the \ref model_structure.
  *
  * \section model_construction Model Construction
  *
@@ -166,6 +165,8 @@ namespace RigidBodyDynamics {
  * \note To query the number of degrees of freedom use Model::dof_count.
  */
 struct Model {
+	Model();
+
 	// Structural information
 
 	/// \brief The id of the parents body
@@ -389,8 +390,6 @@ struct Model {
 		}
 		return false;
 	}
-	/// \brief Initializes the helper values for the dynamics algorithm
-	void Init ();
 };
 
 /** @} */

@@ -20,7 +20,6 @@ struct FloatingBaseFixture {
 	FloatingBaseFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 		model->gravity = Vector3d (0., -9.81, 0.);
 
 		base = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));

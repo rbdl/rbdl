@@ -19,7 +19,6 @@ struct KinematicsFixture {
 	KinematicsFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		/* Basically a model like this, where X are the Center of Masses
 		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
@@ -96,7 +95,6 @@ struct KinematicsFixture6DoF {
 	KinematicsFixture6DoF () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		model->gravity = Vector3d  (0., -9.81, 0.);
 
@@ -358,7 +356,6 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 
 TEST(TestCalcPointJacobian) {
 	Model model;
-	model.Init();
 	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
 	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);
 
@@ -511,7 +508,6 @@ TEST ( FixedJointBodyCalcBodyToBase ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -533,7 +529,6 @@ TEST ( FixedJointBodyCalcBodyToBaseRotated ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -559,7 +554,6 @@ TEST ( FixedJointBodyCalcBaseToBody ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -581,7 +575,6 @@ TEST ( FixedJointBodyCalcBaseToBodyRotated ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -607,7 +600,6 @@ TEST ( FixedJointBodyWorldOrientation ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -633,7 +625,6 @@ TEST ( FixedJointCalcPointJacobian ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,

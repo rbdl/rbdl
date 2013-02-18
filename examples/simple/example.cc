@@ -22,7 +22,6 @@ int main (int argc, char* argv[]) {
 	Joint joint_a, joint_b, joint_c;
 
 	model = new Model();
-	model->Init();
 
 	model->gravity = Vector3d (0., -9.81, 0.);
 

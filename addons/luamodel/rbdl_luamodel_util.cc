@@ -48,7 +48,6 @@ int main (int argc, char *argv[]) {
 	}
 
 	RigidBodyDynamics::Model model;
-	model.Init();
 
 	if (!RigidBodyDynamics::Addons::LuaModelReadFromFile(filename.c_str(), &model, verbose)) {
 		cerr << "Loading of lua model failed!" << endl;
