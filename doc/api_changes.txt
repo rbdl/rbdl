@@ -1,0 +1,4 @@
+1.X.Y -> 2.0.0
+- removed Model::Init():
+  All initialization is now done in the default constructor in Model(). To
+	be compatible with the new API simply remove any calls to Model::Init().
