@@ -348,8 +348,8 @@ TEST (TestForwardDynamics3DoFModel) {
 
 	model.gravity = Vector3d (0., -9.81, 0.);
 
-	Body null_body (0., Vector3d(0., 0., 0.), 1., Vector3d (0., 0., 0.));
-	Body base_body (1., Vector3d(0., 0.5, 0.), 1., Vector3d (1., 1., 1.));
+	Body null_body (0., Vector3d(0., 0., 0.), Vector3d (0., 0., 0.));
+	Body base_body (1., Vector3d(0., 0.5, 0.), Vector3d (1., 1., 1.));
 
 	Joint joint_rot_z (JointTypeRevolute, Vector3d (0., 0., 1.));
 	Joint joint_rot_y (JointTypeRevolute, Vector3d (0., 1., 0.));
@@ -398,8 +398,8 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
 
 	model.gravity = Vector3d (0., -9.81, 0.);
 
-	Body null_body (0., Vector3d(0., 0., 0.), 1., Vector3d (0., 0., 0.));
-	Body base_body (1., Vector3d(0., 0.5, 0.), 1., Vector3d (1., 1., 1.));
+	Body null_body (0., Vector3d(0., 0., 0.), Vector3d (0., 0., 0.));
+	Body base_body (1., Vector3d(0., 0.5, 0.), Vector3d (1., 1., 1.));
 
 	Joint joint_rot_z (JointTypeRevolute, Vector3d (0., 0., 1.));
 	Joint joint_rot_y (JointTypeRevolute, Vector3d (0., 1., 0.));

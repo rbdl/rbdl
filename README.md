@@ -1,5 +1,5 @@
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2013 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
 Introduction
 ============
@@ -18,8 +18,8 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
-
-   * 29 January 2013: added code for api_version_checking
+   * 20 February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)
+   * 29 January 2013: added code for api_version_checking. Current API version is 1.0.0.
    * 11 January 2013: removed Eigen3 sources and relying on an already installed Eigen3 library. Optionally RBDL can be used with the included but slower SimpleMath library.
    * 18 June 2012: added support of luamodel_introduction
    * 01 June 2012: added support of joint_models_fixed
