@@ -1,0 +1,10 @@
+1.X.Y -> 2.0.0
+- removed Model::Init():
+  All initialization is now done in the default constructor in Model(). To
+	be compatible with the new API simply remove any calls to Model::Init().
+
+1.0.0 -> 1.1.0
+- removed constructor Body (mass, com, length, gyration_radii)
+  This constructor did some erroneous calculations to compute the real
+	radii of gyration. It was removed as the two remaining constructors are
+	properly tested and are more general.
