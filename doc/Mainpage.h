@@ -31,7 +31,8 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
- * <li> 29. January 2013: added code for \ref api_version_checking</li>
+ * <li> 20. February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)
+ * <li> 29. January 2013: added code for \ref api_version_checking. Current is 1.0.0.</li>
  * <li> 18. June 2012: added support of \ref luamodel_introduction</li>
  * <li> 01. June 2012: added support of \ref joint_models_fixed</li>
  * <li> 14. May 2012: fixed Body constructor as reported by Maxime Reis</li>

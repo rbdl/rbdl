@@ -73,8 +73,11 @@ struct SpatialRigidBodyInertia {
 		return result;
 	}
 
+	/// Mass
 	double m;
+	/// Coordinates of the center of mass
 	Vector3d h;
+	/// Inertia expressed at the origin
 	Matrix3d I;
 };
 

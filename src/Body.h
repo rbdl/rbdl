@@ -54,7 +54,7 @@ struct Body {
 	/** \brief Constructs a body from mass, center of mass and radii of gyration 
 	 * 
 	 * This constructor eases the construction of a new body as all the
-	 * required parameters can simply be specified as parameters to the
+	 * required parameters can be specified as parameters to the
 	 * constructor. These are then used to generate the spatial inertia
 	 * matrix which is expressed at the origin.
 	 * 
@@ -75,21 +75,26 @@ struct Body {
 			Math::Matrix3d parallel_axis;
 			parallel_axis = mass * com_cross * com_cross.transpose();
 
-			Math::Vector3d gr (gyration_radii);
+			mInertia = Math::Matrix3d (
+					gyration_radii[0], 0., 0.,
+					0., gyration_radii[1], 0.,
+					0., 0., gyration_radii[2]
+					);
+
 			Math::Matrix3d pa (parallel_axis);
 			Math::Matrix3d mcc = mass * com_cross;
 			Math::Matrix3d mccT = mcc.transpose();
 
+			Math::Matrix3d inertia_O = mInertia + pa;
+
 			mSpatialInertia.set (
-					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
-					pa(1, 0), gr[1] + pa(1, 1), pa(1, 2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
-					pa(2, 0), pa(2, 1), gr[2] + pa(2, 2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
+					inertia_O(0,0), inertia_O(0,1), inertia_O(0,2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
+					inertia_O(1,0), inertia_O(1,1), inertia_O(1,2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
+					inertia_O(2,0), inertia_O(2,1), inertia_O(2,2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
 					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
 					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
 					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
 					);
-
-			mInertia = mSpatialInertia.block<3,3>(0,0);
 		}
 
 	/** \brief Constructs a body from mass, center of mass, and a 3x3 inertia matrix 
@@ -131,62 +136,7 @@ struct Body {
 					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
 					);
 		}
-
-	/** \brief Constructs a body out of the given parameters
-	 * 
-	 * This constructor eases the construction of a new body as all the
-	 * required parameters can simply be specified as parameters to the
-	 * constructor. These are then used to generate the spatial inertia
-	 * matrix which is expressed at the origin.
-	 * 
-	 * \param mass the mass of the body
-	 * \param com  the position of the center of mass in the bodies coordinates
-	 * \param length the length of the segment (needed to compute the inertia at the CoM
-	 * \param gyration_radii the radii of gyration at the center of mass of the body in percentage of the segment length
-	 */
-	Body(const double &mass,
-			const Math::Vector3d &com,
-			const double &length,
-			const Math::Vector3d &gyration_radii) :
-		mMass (mass),
-		mCenterOfMass(com) {
-			Math::Matrix3d com_cross (
-					0., -com[2],  com[1],
-					com[2],      0., -com[0],
-					-com[1],  com[0],      0.
-					);
-			Math::Matrix3d parallel_axis;
-			parallel_axis = mass * com_cross * com_cross.transpose();
-
-			LOG << "parrallel axis = " << parallel_axis << std::endl;
-
-			Math::Vector3d gr = mass * Math::Vector3d(
-					gyration_radii[0] * gyration_radii[0] * length * length,
-					gyration_radii[1] * gyration_radii[1] * length * length,
-					gyration_radii[2] * gyration_radii[2] * length * length
-					);
-			Math::Matrix3d pa (parallel_axis);
-			Math::Matrix3d mcc = mass * com_cross;
-			Math::Matrix3d mccT = mcc.transpose();
-
-			mInertia.set (
-					gr[0], 0., 0.,
-					0., gr[1], 0.,
-					0., 0., gr[2]
-					);
-
-			mSpatialInertia.set (
-					gr[0] + pa(0, 0), pa(0, 1), pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
-					pa(1, 0), gr[1] + pa(1, 1), pa(1, 2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
-					pa(2, 0), pa(2, 1), gr[2] + pa(2, 2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
-					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
-					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
-					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
-					);
-
-			LOG << "spatial inertia = " << mSpatialInertia << std::endl;
-		}
-		
+	
 	/** \brief Joins inertial parameters of two bodies to create a composite
 	 * body.
 	 *
