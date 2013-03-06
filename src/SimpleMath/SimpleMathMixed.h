@@ -16,8 +16,8 @@
 
 #include <sstream>
 #include <cstdlib>
-#include <iostream>
 #include <assert.h>
+#include <iostream>
 
 #include "compileassert.h"
 
@@ -31,7 +31,7 @@ template <typename val_type, unsigned int nrows, unsigned int ncols>
 inline Fixed::Matrix<val_type, nrows, ncols>::Matrix(const Dynamic::Matrix<val_type> &dynamic_matrix) {
 	if (dynamic_matrix.cols() != ncols 
 		|| dynamic_matrix.rows() != nrows) {
-		std::cerr << "Error: dimension mismatch!" << std::endl;
+		std::cerr << "Error: cannot assign a dynamic sized matrix of size " << dynamic_matrix.rows() << "x" << dynamic_matrix.cols() << " to a fixed size matrix of size " << nrows << "x" << ncols << "!" << std::endl;
 		abort();
 	}
 	
@@ -44,7 +44,7 @@ template <typename val_type, unsigned int nrows, unsigned int ncols>
 inline Fixed::Matrix<val_type, nrows, ncols>& Fixed::Matrix<val_type, nrows, ncols>::operator=(const Dynamic::Matrix<val_type> &dynamic_matrix) {
 	if (dynamic_matrix.cols() != ncols 
 		|| dynamic_matrix.rows() != nrows) {
-		std::cerr << "Error: dimension mismatch!" << std::endl;
+		std::cerr << "Error: cannot assign a dynamic sized matrix of size " << dynamic_matrix.rows() << "x" << dynamic_matrix.cols() << " to a fixed size matrix of size " << nrows << "x" << ncols << "!" << std::endl;
 		abort();
 	}
 	
@@ -54,7 +54,6 @@ inline Fixed::Matrix<val_type, nrows, ncols>& Fixed::Matrix<val_type, nrows, nco
 
 	return *this;
 }
-
 
 // multiplication
 template <typename val_type, unsigned int nrows, unsigned int ncols>

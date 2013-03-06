@@ -16,9 +16,12 @@
 
 #include <sstream>
 #include <cstdlib>
+#include <cmath>
 #include <assert.h>
 
 #include "compileassert.h"
+
+#include "SimpleMathBlock.h"
 
 /** \brief Namespace for a highly inefficient math library
  *
@@ -29,6 +32,11 @@ namespace Dynamic {
 template <typename val_type> class Matrix;
 }
 
+template <typename matrix_type>
+class HouseholderQR;
+
+template <typename matrix_type>
+class ColPivHouseholderQR;
 
 /** \brief Namespace for fixed size elements
  */
@@ -38,166 +46,14 @@ namespace Fixed {
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 class Matrix;
 
-/** \brief Block class that can be used to access blocks of a matrix
- *
- * This class is a proxy class and only contains data on where to find the
- * desired information.
- *
+/** \brief Fixed size matrix class
  */
-template <typename val_type, unsigned int block_rows, unsigned int block_cols>
-class Block {
-	public:
-	Block () :
-		parent_nrows(0),
-		parent_ncols(0),
-		parent_row_index(0),
-		parent_col_index(0),
-		transposed(false),
-		parent(NULL)
-	{ }
-	Block (const Block& other) :
-		parent_nrows(other.parent_nrows),
-		parent_ncols(other.parent_ncols),
-		parent_row_index(other.parent_row_index),
-		parent_col_index(other.parent_col_index),
-		transposed(other.transposed),
-		parent(other.parent)
-	{ }
-
-	Block (
-			val_type *parent_data,
-			unsigned int parent_row_start,
-			unsigned int parent_col_start,
-			unsigned int parent_num_rows,
-			unsigned int parent_num_cols)
-	{
-		parent = parent_data;
-		parent_row_index = parent_row_start;
-		parent_col_index = parent_col_start;
-
-		parent_nrows = parent_num_rows;
-		parent_ncols = parent_num_cols;
-
-		transposed = false;
-	}
-
-	/** This operater is only used to copy the data from other into this
-	 *
-	 */
-	Block& operator=(const Block& other) {
-		if (this != &other) {
-			// copy the data, but we have to ensure, that the sizes match!
-
-			unsigned int i, j;
-			for (i = 0; i < block_rows; i++) {
-				for (j = 0; j < block_cols; j++) {
-					this->operator()(i,j) = other(i,j);
-				}
-			}
-		}
-
-		// copy data depending on other.transposed!
-
-		return *this;
-	}
-
-	/** This operater is only used to copy the data from other into this
-	 */
-	template <unsigned int other_rows, unsigned int other_cols>
-	Block& operator=(const Matrix<val_type, other_rows, other_cols>& data_in) {
-		assert (parent != NULL);
-		// copy the data, but we have to ensure, that the sizes match!
-		COMPILE_ASSERT (block_rows == other_rows);
-		COMPILE_ASSERT (block_cols == other_cols);
-
-		if (!transposed) {
-			for (unsigned int i = 0; i < block_rows; i++) {
-				for (unsigned int j = 0; j < block_cols; j++) {
-					parent[parent_nrows * (i + parent_row_index) + j + parent_col_index] = data_in(i,j);
-				}
-			}
-		} else {
-			for (unsigned int i = 0; i < block_rows; i++) {
-				for (unsigned int j = 0; j < block_cols; j++) {
-					parent[parent_nrows * (j + parent_row_index) + i + parent_col_index] = data_in(i,j);
-				}
-			}
-		}
-
-		return *this;
-	}
-
-	Block transpose() {
-		assert (parent != NULL);
-		Block result (*this);
-		result.transposed = transposed ^ true;
-		return result;
-	}
-
-	const val_type& operator() (const unsigned int i, const unsigned int j) const {
-		assert (parent != NULL);
-		assert (i < block_rows);
-		assert (j < block_cols);
-
-		if (!transposed)
-			return parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
-	
-		return parent[parent_nrows * (j + parent_row_index) + i + parent_col_index];
-	}
-
-	val_type& operator() (const unsigned int i, const unsigned int j) {
-		assert (parent != NULL);
-		assert (i < block_rows);
-		assert (j < block_cols);
-
-		if (!transposed)
-			return parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
-	
-		return parent[parent_nrows * (j + parent_row_index) + i + parent_col_index];
-	}
-
-	// casting operators
-	template <unsigned int other_rows, unsigned int other_cols>
-	operator Matrix<val_type, other_rows, other_cols>() {
-
-		if (!transposed) {
-			assert (block_rows == other_rows);
-			assert (block_cols == other_cols);
-
-			Matrix<val_type, other_rows, other_cols> result;
-			for (unsigned int i = 0; i < block_rows; i++) 
-				for (unsigned int j = 0; j < block_cols; j++)
-					result(i,j) = parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
-
-			return result;
-		} 
-
-		assert (block_rows == other_cols);
-		assert (block_cols == other_rows);
-
-		Matrix<val_type, other_rows, other_cols> result;
-		for (unsigned int i = 0; i < block_rows; i++) 
-			for (unsigned int j = 0; j < block_cols; j++)
-				result(j,i) = parent[parent_nrows * (i + parent_row_index) + j + parent_col_index];
-
-		return result;
-	}
-
-	unsigned int parent_nrows;
-	unsigned int parent_ncols;
-	unsigned int parent_row_index;
-	unsigned int parent_col_index;
-	bool transposed;
-
-	val_type *parent;
-};
-
-/** \brief Fixed size matrix class 
- */
-
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 class Matrix {
 	public:
+		typedef Matrix<val_type, nrows, ncols> matrix_type;
+		typedef val_type value_type;
+
 		unsigned int rows() const {
 			return nrows;
 		}
@@ -209,8 +65,6 @@ class Matrix {
 		unsigned int size() const {
 			return nrows * ncols;
 		}
-
-		typedef Matrix<val_type, nrows, ncols> matrix_type;
 
 		Matrix() {};
 		Matrix(const Matrix &matrix) {
@@ -227,11 +81,58 @@ class Matrix {
 			return *this;
 		}
 
+		// conversion different val_types
+
+		template <typename other_matrix_type>
+		Matrix (const Block<other_matrix_type, val_type> &block) {
+			assert (nrows == block.rows());
+			assert (ncols == block.cols());
+
+			for (unsigned int i = 0; i < nrows; i++) {
+				for (unsigned int j = 0; j < ncols; j++) {
+					(*this)(i,j) = static_cast<val_type>(block(i,j));
+				}
+			}
+		}
+		template <typename other_matrix_type>
+		Matrix& operator= (const Block<other_matrix_type, val_type> &block) {
+			assert (nrows == block.rows());
+			assert (ncols == block.cols());
+
+			for (unsigned int i = 0; i < nrows; i++) {
+				for (unsigned int j = 0; j < ncols; j++) {
+					(*this)(i,j) = static_cast<value_type>(block(i,j));
+				}
+			}
+
+			return *this;
+		}
+
+		template <typename other_type>
+		Matrix (const Matrix<other_type, nrows, ncols> &matrix) {
+			for (unsigned int i = 0; i < nrows; i++) {
+				for (unsigned int j = 0; j < ncols; j++) {
+					(*this)(i,j) = static_cast<val_type>(matrix(i,j));
+				}
+			}
+		}
+
+		template <typename other_type>
+		Matrix& operator=(const Matrix<other_type, nrows, ncols> &matrix) {
+			for (unsigned int i = 0; i < nrows; i++) {
+				for (unsigned int j = 0; j < ncols; j++) {
+					(*this)(i,j) = static_cast<val_type>(matrix(i,j));
+				}
+			}
+
+			return *this;
+		}
+
 		// conversion Dynamic->Fixed
 		Matrix(const Dynamic::Matrix<val_type> &dynamic_matrix);
 		Matrix& operator=(const Dynamic::Matrix<val_type> &dynamic_matrix);
 
-		~Matrix() {};
+	 	~Matrix() {};
 
 		Matrix (
 				const val_type &v00, const val_type &v01, const val_type &v02
@@ -294,6 +195,89 @@ class Matrix {
 			mData[2 * 3 + 0] = v20;
 			mData[2 * 3 + 1] = v21;
 			mData[2 * 3 + 2] = v22;
+		}
+
+		Matrix (
+				const val_type &v00, const val_type &v01, const val_type &v02, const val_type &v03
+				) {
+			assert (nrows == 4);
+			assert (ncols == 1);
+
+			mData[0] = v00;
+			mData[1] = v01;
+			mData[2] = v02;
+			mData[3] = v03;
+		}
+
+		void set(
+				const val_type &v00, const val_type &v01, const val_type &v02, const val_type &v03
+				) {
+			COMPILE_ASSERT (nrows * ncols == 4);
+
+			mData[0] = v00;
+			mData[1] = v01;
+			mData[2] = v02;
+			mData[3] = v03;
+		}
+
+		Matrix (
+				const val_type &v00, const val_type &v01, const val_type &v02, const val_type &v03,
+				const val_type &v10, const val_type &v11, const val_type &v12, const val_type &v13,
+				const val_type &v20, const val_type &v21, const val_type &v22, const val_type &v23,
+				const val_type &v30, const val_type &v31, const val_type &v32, const val_type &v33
+				) {
+			COMPILE_ASSERT (nrows == 4);
+			COMPILE_ASSERT (ncols == 4);
+
+			mData[0] = v00;
+			mData[1] = v01;
+			mData[2] = v02;
+			mData[3] = v03;
+
+			mData[1 * 4 + 0] = v10;
+			mData[1 * 4 + 1] = v11;
+			mData[1 * 4 + 2] = v12;
+			mData[1 * 4 + 3] = v13;
+			
+			mData[2 * 4 + 0] = v20;
+			mData[2 * 4 + 1] = v21;
+			mData[2 * 4 + 2] = v22;
+			mData[2 * 4 + 3] = v23;
+
+			mData[3 * 4 + 0] = v30;
+			mData[3 * 4 + 1] = v31;
+			mData[3 * 4 + 2] = v32;
+			mData[3 * 4 + 3] = v33;
+		}
+
+		void set(
+				const val_type &v00, const val_type &v01, const val_type &v02, const val_type &v03,
+				const val_type &v10, const val_type &v11, const val_type &v12, const val_type &v13,
+				const val_type &v20, const val_type &v21, const val_type &v22, const val_type &v23,
+				const val_type &v30, const val_type &v31, const val_type &v32, const val_type &v33
+				) {
+			COMPILE_ASSERT (nrows == 4);
+			COMPILE_ASSERT (ncols == 4);
+
+			mData[0] = v00;
+			mData[1] = v01;
+			mData[2] = v02;
+			mData[3] = v03;
+
+			mData[1 * 4 + 0] = v10;
+			mData[1 * 4 + 1] = v11;
+			mData[1 * 4 + 2] = v12;
+			mData[1 * 4 + 3] = v13;
+			
+			mData[2 * 4 + 0] = v20;
+			mData[2 * 4 + 1] = v21;
+			mData[2 * 4 + 2] = v22;
+			mData[2 * 4 + 3] = v23;
+
+			mData[3 * 4 + 0] = v30;
+			mData[3 * 4 + 1] = v31;
+			mData[3 * 4 + 2] = v32;
+			mData[3 * 4 + 3] = v33;
 		}
 
 		Matrix (
@@ -454,7 +438,7 @@ class Matrix {
 			mData[30 + 4] = v54;
 			mData[30 + 5] = v55;
 		}
-
+		
 		// comparison
 		bool operator==(const Matrix &matrix) const {
 			for (unsigned int i = 0; i < nrows * ncols; i++) {
@@ -502,11 +486,13 @@ class Matrix {
 			return sqrt(this->squaredNorm());
 		}
 
-		void normalize() {
+		matrix_type normalize() {
 			val_type length = this->norm();
 
 			for (unsigned int i = 0; i < ncols * nrows; i++)
 				mData[i] /= length;
+
+			return *this;
 		}
 
 		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) {
@@ -538,6 +524,11 @@ class Matrix {
 			return result;
 		}
 
+		static matrix_type Identity() {
+			matrix_type result;
+			result.identity();
+			return result;
+		}
 
 		static matrix_type Identity(int ignore_me, int ignore_me_too) {
 			matrix_type result;
@@ -578,14 +569,29 @@ class Matrix {
 			return result;
 		}
 
+		// Blocks using block(i,j,r,c) syntax
+		Block<matrix_type, val_type>
+			block (unsigned int row_start, unsigned int col_start, unsigned int row_count, unsigned int col_count) {
+				return Block<matrix_type, val_type>(*this, row_start, col_start, row_count, col_count);
+			}
 
-		// Block accessing functions
-		template <unsigned int blockrows, unsigned int blockcols>
-		Block<val_type, blockrows, blockcols> block (unsigned int i, unsigned int j) const {
-			COMPILE_ASSERT (nrows >= blockrows);
-			COMPILE_ASSERT (ncols >= blockcols);
-			return Block<val_type, blockrows, blockcols> (const_cast<val_type*> (this->mData), i, j, nrows, ncols);
-		}
+		const Block<matrix_type, val_type>
+			block (unsigned int row_start, unsigned int col_start, unsigned int row_count, unsigned int col_count) const {
+				return Block<matrix_type, val_type>(*this, row_start, col_start, row_count, col_count);
+			}
+
+		// Blocks using block<r,c>(i,j) syntax
+		template <unsigned int block_row_count, unsigned int block_col_count>
+		Block<matrix_type, val_type>
+			block (unsigned int row_start, unsigned int col_start) {
+				return Block<matrix_type, val_type>(*this, row_start, col_start, block_row_count, block_col_count);
+			}
+
+		template <unsigned int block_row_count, unsigned int block_col_count>
+		const Block<matrix_type, val_type>
+			block (unsigned int row_start, unsigned int col_start) const {
+				return Block<matrix_type, val_type>(*this, row_start, col_start, block_row_count, block_col_count);
+			}
 
 		// Operators with scalars
 		void operator*=(const val_type &scalar) {
@@ -685,29 +691,16 @@ class Matrix {
 			return *this * -1.;
 		}
 
+		const HouseholderQR<matrix_type> householderQR() const {
+			return HouseholderQR<matrix_type>(*this);
+		}
+		const ColPivHouseholderQR<matrix_type> colPivHouseholderQR() const {
+			return ColPivHouseholderQR<matrix_type>(*this);
+		}
+
 	private:
 		val_type mData[nrows * ncols];
 };
-
-template <typename val_type, unsigned int blockrows, unsigned int blockcols>
-inline std::ostream& operator<<(std::ostream& output, const Block<val_type, blockrows, blockcols> &block) {
-	unsigned int i,j;
-	for (i = 0; i < blockrows; i++) {
-		output << "[ ";
-		for (j = 0; j < blockcols; j++) {
-			output << block(i,j);
-
-			if (j < blockcols - 1)
-				output << ", ";
-		}
-		output << " ]";
-		
-		if (blockrows > 1 && i < blockrows - 1)
-			output << std::endl;
-	}
-
-	return output;
-}
 
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 inline Matrix<val_type, nrows, ncols> operator*(val_type scalar, const Matrix<val_type, nrows, ncols> &matrix) {
@@ -719,12 +712,12 @@ inline Matrix<val_type, nrows, ncols> operator*(val_type scalar, const Matrix<va
 	return result;
 }
 
-template <typename val_type, unsigned int nrows, unsigned int ncols>
-inline Matrix<val_type, nrows, ncols> operator*(const Matrix<val_type, nrows, ncols> &matrix, val_type scalar) {
+template <typename val_type, typename other_type, unsigned int nrows, unsigned int ncols>
+inline Matrix<val_type, nrows, ncols> operator*(const Matrix<val_type, nrows, ncols> &matrix, other_type scalar) {
 	Matrix<val_type, nrows, ncols> result (matrix);
 
 	for (unsigned int i = 0; i < nrows * ncols; i++)
-		result.data()[i] *= scalar;
+		result.data()[i] *= static_cast<val_type> (scalar);
 
 	return result;
 }

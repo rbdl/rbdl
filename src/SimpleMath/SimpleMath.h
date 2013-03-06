@@ -4,5 +4,6 @@
 #include "SimpleMathFixed.h"
 #include "SimpleMathDynamic.h"
 #include "SimpleMathMixed.h"
+#include "SimpleMathQR.h"
 
 #endif /* _SIMPLEMATH_H */
