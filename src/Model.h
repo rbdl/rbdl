@@ -75,12 +75,8 @@ namespace RigidBodyDynamics {
  * the model is done by specifying the parent body by its id, the
  * transformation from the parent origin to the joint origin, the joint
  * specification as an object, and the body itself. These parameters are
- * then fed to the function RigidBodyDynamics::Model::AddBody().
- *
- * To create a model with a floating base (a.k.a a model with a free-flyer
- * joint) it is recommended to use \link
- * RigidBodyDynamics::Model::SetFloatingBaseBody
- * Model::SetFloatingBaseBody(...)\endlink.
+ * then fed to the function RigidBodyDynamics::Model::AddBody(). For
+ * specification of joints see \ref joint_models.
  *
  * Once this is done, the model structure can be used with the functions of \ref
  * kinematics_group, \ref dynamics_group, \ref contacts_group, to perform

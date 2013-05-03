@@ -1,5 +1,5 @@
 /** \file Mainpage.h 
- * \mainpage RBDL - Rigid Body Dynamics Library
+ * \mainpage Mainpage
  * \image html rbdl_logo.png
  *
  * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
@@ -19,15 +19,20 @@
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
  * href="http://royfeatherstone.org" target="_parent">Roy Featherstone</a>.
  * 
- * Development is taking place on <a
- * href="http://bitbucket.org" target="_parent">bitbucket.org</a>. The official repository
- * can be found at:
- * <a href="http://bitbucket.org/rbdl/rbdl/" target="_parent">http://bitbucket.org/rbdl/rbdl/</a>.
- * 
  * The library comes with version 3 of the the
  * <a href="http://eigen.tuxfamily.org/" target="_parent">Eigen</a> math library. More
  * information about it can be found here:
  * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>
+ *
+ * \section download Download :
+ *
+ * You can download the most recent stable version as zip file from
+ * here:<br>
+ *   <a href="https://bitbucket.org/rbdl/rbdl/get/default.zip">https://bitbucket.org/rbdl/rbdl/get/default.zip</a>
+ *
+ * All development takes place on Bitbucket and you can follow RBDL's
+ * development here:<br>
+ *   <a href="https://bitbucket.org/rbdl/rbdl">https://bitbucket.org/rbdl/rbdl</a>
  *
  * \section recent_changes Recent Changes :
  * <ul>
