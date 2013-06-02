@@ -29,10 +29,11 @@ namespace RigidBodyDynamics {
  * later used when calling one of the contact functions, such as
  * ForwardDynamicsContacts() or ForwardDynamicsContactsLagrangian().
  *
- * The values in the vectors ConstraintSet::constraint_force and
- * ConstraintSet::constraint_impulse contain the computed force or
- * impulse values for each constraint when returning from one of the
- * contact functions.
+ * The values in the vectors ConstraintSet::constraint_force are for each
+ * constraint the force that is excerted on the body by the constraint.
+ * Similarly ConstraintSet::constraint_impulse holds for each constraint
+ * the impulse due to a collision that is excerted by the constraint on the
+ * body.
  *
  * @{
  */
@@ -122,9 +123,11 @@ struct ConstraintSet {
 	/** Enforced accelerations of the contact points along the contact
 	 * normal. */
 	Math::VectorNd constraint_acceleration;
-	/** Actual constraint forces along the contact normals. */
+	/** Actual constraint forces along the contact normals that is excerted on
+	 * the body. */
 	Math::VectorNd constraint_force;
-	/** Actual constraint impulses along the contact normals. */
+	/** Actual constraint impulses along the contact normals that is acting
+	 * on the body. */
 	Math::VectorNd constraint_impulse;
 
 	// Variables used by the Lagrangian methods
@@ -245,7 +248,7 @@ void ForwardDynamicsContactsLagrangian (
  \left(
    \begin{array}{c}
 	   \dot{q}^{+} \\
-		 \Lambda
+		 -\Lambda
    \end{array}
  \right)
  =
