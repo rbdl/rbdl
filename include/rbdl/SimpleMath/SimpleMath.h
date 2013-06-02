@@ -4,6 +4,7 @@
 #include "SimpleMathFixed.h"
 #include "SimpleMathDynamic.h"
 #include "SimpleMathMixed.h"
+#include "SimpleMathQR.h"
 
 typedef SimpleMath::Fixed::Matrix<int, 3, 1> Vector3i;
 
