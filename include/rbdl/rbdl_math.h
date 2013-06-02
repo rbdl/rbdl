@@ -25,19 +25,14 @@
 
 #else
 	#define EIGEN_DEFAULT_TO_ROW_MAJOR
-	#define EIGEN_MATRIX_PLUGIN "rbdl/MatrixAddons.h"
 
 	#include "Eigen/Dense"
 	#include "Eigen/StdVector"
 
-	typedef Eigen::Matrix< double, 3, 1> Vector3_t;
-	typedef Eigen::Matrix< double, 3, 3> Matrix3_t;
+	#include "rbdl/rbdl_eigenmath.h"
 
 	typedef Eigen::VectorXd VectorN_t;
 	typedef Eigen::MatrixXd MatrixN_t;
-
-	typedef Eigen::Matrix< double, 6, 1> SpatialVector_t;
-	typedef Eigen::Matrix< double, 6, 6> SpatialMatrix_t;
 #endif
 
 namespace RigidBodyDynamics {
