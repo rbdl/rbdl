@@ -126,7 +126,7 @@ class Block {
 				return (*mParentMatrix) (i + mParentRowStart, j + mParentColStart);
 			}
 
-			return (*mParentMatrix) (j + mParentColStart, i + mParentRowStart);
+			return (*mParentMatrix) (j + mParentRowStart, i + mParentColStart);
 		}
 
 		val_type& operator() (const unsigned int i, const unsigned int j) {
@@ -137,7 +137,7 @@ class Block {
 				return (*mParentMatrix) (i + mParentRowStart, j + mParentColStart);
 			}
 
-			return (*mParentMatrix) (j + mParentColStart, i + mParentRowStart);
+			return (*mParentMatrix) (j + mParentRowStart, i + mParentColStart);
 		}
 
 		Block transpose() const {
