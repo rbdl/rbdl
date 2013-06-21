@@ -20,7 +20,6 @@
 #include <assert.h>
 
 #include "compileassert.h"
-
 #include "SimpleMathBlock.h"
 
 /** \brief Namespace for a highly inefficient math library
@@ -28,15 +27,18 @@
  */
 namespace SimpleMath {
 
-namespace Dynamic {
-template <typename val_type> class Matrix;
-}
-
 template <typename matrix_type>
 class HouseholderQR;
 
 template <typename matrix_type>
 class ColPivHouseholderQR;
+
+template <typename matrix_type>
+class CommaInitializer;
+
+namespace Dynamic {
+template <typename val_type> class Matrix;
+}
 
 /** \brief Namespace for fixed size elements
  */
@@ -126,6 +128,10 @@ class Matrix {
 			}
 
 			return *this;
+		}
+		
+		CommaInitializer<matrix_type> operator<< (const val_type& value) {
+			return CommaInitializer<matrix_type> (*this, value);
 		}
 
 		// conversion Dynamic->Fixed
@@ -656,6 +662,28 @@ class Matrix {
 			
 			return result;
 		}
+
+		// multiplication with dynamic sized matrix
+		template <typename other_type>
+		Dynamic::Matrix<val_type> operator*(const Dynamic::Matrix<other_type> &other_matrix) {
+			assert (ncols == other_matrix.rows());
+
+			Dynamic::Matrix<val_type> result(nrows, other_matrix.cols());
+			
+			result.setZero();
+
+			unsigned int i,j, k;
+			for (i = 0; i < nrows; i++) {
+				for (j = 0; j < other_matrix.cols(); j++) {
+					for (k = 0; k < other_matrix.rows(); k++) {
+						result(i,j) += mData[i * ncols + k] * static_cast<val_type>(other_matrix(k,j));
+					}
+				}
+			}
+			
+			return result;
+		}
+
 
 		void operator*=(const Matrix &matrix) {
 			matrix_type temp (*this);

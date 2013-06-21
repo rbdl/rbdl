@@ -93,6 +93,22 @@ namespace SimpleMath {
 
 				return x;
 			}
+			Dynamic::Matrix<value_type> inverse() const {
+				assert (mIsFactorized);
+
+				VectorXd rhs_temp = VectorXd::Zero(mQ.cols());
+				MatrixXXd result (mQ.cols(), mQ.cols());
+
+				for (unsigned int i = 0; i < mQ.cols(); i++) {
+					rhs_temp[i] = 1.;
+
+					result.block(0, i, mQ.cols(), 1) = solve(rhs_temp);
+
+					rhs_temp[i] = 0.;
+				}
+
+				return result;
+			}
 			Dynamic::Matrix<value_type> matrixQ () const {
 				return mQ;
 			}
@@ -147,11 +163,11 @@ namespace SimpleMath {
 					unsigned int block_rows = mR.rows() - i;
 					unsigned int block_cols = mR.cols() - i;
 
-					// find and swap the column with the highest
+					// find and swap the column with the highest norm
 					unsigned int col_index_norm_max = i;
 					value_type col_norm_max = VectorXd(mR.block(i,i, block_rows, 1)).squaredNorm();
 
-					for (unsigned int j = i; j < mR.cols(); j++) {
+					for (unsigned int j = i + 1; j < mR.cols(); j++) {
 						VectorXd column = mR.block(i, j, block_rows, 1);
 						
 						if (column.squaredNorm() > col_norm_max) {
@@ -165,10 +181,11 @@ namespace SimpleMath {
 						break;
 					}
 
+
 					if (col_index_norm_max != i) {
-						VectorXd temp_col = mR.block(i, i, block_rows, 1);
-						mR.block(i,i,block_rows,1) = mR.block(i, col_index_norm_max, block_rows, 1);
-						mR.block(i, col_index_norm_max, block_rows, 1) = temp_col;
+						VectorXd temp_col = mR.block(0, i, mR.rows(), 1);
+						mR.block(0,i,mR.rows(),1) = mR.block(0, col_index_norm_max, mR.rows(), 1);
+						mR.block(0, col_index_norm_max, mR.rows(), 1) = temp_col;
 
 						unsigned int temp_index = mPermutations[i];
 						mPermutations[i] = mPermutations[col_index_norm_max];
@@ -230,6 +247,24 @@ namespace SimpleMath {
 
 				return x;
 			}
+			Dynamic::Matrix<value_type> inverse() const {
+				assert (mIsFactorized);
+				assert (0 && !"Not properly tested!");
+
+				VectorXd rhs_temp = VectorXd::Zero(mQ.cols());
+				MatrixXXd result (mQ.cols(), mQ.cols());
+
+				for (unsigned int i = 0; i < mQ.cols(); i++) {
+					rhs_temp[i] = 1.;
+
+					result.block(0, i, mQ.cols(), 1) = solve(rhs_temp);
+
+					rhs_temp[i] = 0.;
+				}
+
+				return result;
+			}
+
 			Dynamic::Matrix<value_type> matrixQ () const {
 				return mQ;
 			}

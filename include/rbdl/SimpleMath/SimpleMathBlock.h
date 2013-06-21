@@ -69,7 +69,7 @@ class Block {
 					abort();
 				}
 				
-				value_type temp_values[mRowCount * mColCount];
+				value_type* temp_values = new value_type [mRowCount * mColCount];
 
 				for (unsigned int i = 0; i < mRowCount; i++) {
 					for (unsigned int j = 0; j < mColCount; j++) {
@@ -82,6 +82,8 @@ class Block {
 						(*this)(i,j) = temp_values[i * mColCount + j];
 					}
 				}
+
+				delete[] temp_values;
 			}
 
 			return *this;
@@ -95,7 +97,7 @@ class Block {
 				abort();
 			}
 
-			value_type temp_values[mRowCount * mColCount];
+			value_type *temp_values = new value_type[mRowCount * mColCount];
 
 			for (unsigned int i = 0; i < mRowCount; i++) {
 				for (unsigned int j = 0; j < mColCount; j++) {
@@ -108,6 +110,8 @@ class Block {
 					(*this)(i,j) = temp_values[i * mColCount + j];
 				}
 			}
+			
+			delete[] temp_values;
 
 			return *this;
 		}

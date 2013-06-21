@@ -26,9 +26,19 @@
  */
 namespace SimpleMath {
 
+template <typename matrix_type>
+class HouseholderQR;
+
+template <typename matrix_type>
+class ColPivHouseholderQR;
+
+template <typename matrix_type>
+class CommaInitializer;
+
 namespace Fixed {
 	template <typename val_type, unsigned int ncols, unsigned int nrows> class Matrix;
 }
+
 
 /** \brief Namespace for elements of varying size.
  */
@@ -146,6 +156,10 @@ class Matrix {
 			return *this;
 		}
 
+		CommaInitializer<matrix_type> operator<< (const val_type& value) {
+			return CommaInitializer<matrix_type> (*this, value);
+		}
+
 		// conversion different val_types
 		template <typename other_type>
 		Matrix (const Matrix<other_type> &matrix) :
@@ -178,7 +192,8 @@ class Matrix {
 				}
 			}
 
-		Matrix (const Block<matrix_type, value_type> &block) :
+		template <typename other_matrix_type>
+		Matrix (const Block<other_matrix_type, value_type> &block) :
 			nrows(block.rows()),
 			ncols(block.cols()),
 			mapped_data (false) {
@@ -457,9 +472,12 @@ class Matrix {
 			return mData[0];
 		}
 
-//		const HouseholderQR<matrix_type> colPivHouseholderQR() const {
-//			return HouseholderQR<matrix_type>(*this);
-//		}
+		const HouseholderQR<matrix_type> householderQR() const {
+			return HouseholderQR<matrix_type>(*this);
+		}
+		const ColPivHouseholderQR<matrix_type> colPivHouseholderQR() const {
+			return ColPivHouseholderQR<matrix_type>(*this);
+		}
 
 	private:
 		unsigned int nrows;
