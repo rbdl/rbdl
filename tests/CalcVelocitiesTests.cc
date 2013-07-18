@@ -2,10 +2,10 @@
 
 #include <iostream>
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Kinematics.h"
+#include "rbdl/Model.h"
+#include "rbdl/Kinematics.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -17,7 +17,6 @@ struct ModelVelocitiesFixture {
 	ModelVelocitiesFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 		joint_a = Joint(
@@ -175,7 +174,6 @@ TEST ( FixedJointCalcPointVelocity ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,
@@ -206,7 +204,6 @@ TEST ( FixedJointCalcPointVelocityRotated ) {
 	Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
 	Model model;
-	model.Init();
 
 	Joint joint_rot_z (
 			JointTypeRevolute,

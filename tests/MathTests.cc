@@ -1,8 +1,8 @@
 #include <UnitTest++.h>
 
-#include "Logging.h"
-#include "rbdl_math.h"
-#include "rbdl_mathutils.h"
+#include "rbdl/Logging.h"
+#include "rbdl/rbdl_math.h"
+#include "rbdl/rbdl_mathutils.h"
 #include <iostream>
 
 const double TEST_PREC = 1.0e-14;

@@ -2,11 +2,11 @@
 
 #include <iostream>
 
-#include "Logging.h"
-#include "Fixtures.h"
+#include "rbdl/Logging.h"
+#include "rbdl/Model.h"
+#include "rbdl/Dynamics.h"
 
-#include "Model.h"
-#include "Dynamics.h"
+#include "Fixtures.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -18,7 +18,6 @@ struct CompositeRigidBodyFixture {
 	CompositeRigidBodyFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 		model->gravity = Vector3d (0., -9.81, 0.);
 	}
 	~CompositeRigidBodyFixture () {

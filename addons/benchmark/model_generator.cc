@@ -1,6 +1,6 @@
 #include "model_generator.h"
 
-#include "rbdl.h"
+#include "rbdl/rbdl.h"
 
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;

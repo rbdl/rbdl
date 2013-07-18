@@ -2,12 +2,12 @@
 
 #include <iostream>
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Contacts.h"
-#include "Dynamics.h"
-#include "Kinematics.h"
+#include "rbdl/Model.h"
+#include "rbdl/Contacts.h"
+#include "rbdl/Dynamics.h"
+#include "rbdl/Kinematics.h"
 
 #include "Fixtures.h"
 
@@ -21,7 +21,6 @@ struct FixedBase6DoF9DoF {
 	FixedBase6DoF9DoF () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		model->gravity = Vector3d  (0., -9.81, 0.);
 
@@ -184,7 +183,6 @@ struct FixedBase6DoF12DoFFloatingBase {
 	FixedBase6DoF12DoFFloatingBase () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		model->gravity = Vector3d  (0., -9.81, 0.);
 
@@ -321,7 +319,6 @@ struct FixedBase6DoF12DoFFloatingBase {
 // 
 TEST ( TestForwardDynamicsContactsLagrangianSimple ) {
 	Model model;
-	model.Init();
 	model.gravity = Vector3d  (0., -9.81, 0.);
 	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
 	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);
@@ -374,7 +371,6 @@ TEST ( TestForwardDynamicsContactsLagrangianSimple ) {
 
 TEST ( TestForwardDynamicsContactsLagrangianMoving ) {
 	Model model;
-	model.Init();
 	model.gravity = Vector3d  (0., -9.81, 0.);
 	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
 	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);

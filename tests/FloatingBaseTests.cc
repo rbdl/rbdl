@@ -2,13 +2,13 @@
 
 #include <iostream>
 
-#include "rbdl_mathutils.h"
-#include "Logging.h"
+#include "rbdl/rbdl_mathutils.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Kinematics.h"
-#include "Dynamics.h"
-#include "Dynamics_experimental.h"
+#include "rbdl/Model.h"
+#include "rbdl/Kinematics.h"
+#include "rbdl/Dynamics.h"
+#include "rbdl/Dynamics_experimental.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -20,7 +20,6 @@ struct FloatingBaseFixture {
 	FloatingBaseFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 		model->gravity = Vector3d (0., -9.81, 0.);
 
 		base = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));

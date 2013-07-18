@@ -2,12 +2,12 @@
 
 #include <iostream>
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Contacts.h"
-#include "Dynamics.h"
-#include "Kinematics.h"
+#include "rbdl/Model.h"
+#include "rbdl/Contacts.h"
+#include "rbdl/Dynamics.h"
+#include "rbdl/Kinematics.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -180,8 +180,6 @@ Vector3d medial_point (0., 0., 0.);
 
 void init_model () {
 	assert (model);
-
-	model->Init();
 
 	model->gravity = Vector3d (0., -9.81, 0.);
 

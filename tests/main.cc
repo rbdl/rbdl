@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#include <rbdl.h>
+#include <rbdl/rbdl.h>
 
 int main (int argc, char *argv[])
 {

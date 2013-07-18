@@ -3,12 +3,13 @@
 #include <iostream>
 #include <limits>
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Kinematics.h"
-#include "Dynamics.h"
-#include "Contacts.h"
+#include "rbdl/Model.h"
+#include "rbdl/Kinematics.h"
+#include "rbdl/Dynamics.h"
+#include "rbdl/Contacts.h"
+
 #include "Fixtures.h"
 
 using namespace std;
@@ -21,7 +22,6 @@ struct DynamicsFixture {
 	DynamicsFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 		model->gravity = Vector3d (0., -9.81, 0.);
 	}
 	~DynamicsFixture () {
@@ -296,7 +296,6 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSimpleTree3D) {
 
 TEST (TestForwardDynamicsLagrangian) {
 	Model model;
-	model.Init();
 	Body base_body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
 	model.SetFloatingBaseBody(base_body);
@@ -346,7 +345,6 @@ TEST (TestForwardDynamicsLagrangian) {
  */
 TEST (TestForwardDynamics3DoFModel) {
 	Model model;
-	model.Init();
 
 	model.gravity = Vector3d (0., -9.81, 0.);
 
@@ -397,7 +395,6 @@ TEST (TestForwardDynamics3DoFModel) {
  */
 TEST (TestForwardDynamics3DoFModelLagrangian) {
 	Model model;
-	model.Init();
 
 	model.gravity = Vector3d (0., -9.81, 0.);
 
@@ -474,8 +471,6 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 	ConstraintSet CS_both;
 
 	model = new Model();
-
-	model->Init();
 
 	model->gravity = Vector3d (0., -9.81, 0.);
 

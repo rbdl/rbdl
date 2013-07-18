@@ -1,4 +1,4 @@
-#include "rbdl.h"
+#include "rbdl/rbdl.h"
 #include "luamodel.h"
 
 #include <iostream>

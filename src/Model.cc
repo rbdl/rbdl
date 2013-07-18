@@ -9,18 +9,18 @@
 #include <limits>
 #include <assert.h>
 
-#include "rbdl_mathutils.h"
+#include "rbdl/rbdl_mathutils.h"
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Body.h"
-#include "Joint.h"
+#include "rbdl/Model.h"
+#include "rbdl/Body.h"
+#include "rbdl/Joint.h"
 
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-void Model::Init() {
+Model::Model() {
 	Body root_body;
 	Joint root_joint;
 

@@ -11,9 +11,9 @@
 #include <iostream>
 #include <assert.h>
 
-#include <rbdl_mathutils.h>
+#include <rbdl/rbdl_mathutils.h>
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
 namespace RigidBodyDynamics {
 namespace Math {

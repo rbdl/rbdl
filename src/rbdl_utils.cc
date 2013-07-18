@@ -1,8 +1,8 @@
-#include "rbdl_utils.h"
+#include "rbdl/rbdl_utils.h"
 
-#include "rbdl_math.h"
-#include "Model.h"
-#include "Kinematics.h"
+#include "rbdl/rbdl_math.h"
+#include "rbdl/Model.h"
+#include "rbdl/Kinematics.h"
 
 #include <sstream>
 #include <iomanip>

@@ -1,4 +1,4 @@
-#include "rbdl.h"
+#include "rbdl/rbdl.h"
 
 struct FixedBase3DoF {
 	FixedBase3DoF () {
@@ -7,7 +7,6 @@ struct FixedBase3DoF {
 
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		/* Basically a model like this, where X are the Center of Masses
 		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
@@ -82,7 +81,6 @@ struct FixedBase6DoF {
 
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		model->gravity = Vector3d  (0., -9.81, 0.);
 
@@ -211,7 +209,6 @@ struct FloatingBase12DoF {
 
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		model->gravity = Vector3d  (0., -9.81, 0.);
 
@@ -338,7 +335,6 @@ struct SimpleFixture {
 	SimpleFixture () {
 		ClearLogOutput();
 		model = new RigidBodyDynamics::Model;
-		model->Init();
 		model->gravity = RigidBodyDynamics::Math::Vector3d (0., -9.81, 0.);
 	}
 	~SimpleFixture () {
@@ -366,7 +362,6 @@ struct FixedJoint2DoF {
 
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 
 		/* Basically a model like this, where X are the Center of Masses
 		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
@@ -438,7 +433,6 @@ struct FixedAndMovableJoint {
 
 		ClearLogOutput();
 		model_movable = new Model;
-		model_movable->Init();
 
 		/* Basically a model like this, where X are the Center of Masses
 		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
@@ -485,7 +479,6 @@ struct FixedAndMovableJoint {
 
 		// Assemble the fixed joint model
 		model_fixed = new Model;
-		model_fixed->Init();
 
 		body_a_fixed_id = model_fixed->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 		Joint joint_fixed (JointTypeFixed);

@@ -18,16 +18,17 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
- * 20 February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)
- *  29 January 2013: added code for api_version_checking. Current API version is 1.0.0.
- *  29 January 2013: added code for api_version_checking
- *  18 June 2012: added support of luamodel_introduction
- *  01 June 2012: added support of joint_models_fixed
- *  14 May 2012: fixed Body constructor as reported by Maxime Reis
- *  04 April 2012: added benchmark tool for CRBA
- *  01 March 2012: added multi degree of freedom joint_models
- *  06 Februry 2012: restructured constraint handling using RigidBodyDynamics::ConstraintSet
- *  24 January 2012: implemented compact and fast representation of RigidBodyDynamics::Math::SpatialTransform
+   * 18 July 2013: API version 2.0.0: removed Eigen3 sources, removed Model::Init(), inverted sign of contact forces/impulses
+   * 20 February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)
+   * 29 January 2013: added code for api_version_checking. Current API version is 1.0.0.
+   * 11 January 2013: removed Eigen3 sources and relying on an already installed Eigen3 library. Optionally RBDL can be used with the included but slower SimpleMath library.
+   * 18 June 2012: added support of luamodel_introduction
+   * 01 June 2012: added support of joint_models_fixed
+   * 14 May 2012: fixed Body constructor as reported by Maxime Reis
+   * 04 April 2012: added benchmark tool for CRBA
+   * 01 March 2012: added multi degree of freedom joint_models
+   * 06 Februry 2012: restructured constraint handling using RigidBodyDynamics::ConstraintSet
+   * 24 January 2012: implemented compact and fast representation of RigidBodyDynamics::Math::SpatialTransform 
 
 Documentation
 =============
@@ -62,13 +63,22 @@ mercurial clients.)
 Building and Installation
 =========================
 
-The RBDL is built using CMake (http://www.cmake.org). To compile the
-library in a separate directory in Release mode use:
+The RBDL is built using CMake
+([http://www.cmake.org](http://www.cmake.org)). To compile the library in
+a separate directory in Release mode use:
 
     mkdir build
     cd build/
-    cmake ../ -D CMAKE_BUILD_TYPE=Release
+    cmake -D CMAKE_BUILD_TYPE=Release ../ 
     make
+
+For optimal performance it is highly recommended to install the Eigen3
+linear algebra library from
+[http://eigen.tuxfamily.org]([http://eigen.tuxfamily.org]). RBDL also
+comes with a simple, albeit much slower math library (SimpleMath) that can
+be used by enabling `RBDL_USE_SIMPLE_MATH`, i.e.:
+
+    cmake -D RBDL_USE_SIMPLE_MATH=TRUE ../
 
 Licensing
 =========
@@ -99,11 +109,3 @@ This is the full license text (zlib license):
     
        3. This notice may not be removed or altered from any source
        distribution.
-
-Please note that this library also comes with the Eigen3 library which is
-primarily licensed under the MPL2 license. More information about these
-can be found at:
-	
- * [http://www.mozilla.org/MPL/2.0/](http://www.mozilla.org/MPL/2.0/)
- * [http://www.mozilla.org/MPL/2.0/FAQ.html](http://www.mozilla.org/MPL/2.0/FAQ.html)
- * [http://eigen.tuxfamily.org]([http://eigen.tuxfamily.org])

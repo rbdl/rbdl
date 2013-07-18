@@ -3,9 +3,9 @@
 #include <iostream>
 #include <iomanip>
 
-#include "Body.h"
-#include "rbdl_math.h"
-#include "rbdl_mathutils.h"
+#include "rbdl/Body.h"
+#include "rbdl/rbdl_math.h"
+#include "rbdl/rbdl_mathutils.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;

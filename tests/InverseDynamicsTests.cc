@@ -2,11 +2,11 @@
 
 #include <iostream>
 
-#include "Logging.h"
+#include "rbdl/Logging.h"
 
-#include "Model.h"
-#include "Dynamics.h"
-#include "Dynamics_experimental.h"
+#include "rbdl/Model.h"
+#include "rbdl/Dynamics.h"
+#include "rbdl/Dynamics_experimental.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -18,7 +18,6 @@ struct InverseDynamicsFixture {
 	InverseDynamicsFixture () {
 		ClearLogOutput();
 		model = new Model;
-		model->Init();
 		model->gravity = Vector3d  (0., -9.81, 0.);
 	}
 	~InverseDynamicsFixture () {
