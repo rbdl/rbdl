@@ -19,10 +19,11 @@
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
  * href="http://royfeatherstone.org" target="_parent">Roy Featherstone</a>.
  * 
- * The library comes with version 3 of the the
+ * For optimal performance it is advised to use version 3 of the Eigen 
  * <a href="http://eigen.tuxfamily.org/" target="_parent">Eigen</a> math library. More
  * information about it can be found here:
- * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>
+ * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>.
+ * The library must be obtained and installed separately.
  *
  * \section download Download :
  *
