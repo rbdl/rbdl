@@ -24,6 +24,7 @@ namespace RigidBodyDynamics {
 
 using namespace Math;
 
+RBDL_DLLAPI
 void ForwardDynamics (
 		Model &model,
 		const VectorNd &Q,
@@ -185,6 +186,7 @@ void ForwardDynamics (
 	LOG << "QDDot = " << QDDot.transpose() << std::endl;
 }
 
+RBDL_DLLAPI
 void ForwardDynamicsLagrangian (
 		Model &model,
 		const VectorNd &Q,
@@ -230,6 +232,7 @@ void ForwardDynamicsLagrangian (
 	LOG << "x = " << QDDot << std::endl;
 }
 
+RBDL_DLLAPI
 void InverseDynamics (
 		Model &model,
 		const VectorNd &Q,
@@ -308,6 +311,7 @@ void InverseDynamics (
 	}
 }
 
+RBDL_DLLAPI
 void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, bool update_kinematics) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 

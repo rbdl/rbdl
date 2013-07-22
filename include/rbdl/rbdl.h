@@ -28,7 +28,7 @@
  */
 
 /** Returns the API version at compile time of the library. */
-int rbdl_get_api_version();
+RBDL_DLLAPI int rbdl_get_api_version();
 
 /** Ensures whether the RBDL library we are linking against is compatible
  * with the the version we have from rbdl.h.
@@ -54,9 +54,9 @@ int rbdl_get_api_version();
  * linked minor version is not 10 (= 0x0A). The patch version 12 (= 0x12)
  * does not have an influence on compatibility.
  */
-void rbdl_check_api_version(int version);
+RBDL_DLLAPI void rbdl_check_api_version(int version);
 
 /** Prints version information to standard output */
-void rbdl_print_version();
+RBDL_DLLAPI void rbdl_print_version();
 
 #endif /* _RBDL_H */

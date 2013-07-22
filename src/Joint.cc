@@ -18,6 +18,7 @@ namespace RigidBodyDynamics {
 
 using namespace Math;
 
+RBDL_DLLAPI
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,

@@ -39,6 +39,7 @@ struct Model;
  * \param QDDot accelerations of the internal joints (output)
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
+RBDL_DLLAPI
 void ForwardDynamics (
 		Model &model,
 		const Math::VectorNd &Q,
@@ -64,6 +65,7 @@ void ForwardDynamics (
  * \param linear_solver specification which method should be used for solving the linear system
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
+RBDL_DLLAPI
 void ForwardDynamicsLagrangian (
 		Model &model,
 		const Math::VectorNd &Q,
@@ -87,6 +89,7 @@ void ForwardDynamicsLagrangian (
  * \param Tau   actuations of the internal joints (output)
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
+RBDL_DLLAPI
 void InverseDynamics (
 		Model &model,
 		const Math::VectorNd &Q,
@@ -108,6 +111,7 @@ void InverseDynamics (
  * \param update_kinematics  whether the kinematics should be updated
  * (safer, but at a higher computational cost!)
  */
+RBDL_DLLAPI
 void CompositeRigidBodyAlgorithm (
 		Model& model,
 		const Math::VectorNd &Q,

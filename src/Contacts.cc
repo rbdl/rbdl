@@ -130,6 +130,7 @@ void ConstraintSet::clear() {
 	d_u.setZero();
 }
 
+RBDL_DLLAPI
 void ForwardDynamicsContactsLagrangian (
 		Model &model,
 		const VectorNd &Q,
@@ -277,6 +278,7 @@ void ForwardDynamicsContactsLagrangian (
 	}
 }
 
+RBDL_DLLAPI
 void ComputeContactImpulsesLagrangian (
 		Model &model,
 		const VectorNd &Q,
@@ -390,6 +392,7 @@ void ComputeContactImpulsesLagrangian (
  * accelerations.
  *
  */
+RBDL_DLLAPI
 void ForwardDynamicsApplyConstraintForces (
 		Model &model,
 		const VectorNd &Tau,
@@ -481,6 +484,7 @@ void ForwardDynamicsApplyConstraintForces (
  * tries to only perform computations of variables that change due to
  * external forces defined in f_t.
  */
+RBDL_DLLAPI
 void ForwardDynamicsAccelerationDeltas (
 		Model &model,
 		ConstraintSet &CS,
@@ -545,6 +549,7 @@ inline void set_zero (std::vector<SpatialVector> &spatial_values) {
 		spatial_values[i].setZero();
 }
 
+RBDL_DLLAPI
 void ForwardDynamicsContacts (
 		Model &model,
 		const VectorNd &Q,

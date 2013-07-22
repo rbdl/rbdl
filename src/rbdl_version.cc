@@ -12,12 +12,12 @@
 #include <string>
 #include <cstdlib>
 
-int rbdl_get_api_version() {
+RBDL_DLLAPI int rbdl_get_api_version() {
 	static int compile_version = RBDL_API_VERSION;
 	return compile_version;
 }
 
-void rbdl_check_api_version(int version) {
+RBDL_DLLAPI void rbdl_check_api_version(int version) {
 	int compile_version = rbdl_get_api_version();
 
 	int compile_major = (compile_version & 0xff0000) >> 16;
@@ -43,7 +43,7 @@ void rbdl_check_api_version(int version) {
 	}
 }
 
-void rbdl_print_version() {
+RBDL_DLLAPI void rbdl_print_version() {
 	int compile_version = rbdl_get_api_version();
 
 	int compile_major = (compile_version & 0xff0000) >> 16;

@@ -20,6 +20,7 @@ namespace RigidBodyDynamics {
 
 using namespace Math;
 
+RBDL_DLLAPI
 void UpdateKinematics (Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
@@ -65,6 +66,7 @@ void UpdateKinematics (Model &model,
 
 }
 
+RBDL_DLLAPI
 void UpdateKinematicsCustom (Model &model,
 		const VectorNd *Q,
 		const VectorNd *QDot,
@@ -129,6 +131,7 @@ void UpdateKinematicsCustom (Model &model,
 	}
 }
 
+RBDL_DLLAPI
 Vector3d CalcBodyToBaseCoordinates (
 		Model &model,
 		const VectorNd &Q,
@@ -158,6 +161,7 @@ Vector3d CalcBodyToBaseCoordinates (
 	return body_position + body_rotation * point_body_coordinates;
 }
 
+RBDL_DLLAPI
 Vector3d CalcBaseToBodyCoordinates (
 		Model &model,
 		const VectorNd &Q,
@@ -187,6 +191,7 @@ Vector3d CalcBaseToBodyCoordinates (
 	return body_rotation * (point_base_coordinates - body_position);
 }
 
+RBDL_DLLAPI
 Matrix3d CalcBodyWorldOrientation (
 		Model &model,
 		const VectorNd &Q,
@@ -208,6 +213,7 @@ Matrix3d CalcBodyWorldOrientation (
 	return model.X_base[body_id].E;
 }
 
+RBDL_DLLAPI
 void CalcPointJacobian (
 		Model &model,
 		const VectorNd &Q,
@@ -270,6 +276,7 @@ void CalcPointJacobian (
 	delete[] e;
 }
 
+RBDL_DLLAPI
 Vector3d CalcPointVelocity (
 		Model &model,
 		const VectorNd &Q,
@@ -325,6 +332,7 @@ Vector3d CalcPointVelocity (
 			);
 }
 
+RBDL_DLLAPI
 Vector3d CalcPointAcceleration (
 		Model &model,
 		const VectorNd &Q,
@@ -396,6 +404,7 @@ Vector3d CalcPointAcceleration (
 			);
 }
 
+RBDL_DLLAPI 
 bool InverseKinematics (
 		Model &model,
 		const VectorNd &Qinit,

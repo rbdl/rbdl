@@ -9,6 +9,7 @@
 #define LOGGING_H
 
 #include <sstream>
+#include <rbdl/rbdl_config.h>
 
 class _NoLogging;
 
@@ -27,8 +28,8 @@ class _NoLogging;
 	#define SUPPRESS_LOGGING _NoLogging _nolog
 #endif
 
-extern std::ostringstream LogOutput;
-void ClearLogOutput ();
+extern RBDL_DLLAPI std::ostringstream LogOutput;
+RBDL_DLLAPI void ClearLogOutput ();
 
 /** \brief Helper object to ignore any logs that happen during its lifetime
  *
@@ -55,7 +56,7 @@ void ClearLogOutput ();
  * \endcode
  *
  */
-class _NoLogging {
+class RBDL_DLLAPI _NoLogging {
 	public:
 		_NoLogging() {
 			log_backup.str("");

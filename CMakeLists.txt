@@ -44,6 +44,13 @@ OPTION (BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" OFF)
 OPTION (BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 OPTION (BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
 
+# If compiler support symbol visibility, enable it.
+INCLUDE (CheckCCompilerFlag)
+CHECK_C_COMPILER_FLAG(-fvisibility=hidden HAS_VISIBILITY)
+IF (HAS_VISIBILITY)
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+ENDIF ()
+
 SET ( RBDL_SOURCES 
 	src/rbdl_version.cc
 	src/rbdl_mathutils.cc

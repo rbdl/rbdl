@@ -164,7 +164,7 @@ namespace RigidBodyDynamics {
  *
  * \note To query the number of degrees of freedom use Model::dof_count.
  */
-struct Model {
+struct RBDL_DLLAPI Model {
 	Model();
 
 	// Structural information
