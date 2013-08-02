@@ -50,7 +50,7 @@ string get_body_name (const RigidBodyDynamics::Model &model, unsigned int body_i
 	return model.GetBodyName(body_id);
 }
 
-std::string GetModelDOFOverview (const Model &model) {
+RBDL_DLLAPI std::string GetModelDOFOverview (const Model &model) {
 	stringstream result ("");
 
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
@@ -116,7 +116,7 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 	return result.str();
 }
 
-std::string GetModelHierarchy (const Model &model) {
+RBDL_DLLAPI std::string GetModelHierarchy (const Model &model) {
 	stringstream result ("");
 
 	result << print_hierarchy (model);
@@ -124,7 +124,7 @@ std::string GetModelHierarchy (const Model &model) {
 	return result.str();
 }
 
-std::string GetNamedBodyOriginsOverview (Model &model) {
+RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model) {
 	stringstream result ("");
 
 	VectorNd Q (VectorNd::Zero(model.dof_count));

@@ -17,7 +17,7 @@ namespace Math {
 
 /** \brief Spatial algebra matrices, vectors, and operators. */
 
-struct SpatialRigidBodyInertia {
+struct RBDL_DLLAPI SpatialRigidBodyInertia {
 	SpatialRigidBodyInertia() :
 		m (0.),
 		h (Vector3d::Zero(3,1)),
@@ -88,7 +88,7 @@ struct SpatialRigidBodyInertia {
  * encapsulates efficient operations such as concatenations and
  * transformation of spatial vectors.
  */
-struct SpatialTransform {
+struct RBDL_DLLAPI SpatialTransform {
 	SpatialTransform() :
 		E (Matrix3d::Identity(3,3)),
 		r (Vector3d::Zero(3,1))

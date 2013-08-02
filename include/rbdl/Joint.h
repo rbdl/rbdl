@@ -19,7 +19,7 @@ struct Model;
 
 /** \brief General types of joints
  */
-enum JointType {
+enum RBDL_DLLAPI JointType {
 	JointTypeUndefined = 0,
 	JointTypeRevolute,
 	JointTypePrismatic,
@@ -38,7 +38,7 @@ enum JointType {
  * This class contains all information required for one single joint. This
  * contains the joint type and the axis of the joint.
  */
-struct Joint {
+struct RBDL_DLLAPI Joint {
 	Joint() :
 		mJointAxes (NULL),
 		mJointType (JointTypeUndefined),
@@ -366,6 +366,7 @@ struct Joint {
  * \param q        joint state variable
  * \param qdot     joint velocity variable
  */
+RBDL_DLLAPI
 void jcalc (
 		const Model &model,
 		const unsigned int &joint_id,

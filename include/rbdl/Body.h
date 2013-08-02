@@ -27,7 +27,7 @@ namespace RigidBodyDynamics {
  * expressed at the origin of the coordinate frame.
  *
  */
-struct Body {
+struct RBDL_DLLAPI Body {
 	Body() :
 		mMass (1.),
 		mCenterOfMass (0., 0., 0.),
@@ -236,7 +236,7 @@ struct Body {
  * fixed joint, the attached body is merged onto its parent. By doing so
  * adding fixed joints do not have an impact on runtime.
  */
-struct FixedBody {
+struct RBDL_DLLAPI FixedBody {
 	/// \brief The mass of the body
 	double mMass;
 	/// \brief The position of the center of mass in body coordinates

@@ -39,6 +39,7 @@ namespace RigidBodyDynamics {
  * \param QDot  the generalized velocities of the joints
  * \param QDDot the generalized accelerations of the joints
  */
+RBDL_DLLAPI
 void UpdateKinematics (Model &model,
 		const Math::VectorNd &Q,
 		const Math::VectorNd &QDot,
@@ -59,6 +60,7 @@ void UpdateKinematics (Model &model,
  * \param QDot  the generalized velocities of the joints
  * \param QDDot the generalized accelerations of the joints
  */
+RBDL_DLLAPI
 void UpdateKinematicsCustom (Model &model,
 		const Math::VectorNd *Q,
 		const Math::VectorNd *QDot,
@@ -76,6 +78,7 @@ void UpdateKinematicsCustom (Model &model,
  *
  * \returns a 3-D vector with coordinates of the point in base coordinates
  */
+RBDL_DLLAPI
 Math::Vector3d CalcBodyToBaseCoordinates (
 		Model &model,
 		const Math::VectorNd &Q,
@@ -94,6 +97,7 @@ Math::Vector3d CalcBodyToBaseCoordinates (
  *
  * \returns a 3-D vector with coordinates of the point in body coordinates
  */
+RBDL_DLLAPI
 Math::Vector3d CalcBaseToBodyCoordinates (
 		Model &model,
 		const Math::VectorNd &Q,
@@ -112,6 +116,7 @@ Math::Vector3d CalcBaseToBodyCoordinates (
  * \returns An orthonormal 3x3 matrix that rotates vectors from base coordinates
  * to body coordinates.
  */
+RBDL_DLLAPI
 Math::Matrix3d CalcBodyWorldOrientation (
 		Model &model,
 		const Math::VectorNd &Q,
@@ -133,6 +138,7 @@ Math::Matrix3d CalcBodyWorldOrientation (
  *
  * \returns A 3 x \#dof_count matrix of the point jacobian
  */
+RBDL_DLLAPI
 void CalcPointJacobian (Model &model,
 		const Math::VectorNd &Q,
 		unsigned int body_id,
@@ -152,6 +158,7 @@ void CalcPointJacobian (Model &model,
  *
  * \returns The cartesian velocity of the point in global frame (output)
  */
+RBDL_DLLAPI
 Math::Vector3d CalcPointVelocity (
 		Model &model,
 		const Math::VectorNd &Q,
@@ -188,6 +195,7 @@ Math::Vector3d CalcPointVelocity (
  * acceleration has to be added to the result.
  */
 
+RBDL_DLLAPI
 Math::Vector3d CalcPointAcceleration (
 		Model &model,
 		const Math::VectorNd &Q,
@@ -229,6 +237,7 @@ Math::Vector3d CalcPointAcceleration (
  * \warning The actual accuracy might be rather low (~1.0e-2)! Use this function with a
  * grain of suspicion.
  */
+RBDL_DLLAPI
 bool InverseKinematics (
 		Model &model,
 		const Math::VectorNd &Qinit,

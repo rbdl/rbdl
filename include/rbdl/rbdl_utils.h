@@ -2,6 +2,7 @@
 #define _RBDL_UTILS_H
 
 #include <string>
+#include <rbdl/rbdl_config.h>
 
 namespace RigidBodyDynamics {
 
@@ -11,11 +12,11 @@ struct Model;
 namespace Utils {
 
 	/** \brief Creates a human readable overview of the model. */
-	std::string GetModelHierarchy (const Model &model);
+	RBDL_DLLAPI std::string GetModelHierarchy (const Model &model);
 	/** \brief Creates a human readable overview of the Degrees of Freedom. */
-	std::string GetModelDOFOverview (const Model &model);
+	RBDL_DLLAPI std::string GetModelDOFOverview (const Model &model);
 	/** \brief Creates a human readable overview of the locations of all bodies that have names. */
-	std::string GetNamedBodyOriginsOverview (Model &model);
+	RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model);
 }
 }
 
