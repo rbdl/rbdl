@@ -484,7 +484,7 @@ TEST ( ModelAppendFixedToFixedBody ) {
 	double new_mass = 3.5;
 	Vector3d new_com = (1. / new_mass) * (movable_mass * movable_com + fixed_mass * (fixed_com + fixed_displacement) + fixed_mass * (fixed_com + fixed_displacement * 2.));
 
-	CHECK_ARRAY_EQUAL (new_com.data(), model.mBodies[movable_body].mCenterOfMass.data(), 3);
+	CHECK_ARRAY_CLOSE (new_com.data(), model.mBodies[movable_body].mCenterOfMass.data(), 3, TEST_PREC);
 }
 
 // Ensures that the transformations of the movable parent and fixed joint
