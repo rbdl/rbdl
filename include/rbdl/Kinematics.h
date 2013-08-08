@@ -192,7 +192,7 @@ Math::Vector3d CalcPointAcceleration (
 		bool update_kinematics = true
 	);
 
-/** \brief Computes the inverse kinematics iteratively using a damped Levenberg-Marquardt method
+/** \brief Computes the inverse kinematics iteratively using a damped Levenberg-Marquardt method (also known as Damped Least Squares method)
  *
  * \param model rigid body model
  * \param Qinit initial guess for the state
