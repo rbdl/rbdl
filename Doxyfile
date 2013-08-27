@@ -591,6 +591,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = ./src \
+                         include/rbdl \
                          doc/example.h \
                          doc/Mainpage.h \
                          addons/luamodel/luamodel.h \
