@@ -13,7 +13,7 @@
 
 namespace RigidBodyDynamics {
 
-/** \defgroup contacts_group External Contacts
+/** \page contacts_page External Contacts
  *
  * External contacts are handled by specification of a \link
  * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
@@ -35,6 +35,10 @@ namespace RigidBodyDynamics {
  * the impulse due to a collision that is excerted by the constraint on the
  * body.
  *
+ * All functions related to contacts are specified in the \ref
+ * contacts_group "Contacts Module".
+ *
+ * \defgroup contacts_group Contacts
  * @{
  */
 

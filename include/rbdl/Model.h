@@ -34,8 +34,7 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody);
  */
 namespace RigidBodyDynamics {
 
-/** \defgroup model_group Modelling
- * @{
+/** \page modeling_page Modelling
  *
  * There are two ways of creating models for RBDL:
  *
@@ -52,6 +51,8 @@ namespace RigidBodyDynamics {
  * For this see the documentation of \ref luamodel_introduction.
  *
  * \section modeling_cpp Modeling using C++
+ *
+ * The API for the RBDL Models can be found at \ref RigidBodyDynamics::Model.
  *
  * Using the C++ interface is more advanced but gives some overview about the
  * internals of RBDL.
