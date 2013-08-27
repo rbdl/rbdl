@@ -8,7 +8,7 @@
 #ifndef _KINEMATICS_H
 #define _KINEMATICS_H
 
-#include <rbdl/rbdl_math.h>
+#include "rbdl/rbdl_math.h"
 #include <assert.h>
 #include <iostream>
 #include "rbdl/Logging.h"

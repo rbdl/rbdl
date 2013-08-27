@@ -8,7 +8,7 @@
 #ifndef _DYNAMICS_EXPERIMENTAL_H
 #define _DYNAMICS_EXPERIMENTAL_H
 
-#include <rbdl/rbdl_math.h>
+#include "rbdl/rbdl_math.h"
 #include <assert.h>
 #include <iostream>
 #include "rbdl/Logging.h"
