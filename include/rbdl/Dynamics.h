@@ -11,8 +11,8 @@
 #include <assert.h>
 #include <iostream>
 
-#include <rbdl/rbdl_math.h>
-#include <rbdl/rbdl_mathutils.h>
+#include "rbdl/rbdl_math.h"
+#include "rbdl/rbdl_mathutils.h"
 
 #include "rbdl/Logging.h"
 
