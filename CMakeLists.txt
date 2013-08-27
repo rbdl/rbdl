@@ -115,7 +115,7 @@ CONFIGURE_FILE (
 
 FILE ( GLOB headers 
 	${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/*.h
-	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl//rbdl_config.h
+	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdl_config.h
 	)
 
 INSTALL ( FILES ${headers} DESTINATION include/rbdl )
