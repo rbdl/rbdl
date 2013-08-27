@@ -37,8 +37,10 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li> 18. July 2013: new API version 2.0.0 for details see (\ref
+ * api_version_checking_page) </li>
  * <li> 20. February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)</li>
- * <li> 29. January 2013: added code for \ref api_version_checking. Current is 1.0.0.</li>
+ * <li> 29. January 2013: added code for \ref api_version_checking_page. Current is 1.0.0.</li>
  * <li> 18. June 2012: added support of \ref luamodel_introduction</li>
  * <li> 01. June 2012: added support of \ref joint_models_fixed</li>
  * <li> 14. May 2012: fixed Body constructor as reported by Maxime Reis</li>
@@ -53,15 +55,19 @@
  * A simple example for creation of a model and computation of the forward
  * dynamics using the C++ API can be found \ref SimpleExample "here".
  *
- * Another example that uses the \ref luamodel_introduction Addon can be found \ref
+ * Another example that uses the \ref addon_luamodel_page "LuaModel Addon" can be found \ref
  * LuaModelExample "here".
  * 
  * \section ModuleOverview API reference separated by functional modules
  * 
- * \li \ref model_group
- * \li \ref kinematics_group
- * \li \ref dynamics_group
- * \li \ref contacts_group
+ * \li \subpage modeling_page
+ * \li \subpage kinematics_page
+ * \li \subpage dynamics_page
+ * \li \subpage contacts_page
+ * \li \subpage addon_luamodel_page 
+ *
+ * The page \subpage api_version_checking_page contains information about
+ * incompatibilities of the existing versions and how to migrate.
  *
  * \section Licensing Licensing
  *

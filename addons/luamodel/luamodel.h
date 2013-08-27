@@ -7,7 +7,7 @@ class Model;
 
 namespace Addons {
 	
-	/** \defgroup Addons Addon: rbdl_luamodel
+	/** \page addon_luamodel_page Addon: rbdl_luamodel
 	 * @{
 	 *
 	 * \section luamodel_introduction Lua Models
