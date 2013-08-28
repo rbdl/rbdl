@@ -21,10 +21,15 @@
 
 #include "rbdl/Contacts.h"
 
-/** \defgroup api_version_checking API Version Checking
+/** \page api_version_checking_page API Version Checking
  * @{
  *
- * This documentation was created for API version 1.0.0.
+ * This documentation was created for API version 2.0.0.
+ *
+ * Here is a list of changes introduced by the different versions and what
+ * adjustements have to be made to migrate.
+ *
+ * \include api_changes.txt
  */
 
 /** Returns the API version at compile time of the library. */
