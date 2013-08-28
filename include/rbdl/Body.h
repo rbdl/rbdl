@@ -8,8 +8,8 @@
 #ifndef _BODY_H
 #define _BODY_H
 
-#include <rbdl/rbdl_math.h>
-#include <rbdl/rbdl_mathutils.h>
+#include "rbdl/rbdl_math.h"
+#include "rbdl/rbdl_mathutils.h"
 #include <assert.h>
 #include <iostream>
 #include "rbdl/Logging.h"
