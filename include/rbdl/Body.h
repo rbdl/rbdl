@@ -32,13 +32,15 @@ struct Body {
 		mMass (1.),
 		mCenterOfMass (0., 0., 0.),
 		mInertia (Math::Matrix3d::Zero(3,3)),
-		mSpatialInertia (Math::SpatialMatrix::Zero(6,6))
+		mSpatialInertia (Math::SpatialMatrix::Zero(6,6)),
+		mIsVirtual (false)
 	{ };
 	Body(const Body &body) :
 		mMass (body.mMass),
 		mCenterOfMass (body.mCenterOfMass),
 		mInertia (body.mInertia),
-		mSpatialInertia (body.mSpatialInertia)
+		mSpatialInertia (body.mSpatialInertia),
+		mIsVirtual (body.mIsVirtual)
 	{};
 	Body& operator= (const Body &body) {
 		if (this != &body) {
@@ -46,6 +48,7 @@ struct Body {
 			mInertia = body.mInertia;
 			mCenterOfMass = body.mCenterOfMass;
 			mSpatialInertia = body.mSpatialInertia;
+			mIsVirtual = body.mIsVirtual;
 		}
 
 		return *this;
@@ -66,7 +69,8 @@ struct Body {
 			const Math::Vector3d &com,
 			const Math::Vector3d &gyration_radii) :
 		mMass (mass),
-		mCenterOfMass(com) {
+		mCenterOfMass(com),
+		mIsVirtual (false) {
 			Math::Matrix3d com_cross (
 					0., -com[2],  com[1],
 					com[2],      0., -com[0],
@@ -113,7 +117,8 @@ struct Body {
 			const Math::Matrix3d &inertia_C) :
 		mMass (mass),
 		mCenterOfMass(com),
-		mInertia (inertia_C) {
+		mInertia (inertia_C),
+		mIsVirtual (false) {
 			Math::Matrix3d com_cross (
 					0., -com[2],  com[1],
 					com[2],      0., -com[0],
@@ -213,7 +218,6 @@ struct Body {
 
 	~Body() {};
 
-
 	/// \brief The mass of the body
 	double mMass;
 	/// \brief The position of the center of mass in body coordinates
@@ -222,6 +226,8 @@ struct Body {
 	Math::Matrix3d mInertia;
 	/// \brief The spatial inertia that contains both mass and inertia information
 	Math::SpatialMatrix mSpatialInertia;
+
+	bool mIsVirtual;
 };
 
 /** \brief Keeps the information of a body and how it is attached to another body.

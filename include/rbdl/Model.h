@@ -391,6 +391,27 @@ struct Model {
 		}
 		return false;
 	}
+
+	/** Determines id the actual parent body.
+	 *
+	 * When adding bodies using joints with multiple degrees of
+	 * freedom, additional virtual bodies are added for each degree of
+	 * freedom. This function returns the id of the actual
+	 * non-virtual parent body.
+	 */
+	unsigned int GetParentBodyId (unsigned int id) {
+		if (id >= fixed_body_discriminator) {
+			return mFixedBodies[id - fixed_body_discriminator].mMovableParent;
+		}
+
+		unsigned int parent_id = lambda[id]; 
+	
+		while (mBodies[parent_id].mIsVirtual) {
+			parent_id = lambda[parent_id];
+		}
+
+		return parent_id;
+	}
 };
 
 /** @} */
