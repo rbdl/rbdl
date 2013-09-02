@@ -33,17 +33,15 @@ class Vector3_t : public Eigen::Vector3d
 				)
 		{
 			Base::_check_template_params();
-			EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3)
 
-				(*this) << v0, v1, v2;
+			(*this) << v0, v1, v2;
 		}
 
 		void set(const double& v0, const double& v1, const double& v2)
 		{
 			Base::_check_template_params();
-			EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 3)
 
-				(*this) << v0, v1, v2;
+			(*this) << v0, v1, v2;
 		}
 };
 
@@ -74,9 +72,8 @@ class Matrix3_t : public Eigen::Matrix3d
 				)
 		{
 			Base::_check_template_params();
-			EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix, 3, 3)
 
-				(*this)
+			(*this)
 				<< m00, m01, m02,
 				m10, m11, m12,
 				m20, m21, m22
@@ -110,9 +107,8 @@ class SpatialVector_t : public Eigen::Matrix<double, 6, 1>
 				)
 		{
 			Base::_check_template_params();
-			EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 6)
 
-				(*this) << v0, v1, v2, v3, v4, v5;
+			(*this) << v0, v1, v2, v3, v4, v5;
 		}
 
 		void set(
@@ -121,9 +117,8 @@ class SpatialVector_t : public Eigen::Matrix<double, 6, 1>
 				)
 		{
 			Base::_check_template_params();
-			EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Matrix, 6)
 
-				(*this) << v0, v1, v2, v3, v4, v5;
+			(*this) << v0, v1, v2, v3, v4, v5;
 		}
 };
 
@@ -157,9 +152,8 @@ class SpatialMatrix_t : public Eigen::Matrix<double, 6, 6>
 				)
 		{
 			Base::_check_template_params();
-			EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix, 6, 6)
 
-				(*this)
+			(*this)
 				<< m00, m01, m02, m03, m04, m05
 				, m10, m11, m12, m13, m14, m15
 				, m20, m21, m22, m23, m24, m25
@@ -179,9 +173,8 @@ class SpatialMatrix_t : public Eigen::Matrix<double, 6, 6>
 				)
 		{
 			Base::_check_template_params();
-			EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Matrix, 6, 6)
 
-				(*this)
+			(*this)
 				<< m00, m01, m02, m03, m04, m05
 				, m10, m11, m12, m13, m14, m15
 				, m20, m21, m22, m23, m24, m25
