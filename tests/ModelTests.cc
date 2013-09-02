@@ -564,3 +564,53 @@ TEST ( ModelGetBodyName ) {
 	CHECK_EQUAL (string("appended_body"), model.GetBodyName(appended_body_id));
 	CHECK_EQUAL (string(""), model.GetBodyName(123));
 }
+
+TEST ( ModelGetParentBodyId ) {
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+
+	Joint joint_rot_zyx (
+			SpatialVector (0., 0., 1., 0., 0., 0.),
+			SpatialVector (0., 1., 0., 0., 0., 0.),
+			SpatialVector (1., 0., 0., 0., 0., 0.)
+			);
+	unsigned int parent_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int child_body = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_zyx, body);
+
+	CHECK_EQUAL (0u, model.GetParentBodyId(0));
+	CHECK_EQUAL (0u, model.GetParentBodyId(parent_body));
+	CHECK_EQUAL (parent_body, model.GetParentBodyId(child_body));
+}
+
+TEST ( ModelGetParentBodyIdFixed ) {
+	Body null_body;
+	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
+
+	Model model;
+
+	Joint joint_rot_z (
+			JointTypeRevolute,
+			Vector3d(0., 0., 1.)
+			);
+
+	Joint joint_rot_zyx (
+			SpatialVector (0., 0., 1., 0., 0., 0.),
+			SpatialVector (0., 1., 0., 0., 0., 0.),
+			SpatialVector (1., 0., 0., 0., 0., 0.)
+			);
+
+	Joint joint_fixed (
+			JointTypeFixed
+			);
+	unsigned int parent_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	unsigned int child_body = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_fixed, body);
+
+	CHECK_EQUAL (parent_body, model.GetParentBodyId(child_body));
+}

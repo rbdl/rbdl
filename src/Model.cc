@@ -144,6 +144,8 @@ unsigned int AddBodyMultiDofJoint (
 	}
 
 	Body null_body (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
+	null_body.mIsVirtual = true;
+
 	unsigned int null_parent = parent_id;
 	SpatialTransform joint_frame_transform;
 
@@ -179,9 +181,10 @@ unsigned int AddBodyMultiDofJoint (
 		if (j == joint_count - 1) 
 			// if we are at the last we must add the real body
 			break;
-		else
+		else {
 			// otherwise we just add an intermediate body
 			null_parent = model.AddBody (null_parent, joint_frame_transform, single_dof_joint, null_body);
+		}
 	}
 
 	return model.AddBody (null_parent, joint_frame_transform, single_dof_joint, body, body_name);
