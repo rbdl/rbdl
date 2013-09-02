@@ -11,8 +11,8 @@
 #include <assert.h>
 #include <iostream>
 
-#include <rbdl/rbdl_math.h>
-#include <rbdl/rbdl_mathutils.h>
+#include "rbdl/rbdl_math.h"
+#include "rbdl/rbdl_mathutils.h"
 
 #include "rbdl/Logging.h"
 
@@ -20,7 +20,12 @@ namespace RigidBodyDynamics {
 
 struct Model;
 
-/** \defgroup dynamics_group Dynamics
+/** \page dynamics_page Dynamics
+ *
+ * All functions related to kinematics are specified in the \ref
+ * dynamics_group "Dynamics Module".
+ *
+ * \defgroup dynamics_group Dynamics
  * @{
  */
 

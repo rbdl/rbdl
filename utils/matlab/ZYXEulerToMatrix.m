@@ -1,4 +1,4 @@
-function [M] = ZYXEulerToMatrix (e)
+function [Rx, Ry, Rz, M] = ZYXEulerToMatrix (e)
 %
 % Calculates the rotation matrix from ZYX Euler Angles
 %

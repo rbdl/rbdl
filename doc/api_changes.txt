@@ -2,9 +2,17 @@
 - removed Model::Init():
   All initialization is now done in the default constructor in Model(). To
 	be compatible with the new API simply remove any calls to Model::Init().
-- Eigen3 is no more included in RBDL instead it uses the Eigen3 library
-	that is installed on the system. If you want to use RBDL with Eigen3
-	you have to install it on your system yourself.
-- ConstraintSet::constraint_force and ConstraintSet::constraint_impulse are
+- removed Eigen3 sources:
+  Eigen3 is no more included in RBDL instead it uses the Eigen3 library
+  that is installed on the system. If you want to use RBDL with Eigen3
+  you have to install it on your system yourself.
+- inverted sign of contact forces/impulses:
+  ConstraintSet::constraint_force and ConstraintSet::constraint_impulse are
 	now the forces or impulses that are acting on the constrained body by the
 	constraint.
+
+1.0.0 -> 1.1.0
+- removed constructor Body (mass, com, length, gyration_radii)
+  This constructor did some erroneous calculations to compute the real
+	radii of gyration. It was removed as the two remaining constructors are
+	properly tested and are more general.

@@ -1,5 +1,5 @@
 /** \file Mainpage.h 
- * \mainpage RBDL - Rigid Body Dynamics Library
+ * \mainpage Mainpage
  * \image html rbdl_logo.png
  *
  * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
@@ -19,20 +19,28 @@
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
  * href="http://royfeatherstone.org" target="_parent">Roy Featherstone</a>.
  * 
- * Development is taking place on <a
- * href="http://bitbucket.org" target="_parent">bitbucket.org</a>. The official repository
- * can be found at:
- * <a href="http://bitbucket.org/rbdl/rbdl/" target="_parent">http://bitbucket.org/rbdl/rbdl/</a>.
- * 
- * The library comes with version 3 of the the
+ * For optimal performance it is advised to use version 3 of the Eigen 
  * <a href="http://eigen.tuxfamily.org/" target="_parent">Eigen</a> math library. More
  * information about it can be found here:
- * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>
+ * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>.
+ * The library must be obtained and installed separately.
+ *
+ * \section download Download :
+ *
+ * You can download the most recent stable version as zip file from
+ * here:<br>
+ *   <a href="https://bitbucket.org/rbdl/rbdl/get/default.zip">https://bitbucket.org/rbdl/rbdl/get/default.zip</a>
+ *
+ * All development takes place on Bitbucket and you can follow RBDL's
+ * development here:<br>
+ *   <a href="https://bitbucket.org/rbdl/rbdl">https://bitbucket.org/rbdl/rbdl</a>
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li> 18. July 2013: new API version 2.0.0 for details see (\ref
+ * api_version_checking_page) </li>
  * <li> 20. February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)</li>
- * <li> 29. January 2013: added code for \ref api_version_checking. Current is 1.0.0.</li>
+ * <li> 29. January 2013: added code for \ref api_version_checking_page. Current is 1.0.0.</li>
  * <li> 18. June 2012: added support of \ref luamodel_introduction</li>
  * <li> 01. June 2012: added support of \ref joint_models_fixed</li>
  * <li> 14. May 2012: fixed Body constructor as reported by Maxime Reis</li>
@@ -47,15 +55,19 @@
  * A simple example for creation of a model and computation of the forward
  * dynamics using the C++ API can be found \ref SimpleExample "here".
  *
- * Another example that uses the \ref luamodel_introduction Addon can be found \ref
+ * Another example that uses the \ref addon_luamodel_page "LuaModel Addon" can be found \ref
  * LuaModelExample "here".
  * 
  * \section ModuleOverview API reference separated by functional modules
  * 
- * \li \ref model_group
- * \li \ref kinematics_group
- * \li \ref dynamics_group
- * \li \ref contacts_group
+ * \li \subpage modeling_page
+ * \li \subpage kinematics_page
+ * \li \subpage dynamics_page
+ * \li \subpage contacts_page
+ * \li \subpage addon_luamodel_page 
+ *
+ * The page \subpage api_version_checking_page contains information about
+ * incompatibilities of the existing versions and how to migrate.
  *
  * \section Licensing Licensing
  *

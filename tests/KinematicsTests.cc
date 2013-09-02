@@ -385,8 +385,6 @@ TEST(TestCalcPointJacobian) {
 
 	CalcPointJacobian (model, Q, base_body_id, point_position, G);
 
-	#ifdef USE_EIGEN_MATH
-	/// \todo [low] add dynamic vector algebra to SimpleMath
 	point_velocity = G * QDot;
 
 	CHECK_ARRAY_CLOSE (
@@ -394,7 +392,6 @@ TEST(TestCalcPointJacobian) {
 			point_velocity.data(),
 			3, TEST_PREC
 			);
-	#endif
 }
 
 TEST_FIXTURE(KinematicsFixture, TestInverseKinematicSimple) {
