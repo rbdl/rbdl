@@ -413,7 +413,9 @@ struct Model {
 		return parent_id;
 	}
 
-	Math::SpatialTransform GetParentTransform (unsigned int id) {
+	/** Returns the joint frame transformtion, i.e. the second argument to Model::AddBody().
+	 */
+	Math::SpatialTransform GetJointFrame (unsigned int id) {
 		if (id >= fixed_body_discriminator) {
 			return mFixedBodies[id - fixed_body_discriminator].mParentTransform;
 		}
@@ -429,6 +431,28 @@ struct Model {
 		} else
 			return X_T[id];	
 	}
+
+	/** Sets the joint frame transformtion, i.e. the second argument to Model::AddBody().
+	 */
+	void SetJointFrame (unsigned int id, const Math::SpatialTransform &transform) {
+		if (id >= fixed_body_discriminator) {
+			std::cerr << "Error: setting of parent transform not supported for fixed bodies!" << std::endl;
+			abort();
+		}
+
+		unsigned int child_id = id;
+		unsigned int parent_id = lambda[id];
+		if (mBodies[parent_id].mIsVirtual) {
+			while (mBodies[parent_id].mIsVirtual) {
+				child_id = parent_id;
+				parent_id = lambda[child_id];
+			}
+			X_T[child_id] = transform;
+		} else if (id > 0) {
+			X_T[id] = transform;
+		}
+	}
+
 
 };
 

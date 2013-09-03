@@ -1,6 +1,7 @@
 2.0.0 -> 2.1.0
 - added Model::GetParentBodyId()
-- added Model::GetParentTransform()
+- added Model::GetJointFrame()
+- added Model::SetJointFrame()
 
 1.X.Y -> 2.0.0
 - removed Model::Init():
