@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "Fixtures.h"
 #include "rbdl/rbdl_mathutils.h"
 #include "rbdl/Logging.h"
 
@@ -565,52 +566,30 @@ TEST ( ModelGetBodyName ) {
 	CHECK_EQUAL (string(""), model.GetBodyName(123));
 }
 
-TEST ( ModelGetParentBodyId ) {
-	Body null_body;
-	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
-
-	Model model;
-
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
-
-	Joint joint_rot_zyx (
-			SpatialVector (0., 0., 1., 0., 0., 0.),
-			SpatialVector (0., 1., 0., 0., 0., 0.),
-			SpatialVector (1., 0., 0., 0., 0., 0.)
-			);
-	unsigned int parent_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
-	unsigned int child_body = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_zyx, body);
-
-	CHECK_EQUAL (0u, model.GetParentBodyId(0));
-	CHECK_EQUAL (0u, model.GetParentBodyId(parent_body));
-	CHECK_EQUAL (parent_body, model.GetParentBodyId(child_body));
+TEST_FIXTURE ( RotZRotZYXFixed, ModelGetParentBodyId ) {
+	CHECK_EQUAL (0u, model->GetParentBodyId(0));
+	CHECK_EQUAL (0u, model->GetParentBodyId(body_a_id));
+	CHECK_EQUAL (body_a_id, model->GetParentBodyId(body_b_id));
 }
 
-TEST ( ModelGetParentBodyIdFixed ) {
-	Body null_body;
-	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
-
-	Model model;
-
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
-
-	Joint joint_rot_zyx (
-			SpatialVector (0., 0., 1., 0., 0., 0.),
-			SpatialVector (0., 1., 0., 0., 0., 0.),
-			SpatialVector (1., 0., 0., 0., 0., 0.)
-			);
-
-	Joint joint_fixed (
-			JointTypeFixed
-			);
-	unsigned int parent_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
-	unsigned int child_body = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_fixed, body);
-
-	CHECK_EQUAL (parent_body, model.GetParentBodyId(child_body));
+TEST_FIXTURE(RotZRotZYXFixed, ModelGetParentIdFixed) {
+	CHECK_EQUAL (body_b_id, model->GetParentBodyId(body_fixed_id));
 }
+
+TEST_FIXTURE(RotZRotZYXFixed, ModelGetParentTransform) {
+	SpatialTransform transform_a = model->GetParentTransform (body_a_id);
+	SpatialTransform transform_b = model->GetParentTransform (body_b_id);
+	SpatialTransform transform_root = model->GetParentTransform (0);
+
+	CHECK_ARRAY_EQUAL (fixture_transform_a.r.data(), transform_a.r.data(), 3);
+	CHECK_ARRAY_EQUAL (fixture_transform_b.r.data(), transform_b.r.data(), 3);
+	CHECK_ARRAY_EQUAL (Vector3d(0., 0., 0.).data(), transform_root.r.data(), 3);
+}
+
+TEST_FIXTURE(RotZRotZYXFixed, ModelGetParentTransformFixed) {
+	SpatialTransform transform_fixed = model->GetParentTransform (body_fixed_id);
+
+	CHECK_ARRAY_EQUAL (fixture_transform_fixed.r.data(), transform_fixed.r.data(), 3);
+}
+
+

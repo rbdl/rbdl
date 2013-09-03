@@ -412,6 +412,24 @@ struct Model {
 
 		return parent_id;
 	}
+
+	Math::SpatialTransform GetParentTransform (unsigned int id) {
+		if (id >= fixed_body_discriminator) {
+			return mFixedBodies[id - fixed_body_discriminator].mParentTransform;
+		}
+
+		unsigned int child_id = id;
+		unsigned int parent_id = lambda[id];
+		if (mBodies[parent_id].mIsVirtual) {
+			while (mBodies[parent_id].mIsVirtual) {
+				child_id = parent_id;
+				parent_id = lambda[child_id];
+			}
+			return X_T[child_id];
+		} else
+			return X_T[id];	
+	}
+
 };
 
 /** @} */
