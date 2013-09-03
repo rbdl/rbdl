@@ -553,4 +553,52 @@ struct FixedAndMovableJoint {
 	RigidBodyDynamics::Math::Vector3d point_position, point_acceleration;
 };
 
+/** Model with two moving bodies and one fixed body
+ */
+struct RotZRotZYXFixed {
+	RotZRotZYXFixed() {
+		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
+
+		ClearLogOutput();
+		model = new Model;
+
+		Joint joint_rot_z (
+				JointTypeRevolute,
+				Vector3d(0., 0., 1.)
+				);
+
+		Joint joint_rot_zyx (
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				);
+
+		Body body_a(1., RigidBodyDynamics::Math::Vector3d (1., 0.4, 0.4), RigidBodyDynamics::Math::Vector3d (1., 1., 1.));
+		Body body_b(2., RigidBodyDynamics::Math::Vector3d (1., 0.4, 0.4), RigidBodyDynamics::Math::Vector3d (1., 1., 1.));
+		Body body_fixed(10., RigidBodyDynamics::Math::Vector3d (1., 0.4, 0.4), RigidBodyDynamics::Math::Vector3d (1., 1., 1.));
+
+		fixture_transform_a = Xtrans (RigidBodyDynamics::Math::Vector3d(1., 2., 3.));
+		fixture_transform_b = Xtrans (RigidBodyDynamics::Math::Vector3d(4., 5., 6.));
+		fixture_transform_fixed = Xtrans (RigidBodyDynamics::Math::Vector3d(-1., -2., -3.));
+
+		body_a_id = model->AddBody (0, fixture_transform_a, joint_rot_z, body_a);
+		body_b_id = model->AppendBody (fixture_transform_b, joint_rot_zyx, body_b);
+		body_fixed_id = model->AppendBody (fixture_transform_fixed, Joint(JointTypeFixed), body_fixed);
+
+		ClearLogOutput();
+	}
+	~RotZRotZYXFixed() {
+		delete model;
+	}
+	
+	RigidBodyDynamics::Model *model;
+
+	unsigned int body_a_id, body_b_id, body_fixed_id;
+
+	RigidBodyDynamics::Math::SpatialTransform fixture_transform_a;
+	RigidBodyDynamics::Math::SpatialTransform fixture_transform_b;
+	RigidBodyDynamics::Math::SpatialTransform fixture_transform_fixed;
+};
+
 
