@@ -74,7 +74,7 @@ a separate directory in Release mode use:
 
 For optimal performance it is highly recommended to install the Eigen3
 linear algebra library from
-[http://eigen.tuxfamily.org]([http://eigen.tuxfamily.org]). RBDL also
+[http://eigen.tuxfamily.org](http://eigen.tuxfamily.org). RBDL also
 comes with a simple, albeit much slower math library (SimpleMath) that can
 be used by enabling `RBDL_USE_SIMPLE_MATH`, i.e.:
 
