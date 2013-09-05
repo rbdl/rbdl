@@ -18,6 +18,7 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
+   * 05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.
    * 18 July 2013: API version 2.0.0: removed Eigen3 sources, removed Model::Init(), inverted sign of contact forces/impulses
    * 20 February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)
    * 29 January 2013: added code for api_version_checking. Current API version is 1.0.0.
