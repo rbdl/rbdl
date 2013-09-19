@@ -1,3 +1,9 @@
+2.0.0 -> 2.0.1
+- fixed compiler errors on some older compilers
+  No change required when using RBDL version 2.0.0.
+- fixed CMake configurations for examples
+  No change required when using RBDL version 2.0.0.
+
 1.X.Y -> 2.0.0
 - removed Model::Init():
   All initialization is now done in the default constructor in Model(). To
