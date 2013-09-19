@@ -56,49 +56,49 @@ bool get_table_from_path (lua_State *L, const char *path_str, const int index = 
 
 
 /* Proxy functions for ltXXXAt() calls */
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 std::string ltGetString (lua_State *L, const char *path_str, const std::string &default_result) {
 	return ltGetStringAt (L, path_str, -1, default_result);
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 double ltGetDouble (lua_State *L, const char *path_str, const double &default_result) {
 	return ltGetDoubleAt (L, path_str, -1, default_result);
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 size_t ltGetLength (lua_State *L, const char *path_str) {
 	return ltGetLengthAt (L, path_str, -1);
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 std::vector<std::string> ltGetKeys (lua_State *L, const char *path_str) {
 	return ltGetKeysAt (L, path_str, -1);
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 std::vector<double> ltGetDoubleVector (lua_State *L, const char *path_str) {
 	return ltGetDoubleVectorAt (L, path_str, -1);
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 bool ltGetDoubleArray (lua_State *L, const char *path_str, const unsigned int count, double *dest) {
 	return ltGetDoubleArrayAt (L, path_str, count, dest, -1);
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 bool ltIsNumber (lua_State *L, const char *path_str) {
 	return ltIsNumberAt (L, path_str, -1);
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 bool ltIsExisting (lua_State *L, const char *path_str) {
 	return ltIsExistingAt (L, path_str, -1);
 }
 
 /* Actual interesting code */
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 bool ltOpenFile (lua_State **L, const char *filename) {
 	*L = luaL_newstate();
 	luaL_openlibs(*L);
@@ -111,13 +111,13 @@ bool ltOpenFile (lua_State **L, const char *filename) {
 	return true;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 void ltClose (lua_State **L) {
 	lua_close(*L);
 	*L = NULL;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 std::string ltGetStringAt (lua_State *L, const char *path_str, const int index, const std::string &default_result) {
 	std::string result;
 
@@ -143,7 +143,7 @@ std::string ltGetStringAt (lua_State *L, const char *path_str, const int index, 
 	return result;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 double ltGetDoubleAt (lua_State *L, const char *path_str, const int index, const double &default_result) {
 	double result;
 	
@@ -169,7 +169,7 @@ double ltGetDoubleAt (lua_State *L, const char *path_str, const int index, const
 	return result;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 size_t ltGetLengthAt (lua_State *L, const char *path_str, const int index) {
 	size_t result = 0;
 	
@@ -186,7 +186,7 @@ size_t ltGetLengthAt (lua_State *L, const char *path_str, const int index) {
 	return result;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 std::vector<std::string> ltGetKeysAt (lua_State *L, const char *path_str, const int index) {
 	std::vector<string> result;
 	
@@ -241,7 +241,7 @@ std::vector<std::string> ltGetKeysAt (lua_State *L, const char *path_str, const 
 	return result;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 std::vector<double> ltGetDoubleVectorAt (lua_State *L, const char *path_str, const int index) {
 	std::vector<double> result;
 	
@@ -287,7 +287,7 @@ std::vector<double> ltGetDoubleVectorAt (lua_State *L, const char *path_str, con
 	return result;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 bool ltGetDoubleArrayAt (lua_State *L, const char *path_str, const unsigned int count, double *dest, const int index) {
 	std::vector<double> result;
 	
@@ -345,7 +345,7 @@ bool ltGetDoubleArrayAt (lua_State *L, const char *path_str, const unsigned int 
 	return false;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 bool ltIsNumberAt (lua_State *L, const char *path_str, const int index) {
 	bool result = false;
 
@@ -364,7 +364,7 @@ bool ltIsNumberAt (lua_State *L, const char *path_str, const int index) {
 	return result;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 bool ltIsExistingAt (lua_State *L, const char *path_str, int index) {
 	int stack_top = lua_gettop(L);
 

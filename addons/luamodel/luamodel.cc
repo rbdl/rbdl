@@ -256,7 +256,7 @@ bool read_frame_params (lua_State *L,
 	return true;
 }
 
-RBDL_LUAMODEL_DLLAPI
+RBDL_DLLAPI
 bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 	assert (model);
 

@@ -1,6 +1,7 @@
 #ifndef _RBDL_LUAMODEL_H
 #define _RBDL_LUAMODEL_H
-#include "config.h"
+
+#include <rbdl/rbdl_config.h>
 
 namespace RigidBodyDynamics {
 
@@ -145,7 +146,7 @@ namespace Addons {
 	 * \include samplemodel.lua
 	 */
 
-	RBDL_LUAMODEL_DLLAPI bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose = false);
+	RBDL_DLLAPI bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose = false);
 
 	/** @} */
 }
