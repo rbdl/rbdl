@@ -183,7 +183,7 @@ bool construct_model (Model* rbdl_model, urdf::Model *urdf_model, bool verbose) 
 	return true;
 }
 
-bool read_urdf_model (const char* filename, Model* model, bool verbose) {
+RBDL_DLLAPI bool read_urdf_model (const char* filename, Model* model, bool verbose) {
 	assert (model);
 
 	urdf::Model urdf_model;

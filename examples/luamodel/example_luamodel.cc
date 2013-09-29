@@ -25,7 +25,7 @@ int main (int argc, char* argv[]) {
 
 	model = new Model();
 
-	if (!Addons::LuaModelReadFromFile ("./samplemodel.lua", model, true)) {
+	if (!Addons::LuaModelReadFromFile ("./samplemodel.lua", model, false)) {
 		std::cerr << "Error loading model ./samplemodel.lua" << std::endl;
 		abort();
 	}

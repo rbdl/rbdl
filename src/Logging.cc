@@ -7,8 +7,9 @@
 
 #include "rbdl/Logging.h"
 
-std::ostringstream LogOutput;
+RBDL_DLLAPI std::ostringstream LogOutput;
 
+RBDL_DLLAPI
 void ClearLogOutput() {
 	LogOutput.str("");
 }

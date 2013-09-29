@@ -18,21 +18,21 @@
 namespace RigidBodyDynamics {
 namespace Math {
 
-Vector3d Vector3dZero (0., 0., 0.);
-Matrix3d Matrix3dIdentity (
+RBDL_DLLAPI Vector3d Vector3dZero (0., 0., 0.);
+RBDL_DLLAPI Matrix3d Matrix3dIdentity (
 		1., 0., 0.,
 		0., 1., 0.,
 		0., 0., 1
 		);
-Matrix3d Matrix3dZero (
+RBDL_DLLAPI Matrix3d Matrix3dZero (
 		0., 0., 0.,
 		0., 0., 0.,
 		0., 0., 0.
 		);
 
-SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
+RBDL_DLLAPI SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
 
-SpatialMatrix SpatialMatrixIdentity (
+RBDL_DLLAPI SpatialMatrix SpatialMatrixIdentity (
 		1., 0., 0., 0., 0., 0.,
 		0., 1., 0., 0., 0., 0.,
 		0., 0., 1., 0., 0., 0.,
@@ -41,7 +41,7 @@ SpatialMatrix SpatialMatrixIdentity (
 		0., 0., 0., 0., 0., 1.
 		);
 
-SpatialMatrix SpatialMatrixZero ( 
+RBDL_DLLAPI SpatialMatrix SpatialMatrixZero ( 
 		0., 0., 0., 0., 0., 0.,
 		0., 0., 0., 0., 0., 0.,
 		0., 0., 0., 0., 0., 0.,
@@ -50,7 +50,7 @@ SpatialMatrix SpatialMatrixZero (
 		0., 0., 0., 0., 0., 0.
 		);
 
-bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
+RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 	x = VectorNd::Zero(x.size());
 
 	// We can only solve quadratic systems
@@ -138,6 +138,7 @@ bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 	return true;
 }
 
+RBDL_DLLAPI 
 void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix) {
 	assert (row < 2 && col < 2);
 	
@@ -154,6 +155,7 @@ void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned i
 	dest(row*3 + 2,col*3 + 2) = matrix(2,2);
 }
 
+RBDL_DLLAPI
 bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a, const SpatialMatrix &matrix_b, double epsilon) {
 	assert (epsilon >= 0.);
 	unsigned int i, j;
@@ -173,6 +175,7 @@ bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a, const SpatialMa
 	return true;
 }
 
+RBDL_DLLAPI
 bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVector &vector_b, double epsilon) {
 	assert (epsilon >= 0.);
 	unsigned int i;
@@ -190,12 +193,14 @@ bool SpatialVectorCompareEpsilon (const SpatialVector &vector_a, const SpatialVe
 	return true;
 }
 
+RBDL_DLLAPI
 Matrix3d parallel_axis (const Matrix3d &inertia, double mass, const Vector3d &com) {
 	Matrix3d com_cross = VectorCrossMatrix (com);
 
 	return inertia + mass * com_cross * com_cross.transpose();
 }
 
+RBDL_DLLAPI
 SpatialMatrix Xtrans_mat (const Vector3d &r) {
 	return SpatialMatrix (
 			   1.,    0.,    0.,  0.,  0.,  0.,
@@ -207,6 +212,7 @@ SpatialMatrix Xtrans_mat (const Vector3d &r) {
 			);
 }
 
+RBDL_DLLAPI
 SpatialMatrix Xrotx_mat (const double &xrot) {
 	double s, c;
 	s = sin (xrot);
@@ -222,6 +228,7 @@ SpatialMatrix Xrotx_mat (const double &xrot) {
 			);
 }
 
+RBDL_DLLAPI
 SpatialMatrix Xroty_mat (const double &yrot) {
 	double s, c;
 	s = sin (yrot);
@@ -237,6 +244,7 @@ SpatialMatrix Xroty_mat (const double &yrot) {
 			);
 }
 
+RBDL_DLLAPI
 SpatialMatrix Xrotz_mat (const double &zrot) {
 	double s, c;
 	s = sin (zrot);
@@ -252,6 +260,7 @@ SpatialMatrix Xrotz_mat (const double &zrot) {
 			);
 }
 
+RBDL_DLLAPI
 SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler) {
 	return Xrotz_mat(zyx_euler[0]) * Xroty_mat(zyx_euler[1]) * Xrotx_mat(zyx_euler[2]) * Xtrans_mat(displacement);
 }

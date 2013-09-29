@@ -29,35 +29,37 @@
 #include <vector>
 #include <string>
 
+#include <rbdl/rbdl_config.h>
+
 // forward declaration so we do not need to #include lua.h
 struct lua_State;
 
-bool ltOpenFile (lua_State **L, const char *filename);
-void ltClose (lua_State **L);
+RBDL_DLLAPI bool ltOpenFile (lua_State **L, const char *filename);
+RBDL_DLLAPI void ltClose (lua_State **L);
 
-std::string ltGetStringAt (lua_State *L, const char *path_str, const int index, const std::string &default_result = "");
-std::string ltGetString (lua_State *L, const char *path_str, const std::string &default_result = "");
+RBDL_DLLAPI std::string ltGetStringAt (lua_State *L, const char *path_str, const int index, const std::string &default_result = "");
+RBDL_DLLAPI std::string ltGetString (lua_State *L, const char *path_str, const std::string &default_result = "");
 
-double ltGetDoubleAt (lua_State *L, const char *path_str, const int index, const double &default_result = 0.);
-double ltGetDouble (lua_State *L, const char *path_str, const double &default_result = 0.);
+RBDL_DLLAPI double ltGetDoubleAt (lua_State *L, const char *path_str, const int index, const double &default_result = 0.);
+RBDL_DLLAPI double ltGetDouble (lua_State *L, const char *path_str, const double &default_result = 0.);
 
-size_t ltGetLengthAt (lua_State *L, const char *path_str, const int index);
-size_t ltGetLength (lua_State *L, const char *path_str);
+RBDL_DLLAPI size_t ltGetLengthAt (lua_State *L, const char *path_str, const int index);
+RBDL_DLLAPI size_t ltGetLength (lua_State *L, const char *path_str);
 
-std::vector<std::string> ltGetKeysAt (lua_State *L, const char *path_str, const int index);
-std::vector<std::string> ltGetKeys (lua_State *L, const char *path_str);
+RBDL_DLLAPI std::vector<std::string> ltGetKeysAt (lua_State *L, const char *path_str, const int index);
+RBDL_DLLAPI std::vector<std::string> ltGetKeys (lua_State *L, const char *path_str);
 
-std::vector<double> ltGetDoubleVectorAt (lua_State *L, const char *path_str, const int index);
-std::vector<double> ltGetDoubleVector (lua_State *L, const char *path_str); 
+RBDL_DLLAPI std::vector<double> ltGetDoubleVectorAt (lua_State *L, const char *path_str, const int index);
+RBDL_DLLAPI std::vector<double> ltGetDoubleVector (lua_State *L, const char *path_str); 
 
-bool ltGetDoubleArrayAt (lua_State *L, const char *path_str, const unsigned int count, double *dest, const int index);
-bool ltGetDoubleArray (lua_State *L, const char *path_str, const unsigned int count, double *dest); 
+RBDL_DLLAPI bool ltGetDoubleArrayAt (lua_State *L, const char *path_str, const unsigned int count, double *dest, const int index);
+RBDL_DLLAPI bool ltGetDoubleArray (lua_State *L, const char *path_str, const unsigned int count, double *dest); 
 
-bool ltIsNumber (lua_State *L, const char *path_str);
-bool ltIsNumberAt (lua_State *L, const char *path_str, int index);
+RBDL_DLLAPI bool ltIsNumber (lua_State *L, const char *path_str);
+RBDL_DLLAPI bool ltIsNumberAt (lua_State *L, const char *path_str, int index);
 
-bool ltIsExisting (lua_State *L, const char *path_str);
-bool ltIsExistingAt (lua_State *L, const char *path_str, int index);
+RBDL_DLLAPI bool ltIsExisting (lua_State *L, const char *path_str);
+RBDL_DLLAPI bool ltIsExistingAt (lua_State *L, const char *path_str, int index);
 
 /* _LUATABLES_H */
 #endif

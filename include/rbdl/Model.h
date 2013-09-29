@@ -165,7 +165,7 @@ namespace RigidBodyDynamics {
  *
  * \note To query the number of degrees of freedom use Model::dof_count.
  */
-struct Model {
+struct RBDL_DLLAPI Model {
 	Model();
 
 	// Structural information
@@ -391,6 +391,69 @@ struct Model {
 		}
 		return false;
 	}
+
+	/** Determines id the actual parent body.
+	 *
+	 * When adding bodies using joints with multiple degrees of
+	 * freedom, additional virtual bodies are added for each degree of
+	 * freedom. This function returns the id of the actual
+	 * non-virtual parent body.
+	 */
+	unsigned int GetParentBodyId (unsigned int id) {
+		if (id >= fixed_body_discriminator) {
+			return mFixedBodies[id - fixed_body_discriminator].mMovableParent;
+		}
+
+		unsigned int parent_id = lambda[id]; 
+	
+		while (mBodies[parent_id].mIsVirtual) {
+			parent_id = lambda[parent_id];
+		}
+
+		return parent_id;
+	}
+
+	/** Returns the joint frame transformtion, i.e. the second argument to Model::AddBody().
+	 */
+	Math::SpatialTransform GetJointFrame (unsigned int id) {
+		if (id >= fixed_body_discriminator) {
+			return mFixedBodies[id - fixed_body_discriminator].mParentTransform;
+		}
+
+		unsigned int child_id = id;
+		unsigned int parent_id = lambda[id];
+		if (mBodies[parent_id].mIsVirtual) {
+			while (mBodies[parent_id].mIsVirtual) {
+				child_id = parent_id;
+				parent_id = lambda[child_id];
+			}
+			return X_T[child_id];
+		} else
+			return X_T[id];	
+	}
+
+	/** Sets the joint frame transformtion, i.e. the second argument to Model::AddBody().
+	 */
+	void SetJointFrame (unsigned int id, const Math::SpatialTransform &transform) {
+		if (id >= fixed_body_discriminator) {
+			std::cerr << "Error: setting of parent transform not supported for fixed bodies!" << std::endl;
+			abort();
+		}
+
+		unsigned int child_id = id;
+		unsigned int parent_id = lambda[id];
+		if (mBodies[parent_id].mIsVirtual) {
+			while (mBodies[parent_id].mIsVirtual) {
+				child_id = parent_id;
+				parent_id = lambda[child_id];
+			}
+			X_T[child_id] = transform;
+		} else if (id > 0) {
+			X_T[id] = transform;
+		}
+	}
+
+
 };
 
 /** @} */
