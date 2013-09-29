@@ -2,6 +2,11 @@
 - made codebase compatible to Debian
 	Binary symbol export was changed. No change in user code required,
 	however everything needs to be recompiled and linked.
+- Removed Lua 5.2 source
+  When building the addon LuaModel, one hast to have it installed on the
+	system already.
+- Removed UnitTest++ sources
+  When building tests one has to have it installed on the system already.
 
 2.0.0 -> 2.0.1
 - fixed compiler errors on some older compilers

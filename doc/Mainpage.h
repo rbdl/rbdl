@@ -37,6 +37,8 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li> 29 September 2013: New version 2.1.0: adjusted build settings and symbol export to be debian compatible. Removed vendor code such as Lua 5.2 and UnitTest++. Must be pre-installed if tests or LuaModel Addon is enabled.</li>
+ * <li>05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.</li>
  * <li> 18. July 2013: new API version 2.0.0 for details see (\ref
  * api_version_checking_page) </li>
  * <li> 20. February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)</li>
