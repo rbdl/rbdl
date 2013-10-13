@@ -23,6 +23,7 @@ enum RBDL_DLLAPI JointType {
 	JointTypeUndefined = 0,
 	JointTypeRevolute,
 	JointTypePrismatic,
+	JointTypeSpherical,
 	JointTypeFixed,
 
 	JointType1DoF,
@@ -30,7 +31,9 @@ enum RBDL_DLLAPI JointType {
 	JointType3DoF,
 	JointType4DoF,
 	JointType5DoF,
-	JointType6DoF
+	JointType6DoF,
+
+	JointTypeSphericalDummy,
 };
 
 /** \brief Describes a joint relative to the predecessor body.
@@ -42,20 +45,32 @@ struct RBDL_DLLAPI Joint {
 	Joint() :
 		mJointAxes (NULL),
 		mJointType (JointTypeUndefined),
-		mDoFCount (0) {};
+		mDoFCount (0),
+		q_index (0) {};
 	Joint (JointType type) :
 		mJointAxes (NULL),
 		mJointType (type),
-	  mDoFCount (0) {
-			if (type != JointTypeFixed) {
-				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed." << std::endl;
+	  mDoFCount (0),
+		q_index (0) {
+			if (type == JointTypeSpherical) {
+				mDoFCount = 3;
+
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+
+				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+			} else if (type == JointTypeSphericalDummy) {
+			} else if (type != JointTypeFixed) {
+				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
 				assert (0);
 				abort();
 			}
 		}
 	Joint (const Joint &joint) :
 		mJointType (joint.mJointType),
-		mDoFCount (joint.mDoFCount) {
+		mDoFCount (joint.mDoFCount),
+		q_index (joint.q_index) {
 			mJointAxes = new Math::SpatialVector[mDoFCount];
 
 			for (unsigned int i = 0; i < mDoFCount; i++)
@@ -74,6 +89,8 @@ struct RBDL_DLLAPI Joint {
 
 			for (unsigned int i = 0; i < mDoFCount; i++)
 				mJointAxes[i] = joint.mJointAxes[i];
+
+			q_index = joint.q_index;
 		}
 		return *this;
 	}
@@ -350,6 +367,7 @@ struct RBDL_DLLAPI Joint {
 	/// \brief Type of joint (rotational or prismatic)
 	JointType mJointType;
 	unsigned int mDoFCount;
+	unsigned int q_index;
 };
 
 /** \brief Computes all variables for a joint model
@@ -368,16 +386,14 @@ struct RBDL_DLLAPI Joint {
  */
 RBDL_DLLAPI
 void jcalc (
-		const Model &model,
-		const unsigned int &joint_id,
+		Model &model,
+		unsigned int joint_id,
 		Math::SpatialTransform &XJ,
-		Math::SpatialVector &S,
 		Math::SpatialVector &v_J,
 		Math::SpatialVector &c_J,
-		const double &q,
-		const double &qdot
+		const Math::VectorNd &q,
+		const Math::VectorNd &qdot
 		);
-
 }
 
 #endif /* _JOINT_H */

@@ -36,13 +36,15 @@ void UpdateKinematics (Model &model,
 	//model.a[0] = spatial_gravity;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
+
 		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
 		Joint joint = model.mJoints[i];
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S[i], v_J, c_J, Q[i - 1], QDot[i - 1]);
+		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
@@ -57,7 +59,7 @@ void UpdateKinematics (Model &model,
 		}
 		
 		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
-		model.a[i] = model.a[i] + model.S[i] * QDDot[i - 1];
+		model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -78,13 +80,16 @@ void UpdateKinematicsCustom (Model &model,
 
 	if (Q) {
 		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int q_index = model.mJoints[i].q_index;
 			SpatialVector v_J;
 			SpatialVector c_J;
 			SpatialTransform X_J;
 			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
-			jcalc (model, i, X_J, model.S[i], v_J, c_J, (*Q)[i - 1], 0.);
+			VectorNd QDot_zero (VectorNd::Zero (model.q_size));
+
+			jcalc (model, i, X_J, v_J, c_J, (*Q), QDot_zero);
 
 			model.X_lambda[i] = X_J * model.X_T[i];
 
@@ -98,13 +103,14 @@ void UpdateKinematicsCustom (Model &model,
 
 	if (QDot) {
 		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int q_index = model.mJoints[i].q_index;
 			SpatialVector v_J;
 			SpatialVector c_J;
 			SpatialTransform X_J;
 			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
-			jcalc (model, i, X_J, model.S[i], v_J, c_J, (*Q)[i - 1], (*QDot)[i - 1]);
+			jcalc (model, i, X_J, v_J, c_J, *Q, *QDot);
 
 			if (lambda != 0) {
 				model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
@@ -118,6 +124,8 @@ void UpdateKinematicsCustom (Model &model,
 
 	if (QDDot) {
 		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int q_index = model.mJoints[i].q_index;
+
 			unsigned int lambda = model.lambda[i];
 
 			if (lambda != 0) {
@@ -126,7 +134,7 @@ void UpdateKinematicsCustom (Model &model,
 				model.a[i].setZero();
 			}
 
-			model.a[i] = model.a[i] + model.S[i] * (*QDDot)[i - 1];
+			model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
 		}
 	}
 }

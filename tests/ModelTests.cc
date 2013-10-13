@@ -33,6 +33,9 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 	CHECK_EQUAL (1u, model->mu.size());
 	CHECK_EQUAL (0u, model->dof_count);
 
+	CHECK_EQUAL (0u, model->q_size);
+	CHECK_EQUAL (0u, model->qdot_size);
+
 	CHECK_EQUAL (1u, model->v.size());
 	CHECK_EQUAL (1u, model->a.size());
 	
@@ -114,6 +117,14 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	CHECK_EQUAL (7u, model->X_lambda.size());
 	CHECK_EQUAL (7u, model->X_base.size());
 	CHECK_EQUAL (7u, model->mBodies.size());
+
+	CHECK_EQUAL (0, model->mJoints[0].q_index);
+	CHECK_EQUAL (0, model->mJoints[1].q_index);
+	CHECK_EQUAL (1, model->mJoints[2].q_index);
+	CHECK_EQUAL (2, model->mJoints[3].q_index);
+	CHECK_EQUAL (3, model->mJoints[4].q_index);
+	CHECK_EQUAL (4, model->mJoints[5].q_index);
+	CHECK_EQUAL (5, model->mJoints[6].q_index);
 }
 
 /** \brief Tests whether the joint and body information stored in the Model are computed correctly 
@@ -148,12 +159,16 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
 	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint, body);
 
+	VectorNd Q = VectorNd::Zero (model->q_size);
+	VectorNd QDot = VectorNd::Zero (model->q_size);
+
 	SpatialTransform X_j;
 	SpatialVector S;
 	SpatialVector v_j;
 	SpatialVector c;
 
-	jcalc (*model, 1, X_j, S, v_j, c, 0., 1.);
+	QDot[0] = 1.;
+	jcalc (*model, 1, X_j, v_j, c, Q, QDot);
 
 	SpatialMatrix test_matrix (
 			1.,  0.,  0.,  0.,  0.,  0.,
@@ -172,9 +187,12 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
 	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), 1.0e-16));
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
-	CHECK_EQUAL (test_joint_axis, S);
+	CHECK_EQUAL (test_joint_axis, model->S[1]);
 
-	jcalc (*model, 1, X_j, S, v_j, c, M_PI * 0.5, 1.);
+	Q[0] = M_PI * 0.5;
+	QDot[0] = 1.;
+
+	jcalc (*model, 1, X_j, v_j, c, Q, QDot);
 
 	test_matrix.set (
 			0.,  1.,  0.,  0.,  0.,  0.,
@@ -187,7 +205,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
 	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), TEST_PREC));
 	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, TEST_PREC));
-	CHECK_EQUAL (test_joint_axis, S);
+	CHECK_EQUAL (test_joint_axis, model->S[1]);
 }
 
 TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {

@@ -31,6 +31,8 @@ Model::Model() {
 	lambda.push_back(0.);
 	mu.push_back(std::vector<unsigned int>());
 	dof_count = 0;
+	q_size = 0;
+	qdot_size = 0;
 	previously_added_body_id = 0;
 
 	gravity = Vector3d (0., -9.81, 0.);
@@ -195,18 +197,19 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		const Joint &joint,
 		const Body &body,
 		std::string body_name) {
+	assert (lambda.size() > 0);
+	assert (joint.mJointType != JointTypeUndefined);
+
 	if (joint.mJointType == JointTypeFixed) {
 		previously_added_body_id = AddBodyFixedJoint (*this, parent_id, joint_frame, joint, body, body_name);
 		return previously_added_body_id;
-	}
-	else if (joint.mJointType != JointTypePrismatic 
+	} else if (joint.mJointType == JointTypeSpherical) {
+		// no action required
+	} else if (joint.mJointType != JointTypePrismatic 
 			&& joint.mJointType != JointTypeRevolute) {
 		previously_added_body_id = AddBodyMultiDofJoint (*this, parent_id, joint_frame, joint, body, body_name);
 		return previously_added_body_id;
 	}
-
-	assert (lambda.size() > 0);
-	assert (joint.mJointType != JointTypeUndefined);
 
 	// If we add the body to a fixed body we have to make sure that we
 	// actually add it to its movable parent.
@@ -238,15 +241,24 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		mBodyNameMap[body_name] = mBodies.size() - 1;
 	}
 
-	dof_count++;
+	q_size = q_size + joint.mDoFCount;
+	qdot_size = q_size + joint.mDoFCount;
+	dof_count = dof_count + joint.mDoFCount;
 
 	// state information
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 
 	// Joints
+	unsigned int last_q_index = mJoints.size() - 1;
 	mJoints.push_back(joint);
+
+	LOG << "last_q_index = " << last_q_index << std::endl;
+//	mJoints[mJoints.size() - 1].q_index = mJoints[last_q_index].q_index + mJoints[last_q_index].mDoFCount; 
+	mJoints[mJoints.size() - 1].q_index = mJoints[last_q_index].q_index + mJoints[last_q_index].mDoFCount; 
+
 	S.push_back (joint.mJointAxes[0]);
+	spherical_S.push_back (Matrix63::Zero(6,3));
 
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.

@@ -20,6 +20,8 @@
 	typedef SimpleMath::Fixed::Matrix<double, 6,1> SpatialVector_t;
 	typedef SimpleMath::Fixed::Matrix<double, 6,6> SpatialMatrix_t;
 
+	typedef SimpleMath::Fixed::Matrix<double, 6,3> Matrix63_t;
+
 	typedef SimpleMath::Dynamic::Matrix<double> MatrixN_t;
 	typedef SimpleMath::Dynamic::Matrix<double> VectorN_t;
 
@@ -30,6 +32,8 @@
 	#include <Eigen/StdVector>
 
 	#include "rbdl/rbdl_eigenmath.h"
+
+	typedef Eigen::Matrix<double, 6, 3> Matrix63_t;
 
 	typedef Eigen::VectorXd VectorN_t;
 	typedef Eigen::MatrixXd MatrixN_t;
@@ -43,6 +47,7 @@ namespace Math {
 	typedef Matrix3_t Matrix3d;
 	typedef SpatialVector_t SpatialVector;
 	typedef SpatialMatrix_t SpatialMatrix;
+	typedef Matrix63_t Matrix63;
 	typedef VectorN_t VectorNd;
 	typedef MatrixN_t MatrixNd;
 } /* Math */
@@ -56,6 +61,7 @@ namespace Math {
 #ifndef RBDL_USE_SIMPLE_MATH
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialVector)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialMatrix)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::Matrix63)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialTransform)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialRigidBodyInertia)
 #endif

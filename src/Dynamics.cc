@@ -48,12 +48,13 @@ void ForwardDynamics (
 	model.v[0].setZero();
 
 	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
 		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S[i], v_J, c_J, Q[i - 1], QDot[i - 1]);
+		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
 		LOG << "X_T (" << i << "):" << std::endl << model.X_T[i] << std::endl;
 
 		model.X_lambda[i] = X_J * model.X_T[i];
@@ -116,9 +117,11 @@ void ForwardDynamics (
 	LOG << std::endl;
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
+		unsigned int q_index = model.mJoints[i].q_index;
+
 		model.U[i] = model.IA[i] * model.S[i];
 		model.d[i] = model.S[i].dot(model.U[i]);
-		model.u[i] = Tau[i - 1] - model.S[i].dot(model.pA[i]);
+		model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
 
 		unsigned int lambda = model.lambda[i];
 		if (lambda != 0) {
@@ -164,13 +167,14 @@ void ForwardDynamics (
 	model.a[0] = spatial_gravity * -1.;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
 		unsigned int lambda = model.lambda[i];
 		SpatialTransform X_lambda = model.X_lambda[i];
 
 		model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
 
-		QDDot[i - 1] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
-		model.a[i] = model.a[i] + model.S[i] * QDDot[i - 1];
+		QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
+		model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -252,24 +256,25 @@ void InverseDynamics (
 	model.a[0] = spatial_gravity * -1.;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
 		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S[i], v_J, c_J, Q[i - 1], QDot[i - 1]);
+		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
 		if (lambda == 0) {
 			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
-			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.) + model.S[i] * QDDot[i - 1];
+			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.) + model.S[i] * QDDot[q_index];
 		}	else {
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);
-			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.S[i] * QDDot[i - 1] + model.c[i];
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.S[i] * QDDot[q_index] + model.c[i];
 		}
 
 		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mSpatialInertia * model.v[i]);
@@ -292,7 +297,8 @@ void InverseDynamics (
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
-		Tau[i - 1] = model.S[i].dot(model.f[i]);
+		unsigned int q_index = model.mJoints[i].q_index;
+		Tau[q_index] = model.S[i].dot(model.f[i]);
 
 		unsigned int lambda = model.lambda[i];
 
@@ -323,7 +329,6 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 	H.setZero();
 
 	unsigned int i;
-	unsigned int dof_i = model.dof_count;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
@@ -336,22 +341,22 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply(model.Ic[i]);
 		}
 
-		dof_i = i - 1;
+		unsigned int dof_index_i = model.mJoints[i].q_index;
 
 		SpatialVector F = model.Ic[i] * model.S[i];
-		H(dof_i, dof_i) = model.S[i].dot(F);
+		H(dof_index_i, dof_index_i) = model.S[i].dot(F);
 
 		unsigned int j = i;
-		unsigned int dof_j = dof_i;
+		unsigned int dof_index_j = dof_index_i;
 
 		while (model.lambda[j] != 0) {
 			F = model.X_lambda[j].applyTranspose(F);
 			j = model.lambda[j];
 
-			dof_j = j - 1;
+			dof_index_j = model.mJoints[j].q_index;
 
-			H(dof_i,dof_j) = F.dot(model.S[j]);
-			H(dof_j,dof_i) = H(dof_i,dof_j);
+			H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
+			H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
 		}
 	}
 }

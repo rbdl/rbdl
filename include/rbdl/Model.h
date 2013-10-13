@@ -181,6 +181,10 @@ struct RBDL_DLLAPI Model {
 	 * velocity (qdot), acceleration (qddot), and force (tau) vector.
 	 */
 	unsigned int dof_count;
+
+	unsigned int q_size;
+	unsigned int qdot_size;
+
 	/// \brief Id of the previously added body, required for Model::AppendBody()
 	unsigned int previously_added_body_id;
 
@@ -205,6 +209,13 @@ struct RBDL_DLLAPI Model {
 	std::vector<Math::SpatialTransform> X_T;
 	/// \brief The number of fixed joints that have been declared before each joint.
 	std::vector<unsigned int> mFixedJointCount;
+
+	////////////////////////////////////
+	// Special variables for spherical joints
+	/// \brief Motion subspace for spherical joints
+	std::vector<Math::Matrix63> spherical_S;
+	std::vector<Math::Matrix63> spherical_U;
+	std::vector<Math::Matrix3d> spherical_Dinv;
 
 	////////////////////////////////////
 	// Dynamics variables
@@ -292,6 +303,14 @@ struct RBDL_DLLAPI Model {
 	 * \returns id of the added body
 	 */
 	unsigned int AddBody (
+			const unsigned int parent_id,
+			const Math::SpatialTransform &joint_frame,
+			const Joint &joint,
+			const Body &body,
+			std::string body_name = "" 
+			);
+
+	unsigned int AddBodySphericalJoint (
 			const unsigned int parent_id,
 			const Math::SpatialTransform &joint_frame,
 			const Joint &joint,
@@ -452,8 +471,6 @@ struct RBDL_DLLAPI Model {
 			X_T[id] = transform;
 		}
 	}
-
-
 };
 
 /** @} */
