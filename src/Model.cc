@@ -51,6 +51,7 @@ Model::Model() {
 	spherical_U.push_back (Matrix63::Zero());
 	spherical_Dinv.push_back (Matrix3d::Zero());
 	spherical_u.push_back (Vector3d::Zero());
+	spherical_w_index.push_back (0);
 
 	// Dynamic variables
 	c.push_back(zero_spatial);
@@ -247,10 +248,6 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 		mBodyNameMap[body_name] = mBodies.size() - 1;
 	}
 
-	q_size = q_size + joint.mDoFCount;
-	qdot_size = qdot_size + joint.mDoFCount;
-	dof_count = dof_count + joint.mDoFCount;
-
 	// state information
 	v.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
@@ -259,8 +256,6 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	unsigned int last_q_index = mJoints.size() - 1;
 	mJoints.push_back(joint);
 
-	LOG << "last_q_index = " << last_q_index << std::endl;
-//	mJoints[mJoints.size() - 1].q_index = mJoints[last_q_index].q_index + mJoints[last_q_index].mDoFCount; 
 	mJoints[mJoints.size() - 1].q_index = mJoints[last_q_index].q_index + mJoints[last_q_index].mDoFCount; 
 
 	S.push_back (joint.mJointAxes[0]);
@@ -270,6 +265,22 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	spherical_U.push_back (Matrix63::Zero());
 	spherical_Dinv.push_back (Matrix3d::Zero());
 	spherical_u.push_back (Vector3d::Zero());
+	spherical_w_index.push_back (0);
+
+	dof_count = dof_count + joint.mDoFCount;
+
+	// update the w components of the Quaternions. They are stored at the end
+	// of the q vector
+	int spherical_joint_counter = 0;
+	for (unsigned int i = 1; i < mJoints.size(); i++) {
+		if (mJoints[i].mJointType == JointTypeSpherical) {
+			spherical_w_index[i] = dof_count + spherical_joint_counter;
+			spherical_joint_counter++;
+		}
+	}
+
+	q_size = dof_count + spherical_joint_counter;
+	qdot_size = qdot_size + joint.mDoFCount;
 
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.

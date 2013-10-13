@@ -16,6 +16,7 @@
 
 	typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3_t;
 	typedef SimpleMath::Fixed::Matrix<double, 3,3> Matrix3_t;
+	typedef SimpleMath::Fixed::Matrix<double, 4,1> Vector4_t;
 
 	typedef SimpleMath::Fixed::Matrix<double, 6,1> SpatialVector_t;
 	typedef SimpleMath::Fixed::Matrix<double, 6,6> SpatialMatrix_t;
@@ -44,6 +45,7 @@ namespace RigidBodyDynamics {
 /** \brief Math types such as vectors and matrices and utility functions. */
 namespace Math {
 	typedef Vector3_t Vector3d;
+	typedef Vector4_t Vector4d;
 	typedef Matrix3_t Matrix3d;
 	typedef SpatialVector_t SpatialVector;
 	typedef SpatialMatrix_t SpatialMatrix;
@@ -54,6 +56,7 @@ namespace Math {
 
 } /* RigidBodyDynamics */
 
+#include "rbdl/Quaternion.h"
 #include "rbdl/SpatialAlgebraOperators.h"
 
 // If we use Eigen3 we have to create specializations of the STL

@@ -217,6 +217,7 @@ struct RBDL_DLLAPI Model {
 	std::vector<Math::Matrix63> spherical_U;
 	std::vector<Math::Matrix3d> spherical_Dinv;
 	std::vector<Math::Vector3d> spherical_u;
+	std::vector<unsigned int> spherical_w_index;
 
 	////////////////////////////////////
 	// Dynamics variables
@@ -471,6 +472,42 @@ struct RBDL_DLLAPI Model {
 		} else if (id > 0) {
 			X_T[id] = transform;
 		}
+	}
+
+	Math::Quaternion GetQuaternion (unsigned int i, const Math::VectorNd &Q) {
+		assert (mJoints[i].mJointType == JointTypeSpherical);
+		unsigned int q_index = mJoints[i].q_index;
+		return Math::Quaternion (Q[q_index], Q[q_index + 1], Q[q_index + 2], Q[spherical_w_index[i]]);
+	}
+
+	void SetQuaternion (unsigned int i, const Math::Quaternion &quat, Math::VectorNd &Q) {
+		assert (mJoints[i].mJointType == JointTypeSpherical);
+		unsigned int q_index = mJoints[i].q_index;
+		
+		Q[q_index] = quat[0];
+		Q[q_index + 1] = quat[1];
+		Q[q_index + 2] = quat[2];
+		Q[spherical_w_index[i]] = quat[3];
+	}
+
+	Math::VectorNd GetQDerivative (const Math::VectorNd &Q, const Math::VectorNd QDot) {
+		Math::VectorNd qdot (Math::VectorNd::Zero (q_size));
+
+		unsigned int q_index = 0;
+		for (unsigned int i = 1; i < mJoints.size(); i++) {
+			if (mJoints[i].mJointType == JointTypeSpherical) {
+				Math::Vector3d omega (QDot[mJoints[i].q_index], QDot[mJoints[i].q_index + 1], QDot[mJoints[i].q_index + 2]);
+				Math::Quaternion quat = GetQuaternion (i, Q);
+
+				qdot[mJoints[i].q_index] =   ( quat[3] * omega[0] - quat[2] * omega[1] + quat[1] * omega[2]) * 0.5;
+				qdot[mJoints[i].q_index+1] = ( quat[2] * omega[0] + quat[3] * omega[1] - quat[0] * omega[2]) * 0.5;
+				qdot[mJoints[i].q_index+2] = (-quat[1] * omega[0] + quat[0] * omega[1] - quat[3] * omega[2]) * 0.5;
+				qdot[spherical_w_index[i]] = (-quat[1] * omega[0] + quat[0] * omega[1] - quat[3] * omega[2]) * 0.5;
+			} else {
+				qdot[mJoints[i].q_index] = QDot[mJoints[i].q_index];
+			}
+		}
+		return qdot;	
 	}
 };
 
