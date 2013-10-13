@@ -1,5 +1,5 @@
 /** \file Mainpage.h 
- * \mainpage RBDL - Rigid Body Dynamics Library
+ * \mainpage Mainpage
  * \image html rbdl_logo.png
  *
  * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
@@ -19,18 +19,26 @@
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
  * href="http://royfeatherstone.org" target="_parent">Roy Featherstone</a>.
  * 
- * Development is taking place on <a
- * href="http://bitbucket.org" target="_parent">bitbucket.org</a>. The official repository
- * can be found at:
- * <a href="http://bitbucket.org/rbdl/rbdl/" target="_parent">http://bitbucket.org/rbdl/rbdl/</a>.
- * 
- * The library comes with version 3 of the the
+ * For optimal performance it is advised to use version 3 of the Eigen 
  * <a href="http://eigen.tuxfamily.org/" target="_parent">Eigen</a> math library. More
  * information about it can be found here:
- * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>
+ * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>.
+ * The library must be obtained and installed separately.
+ *
+ * \section download Download :
+ *
+ * You can download the most recent stable version as zip file from
+ * here:<br>
+ *   <a href="https://bitbucket.org/rbdl/rbdl/get/default.zip">https://bitbucket.org/rbdl/rbdl/get/default.zip</a>
+ *
+ * All development takes place on Bitbucket and you can follow RBDL's
+ * development here:<br>
+ *   <a href="https://bitbucket.org/rbdl/rbdl">https://bitbucket.org/rbdl/rbdl</a>
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li> 29 September 2013: New version 2.1.0: adjusted build settings and symbol export to be debian compatible. Removed vendor code such as Lua 5.2 and UnitTest++. Must be pre-installed if tests or LuaModel Addon is enabled.</li>
+ * <li>05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.</li>
  * <li> 18. July 2013: new API version 2.0.0 for details see (\ref
  * api_version_checking_page) </li>
  * <li> 20. February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)</li>

@@ -1,15 +1,34 @@
-2.0.0 -> 2.1.0
-- added Model::GetParentBodyId()
-- added Model::GetJointFrame()
-- added Model::SetJointFrame()
+2.0.1 -> 2.1.0
+- made codebase compatible to Debian
+	Binary symbol export was changed. No change in user code required,
+	however everything needs to be recompiled and linked.
+- Removed Lua 5.2 source
+  When building the addon LuaModel, one hast to have it installed on the
+	system already.
+- Removed UnitTest++ sources
+  When building tests one has to have it installed on the system already.
+
+2.0.0 -> 2.0.1
+- fixed compiler errors on some older compilers
+  No change required when using RBDL version 2.0.0.
+- fixed CMake configurations for examples
+  No change required when using RBDL version 2.0.0.
 
 1.X.Y -> 2.0.0
 - removed Model::Init():
   All initialization is now done in the default constructor in Model(). To
 	be compatible with the new API simply remove any calls to Model::Init().
-- Eigen3 is no more included in RBDL instead it uses the Eigen3 library
-	that is installed on the system. If you want to use RBDL with Eigen3
-	you have to install it on your system yourself.
-- ConstraintSet::constraint_force and ConstraintSet::constraint_impulse are
+- removed Eigen3 sources:
+  Eigen3 is no more included in RBDL instead it uses the Eigen3 library
+  that is installed on the system. If you want to use RBDL with Eigen3
+  you have to install it on your system yourself.
+- inverted sign of contact forces/impulses:
+  ConstraintSet::constraint_force and ConstraintSet::constraint_impulse are
 	now the forces or impulses that are acting on the constrained body by the
 	constraint.
+
+1.0.0 -> 1.1.0
+- removed constructor Body (mass, com, length, gyration_radii)
+  This constructor did some erroneous calculations to compute the real
+	radii of gyration. It was removed as the two remaining constructors are
+	properly tested and are more general.

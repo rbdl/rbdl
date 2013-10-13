@@ -18,6 +18,9 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
+   * 29 September 2013: New version 2.1.0: adjusted build settings and symbol export to be debian compatible. Removed vendor code such as Lua 5.2 and UnitTest++. Must be pre-installed if tests or LuaModel Addon is enabled.
+   * 05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.
+   * 18 July 2013: API version 2.0.0: removed Eigen3 sources, removed Model::Init(), inverted sign of contact forces/impulses
    * 20 February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)
    * 29 January 2013: added code for api_version_checking. Current API version is 1.0.0.
    * 11 January 2013: removed Eigen3 sources and relying on an already installed Eigen3 library. Optionally RBDL can be used with the included but slower SimpleMath library.

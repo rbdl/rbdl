@@ -243,7 +243,7 @@ bool read_frame_params (lua_State *L,
 
 		if (verbose) {
 			cout << "  mass = " << mass << endl;
-			cout << "  com = " << com << endl;
+			cout << "  com = " << com.transpose() << endl;
 			cout << "  inertia = " << inertia << endl;
 		}
 
