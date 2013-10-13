@@ -37,34 +37,22 @@ struct KinematicsFixture {
 		 */
 
 		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-		joint_a = Joint(
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_a = Joint( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 		body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
 		body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-		joint_b = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
+		joint_b = Joint ( SpatialVector (0., 1., 0., 0., 0., 0.));
 
 		body_b_id = model->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
-		joint_c = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_c = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 		body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
 		body_d = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-		joint_c = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
+		joint_c = Joint ( SpatialVector (1., 0., 0., 0., 0., 0.));
 
 		body_d_id = model->AddBody(body_c_id, Xtrans(Vector3d(0., 0., -1.)), joint_c, body_d);
 
@@ -110,72 +98,25 @@ struct KinematicsFixture6DoF {
 		 */
 
 		// base body (3 DoF)
-		base_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_base_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		base_rot_z_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_z, base_rot_z);
-
-		base_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_base_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
-
-		base_rot_x = Body (
+		base = Body (
 				1.,
 				Vector3d (0.5, 0., 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_base_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
+		joint_rotzyx = Joint (
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
 				);
-		base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
+		base_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_rotzyx, base);
 
 		// child body (3 DoF)
-		child_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
-
-		child_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
-
-		child_rot_x = Body (
+		child = Body (
 				1.,
 				Vector3d (0., 0.5, 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
-		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
+		child_id = model->AddBody (base_id, Xtrans (Vector3d (1., 0., 0.)), joint_rotzyx, child);
 
 		Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 		QDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
@@ -190,15 +131,9 @@ struct KinematicsFixture6DoF {
 	}
 	Model *model;
 
-	unsigned int base_rot_z_id, base_rot_y_id, base_rot_x_id,
-		child_rot_z_id, child_rot_y_id, child_rot_x_id,
-		base_body_id;
-
-	Body base_rot_z, base_rot_y, base_rot_x,
-		child_rot_z, child_rot_y, child_rot_x;
-
-	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
-		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
+	unsigned int base_id, child_id;
+	Body base, child;
+	Joint joint_rotzyx;
 
 	VectorNd Q;
 	VectorNd QDot;
@@ -437,7 +372,7 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicUnreachable) {
 
 	VectorNd Qres = VectorNd::Zero ((size_t) model->dof_count);
 
-	unsigned int body_id = child_rot_x_id;
+	unsigned int body_id = child_id;
 	Vector3d body_point = Vector3d (1., 0., 0.);
 	Vector3d target (2.2, 0., 0.);
 
@@ -469,7 +404,7 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicTwoPoints) {
 
 	VectorNd Qres = VectorNd::Zero ((size_t) model->dof_count);
 
-	unsigned int body_id = child_rot_x_id;
+	unsigned int body_id = child_id;
 	Vector3d body_point = Vector3d (1., 0., 0.);
 	Vector3d target (2., 0., 0.);
 
@@ -477,7 +412,7 @@ TEST_FIXTURE(KinematicsFixture6DoF, TestInverseKinematicTwoPoints) {
 	body_points.push_back (body_point);
 	target_pos.push_back (target);
 
-	body_ids.push_back (base_rot_x_id);
+	body_ids.push_back (base_id);
 	body_points.push_back (Vector3d (0.6, 1.0, 0.));
 	target_pos.push_back (Vector3d (0.5, 1.1, 0.));
 
@@ -506,10 +441,7 @@ TEST ( FixedJointBodyCalcBodyToBase ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body);
 
@@ -527,10 +459,7 @@ TEST ( FixedJointBodyCalcBodyToBaseRotated ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector(0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(1., 0., 0.)), Joint(JointTypeFixed), fixed_body);
 
@@ -552,10 +481,7 @@ TEST ( FixedJointBodyCalcBaseToBody ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body);
 
@@ -573,10 +499,7 @@ TEST ( FixedJointBodyCalcBaseToBodyRotated ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(1., 0., 0.)), Joint(JointTypeFixed), fixed_body);
 
@@ -598,10 +521,7 @@ TEST ( FixedJointBodyWorldOrientation ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 
 	SpatialTransform transform = Xrotz(0.25) * Xtrans (Vector3d (1., 2., 3.));
@@ -623,10 +543,7 @@ TEST ( FixedJointCalcPointJacobian ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 
 	SpatialTransform transform = Xrotz(0.25) * Xtrans (Vector3d (1., 2., 3.));

@@ -22,96 +22,33 @@ struct ImpulsesFixture {
 
 		model->gravity = Vector3d (0., -9.81, 0.);
 
-		/* Basically a model like this, where X are the Center of Masses
-		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
-		 *
-		 *                X
-		 *                *
-		 *              _/
-		 *            _/  (-Z)
-		 *      Z    /
-		 *      *---* 
-		 *      |
-		 *      |
-		 *  Z   |
-		 *  O---*
-		 *      Y
-		 */
-
 		// base body
-		base_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_base_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		base_rot_z_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_z, base_rot_z);
-
-		base_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_base_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
-
-		base_rot_x = Body (
+		base = Body (
 				1.,
 				Vector3d (0., 1., 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_base_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
+		joint_rotzyx = Joint (
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
 				);
-		base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
+		base_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_rotzyx, base);
 
-		// child body
-		child_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
-
-		child_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
-
-		child_rot_x = Body (
+		// child body (3 DoF)
+		child = Body (
 				1.,
 				Vector3d (0., 1., 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
-		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
+		child_id = model->AddBody (base_id, Xtrans (Vector3d (1., 0., 0.)), joint_rotzyx, child);
 
 		Q = VectorNd::Zero(model->dof_count);
 		QDot = VectorNd::Zero(model->dof_count);
 		QDDot = VectorNd::Zero(model->dof_count);
 		Tau = VectorNd::Zero(model->dof_count);
 
-		contact_body_id = child_rot_x_id;
+		contact_body_id = child_id;
 		contact_point = Vector3d (0., 1., 0.);
 		contact_normal = Vector3d (0., 1., 0.);
 
@@ -123,14 +60,9 @@ struct ImpulsesFixture {
 	}
 	Model *model;
 
-	unsigned int base_rot_z_id, base_rot_y_id, base_rot_x_id,
-		child_rot_z_id, child_rot_y_id, child_rot_x_id;
-
-	Body base_rot_z, base_rot_y, base_rot_x,
-		child_rot_z, child_rot_y, child_rot_x;
-
-	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
-		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x;
+	unsigned int base_id, child_id;
+	Body base, child;
+	Joint joint_rotzyx;
 
 	VectorNd Q;
 	VectorNd QDot;

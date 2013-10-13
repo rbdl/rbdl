@@ -37,113 +37,40 @@ struct FixedBase6DoF9DoF {
 		 */
 
 		// base body (3 DoF)
-		base_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_base_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		base_rot_z_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_z, base_rot_z);
-
-		base_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_base_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		base_rot_y_id = model->AddBody (base_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
-
-		base_rot_x = Body (
+		base = Body (
 				1.,
 				Vector3d (0.5, 0., 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_base_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
+		joint_rotzyx = Joint (
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
 				);
-		base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
+		base_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_rotzyx, base);
 
 		// child body 1 (3 DoF)
-		child_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
-
-		child_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
-
-		child_rot_x = Body (
+		child = Body (
 				1.,
 				Vector3d (0., 0.5, 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
-		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
+		child_id = model->AddBody (base_id, Xtrans (Vector3d (0., 0., 0.)), joint_rotzyx, child);
 
 		// child body (3 DoF)
-		child_2_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_2_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		child_2_rot_z_id = model->AddBody (child_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_2_rot_z, child_2_rot_z);
-
-		child_2_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_2_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		child_2_rot_y_id = model->AddBody (child_2_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_y, child_2_rot_y);
-
-		child_2_rot_x = Body (
+		child_2 = Body (
 				1.,
 				Vector3d (0., 0.5, 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_2_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
-		child_2_rot_x_id = model->AddBody (child_2_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_x, child_2_rot_x);
+		child_2_id = model->AddBody (child_id, Xtrans (Vector3d (0., 0., 0.)), joint_rotzyx, child_2);
 
 		Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 		QDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 		QDDot = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 		Tau = VectorNd::Constant (model->mBodies.size() - 1, 0.);
 
-		contact_body_id = child_rot_x_id;
+		contact_body_id = child_id;
 		contact_point = Vector3d  (0.5, 0.5, 0.);
 		contact_normal = Vector3d  (0., 1., 0.);
 
@@ -155,18 +82,11 @@ struct FixedBase6DoF9DoF {
 	}
 	Model *model;
 
-	unsigned int base_rot_z_id, base_rot_y_id, base_rot_x_id,
-		child_rot_z_id, child_rot_y_id, child_rot_x_id,
-		child_2_rot_z_id, child_2_rot_y_id,child_2_rot_x_id,
-		base_body_id;
+	unsigned int base_id, child_id, child_2_id;
 
-	Body base_rot_z, base_rot_y, base_rot_x,
-		child_rot_z, child_rot_y, child_rot_x,
-		child_2_rot_z, child_2_rot_y, child_2_rot_x;
+	Body base, child, child_2;
 
-	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
-		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x,
-		joint_child_2_rot_z, joint_child_2_rot_y, joint_child_2_rot_x;
+	Joint joint_rotzyx;
 
 	VectorNd Q;
 	VectorNd QDot;
@@ -198,87 +118,41 @@ struct FixedBase6DoF12DoFFloatingBase {
 		 *             Child body
 		 */
 
-		base_rot_x = Body (
+		// base body (3 DoF)
+		base = Body (
 				1.,
 				Vector3d (0.5, 0., 0.),
 				Vector3d (1., 1., 1.)
 				);
-		base_rot_x_id = model->SetFloatingBaseBody(base_rot_x);
+		base_id = model->SetFloatingBaseBody (base);
 
 		// child body 1 (3 DoF)
-		child_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
-
-		child_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
-
-		child_rot_x = Body (
+		child = Body (
 				1.,
 				Vector3d (0., 0.5, 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
+		joint_rotzyx = Joint (
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
 				);
-		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
+		child_id = model->AddBody (base_id, Xtrans (Vector3d (1., 0., 0.)), joint_rotzyx, child);
 
 		// child body (3 DoF)
-		child_2_rot_z = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_2_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
-		child_2_rot_z_id = model->AddBody (child_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_2_rot_z, child_2_rot_z);
-
-		child_2_rot_y = Body (
-				0.,
-				Vector3d (0., 0., 0.),
-				Vector3d (0., 0., 0.)
-				);
-		joint_child_2_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
-		child_2_rot_y_id = model->AddBody (child_2_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_y, child_2_rot_y);
-
-		child_2_rot_x = Body (
+		child_2 = Body (
 				1.,
 				Vector3d (0., 0.5, 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_2_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
-		child_2_rot_x_id = model->AddBody (child_2_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_x, child_2_rot_x);
+		child_2_id = model->AddBody (child_id, Xtrans (Vector3d (1., 0., 0.)), joint_rotzyx, child_2);
 
 		Q = VectorNd::Constant (model->dof_count, 0.);
 		QDot = VectorNd::Constant (model->dof_count, 0.);
 		QDDot = VectorNd::Constant (model->dof_count, 0.);
 		Tau = VectorNd::Constant (model->dof_count, 0.);
 
-		contact_body_id = child_rot_x_id;
+		contact_body_id = child_id;
 		contact_point = Vector3d  (0.5, 0.5, 0.);
 		contact_normal = Vector3d  (0., 1., 0.);
 
@@ -290,18 +164,11 @@ struct FixedBase6DoF12DoFFloatingBase {
 	}
 	Model *model;
 
-	unsigned int base_rot_z_id, base_rot_y_id, base_rot_x_id,
-		child_rot_z_id, child_rot_y_id, child_rot_x_id,
-		child_2_rot_z_id, child_2_rot_y_id,child_2_rot_x_id,
-		base_body_id;
+	unsigned int base_id, child_id, child_2_id;
 
-	Body base_rot_z, base_rot_y, base_rot_x,
-		child_rot_z, child_rot_y, child_rot_x,
-		child_2_rot_z, child_2_rot_y, child_2_rot_x;
+	Body base, child, child_2;
 
-	Joint joint_base_rot_z, joint_base_rot_y, joint_base_rot_x,
-		joint_child_rot_z, joint_child_rot_y, joint_child_rot_x,
-		joint_child_2_rot_z, joint_child_2_rot_y, joint_child_2_rot_x;
+	Joint joint_rotzyx;
 
 	VectorNd Q;
 	VectorNd QDot;
@@ -676,7 +543,7 @@ TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsOptMultipleContactsMulti
 
 	constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (1., 0., 0.));
 	constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.));
-	constraint_set.AddConstraint (child_2_rot_x_id, contact_point, Vector3d (0., 1., 0.));
+	constraint_set.AddConstraint (child_2_id, contact_point, Vector3d (0., 1., 0.));
 	
 	constraint_set_lagrangian = constraint_set.Copy();
 	constraint_set_lagrangian.Bind (*model);
@@ -705,7 +572,7 @@ TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsOptMultipleContactsMulti
 	Vector3d point_accel_c, point_accel_2_c;
 
 	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
-	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_rot_x_id, contact_point);
+	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_id, contact_point);
 
 //	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
 
@@ -723,7 +590,7 @@ TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsOptMultipleContactsMulti
 	CHECK_CLOSE (0., point_accel_2_c[1], TEST_PREC);
 
 	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, contact_body_id, contact_point);
-	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, child_2_rot_x_id, contact_point);
+	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, child_2_id, contact_point);
 
 	CHECK_CLOSE (0., point_accel_c[0], TEST_PREC);
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
@@ -737,7 +604,7 @@ TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsOptMultipleContactsMulti
 
 	constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (1., 0., 0.));
 	constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.));
-	constraint_set.AddConstraint (child_2_rot_x_id, contact_point, Vector3d (0., 1., 0.));
+	constraint_set.AddConstraint (child_2_id, contact_point, Vector3d (0., 1., 0.));
 	
 	constraint_set_lagrangian = constraint_set.Copy();
 	constraint_set_lagrangian.Bind (*model);
@@ -772,7 +639,7 @@ TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsOptMultipleContactsMulti
 	Vector3d point_accel_c, point_accel_2_c;
 
 	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
-	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_rot_x_id, contact_point);
+	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_id, contact_point);
 
 //	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
 
@@ -790,7 +657,7 @@ TEST_FIXTURE (FixedBase6DoF9DoF, ForwardDynamicsContactsOptMultipleContactsMulti
 	CHECK_CLOSE (0., point_accel_2_c[1], TEST_PREC);
 
 	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, contact_body_id, contact_point);
-	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, child_2_rot_x_id, contact_point);
+	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, child_2_id, contact_point);
 
 	CHECK_CLOSE (0., point_accel_c[0], TEST_PREC);
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);
@@ -804,7 +671,7 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsMultipleCon
 
 	constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (1., 0., 0.));
 	constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.));
-	constraint_set.AddConstraint (child_2_rot_x_id, contact_point, Vector3d (0., 1., 0.));
+	constraint_set.AddConstraint (child_2_id, contact_point, Vector3d (0., 1., 0.));
 	
 	constraint_set_lagrangian = constraint_set.Copy();
 	constraint_set_lagrangian.Bind (*model);
@@ -839,7 +706,7 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsMultipleCon
 	Vector3d point_accel_c, point_accel_2_c;
 
 	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot, contact_body_id, contact_point);
-	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_rot_x_id, contact_point);
+	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot, child_2_id, contact_point);
 
 //	cout << "point_accel_c = " << point_accel_c.transpose() << endl;
 
@@ -859,7 +726,7 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsMultipleCon
 	CHECK_CLOSE (0., point_accel_2_c[1], TEST_PREC);
 
 	point_accel_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, contact_body_id, contact_point);
-	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, child_2_rot_x_id, contact_point);
+	point_accel_2_c = CalcPointAcceleration (*model, Q, QDot, QDDot_lagrangian, child_2_id, contact_point);
 
 	CHECK_CLOSE (0., point_accel_c[0], TEST_PREC);
 	CHECK_CLOSE (0., point_accel_c[1], TEST_PREC);

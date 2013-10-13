@@ -54,10 +54,7 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 
 TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	Body body;
-	Joint joint (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 	unsigned int body_id = 0;
 	body_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
@@ -123,10 +120,7 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
  */
 TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
 	Body body;
-	Joint joint (
-		JointTypeRevolute,
-		Vector3d(0., 0., 1.)
-		);
+	Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
@@ -138,10 +132,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
 
 TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
 	Body body;
-	Joint joint (
-		JointTypeRevolute,
-		Vector3d(0., 0., 1.)
-		);
+	Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 	model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body, "mybody"); 
 
@@ -153,10 +144,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
 
 TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	Body body;
-	Joint joint (
-		JointTypeRevolute,
-		Vector3d(0., 0., 1.)
-		);
+	Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 	model->AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint, body);
 
@@ -239,14 +227,8 @@ TEST ( Model2DoFJoint ) {
 	// the standard modeling using a null body
 	Body null_body;
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
-	Joint joint_rot_x (
-			JointTypeRevolute,
-			Vector3d(1., 0., 0.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
 
 	Model model_std;
 	model_std.gravity = Vector3d (0., -9.81, 0.);
@@ -283,18 +265,9 @@ TEST ( Model3DoFJoint ) {
 	Body null_body;
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
-	Joint joint_rot_y (
-			JointTypeRevolute,
-			Vector3d(0., 1., 0.)
-			);
-	Joint joint_rot_x (
-			JointTypeRevolute,
-			Vector3d(1., 0., 0.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_y ( SpatialVector (0., 1., 0., 0., 0., 0.));
+	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
 
 	Model model_std;
 	model_std.gravity = Vector3d (0., -9.81, 0.);
@@ -344,18 +317,9 @@ TEST ( Model6DoFJoint ) {
 	Body null_body;
 	Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
-	Joint joint_rot_y (
-			JointTypeRevolute,
-			Vector3d(0., 1., 0.)
-			);
-	Joint joint_rot_x (
-			JointTypeRevolute,
-			Vector3d(1., 0., 0.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint joint_rot_y ( SpatialVector (0., 1., 0., 0., 0., 0.));
+	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
 
 	Model model_std;
 	model_std.gravity = Vector3d (0., -9.81, 0.);
@@ -415,10 +379,8 @@ TEST ( ModelFixedJointQueryBodyId ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+
 	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
 
@@ -437,10 +399,8 @@ TEST ( ModelAppendToFixedBody ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+
 	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
 	unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
@@ -466,10 +426,8 @@ TEST ( ModelAppendFixedToFixedBody ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+
 	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(fixed_displacement), Joint(JointTypeFixed), fixed_body, "fixed_body");
 	unsigned int fixed_body_2_id = model.AppendBody (Xtrans(fixed_displacement), Joint(JointTypeFixed), fixed_body, "fixed_body_2");
@@ -498,10 +456,7 @@ TEST ( ModelFixedJointRotationOrderTranslationRotation ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 	SpatialTransform trans_x = Xtrans (Vector3d (1., 0., 0.));
 	SpatialTransform rot_z = Xrotz (45. * M_PI / 180.);
@@ -527,10 +482,7 @@ TEST ( ModelFixedJointRotationOrderRotationTranslation ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 	SpatialTransform rot_z = Xrotz (45. * M_PI / 180.);
 	SpatialTransform trans_x = Xtrans (Vector3d (1., 0., 0.));
@@ -553,10 +505,8 @@ TEST ( ModelGetBodyName ) {
 
 	Model model;
 
-	Joint joint_rot_z (
-			JointTypeRevolute,
-			Vector3d(0., 0., 1.)
-			);
+	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
+
 	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
 	unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
