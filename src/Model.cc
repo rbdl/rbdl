@@ -45,7 +45,13 @@ Model::Model() {
 	mJoints.push_back(root_joint);
 	S.push_back (zero_spatial);
 	X_T.push_back(SpatialTransform());
-	
+
+	// Spherical joints
+	spherical_S.push_back (Matrix63::Zero());
+	spherical_U.push_back (Matrix63::Zero());
+	spherical_Dinv.push_back (Matrix3d::Zero());
+	spherical_u.push_back (Vector3d::Zero());
+
 	// Dynamic variables
 	c.push_back(zero_spatial);
 	IA.push_back(SpatialMatrixIdentity);
@@ -242,7 +248,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	}
 
 	q_size = q_size + joint.mDoFCount;
-	qdot_size = q_size + joint.mDoFCount;
+	qdot_size = qdot_size + joint.mDoFCount;
 	dof_count = dof_count + joint.mDoFCount;
 
 	// state information
@@ -258,7 +264,12 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	mJoints[mJoints.size() - 1].q_index = mJoints[last_q_index].q_index + mJoints[last_q_index].mDoFCount; 
 
 	S.push_back (joint.mJointAxes[0]);
+
+	// spherical joints
 	spherical_S.push_back (Matrix63::Zero(6,3));
+	spherical_U.push_back (Matrix63::Zero());
+	spherical_Dinv.push_back (Matrix3d::Zero());
+	spherical_u.push_back (Vector3d::Zero());
 
 	// we have to invert the transformation as it is later always used from the
 	// child bodies perspective.

@@ -119,21 +119,42 @@ void ForwardDynamics (
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int q_index = model.mJoints[i].q_index;
 
-		model.U[i] = model.IA[i] * model.S[i];
-		model.d[i] = model.S[i].dot(model.U[i]);
-		model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			model.spherical_U[i] = model.IA[i] * model.spherical_S[i];
+			model.spherical_Dinv[i] = (model.spherical_S[i].transpose() * model.spherical_U[i]).householderQR().inverse();
 
-		unsigned int lambda = model.lambda[i];
-		if (lambda != 0) {
-			SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
-			SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
+			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
+			model.spherical_u[i] = tau_temp - model.spherical_S[i].transpose() * model.pA[i];
+
+			unsigned int lambda = model.lambda[i];
+			if (lambda != 0) {
+				SpatialMatrix Ia = model.IA[i] - model.spherical_U[i] * model.spherical_Dinv[i] * model.spherical_U[i].transpose();
+				SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.spherical_U[i] * model.spherical_Dinv[i] * model.spherical_u[i];
 #ifdef EIGEN_CORE_H
-			model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-			model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
+				model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
 #else
-			model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-			model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+				model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
 #endif
+			}
+		} else {
+			model.U[i] = model.IA[i] * model.S[i];
+			model.d[i] = model.S[i].dot(model.U[i]);
+			model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
+
+			unsigned int lambda = model.lambda[i];
+			if (lambda != 0) {
+				SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
+				SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
+#ifdef EIGEN_CORE_H
+				model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
+#else
+				model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+#endif
+			}
 		}
 	}
 
@@ -173,8 +194,16 @@ void ForwardDynamics (
 
 		model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
 
-		QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
-		model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			Vector3d qdd_temp = model.spherical_Dinv[i] * (model.spherical_u[i] - model.spherical_U[i].transpose() * model.a[i]);
+			QDDot[q_index] = qdd_temp[0];
+			QDDot[q_index + 1] = qdd_temp[1];
+			QDDot[q_index + 2] = qdd_temp[2];
+			model.a[i] = model.a[i] + model.spherical_S[i] * qdd_temp;
+		} else {
+			QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
+			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+		}
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {

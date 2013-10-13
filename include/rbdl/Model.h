@@ -216,6 +216,7 @@ struct RBDL_DLLAPI Model {
 	std::vector<Math::Matrix63> spherical_S;
 	std::vector<Math::Matrix63> spherical_U;
 	std::vector<Math::Matrix3d> spherical_Dinv;
+	std::vector<Math::Vector3d> spherical_u;
 
 	////////////////////////////////////
 	// Dynamics variables
