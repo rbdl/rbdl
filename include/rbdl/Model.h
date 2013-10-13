@@ -502,8 +502,9 @@ struct RBDL_DLLAPI Model {
 				qdot[mJoints[i].q_index] =   ( quat[3] * omega[0] - quat[2] * omega[1] + quat[1] * omega[2]) * 0.5;
 				qdot[mJoints[i].q_index+1] = ( quat[2] * omega[0] + quat[3] * omega[1] - quat[0] * omega[2]) * 0.5;
 				qdot[mJoints[i].q_index+2] = (-quat[1] * omega[0] + quat[0] * omega[1] - quat[3] * omega[2]) * 0.5;
-				qdot[spherical_w_index[i]] = (-quat[1] * omega[0] + quat[0] * omega[1] - quat[3] * omega[2]) * 0.5;
+				qdot[spherical_w_index[i]] = (-quat[0] * omega[0] - quat[1] * omega[1] - quat[2] * omega[2]) * 0.5;
 			} else {
+				assert (mJoints[i].mDoFCount == 1);
 				qdot[mJoints[i].q_index] = QDot[mJoints[i].q_index];
 			}
 		}
