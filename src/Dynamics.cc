@@ -55,7 +55,6 @@ void ForwardDynamics (
 		unsigned int lambda = model.lambda[i];
 
 		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
-		LOG << "X_T (" << i << "):" << std::endl << model.X_T[i] << std::endl;
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
@@ -90,32 +89,6 @@ void ForwardDynamics (
 
 	LOG << "--- first loop ---" << std::endl;
 
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "X_base[" << i << "] = " << model.X_base[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "X_lambda[" << i << "] = " << model.X_lambda[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "Xup[" << i << "] = " << model.X_lambda[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "v[" << i << "]   = " << model.v[i].transpose() << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "pA[" << i << "]  = " << model.pA[i].transpose() << std::endl;
-	}
-
-	LOG << std::endl;
-
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int q_index = model.mJoints[i].q_index;
 
@@ -124,8 +97,10 @@ void ForwardDynamics (
 			model.spherical_Dinv[i] = (model.spherical_S[i].transpose() * model.spherical_U[i]).householderQr().inverse();
 
 			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
+
 			model.spherical_u[i] = tau_temp - model.spherical_S[i].transpose() * model.pA[i];
 
+//			LOG << "spherical_u[" << i << "] = " << model.spherical_u[i].transpose() << std::endl;
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
 				SpatialMatrix Ia = model.IA[i] - model.spherical_U[i] * model.spherical_Dinv[i] * model.spherical_U[i].transpose();
@@ -137,11 +112,13 @@ void ForwardDynamics (
 				model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 				model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
 #endif
+				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
 		} else {
 			model.U[i] = model.IA[i] * model.S[i];
 			model.d[i] = model.S[i].dot(model.U[i]);
 			model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
+//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
 
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
@@ -154,36 +131,12 @@ void ForwardDynamics (
 				model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 				model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
 #endif
+				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
 		}
 	}
 
 //	ClearLogOutput();
-
-	LOG << "--- second loop ---" << std::endl;
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "U[" << i << "]   = " << model.U[i].transpose() << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "d[" << i << "]   = " << model.d[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "u[" << i << "]   = " << model.u[i] << std::endl;
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "IA[" << i << "]  = " << model.IA[i] << std::endl;
-	}
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "pA[" << i << "]  = " << model.pA[i].transpose() << std::endl;
-	}
-
-	LOG << std::endl << "--- third loop ---" << std::endl;
-
-	LOG << "spatial gravity = " << spatial_gravity.transpose() << std::endl;
 
 	model.a[0] = spatial_gravity * -1.;
 
@@ -193,6 +146,7 @@ void ForwardDynamics (
 		SpatialTransform X_lambda = model.X_lambda[i];
 
 		model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
+		LOG << "a'[" << i << "] = " << model.a[i].transpose() << std::endl;
 
 		if (model.mJoints[i].mJointType == JointTypeSpherical) {
 			Vector3d qdd_temp = model.spherical_Dinv[i] * (model.spherical_u[i] - model.spherical_U[i].transpose() * model.a[i]);
@@ -204,16 +158,6 @@ void ForwardDynamics (
 			QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
 			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 		}
-	}
-
-	for (i = 1; i < model.mBodies.size(); i++) {
-		LOG << "c[" << i << "] = " << model.c[i].transpose() << std::endl;
-	}
-
-	LOG << std::endl;
-
-	for (i = 0; i < model.mBodies.size(); i++) {
-		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
 	}
 
 	LOG << "QDDot = " << QDDot.transpose() << std::endl;
