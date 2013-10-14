@@ -31,6 +31,7 @@
 
 	#include <Eigen/Dense>
 	#include <Eigen/StdVector>
+	#include <Eigen/QR>
 
 	#include "rbdl/rbdl_eigenmath.h"
 

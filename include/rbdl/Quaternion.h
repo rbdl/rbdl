@@ -22,6 +22,14 @@ class Quaternion : public Vector4d {
 		Quaternion (double x, double y, double z, double w):
 			Vector4d (x, y, z, w)
 		{}
+		Quaternion operator* (const double &s) const {
+			return Quaternion (
+					(*this)[0] * s,
+					(*this)[1] * s,
+					(*this)[2] * s,
+					(*this)[3] * s
+					);
+		}
 		/** This function is equivalent to multiplicate their corresponding rotation matrices */
 		Quaternion operator* (const Quaternion &q) const {
 			return Quaternion (
@@ -94,7 +102,6 @@ class Quaternion : public Vector4d {
 		}
 
 		Matrix3d toMatrixF() const {
-			std::cout << this->transpose() << std::endl;
 			double x = (*this)[0];
 			double y = (*this)[1];
 			double z = (*this)[2];

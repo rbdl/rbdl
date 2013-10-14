@@ -141,10 +141,10 @@ TEST_FIXTURE(SphericalJoint, TestSetQuaternion) {
 }
 
 TEST_FIXTURE(SphericalJoint, TestForwardDynamicsSimple) {
-	emuQ[0] = 1.;
-	emuQ[1] = 1.;
-	emuQ[2] = 1.;
-	emuQ[3] = 1.;
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.1;
+	emuQ[2] = 1.1;
+	emuQ[3] = 1.1;
 
 	for (unsigned int i = 0; i < emuQ.size(); i++) {
 		sphQ[i] = emuQ[i];
@@ -160,18 +160,24 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsSimple) {
 
 	CHECK_ARRAY_CLOSE (emu_orientation.data(), sph_orientation.data(), 9, TEST_PREC);
 
+	double timestep = 0.01;
+
 	ForwardDynamics (emulated_model, emuQ, emuQDot, emuTau, emuQDDot);
-	emuQDot = emuQDot + 0.001 * emuQDDot;
-	emuQ = emuQ + 0.001 * emuQDot;
+	emuQDot = emuQDot + timestep * emuQDDot;
+	emuQ = emuQ + timestep * emuQDot;
 	
 	ForwardDynamics (spherical_model, sphQ, sphQDot, sphTau, sphQDDot);
 	VectorNd qderivative = spherical_model.GetQDerivative (sphQ, sphQDot);
 
-	sphQDot = sphQDot + 0.001 * sphQDDot;
-	sphQ = sphQ + 0.001 * spherical_model.GetQDerivative (sphQ, sphQDot);
+	sphQDot = sphQDot + timestep * sphQDDot;
+	sphQ = sphQ + timestep * spherical_model.GetQDerivative (sphQ, sphQDot);
+
+	cout << "emuQDDot = " << emuQDDot.transpose() << endl;
+	cout << "sphQDDot = " << sphQDDot.transpose() << endl;
+	cout << "error    = " << (emuQDDot - sphQDDot).transpose() << endl;
 
 	Quaternion new_quat = spherical_model.GetQuaternion (1, sphQ);
-	new_quat.normalize();
+//	new_quat.normalize();
 	cout << new_quat.squaredNorm() << endl;
 	spherical_model.SetQuaternion (1, new_quat, sphQ);
 

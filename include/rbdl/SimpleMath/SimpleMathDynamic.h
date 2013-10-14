@@ -472,10 +472,10 @@ class Matrix {
 			return mData[0];
 		}
 
-		const HouseholderQR<matrix_type> householderQR() const {
+		const HouseholderQR<matrix_type> householderQr() const {
 			return HouseholderQR<matrix_type>(*this);
 		}
-		const ColPivHouseholderQR<matrix_type> colPivHouseholderQR() const {
+		const ColPivHouseholderQR<matrix_type> colPivHouseholderQr() const {
 			return ColPivHouseholderQR<matrix_type>(*this);
 		}
 
