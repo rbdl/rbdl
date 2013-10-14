@@ -111,6 +111,45 @@ RBDL_DLLAPI SpatialMatrix Xrotx_mat (const double &xrot);
  */
 RBDL_DLLAPI SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler);
 
+RBDL_DLLAPI inline Matrix3d rotx (const double &xrot) {
+	double s, c;
+	s = sin (xrot);
+	c = cos (xrot);
+	return Matrix3d (
+				1., 0., 0.,
+				0., c, s,
+				0., -s, c
+			);
+}
+
+RBDL_DLLAPI inline Matrix3d roty (const double &yrot) {
+	double s, c;
+	s = sin (yrot);
+	c = cos (yrot);
+	return Matrix3d (
+				c, 0., -s,
+				0., 1., 0.,
+				s, 0., c
+			);
+}
+
+RBDL_DLLAPI inline Matrix3d rotz (const double &zrot) {
+	double s, c;
+	s = sin (zrot);
+	c = cos (zrot);
+	return Matrix3d (
+				c, s, 0.,
+				-s, c, 0.,
+				0., 0., 1.
+			);
+}
+
+RBDL_DLLAPI inline Vector3d angular_velocity_from_angle_rates (const Vector3d &zyx_angles, const Vector3d &zyx_angle_rates) {
+	return rotx (zyx_angles[2]) * roty (zyx_angles[1]) * Vector3d (0., 0., zyx_angle_rates[0]) 
+		+ rotx(zyx_angles[2]) * Vector3d (0., zyx_angle_rates[1], 0.) 
+		+ Vector3d ( zyx_angle_rates[2], 0., 0.); 
+}
+
 } /* Math */
 
 } /* RigidBodyDynamics */

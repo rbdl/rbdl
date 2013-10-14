@@ -163,6 +163,28 @@ class Quaternion : public Vector4d {
 					(*this)[3]);
 		}
 
+		Quaternion derivative (const Vector3d &omega) const {
+			Quaternion result;
+
+			SimpleMath::Fixed::Matrix<double,4,1> omega_quat (omega[0], omega[1], omega[2], 0.);
+
+			SimpleMath::Fixed::Matrix<double,4,4> Q;
+			Q <<
+				(*this)[0],  (*this)[3],  (*this)[2], -(*this)[1],
+				(*this)[1], -(*this)[2],  (*this)[3],  (*this)[0],
+				(*this)[2],  (*this)[1], -(*this)[0],  (*this)[3],
+				(*this)[3], -(*this)[0], -(*this)[1], -(*this)[2];
+
+			SimpleMath::Fixed::Matrix<double, 4, 1> quat_dot;
+
+			quat_dot = Q * omega_quat * 0.5;
+
+			for (unsigned int i = 0; i < 4; i++)
+				result[i] = quat_dot[i];
+
+			return result;
+		}
+
 		Vector3d rotate (const Vector3d &vec) const {
 			Vector3d vn (vec);
 			Quaternion vec_quat (vn[0], vn[1], vn[2], 0.f), res_quat;

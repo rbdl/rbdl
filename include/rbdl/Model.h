@@ -474,13 +474,13 @@ struct RBDL_DLLAPI Model {
 		}
 	}
 
-	Math::Quaternion GetQuaternion (unsigned int i, const Math::VectorNd &Q) {
+	Math::Quaternion GetQuaternion (unsigned int i, const Math::VectorNd &Q) const {
 		assert (mJoints[i].mJointType == JointTypeSpherical);
 		unsigned int q_index = mJoints[i].q_index;
 		return Math::Quaternion (Q[q_index], Q[q_index + 1], Q[q_index + 2], Q[spherical_w_index[i]]);
 	}
 
-	void SetQuaternion (unsigned int i, const Math::Quaternion &quat, Math::VectorNd &Q) {
+	void SetQuaternion (unsigned int i, const Math::Quaternion &quat, Math::VectorNd &Q) const {
 		assert (mJoints[i].mJointType == JointTypeSpherical);
 		unsigned int q_index = mJoints[i].q_index;
 		
@@ -490,19 +490,20 @@ struct RBDL_DLLAPI Model {
 		Q[spherical_w_index[i]] = quat[3];
 	}
 
-	Math::VectorNd GetQDerivative (const Math::VectorNd &Q, const Math::VectorNd QDot) {
+	Math::VectorNd GetQDerivative (const Math::VectorNd &Q, const Math::VectorNd QDot) const {
 		Math::VectorNd qdot (Math::VectorNd::Zero (q_size));
 
 		unsigned int q_index = 0;
 		for (unsigned int i = 1; i < mJoints.size(); i++) {
 			if (mJoints[i].mJointType == JointTypeSpherical) {
 				Math::Vector3d omega (QDot[mJoints[i].q_index], QDot[mJoints[i].q_index + 1], QDot[mJoints[i].q_index + 2]);
+				
 				Math::Quaternion quat = GetQuaternion (i, Q);
-
-				qdot[mJoints[i].q_index] =   ( quat[3] * omega[0] - quat[2] * omega[1] + quat[1] * omega[2]) * 0.5;
-				qdot[mJoints[i].q_index+1] = ( quat[2] * omega[0] + quat[3] * omega[1] - quat[0] * omega[2]) * 0.5;
-				qdot[mJoints[i].q_index+2] = (-quat[1] * omega[0] + quat[0] * omega[1] - quat[3] * omega[2]) * 0.5;
-				qdot[spherical_w_index[i]] = (-quat[0] * omega[0] - quat[1] * omega[1] - quat[2] * omega[2]) * 0.5;
+				Math::Quaternion quat_dot = quat.derivative (omega);
+				qdot[mJoints[i].q_index] =   quat_dot[0];
+				qdot[mJoints[i].q_index+1] = quat_dot[1];
+				qdot[mJoints[i].q_index+2] = quat_dot[2];
+				qdot[spherical_w_index[i]] = quat_dot[3];
 			} else {
 				assert (mJoints[i].mDoFCount == 1);
 				qdot[mJoints[i].q_index] = QDot[mJoints[i].q_index];

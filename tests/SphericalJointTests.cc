@@ -51,6 +51,28 @@ struct SphericalJoint {
 		sphTau = VectorNd::Zero ((size_t) spherical_model.qdot_size);
 	}
 
+	VectorNd ConvertQAndQDotFromEmulated (const Model &emulated_model, const VectorNd &q_emulated, const VectorNd &qdot_emulated, const Model &spherical_model, VectorNd *q_spherical, VectorNd *qdot_spherical) {
+		for (unsigned int i = 1; i < spherical_model.mJoints.size(); i++) {
+			unsigned int q_index = spherical_model.mJoints[i].q_index;
+
+			if (spherical_model.mJoints[i].mJointType == JointTypeSpherical) {
+				Quaternion quat = Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), q_emulated[q_index + 2]) 
+					* Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), q_emulated[q_index + 1])
+					* Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), q_emulated[q_index]);
+				spherical_model.SetQuaternion (i, quat, (*q_spherical));
+
+				Vector3d omega = angular_velocity_from_angle_rates (Vector3d (q_emulated[0], q_emulated[1], q_emulated[2]), Vector3d (qdot_emulated[0], qdot_emulated[1], qdot_emulated[2]));
+
+				(*qdot_spherical)[q_index] = omega[0];
+				(*qdot_spherical)[q_index + 1] = omega[1];
+				(*qdot_spherical)[q_index + 2] = omega[2];
+			} else {
+				(*q_spherical)[q_index] = q_emulated[q_index];
+				(*qdot_spherical)[q_index] = qdot_emulated[q_index];
+			}
+		}
+	}
+
 	Joint joint_rot_zyx;
 	Joint joint_spherical;
 	Joint joint_rot_y;
@@ -140,7 +162,7 @@ TEST_FIXTURE(SphericalJoint, TestSetQuaternion) {
 	CHECK_ARRAY_EQUAL (reference_2.data(), test.data(), 4);
 }
 
-TEST_FIXTURE(SphericalJoint, TestForwardDynamicsSimple) {
+TEST_FIXTURE(SphericalJoint, TestOrientation) {
 	emuQ[0] = 1.1;
 	emuQ[1] = 1.1;
 	emuQ[2] = 1.1;
@@ -159,34 +181,24 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsSimple) {
 	Matrix3d sph_orientation = CalcBodyWorldOrientation (spherical_model, sphQ, sph_child_id);
 
 	CHECK_ARRAY_CLOSE (emu_orientation.data(), sph_orientation.data(), 9, TEST_PREC);
-
-	double timestep = 0.01;
-
-	ForwardDynamics (emulated_model, emuQ, emuQDot, emuTau, emuQDDot);
-	emuQDot = emuQDot + timestep * emuQDDot;
-	emuQ = emuQ + timestep * emuQDot;
-	
-	ForwardDynamics (spherical_model, sphQ, sphQDot, sphTau, sphQDDot);
-	VectorNd qderivative = spherical_model.GetQDerivative (sphQ, sphQDot);
-
-	sphQDot = sphQDot + timestep * sphQDDot;
-	sphQ = sphQ + timestep * spherical_model.GetQDerivative (sphQ, sphQDot);
-
-	cout << "emuQDDot = " << emuQDDot.transpose() << endl;
-	cout << "sphQDDot = " << sphQDDot.transpose() << endl;
-	cout << "error    = " << (emuQDDot - sphQDDot).transpose() << endl;
-
-	Quaternion new_quat = spherical_model.GetQuaternion (1, sphQ);
-//	new_quat.normalize();
-	cout << new_quat.squaredNorm() << endl;
-	spherical_model.SetQuaternion (1, new_quat, sphQ);
-
-	emu_orientation = CalcBodyWorldOrientation (emulated_model, emuQ, emu_child_id);
-	sph_orientation = CalcBodyWorldOrientation (spherical_model, sphQ, sph_child_id);
-
-	CHECK_ARRAY_CLOSE (emu_orientation.data(), sph_orientation.data(), 9, TEST_PREC);
-
-	cout << "emu = " << endl << emu_orientation << endl;
-	cout << "emu = " << endl << emu_orientation << endl;
-	cout << "Orientation error: " << endl << emu_orientation - sph_orientation << endl;
 }
+
+TEST_FIXTURE(SphericalJoint, TestSpatialVelocities) {
+	emuQ[0] = 1.;
+	emuQ[1] = 1.;
+	emuQ[2] = 1.;
+	emuQ[3] = 1.;
+
+	emuQDot[0] = 4.;
+	emuQDot[1] = 2.;
+	emuQDot[2] = 3.;
+	emuQDot[3] = 6.;
+
+	ConvertQAndQDotFromEmulated (emulated_model, emuQ, emuQDot, spherical_model, &sphQ, &sphQDot);
+
+	UpdateKinematicsCustom (emulated_model, &emuQ, &emuQDot, NULL);
+	UpdateKinematicsCustom (spherical_model, &sphQ, &sphQDot, NULL);
+
+	CHECK_ARRAY_EQUAL (emulated_model.v[emu_child_id].data(), spherical_model.v[sph_child_id].data(), 6);
+}
+

@@ -65,10 +65,12 @@ void jcalc (
 		model.spherical_S[joint_id](1,1) = 1.;
 		model.spherical_S[joint_id](2,2) = 1.;
 
+		Vector3d omega (qdot[model.mJoints[joint_id].q_index],
+				qdot[model.mJoints[joint_id].q_index+1],
+				qdot[model.mJoints[joint_id].q_index+2]);
+
 		v_J = SpatialVector (
-				qdot[model.mJoints[joint_id].q_index],
-				qdot[model.mJoints[joint_id].q_index],
-				qdot[model.mJoints[joint_id].q_index],
+				omega[0], omega[1], omega[2],
 				0., 0., 0.);
 
 		c_J.setZero();
