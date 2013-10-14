@@ -63,7 +63,7 @@ struct SphericalJoint {
 					* Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), q_emulated[q_index]);
 				spherical_model.SetQuaternion (i, quat, (*q_spherical));
 
-				Vector3d omega = angular_velocity_from_angle_rates (Vector3d (q_emulated[0], q_emulated[1], q_emulated[2]), Vector3d (qdot_emulated[0], qdot_emulated[1], qdot_emulated[2]));
+				Vector3d omega = angular_velocity_from_angle_rates (Vector3d (q_emulated[q_index], q_emulated[q_index + 1], q_emulated[q_index + 2]), Vector3d (qdot_emulated[q_index], qdot_emulated[q_index + 1], qdot_emulated[q_index + 2]));
 
 				(*qdot_spherical)[q_index] = omega[0];
 				(*qdot_spherical)[q_index + 1] = omega[1];
@@ -205,7 +205,7 @@ TEST_FIXTURE(SphericalJoint, TestSpatialVelocities) {
 	UpdateKinematicsCustom (emulated_model, &emuQ, &emuQDot, NULL);
 	UpdateKinematicsCustom (spherical_model, &sphQ, &sphQDot, NULL);
 
-	CHECK_ARRAY_EQUAL (emulated_model.v[emu_child_id].data(), spherical_model.v[sph_child_id].data(), 6);
+	CHECK_ARRAY_CLOSE (emulated_model.v[emu_child_id].data(), spherical_model.v[sph_child_id].data(), 6, TEST_PREC);
 }
 
 TEST_FIXTURE(SphericalJoint, TestForwardDynamicsQAndQDot) {
