@@ -51,7 +51,7 @@ struct SphericalJoint {
 		sphTau = VectorNd::Zero ((size_t) spherical_model.qdot_size);
 	}
 
-	VectorNd ConvertQAndQDotFromEmulated (const Model &emulated_model, const VectorNd &q_emulated, const VectorNd &qdot_emulated, const Model &spherical_model, VectorNd *q_spherical, VectorNd *qdot_spherical) {
+	void ConvertQAndQDotFromEmulated (const Model &emulated_model, const VectorNd &q_emulated, const VectorNd &qdot_emulated, const Model &spherical_model, VectorNd *q_spherical, VectorNd *qdot_spherical) {
 		for (unsigned int i = 1; i < spherical_model.mJoints.size(); i++) {
 			unsigned int q_index = spherical_model.mJoints[i].q_index;
 
@@ -201,4 +201,24 @@ TEST_FIXTURE(SphericalJoint, TestSpatialVelocities) {
 
 	CHECK_ARRAY_EQUAL (emulated_model.v[emu_child_id].data(), spherical_model.v[sph_child_id].data(), 6);
 }
+
+TEST_FIXTURE(SphericalJoint, TestForwardDynamicsQAndQDot) {
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.1;
+	emuQ[2] = 1.1;
+	emuQ[3] = 1.1;
+
+	emuQDot[0] = 2.2;
+	emuQDot[1] = 2.2;
+	emuQDot[2] = 2.2;
+	emuQDot[3] = 2.2;
+
+	ConvertQAndQDotFromEmulated (emulated_model, emuQ, emuQDot, spherical_model, &sphQ, &sphQDot);
+
+	ForwardDynamics (emulated_model, emuQ, emuQDot, emuTau, emuQDDot);
+	ForwardDynamics (spherical_model, sphQ, sphQDot, sphTau, sphQDDot);
+
+	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].data(), spherical_model.a[sph_child_id].data(), 6, TEST_PREC);
+}
+
 
