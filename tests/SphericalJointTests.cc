@@ -14,7 +14,7 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-const double TEST_PREC = 1.0e-14;
+const double TEST_PREC = 1.0e-13;
 
 struct SphericalJoint {
 	SphericalJoint () {
@@ -278,38 +278,41 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsQAndQDot) {
 	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].data(), spherical_model.a[sph_child_id].data(), 6, TEST_PREC);
 }
 
-/*
 TEST_FIXTURE(SphericalJoint, TestForwardDynamicsQAndQDotAndTau ) {
 	emuQ[0] = 1.1;
-	emuQ[1] = 1.1;
-	emuQ[2] = 1.1;
-	emuQ[3] = 1.1;
-	emuQ[4] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
+	emuQ[4] = 1.5;
 
 	emuQDot[0] = 1.;
-	emuQDot[1] = 1.;
-	emuQDot[2] = 1.;
-	emuQDot[3] = 1.;
-	emuQDot[4] = 1.;
+	emuQDot[1] = 2.;
+	emuQDot[2] = 3.;
+	emuQDot[3] = 4.;
+	emuQDot[4] = 5.;
 
-	emuTau[0] = 1.;
-	emuTau[1] = 1.;
-	emuTau[2] = 1.;
-	emuTau[3] = 1.;
-	emuTau[4] = 1.;
-
-	for (unsigned int i = 0; i < emuTau.size(); i++) {
-		sphTau[i] = emuTau[i];
-	}
+	emuTau[0] = 5.;
+	emuTau[1] = 3.;
+	emuTau[2] = 2.;
+	emuTau[3] = 4.;
+	emuTau[4] = 6.;
 
 	ConvertQAndQDotFromEmulated (emulated_model, emuQ, emuQDot, spherical_model, &sphQ, &sphQDot);
 	ConvertQAndQDotFromEmulated (emulated_model, emuQ, emuTau, spherical_model, &sphQ, &sphTau);
 
-	
+	Vector3d sph_tau = angular_acceleration_from_angle_rates (
+			Vector3d (emuQ[3], emuQ[2], emuQ[1]),
+			Vector3d (emuQDot[3], emuQDot[2], emuQDot[1]),
+			Vector3d (emuTau[3], emuTau[2], emuTau[1])
+			);
+
 	ForwardDynamics (emulated_model, emuQ, emuQDot, emuTau, emuQDDot);
 	ForwardDynamics (spherical_model, sphQ, sphQDot, sphTau, sphQDDot);
 
-	cout << LogOutput.str() << endl;
+	VectorNd tau_inv (VectorNd::Zero(spherical_model.qdot_size));
+	InverseDynamics (spherical_model, sphQ, sphQDot, sphQDDot, tau_inv);
+
+	CHECK_ARRAY_CLOSE (sphTau.data(), tau_inv.data(), tau_inv.size(), TEST_PREC);
 
 	cout << "emu a[" << emu_body_id << "] = " << emulated_model.a[emu_body_id].transpose() << endl;
 	cout << "sph a[" << sph_body_id << "] = " << spherical_model.a[sph_body_id].transpose() << endl;
@@ -317,4 +320,3 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsQAndQDotAndTau ) {
 	CHECK_ARRAY_CLOSE (emulated_model.a[emu_body_id].data(), spherical_model.a[sph_body_id].data(), 6, TEST_PREC);
 	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].data(), spherical_model.a[sph_child_id].data(), 6, TEST_PREC);
 }
-*/

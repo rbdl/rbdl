@@ -242,12 +242,27 @@ void InverseDynamics (
 		if (lambda == 0) {
 			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
-			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.) + model.S[i] * QDDot[q_index];
+			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.);
+			
+			if (model.mJoints[i].mJointType == JointTypeSpherical) {
+				Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
+				model.a[i] = model.a[i] + model.spherical_S[i] * omegadot_temp;
+			} else {
+				model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+			}	
+
 		}	else {
 			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
 			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);
-			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.S[i] * QDDot[q_index] + model.c[i];
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
+
+			if (model.mJoints[i].mJointType == JointTypeSpherical) {
+				Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
+				model.a[i] = model.a[i] + model.spherical_S[i] * omegadot_temp;
+			} else {
+				model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+			}	
 		}
 
 		model.f[i] = model.mBodies[i].mSpatialInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mSpatialInertia * model.v[i]);
@@ -271,9 +286,16 @@ void InverseDynamics (
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int q_index = model.mJoints[i].q_index;
-		Tau[q_index] = model.S[i].dot(model.f[i]);
-
 		unsigned int lambda = model.lambda[i];
+
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			Vector3d tau_temp = model.spherical_S[i].transpose() * model.f[i];
+			Tau[q_index] = tau_temp[0];
+			Tau[q_index+1] = tau_temp[1];
+			Tau[q_index+2] = tau_temp[2];
+		} else {
+			Tau[q_index] = model.S[i].dot(model.f[i]);
+		}
 
 		if (lambda != 0) {
 			model.f[lambda] = model.f[lambda] + model.X_lambda[i].applyTranspose(model.f[i]);

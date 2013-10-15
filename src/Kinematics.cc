@@ -71,7 +71,6 @@ void UpdateKinematics (Model &model,
 	for (i = 1; i < model.mBodies.size(); i++) {
 		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
 	}
-
 }
 
 RBDL_DLLAPI
