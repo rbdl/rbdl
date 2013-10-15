@@ -75,7 +75,7 @@ void UpdateKinematicsCustom (Model &model,
 		const VectorNd *QDDot
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-
+	
 	unsigned int i;
 
 	if (Q) {
@@ -119,6 +119,7 @@ void UpdateKinematicsCustom (Model &model,
 				model.v[i] = v_J;
 				model.c[i].setZero();
 			}
+			// LOG << "v[" << i << "] = " << model.v[i].transpose() << std::endl;
 		}
 	}
 
@@ -134,7 +135,17 @@ void UpdateKinematicsCustom (Model &model,
 				model.a[i].setZero();
 			}
 
-			model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
+			LOG << "a'[" << i << "] = " << model.a[i].transpose() << std::endl;
+
+			if (model.mJoints[i].mJointType == JointTypeSpherical) {
+				Vector3d omegadot_temp ((*QDDot)[q_index], (*QDDot)[q_index + 1], (*QDDot)[q_index + 2]);
+				LOG << "omegadot_temp = " << omegadot_temp.transpose() << std::endl;
+				model.a[i] = model.a[i] + model.spherical_S[i] * omegadot_temp;
+			} else {
+				model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
+			}
+
+			LOG << "a[" << i << "]  = " << model.a[i].transpose() << std::endl;
 		}
 	}
 }
