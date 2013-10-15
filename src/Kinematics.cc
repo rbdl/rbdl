@@ -59,7 +59,13 @@ void UpdateKinematics (Model &model,
 		}
 		
 		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
-		model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
+			model.a[i] = model.a[i] + model.spherical_S[i] * omegadot_temp;
+		} else {
+			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+		}	
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -135,17 +141,12 @@ void UpdateKinematicsCustom (Model &model,
 				model.a[i].setZero();
 			}
 
-			LOG << "a'[" << i << "] = " << model.a[i].transpose() << std::endl;
-
 			if (model.mJoints[i].mJointType == JointTypeSpherical) {
 				Vector3d omegadot_temp ((*QDDot)[q_index], (*QDDot)[q_index + 1], (*QDDot)[q_index + 2]);
-				LOG << "omegadot_temp = " << omegadot_temp.transpose() << std::endl;
 				model.a[i] = model.a[i] + model.spherical_S[i] * omegadot_temp;
 			} else {
 				model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
 			}
-
-			LOG << "a[" << i << "]  = " << model.a[i].transpose() << std::endl;
 		}
 	}
 }

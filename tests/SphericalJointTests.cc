@@ -195,11 +195,11 @@ TEST_FIXTURE(SphericalJoint, TestOrientation) {
 }
 
 TEST_FIXTURE(SphericalJoint, TestUpdateKinematics) {
-	emuQ[0] = 0.;
-	emuQ[1] = 0.;
-	emuQ[2] = 0.;
-	emuQ[3] = 0.;
-	emuQ[4] = 0.;
+	emuQ[0] = 1.;
+	emuQ[1] = 1.;
+	emuQ[2] = 1.;
+	emuQ[3] = 1.;
+	emuQ[4] = 1.;
 
 	emuQDot[0] = 1.;
 	emuQDot[1] = 1.;
@@ -207,47 +207,37 @@ TEST_FIXTURE(SphericalJoint, TestUpdateKinematics) {
 	emuQDot[3] = 1.;
 	emuQDot[4] = 1.;
 
-	emuQDDot[0] = 0.;
-	emuQDDot[1] = 0.;
-	emuQDDot[2] = 0.;
-	emuQDDot[3] = 0.;
-	emuQDDot[4] = 0.;
+	emuQDDot[0] = 1.;
+	emuQDDot[1] = 1.;
+	emuQDDot[2] = 1.;
+	emuQDDot[3] = 1.;
+	emuQDDot[4] = 1.;
 
 	ConvertQAndQDotFromEmulated (emulated_model, emuQ, emuQDot, spherical_model, &sphQ, &sphQDot);
 	ConvertQAndQDotFromEmulated (emulated_model, emuQ, emuQDDot, spherical_model, &sphQ, &sphQDDot);
 
-	cout << "sphQDot = " << sphQDot.transpose() << endl;
-	cout << "sphQDDot = " << sphQDDot.transpose() << endl;
+	Vector3d a = angular_acceleration_from_angle_rates (
+			Vector3d (emuQ[3], emuQ[2], emuQ[1]),
+			Vector3d (emuQDot[3], emuQDot[2], emuQDot[1]),
+			Vector3d (emuQDDot[3], emuQDDot[2], emuQDDot[1])
+			);
 
-	ClearLogOutput();
+	sphQDDot[0] = emuQDDot[0];
+	sphQDDot[1] = a[0];
+	sphQDDot[2] = a[1];
+	sphQDDot[3] = a[2];
+	sphQDDot[4] = emuQDDot[4];
+
 	UpdateKinematicsCustom (emulated_model, &emuQ, &emuQDot, &emuQDDot);
 	UpdateKinematicsCustom (spherical_model, &sphQ, &sphQDot, &sphQDDot);
-	cout << LogOutput.str() << endl;
 
-/*
-	for (unsigned int i=1; i < emulated_model.mJoints.size(); i++) {
-		cout << "X_lambda[" << i << "] = " << emulated_model.X_lambda[i] << endl;
-	}
-	cout << "------------" << endl;
-	for (unsigned int i=1; i < spherical_model.mJoints.size(); i++) {
-		cout << "X_lambda[" << i << "] = " << spherical_model.X_lambda[i] << endl;
-	}
-	cout << "------------" << endl;
-*/
-	for (unsigned int i=1; i < emulated_model.mJoints.size(); i++) {
-		cout << "v[" << i << "] = " << emulated_model.v[i].transpose() << endl;
-		cout << "c[" << i << "] = " << emulated_model.c[i].transpose() << endl;
-	}
-	cout << "------------" << endl;
-	for (unsigned int i=1; i < spherical_model.mJoints.size(); i++) {
-		cout << "v[" << i << "] = " << spherical_model.v[i].transpose() << endl;
-		cout << "c[" << i << "] = " << spherical_model.c[i].transpose() << endl;
-	}
 	CHECK_ARRAY_CLOSE (emulated_model.v[emu_body_id].data(), spherical_model.v[sph_body_id].data(), 6, TEST_PREC);
 	CHECK_ARRAY_CLOSE (emulated_model.a[emu_body_id].data(), spherical_model.a[sph_body_id].data(), 6, TEST_PREC);
 
-//	CHECK_ARRAY_CLOSE (emulated_model.v[emu_child_id].data(), spherical_model.v[sph_child_id].data(), 6, TEST_PREC);
-//	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].data(), spherical_model.a[sph_child_id].data(), 6, TEST_PREC);
+	UpdateKinematics (spherical_model, sphQ, sphQDot, sphQDDot);
+
+	CHECK_ARRAY_CLOSE (emulated_model.v[emu_child_id].data(), spherical_model.v[sph_child_id].data(), 6, TEST_PREC);
+	CHECK_ARRAY_CLOSE (emulated_model.a[emu_child_id].data(), spherical_model.a[sph_child_id].data(), 6, TEST_PREC);
 }
 
 TEST_FIXTURE(SphericalJoint, TestSpatialVelocities) {

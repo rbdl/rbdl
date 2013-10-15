@@ -144,10 +144,54 @@ RBDL_DLLAPI inline Matrix3d rotz (const double &zrot) {
 			);
 }
 
+RBDL_DLLAPI inline Matrix3d rotxdot (const double &x, const double &xdot) {
+	double s, c;
+	s = sin (x);
+	c = cos (x);
+	return Matrix3d (
+				0., 0., 0.,
+				0., -s * xdot, c * xdot,
+				0., -c * xdot,-s * xdot 
+			);
+}
+
+RBDL_DLLAPI inline Matrix3d rotydot (const double &y, const double &ydot) {
+	double s, c;
+	s = sin (y);
+	c = cos (y);
+	return Matrix3d (
+				-s * ydot, 0., - c * ydot,
+				0., 0., 0.,
+				c * ydot, 0., - s * ydot 
+			);
+}
+
+RBDL_DLLAPI inline Matrix3d rotzdot (const double &z, const double &zdot) {
+	double s, c;
+	s = sin (z);
+	c = cos (z);
+	return Matrix3d (
+				-s * zdot, c * zdot, 0.,
+				-c * zdot, -s * zdot, 0.,
+				0., 0., 0.
+			);
+}
+
 RBDL_DLLAPI inline Vector3d angular_velocity_from_angle_rates (const Vector3d &zyx_angles, const Vector3d &zyx_angle_rates) {
 	return rotx (zyx_angles[2]) * roty (zyx_angles[1]) * Vector3d (0., 0., zyx_angle_rates[0]) 
 		+ rotx(zyx_angles[2]) * Vector3d (0., zyx_angle_rates[1], 0.) 
 		+ Vector3d ( zyx_angle_rates[2], 0., 0.); 
+}
+
+RBDL_DLLAPI inline Vector3d angular_acceleration_from_angle_rates (const Vector3d &zyx_angles, const Vector3d &zyx_angle_rates, const Vector3d &zyx_angle_rates_dot) {
+	return rotxdot (zyx_angles[2], zyx_angle_rates[2]) * (roty (zyx_angles[1]) * Vector3d (0., 0., zyx_angle_rates[0])) 
+		+ rotx (zyx_angles[2]) * (
+				rotydot (zyx_angles[1], zyx_angle_rates[1]) * Vector3d (0., 0., zyx_angle_rates[0])
+				+ roty (zyx_angles[1]) * Vector3d (0., 0., zyx_angle_rates_dot[0])
+				)
+		+ rotxdot (zyx_angles[2], zyx_angle_rates[2]) * Vector3d (0., zyx_angle_rates[1], 0.) 
+		+ rotx (zyx_angles[2]) * Vector3d (0., zyx_angle_rates_dot[1], 0.)
+		+ Vector3d (zyx_angle_rates_dot[2], 0., 0.);
 }
 
 } /* Math */
