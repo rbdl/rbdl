@@ -101,26 +101,6 @@ class Quaternion : public Vector4d {
 					w);
 		}
 
-		Matrix3d toMatrixF() const {
-			double x = (*this)[0];
-			double y = (*this)[1];
-			double z = (*this)[2];
-			double w = (*this)[3];
-			return Matrix3d (
-					w*w + x*x - 0.5,
-					x*y + w*z,
-					x*z - w*y,
-
-					x*y - w*z,
-					w*w + y*y - 0.5,
-					y*z + w*x,
-
-					x*z + w*y,
-					y*z - w*x,
-					w*w + z*z - 0.5
-					) * 2.;
-		}
-
 		Matrix3d toMatrix() const {
 			double x = (*this)[0];
 			double y = (*this)[1];
@@ -161,28 +141,6 @@ class Quaternion : public Vector4d {
 					-(*this)[1],
 					-(*this)[2],
 					(*this)[3]);
-		}
-
-		Quaternion derivative (const Vector3d &omega) const {
-			Quaternion result;
-
-			SimpleMath::Fixed::Matrix<double,4,1> omega_quat (omega[0], omega[1], omega[2], 0.);
-
-			SimpleMath::Fixed::Matrix<double,4,4> Q;
-			Q <<
-				(*this)[0],  (*this)[3],  (*this)[2], -(*this)[1],
-				(*this)[1], -(*this)[2],  (*this)[3],  (*this)[0],
-				(*this)[2],  (*this)[1], -(*this)[0],  (*this)[3],
-				(*this)[3], -(*this)[0], -(*this)[1], -(*this)[2];
-
-			SimpleMath::Fixed::Matrix<double, 4, 1> quat_dot;
-
-			quat_dot = Q * omega_quat * 0.5;
-
-			for (unsigned int i = 0; i < 4; i++)
-				result[i] = quat_dot[i];
-
-			return result;
 		}
 
 		Vector3d rotate (const Vector3d &vec) const {

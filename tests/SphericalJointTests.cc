@@ -306,3 +306,18 @@ TEST_FIXTURE(SphericalJoint, TestDynamicsConsistencyRNEA_ABA ) {
 
 	CHECK_ARRAY_CLOSE (sphTau.data(), tau_id.data(), tau_id.size(), TEST_PREC);
 }
+
+TEST ( TestQuaternionDerivative ) {
+	double timestep = 1.0;
+
+	Vector3d w (1., 0., 0.);
+	Quaternion q0 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1.));
+	Quaternion q1 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1. + timestep));
+	Quaternion qw (Quaternion::fromAxisAngle (w, timestep));
+
+	q0 = q0 * qw;
+
+	cout << endl <<  q0.toMatrix() - q1.toMatrix() << endl;
+
+	CHECK_ARRAY_CLOSE (q1.data(), q0.data(), 4, TEST_PREC);
+}
