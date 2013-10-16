@@ -60,9 +60,9 @@ struct SphericalJoint {
 			unsigned int q_index = spherical_model.mJoints[i].q_index;
 
 			if (spherical_model.mJoints[i].mJointType == JointTypeSpherical) {
-				Quaternion quat = Quaternion::fromZYXAngles ( Vector3d (
-							q_emulated[q_index + 0], q_emulated[q_index + 1], q_emulated[q_index + 2]));
-
+				Quaternion quat = Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), q_emulated[q_index + 2]) 
+					* Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), q_emulated[q_index + 1])
+					* Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), q_emulated[q_index]);
 				spherical_model.SetQuaternion (i, quat, (*q_spherical));
 
 				Vector3d omega = angular_velocity_from_angle_rates (
@@ -242,9 +242,9 @@ TEST_FIXTURE(SphericalJoint, TestUpdateKinematics) {
 
 TEST_FIXTURE(SphericalJoint, TestSpatialVelocities) {
 	emuQ[0] = 1.;
-	emuQ[1] = 1.;
-	emuQ[2] = 1.;
-	emuQ[3] = 1.;
+	emuQ[1] = 2.;
+	emuQ[2] = 3.;
+	emuQ[3] = 4.;
 
 	emuQDot[0] = 4.;
 	emuQDot[1] = 2.;
@@ -261,14 +261,14 @@ TEST_FIXTURE(SphericalJoint, TestSpatialVelocities) {
 
 TEST_FIXTURE(SphericalJoint, TestForwardDynamicsQAndQDot) {
 	emuQ[0] = 1.1;
-	emuQ[1] = 1.1;
-	emuQ[2] = 1.1;
-	emuQ[3] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
 
 	emuQDot[0] = 2.2;
-	emuQDot[1] = 2.2;
-	emuQDot[2] = 2.2;
-	emuQDot[3] = 2.2;
+	emuQDot[1] = 2.3;
+	emuQDot[2] = 2.4;
+	emuQDot[3] = 2.5;
 
 	ConvertQAndQDotFromEmulated (emulated_model, emuQ, emuQDot, spherical_model, &sphQ, &sphQDot);
 
@@ -305,4 +305,17 @@ TEST_FIXTURE(SphericalJoint, TestDynamicsConsistencyRNEA_ABA ) {
 	InverseDynamics (spherical_model, sphQ, sphQDot, sphQDDot, tau_id);
 
 	CHECK_ARRAY_CLOSE (sphTau.data(), tau_id.data(), tau_id.size(), TEST_PREC);
+}
+
+TEST ( TestQuaternionDerivative ) {
+	double timestep = 1.0;
+
+	Vector3d w (1., 0., 0.);
+	Quaternion q0 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1.));
+	Quaternion q1 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1. + timestep));
+	Quaternion qw (Quaternion::fromAxisAngle (w, timestep));
+
+	q0 = q0 * qw;
+
+	CHECK_ARRAY_CLOSE (q1.data(), q0.data(), 4, TEST_PREC);
 }
