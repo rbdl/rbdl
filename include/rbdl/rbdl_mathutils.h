@@ -178,20 +178,35 @@ RBDL_DLLAPI inline Matrix3d rotzdot (const double &z, const double &zdot) {
 }
 
 RBDL_DLLAPI inline Vector3d angular_velocity_from_angle_rates (const Vector3d &zyx_angles, const Vector3d &zyx_angle_rates) {
-	return rotx (zyx_angles[2]) * roty (zyx_angles[1]) * Vector3d (0., 0., zyx_angle_rates[0]) 
-		+ rotx(zyx_angles[2]) * Vector3d (0., zyx_angle_rates[1], 0.) 
-		+ Vector3d ( zyx_angle_rates[2], 0., 0.); 
+	double sy = sin(zyx_angles[1]);
+	double cy = cos(zyx_angles[1]);
+	double sx = sin(zyx_angles[2]);
+	double cx = cos(zyx_angles[2]);
+
+	return Vector3d (
+			zyx_angle_rates[2] - sy * zyx_angle_rates[0],
+			cx * zyx_angle_rates[1] + sx * cy * zyx_angle_rates[0],
+			-sx * zyx_angle_rates[1] + cx * cy * zyx_angle_rates[0]
+			);
 }
 
 RBDL_DLLAPI inline Vector3d angular_acceleration_from_angle_rates (const Vector3d &zyx_angles, const Vector3d &zyx_angle_rates, const Vector3d &zyx_angle_rates_dot) {
-	return rotxdot (zyx_angles[2], zyx_angle_rates[2]) * (roty (zyx_angles[1]) * Vector3d (0., 0., zyx_angle_rates[0])) 
-		+ rotx (zyx_angles[2]) * (
-				rotydot (zyx_angles[1], zyx_angle_rates[1]) * Vector3d (0., 0., zyx_angle_rates[0])
-				+ roty (zyx_angles[1]) * Vector3d (0., 0., zyx_angle_rates_dot[0])
-				)
-		+ rotxdot (zyx_angles[2], zyx_angle_rates[2]) * Vector3d (0., zyx_angle_rates[1], 0.) 
-		+ rotx (zyx_angles[2]) * Vector3d (0., zyx_angle_rates_dot[1], 0.)
-		+ Vector3d (zyx_angle_rates_dot[2], 0., 0.);
+	double sy = sin(zyx_angles[1]);
+	double cy = cos(zyx_angles[1]);
+	double sx = sin(zyx_angles[2]);
+	double cx = cos(zyx_angles[2]);
+	double xdot = zyx_angle_rates[2];
+	double ydot = zyx_angle_rates[1];
+	double zdot = zyx_angle_rates[0];
+	double xddot = zyx_angle_rates_dot[2];
+	double yddot = zyx_angle_rates_dot[1];
+	double zddot = zyx_angle_rates_dot[0];
+
+	return Vector3d (
+			xddot - (cy * ydot * zdot + sy * zddot),
+			-sx * xdot * ydot + cx * yddot + cx * xdot * cy * zdot + sx * ( - sy * ydot * zdot + cy * zddot),
+			-cx * xdot * ydot - sx * yddot - sx * xdot * cy * zdot + cx * ( - sy * ydot * zdot + cy * zddot)
+			);
 }
 
 } /* Math */
