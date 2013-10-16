@@ -306,6 +306,69 @@ TEST_FIXTURE(SphericalJoint, TestDynamicsConsistencyRNEA_ABA ) {
 	CHECK_ARRAY_CLOSE (sphTau.data(), tau_id.data(), tau_id.size(), TEST_PREC);
 }
 
+TEST_FIXTURE(SphericalJoint, TestCRBA ) {
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
+	emuQ[4] = 1.5;
+
+	emuQDot[0] = 1.;
+	emuQDot[1] = 2.;
+	emuQDot[2] = 3.;
+	emuQDot[3] = 4.;
+	emuQDot[4] = 5.;
+
+	sphTau[0] = 5.;
+	sphTau[1] = 4.;
+	sphTau[2] = 7.;
+	sphTau[3] = 3.;
+	sphTau[4] = 2.;
+
+	ConvertQAndQDotFromEmulated (emulated_model, emuQ, emuQDot, spherical_model, &sphQ, &sphQDot);
+
+	MatrixNd H_crba (MatrixNd::Zero (spherical_model.qdot_size, spherical_model.qdot_size));
+
+	UpdateKinematicsCustom (spherical_model, &sphQ, NULL, NULL);
+	CompositeRigidBodyAlgorithm (spherical_model, sphQ, H_crba, false);
+
+	MatrixNd H_id (MatrixNd::Zero (spherical_model.qdot_size, spherical_model.qdot_size));
+	VectorNd H_col = VectorNd::Zero (spherical_model.qdot_size);
+	VectorNd QDDot_zero = VectorNd::Zero (spherical_model.qdot_size);
+
+	for (unsigned int i = 0; i < spherical_model.qdot_size; i++) {
+		// compute each column
+		VectorNd delta_a = VectorNd::Zero (spherical_model.qdot_size);
+		delta_a[i] = 1.;
+		// cout << delta_a << endl;
+
+		// compute ID (model, q, qdot, delta_a)
+		VectorNd id_delta = VectorNd::Zero (spherical_model.qdot_size);
+		InverseDynamics (spherical_model, sphQ, sphQDot, delta_a, id_delta);
+
+		// compute ID (model, q, qdot, zero)
+		VectorNd id_zero = VectorNd::Zero (spherical_model.qdot_size);
+		InverseDynamics (spherical_model, sphQ, sphQDot, QDDot_zero, id_zero);
+	
+		H_col = id_delta - id_zero;
+		// cout << "H_col = " << H_col << endl;
+		H_id.block(0, i, spherical_model.qdot_size, 1) = H_col;
+	}
+
+	VectorNd H_error = H_id - H_crba;
+
+	for (unsigned int i = 0; i < H_error.rows(); i++) {
+		for (unsigned int j = 0; j < H_error.cols(); j ++ ){
+			if (fabs(H_error(i,j)) < 1.0e-8)
+				H_error(i,j) = 0.;
+			else
+				H_error (i,j) = 1.;
+		}
+	}
+
+	CHECK_ARRAY_CLOSE (H_id.data(), H_crba.data(), spherical_model.qdot_size, TEST_PREC);
+}
+
 TEST ( TestQuaternionDerivative ) {
 	double timestep = 1.0;
 

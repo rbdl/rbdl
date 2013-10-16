@@ -338,20 +338,54 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 		unsigned int dof_index_i = model.mJoints[i].q_index;
 
-		SpatialVector F = model.Ic[i] * model.S[i];
-		H(dof_index_i, dof_index_i) = model.S[i].dot(F);
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			Matrix63 F_63 = model.Ic[i].toMatrix() * model.spherical_S[i];
+			Matrix3d H_temp = model.spherical_S[i].transpose() * F_63;
 
-		unsigned int j = i;
-		unsigned int dof_index_j = dof_index_i;
+			H.block<3,3>(dof_index_i, dof_index_i) = H_temp;
 
-		while (model.lambda[j] != 0) {
-			F = model.X_lambda[j].applyTranspose(F);
-			j = model.lambda[j];
+			unsigned int j = i;
+			unsigned int dof_index_j = dof_index_i;
 
-			dof_index_j = model.mJoints[j].q_index;
+			while (model.lambda[j] != 0) {
+				F_63 = model.X_lambda[j].toMatrixTranspose() * (F_63);
+				j = model.lambda[j];
+				dof_index_j = model.mJoints[j].q_index;
 
-			H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
-			H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
+				if (model.mJoints[j].mJointType == JointTypeSpherical) {
+					Matrix3d H_temp2 = F_63.transpose() * (model.spherical_S[j]);
+
+					H.block<3,3>(dof_index_i,dof_index_j) = H_temp2;
+					H.block<3,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
+				} else {
+					Vector3d H_temp2 = F_63.transpose() * (model.S[j]);
+
+					H.block<3,1>(dof_index_i,dof_index_j) = H_temp2;
+					H.block<1,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
+				}
+			}
+		} else {
+			SpatialVector F = model.Ic[i] * model.S[i];
+			H(dof_index_i, dof_index_i) = model.S[i].dot(F);
+
+			unsigned int j = i;
+			unsigned int dof_index_j = dof_index_i;
+
+			while (model.lambda[j] != 0) {
+				F = model.X_lambda[j].applyTranspose(F);
+				j = model.lambda[j];
+				dof_index_j = model.mJoints[j].q_index;
+
+				if (model.mJoints[j].mJointType == JointTypeSpherical) {
+					Vector3d H_temp2 = (F.transpose() * model.spherical_S[j]).transpose();
+
+					H.block<1,3>(dof_index_i,dof_index_j) = H_temp2.transpose();
+ 					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
+				} else {
+					H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
+					H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
+				}
+			}
 		}
 	}
 }
