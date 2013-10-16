@@ -60,9 +60,9 @@ struct SphericalJoint {
 			unsigned int q_index = spherical_model.mJoints[i].q_index;
 
 			if (spherical_model.mJoints[i].mJointType == JointTypeSpherical) {
-				Quaternion quat = Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), q_emulated[q_index + 2]) 
-					* Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), q_emulated[q_index + 1])
-					* Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), q_emulated[q_index]);
+				Quaternion quat = Quaternion::fromZYXAngles ( Vector3d (
+							q_emulated[q_index + 0], q_emulated[q_index + 1], q_emulated[q_index + 2]));
+
 				spherical_model.SetQuaternion (i, quat, (*q_spherical));
 
 				Vector3d omega = angular_velocity_from_angle_rates (

@@ -101,6 +101,12 @@ class Quaternion : public Vector4d {
 					w);
 		}
 
+		static Quaternion fromZYXAngles (const Vector3d &zyx_angles) {
+			return Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), zyx_angles[2]) 
+				* Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), zyx_angles[1])
+				* Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), zyx_angles[0]);
+		}
+
 		Matrix3d toMatrix() const {
 			double x = (*this)[0];
 			double y = (*this)[1];
