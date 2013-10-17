@@ -83,7 +83,8 @@ class Quaternion : public Vector4d {
 		}
 
 		static Quaternion fromAxisAngle (const Vector3d &axis, double angle_rad) {
-			double s2 = std::sin (angle_rad * 0.5);
+			double d = axis.norm();
+			double s2 = std::sin (angle_rad * 0.5) / d;
 			return Quaternion (
 					axis[0] * s2,
 					axis[1] * s2,
@@ -147,6 +148,11 @@ class Quaternion : public Vector4d {
 					-(*this)[1],
 					-(*this)[2],
 					(*this)[3]);
+		}
+
+		Quaternion timeStep (const Vector3d &omega, double dt) {
+			double omega_norm = omega.norm();
+			return (*this) * Quaternion::fromAxisAngle (omega / omega_norm, dt * omega_norm);
 		}
 
 		Vector3d rotate (const Vector3d &vec) const {

@@ -53,32 +53,6 @@ struct SphericalJoint {
 		sphTau = VectorNd::Zero ((size_t) spherical_model.qdot_size);
 	}
 
-	void ConvertQAndQDotFromEmulated (
-			const Model &emulated_model, const VectorNd &q_emulated, const VectorNd &qdot_emulated,
-			const Model &spherical_model, VectorNd *q_spherical, VectorNd *qdot_spherical) {
-		for (unsigned int i = 1; i < spherical_model.mJoints.size(); i++) {
-			unsigned int q_index = spherical_model.mJoints[i].q_index;
-
-			if (spherical_model.mJoints[i].mJointType == JointTypeSpherical) {
-				Quaternion quat = Quaternion::fromZYXAngles ( Vector3d (
-							q_emulated[q_index + 0], q_emulated[q_index + 1], q_emulated[q_index + 2]));
-				spherical_model.SetQuaternion (i, quat, (*q_spherical));
-
-				Vector3d omega = angular_velocity_from_angle_rates (
-						Vector3d (q_emulated[q_index], q_emulated[q_index + 1], q_emulated[q_index + 2]),
-						Vector3d (qdot_emulated[q_index], qdot_emulated[q_index + 1], qdot_emulated[q_index + 2])
-						);
-
-				(*qdot_spherical)[q_index] = omega[0];
-				(*qdot_spherical)[q_index + 1] = omega[1];
-				(*qdot_spherical)[q_index + 2] = omega[2];
-			} else {
-				(*q_spherical)[q_index] = q_emulated[q_index];
-				(*qdot_spherical)[q_index] = qdot_emulated[q_index];
-			}
-		}
-	}
-
 	Joint joint_rot_zyx;
 	Joint joint_spherical;
 	Joint joint_rot_y;
@@ -100,6 +74,31 @@ struct SphericalJoint {
 	VectorNd sphTau;
 };
 
+void ConvertQAndQDotFromEmulated (
+		const Model &emulated_model, const VectorNd &q_emulated, const VectorNd &qdot_emulated,
+		const Model &spherical_model, VectorNd *q_spherical, VectorNd *qdot_spherical) {
+	for (unsigned int i = 1; i < spherical_model.mJoints.size(); i++) {
+		unsigned int q_index = spherical_model.mJoints[i].q_index;
+
+		if (spherical_model.mJoints[i].mJointType == JointTypeSpherical) {
+			Quaternion quat = Quaternion::fromZYXAngles ( Vector3d (
+						q_emulated[q_index + 0], q_emulated[q_index + 1], q_emulated[q_index + 2]));
+			spherical_model.SetQuaternion (i, quat, (*q_spherical));
+
+			Vector3d omega = angular_velocity_from_angle_rates (
+					Vector3d (q_emulated[q_index], q_emulated[q_index + 1], q_emulated[q_index + 2]),
+					Vector3d (qdot_emulated[q_index], qdot_emulated[q_index + 1], qdot_emulated[q_index + 2])
+					);
+
+			(*qdot_spherical)[q_index] = omega[0];
+			(*qdot_spherical)[q_index + 1] = omega[1];
+			(*qdot_spherical)[q_index + 2] = omega[2];
+		} else {
+			(*q_spherical)[q_index] = q_emulated[q_index];
+			(*qdot_spherical)[q_index] = qdot_emulated[q_index];
+		}
+	}
+}
 
 TEST_FIXTURE(SphericalJoint, TestQIndices) {
 	CHECK_EQUAL (0, spherical_model.mJoints[1].q_index);
@@ -386,15 +385,24 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
 	CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), spherical_model.qdot_size, TEST_PREC);
 }
 
-TEST ( TestQuaternionDerivative ) {
-	double timestep = 1.0;
+TEST(TestQuaternionIntegration ) {
+	double timestep = 0.001;
 
-	Vector3d w (3., 0., 0.);
-	Quaternion q0 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1.));
-	Quaternion q1 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1. + timestep * 3.));
-	Quaternion qw (Quaternion::fromAxisAngle (w.normalized(), timestep * w.norm()));
+	Vector3d zyx_angles_t0 (0.1, 0.2, 0.3);
+	Vector3d zyx_rates (3., 5., 2.);
+	Vector3d zyx_angles_t1 = zyx_angles_t0 + timestep * zyx_rates;
+	Quaternion q_zyx_t1 = Quaternion::fromZYXAngles (zyx_angles_t1);
 
-	q0 = q0 * qw;
+	Quaternion q_t0 = Quaternion::fromZYXAngles (zyx_angles_t0);
+	Vector3d w_base = global_angular_velocity_from_rates (zyx_angles_t0, zyx_rates);
+	Quaternion q_t1 = q_t0.timeStep (w_base, timestep);
 
-	CHECK_ARRAY_CLOSE (q1.data(), q0.data(), 4, TEST_PREC);
+	// Note: we test with a rather crude precision. My guess for the error is
+	// that we compare two different things:
+	//   A) integration under the assumption that the euler rates are
+	//   constant
+	//   B) integration under the assumption that the angular velocity is
+	//   constant
+	// However I am not entirely sure about this...
+	CHECK_ARRAY_CLOSE (q_zyx_t1.data(), q_t1.data(), 4, 1.0e-5);
 }
