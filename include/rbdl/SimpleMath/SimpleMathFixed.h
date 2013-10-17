@@ -501,6 +501,10 @@ class Matrix {
 			return *this;
 		}
 
+		matrix_type normalized() {
+			return matrix_type (*this) / this->norm();
+		}
+
 		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) {
 			COMPILE_ASSERT (nrows * ncols == 3);
 

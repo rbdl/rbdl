@@ -389,10 +389,10 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
 TEST ( TestQuaternionDerivative ) {
 	double timestep = 1.0;
 
-	Vector3d w (1., 0., 0.);
+	Vector3d w (3., 0., 0.);
 	Quaternion q0 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1.));
-	Quaternion q1 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1. + timestep));
-	Quaternion qw (Quaternion::fromAxisAngle (w, timestep));
+	Quaternion q1 (Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), 1. + timestep * 3.));
+	Quaternion qw (Quaternion::fromAxisAngle (w.normalized(), timestep * w.norm()));
 
 	q0 = q0 * qw;
 
