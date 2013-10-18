@@ -251,7 +251,7 @@ void CalcPointJacobian (
 	Vector3d point_base_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
 	SpatialMatrix point_trans = Xtrans_mat (point_base_pos);
 
-	assert (G.rows() == 3 && G.cols() == model.dof_count );
+	assert (G.rows() == 3 && G.cols() == model.qdot_size );
 
 	G.setZero();
 
@@ -306,8 +306,8 @@ Vector3d CalcPointVelocity (
 	) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 	assert (model.IsBodyId(body_id));
-	assert (model.mBodies.size() == Q.size() + 1);
-	assert (model.mBodies.size() == QDot.size() + 1);
+	assert (model.q_size == Q.size());
+	assert (model.qdot_size == QDot.size());
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -436,11 +436,11 @@ bool InverseKinematics (
 		unsigned int max_iter
 		) {
 
-	assert (Qinit.size() == model.dof_count);
+	assert (Qinit.size() == model.q_size);
 	assert (body_id.size() == body_point.size());
 	assert (body_id.size() == target_pos.size());
 
-	MatrixNd J = MatrixNd::Zero(3 * body_id.size(), model.dof_count);
+	MatrixNd J = MatrixNd::Zero(3 * body_id.size(), model.qdot_size);
 	VectorNd e = VectorNd::Zero(3 * body_id.size());
 
 	Qres = Qinit;
@@ -449,13 +449,13 @@ bool InverseKinematics (
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
-			MatrixNd G (3, model.dof_count);
+			MatrixNd G (3, model.qdot_size);
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
 			Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
 			LOG << "current_pos = " << point_base.transpose() << std::endl;
 
 			for (unsigned int i = 0; i < 3; i++) {
-				for (unsigned int j = 0; j < model.dof_count; j++) {
+				for (unsigned int j = 0; j < model.qdot_size; j++) {
 					unsigned int row = k * 3 + i;
 					LOG << "i = " << i << " j = " << j << " k = " << k << " row = " << row << " col = " << j << std::endl;
 					J(row, j) = G (i,j);
