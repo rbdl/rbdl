@@ -1,3 +1,10 @@
+Changes for next version:
+- added spherical joints that do not suffer from singularities:
+  Use joint type JointTypeSpherical
+- removed "constraint_" prefix from constraint impulses, forces and
+	accelerations from the ConstraintSets:
+	renaming required if values are queried	
+
 2.0.1 -> 2.1.0
 - made codebase compatible to Debian
 	Binary symbol export was changed. No change in user code required,

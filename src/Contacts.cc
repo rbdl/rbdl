@@ -29,7 +29,7 @@ unsigned int ConstraintSet::AddConstraint (
 		const Vector3d &body_point,
 		const Vector3d &world_normal,
 		const char *constraint_name,
-		double acceleration) {
+		double normal_acceleration) {
 	assert (bound == false);
 
 	std::string name_str;
@@ -41,16 +41,19 @@ unsigned int ConstraintSet::AddConstraint (
 	point.push_back (body_point);
 	normal.push_back (world_normal);
 
-	unsigned int n_constr = constraint_acceleration.size() + 1;
+	unsigned int n_constr = acceleration.size() + 1;
 
-	constraint_acceleration.conservativeResize (n_constr);
-	constraint_acceleration[n_constr - 1] = acceleration;
+	acceleration.conservativeResize (n_constr);
+	acceleration[n_constr - 1] = normal_acceleration;
 
-	constraint_force.conservativeResize (n_constr);
-	constraint_force[n_constr - 1] = 0.;
+	force.conservativeResize (n_constr);
+	force[n_constr - 1] = 0.;
 
-	constraint_impulse.conservativeResize (n_constr);
-	constraint_impulse[n_constr - 1] = 0.;
+	impulse.conservativeResize (n_constr);
+	impulse[n_constr - 1] = 0.;
+
+	v_plus.conservativeResize (n_constr);
+	v_plus[n_constr - 1] = 0.;
 
 	return n_constr - 1;
 }
@@ -94,9 +97,9 @@ bool ConstraintSet::Bind (const Model &model) {
 }
 
 void ConstraintSet::clear() {
-	constraint_acceleration.setZero();
-	constraint_force.setZero();
-	constraint_impulse.setZero();
+	acceleration.setZero();
+	force.setZero();
+	impulse.setZero();
 
 	H.setZero();
 	C.setZero();
@@ -161,15 +164,6 @@ void ForwardDynamicsContactsLagrangian (
 		// Only alow contact normals along the coordinate axes
 		unsigned int axis_index = 0;
 
-		if (CS.normal[i] == Vector3d(1., 0., 0.))
-			axis_index = 0;
-		else if (CS.normal[i] == Vector3d(0., 1., 0.))
-			axis_index = 1;
-		else if (CS.normal[i] == Vector3d(0., 0., 1.))
-			axis_index = 2;
-		else
-			assert (0 && "Invalid contact normal axis!");
-
 		// only compute the matrix Gi if actually needed
 		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
 			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
@@ -178,7 +172,9 @@ void ForwardDynamicsContactsLagrangian (
 		}
 
 		for (j = 0; j < model.dof_count; j++) {
-			CS.G(i,j) = Gi(axis_index, j);
+			Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
+			CS.G(i,j) = gaxis.transpose() * CS.normal[i];
+//			CS.G(i,j) = Gi(axis_index, j);
 		}
 	}
 
@@ -212,7 +208,7 @@ void ForwardDynamicsContactsLagrangian (
 	
 		// we also substract ContactData[i].acceleration such that the contact
 		// point will have the desired acceleration
-		CS.gamma[i] = gamma_i[axis_index] - CS.constraint_acceleration[i];
+		CS.gamma[i] = gamma_i[axis_index] - CS.acceleration[i];
 	}
 	
 	// Build the system
@@ -274,7 +270,7 @@ void ForwardDynamicsContactsLagrangian (
 
 	// Copy back contact forces
 	for (i = 0; i < CS.size(); i++) {
-		CS.constraint_force[i] = -CS.x[model.dof_count + i];
+		CS.force[i] = CS.x[model.dof_count + i];
 	}
 }
 
@@ -303,15 +299,6 @@ void ComputeContactImpulsesLagrangian (
 		// Only alow contact normals along the coordinate axes
 		unsigned int axis_index = 0;
 
-		if (CS.normal[i] == Vector3d(1., 0., 0.))
-			axis_index = 0;
-		else if (CS.normal[i] == Vector3d(0., 1., 0.))
-			axis_index = 1;
-		else if (CS.normal[i] == Vector3d(0., 0., 1.))
-			axis_index = 2;
-		else
-			assert (0 && "Invalid contact normal axis!");
-
 		// only compute the matrix Gi if actually needed
 		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
 			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
@@ -320,7 +307,9 @@ void ComputeContactImpulsesLagrangian (
 		}
 
 		for (j = 0; j < model.dof_count; j++) {
-			CS.G(i,j) = Gi(axis_index, j);
+			Vector3d g_block (Gi(0,j), Gi(1, j), Gi(2,j));
+			/// \TODO use Gi.block<3,0> notation (SimpleMath does not give proper results for that currently.
+			CS.G(i,j) = CS.normal[i].transpose() * g_block;
 		}
 	}
 
@@ -354,7 +343,7 @@ void ComputeContactImpulsesLagrangian (
 
 	// Build the system: Copy -gamma
 	for (i = 0; i < CS.size(); i++) {
-		CS.b[i + model.dof_count] = CS.constraint_acceleration[i];
+		CS.b[i + model.dof_count] = CS.v_plus[i];
 	}
 
 #ifndef RBDL_USE_SIMPLE_MATH
@@ -381,7 +370,7 @@ void ComputeContactImpulsesLagrangian (
 
 	// Copy back contact impulses
 	for (i = 0; i < CS.size(); i++) {
-		CS.constraint_impulse[i] = -CS.x[model.dof_count + i];
+		CS.impulse[i] = CS.x[model.dof_count + i];
 	}
 }
 
@@ -567,7 +556,7 @@ void ForwardDynamicsContacts (
 	assert (CS.point_accel_0.size() == CS.size());
 	assert (CS.K.rows() == CS.size());
 	assert (CS.K.cols() == CS.size());
-	assert (CS.constraint_force.size() == CS.size());
+	assert (CS.force.size() == CS.size());
 	assert (CS.a.size() == CS.size());
 
 	Vector3d point_accel_t;
@@ -587,7 +576,7 @@ void ForwardDynamicsContacts (
 		unsigned int body_id = CS.body[ci];
 		Vector3d point = CS.point[ci];
 		Vector3d normal = CS.normal[ci];
-		double acceleration = CS.constraint_acceleration[ci];
+		double acceleration = CS.acceleration[ci];
 
 		LOG << "body_id = " << body_id << std::endl;
 		LOG << "point = " << point << std::endl;
@@ -598,7 +587,7 @@ void ForwardDynamicsContacts (
 			UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
 			CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, body_id, point, false);
 
-			CS.a[ci] = - acceleration + normal.dot(CS.point_accel_0[ci]);
+			CS.a[ci] = acceleration - normal.dot(CS.point_accel_0[ci]);
 		}
 		LOG << "point_accel_0 = " << CS.point_accel_0[ci].transpose();
 	}
@@ -658,10 +647,10 @@ void ForwardDynamicsContacts (
 #ifndef RBDL_USE_SIMPLE_MATH
 	switch (CS.linear_solver) {
 		case (LinearSolverPartialPivLU) :
-			CS.constraint_force = CS.K.partialPivLu().solve(CS.a);
+			CS.force = CS.K.partialPivLu().solve(CS.a);
 			break;
 		case (LinearSolverColPivHouseholderQR) :
-			CS.constraint_force = CS.K.colPivHouseholderQr().solve(CS.a);
+			CS.force = CS.K.colPivHouseholderQr().solve(CS.a);
 			break;
 		default:
 			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
@@ -669,16 +658,16 @@ void ForwardDynamicsContacts (
 			break;
 	}
 #else
-	bool solve_successful = LinSolveGaussElimPivot (CS.K, CS.a, CS.constraint_force);
+	bool solve_successful = LinSolveGaussElimPivot (CS.K, CS.a, CS.force);
 	assert (solve_successful);
 #endif
 
-	LOG << "f = " << CS.constraint_force.transpose() << std::endl;
+	LOG << "f = " << CS.force.transpose() << std::endl;
 
 	for (ci = 0; ci < CS.size(); ci++) {
 		unsigned int body_id = CS.body[ci];
 
-		CS.f_ext_constraints[body_id] -= CS.f_t[ci] * CS.constraint_force[ci]; 
+		CS.f_ext_constraints[body_id] += CS.f_t[ci] * CS.force[ci]; 
 		LOG << "f_ext[" << body_id << "] = " << CS.f_ext_constraints[body_id].transpose() << std::endl;
 	}
 
