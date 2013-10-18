@@ -329,8 +329,8 @@ TEST ( TestForwardDynamicsContactsLagrangianFootmodel ) {
 //	cout << "C1: " << contact_data_left[1].body_id << ", " << contact_data_left[1].point.transpose() << endl;
 //	cout << "td: " << foot_left_id << ", " << heel_point.transpose() << endl;
 
-	contact_force[0] = constraint_set_left.constraint_force[0];
-	contact_force[1] = constraint_set_left.constraint_force[1];
+	contact_force[0] = constraint_set_left.force[0];
+	contact_force[1] = constraint_set_left.force[1];
 
 	CHECK_EQUAL (body_id, foot_left_id);
 	CHECK_EQUAL (contact_point, heel_point);

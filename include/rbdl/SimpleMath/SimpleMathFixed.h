@@ -723,6 +723,10 @@ class Matrix {
 			return *this * -1.;
 		}
 
+		Matrix inverse() const {
+			return colPivHouseholderQr().inverse();
+		}
+
 		const HouseholderQR<matrix_type> householderQr() const {
 			return HouseholderQR<matrix_type>(*this);
 		}
