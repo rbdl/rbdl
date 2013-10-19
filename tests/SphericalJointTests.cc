@@ -100,6 +100,28 @@ void ConvertQAndQDotFromEmulated (
 	}
 }
 
+TEST(TestQuaternionIntegration ) {
+	double timestep = 0.001;
+
+	Vector3d zyx_angles_t0 (0.1, 0.2, 0.3);
+	Vector3d zyx_rates (3., 5., 2.);
+	Vector3d zyx_angles_t1 = zyx_angles_t0 + timestep * zyx_rates;
+	Quaternion q_zyx_t1 = Quaternion::fromZYXAngles (zyx_angles_t1);
+
+	Quaternion q_t0 = Quaternion::fromZYXAngles (zyx_angles_t0);
+	Vector3d w_base = global_angular_velocity_from_rates (zyx_angles_t0, zyx_rates);
+	Quaternion q_t1 = q_t0.timeStep (w_base, timestep);
+
+	// Note: we test with a rather crude precision. My guess for the error is
+	// that we compare two different things:
+	//   A) integration under the assumption that the euler rates are
+	//   constant
+	//   B) integration under the assumption that the angular velocity is
+	//   constant
+	// However I am not entirely sure about this...
+	CHECK_ARRAY_CLOSE (q_zyx_t1.data(), q_t1.data(), 4, 1.0e-5);
+}
+
 TEST_FIXTURE(SphericalJoint, TestQIndices) {
 	CHECK_EQUAL (0, spherical_model.mJoints[1].q_index);
 	CHECK_EQUAL (1, spherical_model.mJoints[2].q_index);
@@ -385,24 +407,27 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
 	CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), spherical_model.qdot_size, TEST_PREC);
 }
 
-TEST(TestQuaternionIntegration ) {
-	double timestep = 0.001;
+TEST_FIXTURE(SphericalJoint, TestContacts) {
+	ConstraintSet constraint_set_emu;
 
-	Vector3d zyx_angles_t0 (0.1, 0.2, 0.3);
-	Vector3d zyx_rates (3., 5., 2.);
-	Vector3d zyx_angles_t1 = zyx_angles_t0 + timestep * zyx_rates;
-	Quaternion q_zyx_t1 = Quaternion::fromZYXAngles (zyx_angles_t1);
+	constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
+	constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
+	constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
 
-	Quaternion q_t0 = Quaternion::fromZYXAngles (zyx_angles_t0);
-	Vector3d w_base = global_angular_velocity_from_rates (zyx_angles_t0, zyx_rates);
-	Quaternion q_t1 = q_t0.timeStep (w_base, timestep);
+	constraint_set_emu.Bind(emulated_model);
 
-	// Note: we test with a rather crude precision. My guess for the error is
-	// that we compare two different things:
-	//   A) integration under the assumption that the euler rates are
-	//   constant
-	//   B) integration under the assumption that the angular velocity is
-	//   constant
-	// However I am not entirely sure about this...
-	CHECK_ARRAY_CLOSE (q_zyx_t1.data(), q_t1.data(), 4, 1.0e-5);
+	ConstraintSet constraint_set_sph;
+
+	constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
+	constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
+	constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
+
+	constraint_set_sph.Bind(spherical_model);
+	
+	ForwardDynamicsContactsLagrangian (emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
+	VectorNd emu_force_lagrangian = constraint_set_emu.force;
+	ForwardDynamicsContactsLagrangian (spherical_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
+	VectorNd sph_force_lagrangian = constraint_set_sph.force;
+
+	CHECK_ARRAY_CLOSE (emu_force_lagrangian.data(), sph_force_lagrangian.data(), 3, TEST_PREC);
 }
