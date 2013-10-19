@@ -94,8 +94,11 @@ void ForwardDynamics (
 
 		if (model.mJoints[i].mJointType == JointTypeSpherical) {
 			model.spherical_U[i] = model.IA[i] * model.spherical_S[i];
+#ifdef EIGEN_CORE_H
+			model.spherical_Dinv[i] = (model.spherical_S[i].transpose() * model.spherical_U[i]).inverse().eval();
+#else
 			model.spherical_Dinv[i] = (model.spherical_S[i].transpose() * model.spherical_U[i]).inverse();
-
+#endif
 			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
 
 			model.spherical_u[i] = tau_temp - model.spherical_S[i].transpose() * model.pA[i];
