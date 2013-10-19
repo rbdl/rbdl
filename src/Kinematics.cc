@@ -283,12 +283,30 @@ void CalcPointJacobian (
 
 	for (j = 1; j < model.mBodies.size(); j++) {
 		if (e[j] == 1) {
-			SpatialVector S_base;
-			S_base = point_trans * spatial_inverse(model.X_base[j].toMatrix()) * model.S[j];
+			unsigned int q_index = model.mJoints[j].q_index;
 
-			G(0, j - 1) = S_base[3];
-			G(1, j - 1) = S_base[4];
-			G(2, j - 1) = S_base[5];
+			if (model.mJoints[j].mJointType == JointTypeSpherical) {
+				Matrix63 S_base = point_trans * spatial_inverse (model.X_base[j].toMatrix()) * model.spherical_S[j];
+
+				G(0, q_index) = S_base(3, 0);
+				G(1, q_index) = S_base(4, 0);
+				G(2, q_index) = S_base(5, 0);
+
+				G(0, q_index + 1) = S_base(3, 1);
+				G(1, q_index + 1) = S_base(4, 1);
+				G(2, q_index + 1) = S_base(5, 1);
+
+				G(0, q_index + 2) = S_base(3, 2);
+				G(1, q_index + 2) = S_base(4, 2);
+				G(2, q_index + 2) = S_base(5, 2);
+			} else {
+				SpatialVector S_base;
+				S_base = point_trans * spatial_inverse(model.X_base[j].toMatrix()) * model.S[j];
+
+				G(0, q_index) = S_base[3];
+				G(1, q_index) = S_base[4];
+				G(2, q_index) = S_base[5];
+			}
 		}
 	}
 	
