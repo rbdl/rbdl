@@ -82,6 +82,10 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
 
 	constraint_set.Bind (*model);
 
+	constraint_set.v_plus[0] = 0.;
+	constraint_set.v_plus[1] = 0.;
+	constraint_set.v_plus[2] = 0.;
+
 	QDot[0] = 0.1;
 	QDot[1] = -0.2;
 	QDot[2] = 0.1;
@@ -114,6 +118,10 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
 	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
 
 	constraint_set.Bind (*model);
+
+	constraint_set.v_plus[0] = 0.;
+	constraint_set.v_plus[1] = 0.;
+	constraint_set.v_plus[2] = 0.;
 
 	Q[0] = 0.2;
 	Q[1] = -0.5;
@@ -153,6 +161,10 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
 	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
 
 	constraint_set.Bind (*model);
+
+	constraint_set.v_plus[0] = 1.;
+	constraint_set.v_plus[1] = 2.;
+	constraint_set.v_plus[2] = 3.;
 
 	Q[0] = 0.2;
 	Q[1] = -0.5;

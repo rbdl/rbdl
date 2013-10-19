@@ -270,7 +270,7 @@ void ForwardDynamicsContactsLagrangian (
 
 	// Copy back contact forces
 	for (i = 0; i < CS.size(); i++) {
-		CS.force[i] = CS.x[model.dof_count + i];
+		CS.force[i] = -CS.x[model.dof_count + i];
 	}
 }
 
@@ -370,7 +370,7 @@ void ComputeContactImpulsesLagrangian (
 
 	// Copy back contact impulses
 	for (i = 0; i < CS.size(); i++) {
-		CS.impulse[i] = CS.x[model.dof_count + i];
+		CS.impulse[i] = -CS.x[model.dof_count + i];
 	}
 }
 
@@ -587,7 +587,7 @@ void ForwardDynamicsContacts (
 			UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
 			CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, body_id, point, false);
 
-			CS.a[ci] = acceleration - normal.dot(CS.point_accel_0[ci]);
+			CS.a[ci] = - acceleration + normal.dot(CS.point_accel_0[ci]);
 		}
 		LOG << "point_accel_0 = " << CS.point_accel_0[ci].transpose();
 	}
@@ -667,7 +667,7 @@ void ForwardDynamicsContacts (
 	for (ci = 0; ci < CS.size(); ci++) {
 		unsigned int body_id = CS.body[ci];
 
-		CS.f_ext_constraints[body_id] += CS.f_t[ci] * CS.force[ci]; 
+		CS.f_ext_constraints[body_id] -= CS.f_t[ci] * CS.force[ci]; 
 		LOG << "f_ext[" << body_id << "] = " << CS.f_ext_constraints[body_id].transpose() << std::endl;
 	}
 
