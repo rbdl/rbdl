@@ -407,7 +407,7 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
 	CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), spherical_model.qdot_size, TEST_PREC);
 }
 
-TEST_FIXTURE(SphericalJoint, TestContacts) {
+TEST_FIXTURE(SphericalJoint, TestContactsLagrangian) {
 	ConstraintSet constraint_set_emu;
 
 	constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
@@ -427,6 +427,31 @@ TEST_FIXTURE(SphericalJoint, TestContacts) {
 	ForwardDynamicsContactsLagrangian (emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
 	VectorNd emu_force_lagrangian = constraint_set_emu.force;
 	ForwardDynamicsContactsLagrangian (spherical_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
+	VectorNd sph_force_lagrangian = constraint_set_sph.force;
+
+	CHECK_ARRAY_CLOSE (emu_force_lagrangian.data(), sph_force_lagrangian.data(), 3, TEST_PREC);
+}
+
+TEST_FIXTURE(SphericalJoint, TestContacts) {
+	ConstraintSet constraint_set_emu;
+
+	constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
+	constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
+	constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
+
+	constraint_set_emu.Bind(emulated_model);
+
+	ConstraintSet constraint_set_sph;
+
+	constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
+	constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
+	constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
+
+	constraint_set_sph.Bind(spherical_model);
+	
+	ForwardDynamicsContacts(emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
+	VectorNd emu_force_lagrangian = constraint_set_emu.force;
+	ForwardDynamicsContacts(spherical_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
 	VectorNd sph_force_lagrangian = constraint_set_sph.force;
 
 	CHECK_ARRAY_CLOSE (emu_force_lagrangian.data(), sph_force_lagrangian.data(), 3, TEST_PREC);

@@ -55,6 +55,10 @@ unsigned int ConstraintSet::AddConstraint (
 	v_plus.conservativeResize (n_constr);
 	v_plus[n_constr - 1] = 0.;
 
+	d_spherical_U = std::vector<Math::Matrix63> (n_constr, Math::Matrix63::Zero());
+	d_spherical_Dinv = std::vector<Math::Matrix3d> (n_constr, Math::Matrix3d::Zero());
+	d_spherical_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
+
 	return n_constr - 1;
 }
 
@@ -406,25 +410,53 @@ void ForwardDynamicsApplyConstraintForces (
 	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
-		CS.d_U[i] = CS.d_IA[i] * model.S[i];
-		CS.d_d[i] = model.S[i].dot(model.U[i]);
-		CS.d_u[i] = Tau[i - 1] - model.S[i].dot(CS.d_pA[i]);
+		unsigned int q_index = model.mJoints[i].q_index;
 
-		unsigned int lambda = model.lambda[i];
-		if (lambda != 0) {
-			SpatialMatrix Ia = CS.d_IA[i] - CS.d_U[i] * (CS.d_U[i] / CS.d_d[i]).transpose();
-			SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_U[i] * CS.d_u[i] / CS.d_d[i];
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			CS.d_spherical_U[i] = CS.d_IA[i] * model.spherical_S[i];
+#ifdef EIGEN_CORE_H
+			CS.d_spherical_Dinv[i] = (model.spherical_S[i].transpose() * CS.d_spherical_U[i]).inverse().eval();
+#else
+			CS.d_spherical_Dinv[i] = (model.spherical_S[i].transpose() * CS.d_spherical_U[i]).inverse();
+#endif
+			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
+
+			CS.d_spherical_u[i] = tau_temp - model.spherical_S[i].transpose() * CS.d_pA[i];
+
+//			LOG << "spherical_u[" << i << "] = " << model.spherical_u[i].transpose() << std::endl;
+			unsigned int lambda = model.lambda[i];
+			if (lambda != 0) {
+				SpatialMatrix Ia = CS.d_IA[i] - CS.d_spherical_U[i] * CS.d_spherical_Dinv[i] * CS.d_spherical_U[i].transpose();
+				SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_spherical_U[i] * CS.d_spherical_Dinv[i] * model.spherical_u[i];
+#ifdef EIGEN_CORE_H
+				CS.d_IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				CS.d_pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
+#else
+				CS.d_IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				CS.d_pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+#endif
+				LOG << "pA[" << lambda << "] = " << CS.d_pA[lambda].transpose() << std::endl;
+			}
+		} else {
+			CS.d_U[i] = CS.d_IA[i] * model.S[i];
+			CS.d_d[i] = model.S[i].dot(model.U[i]);
+			CS.d_u[i] = Tau[i - 1] - model.S[i].dot(CS.d_pA[i]);
+
+			unsigned int lambda = model.lambda[i];
+			if (lambda != 0) {
+				SpatialMatrix Ia = CS.d_IA[i] - CS.d_U[i] * (CS.d_U[i] / CS.d_d[i]).transpose();
+				SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_U[i] * CS.d_u[i] / CS.d_d[i];
 
 #ifdef EIGEN_CORE_H
-			CS.d_IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-			CS.d_pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
+				CS.d_IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				CS.d_pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
 #else
-			CS.d_IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-			CS.d_pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+				CS.d_IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				CS.d_pA[lambda] += model.X_lambda[i].applyTranspose(pa);
 #endif
+			}
 		}
 	}
-
 	/*
 	for (i = 0; i < model.mBodies.size(); i++) {
 		LOG << "i = " << i << ": d_IA[i] " << std::endl << d_IA[i] << std::endl;
@@ -451,6 +483,7 @@ void ForwardDynamicsApplyConstraintForces (
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
 		unsigned int lambda = model.lambda[i];
 		SpatialTransform X_lambda = model.X_lambda[i];
 
@@ -460,10 +493,16 @@ void ForwardDynamicsApplyConstraintForces (
 			CS.d_a[i] = X_lambda.apply(CS.d_a[lambda]) + model.c[i];
 		}
 
-		QDDot[i - 1] = (CS.d_u[i] - model.U[i].dot(CS.d_a[i])) / model.d[i];
-		LOG << "QDDot_t[" << i - 1 << "] = " << QDDot[i - 1] << std::endl;
-		CS.d_a[i] = CS.d_a[i] + model.S[i] * QDDot[i - 1];
-		LOG << "d_a[i] - a[i] = " << (CS.d_a[i] - X_lambda.apply(model.a[i])).transpose() << std::endl;
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			Vector3d qdd_temp = CS.d_spherical_Dinv[i] * (CS.d_spherical_u[i] - CS.d_spherical_U[i].transpose() * model.a[i]);
+			QDDot[q_index] = qdd_temp[0];
+			QDDot[q_index + 1] = qdd_temp[1];
+			QDDot[q_index + 2] = qdd_temp[2];
+			CS.d_a[i] = CS.d_a[i] + model.spherical_S[i] * qdd_temp;
+		} else {
+			QDDot[q_index] = (CS.d_u[i] - CS.d_U[i].dot(CS.d_a[i])) / CS.d_d[i];
+			CS.d_a[i] = CS.d_a[i] + model.S[i] * QDDot[q_index];
+		}
 	}
 }
 
@@ -495,15 +534,31 @@ void ForwardDynamicsAccelerationDeltas (
 	}
 
 	for (unsigned int i = body_id; i > 0; i--) {
+		unsigned int q_index = model.mJoints[i].q_index;
+
 		if (i == body_id) {
 			CS.d_pA[i] = -model.X_base[i].applyAdjoint(f_t[i]);
 		}
 
-		CS.d_u[i] = - model.S[i].dot(CS.d_pA[i]);
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			CS.d_spherical_u[i] = - model.spherical_S[i].transpose() * (CS.d_pA[i]);
 
-		unsigned int lambda = model.lambda[i];
-		if (lambda != 0) {
-			CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
+			unsigned int lambda = model.lambda[i];
+			if (lambda != 0) {
+#ifdef EIGEN_CORE_H
+			CS.d_spherical_Dinv[i] = (model.spherical_S[i].transpose() * CS.d_spherical_U[i]).inverse().eval();
+#else
+			CS.d_spherical_Dinv[i] = (model.spherical_S[i].transpose() * CS.d_spherical_U[i]).inverse();
+#endif
+				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
+			}
+		} else {
+			CS.d_u[i] = - model.S[i].dot(CS.d_pA[i]);
+
+			unsigned int lambda = model.lambda[i];
+			if (lambda != 0) {
+				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
+			}
 		}
 	}
 
