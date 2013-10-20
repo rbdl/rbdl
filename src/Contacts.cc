@@ -545,12 +545,7 @@ void ForwardDynamicsAccelerationDeltas (
 
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-#ifdef EIGEN_CORE_H
-			CS.d_spherical_Dinv[i] = (model.spherical_S[i].transpose() * CS.d_spherical_U[i]).inverse().eval();
-#else
-			CS.d_spherical_Dinv[i] = (model.spherical_S[i].transpose() * CS.d_spherical_U[i]).inverse();
-#endif
-				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
+				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.spherical_U[i] * model.spherical_Dinv[i] * CS.d_spherical_u[i]);
 			}
 		} else {
 			CS.d_u[i] = - model.S[i].dot(CS.d_pA[i]);
@@ -577,12 +572,23 @@ void ForwardDynamicsAccelerationDeltas (
 	CS.d_a[0] = model.a[0];
 
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
 		unsigned int lambda = model.lambda[i];
 
 		SpatialVector Xa = model.X_lambda[i].apply(CS.d_a[lambda]);
-		QDDot_t[i - 1] = (CS.d_u[i] - model.U[i].dot(Xa) ) / model.d[i];
-		CS.d_a[i] = Xa + model.S[i] * QDDot_t[i - 1];
 
+		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			Vector3d qdd_temp = model.spherical_Dinv[i] * (CS.d_spherical_u[i] - model.spherical_U[i].transpose() * Xa);
+			QDDot_t[q_index] = qdd_temp[0];
+			QDDot_t[q_index + 1] = qdd_temp[1];
+			QDDot_t[q_index + 2] = qdd_temp[2];
+			model.a[i] = model.a[i] + model.spherical_S[i] * qdd_temp;
+			CS.d_a[i] = Xa + model.spherical_S[i] * qdd_temp;
+		} else {
+			QDDot_t[q_index] = (CS.d_u[i] - model.U[i].dot(Xa) ) / model.d[i];
+			CS.d_a[i] = Xa + model.S[i] * QDDot_t[q_index];
+		}
+	
 		LOG << "QDDot_t[" << i - 1 << "] = " << QDDot_t[i - 1] << std::endl;
 		LOG << "d_a[i] = " << CS.d_a[i].transpose() << std::endl;
 	}

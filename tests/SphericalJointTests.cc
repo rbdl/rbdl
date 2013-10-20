@@ -14,7 +14,7 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-const double TEST_PREC = 1.0e-13;
+const double TEST_PREC = 1.0e-12;
 
 struct SphericalJoint {
 	SphericalJoint () {
@@ -450,9 +450,9 @@ TEST_FIXTURE(SphericalJoint, TestContacts) {
 	constraint_set_sph.Bind(spherical_model);
 	
 	ForwardDynamicsContacts(emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
-	VectorNd emu_force_lagrangian = constraint_set_emu.force;
+	VectorNd emu_force_kokkevis = constraint_set_emu.force;
 	ForwardDynamicsContacts(spherical_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
-	VectorNd sph_force_lagrangian = constraint_set_sph.force;
+	VectorNd sph_force_kokkevis = constraint_set_sph.force;
 
-	CHECK_ARRAY_CLOSE (emu_force_lagrangian.data(), sph_force_lagrangian.data(), 3, TEST_PREC);
+	CHECK_ARRAY_CLOSE (emu_force_kokkevis.data(), sph_force_kokkevis.data(), 3, TEST_PREC);
 }
