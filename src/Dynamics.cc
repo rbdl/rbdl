@@ -317,17 +317,33 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 	assert (H.rows() == model.dof_count && H.cols() == model.dof_count);
 
-	if (update_kinematics)
-		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	if (update_kinematics) {
+		for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+			if (model.mJoints[i].mJointType == JointTypeRevolute) {
+				model.X_lambda[i] = Xrot (Q[i-1], Vector3d (
+							model.mJoints[i].mJointAxes[0][0],
+							model.mJoints[i].mJointAxes[0][1],
+							model.mJoints[i].mJointAxes[0][2]
+							)) * model.X_T[i] ;
+			} else if (model.mJoints[i].mJointType == JointTypePrismatic) {
+				model.X_lambda[i] = Xtrans ( Vector3d (
+							model.mJoints[i].mJointAxes[0][3] * Q[i-1],
+							model.mJoints[i].mJointAxes[0][4] * Q[i-1],
+							model.mJoints[i].mJointAxes[0][5] * Q[i-1]
+							)
+						) * model.X_T[i];
+			}
+		}
+	}
 
-	H.setZero();
+//	H.setZero();
 
 	unsigned int i;
 	unsigned int dof_i = model.dof_count;
 
-	for (i = 1; i < model.mBodies.size(); i++) {
-		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
-	}
+//	for (i = 1; i < model.mBodies.size(); i++) {
+//		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
+//	}
 
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int lambda = model.lambda[i];
