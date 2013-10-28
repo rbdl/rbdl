@@ -50,7 +50,7 @@ class Quaternion : public Vector4d {
 		}
 
 		static Quaternion fromGLRotate (double angle, double x, double y, double z) {
-			double st = sinf (angle * M_PI / 360.f);
+			double st = std::sin (angle * M_PI / 360.f);
 			return Quaternion (
 						st * x,
 						st * y,
@@ -61,22 +61,22 @@ class Quaternion : public Vector4d {
 
 		Quaternion slerp (double alpha, const Quaternion &quat) const {
 			// check whether one of the two has 0 length
-			double s = sqrt (squaredNorm() * quat.squaredNorm());
+			double s = std::sqrt (squaredNorm() * quat.squaredNorm());
 
 			// division by 0.f is unhealthy!
-			assert (s != 0.f);
+			assert (s != 0.);
 
 			double angle = acos (dot(quat) / s);
-			if (angle == 0.f || isnan(angle)) {
+			if (angle == 0. || isnan(angle)) {
 				return *this;
 			}
 			assert(!isnan(angle));
 
-			double d = 1.f / sinf (angle);
-			double p0 = sinf ((1.f - alpha) * angle);
-			double p1 = sinf (alpha * angle);
+			double d = 1. / std::sin (angle);
+			double p0 = std::sin ((1. - alpha) * angle);
+			double p1 = std::sin (alpha * angle);
 
-			if (dot (quat) < 0.f) {
+			if (dot (quat) < 0.) {
 				return Quaternion( ((*this) * p0 - quat * p1) * d);
 			}
 			return Quaternion( ((*this) * p0 + quat * p1) * d);
@@ -94,11 +94,11 @@ class Quaternion : public Vector4d {
 		}
 
 		static Quaternion fromMatrix (const Matrix3d &mat) {
-			double w = sqrt (1.f + mat(0,0) + mat(1,1) + mat(2,2)) * 0.5f;
+			double w = std::sqrt (1. + mat(0,0) + mat(1,1) + mat(2,2)) * 0.5;
 			return Quaternion (
-					(mat(1,2) - mat(2,1)) / (w * 4.f),
-					(mat(2,0) - mat(0,2)) / (w * 4.f),
-					(mat(0,1) - mat(1,0)) / (w * 4.f),
+					(mat(1,2) - mat(2,1)) / (w * 4.),
+					(mat(2,0) - mat(0,2)) / (w * 4.),
+					(mat(0,1) - mat(1,0)) / (w * 4.),
 					w);
 		}
 

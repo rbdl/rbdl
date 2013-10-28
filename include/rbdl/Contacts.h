@@ -13,17 +13,22 @@
 
 namespace RigidBodyDynamics {
 
-/** \defgroup contacts_group External Contacts
+/** \page contacts_page External Contacts
+ *
+ * All functions related to contacts are specified in the \ref
+ * contacts_group "Contacts Module".
+
+ * \defgroup contacts_group Contacts
  *
  * External contacts are handled by specification of a \link
- * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
+ * RigidBodyDynamics::ConstraintSet
  * ConstraintSet \endlink which contains all informations about the
  * current contacts and workspace memory.
  *
  * Separate contacts can be specified by calling
  * ConstraintSet::AddConstraint(). After all constraints have been
  * specified, this \link
- * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
+ * RigidBodyDynamics::ConstraintSet
  * ConstraintSet \endlink has to be bound to the model via
  * ConstraintSet::Bind(). This initializes workspace memory that is
  * later used when calling one of the contact functions, such as
@@ -34,6 +39,7 @@ namespace RigidBodyDynamics {
  * impulse values for each constraint when returning from one of the
  * contact functions.
  *
+*
  * @{
  */
 
@@ -223,7 +229,7 @@ struct RBDL_DLLAPI ConstraintSet {
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param ConstraintSet list of all contact points
+ * \param CS    the description of all acting constraints
  * \param QDDot accelerations of the internals joints (output)
  *
  * \note During execution of this function values such as
