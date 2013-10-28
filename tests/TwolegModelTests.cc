@@ -33,8 +33,12 @@ Body hip_body,
 		 lower_leg_left_body,
 		 foot_left_body;
 
-Joint joint_rot_z, joint_rot_y, joint_rot_x;
-Joint joint_trans_z, joint_trans_y, joint_trans_x;
+Joint joint_txtyrz (
+		SpatialVector (0., 0., 0., 1., 0., 0.),
+		SpatialVector (0., 0., 0., 0., 1., 0.),
+		SpatialVector (0., 0., 1., 0., 0., 0.)
+		);
+Joint joint_rot_z (SpatialVector (0., 0., 1., 0., 0., 0.));
 
 VectorNd Q;
 VectorNd QDot;
@@ -183,16 +187,6 @@ void init_model () {
 
 	model->gravity = Vector3d (0., -9.81, 0.);
 
-	joint_rot_z = Joint (JointTypeRevolute, Vector3d (0., 0., 1.));
-	joint_rot_y = Joint (JointTypeRevolute, Vector3d (0., 1., 0.));
-	joint_rot_x = Joint (JointTypeRevolute, Vector3d (1., 0., 0.));
-
-	joint_trans_z = Joint (JointTypePrismatic, Vector3d (0., 0., 1.));
-	joint_trans_y = Joint (JointTypePrismatic, Vector3d (0., 1., 0.));
-	joint_trans_x = Joint (JointTypePrismatic, Vector3d (1., 0., 0.));
-
-	Body null_body (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
-
 	// hip
 	hip_body = Body (segment_mass[SegmentMassHip], com_position[COMHip], rgyration[RGyrationHip]);
 
@@ -206,18 +200,15 @@ void init_model () {
 	lower_leg_left_body = Body (segment_mass[SegmentMassShank], com_position[COMShank], rgyration[RGyrationShank]);
 	foot_left_body = Body (segment_mass[SegmentMassFoot], com_position[COMFoot], rgyration[RGyrationFoot]);
 
-	// temporary value to store most recent body id
-	unsigned int temp_id;
-
 	// add hip to the model (planar, 3 DOF)
-	temp_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_trans_x, null_body);
- 	temp_id = model->AddBody (temp_id, Xtrans (Vector3d (0., 0., 0.)), joint_trans_y, null_body);
-	hip_id = model->AddBody (temp_id, Xtrans (Vector3d (0., 0., 0.)), joint_rot_z, hip_body);
+	hip_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_txtyrz, hip_body);
 
 	//
 	// right leg
 	//
-	
+
+	unsigned int temp_id = 0;
+
 	// add right upper leg
 	temp_id = model->AddBody (hip_id, Xtrans (Vector3d(0., 0., 0.)), joint_rot_z, upper_leg_right_body);
 	upper_leg_right_id = temp_id;
@@ -338,8 +329,8 @@ TEST ( TestForwardDynamicsContactsLagrangianFootmodel ) {
 //	cout << "C1: " << contact_data_left[1].body_id << ", " << contact_data_left[1].point.transpose() << endl;
 //	cout << "td: " << foot_left_id << ", " << heel_point.transpose() << endl;
 
-	contact_force[0] = constraint_set_left.constraint_force[0];
-	contact_force[1] = constraint_set_left.constraint_force[1];
+	contact_force[0] = constraint_set_left.force[0];
+	contact_force[1] = constraint_set_left.force[1];
 
 	CHECK_EQUAL (body_id, foot_left_id);
 	CHECK_EQUAL (contact_point, heel_point);

@@ -81,6 +81,43 @@ class RBDL_DLLAPI Matrix3_t : public Eigen::Matrix3d
 		}
 };
 
+class RBDL_DLLAPI Vector4_t : public Eigen::Vector4d
+{
+	public:
+		typedef Eigen::Vector4d Base;
+
+		template<typename OtherDerived>
+			Vector4_t(const Eigen::MatrixBase<OtherDerived>& other)
+			: Eigen::Vector4d(other)
+			{}
+
+		template<typename OtherDerived>
+			Vector4_t& operator=(const Eigen::MatrixBase<OtherDerived>& other)
+			{
+				this->Base::operator=(other);
+				return *this;
+			}
+
+		EIGEN_STRONG_INLINE Vector4_t()
+		{}
+
+		EIGEN_STRONG_INLINE Vector4_t(
+				const double& v0, const double& v1, const double& v2, const double& v3
+				)
+		{
+			Base::_check_template_params();
+
+			(*this) << v0, v1, v2, v3;
+		}
+
+		void set(const double& v0, const double& v1, const double& v2, const double& v3)
+		{
+			Base::_check_template_params();
+
+			(*this) << v0, v1, v2, v3;
+		}
+};
+
 class RBDL_DLLAPI SpatialVector_t : public Eigen::Matrix<double, 6, 1>
 {
 	public:

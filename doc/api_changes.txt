@@ -1,3 +1,19 @@
+2.1.0 -> 2.2.0
+- added spherical joints that do not suffer from singularities:
+  Use joint type JointTypeSpherical
+- added Model::q_size, and Model::qdot_size that report the sizes including
+	all 4 Quaternion parameters when spherical joints are used.
+	User is advised to use Model::q_size and Model::qdot_size instead of
+	Model::dof_count.
+- removed "constraint_" prefix from constraint impulses, forces and
+	accelerations from the ConstraintSets:
+	renaming required if values are queried	
+- Contact impulses: specification of a contact velocity after a collision:
+	added ConstraintSet::v_plus which can be set for the desired constraint
+	velocity after a collision. Previously it used the values stored in 
+  ConstraintSet::constraint_acceleration.
+	User has to store desired exit velocities manually in CS::v_plus
+
 2.0.1 -> 2.1.0
 - made codebase compatible to Debian
 	Binary symbol export was changed. No change in user code required,

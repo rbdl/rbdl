@@ -488,7 +488,7 @@ class Matrix {
 			zero();
 		}
 
-		val_type norm() {
+		val_type norm() const {
 			return sqrt(this->squaredNorm());
 		}
 
@@ -499,6 +499,10 @@ class Matrix {
 				mData[i] /= length;
 
 			return *this;
+		}
+
+		matrix_type normalized() {
+			return matrix_type (*this) / this->norm();
 		}
 
 		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) {
@@ -719,10 +723,14 @@ class Matrix {
 			return *this * -1.;
 		}
 
-		const HouseholderQR<matrix_type> householderQR() const {
+		Matrix inverse() const {
+			return colPivHouseholderQr().inverse();
+		}
+
+		const HouseholderQR<matrix_type> householderQr() const {
 			return HouseholderQR<matrix_type>(*this);
 		}
-		const ColPivHouseholderQR<matrix_type> colPivHouseholderQR() const {
+		const ColPivHouseholderQR<matrix_type> colPivHouseholderQr() const {
 			return ColPivHouseholderQR<matrix_type>(*this);
 		}
 

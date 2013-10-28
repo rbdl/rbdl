@@ -37,6 +37,8 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li> 28 October 2013: New version 2.2.0: added support for
+ * spherical joints that do not suffer from \ref joint_singularities
  * <li> 29 September 2013: New version 2.1.0: adjusted build settings and symbol export to be debian compatible. Removed vendor code such as Lua 5.2 and UnitTest++. Must be pre-installed if tests or LuaModel Addon is enabled.</li>
  * <li>05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.</li>
  * <li> 18. July 2013: new API version 2.0.0 for details see (\ref
@@ -47,12 +49,13 @@
  * <li> 01. June 2012: added support of \ref joint_models_fixed</li>
  * <li> 14. May 2012: fixed Body constructor as reported by Maxime Reis</li>
  * <li> 04. April 2012: added benchmark tool for CRBA</li>
- * <li> 01. March 2012: added multi degree of freedom \ref joint_models</li>
+ * <li> 01. March 2012: added multi degree of freedom \ref
+ * joint_description</li>
  * <li> 06. Februry 2012: restructured constraint handling using \ref RigidBodyDynamics::ConstraintSet</li>
  * <li> 24. January 2012: implemented compact and fast representation of \ref RigidBodyDynamics::Math::SpatialTransform </li>
  * </ul>
  *
- * \section Example Example
+ * \section Example Examples
  *
  * A simple example for creation of a model and computation of the forward
  * dynamics using the C++ API can be found \ref SimpleExample "here".
@@ -63,6 +66,7 @@
  * \section ModuleOverview API reference separated by functional modules
  * 
  * \li \subpage modeling_page
+ * \li \subpage joint_description
  * \li \subpage kinematics_page
  * \li \subpage dynamics_page
  * \li \subpage contacts_page

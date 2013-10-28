@@ -36,13 +36,15 @@ void UpdateKinematics (Model &model,
 	//model.a[0] = spatial_gravity;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
+
 		SpatialTransform X_J;
 		SpatialVector v_J;
 		SpatialVector c_J;
 		Joint joint = model.mJoints[i];
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, model.S[i], v_J, c_J, Q[i - 1], QDot[i - 1]);
+		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
@@ -57,13 +59,18 @@ void UpdateKinematics (Model &model,
 		}
 		
 		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
-		model.a[i] = model.a[i] + model.S[i] * QDDot[i - 1];
+
+		if (model.mJoints[i].mDoFCount == 3) {
+			Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
+			model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
+		} else {
+			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+		}	
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
 		LOG << "a[" << i << "] = " << model.a[i].transpose() << std::endl;
 	}
-
 }
 
 RBDL_DLLAPI
@@ -73,18 +80,21 @@ void UpdateKinematicsCustom (Model &model,
 		const VectorNd *QDDot
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-
+	
 	unsigned int i;
 
 	if (Q) {
 		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int q_index = model.mJoints[i].q_index;
 			SpatialVector v_J;
 			SpatialVector c_J;
 			SpatialTransform X_J;
 			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
-			jcalc (model, i, X_J, model.S[i], v_J, c_J, (*Q)[i - 1], 0.);
+			VectorNd QDot_zero (VectorNd::Zero (model.q_size));
+
+			jcalc (model, i, X_J, v_J, c_J, (*Q), QDot_zero);
 
 			model.X_lambda[i] = X_J * model.X_T[i];
 
@@ -98,13 +108,14 @@ void UpdateKinematicsCustom (Model &model,
 
 	if (QDot) {
 		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int q_index = model.mJoints[i].q_index;
 			SpatialVector v_J;
 			SpatialVector c_J;
 			SpatialTransform X_J;
 			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
-			jcalc (model, i, X_J, model.S[i], v_J, c_J, (*Q)[i - 1], (*QDot)[i - 1]);
+			jcalc (model, i, X_J, v_J, c_J, *Q, *QDot);
 
 			if (lambda != 0) {
 				model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
@@ -113,11 +124,14 @@ void UpdateKinematicsCustom (Model &model,
 				model.v[i] = v_J;
 				model.c[i].setZero();
 			}
+			// LOG << "v[" << i << "] = " << model.v[i].transpose() << std::endl;
 		}
 	}
 
 	if (QDDot) {
 		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int q_index = model.mJoints[i].q_index;
+
 			unsigned int lambda = model.lambda[i];
 
 			if (lambda != 0) {
@@ -126,7 +140,12 @@ void UpdateKinematicsCustom (Model &model,
 				model.a[i].setZero();
 			}
 
-			model.a[i] = model.a[i] + model.S[i] * (*QDDot)[i - 1];
+			if (model.mJoints[i].mDoFCount == 3) {
+				Vector3d omegadot_temp ((*QDDot)[q_index], (*QDDot)[q_index + 1], (*QDDot)[q_index + 2]);
+				model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
+			} else {
+				model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
+			}
 		}
 	}
 }
@@ -232,7 +251,7 @@ void CalcPointJacobian (
 	Vector3d point_base_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
 	SpatialMatrix point_trans = Xtrans_mat (point_base_pos);
 
-	assert (G.rows() == 3 && G.cols() == model.dof_count );
+	assert (G.rows() == 3 && G.cols() == model.qdot_size );
 
 	G.setZero();
 
@@ -264,12 +283,30 @@ void CalcPointJacobian (
 
 	for (j = 1; j < model.mBodies.size(); j++) {
 		if (e[j] == 1) {
-			SpatialVector S_base;
-			S_base = point_trans * spatial_inverse(model.X_base[j].toMatrix()) * model.S[j];
+			unsigned int q_index = model.mJoints[j].q_index;
 
-			G(0, j - 1) = S_base[3];
-			G(1, j - 1) = S_base[4];
-			G(2, j - 1) = S_base[5];
+			if (model.mJoints[j].mDoFCount == 3) {
+				Matrix63 S_base = point_trans * spatial_inverse (model.X_base[j].toMatrix()) * model.multdof3_S[j];
+
+				G(0, q_index) = S_base(3, 0);
+				G(1, q_index) = S_base(4, 0);
+				G(2, q_index) = S_base(5, 0);
+
+				G(0, q_index + 1) = S_base(3, 1);
+				G(1, q_index + 1) = S_base(4, 1);
+				G(2, q_index + 1) = S_base(5, 1);
+
+				G(0, q_index + 2) = S_base(3, 2);
+				G(1, q_index + 2) = S_base(4, 2);
+				G(2, q_index + 2) = S_base(5, 2);
+			} else {
+				SpatialVector S_base;
+				S_base = point_trans * spatial_inverse(model.X_base[j].toMatrix()) * model.S[j];
+
+				G(0, q_index) = S_base[3];
+				G(1, q_index) = S_base[4];
+				G(2, q_index) = S_base[5];
+			}
 		}
 	}
 	
@@ -287,8 +324,8 @@ Vector3d CalcPointVelocity (
 	) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 	assert (model.IsBodyId(body_id));
-	assert (model.mBodies.size() == Q.size() + 1);
-	assert (model.mBodies.size() == QDot.size() + 1);
+	assert (model.q_size == Q.size());
+	assert (model.qdot_size == QDot.size());
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -417,11 +454,11 @@ bool InverseKinematics (
 		unsigned int max_iter
 		) {
 
-	assert (Qinit.size() == model.dof_count);
+	assert (Qinit.size() == model.q_size);
 	assert (body_id.size() == body_point.size());
 	assert (body_id.size() == target_pos.size());
 
-	MatrixNd J = MatrixNd::Zero(3 * body_id.size(), model.dof_count);
+	MatrixNd J = MatrixNd::Zero(3 * body_id.size(), model.qdot_size);
 	VectorNd e = VectorNd::Zero(3 * body_id.size());
 
 	Qres = Qinit;
@@ -430,13 +467,13 @@ bool InverseKinematics (
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
-			MatrixNd G (3, model.dof_count);
+			MatrixNd G (3, model.qdot_size);
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
 			Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
 			LOG << "current_pos = " << point_base.transpose() << std::endl;
 
 			for (unsigned int i = 0; i < 3; i++) {
-				for (unsigned int j = 0; j < model.dof_count; j++) {
+				for (unsigned int j = 0; j < model.qdot_size; j++) {
 					unsigned int row = k * 3 + i;
 					LOG << "i = " << i << " j = " << j << " k = " << k << " row = " << row << " col = " << j << std::endl;
 					J(row, j) = G (i,j);

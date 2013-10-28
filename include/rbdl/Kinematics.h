@@ -72,7 +72,7 @@ void UpdateKinematicsCustom (Model &model,
  * \param model the rigid body model
  * \param Q the curent genereralized positions
  * \param body_id id of the body for which the point coordinates are expressed
- * \param point_body_coordinates coordinates of the point in body coordinates
+ * \param body_point_position coordinates of the point in body coordinates
  * \param update_kinematics whether UpdateKinematics() should be called
  * or not (default: true)
  *
@@ -91,7 +91,7 @@ Math::Vector3d CalcBodyToBaseCoordinates (
  * \param model the rigid body model
  * \param Q the curent genereralized positions
  * \param body_id id of the body for which the point coordinates are expressed
- * \param point_base_coordinates coordinates of the point in base coordinates
+ * \param base_point_position coordinates of the point in base coordinates
  * \param update_kinematics whether UpdateKinematics() should be called or not
  * (default: true).
  *

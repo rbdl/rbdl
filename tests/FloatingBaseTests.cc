@@ -58,10 +58,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 
 	// body_a
 	Body body_a (1., Vector3d (1., 0., 0), Vector3d (1., 1., 1.));
-	Joint joint_a (
-			JointTypeRevolute,
-			Vector3d (0., 0., 1.)
-			);
+	Joint joint_a ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 	model->AddBody(base_body_id, Xtrans(Vector3d(2., 0., 0.)), joint_a, body_a);
 

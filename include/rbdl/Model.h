@@ -34,9 +34,9 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody);
  */
 namespace RigidBodyDynamics {
 
-/** \page modeling_page Modelling
+/** \page modeling_page Model 
  *
- * There are two ways of creating models for RBDL:
+ * There are two ways of creating \link RigidBodyDynamics::Model Models\endlink for RBDL:
  *
  *   \li Using \ref luamodel_introduction that uses Lua files or
  *   \li using the C++ interface.
@@ -68,7 +68,7 @@ namespace RigidBodyDynamics {
  *
  * \section model_construction Model Construction
  *
- * The construction of \link RigidBodyDynamics::Model Models \endlink makes
+ * The construction of \link RigidBodyDynamics::Model Model Structures \endlink makes
  * use of carefully designed constructors of the classes \link
  * RigidBodyDynamics::Body Body \endlink and \link RigidBodyDynamics::Joint
  * Joint \endlink to ease the process of articulated models. Adding bodies to
@@ -83,67 +83,20 @@ namespace RigidBodyDynamics {
  * Model::SetFloatingBaseBody(...)\endlink.
  *
  * Once this is done, the model structure can be used with the functions of \ref
- * kinematics_group, \ref dynamics_group, \ref contacts_group, to perform
+ * kinematics_group, \ref dynamics_group, \ref contacts_page, to perform
  * computations.
  *
  * A simple example can be found \ref SimpleExample "here".
  *
  * \subsection model_structure Model Structure
- *
- * The model structure contains all the parameters of the rigid multi-body
- * model such as joint informations, mass and inertial parameters of the
- * rigid bodies, etc. It also contains storage for the transformations and
- * current state, such as velocity and acceleration of each body.
- *
- * \subsection joint_models Joint Modeling
- *
- * The Rigid Body Dynamics Library supports models with multiple degrees of
- * freedom. When a joint with more than one degrees of freedom is used,
- * additional virtual bodies with zero mass that are connected by 1 degree
- * of freedom joints to simulate the multiple degrees of freedom joint. Even
- * though this adds some overhead in terms of memory usage, it allows to
- * exploit fast computations on fixed size elements of the underlying math
- * library Eigen3.
- *
- * Joints are defined by their motion subspace. For each degree of freedom
- * a one dimensional motion subspace is specified as a Math::SpatialVector.
- * This vector follows the following convention:
- *   \f[ (r_x, r_y, r_z, t_x, t_y, t_z) \f]
- *
- * To specify a planar joint with three degrees of freedom for which the
- * first two are translations in \f$x\f$ and \f$y\f$ direction and the last
- * is a rotation around \f$z\f$, the following joint definition can be used:
- *
- * \code
- * Joint planar_joint = Joint ( 
- *     Math::SpatialVector (0., 0., 0., 1., 0., 0.),
- *     Math::SpatialVector (0., 0., 0., 0., 1., 0.),
- *     Math::SpatialVector (0., 0., 1., 0., 0., 0.)
- *     );
- * \endcode
- *
- * \subsubsection joint_models_fixed Fixed Joints
- *
- * Fixed joints do not add an additional degree of freedom to the model. 
- * When adding a body that via a fixed joint (i.e. when the type is
- * JointTypeFixed) then the dynamical parameters mass and inertia are
- * merged onto its moving parent. By doing so fixed bodies do not add
- * computational costs when performing dynamics computations.
  
- * To ensure a consistent API for the Kinematics such fixed bodies have a
- * different range of ids. Where as the ids start at 1 get incremented for
- * each added body, fixed bodies start at Model::fixed_body_discriminator
- * which has a default value of std::numeric_limits<unsigned int>::max() /
- * 2. This means theoretical a maximum of each 2147483646 movable and fixed
- * bodies are possible.
+ * The \link RigidBodyDynamics::Model Model Structure \endlink contains all
+ * the parameters of the rigid multi-body model such as joint informations,
+ * mass and inertial parameters of the rigid bodies, etc. It also contains
+ * storage for the transformations and current state, such as velocity and
+ * acceleration of each body.
  
- * To check whether a body is connected by a fixed joint you can use the
- * function Model::IsFixedBodyId().
- *
- * See also: \link RigidBodyDynamics::Joint Joint\endlink.
- *
- * \note Please note that in the Rigid %Body Dynamics Library all angles
- * are specified in radians.
+ * See also \ref joint_description for information about Joint modeling.
  */
 
 /** \brief Contains all information about the rigid body model
@@ -181,6 +134,21 @@ struct RBDL_DLLAPI Model {
 	 * velocity (qdot), acceleration (qddot), and force (tau) vector.
 	 */
 	unsigned int dof_count;
+
+	/** \brief The size of the \f$\mathbf{q}\f$-vector. 
+	 * For models without spherical joints the value is the same as
+	 * Model::dof_count, otherwise additional values for the w-component of the
+	 * Quaternion is stored at the end of \f$\mathbf{q}\f$. 
+	 *
+	 * \sa \ref joint_description for more details.
+	 */
+	unsigned int q_size;
+	/** \brief The size of the \f$\mathbf{\dot{q}}, \mathbf{\ddot{q}}\f$, and \f$\mathbf{\tau}\f$-vector. 
+	 *
+	 * \sa \ref joint_description for more details.
+	 */
+	unsigned int qdot_size;
+
 	/// \brief Id of the previously added body, required for Model::AppendBody()
 	unsigned int previously_added_body_id;
 
@@ -205,6 +173,15 @@ struct RBDL_DLLAPI Model {
 	std::vector<Math::SpatialTransform> X_T;
 	/// \brief The number of fixed joints that have been declared before each joint.
 	std::vector<unsigned int> mFixedJointCount;
+
+	////////////////////////////////////
+	// Special variables for joints with 3 degrees of freedom
+	/// \brief Motion subspace for joints with 3 degrees of freedom
+	std::vector<Math::Matrix63> multdof3_S;
+	std::vector<Math::Matrix63> multdof3_U;
+	std::vector<Math::Matrix3d> multdof3_Dinv;
+	std::vector<Math::Vector3d> multdof3_u;
+	std::vector<unsigned int> multdof3_w_index;
 
 	////////////////////////////////////
 	// Dynamics variables
@@ -292,6 +269,14 @@ struct RBDL_DLLAPI Model {
 	 * \returns id of the added body
 	 */
 	unsigned int AddBody (
+			const unsigned int parent_id,
+			const Math::SpatialTransform &joint_frame,
+			const Joint &joint,
+			const Body &body,
+			std::string body_name = "" 
+			);
+
+	unsigned int AddBodySphericalJoint (
 			const unsigned int parent_id,
 			const Math::SpatialTransform &joint_frame,
 			const Joint &joint,
@@ -453,7 +438,21 @@ struct RBDL_DLLAPI Model {
 		}
 	}
 
+	Math::Quaternion GetQuaternion (unsigned int i, const Math::VectorNd &Q) const {
+		assert (mJoints[i].mJointType == JointTypeSpherical);
+		unsigned int q_index = mJoints[i].q_index;
+		return Math::Quaternion (Q[q_index], Q[q_index + 1], Q[q_index + 2], Q[multdof3_w_index[i]]);
+	}
 
+	void SetQuaternion (unsigned int i, const Math::Quaternion &quat, Math::VectorNd &Q) const {
+		assert (mJoints[i].mJointType == JointTypeSpherical);
+		unsigned int q_index = mJoints[i].q_index;
+		
+		Q[q_index] = quat[0];
+		Q[q_index + 1] = quat[1];
+		Q[q_index + 2] = quat[2];
+		Q[multdof3_w_index[i]] = quat[3];
+	}
 };
 
 /** @} */

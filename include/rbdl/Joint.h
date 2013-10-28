@@ -17,12 +17,117 @@ namespace RigidBodyDynamics {
 
 struct Model;
 
+/** \page joint_description Joint Description
+ *
+ * The Rigid Body Dynamics Library supports models with multiple degrees of
+ * freedom. By default, a joint with multiple degrees of freedom is split
+ * up into multiple single degrees of freedom joints. This simplifies the
+ * required algebra and code branching within RBDL. However this approach
+ * may lead to models, that suffer from singularities. For this case RBDL
+ * contains a special joint that can be used to model singularity-free
+ * models.
+ *
+ * Joints are defined by their motion subspace. For each degree of freedom
+ * a one dimensional motion subspace is specified as a Math::SpatialVector.
+ * This vector follows the following convention: \f[ (r_x, r_y, r_z, t_x,
+ * t_y, t_z) \f]
+ *
+ * To specify a planar joint with three degrees of freedom for which the
+ * first two are translations in \f$x\f$ and \f$y\f$ direction and the last
+ * is a rotation around \f$z\f$, the following joint definition can be
+ * used:
+ 
+ * \code Joint planar_joint = Joint (
+ *     Math::SpatialVector (0., 0., 0., 1.,  0., 0.),
+ *     Math::SpatialVector (0., 0., 0., 0., 1., 0.),
+ *     Math::SpatialVector (0., 0., 1., 0., 0., 0.)
+ *     );
+ * \endcode
+
+ * \note Please note that in the Rigid %Body Dynamics Library all angles
+ * are specified in radians.
+ 
+ * \section joint_models_fixed Fixed Joints
+ *
+ * Fixed joints do not add an additional degree of freedom to the model.
+ * When adding a body that via a fixed joint (i.e. when the type is
+ * JointTypeFixed) then the dynamical parameters mass and inertia are
+ * merged onto its moving parent. By doing so fixed bodies do not add
+ * computational costs when performing dynamics computations.
+ 
+ * To ensure a consistent API for the Kinematics such fixed bodies have a
+ * different range of ids. Where as the ids start at 1 get incremented for
+ * each added body, fixed bodies start at Model::fixed_body_discriminator
+ * which has a default value of std::numeric_limits<unsigned int>::max() /
+ * 2. This means theoretical a maximum of each 2147483646 movable and fixed
+ * bodies are possible.
+ 
+ * To check whether a body is connected by a fixed joint you can use the
+ * function Model::IsFixedBodyId().
+ 
+ * \section joint_singularities Singularities
+ 
+ * Singularities in the models arise when a joint has three rotational
+ * degrees of freedom and the rotations are described by Euler- or
+ * Cardan-angles. The singularities present in these rotation
+ * parametrizations (e.g. for ZYX Euler-angles for rotations where a 
+ * +/- 90 degrees rotation around the Y-axis) may cause problems in
+ * dynamics calculations, such as a rank-deficit joint-space inertia matrix
+ * or exploding accelerations in the forward dynamics calculations.
+ *
+ * For this case RBDL has the special joint type
+ * RigidBodyDynamics::JointTypeSpherical. When using this joint type the
+ * model does not suffer from singularities, however this also results in
+ * a change of interpretation for the values \f$\mathbf{q}, \mathbf{\dot{q}}, \mathbf{\ddot{q}}\f$, and \f$\mathbf{\tau}\f$:
+ *
+ * <ul>
+ * <li> The values in \f$\mathbf{q}\f$ for the joint parameterizes the orientation of a joint using a
+ * Quaternion \f$q_i\f$ </li>
+ * <li> The values in \f$\mathbf{\dot{q}}\f$ for the joint describe the angular
+ * velocity \f$\omega\f$ of the joint in body coordinates</li>
+ * <li> The values in \f$\mathbf{\ddot{q}}\f$ for the joint describe the angular
+ * acceleration \f$\dot{\omega}\f$ of the joint in body coordinates</li>
+ * <li> The values in \f$\mathbf{\tau}\f$ for the joint describe the three couples
+ * acting on the body in body coordinates that are actuated by the joint.</li>
+ * </ul>
+  
+ * As a result, the dimension of the vector \f$\mathbf{q}\f$ is higher than
+ * of the vector of the velocity variables. Additionally, the values in
+ * \f$\mathbf{\dot{q}}\f$ are \b not the derivative of \f$q\f$ and are therefore
+ * denoted by \f$\mathbf{\bar{q}}\f$ (and similarly for the joint
+ * accelerations).
+ 
+ * RBDL stores the Quaternions in \f$\mathbf{q}\f$ such that the 4th component of
+ * the joint is appended to \f$\mathbf{q}\f$. E.g. for a model with the joints:
+ * TX, Spherical, TY, Spherical, the values of \f$\mathbf{q},\mathbf{\bar{q}},\mathbf{\bar{\bar{q}}},\mathbf{\tau}\f$ are:
+ *
+ * \f{eqnarray*}
+\mathbf{q} &=& ( q_{tx}, q_{q1,x}, q_{q1,y}, q_{q1,z}, q_{ty}, q_{q2,x}, q_{q2,y}, q_{q2,z}, q_{q1,w}, q_{q2,w})^T \\
+\mathbf{\bar{q}} &=& ( \dot{q}_{tx}, \omega_{1,x}, \omega_{1,y}, \omega_{1,z}, \dot{q}_{ty}, \omega_{2,x}, \omega_{2,y}, \omega_{2,z} )^T \\
+\mathbf{\bar{\bar{q}}} &=& ( \ddot{q}_{tx}, \dot{\omega}_{1,x}, \dot{\omega}_{1,y}, \dot{\omega}_{1,z}, \ddot{q}_{ty}, \dot{\omega}_{2,x}, \dot{\omega}_{2,y}, \dot{\omega}_{2,z} )^T \\
+\mathbf{\tau} &=& ( \tau_{tx}, \tau_{1,x}, \tau_{1,y}, \tau_{1,z}, \tau_{ty}, \tau_{2,x}, \tau_{2,y}, \tau_{2,z} )^T 
+\f}
+
+ * \subsection spherical_integration Numerical Integration of Quaternions
+ *
+ * An additional consequence of this is, that special treatment is required
+ * when numerically integrating the angular velocities. One possibility is
+ * to interpret the angular velocity as an axis-angle pair scaled by the
+ * timestep and use it create a quaternion that is applied to the previous
+ * Quaternion. Another is to compute the quaternion rates from the angular
+ * velocity. For details see James Diebel "Representing Attitude: Euler
+ * Angles, Unit Quaternions, and Rotation Vectors", 2006,
+ * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.110.5134.
+ *
+ */
+
 /** \brief General types of joints
  */
 enum RBDL_DLLAPI JointType {
 	JointTypeUndefined = 0,
 	JointTypeRevolute,
 	JointTypePrismatic,
+	JointTypeSpherical,
 	JointTypeFixed,
 
 	JointType1DoF,
@@ -30,32 +135,44 @@ enum RBDL_DLLAPI JointType {
 	JointType3DoF,
 	JointType4DoF,
 	JointType5DoF,
-	JointType6DoF
+	JointType6DoF,
 };
 
 /** \brief Describes a joint relative to the predecessor body.
  *
  * This class contains all information required for one single joint. This
- * contains the joint type and the axis of the joint.
+ * contains the joint type and the axis of the joint. See \ref joint_description for detailed description.
+ *
  */
 struct RBDL_DLLAPI Joint {
 	Joint() :
 		mJointAxes (NULL),
 		mJointType (JointTypeUndefined),
-		mDoFCount (0) {};
+		mDoFCount (0),
+		q_index (0) {};
 	Joint (JointType type) :
 		mJointAxes (NULL),
 		mJointType (type),
-	  mDoFCount (0) {
-			if (type != JointTypeFixed) {
-				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed." << std::endl;
+	  mDoFCount (0),
+		q_index (0) {
+			if (type == JointTypeSpherical) {
+				mDoFCount = 3;
+
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+
+				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+			} else if (type != JointTypeFixed) {
+				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
 				assert (0);
 				abort();
 			}
 		}
 	Joint (const Joint &joint) :
 		mJointType (joint.mJointType),
-		mDoFCount (joint.mDoFCount) {
+		mDoFCount (joint.mDoFCount),
+		q_index (joint.q_index) {
 			mJointAxes = new Math::SpatialVector[mDoFCount];
 
 			for (unsigned int i = 0; i < mDoFCount; i++)
@@ -74,6 +191,8 @@ struct RBDL_DLLAPI Joint {
 
 			for (unsigned int i = 0; i < mDoFCount; i++)
 				mJointAxes[i] = joint.mJointAxes[i];
+
+			q_index = joint.q_index;
 		}
 		return *this;
 	}
@@ -350,6 +469,7 @@ struct RBDL_DLLAPI Joint {
 	/// \brief Type of joint (rotational or prismatic)
 	JointType mJointType;
 	unsigned int mDoFCount;
+	unsigned int q_index;
 };
 
 /** \brief Computes all variables for a joint model
@@ -360,24 +480,21 @@ struct RBDL_DLLAPI Joint {
  * \param model    the rigid body model
  * \param joint_id the id of the joint we are interested in (output)
  * \param XJ       the joint transformation (output)
- * \param S        motion subspace of the joint (output)
  * \param v_J      joint velocity (output)
  * \param c_J      joint acceleration for rhenomic joints (output)
- * \param q        joint state variable
- * \param qdot     joint velocity variable
+ * \param q        joint state variables
+ * \param qdot     joint velocity variables
  */
 RBDL_DLLAPI
 void jcalc (
-		const Model &model,
-		const unsigned int &joint_id,
+		Model &model,
+		unsigned int joint_id,
 		Math::SpatialTransform &XJ,
-		Math::SpatialVector &S,
 		Math::SpatialVector &v_J,
 		Math::SpatialVector &c_J,
-		const double &q,
-		const double &qdot
+		const Math::VectorNd &q,
+		const Math::VectorNd &qdot
 		);
-
 }
 
 #endif /* _JOINT_H */

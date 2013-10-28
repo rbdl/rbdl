@@ -8,37 +8,38 @@
 #ifndef _CONTACTS_H
 #define _CONTACTS_H
 
-#include "rbdl/rbdl_math.h"
-#include "rbdl/rbdl_mathutils.h"
+#include <rbdl/rbdl_math.h>
+#include <rbdl/rbdl_mathutils.h>
 
 namespace RigidBodyDynamics {
 
 /** \page contacts_page External Contacts
  *
+ * All functions related to contacts are specified in the \ref
+ * contacts_group "Contacts Module".
+
+ * \defgroup contacts_group Contacts
+ *
  * External contacts are handled by specification of a \link
- * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
+ * RigidBodyDynamics::ConstraintSet
  * ConstraintSet \endlink which contains all informations about the
  * current contacts and workspace memory.
  *
  * Separate contacts can be specified by calling
  * ConstraintSet::AddConstraint(). After all constraints have been
  * specified, this \link
- * RigidBodyDynamics::ForwardDynamicsContacts::ConstraintSet
+ * RigidBodyDynamics::ConstraintSet
  * ConstraintSet \endlink has to be bound to the model via
  * ConstraintSet::Bind(). This initializes workspace memory that is
  * later used when calling one of the contact functions, such as
  * ForwardDynamicsContacts() or ForwardDynamicsContactsLagrangian().
  *
- * The values in the vectors ConstraintSet::constraint_force are for each
- * constraint the force that is excerted on the body by the constraint.
- * Similarly ConstraintSet::constraint_impulse holds for each constraint
- * the impulse due to a collision that is excerted by the constraint on the
- * body.
+ * The values in the vectors ConstraintSet::force and
+ * ConstraintSet::impulse contain the computed force or
+ * impulse values for each constraint when returning from one of the
+ * contact functions.
  *
- * All functions related to contacts are specified in the \ref
- * contacts_group "Contacts Module".
- *
- * \defgroup contacts_group Contacts
+*
  * @{
  */
 
@@ -67,7 +68,7 @@ struct RBDL_DLLAPI ConstraintSet {
 	 * \param world_normal the normal along the constraint acts (in base
 	 * coordinates)
 	 * \param constraint_name a human readable name (optional, default: NULL)
-	 * \param acceleration the acceleration of the contact along the normal
+	 * \param normal_acceleration the acceleration of the contact along the normal
 	 * (optional, default: 0.)
 	 */
 	unsigned int AddConstraint (
@@ -75,7 +76,7 @@ struct RBDL_DLLAPI ConstraintSet {
 			const Math::Vector3d &body_point,
 			const Math::Vector3d &world_normal,
 			const char *constraint_name = NULL,
-			double acceleration = 0.);
+			double normal_acceleration = 0.);
 
 	/** \brief Copies the constraints and resets its ConstraintSet::bound
 	 * flag.
@@ -101,14 +102,14 @@ struct RBDL_DLLAPI ConstraintSet {
 	 * dependent on the model size (i.e. the number of bodies and degrees of
 	 * freedom) and the number of constraints in the Constraint set.
 	 *
-	 * The values of ConstraintSet::constraint_acceleration may still be
+	 * The values of ConstraintSet::acceleration may still be
 	 * modified after the set is bound to the model.
 	 */
 	bool Bind (const Model &model);
 
 	/** \brief Returns the number of constraints. */
 	unsigned int size() {
-		return constraint_acceleration.size();
+		return acceleration.size();
 	}
 
 	/** \brief Clears all variables in the constraint set. */
@@ -126,13 +127,14 @@ struct RBDL_DLLAPI ConstraintSet {
 
 	/** Enforced accelerations of the contact points along the contact
 	 * normal. */
-	Math::VectorNd constraint_acceleration;
-	/** Actual constraint forces along the contact normals that is excerted on
-	 * the body. */
-	Math::VectorNd constraint_force;
-	/** Actual constraint impulses along the contact normals that is acting
-	 * on the body. */
-	Math::VectorNd constraint_impulse;
+	Math::VectorNd acceleration;
+	/** Actual constraint forces along the contact normals. */
+	Math::VectorNd force;
+	/** Actual constraint impulses along the contact normals. */
+	Math::VectorNd impulse;
+	/** The velocities we want to have along the contact normals after
+	 * calling ComputeContactImpulsesLagrangian */
+	Math::VectorNd v_plus;
 
 	// Variables used by the Lagrangian methods
 
@@ -179,6 +181,10 @@ struct RBDL_DLLAPI ConstraintSet {
 	std::vector<Math::SpatialVector> d_U;
 	/// Workspace when applying constraint forces
 	Math::VectorNd d_d;
+
+	std::vector<Math::Matrix63> d_multdof3_U;
+	std::vector<Math::Matrix3d> d_multdof3_Dinv;
+	std::vector<Math::Vector3d> d_multdof3_u;
 };
 
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
@@ -223,11 +229,11 @@ struct RBDL_DLLAPI ConstraintSet {
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints
- * \param ConstraintSet list of all contact points
+ * \param CS    the description of all acting constraints
  * \param QDDot accelerations of the internals joints (output)
  *
  * \note During execution of this function values such as
- * ConstraintSet::constraint_force get modified and will contain the value
+ * ConstraintSet::force get modified and will contain the value
  * of the force acting along the normal.
  *
  */
@@ -253,7 +259,7 @@ void ForwardDynamicsContactsLagrangian (
  \left(
    \begin{array}{c}
 	   \dot{q}^{+} \\
-		 -\Lambda
+		 \Lambda
    \end{array}
  \right)
  =
@@ -269,7 +275,8 @@ void ForwardDynamicsContactsLagrangian (
  * impact, \f$\Lambda\f$ the impulses at each constraint, \f$\dot{q}^{-}\f$
  * the generalized velocity before the impact, and \f$v^{+}\f$ the desired
  * velocity of each constraint after the impact (known beforehand, usually
- * 0).
+ * 0). The value of \f$v^{+}\f$ can is specified via the variable
+ * ConstraintSet::v_plus and defaults to 0.
  *
  * \note So far, only constraints acting along cartesian coordinate axes
  * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
@@ -353,7 +360,7 @@ void ComputeContactImpulsesLagrangian (
  * \param QDDot accelerations of the internals joints (output)
  *
  * \note During execution of this function values such as
- * ConstraintSet::constraint_force get modified and will contain the value
+ * ConstraintSet::force get modified and will contain the value
  * of the force acting along the normal.
  *
  * \todo Allow for external forces

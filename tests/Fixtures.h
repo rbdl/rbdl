@@ -21,26 +21,17 @@ struct FixedBase3DoF {
 		 */
 
 		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-		joint_a = Joint(
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_a = Joint( SpatialVector(0., 0., 1., 0., 0., 0.));
 
 		body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
 		body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-		joint_b = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
+		joint_b = Joint ( SpatialVector (0., 1., 0., 0., 0., 0.));
 
 		body_b_id = model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
-		joint_c = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_c = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 		body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
@@ -102,10 +93,7 @@ struct FixedBase6DoF {
 				Vector3d (0., 0., 0.),
 				Vector3d (0., 0., 0.)
 				);
-		joint_base_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_base_rot_z = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 		base_rot_z_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_z, base_rot_z);
 
 		base_rot_y = Body (
@@ -113,10 +101,7 @@ struct FixedBase6DoF {
 				Vector3d (0., 0., 0.),
 				Vector3d (0., 0., 0.)
 				);
-		joint_base_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
+		joint_base_rot_y = Joint ( SpatialVector (0., 1., 0., 0., 0., 0.));
 		base_rot_y_id = model->AppendBody (Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_y, base_rot_y);
 
 		base_rot_x = Body (
@@ -124,10 +109,7 @@ struct FixedBase6DoF {
 				Vector3d (0.5, 0., 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_base_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
+		joint_base_rot_x = Joint ( SpatialVector (1., 0., 0., 0., 0., 0.));
 		base_rot_x_id = model->AddBody (base_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_base_rot_x, base_rot_x);
 
 		// child body (3 DoF)
@@ -136,10 +118,7 @@ struct FixedBase6DoF {
 				Vector3d (0., 0., 0.),
 				Vector3d (0., 0., 0.)
 				);
-		joint_child_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_child_rot_z = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
 
 		child_rot_y = Body (
@@ -147,10 +126,7 @@ struct FixedBase6DoF {
 				Vector3d (0., 0., 0.),
 				Vector3d (0., 0., 0.)
 				);
-		joint_child_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
+		joint_child_rot_y = Joint ( SpatialVector (0., 1., 0., 0., 0., 0.));
 		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
 
 		child_rot_x = Body (
@@ -158,10 +134,7 @@ struct FixedBase6DoF {
 				Vector3d (0., 0.5, 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
+		joint_child_rot_x = Joint ( SpatialVector (1., 0., 0., 0., 0., 0.));
 		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
 
 		Q = VectorNd::Constant (model->mBodies.size() - 1, 0.);
@@ -237,10 +210,7 @@ struct FloatingBase12DoF {
 				Vector3d (0., 0., 0.),
 				Vector3d (0., 0., 0.)
 				);
-		joint_child_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_child_rot_z = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 		child_rot_z_id = model->AddBody (base_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_rot_z, child_rot_z);
 
 		child_rot_y = Body (
@@ -248,10 +218,7 @@ struct FloatingBase12DoF {
 				Vector3d (0., 0., 0.),
 				Vector3d (0., 0., 0.)
 				);
-		joint_child_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
+		joint_child_rot_y = Joint ( SpatialVector (0., 1., 0., 0., 0., 0.));
 		child_rot_y_id = model->AddBody (child_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_y, child_rot_y);
 
 		child_rot_x = Body (
@@ -259,10 +226,7 @@ struct FloatingBase12DoF {
 				Vector3d (0., 0.5, 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
+		joint_child_rot_x = Joint ( SpatialVector (1., 0., 0., 0., 0., 0.));
 		child_rot_x_id = model->AddBody (child_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_rot_x, child_rot_x);
 
 		// child body (3 DoF)
@@ -271,10 +235,7 @@ struct FloatingBase12DoF {
 				Vector3d (0., 0., 0.),
 				Vector3d (0., 0., 0.)
 				);
-		joint_child_2_rot_z = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_child_2_rot_z = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 		child_2_rot_z_id = model->AddBody (child_rot_x_id, Xtrans (Vector3d (1., 0., 0.)), joint_child_2_rot_z, child_2_rot_z);
 
 		child_2_rot_y = Body (
@@ -282,10 +243,7 @@ struct FloatingBase12DoF {
 				Vector3d (0., 0., 0.),
 				Vector3d (0., 0., 0.)
 				);
-		joint_child_2_rot_y = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
+		joint_child_2_rot_y = Joint ( SpatialVector (0., 1., 0., 0., 0., 0.));
 		child_2_rot_y_id = model->AddBody (child_2_rot_z_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_y, child_2_rot_y);
 
 		child_2_rot_x = Body (
@@ -293,10 +251,7 @@ struct FloatingBase12DoF {
 				Vector3d (0., 0.5, 0.),
 				Vector3d (1., 1., 1.)
 				);
-		joint_child_2_rot_x = Joint (
-				JointTypeRevolute,
-				Vector3d (1., 0., 0.)
-				);
+		joint_child_2_rot_x = Joint ( SpatialVector (1., 0., 0., 0., 0., 0.));
 		child_2_rot_x_id = model->AddBody (child_2_rot_y_id, Xtrans (Vector3d (0., 0., 0.)), joint_child_2_rot_x, child_2_rot_x);
 
 		Q = VectorNd::Constant (model->dof_count, 0.);
@@ -376,10 +331,7 @@ struct FixedJoint2DoF {
 		 */
 
 		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-		joint_a = Joint(
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_a = Joint( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 		body_a_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
@@ -389,10 +341,7 @@ struct FixedJoint2DoF {
 		body_b_id = model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
-		joint_c = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_c = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 		body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
@@ -447,26 +396,17 @@ struct FixedAndMovableJoint {
 		 */
 
 		body_a = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
-		joint_a = Joint(
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_a = Joint( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 		body_a_id = model_movable->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_a, body_a);
 
 		body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
-		joint_b = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 1., 0.)
-				);
+		joint_b = Joint ( SpatialVector (0., 1., 0., 0., 0., 0.));
 
 		body_b_id = model_movable->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
 		body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
-		joint_c = Joint (
-				JointTypeRevolute,
-				Vector3d (0., 0., 1.)
-				);
+		joint_c = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 		body_c_id = model_movable->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
@@ -563,10 +503,7 @@ struct RotZRotZYXFixed {
 		ClearLogOutput();
 		model = new Model;
 
-		Joint joint_rot_z (
-				JointTypeRevolute,
-				Vector3d(0., 0., 1.)
-				);
+		Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
 		Joint joint_rot_zyx (
 				SpatialVector (0., 0., 1., 0., 0., 0.),

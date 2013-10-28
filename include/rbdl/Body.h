@@ -154,6 +154,7 @@ struct RBDL_DLLAPI Body {
 	 *
 	 * \param transform The frame transformation from the origin of the
 	 * original body to the origin of the added body
+	 * \param other_body The other body that will be merged with *this.
 	 */
 	void Join (const Math::SpatialTransform &transform, const Body &other_body) {
 		// nothing to do if we join a massles body to the current.

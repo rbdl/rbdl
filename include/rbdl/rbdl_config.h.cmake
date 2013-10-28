@@ -8,7 +8,7 @@
 #ifndef _RBDLCONFIG_H
 #define _RBDLCONFIG_H
 
-#define RBDL_API_VERSION 0x020100
+#define RBDL_API_VERSION 0x020200
 
 #cmakedefine RBDL_USE_SIMPLE_MATH
 #cmakedefine RBDL_ENABLE_LOGGING

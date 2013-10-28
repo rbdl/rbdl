@@ -249,7 +249,6 @@ namespace SimpleMath {
 			}
 			Dynamic::Matrix<value_type> inverse() const {
 				assert (mIsFactorized);
-				assert (0 && !"Not properly tested!");
 
 				VectorXd rhs_temp = VectorXd::Zero(mQ.cols());
 				MatrixXXd result (mQ.cols(), mQ.cols());
