@@ -60,9 +60,9 @@ void UpdateKinematics (Model &model,
 		
 		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 
-		if (model.mJoints[i].mJointType == JointTypeSpherical) {
+		if (model.mJoints[i].mDoFCount == 3) {
 			Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
-			model.a[i] = model.a[i] + model.spherical_S[i] * omegadot_temp;
+			model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
 		} else {
 			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 		}	
@@ -140,9 +140,9 @@ void UpdateKinematicsCustom (Model &model,
 				model.a[i].setZero();
 			}
 
-			if (model.mJoints[i].mJointType == JointTypeSpherical) {
+			if (model.mJoints[i].mDoFCount == 3) {
 				Vector3d omegadot_temp ((*QDDot)[q_index], (*QDDot)[q_index + 1], (*QDDot)[q_index + 2]);
-				model.a[i] = model.a[i] + model.spherical_S[i] * omegadot_temp;
+				model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
 			} else {
 				model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
 			}
@@ -285,8 +285,8 @@ void CalcPointJacobian (
 		if (e[j] == 1) {
 			unsigned int q_index = model.mJoints[j].q_index;
 
-			if (model.mJoints[j].mJointType == JointTypeSpherical) {
-				Matrix63 S_base = point_trans * spatial_inverse (model.X_base[j].toMatrix()) * model.spherical_S[j];
+			if (model.mJoints[j].mDoFCount == 3) {
+				Matrix63 S_base = point_trans * spatial_inverse (model.X_base[j].toMatrix()) * model.multdof3_S[j];
 
 				G(0, q_index) = S_base(3, 0);
 				G(1, q_index) = S_base(4, 0);

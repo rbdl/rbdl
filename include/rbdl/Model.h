@@ -211,13 +211,13 @@ struct RBDL_DLLAPI Model {
 	std::vector<unsigned int> mFixedJointCount;
 
 	////////////////////////////////////
-	// Special variables for spherical joints
-	/// \brief Motion subspace for spherical joints
-	std::vector<Math::Matrix63> spherical_S;
-	std::vector<Math::Matrix63> spherical_U;
-	std::vector<Math::Matrix3d> spherical_Dinv;
-	std::vector<Math::Vector3d> spherical_u;
-	std::vector<unsigned int> spherical_w_index;
+	// Special variables for joints with 3 degrees of freedom
+	/// \brief Motion subspace for joints with 3 degrees of freedom
+	std::vector<Math::Matrix63> multdof3_S;
+	std::vector<Math::Matrix63> multdof3_U;
+	std::vector<Math::Matrix3d> multdof3_Dinv;
+	std::vector<Math::Vector3d> multdof3_u;
+	std::vector<unsigned int> multdof3_w_index;
 
 	////////////////////////////////////
 	// Dynamics variables
@@ -477,7 +477,7 @@ struct RBDL_DLLAPI Model {
 	Math::Quaternion GetQuaternion (unsigned int i, const Math::VectorNd &Q) const {
 		assert (mJoints[i].mJointType == JointTypeSpherical);
 		unsigned int q_index = mJoints[i].q_index;
-		return Math::Quaternion (Q[q_index], Q[q_index + 1], Q[q_index + 2], Q[spherical_w_index[i]]);
+		return Math::Quaternion (Q[q_index], Q[q_index + 1], Q[q_index + 2], Q[multdof3_w_index[i]]);
 	}
 
 	void SetQuaternion (unsigned int i, const Math::Quaternion &quat, Math::VectorNd &Q) const {
@@ -487,7 +487,7 @@ struct RBDL_DLLAPI Model {
 		Q[q_index] = quat[0];
 		Q[q_index + 1] = quat[1];
 		Q[q_index + 2] = quat[2];
-		Q[spherical_w_index[i]] = quat[3];
+		Q[multdof3_w_index[i]] = quat[3];
 	}
 };
 

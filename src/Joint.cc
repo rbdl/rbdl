@@ -56,14 +56,14 @@ void jcalc (
 		c_J.setZero();
 
 		v_J = model.S[joint_id] * qdot[model.mJoints[joint_id].q_index];
-	} else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
+	} else if (model.mJoints[joint_id].mDoFCount == JointTypeSpherical) {
 		XJ = SpatialTransform ( model.GetQuaternion (joint_id, q).toMatrix(), Vector3d (0., 0., 0.));
 
-		model.spherical_S[joint_id].setZero();
+		model.multdof3_S[joint_id].setZero();
 
-		model.spherical_S[joint_id](0,0) = 1.;
-		model.spherical_S[joint_id](1,1) = 1.;
-		model.spherical_S[joint_id](2,2) = 1.;
+		model.multdof3_S[joint_id](0,0) = 1.;
+		model.multdof3_S[joint_id](1,1) = 1.;
+		model.multdof3_S[joint_id](2,2) = 1.;
 
 		Vector3d omega (qdot[model.mJoints[joint_id].q_index],
 				qdot[model.mJoints[joint_id].q_index+1],

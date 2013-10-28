@@ -55,9 +55,9 @@ unsigned int ConstraintSet::AddConstraint (
 	v_plus.conservativeResize (n_constr);
 	v_plus[n_constr - 1] = 0.;
 
-	d_spherical_U = std::vector<Math::Matrix63> (n_constr, Math::Matrix63::Zero());
-	d_spherical_Dinv = std::vector<Math::Matrix3d> (n_constr, Math::Matrix3d::Zero());
-	d_spherical_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
+	d_multdof3_U = std::vector<Math::Matrix63> (n_constr, Math::Matrix63::Zero());
+	d_multdof3_Dinv = std::vector<Math::Matrix3d> (n_constr, Math::Matrix3d::Zero());
+	d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
 
 	return n_constr - 1;
 }
@@ -412,22 +412,22 @@ void ForwardDynamicsApplyConstraintForces (
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int q_index = model.mJoints[i].q_index;
 
-		if (model.mJoints[i].mJointType == JointTypeSpherical) {
-			CS.d_spherical_U[i] = CS.d_IA[i] * model.spherical_S[i];
+		if (model.mJoints[i].mDoFCount == 3) {
+			CS.d_multdof3_U[i] = CS.d_IA[i] * model.multdof3_S[i];
 #ifdef EIGEN_CORE_H
-			CS.d_spherical_Dinv[i] = (model.spherical_S[i].transpose() * CS.d_spherical_U[i]).inverse().eval();
+			CS.d_multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * CS.d_multdof3_U[i]).inverse().eval();
 #else
-			CS.d_spherical_Dinv[i] = (model.spherical_S[i].transpose() * CS.d_spherical_U[i]).inverse();
+			CS.d_multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * CS.d_multdof3_U[i]).inverse();
 #endif
 			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
 
-			CS.d_spherical_u[i] = tau_temp - model.spherical_S[i].transpose() * CS.d_pA[i];
+			CS.d_multdof3_u[i] = tau_temp - model.multdof3_S[i].transpose() * CS.d_pA[i];
 
-//			LOG << "spherical_u[" << i << "] = " << model.spherical_u[i].transpose() << std::endl;
+//			LOG << "multdof3_u[" << i << "] = " << model.multdof3_u[i].transpose() << std::endl;
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				SpatialMatrix Ia = CS.d_IA[i] - CS.d_spherical_U[i] * CS.d_spherical_Dinv[i] * CS.d_spherical_U[i].transpose();
-				SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_spherical_U[i] * CS.d_spherical_Dinv[i] * model.spherical_u[i];
+				SpatialMatrix Ia = CS.d_IA[i] - CS.d_multdof3_U[i] * CS.d_multdof3_Dinv[i] * CS.d_multdof3_U[i].transpose();
+				SpatialVector pa = CS.d_pA[i] + Ia * model.c[i] + CS.d_multdof3_U[i] * CS.d_multdof3_Dinv[i] * model.multdof3_u[i];
 #ifdef EIGEN_CORE_H
 				CS.d_IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 				CS.d_pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
@@ -493,12 +493,12 @@ void ForwardDynamicsApplyConstraintForces (
 			CS.d_a[i] = X_lambda.apply(CS.d_a[lambda]) + model.c[i];
 		}
 
-		if (model.mJoints[i].mJointType == JointTypeSpherical) {
-			Vector3d qdd_temp = CS.d_spherical_Dinv[i] * (CS.d_spherical_u[i] - CS.d_spherical_U[i].transpose() * model.a[i]);
+		if (model.mJoints[i].mDoFCount == 3) {
+			Vector3d qdd_temp = CS.d_multdof3_Dinv[i] * (CS.d_multdof3_u[i] - CS.d_multdof3_U[i].transpose() * model.a[i]);
 			QDDot[q_index] = qdd_temp[0];
 			QDDot[q_index + 1] = qdd_temp[1];
 			QDDot[q_index + 2] = qdd_temp[2];
-			CS.d_a[i] = CS.d_a[i] + model.spherical_S[i] * qdd_temp;
+			CS.d_a[i] = CS.d_a[i] + model.multdof3_S[i] * qdd_temp;
 		} else {
 			QDDot[q_index] = (CS.d_u[i] - CS.d_U[i].dot(CS.d_a[i])) / CS.d_d[i];
 			CS.d_a[i] = CS.d_a[i] + model.S[i] * QDDot[q_index];
@@ -540,12 +540,12 @@ void ForwardDynamicsAccelerationDeltas (
 			CS.d_pA[i] = -model.X_base[i].applyAdjoint(f_t[i]);
 		}
 
-		if (model.mJoints[i].mJointType == JointTypeSpherical) {
-			CS.d_spherical_u[i] = - model.spherical_S[i].transpose() * (CS.d_pA[i]);
+		if (model.mJoints[i].mDoFCount == 3) {
+			CS.d_multdof3_u[i] = - model.multdof3_S[i].transpose() * (CS.d_pA[i]);
 
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.spherical_U[i] * model.spherical_Dinv[i] * CS.d_spherical_u[i]);
+				CS.d_pA[lambda] = CS.d_pA[lambda] + model.X_lambda[i].applyTranspose (CS.d_pA[i] + model.multdof3_U[i] * model.multdof3_Dinv[i] * CS.d_multdof3_u[i]);
 			}
 		} else {
 			CS.d_u[i] = - model.S[i].dot(CS.d_pA[i]);
@@ -577,13 +577,13 @@ void ForwardDynamicsAccelerationDeltas (
 
 		SpatialVector Xa = model.X_lambda[i].apply(CS.d_a[lambda]);
 
-		if (model.mJoints[i].mJointType == JointTypeSpherical) {
-			Vector3d qdd_temp = model.spherical_Dinv[i] * (CS.d_spherical_u[i] - model.spherical_U[i].transpose() * Xa);
+		if (model.mJoints[i].mDoFCount == 3) {
+			Vector3d qdd_temp = model.multdof3_Dinv[i] * (CS.d_multdof3_u[i] - model.multdof3_U[i].transpose() * Xa);
 			QDDot_t[q_index] = qdd_temp[0];
 			QDDot_t[q_index + 1] = qdd_temp[1];
 			QDDot_t[q_index + 2] = qdd_temp[2];
-			model.a[i] = model.a[i] + model.spherical_S[i] * qdd_temp;
-			CS.d_a[i] = Xa + model.spherical_S[i] * qdd_temp;
+			model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
+			CS.d_a[i] = Xa + model.multdof3_S[i] * qdd_temp;
 		} else {
 			QDDot_t[q_index] = (CS.d_u[i] - model.U[i].dot(Xa) ) / model.d[i];
 			CS.d_a[i] = Xa + model.S[i] * QDDot_t[q_index];

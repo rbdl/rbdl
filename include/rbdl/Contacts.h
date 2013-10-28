@@ -176,9 +176,9 @@ struct RBDL_DLLAPI ConstraintSet {
 	/// Workspace when applying constraint forces
 	Math::VectorNd d_d;
 
-	std::vector<Math::Matrix63> d_spherical_U;
-	std::vector<Math::Matrix3d> d_spherical_Dinv;
-	std::vector<Math::Vector3d> d_spherical_u;
+	std::vector<Math::Matrix63> d_multdof3_U;
+	std::vector<Math::Matrix3d> d_multdof3_Dinv;
+	std::vector<Math::Vector3d> d_multdof3_u;
 };
 
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
