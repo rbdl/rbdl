@@ -31,12 +31,14 @@
 #include <string>
 #include <vector>
 
+#include <rbdl/rbdl_config.h>
+
 // Forward declaration for Lua
 extern "C" {
 struct lua_State;
 }
 
-struct LuaKey {
+struct RBDL_DLLAPI LuaKey {
 	enum Type {
 		String,
 		Integer
@@ -63,10 +65,10 @@ inline std::ostream& operator<<(std::ostream& output, const LuaKey &key) {
 		output << key.string_value << "(string)";
 	return output;
 }
-struct LuaTable;
-struct LuaTableNode;
+struct RBDL_DLLAPI LuaTable;
+struct RBDL_DLLAPI LuaTableNode;
 
-struct LuaTableNode {
+struct RBDL_DLLAPI LuaTableNode {
 	LuaTableNode() :
 		parent (NULL),
 		luaTable (NULL),
@@ -161,7 +163,7 @@ template<> void LuaTableNode::set<bool>(const bool &value);
 template<> void LuaTableNode::set<double>(const double &value);
 template<> void LuaTableNode::set<std::string>(const std::string &value);
 
-struct LuaTable {
+struct RBDL_DLLAPI LuaTable {
 	LuaTable() :
 		filename (""),
 		L (NULL),
