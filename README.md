@@ -18,6 +18,7 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
+   * 04 November 2013: New version 2.2.1: fixed exported library version
    * 28 October 2013: New version 2.2.0: added support for spherical joints that do not suffer from joint singularities
    * 29 September 2013: New version 2.1.0: adjusted build settings and symbol export to be debian compatible. Removed vendor code such as Lua 5.2 and UnitTest++. Must be pre-installed if tests or LuaModel Addon is enabled.
    * 05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.

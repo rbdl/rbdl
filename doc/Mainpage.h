@@ -37,8 +37,10 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li> 4 November 2013: New version 2.2.1: fixed exported library
+ * version</li>
  * <li> 28 October 2013: New version 2.2.0: added support for
- * spherical joints that do not suffer from \ref joint_singularities
+ * spherical joints that do not suffer from \ref joint_singularities</li>
  * <li> 29 September 2013: New version 2.1.0: adjusted build settings and symbol export to be debian compatible. Removed vendor code such as Lua 5.2 and UnitTest++. Must be pre-installed if tests or LuaModel Addon is enabled.</li>
  * <li>05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.</li>
  * <li> 18. July 2013: new API version 2.0.0 for details see (\ref
