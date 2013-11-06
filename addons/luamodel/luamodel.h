@@ -101,7 +101,7 @@ namespace Addons {
    *     Specification of the dynamical parameters of the body. It uses the
    *     values (if existing):
 	 *     \code
-   *       mass (scalar value, default 0.),
+   *       mass (scalar value, default 1.),
    *       com (3-d vector, default:  (0., 0., 0.))
    *       inertia (3x3  matrix, default: identity matrix)
 	 *     \endcode
