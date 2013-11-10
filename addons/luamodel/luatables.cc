@@ -62,7 +62,11 @@ const char* serialize_std = "function serialize (o, tabs)\n\
       if type(v) ~= \"function\" then\n\
         -- make sure that numbered keys are properly are indexified\n\
         if type(k) == \"number\" then\n\
-          result = result .. tabs .. tostring(k) .. \" = \" ..serialize(v, tabs .. \"  \") .. \",\\n\"\n\
+				  if type(v) == \"number\" then\n\
+	          result = result .. \" \" .. tostring(v) .. \",\"\n\
+					else\n\
+	          result = result .. tabs .. serialize(v, tabs .. \"  \") .. \",\\n\"\n\
+					end\n\
         else\n\
           result = result .. tabs .. \"  \" .. k .. \" = \" .. serialize(v, tabs .. \"  \") .. \",\\n\"\n\
         end\n\
