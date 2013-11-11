@@ -27,6 +27,7 @@
 #define LUATABLES_H
 
 #include <iostream>
+#include <assert.h>
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -47,6 +48,18 @@ struct RBDL_DLLAPI LuaKey {
 	Type type;
 	int int_value;
 	std::string string_value;
+
+	bool operator<( const LuaKey& rhs ) const {
+		if (type == String && rhs.type == Integer) {
+			return false;
+		} else if (type == Integer && rhs.type == String) {
+			return true;
+		} else if (type == Integer && rhs.type == Integer) {
+			return int_value < rhs.int_value;
+		}
+
+		return string_value < rhs.string_value;
+	}
 
 	LuaKey (const char* key_value) :
 		type (String),
@@ -105,6 +118,7 @@ struct RBDL_DLLAPI LuaTableNode {
 	bool exists();
 	void remove();
 	size_t length();
+	std::vector<LuaKey> keys();
 
 	// Templates for setters and getters. Can be specialized for custom
 	// types.
@@ -169,9 +183,8 @@ struct RBDL_DLLAPI LuaTable {
 		L (NULL),
 		deleteLuaState (false)
 	{}
-	~LuaTable();
-
 	LuaTable& operator= (const LuaTable &luatable);
+	~LuaTable();
 
 	LuaTableNode operator[] (const char* key) {
 		LuaTableNode root_node;
@@ -190,8 +203,6 @@ struct RBDL_DLLAPI LuaTable {
 		return root_node;
 	}
 	int length();
-	void close();
-
 	std::string serialize ();
 
 	static LuaTable fromFile (const char *_filename);

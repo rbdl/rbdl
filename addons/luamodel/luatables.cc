@@ -30,6 +30,7 @@
 #include <cstdlib>
 #include <vector>
 #include <sstream>
+#include <cmath>
 
 extern "C"
 {
@@ -306,6 +307,37 @@ size_t LuaTableNode::length() {
 
 	return result;
 }
+
+std::vector<LuaKey> LuaTableNode::keys() {
+	std::vector<LuaKey> result;
+
+	if (stackQueryValue()) {
+		// loop over all keys
+		lua_pushnil(luaTable->L);
+		while (lua_next(luaTable->L, -2) != 0) {
+			if (lua_isnumber(luaTable->L, -2)) {
+				double number = lua_tonumber (luaTable->L, -2);
+				double frac;
+				if (modf (number, &frac) == 0) {
+					LuaKey key (static_cast<int>(number));
+					result.push_back (key);
+				}
+			} else if (lua_isstring (luaTable->L, -2)) {
+				LuaKey key (lua_tostring(luaTable->L, -2));
+				result.push_back (key);
+			} else {
+				cerr << "Warning: invalid LuaKey type for key " << 				lua_typename(luaTable->L, lua_type(luaTable->L, -2)) << "!" << endl;
+			}
+
+			lua_pop(luaTable->L, 1);
+		}
+	}
+
+	stackRestore();
+
+	return result;
+}
+
 
 template<> bool LuaTableNode::getDefault<bool>(const bool &default_value) {
 	bool result = default_value;
