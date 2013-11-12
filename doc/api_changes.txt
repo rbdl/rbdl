@@ -1,3 +1,8 @@
+2.2.0 -> 2.2.1
+- properly exporting LuaTables++ functions when using LuaModel addon
+  Fixes linking 
+- fixed exported library version (now at 2.2 as expected)
+
 2.1.0 -> 2.2.0
 - added spherical joints that do not suffer from singularities:
   Use joint type JointTypeSpherical
