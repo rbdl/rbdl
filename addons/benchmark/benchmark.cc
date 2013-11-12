@@ -13,6 +13,13 @@
 #include "SampleData.h"
 #include "Timer.h"
 
+#ifdef BUILD_ADDON_LUAMODEL
+#include "../addons/luamodel/luamodel.h"
+bool have_luamodel = true;
+#else
+bool have_luamodel = false;
+#endif
+
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
@@ -25,6 +32,8 @@ bool benchmark_run_fd_lagrangian = true;
 bool benchmark_run_id_rnea = true;
 bool benchmark_run_crba = true;
 bool benchmark_run_contacts = false;
+
+string model_file = "";
 
 enum ContactsBenchmark {
 	ContactsBenchmarkLagrangian = 0,
@@ -322,7 +331,11 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 }
 
 void print_usage () {
+#ifdef BUILD_ADDON_LUAMODEL
+	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>] <model.lua>" << endl;
+#else
 	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>]" << endl;
+#endif
 	cout << "Simple benchmark tool for the Rigid Body Dynamics Library." << endl;
 	cout << "  --count | -c <sample_count> : sets the number of sample states that should" << endl;
 	cout << "                be calculated (default: 1000)" << endl;
@@ -340,6 +353,8 @@ void print_usage () {
 	cout << "                                body algorithm." << endl;
 	cout << "  --only-contacts | -C        : only runs contact model benchmarks." << endl;
 	cout << "  --help | -h                 : prints this help." << endl;
+#ifdef BUILD_ADDON_LUAMODEL
+#endif
 }
 
 void disable_all_benchmarks () {
@@ -352,6 +367,7 @@ void disable_all_benchmarks () {
 
 void parse_args (int argc, char* argv[]) {
 	int argi = 1;
+
 	while (argi < argc) {
 		string arg = argv[argi];
 
@@ -396,6 +412,10 @@ void parse_args (int argc, char* argv[]) {
 		} else if (arg == "--only-contacts" || arg == "-C") {
 			disable_all_benchmarks();
 			benchmark_run_contacts = true;
+#ifdef BUILD_ADDON_LUAMODEL
+		} else if (model_file == "") {
+			model_file = arg;
+#endif
 		} else {
 			print_usage();
 			cerr << "Invalid argument '" << arg << "'." << endl;
@@ -411,6 +431,37 @@ int main (int argc, char *argv[]) {
 	Model *model = NULL;
 
 	model = new Model();
+
+#ifdef BUILD_ADDON_LUAMODEL
+	if (model_file != "") {
+		RigidBodyDynamics::Addons::LuaModelReadFromFile (model_file.c_str(), model);
+
+		if (benchmark_run_fd_aba) {
+			cout << "= Forward Dynamics: ABA =" << endl;
+			run_forward_dynamics_ABA_benchmark (model, benchmark_sample_count);
+		}
+
+		if (benchmark_run_fd_lagrangian) {
+			cout << "= Forward Dynamics: Lagrangian (Piv. LU decomposition) =" << endl;
+			run_forward_dynamics_lagrangian_benchmark (model, benchmark_sample_count);
+		}
+
+		if (benchmark_run_id_rnea) {
+			cout << "= Inverse Dynamics: RNEA =" << endl;
+			run_inverse_dynamics_RNEA_benchmark (model, benchmark_sample_count);
+		}
+
+		if (benchmark_run_crba) {
+			cout << "= Joint Space Inertia Matrix: CRBA =" << endl;
+			run_CRBA_benchmark (model, benchmark_sample_count);
+		}
+
+		delete model;
+
+		return 0;
+	}
+#endif
+
 	generate_human36model (model);
 	cout << "Human dofs = " << model->dof_count << endl;
 	delete model;
