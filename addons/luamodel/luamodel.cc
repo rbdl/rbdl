@@ -120,11 +120,23 @@ template<> SpatialTransform LuaTableNode::getDefault<SpatialTransform>(const Spa
 
 template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 	Joint result = default_value;
-
+	
 	if (stackQueryValue()) {
 		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
 		int joint_dofs = vector_table.length();
+
+		if (joint_dofs == 1) {
+			string dof_string = vector_table[1].getDefault<std::string>("");
+			if (dof_string == "JointTypeSpherical") {
+				stackRestore();
+				return Joint(JointTypeSpherical);
+			}
+			if (dof_string == "JointTypeSphericalZYX") {
+				stackRestore();
+				return Joint(JointTypeSphericalZYX);
+			}
+		}
 
 		switch (joint_dofs) {
 			case 0: result = Joint(JointTypeFixed);

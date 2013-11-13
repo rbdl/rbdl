@@ -1,3 +1,7 @@
+2.2.1 -> next
+- disabled clearing of joint space inertia matrix in CRBA.
+  It is expected that the matrix is cleared by the user when neccessary.
+
 2.2.0 -> 2.2.1
 - properly exporting LuaTables++ functions when using LuaModel addon
   Fixes linking 
