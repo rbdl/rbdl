@@ -106,15 +106,13 @@ namespace RigidBodyDynamics {
  * storage of temporary values. It is designed for use of the Articulated
  * Rigid Body Algorithm (which is implemented in ForwardDynamics()) and
  * follows the numbering as described in Featherstones book.
- *
- * An important note is that body 0 is the root body and the moving bodies
- * start at index 1. Additionally the vectors for the states q, qdot, etc.
- * have \#Model::mBodies + 1 entries where always the first entry (e.g.
- * q[0]) contains the value for the base (or "root" body). Thus the
- * numbering might be confusing as q[1] holds the position variable of the
- * first added joint. This numbering scheme is very beneficial in terms of
+ * 
+ * Please note that body 0 is the root body and the moving bodies start at
+ * index 1. This numbering scheme is very beneficial in terms of
  * readability of the code as the resulting code is very similar to the
- * pseudo-code in the RBDA book.
+ * pseudo-code in the RBDA book. The generalized variables q, qdot, qddot
+ * and tau however start at 0 such that the first entry (e.g. q[0]) always
+ * specifies the value for the first moving body.
  *
  * \note To query the number of degrees of freedom use Model::dof_count.
  */
