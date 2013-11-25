@@ -165,6 +165,14 @@ struct RBDL_DLLAPI Joint {
 				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
 				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
 				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+			} else if (type == JointTypeSphericalZYX) {
+				mDoFCount = 3;
+
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+
+				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
 			} else if (type != JointTypeFixed) {
 				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
 				assert (0);
