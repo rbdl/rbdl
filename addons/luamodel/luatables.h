@@ -1,6 +1,6 @@
 /*
  * LuaTables++
- * Copyright (c) 2011-2013 Martin Felis <martin@fyxs.org>.
+ * Copyright (c) 2013-2014 Martin Felis <martin@fyxs.org>.
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -171,9 +171,11 @@ bool operator!=(T value, LuaTableNode node) {
 
 template<> bool LuaTableNode::getDefault<bool>(const bool &default_value);
 template<> double LuaTableNode::getDefault<double>(const double &default_value);
+template<> float LuaTableNode::getDefault<float>(const float &default_value);
 template<> std::string LuaTableNode::getDefault<std::string>(const std::string &default_value);
 
 template<> void LuaTableNode::set<bool>(const bool &value);
+template<> void LuaTableNode::set<float>(const float &value);
 template<> void LuaTableNode::set<double>(const double &value);
 template<> void LuaTableNode::set<std::string>(const std::string &value);
 
@@ -203,6 +205,7 @@ struct RBDL_DLLAPI LuaTable {
 		return root_node;
 	}
 	int length();
+	void addSearchPath (const char* path);
 	std::string serialize ();
 
 	static LuaTable fromFile (const char *_filename);
