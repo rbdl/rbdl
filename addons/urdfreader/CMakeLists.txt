@@ -4,19 +4,18 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
-INCLUDE ( CMake/ros.cmake)
 INCLUDE ( CMake/pkg-config.cmake)
 
-ADD_ROSPACK_DEPENDENCY ("urdf")
-ADD_ROSPACK_DEPENDENCY ("urdf_interface")
-ADD_ROSPACK_DEPENDENCY ("urdf_parser")
+# Find urdfdom
+FIND_PACKAGE(PkgConfig)
+PKG_CHECK_MODULES(URDFDOM REQUIRED urdfdom>=0.2.9)
+PKG_CHECK_MODULES(URDFDOM_HEADERS REQUIRED urdfdom_headers>=0.2.3)
 
-# We additionally link against urdf explicitly
-FIND_PACKAGE (URDF REQUIRED)
-INCLUDE_DIRECTORIES (${URDF_INCLUDE_DIR})
-
-INCLUDE_DIRECTORIES ( 
+INCLUDE_DIRECTORIES (
 	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl
+	SYSTEM
+	${URDFDOM_INCLUDE_DIRS}
+	${URDFDOM_HEADERS_INCLUDE_DIRS}
 )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
@@ -30,7 +29,7 @@ SET (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
-SET ( URDFREADER_SOURCES 
+SET ( URDFREADER_SOURCES
 	rbdl_urdfreader.cc
 	)
 
@@ -38,20 +37,12 @@ ADD_LIBRARY ( rbdl_urdfreader SHARED ${URDFREADER_SOURCES} )
 
 ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
 
-ROSPACK_USE_DEPENDENCY (rbdl_urdfreader urdf)
-ROSPACK_USE_DEPENDENCY (rbdl_urdfreader urdf_interface)
-
-ROSPACK_USE_DEPENDENCY (rbdl_urdfreader_util urdf)
-ROSPACK_USE_DEPENDENCY (rbdl_urdfreader_util urdf_interface)
 
 IF (BUILD_STATIC)
 	ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${URDFREADER_SOURCES} )
 
-	ROSPACK_USE_DEPENDENCY (rbdl_urdfreader-static urdf)
-	ROSPACK_USE_DEPENDENCY (rbdl_urdfreader-static urdf_interface)
-
-  SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES PREFIX "lib")
-  SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES OUTPUT_NAME "rbdl_urdfreader")
+	SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES PREFIX "lib")
+	SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES OUTPUT_NAME "rbdl_urdfreader")
 
 	INSTALL (TARGETS rbdl_urdfreader-static
 	  LIBRARY DESTINATION lib
@@ -61,7 +52,7 @@ ENDIF (BUILD_STATIC)
 
 TARGET_LINK_LIBRARIES (rbdl_urdfreader
 	rbdl
-	${URDF_LIBRARY}
+	${URDFDOM_LIBRARIES}
 	)
 
 TARGET_LINK_LIBRARIES (rbdl_urdfreader_util
@@ -74,7 +65,7 @@ INSTALL (TARGETS rbdl_urdfreader
 	ARCHIVE DESTINATION lib
 	)
 
-FILE ( GLOB headers 
+FILE ( GLOB headers
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 	)
 
