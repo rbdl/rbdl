@@ -4,14 +4,11 @@ Copyright (c) 2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 Requirements
 ============
 
-This addon depends on ROS, the Robot Operating System (http://www.ros.org)
-and uses its urdf_parser and urdf_interface to load and access the model
-data in the files. You therefore need to have ROS and the package
-"robot-model" installed on your system to be able to compile this addon. So
-far only the ROS release "Fuerte" can be used with this code.
+This addon depends on urdfdom to load and access the model data in the URDF
+files.
 
-See http://www.ros.org/wiki/ROS/Installation for more details on how to
-install ROS.
+See https://github.com/ros/urdfdom for more details on how to
+install urdfdom.
 
 Warning
 =======
