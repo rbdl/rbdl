@@ -126,6 +126,13 @@ template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 
 		int joint_dofs = vector_table.length();
 
+		if (joint_dofs > 0) {
+			if (vector_table[1].length() != 6) {
+				cerr << "LuaModel Error: invalid joint motion subspace description at " << this->keyStackToString() << endl;
+				abort();
+			}
+		}
+
 		switch (joint_dofs) {
 			case 0: result = Joint(JointTypeFixed);
 							break;
