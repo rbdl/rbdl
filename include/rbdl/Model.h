@@ -200,6 +200,7 @@ struct RBDL_DLLAPI Model {
 	std::vector<Math::SpatialVector> f;
 	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
 	std::vector<Math::SpatialRigidBodyInertia> Ic;
+	std::vector<Math::SpatialVector> hc;
 
 	////////////////////////////////////
 	// Bodies

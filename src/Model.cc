@@ -70,6 +70,7 @@ Model::Model() {
 				Matrix3d::Zero(3,3)
 				)
 			);
+	hc.push_back (zero_spatial);
 
 	// Bodies
 	X_lambda.push_back(SpatialTransform());
@@ -302,6 +303,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 				body.mInertia
 				)
 			);
+	hc.push_back (SpatialVector(0., 0., 0., 0., 0., 0.));
 
 	if (mBodies.size() == fixed_body_discriminator) {
 		std::cerr << "Error: cannot add more than " << fixed_body_discriminator << " movable bodies. You need to modify Model::fixed_body_discriminator for this." << std::endl;

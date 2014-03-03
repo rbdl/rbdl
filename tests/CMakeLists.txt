@@ -26,6 +26,7 @@ SET ( TESTS_SRCS
 	ImpulsesTests.cc
 	TwolegModelTests.cc
 	ContactsTests.cc
+	UtilsTests.cc
 	)
 
 INCLUDE_DIRECTORIES ( ../src/ )
