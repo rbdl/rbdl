@@ -183,9 +183,9 @@ RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, b
 	double mass = Itot.m;
 	Vector3d com = Itot.h;
 
-	Vector3d g = Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
+	Vector3d g = - Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
 
-	return mass - com.dot(g);
+	return mass * com.dot(g);
 }
 
 }
