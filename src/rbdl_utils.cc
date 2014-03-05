@@ -68,14 +68,8 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 
 	result << get_body_name (model, body_index);
 
-	if (body_index == 0) {
-		result << endl;
-		result << print_hierarchy (model, 1, 1);
-		return result.str();
-	} 
-
-	// print the dofs
-	result << " [ ";
+	if (body_index > 0)
+		result << " [ ";
 
 	while (model.mBodies[body_index].mMass == 0.) {
 		if (model.mu[body_index].size() == 0) {
@@ -93,9 +87,10 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 
 		body_index = model.mu[body_index][0];
 	}
-	result << get_dof_name(model.S[body_index]);
 
-	result << " ]" << endl;
+	if (body_index > 0)
+		result << get_dof_name(model.S[body_index]) << " ]";
+	result << endl;
 
 	unsigned int child_index = 0;
 	for (child_index = 0; child_index < model.mu[body_index].size(); child_index++) {
