@@ -473,7 +473,7 @@ class Matrix {
 
 		operator val_type() {
 			assert (nrows == 1);
-			assert (nrows == 1);
+			assert (ncols == 1);
 
 			return mData[0];
 		}

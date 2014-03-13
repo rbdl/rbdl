@@ -68,14 +68,8 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 
 	result << get_body_name (model, body_index);
 
-	if (body_index == 0) {
-		result << endl;
-		result << print_hierarchy (model, 1, 1);
-		return result.str();
-	} 
-
-	// print the dofs
-	result << " [ ";
+	if (body_index > 0)
+		result << " [ ";
 
 	while (model.mBodies[body_index].mMass == 0.) {
 		if (model.mu[body_index].size() == 0) {
@@ -93,9 +87,10 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 
 		body_index = model.mu[body_index][0];
 	}
-	result << get_dof_name(model.S[body_index]);
 
-	result << " ]" << endl;
+	if (body_index > 0)
+		result << get_dof_name(model.S[body_index]) << " ]";
+	result << endl;
 
 	unsigned int child_index = 0;
 	for (child_index = 0; child_index < model.mu[body_index].size(); child_index++) {
@@ -142,6 +137,50 @@ RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model) {
 	}
 
 	return result.str();
+}
+
+RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics) {
+	if (update_kinematics)
+		UpdateKinematicsCustom (model, &q, &qdot, NULL);
+
+	double result = 0.;
+
+	for (size_t i = 1; i < model.mBodies.size(); i++) {
+		result += 0.5 * model.v[i].transpose() * model.mBodies[i].mSpatialInertia * model.v[i];
+	}
+	return result;
+}
+
+RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics) {
+	if (update_kinematics)
+		UpdateKinematicsCustom (model, &q, NULL, NULL);
+
+	for (size_t i = 1; i < model.mBodies.size(); i++) {
+		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
+		model.hc[i] = model.Ic[i].toMatrix() * model.v[i];
+	}
+
+	SpatialRigidBodyInertia Itot (0., Vector3d (0., 0., 0.), Matrix3d::Zero(3,3));
+	SpatialVector htot (SpatialVector::Zero(6));
+
+	for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
+		unsigned int lambda = model.lambda[i];
+
+		if (lambda != 0) {
+			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply (model.Ic[i]);
+			model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].apply (model.hc[i]);
+		} else {
+			Itot = Itot + model.X_lambda[i].apply (model.Ic[i]);
+			htot = htot + model.X_lambda[i].apply (model.hc[i]);
+		}
+	}
+
+	double mass = Itot.m;
+	Vector3d com = Itot.h;
+
+	Vector3d g = - Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
+
+	return mass * com.dot(g);
 }
 
 }

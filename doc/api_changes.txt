@@ -2,6 +2,12 @@
 - disabled clearing of joint space inertia matrix in CRBA.
   It is expected that the matrix is cleared by the user when neccessary.
 
+2.2.1 -> 2.2.2
+- adjusted default constructor for Body. It now has the identity matrix as
+	inertia, instead of a zero matrix.
+- LuaModel: made sure that the Body value is optional and uses the default
+	Body constructor if not defined.
+
 2.2.0 -> 2.2.1
 - properly exporting LuaTables++ functions when using LuaModel addon
   Fixes linking 

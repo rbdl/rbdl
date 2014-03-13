@@ -14,7 +14,7 @@ namespace Addons {
 	 *
 	 * \section luamodel_introduction Lua Models
 	 *
-	 * The Addon LuaModel allows to load \link RigidBodyDynamics::Models Models\endlink
+	 * The Addon LuaModel allows to load \link RigidBodyDynamics::Model Models\endlink
 	 * that are specified as Lua scripts. <a href="http://www.lua.org">Lua</a> is
 	 * an open-source light-weight scripting language (http://www.lua.org).
 	 * This addon is not enabled by default and one has to enable it by
@@ -101,7 +101,7 @@ namespace Addons {
    *     Specification of the dynamical parameters of the body. It uses the
    *     values (if existing):
 	 *     \code
-   *       mass (scalar value, default 0.),
+   *       mass (scalar value, default 1.),
    *       com (3-d vector, default:  (0., 0., 0.))
    *       inertia (3x3  matrix, default: identity matrix)
 	 *     \endcode

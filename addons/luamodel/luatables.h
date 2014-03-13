@@ -1,6 +1,6 @@
 /*
  * LuaTables++
- * Copyright (c) 2011-2013 Martin Felis <martin@fyxs.org>.
+ * Copyright (c) 2013-2014 Martin Felis <martin@fyxs.org>.
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -27,6 +27,7 @@
 #define LUATABLES_H
 
 #include <iostream>
+#include <assert.h>
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -47,6 +48,18 @@ struct RBDL_DLLAPI LuaKey {
 	Type type;
 	int int_value;
 	std::string string_value;
+
+	bool operator<( const LuaKey& rhs ) const {
+		if (type == String && rhs.type == Integer) {
+			return false;
+		} else if (type == Integer && rhs.type == String) {
+			return true;
+		} else if (type == Integer && rhs.type == Integer) {
+			return int_value < rhs.int_value;
+		}
+
+		return string_value < rhs.string_value;
+	}
 
 	LuaKey (const char* key_value) :
 		type (String),
@@ -105,6 +118,7 @@ struct RBDL_DLLAPI LuaTableNode {
 	bool exists();
 	void remove();
 	size_t length();
+	std::vector<LuaKey> keys();
 
 	// Templates for setters and getters. Can be specialized for custom
 	// types.
@@ -157,9 +171,11 @@ bool operator!=(T value, LuaTableNode node) {
 
 template<> bool LuaTableNode::getDefault<bool>(const bool &default_value);
 template<> double LuaTableNode::getDefault<double>(const double &default_value);
+template<> float LuaTableNode::getDefault<float>(const float &default_value);
 template<> std::string LuaTableNode::getDefault<std::string>(const std::string &default_value);
 
 template<> void LuaTableNode::set<bool>(const bool &value);
+template<> void LuaTableNode::set<float>(const float &value);
 template<> void LuaTableNode::set<double>(const double &value);
 template<> void LuaTableNode::set<std::string>(const std::string &value);
 
@@ -169,9 +185,8 @@ struct RBDL_DLLAPI LuaTable {
 		L (NULL),
 		deleteLuaState (false)
 	{}
-	~LuaTable();
-
 	LuaTable& operator= (const LuaTable &luatable);
+	~LuaTable();
 
 	LuaTableNode operator[] (const char* key) {
 		LuaTableNode root_node;
@@ -190,8 +205,7 @@ struct RBDL_DLLAPI LuaTable {
 		return root_node;
 	}
 	int length();
-	void close();
-
+	void addSearchPath (const char* path);
 	std::string serialize ();
 
 	static LuaTable fromFile (const char *_filename);

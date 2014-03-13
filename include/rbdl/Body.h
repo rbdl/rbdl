@@ -31,7 +31,7 @@ struct RBDL_DLLAPI Body {
 	Body() :
 		mMass (1.),
 		mCenterOfMass (0., 0., 0.),
-		mInertia (Math::Matrix3d::Zero(3,3)),
+		mInertia (Math::Matrix3d::Identity(3,3)),
 		mSpatialInertia (Math::SpatialMatrix::Zero(6,6)),
 		mIsVirtual (false)
 	{ };

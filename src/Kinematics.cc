@@ -49,7 +49,7 @@ void UpdateKinematics (Model &model,
 		model.X_lambda[i] = X_J * model.X_T[i];
 
 		if (lambda != 0) {
-			model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
+			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
 			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);
 		}	else {
@@ -99,7 +99,7 @@ void UpdateKinematicsCustom (Model &model,
 			model.X_lambda[i] = X_J * model.X_T[i];
 
 			if (lambda != 0) {
-				model.X_base[i] = model.X_lambda[i] * model.X_base.at(lambda);
+				model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
 			}	else {
 				model.X_base[i] = model.X_lambda[i];
 			}
