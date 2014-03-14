@@ -47,18 +47,11 @@ TEST(TestPotentialEnergy) {
 	model.AppendBody (Xtrans (Vector3d::Zero()), joint, body);
 
 	VectorNd q = VectorNd::Zero(model.q_size);
-
-	ClearLogOutput();
 	double potential_energy_zero = Utils::CalcPotentialEnergy (model, q);
-//	cout << LogOutput.str() << endl;
-
 	CHECK_EQUAL (0., potential_energy_zero);
+
 	q[1] = 1.;
-
-	ClearLogOutput();
 	double potential_energy_lifted = Utils::CalcPotentialEnergy (model, q);
-//	cout << LogOutput.str() << endl;
-
 	CHECK_EQUAL (4.905, potential_energy_lifted);
 }
 
@@ -96,8 +89,6 @@ TEST(TestCOMSimple) {
 	CHECK_EQUAL (Vector3d (0., 1., 0.), com_velocity);
 }
 
-/*
-
 TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
 	Vector3d momentum = Utils::CalcAngularMomentum (*model, q, qdot, true);
 
@@ -109,7 +100,8 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
 
 	momentum = Utils::CalcAngularMomentum (*model, q, qdot, true);
 
-	CHECK (momentum.norm() > 10);
+	// only a rough guess from test calculation
+	CHECK_ARRAY_CLOSE (Vector3d (9.9, 7.62, 4.5).data(), momentum.data(), 3, 1.0e-1);
 
 	qdot[3] = -qdot[0];
 	qdot[4] = -qdot[1];
@@ -117,24 +109,8 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
 
 	ClearLogOutput();
 	momentum = Utils::CalcAngularMomentum (*model, q, qdot, true);
-	cout << LogOutput.str() << endl;
-	cout << "momentum: " << momentum.transpose() << endl;
 
-	for (size_t i = 1; i < model->mBodies.size(); i++) {
-		cout << "v[" << i << "]:  " << model->v[i].transpose() << endl;
-	}
-
-	for (size_t i = 1; i < model->mBodies.size(); i++) {
-		cout << "hc[" << i << "]: " << model->hc[i].transpose() << endl;
-	}
-
-	for (size_t i = 1; i < model->mBodies.size(); i++) {
-		cout << "X_T[" << i << "]: " << model->X_T[i].r.transpose() << endl;
-	}
-
-	for (size_t i = 1; i < model->mBodies.size(); i++) {
-		cout << "X_lambda[" << i << "]: " << model->X_lambda[i].r.transpose() << endl;
-	}
+	CHECK (momentum[0] == 0);
+	CHECK (momentum[1] < 0);
+	CHECK (momentum[2] == 0.);
 }
-
-*/

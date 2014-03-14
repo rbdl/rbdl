@@ -228,6 +228,5 @@ RBDL_DLLAPI Vector3d CalcAngularMomentum (Model &model, const Math::VectorNd &q,
 	return Vector3d (htot[0], htot[1], htot[2]);
 }
 
-
 }
 }
