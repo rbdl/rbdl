@@ -139,21 +139,9 @@ RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model) {
 	return result.str();
 }
 
-RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics) {
+RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, double &mass, Math::Vector3d &com, Math::Vector3d *com_velocity, bool update_kinematics) {
 	if (update_kinematics)
 		UpdateKinematicsCustom (model, &q, &qdot, NULL);
-
-	double result = 0.;
-
-	for (size_t i = 1; i < model.mBodies.size(); i++) {
-		result += 0.5 * model.v[i].transpose() * model.mBodies[i].mSpatialInertia * model.v[i];
-	}
-	return result;
-}
-
-RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics) {
-	if (update_kinematics)
-		UpdateKinematicsCustom (model, &q, NULL, NULL);
 
 	for (size_t i = 1; i < model.mBodies.size(); i++) {
 		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
@@ -175,12 +163,33 @@ RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, b
 		}
 	}
 
-	double mass = Itot.m;
-	Vector3d com = Itot.h;
+	mass = Itot.m;
+	com = Itot.h / mass;
+
+	if (com_velocity) 
+		*com_velocity = Vector3d (htot[3] / mass, htot[4] / mass, htot[5] / mass);
+}
+
+RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics) {
+	double mass;
+	Vector3d com;
+	CalcCenterOfMass (model, q, VectorNd::Zero (model.qdot_size), mass, com, NULL, update_kinematics);
 
 	Vector3d g = - Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
 
 	return mass * com.dot(g);
+}
+
+RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics) {
+	if (update_kinematics)
+		UpdateKinematicsCustom (model, &q, &qdot, NULL);
+
+	double result = 0.;
+
+	for (size_t i = 1; i < model.mBodies.size(); i++) {
+		result += 0.5 * model.v[i].transpose() * model.mBodies[i].mSpatialInertia * model.v[i];
+	}
+	return result;
 }
 
 }

@@ -37,7 +37,7 @@ TEST_FIXTURE(FloatingBase12DoF, TestKineticEnergy) {
 
 TEST(TestPotentialEnergy) {
 	Model model;
-	Body body (1., Vector3d (0., 0., 0.), Matrix3d::Zero());
+	Body body (0.5, Vector3d (0., 0., 0.), Matrix3d::Zero());
 	Joint joint (
 			SpatialVector (0., 0., 0., 1., 0., 0.),
 			SpatialVector (0., 0., 0., 0., 1., 0.),
@@ -53,5 +53,40 @@ TEST(TestPotentialEnergy) {
 	q[1] = 1.;
 	double potential_energy_lifted = Utils::CalcPotentialEnergy (model, q);
 
-	CHECK_EQUAL (9.81, potential_energy_lifted);
+	CHECK_EQUAL (4.905, potential_energy_lifted);
 }
+
+TEST(TestCOMSimple) {
+	Model model;
+	Body body (123., Vector3d (0., 0., 0.), Matrix3d::Zero());
+	Joint joint (
+			SpatialVector (0., 0., 0., 1., 0., 0.),
+			SpatialVector (0., 0., 0., 0., 1., 0.),
+			SpatialVector (0., 0., 0., 0., 0., 1.)
+			);
+
+	model.AppendBody (Xtrans (Vector3d::Zero()), joint, body);
+
+	VectorNd q = VectorNd::Zero(model.q_size);
+	VectorNd qdot = VectorNd::Zero(model.qdot_size);
+
+	double mass;
+	Vector3d com;
+	Vector3d com_velocity;
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, &com_velocity);
+
+	CHECK_EQUAL (123., mass);
+	CHECK_EQUAL (Vector3d (0., 0., 0.), com);
+	CHECK_EQUAL (Vector3d (0., 0., 0.), com_velocity);
+
+	q[1] = 1.;
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, &com_velocity);
+	CHECK_EQUAL (Vector3d (0., 1., 0.), com);
+	CHECK_EQUAL (Vector3d (0., 0., 0.), com_velocity);
+
+	qdot[1] = 1.;
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, &com_velocity);
+	CHECK_EQUAL (Vector3d (0., 1., 0.), com);
+	CHECK_EQUAL (Vector3d (0., 1., 0.), com_velocity);
+}
+
