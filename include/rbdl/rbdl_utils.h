@@ -36,6 +36,7 @@ namespace Utils {
 
 	RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics = true);
 	RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics = true);
+	RBDL_DLLAPI Vector3d CalcAngularMomentum (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics = true);
 }
 
 }

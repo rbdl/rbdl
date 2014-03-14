@@ -538,4 +538,60 @@ struct RotZRotZYXFixed {
 	RigidBodyDynamics::Math::SpatialTransform fixture_transform_fixed;
 };
 
+struct TwoArms12DoF {
+	TwoArms12DoF() {
+		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
+
+		ClearLogOutput();
+		model = new Model;
+
+		/* Basically a model like this, where X are the Center of Masses
+		 * and the CoM of the last (3rd) body comes out of the Y=X=0 plane.
+		 *
+		 * *----O----*
+		 * |         |
+		 * |         |
+		 * *         *
+		 * |         |
+		 * |         |
+		 *
+		 */
+
+		Body body_upper = Body (1., Vector3d (0., -0.2, 0.), Vector3d (1.1, 1.3, 1.5));
+		Body body_lower = Body (0.5, Vector3d(0., -0.15, 0.), Vector3d (0.3, 0.5, 0.2));
+
+		Joint joint_zyx = Joint (
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				);
+
+		right_upper_arm = model->AppendBody (Xtrans (Vector3d (0., 0., -0.3)), joint_zyx, body_upper, "RightUpper");
+//		model->AppendBody (Xtrans (Vector3d (0., -0.4, 0.)), joint_zyx, body_lower, "RightLower");
+		left_upper_arm = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.3)), joint_zyx, body_upper, "LeftUpper");
+//		model->AppendBody (Xtrans (Vector3d (0., -0.4, 0.)), joint_zyx, body_lower, "LeftLower");
+				
+		q = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		qdot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		qddot = VectorNd::Constant ((size_t) model->dof_count, 0.);
+		tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
+
+		ClearLogOutput();
+	}
+	~TwoArms12DoF() {
+		delete model;
+	}
+	
+	RigidBodyDynamics::Model *model;
+
+	RigidBodyDynamics::Math::VectorNd q;
+	RigidBodyDynamics::Math::VectorNd qdot;
+	RigidBodyDynamics::Math::VectorNd qddot;
+	RigidBodyDynamics::Math::VectorNd tau;
+
+	unsigned int right_upper_arm, left_upper_arm;
+
+};
+
 
