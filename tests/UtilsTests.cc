@@ -48,10 +48,16 @@ TEST(TestPotentialEnergy) {
 
 	VectorNd q = VectorNd::Zero(model.q_size);
 
+	ClearLogOutput();
 	double potential_energy_zero = Utils::CalcPotentialEnergy (model, q);
+//	cout << LogOutput.str() << endl;
+
 	CHECK_EQUAL (0., potential_energy_zero);
 	q[1] = 1.;
+
+	ClearLogOutput();
 	double potential_energy_lifted = Utils::CalcPotentialEnergy (model, q);
+//	cout << LogOutput.str() << endl;
 
 	CHECK_EQUAL (4.905, potential_energy_lifted);
 }
@@ -90,6 +96,8 @@ TEST(TestCOMSimple) {
 	CHECK_EQUAL (Vector3d (0., 1., 0.), com_velocity);
 }
 
+/*
+
 TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
 	Vector3d momentum = Utils::CalcAngularMomentum (*model, q, qdot, true);
 
@@ -127,5 +135,6 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
 	for (size_t i = 1; i < model->mBodies.size(); i++) {
 		cout << "X_lambda[" << i << "]: " << model->X_lambda[i].r.transpose() << endl;
 	}
-
 }
+
+*/

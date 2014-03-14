@@ -479,13 +479,35 @@ TEST(TestSpatialTransformApplySpatialRigidBodyInertiaFull) {
 		);
 
 	SpatialRigidBodyInertia rbi_transformed = X.apply (rbi);
-	SpatialMatrix rbi_matrix_transformed = X.toMatrixTranspose() * rbi.toMatrix() * X.toMatrix();
+	SpatialMatrix rbi_matrix_transformed = X.toMatrixAdjoint () * rbi.toMatrix() * X.inverse().toMatrix();
 
-	// cout << "rbi = " << endl << rbi.toMatrix() << endl;
-	// cout << "rbi_transformed = " << endl << rbi_transformed.toMatrix() << endl;
-	// cout << "rbi_matrix_transformed = " << endl << rbi_matrix_transformed << endl;
-	// cout << "diff = " << endl << 
-	// 	rbi_transformed.toMatrix() - rbi_matrix_transformed << endl;
+	CHECK_ARRAY_CLOSE (
+			rbi_matrix_transformed.data(),
+			rbi_transformed.toMatrix().data(),
+			36,
+			TEST_PREC
+			);
+}
+
+TEST(TestSpatialTransformApplyTransposeSpatialRigidBodyInertiaFull) {
+	SpatialRigidBodyInertia rbi (
+			1.1,
+			Vector3d (1.2, 1.3, 1.4),
+			Matrix3d (
+				1.1, 0.5, 0.3,
+				0.5, 1.2, 0.4,
+				0.3, 0.4, 1.3
+				));
+
+	SpatialTransform X (
+			Xrotz (0.5) *
+			Xroty (0.9) *
+			Xrotx (0.2) *
+			Xtrans (Vector3d (1.1, 1.2, 1.3))
+		);
+
+	SpatialRigidBodyInertia rbi_transformed = X.applyTranspose (rbi);
+	SpatialMatrix rbi_matrix_transformed = X.toMatrixTranspose() * rbi.toMatrix() * X.toMatrix();
 
 	CHECK_ARRAY_CLOSE (
 			rbi_matrix_transformed.data(),

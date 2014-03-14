@@ -155,16 +155,17 @@ RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const 
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
-			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply(model.Ic[i]);
+			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].applyTranspose (model.Ic[i]);
 			model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].applyTranspose (model.hc[i]);
 		} else {
-			Itot = Itot + model.X_lambda[i].apply(model.Ic[i]);
+			Itot = Itot + model.X_lambda[i].applyTranspose (model.Ic[i]);
 			htot = htot + model.X_lambda[i].applyTranspose (model.hc[i]);
 		}
 	}
 
 	mass = Itot.m;
 	com = Itot.h / mass;
+	LOG << "mass = " << mass << " com = " << com.transpose() << " htot = " << htot.transpose() << std::endl;
 
 	if (com_velocity) 
 		*com_velocity = Vector3d (htot[3] / mass, htot[4] / mass, htot[5] / mass);
@@ -176,6 +177,7 @@ RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, b
 	CalcCenterOfMass (model, q, VectorNd::Zero (model.qdot_size), mass, com, NULL, update_kinematics);
 
 	Vector3d g = - Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
+	LOG << "pot_energy: " << " mass = " << mass << " com = " << com.transpose() << std::endl;
 
 	return mass * com.dot(g);
 }

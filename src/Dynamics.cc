@@ -332,7 +332,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
-			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply(model.Ic[i]);
+			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].applyTranspose(model.Ic[i]);
 		}
 
 		unsigned int dof_index_i = model.mJoints[i].q_index;
