@@ -37,7 +37,8 @@ TEST_FIXTURE(FloatingBase12DoF, TestKineticEnergy) {
 
 TEST(TestPotentialEnergy) {
 	Model model;
-	Body body (0.5, Vector3d (0., 0., 0.), Matrix3d::Zero());
+	Matrix3d inertia = Matrix3d::Zero(3,3);
+	Body body (0.5, Vector3d (0., 0., 0.), inertia);
 	Joint joint (
 			SpatialVector (0., 0., 0., 1., 0., 0.),
 			SpatialVector (0., 0., 0., 0., 1., 0.),
@@ -57,7 +58,8 @@ TEST(TestPotentialEnergy) {
 
 TEST(TestCOMSimple) {
 	Model model;
-	Body body (123., Vector3d (0., 0., 0.), Matrix3d::Zero());
+	Matrix3d inertia = Matrix3d::Zero(3,3);
+	Body body (123., Vector3d (0., 0., 0.), inertia);
 	Joint joint (
 			SpatialVector (0., 0., 0., 1., 0., 0.),
 			SpatialVector (0., 0., 0., 0., 1., 0.),
