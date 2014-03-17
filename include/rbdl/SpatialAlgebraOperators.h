@@ -15,6 +15,14 @@ namespace RigidBodyDynamics {
 
 namespace Math {
 
+inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
+	return Matrix3d (
+			0., -vector[2], vector[1],
+			vector[2], 0., -vector[0],
+			-vector[1], vector[0], 0.
+			);
+}
+
 /** \brief Spatial algebra matrices, vectors, and operators. */
 
 struct RBDL_DLLAPI SpatialRigidBodyInertia {
@@ -24,17 +32,9 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 		I (Matrix3d::Zero(3,3))
 	{}
 	SpatialRigidBodyInertia (
-			double mass, const Vector3d &com, const Matrix3d &inertia) : 
-		m (mass), h (com * mass), I (inertia)
+			double mass, const Vector3d &com_mass, const Matrix3d &inertia) : 
+		m (mass), h (com_mass), I (inertia)
 	{ }
-
-	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) const {
-		return Matrix3d (
-				0., -vector[2], vector[1],
-				vector[2], 0., -vector[0],
-				-vector[1], vector[0], 0.
-				);
-	}
 
 	SpatialVector operator* (const SpatialVector &mv) {
 		Vector3d mv_upper (mv[0], mv[1], mv[2]);
@@ -52,7 +52,7 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 	SpatialRigidBodyInertia operator+ (const SpatialRigidBodyInertia &rbi) {
 		return SpatialRigidBodyInertia (
 				m + rbi.m,
-				(h + rbi.h) / (m + rbi.m),
+				h + rbi.h,
 				I + rbi.I
 				);
 	}
@@ -118,27 +118,10 @@ struct RBDL_DLLAPI SpatialTransform {
 				);
 	}
 
-	inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
-		return Matrix3d (
-				0., -vector[2], vector[1],
-				vector[2], 0., -vector[0],
-				-vector[1], vector[0], 0.
-				);
-	}
 	/** Same as X^T * f.
 	 *
 	 * \returns (E^T * n + rx * E^T * f, E^T * f)
 	 */
-	SpatialRigidBodyInertia apply (const SpatialRigidBodyInertia &rbi) {
-		return SpatialRigidBodyInertia (
-				rbi.m,
-				E.transpose() * (rbi.h / rbi.m) + r,
-				E.transpose() * rbi.I * E
-				- VectorCrossMatrix (r) * VectorCrossMatrix(E.transpose() * rbi.h)
-				- VectorCrossMatrix (E.transpose() * (rbi.h) + r * rbi.m) * VectorCrossMatrix (r)
-				);
-	}
-
 	SpatialVector applyTranspose (const SpatialVector &f_sp) {
 		Vector3d E_T_f (
 				E(0,0) * f_sp[3] + E(1,0) * f_sp[4] + E(2,0) * f_sp[5],
@@ -154,6 +137,33 @@ struct RBDL_DLLAPI SpatialTransform {
 				E_T_f [1],
 				E_T_f [2]
 				);
+	}
+
+	/** Same as X^* I X^{-1}
+	 */
+	SpatialRigidBodyInertia apply (const SpatialRigidBodyInertia &rbi) {
+		return SpatialRigidBodyInertia (
+				rbi.m,
+				E * (rbi.h - rbi.m * r),
+				E * 
+					( 
+						rbi.I + VectorCrossMatrix (r) * VectorCrossMatrix (rbi.h)
+						+ (VectorCrossMatrix(rbi.h - rbi.m * r) * VectorCrossMatrix (r))
+					)
+				* E.transpose()
+			);
+	}
+
+	/** Same as X^T I X
+	 */
+	SpatialRigidBodyInertia applyTranspose (const SpatialRigidBodyInertia &rbi) {
+		Vector3d E_T_mr = E.transpose() * rbi.h + rbi.m * r;
+		return SpatialRigidBodyInertia (
+				rbi.m,
+				E_T_mr,
+				E.transpose() * rbi.I * E 
+					- VectorCrossMatrix(r) * VectorCrossMatrix (E.transpose() * rbi.h)  
+					- VectorCrossMatrix (E_T_mr) * VectorCrossMatrix (r));
 	}
 
 	SpatialVector applyAdjoint (const SpatialVector &f_sp) {
@@ -216,6 +226,13 @@ struct RBDL_DLLAPI SpatialTransform {
 		result.block<3,3>(3,3) = E.transpose();
 
 		return result;
+	}
+
+	SpatialTransform inverse() const {
+		return SpatialTransform (
+				E.transpose(),
+				- E * r
+				);
 	}
 
 	SpatialTransform operator* (const SpatialTransform &XT) const {

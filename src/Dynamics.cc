@@ -248,8 +248,7 @@ void InverseDynamics (
 			model.a[i] = model.X_base[i].apply(spatial_gravity * -1.);
 			
 			if (model.mJoints[i].mDoFCount == 3) {
-				Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
-				model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
+				model.a[i] = model.a[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]); 
 			} else {
 				model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 			}	
@@ -321,14 +320,11 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 	assert (H.rows() == model.dof_count && H.cols() == model.dof_count);
 
-	if (update_kinematics)
-		UpdateKinematicsCustom (model, &Q, NULL, NULL);
-
-	H.setZero();
-
 	unsigned int i;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
+		if (update_kinematics)
+			model.X_lambda[i] = jcalc_XJ (model, i, Q) * model.X_T[i];
 		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
 	}
 
@@ -336,7 +332,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
-			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply(model.Ic[i]);
+			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].applyTranspose(model.Ic[i]);
 		}
 
 		unsigned int dof_index_i = model.mJoints[i].q_index;

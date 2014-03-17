@@ -41,15 +41,6 @@ extern RBDL_DLLAPI SpatialMatrix SpatialMatrixZero;
 /// \brief Solves a linear system using gaussian elimination with pivoting
 RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 
-/// \brief Creates the skew symmetric matrix of the cross product of a given 3D vector
-inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
-	return Matrix3d (
-			0., -vector[2], vector[1],
-			vector[2], 0., -vector[0],
-			-vector[1], vector[0], 0.
-			);
-}
-
 // \todo write test 
 RBDL_DLLAPI void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix);
 

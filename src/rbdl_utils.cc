@@ -68,14 +68,8 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 
 	result << get_body_name (model, body_index);
 
-	if (body_index == 0) {
-		result << endl;
-		result << print_hierarchy (model, 1, 1);
-		return result.str();
-	} 
-
-	// print the dofs
-	result << " [ ";
+	if (body_index > 0)
+		result << " [ ";
 
 	while (model.mBodies[body_index].mMass == 0.) {
 		if (model.mu[body_index].size() == 0) {
@@ -93,9 +87,10 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 
 		body_index = model.mu[body_index][0];
 	}
-	result << get_dof_name(model.S[body_index]);
 
-	result << " ]" << endl;
+	if (body_index > 0)
+		result << get_dof_name(model.S[body_index]) << " ]";
+	result << endl;
 
 	unsigned int child_index = 0;
 	for (child_index = 0; child_index < model.mu[body_index].size(); child_index++) {
@@ -144,21 +139,9 @@ RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model) {
 	return result.str();
 }
 
-RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics) {
+RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, double &mass, Math::Vector3d &com, Math::Vector3d *com_velocity, bool update_kinematics) {
 	if (update_kinematics)
 		UpdateKinematicsCustom (model, &q, &qdot, NULL);
-
-	double result = 0.;
-
-	for (size_t i = 1; i < model.mBodies.size(); i++) {
-		result += 0.5 * model.v[i].transpose() * model.mBodies[i].mSpatialInertia * model.v[i];
-	}
-	return result;
-}
-
-RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics) {
-	if (update_kinematics)
-		UpdateKinematicsCustom (model, &q, NULL, NULL);
 
 	for (size_t i = 1; i < model.mBodies.size(); i++) {
 		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
@@ -172,20 +155,77 @@ RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, b
 		unsigned int lambda = model.lambda[i];
 
 		if (lambda != 0) {
-			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].apply (model.Ic[i]);
-			model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].apply (model.hc[i]);
+			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].applyTranspose (model.Ic[i]);
+			model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].applyTranspose (model.hc[i]);
 		} else {
-			Itot = Itot + model.X_lambda[i].apply (model.Ic[i]);
-			htot = htot + model.X_lambda[i].apply (model.hc[i]);
+			Itot = Itot + model.X_lambda[i].applyTranspose (model.Ic[i]);
+			htot = htot + model.X_lambda[i].applyTranspose (model.hc[i]);
 		}
 	}
 
-	double mass = Itot.m;
-	Vector3d com = Itot.h;
+	mass = Itot.m;
+	com = Itot.h / mass;
+	LOG << "mass = " << mass << " com = " << com.transpose() << " htot = " << htot.transpose() << std::endl;
 
-	Vector3d g = Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
+	if (com_velocity) 
+		*com_velocity = Vector3d (htot[3] / mass, htot[4] / mass, htot[5] / mass);
+}
 
-	return mass - com.dot(g);
+RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics) {
+	double mass;
+	Vector3d com;
+	CalcCenterOfMass (model, q, VectorNd::Zero (model.qdot_size), mass, com, NULL, update_kinematics);
+
+	Vector3d g = - Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
+	LOG << "pot_energy: " << " mass = " << mass << " com = " << com.transpose() << std::endl;
+
+	return mass * com.dot(g);
+}
+
+RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics) {
+	if (update_kinematics)
+		UpdateKinematicsCustom (model, &q, &qdot, NULL);
+
+	double result = 0.;
+
+	for (size_t i = 1; i < model.mBodies.size(); i++) {
+		result += 0.5 * model.v[i].transpose() * model.mBodies[i].mSpatialInertia * model.v[i];
+	}
+	return result;
+}
+
+RBDL_DLLAPI Vector3d CalcAngularMomentum (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics) {
+	if (update_kinematics)
+		UpdateKinematicsCustom (model, &q, &qdot, NULL);
+
+	for (size_t i = 1; i < model.mBodies.size(); i++) {
+		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
+		model.hc[i] = model.Ic[i].toMatrix() * model.v[i];
+	}
+
+	double mass;
+	Vector3d com;
+	CalcCenterOfMass (model, q, qdot, mass, com, NULL, false);
+
+	SpatialVector htot (SpatialVector::Zero(6));
+
+	for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
+		unsigned int lambda = model.lambda[i];
+
+		if (lambda != 0) {
+			model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].applyTranspose (model.hc[i]);
+		} else {
+			htot = htot + model.X_lambda[i].applyTranspose (model.hc[i]);
+		}
+	}
+
+	LOG << "com : " << com.transpose() << std::endl;
+	LOG << "htot: " << htot.transpose() << std::endl;
+	SpatialTransform X_to_COM (Xtrans (com));
+	htot = X_to_COM.applyAdjoint (htot);
+	LOG << "htot (at COM): " << htot.transpose() << std::endl;
+
+	return Vector3d (htot[0], htot[1], htot[2]);
 }
 
 }

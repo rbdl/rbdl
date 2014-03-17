@@ -167,7 +167,8 @@ struct RBDL_DLLAPI Model {
 	std::vector<Joint> mJoints;
 	/// \brief The joint axis for joint i
 	std::vector<Math::SpatialVector> S;
-	/// \brief Transformations from the parent body to the frame of the joint
+	/// \brief Transformations from the parent body to the frame of the joint.
+	// It is expressed in the coordinate frame of the parent.
 	std::vector<Math::SpatialTransform> X_T;
 	/// \brief The number of fixed joints that have been declared before each joint.
 	std::vector<unsigned int> mFixedJointCount;
@@ -205,7 +206,11 @@ struct RBDL_DLLAPI Model {
 	////////////////////////////////////
 	// Bodies
 
-	/// \brief Transformation from the parent body to the current body
+	/** \brief Transformation from the parent body to the current body
+	 * \f[
+	 *	X_{\lambda(i)} = {}^{i} X_{\lambda(i)}
+	 * \f]
+	 */
 	std::vector<Math::SpatialTransform> X_lambda;
 	/// \brief Transformation from the base to bodies reference frame
 	std::vector<Math::SpatialTransform> X_base;
@@ -455,7 +460,6 @@ struct RBDL_DLLAPI Model {
 };
 
 /** @} */
-
 }
 
 #endif /* _MODEL_H */

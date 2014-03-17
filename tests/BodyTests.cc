@@ -199,7 +199,7 @@ TEST ( TestBodyConstructorSpatialRigidBodyInertiaMultiplyMotion ) {
 	SpatialMatrix spatial_inertia = body.mSpatialInertia;
 	SpatialRigidBodyInertia rbi = SpatialRigidBodyInertia(
 				body.mMass,
-				body.mCenterOfMass,
+				body.mCenterOfMass * body.mMass,
 				body.mSpatialInertia.block<3,3>(0,0)
 				);
 
@@ -221,7 +221,7 @@ TEST ( TestBodyConstructorSpatialRigidBodyInertia ) {
 	SpatialMatrix spatial_inertia = body.mSpatialInertia;
 	SpatialRigidBodyInertia rbi = SpatialRigidBodyInertia(
 				body.mMass,
-				body.mCenterOfMass,
+				body.mCenterOfMass * body.mMass,
 				body.mSpatialInertia.block<3,3>(0,0)
 				);
 

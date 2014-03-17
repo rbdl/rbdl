@@ -37,6 +37,19 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li>17 March 2014: New version: 2.3.0:
+ *   <ul>
+ *     <li>Joint Space Inertia Matrix does \b not get cleared anymore when
+ *     calling \ref RigidBodyDynamics::CompositeRigidBodyAlgorithm "CompositeRigidBodyAlgorithm"</li>
+ *     <li>using the default <a href="http://eigen.tuxfamily.org/dox-devel/group__TopicStorageOrders.html">column-major</a> ordering when using Eigen3</li>
+ *     <li>added experimental joint type \ref RigidBodyDynamics::JointTypeEulerZYX "JointTypeEulerZYX"</li>
+ *     <li> added energy computations
+ *     \ref RigidBodyDynamics::Utils::CalcCenterOfMass "Utils::CalcCenterOfMass",
+ *     \ref RigidBodyDynamics::Utils::CalcPotentialEnergy "Utils::CalcPotentialEnergy",
+ *     \ref RigidBodyDynamics::Utils::CalcKineticEnergy "Utils::CalcKineticEnergy", and
+ *     \ref RigidBodyDynamics::Utils::CalcAngularMomentum "Utils::CalcAngularMomentum".</li>
+ *     <li> Updated URDF loader for ROS Groovy/Hydro (thanks to Benjamin Chrétien!)
+ *   </ul>
  * <li>06 November 2013: New version 2.2.2: adjusted Body default constructor (inertia matrix now 3x3 identity instead of zero matrix)</li>
  * <li> 4 November 2013: New version 2.2.1: fixed exported library version</li>
  * <li> 28 October 2013: New version 2.2.0: added support for spherical joints that do not suffer from \ref joint_singularities</li>
