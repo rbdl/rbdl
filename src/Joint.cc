@@ -43,7 +43,7 @@ namespace RigidBodyDynamics {
 				}
 			} else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
 				return SpatialTransform ( model.GetQuaternion (joint_id, q).toMatrix(), Vector3d (0., 0., 0.));
-			} else if (model.mJoints[joint_id].mJointType == JointTypeSphericalZYX) {
+			} else if (model.mJoints[joint_id].mJointType == JointTypeEulerZYX) {
 				double q0 = q[model.mJoints[joint_id].q_index];
 				double q1 = q[model.mJoints[joint_id].q_index + 1];
 				double q2 = q[model.mJoints[joint_id].q_index + 2];
@@ -107,7 +107,7 @@ namespace RigidBodyDynamics {
 						0., 0., 0.);
 
 				c_J.setZero();
-			} else if (model.mJoints[joint_id].mJointType == JointTypeSphericalZYX) {
+			} else if (model.mJoints[joint_id].mJointType == JointTypeEulerZYX) {
 				double q1 = q[model.mJoints[joint_id].q_index + 1];
 				double q2 = q[model.mJoints[joint_id].q_index + 2];
 

@@ -132,9 +132,9 @@ template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 				stackRestore();
 				return Joint(JointTypeSpherical);
 			}
-			if (dof_string == "JointTypeSphericalZYX") {
+			if (dof_string == "JointTypeEulerZYX") {
 				stackRestore();
-				return Joint(JointTypeSphericalZYX);
+				return Joint(JointTypeEulerZYX);
 			}
 		}
 

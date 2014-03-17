@@ -124,20 +124,19 @@ struct Model;
 
 /** \brief General types of joints
  */
-enum RBDL_DLLAPI JointType {
+enum JointType {
 	JointTypeUndefined = 0,
 	JointTypeRevolute,
 	JointTypePrismatic,
-	JointTypeSpherical,
-	JointTypeSphericalZYX,
-	JointTypeFixed,
-
+	JointTypeSpherical, ///< 3 DoF joint using Quaternions for joint positional variables and angular velocity for joint velocity variables.
+	JointTypeEulerZYX, ///< Experimental 3 DoF joint that uses Euler ZYX convention (not using virtual bodies).
+	JointTypeFixed, ///< Fixed joint which causes the inertial properties to be merged with the parent body.
 	JointType1DoF,
-	JointType2DoF,
-	JointType3DoF,
-	JointType4DoF,
-	JointType5DoF,
-	JointType6DoF,
+	JointType2DoF, ///< Emulated 2 DoF joint.
+	JointType3DoF, ///< Emulated 3 DoF joint.
+	JointType4DoF, ///< Emulated 4 DoF joint.
+	JointType5DoF, ///< Emulated 5 DoF joint.
+	JointType6DoF, ///< Emulated 6 DoF joint.
 };
 
 /** \brief Describes a joint relative to the predecessor body.
@@ -165,7 +164,7 @@ struct RBDL_DLLAPI Joint {
 				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
 				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
 				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
-			} else if (type == JointTypeSphericalZYX) {
+			} else if (type == JointTypeEulerZYX) {
 				mDoFCount = 3;
 
 				mJointAxes = new Math::SpatialVector[mDoFCount];
