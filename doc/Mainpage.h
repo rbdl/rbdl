@@ -48,6 +48,7 @@
  *     \ref RigidBodyDynamics::Utils::CalcPotentialEnergy "Utils::CalcPotentialEnergy",
  *     \ref RigidBodyDynamics::Utils::CalcKineticEnergy "Utils::CalcKineticEnergy", and
  *     \ref RigidBodyDynamics::Utils::CalcAngularMomentum "Utils::CalcAngularMomentum".</li>
+ *     <li> Updated URDF loader for ROS Groovy/Hydro (thanks to Benjamin Chrétien!)
  *   </ul>
  * <li>06 November 2013: New version 2.2.2: adjusted Body default constructor (inertia matrix now 3x3 identity instead of zero matrix)</li>
  * <li> 4 November 2013: New version 2.2.1: fixed exported library version</li>
