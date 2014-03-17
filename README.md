@@ -18,6 +18,12 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
+   * 14 March 2014: New version 2.3.0:
+     * Joint Space Inertia Matrix does not get cleared anymore when calling CompositeRigidBodyAlgorithm
+     * using the default column-major ordering when using Eigen3
+     * added experimental joint type JointTypeEulerZYX
+     * added energy computations Utils::CalcCenterOfMass, Utils::CalcPotentialEnergy, Utils::CalcKineticEnergy, and Utils::CalcAngularMomentum.
+     * Updated URDF loader for ROS Groovy/Hydro (thanks to Benjamin Chrétien!)
    * 06 November 2013: New version 2.2.2: adjusted Body default constructor (inertia matrix now 3x3 identity instead of zero matrix)
    * 04 November 2013: New version 2.2.1: fixed exported library version
    * 28 October 2013: New version 2.2.0: added support for spherical joints that do not suffer from joint singularities
