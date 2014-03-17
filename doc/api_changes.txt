@@ -1,11 +1,20 @@
-2.2.2 -> next
+2.2.2 -> 2.3.0
 - disabled clearing of joint space inertia matrix in CRBA.
   It is expected that the matrix is cleared by the user when neccessary.
+- Added experimental joint type JointTypeEulerZYX. It does not emulate
+	multiple degrees of freedom using virtual bodies instead it uses a 3 DoF
+	motion subspace. Performance is better for the
+	CompositeRigidBodyAlgorithm but worse for other algorithms.
+- Using Eigen3's default column-major ordering for matrices when using
+	Eigen3. This should have no effect for the user unless matrix elements
+	are accessed using the .data()[i] operator of Eigen3's matrix class. However
+	if .data()[i] is used the access indices have to be adjusted.
 - added functions to compute kinetic and potential energy and the
   computation of the center of mass and its linear velocity:
     RigidBodyDynamics::Utils::CalcCenterOfMass
     RigidBodyDynamics::Utils::CalcPotentialEnergy
     RigidBodyDynamics::Utils::CalcKineticEnergy
+    RigidBodyDynamics::Utils::CalcAngularMomentum
 
 2.2.1 -> 2.2.2
 - adjusted default constructor for Body. It now has the identity matrix as

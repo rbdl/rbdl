@@ -11,7 +11,6 @@ struct Model;
 
 /** \brief Namespace that contains optional helper functions */
 namespace Utils {
-
 	/** \brief Creates a human readable overview of the model. */
 	RBDL_DLLAPI std::string GetModelHierarchy (const Model &model);
 	/** \brief Creates a human readable overview of the Degrees of Freedom. */
@@ -34,8 +33,13 @@ namespace Utils {
 	 */
 	RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, double &mass, Math::Vector3d &com, Math::Vector3d *com_velocity = NULL, bool update_kinematics = true);
 
+	/** \brief Computes the potential energy of the full model. */
 	RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics = true);
+
+	/** \brief Computes the kinetic energy of the full model. */
 	RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics = true);
+
+	/** \brief Computes the angular momentum of the model about the model's Center of Mass */
 	RBDL_DLLAPI Math::Vector3d CalcAngularMomentum (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics = true);
 }
 
