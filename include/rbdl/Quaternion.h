@@ -16,7 +16,7 @@ class Quaternion : public Vector4d {
 		Quaternion () :
 			Vector4d (0.f, 0.f, 0.f, 1.f)
 		{}
-		Quaternion (const Vector4d vec4) :
+		Quaternion (const Vector4d &vec4) :
 			Vector4d (vec4)
 		{}
 		Quaternion (double x, double y, double z, double w):
