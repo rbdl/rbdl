@@ -727,6 +727,10 @@ class Matrix {
 			return *this * -1.;
 		}
 
+		Matrix inverse() const {
+			return colPivHouseholderQr().inverse();
+		}
+
 		const HouseholderQR<matrix_type> householderQr() const {
 			return HouseholderQR<matrix_type>(*this);
 		}
@@ -763,6 +767,7 @@ inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type, nro
 	size_t max_width = 0;
 	size_t out_width = output.width();
 
+	// get the widest number
 	for (size_t i = 0; i < matrix.rows(); i++) {
 		for (size_t j = 0; j < matrix.cols(); j++) {
 			std::stringstream out_stream;
@@ -771,6 +776,7 @@ inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type, nro
 		}
 	}
 
+	// overwrite width if it was explicitly prescribed
 	if (out_width != 0) {
 		max_width = out_width;
 	}
