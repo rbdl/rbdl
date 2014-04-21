@@ -501,11 +501,11 @@ class Matrix {
 			return *this;
 		}
 
-		matrix_type normalized() {
+		matrix_type normalized() const {
 			return matrix_type (*this) / this->norm();
 		}
 
-		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) {
+		Matrix<val_type, 3, 1> cross(const Matrix<val_type, 3, 1> &other_vector) const {
 			COMPILE_ASSERT (nrows * ncols == 3);
 
 			Matrix<val_type, 3, 1> result;
@@ -699,6 +699,10 @@ class Matrix {
 			return mData;
 		}
 
+		const val_type *data() const{
+			return mData;
+		}
+
 		// regular transpose of a 6 dimensional matrix
 		Matrix<val_type, ncols, nrows> transpose() const {
 			Matrix<val_type, ncols, nrows> result;
@@ -721,10 +725,6 @@ class Matrix {
 
 		Matrix operator-() const {
 			return *this * -1.;
-		}
-
-		Matrix inverse() const {
-			return colPivHouseholderQr().inverse();
 		}
 
 		const HouseholderQR<matrix_type> householderQr() const {
@@ -760,17 +760,37 @@ inline Matrix<val_type, nrows, ncols> operator*(const Matrix<val_type, nrows, nc
 
 template <typename val_type, unsigned int nrows, unsigned int ncols>
 inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type, nrows, ncols> &matrix) {
-	for (unsigned int i = 0; i < nrows; i++) {
-		output << "[ ";
-		for (unsigned int j = 0; j < ncols; j++) {
-			output << matrix(i,j);
+	size_t max_width = 0;
+	size_t out_width = output.width();
 
-			if (j < ncols - 1)
+	for (size_t i = 0; i < matrix.rows(); i++) {
+		for (size_t j = 0; j < matrix.cols(); j++) {
+			std::stringstream out_stream;
+			out_stream << matrix(i,j);
+			max_width = std::max (out_stream.str().size(),max_width);
+		}
+	}
+
+	if (out_width != 0) {
+		max_width = out_width;
+	}
+
+	for (unsigned int i = 0; i < matrix.rows(); i++) {
+		output.width(0);
+		output << "[ ";
+		output.width(out_width);
+		for (unsigned int j = 0; j < matrix.cols(); j++) {
+			std::stringstream out_stream;
+			out_stream.width (max_width);
+			out_stream << matrix(i,j);
+			output << out_stream.str();
+
+			if (j < matrix.cols() - 1)
 				output << ", ";
 		}
 		output << " ]";
 		
-		if (nrows > 1 && i < nrows - 1)
+		if (matrix.rows() > 1 && i < matrix.rows() - 1)
 			output << std::endl;
 	}
 	return output;

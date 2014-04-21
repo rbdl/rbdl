@@ -276,17 +276,15 @@ class Matrix {
 			return sqrt(this->squaredNorm());
 		}
 
-		Matrix<val_type> normalize() {
+		void normalize() {
 			val_type length = this->norm();
 
 			for (unsigned int i = 0; i < ncols * nrows; i++)
 				mData[i] /= length;
-
-			return *this;
 		}
 
-		matrix_type normalized() {
-			return matrix_type (*this) / this->norm();
+		Matrix<val_type> normalized() const {
+			return Matrix<val_type> (*this) / this->norm();
 		}
 
 		Matrix<val_type> cross(const Matrix<val_type> &other_vector) {
@@ -473,13 +471,9 @@ class Matrix {
 
 		operator val_type() {
 			assert (nrows == 1);
-			assert (ncols == 1);
+			assert (nrows == 1);
 
 			return mData[0];
-		}
-
-		Matrix inverse() const {
-			return colPivHouseholderQr().inverse();
 		}
 
 		const HouseholderQR<matrix_type> householderQr() const {
@@ -519,21 +513,42 @@ inline Matrix<val_type> operator*(const Matrix<val_type> &matrix, other_type sca
 
 template <typename val_type>
 inline std::ostream& operator<<(std::ostream& output, const Matrix<val_type> &matrix) {
+	size_t max_width = 0;
+	size_t out_width = output.width();
+
+	// get the widest number
+	for (size_t i = 0; i < matrix.rows(); i++) {
+		for (size_t j = 0; j < matrix.cols(); j++) {
+			std::stringstream out_stream;
+			out_stream << matrix(i,j);
+			max_width = std::max (out_stream.str().size(),max_width);
+		}
+	}
+
+	// overwrite width if it was explicitly prescribed
+	if (out_width != 0) {
+		max_width = out_width;
+	}
+
 	for (unsigned int i = 0; i < matrix.rows(); i++) {
+		output.width(0);
 		output << "[ ";
+		output.width(out_width);
 		for (unsigned int j = 0; j < matrix.cols(); j++) {
-			output << matrix(i,j);
+			std::stringstream out_stream;
+			out_stream.width (max_width);
+			out_stream << matrix(i,j);
+			output << out_stream.str();
 
 			if (j < matrix.cols() - 1)
 				output << ", ";
 		}
 		output << " ]";
-
+		
 		if (matrix.rows() > 1 && i < matrix.rows() - 1)
 			output << std::endl;
 	}
-	return output;
-}
+	return output;}
 
 }
 
