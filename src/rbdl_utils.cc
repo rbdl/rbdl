@@ -34,8 +34,8 @@ string get_dof_name (const SpatialVector &joint_dof) {
 }
 
 string get_body_name (const RigidBodyDynamics::Model &model, unsigned int body_id) {
-	if (model.mBodies[body_id].mMass == 0.) {
-		// this seems to be a virtual body that was added by a multi dof joint
+	if (model.mBodies[body_id].mIsVirtual) {
+		// this is a virtual body that was added by a multi dof joint
 		unsigned int child_index = 0;
 
 		// if there is not a unique child we do not know what to do...
@@ -71,7 +71,7 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
 	if (body_index > 0)
 		result << " [ ";
 
-	while (model.mBodies[body_index].mMass == 0.) {
+	while (model.mBodies[body_index].mIsVirtual) {
 		if (model.mu[body_index].size() == 0) {
 			result << " end";
 			break;
