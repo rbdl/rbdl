@@ -75,7 +75,9 @@ bool ConstraintSet::Bind (const Model &model) {
 	gamma.conservativeResize (n_constr);
 	G.conservativeResize (n_constr, model.dof_count);
 	A.conservativeResize (model.dof_count + n_constr, model.dof_count + n_constr);
+	A.setZero();
 	b.conservativeResize (model.dof_count + n_constr);
+	b.setZero();
 	x.conservativeResize (model.dof_count + n_constr);
 
 	K.conservativeResize (n_constr, n_constr);
@@ -179,6 +181,7 @@ void ForwardDynamicsContactsLagrangian (
 		VectorNd &QDDot
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
+
 	// Compute C
 	CS.QDDot_0.setZero();
 	InverseDynamics (model, Q, QDot, CS.QDDot_0, CS.C);
@@ -187,54 +190,19 @@ void ForwardDynamicsContactsLagrangian (
 
 	// Compute H
 	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
-	
+
 	// Compute G
-	unsigned int i,j;
-
-	// variables to check whether we need to recompute G
-	unsigned int prev_body_id = 0;
-	Vector3d prev_body_point = Vector3d::Zero();
-	MatrixNd Gi (3, model.dof_count);
-
-	for (i = 0; i < CS.size(); i++) {
-		// Only alow contact normals along the coordinate axes
-		unsigned int axis_index = 0;
-
-		// only compute the matrix Gi if actually needed
-		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
-			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
-			prev_body_id = CS.body[i];
-			prev_body_point = CS.point[i];
-		}
-
-		for (j = 0; j < model.dof_count; j++) {
-			Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
-			CS.G(i,j) = gaxis.transpose() * CS.normal[i];
-//			CS.G(i,j) = Gi(axis_index, j);
-		}
-	}
+	ComputeContactJacobian (model, Q, CS, CS.G, false);
 
 	// Compute gamma
-	prev_body_id = 0;
-	prev_body_point = Vector3d::Zero();
+	unsigned int prev_body_id = 0;
+	Vector3d prev_body_point = Vector3d::Zero();
 	Vector3d gamma_i = Vector3d::Zero();
 
 	// update Kinematics just once
-	UpdateKinematics (model, Q, QDot, CS.QDDot_0);
+	UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
 
-	for (i = 0; i < CS.size(); i++) {
-		// Only alow contact normals along the coordinate axes
-		unsigned int axis_index = 0;
-
-		if (CS.normal[i] == Vector3d(1., 0., 0.))
-			axis_index = 0;
-		else if (CS.normal[i] == Vector3d(0., 1., 0.))
-			axis_index = 1;
-		else if (CS.normal[i] == Vector3d(0., 0., 1.))
-			axis_index = 2;
-		else
-			assert (0 && "Invalid contact normal axis!");
-
+	for (unsigned int i = 0; i < CS.size(); i++) {
 		// only compute point accelerations when necessary
 		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
 			gamma_i = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, CS.body[i], CS.point[i], false);
@@ -244,38 +212,22 @@ void ForwardDynamicsContactsLagrangian (
 	
 		// we also substract ContactData[i].acceleration such that the contact
 		// point will have the desired acceleration
-		CS.gamma[i] = gamma_i[axis_index] - CS.acceleration[i];
+		CS.gamma[i] = CS.normal[i].dot(gamma_i) - CS.acceleration[i];
 	}
-	
-	// Build the system
-	CS.A.setZero();
-	CS.b.setZero();
-	CS.x.setZero();
 
 	// Build the system: Copy H
-	for (i = 0; i < model.dof_count; i++) {
-		for (j = 0; j < model.dof_count; j++) {
-			CS.A(i,j) = CS.H(i,j);	
-		}
-	}
+	CS.A.block(0, 0, model.qdot_size, model.qdot_size) = CS.H;
 
-	// Build the system: Copy G, and G^T
-	for (i = 0; i < CS.size(); i++) {
-		for (j = 0; j < model.dof_count; j++) {
-			CS.A(i + model.dof_count, j) = CS.G (i,j);
-			CS.A(j, i + model.dof_count) = CS.G (i,j);
-		}
-	}
+	// Copy G and G^T
+	CS.A.block(0, model.qdot_size, model.qdot_size, CS.size()) = CS.G.transpose();
+	CS.A.block(model.qdot_size, 0, CS.size(), model.qdot_size) = CS.G;
 
 	// Build the system: Copy -C + \tau
-	for (i = 0; i < model.dof_count; i++) {
-		CS.b[i] = -CS.C[i] + Tau[i];
-	}
+	CS.b.block(0, 0, model.dof_count, 1) = -CS.C + Tau;
+	CS.b.block(model.qdot_size, 0, CS.size(), 1) = -CS.gamma;
 
-	// Build the system: Copy -gamma
-	for (i = 0; i < CS.size(); i++) {
-		CS.b[i + model.dof_count] = - CS.gamma[i];
-	}
+//	ComputeContactInertiaMatrix (model, Q, CS, CS.A, true);
+//	ComputeContactRightHandSide (model, Q, QDot, Tau, CS, CS.b);
 
 	LOG << "A = " << std::endl << CS.A << std::endl;
 	LOG << "b = " << std::endl << CS.b << std::endl;
@@ -301,11 +253,11 @@ void ForwardDynamicsContactsLagrangian (
 	LOG << "x = " << std::endl << CS.x << std::endl;
 
 	// Copy back QDDot
-	for (i = 0; i < model.dof_count; i++)
+	for (unsigned int i = 0; i < model.dof_count; i++)
 		QDDot[i] = CS.x[i];
 
 	// Copy back contact forces
-	for (i = 0; i < CS.size(); i++) {
+	for (unsigned int i = 0; i < CS.size(); i++) {
 		CS.force[i] = -CS.x[model.dof_count + i];
 	}
 }

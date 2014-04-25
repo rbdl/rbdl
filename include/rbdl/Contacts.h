@@ -108,7 +108,7 @@ struct RBDL_DLLAPI ConstraintSet {
 	bool Bind (const Model &model);
 
 	/** \brief Returns the number of constraints. */
-	unsigned int size() {
+	unsigned int size() const {
 		return acceleration.size();
 	}
 
