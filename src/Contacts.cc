@@ -137,6 +137,39 @@ void ConstraintSet::clear() {
 }
 
 RBDL_DLLAPI
+void ComputeContactJacobian(
+		Model &model,
+		const Math::VectorNd &Q,
+		const ConstraintSet &CS,
+		Math::MatrixNd &G,
+		bool update_kinematics
+		) {
+	if (update_kinematics)
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+
+	unsigned int i,j;
+
+	// variables to check whether we need to recompute G
+	unsigned int prev_body_id = 0;
+	Vector3d prev_body_point = Vector3d::Zero();
+	MatrixNd Gi (3, model.dof_count);
+
+	for (i = 0; i < CS.size(); i++) {
+		// only compute the matrix Gi if actually needed
+		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
+			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
+			prev_body_id = CS.body[i];
+			prev_body_point = CS.point[i];
+		}
+
+		for (j = 0; j < model.dof_count; j++) {
+			Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
+			G(i,j) = gaxis.transpose() * CS.normal[i];
+		}
+	}
+}
+
+RBDL_DLLAPI
 void ForwardDynamicsContactsLagrangian (
 		Model &model,
 		const VectorNd &Q,

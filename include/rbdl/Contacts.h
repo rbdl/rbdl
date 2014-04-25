@@ -187,6 +187,15 @@ struct RBDL_DLLAPI ConstraintSet {
 	std::vector<Math::Vector3d> d_multdof3_u;
 };
 
+RBDL_DLLAPI
+void ComputeContactJacobian(
+		Model &model,
+		const Math::VectorNd &Q,
+		const ConstraintSet &CS,
+		Math::MatrixNd &G,
+		bool update_kinematics = true
+		);
+
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
  *
  * This method builds and solves the linear system \f[
