@@ -93,7 +93,7 @@ struct RBDL_DLLAPI SpatialTransform {
 		E (Matrix3d::Identity(3,3)),
 		r (Vector3d::Zero(3,1))
 	{}
-	SpatialTransform (Matrix3d rotation, Vector3d translation) :
+	SpatialTransform (const Matrix3d &rotation, const Vector3d &translation) :
 		E (rotation),
 		r (translation)
 	{}

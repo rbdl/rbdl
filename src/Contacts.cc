@@ -651,8 +651,7 @@ void ForwardDynamicsContacts (
 		Vector3d point_global = CalcBodyToBaseCoordinates (model, Q, body_id, point, false);
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
-		CS.f_t[ci].set (0., 0., 0., -normal[0], -normal[1], -normal[2]);
-		CS.f_t[ci] = spatial_adjoint(Xtrans_mat(-point_global)) * CS.f_t[ci];
+		CS.f_t[ci] = SpatialTransform (Matrix3d::Identity(), -point_global).applyAdjoint (SpatialVector (0., 0., 0., -normal[0], -normal[1], -normal[2]));
 		CS.f_ext_constraints[body_id] = CS.f_t[ci];
 		LOG << "f_t[" << body_id << "] = " << CS.f_t[ci].transpose() << std::endl;
 
