@@ -223,8 +223,8 @@ void ForwardDynamicsContactsLagrangian (
 	CS.A.block(model.qdot_size, 0, CS.size(), model.qdot_size) = CS.G;
 
 	// Build the system: Copy -C + \tau
-	CS.b.block(0, 0, model.dof_count, 1) = -CS.C + Tau;
-	CS.b.block(model.qdot_size, 0, CS.size(), 1) = -CS.gamma;
+	CS.b.block(0, 0, model.dof_count, 1) = CS.C * -1. + Tau;
+	CS.b.block(model.qdot_size, 0, CS.size(), 1) = CS.gamma * -1.;
 
 //	ComputeContactInertiaMatrix (model, Q, CS, CS.A, true);
 //	ComputeContactRightHandSide (model, Q, QDot, Tau, CS, CS.b);
