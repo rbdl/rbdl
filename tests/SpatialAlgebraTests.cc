@@ -534,7 +534,12 @@ TEST(TestSpatialRigidBodyInertiaCreateFromMatrix) {
 
 	CHECK_EQUAL (mass, rbi.m);
 	CHECK_ARRAY_EQUAL (Vector3d(mass * com).data(), rbi.h.data(), 3);
-	CHECK_ARRAY_EQUAL (inertia.data(), rbi.I.data(), 9);
+	Matrix3d rbi_I_matrix (
+			rbi.Ixx, rbi.Iyx, rbi.Izx,
+			rbi.Iyx, rbi.Iyy, rbi.Izy,
+			rbi.Izx, rbi.Izy, rbi.Izz
+			);
+	CHECK_ARRAY_EQUAL (inertia.data(), rbi_I_matrix.data(), 9);
 }
 
 #ifdef USE_SLOW_SPATIAL_ALGEBRA
