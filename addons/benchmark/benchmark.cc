@@ -121,7 +121,7 @@ double run_CRBA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
 	sample_data.fill_random_data(model->dof_count, sample_count);
 
-	Math::MatrixNd H = Math::MatrixNd(model->dof_count, model->dof_count);
+	Math::MatrixNd H = Math::MatrixNd::Zero(model->dof_count, model->dof_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);

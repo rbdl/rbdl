@@ -80,7 +80,8 @@ namespace RigidBodyDynamics {
 			// exception if we calculate it for the root body
 			assert (joint_id > 0);
 
-			XJ = jcalc_XJ (model, joint_id, q);
+			if (model.mJoints[joint_id].mJointType != JointTypeEulerZYX)
+				XJ = jcalc_XJ (model, joint_id, q);
 
 			if (model.mJoints[joint_id].mDoFCount == 1) {
 				// Set the joint axis
@@ -108,15 +109,22 @@ namespace RigidBodyDynamics {
 
 				c_J.setZero();
 			} else if (model.mJoints[joint_id].mJointType == JointTypeEulerZYX) {
+				double q0 = q[model.mJoints[joint_id].q_index];
 				double q1 = q[model.mJoints[joint_id].q_index + 1];
 				double q2 = q[model.mJoints[joint_id].q_index + 2];
 
+				double s0 = sin (q0);
+				double c0 = cos (q0);
 				double s1 = sin (q1);
 				double c1 = cos (q1);
 				double s2 = sin (q2);
 				double c2 = cos (q2);
 
-				model.multdof3_S[joint_id].setZero();
+				XJ.E = Matrix3d(
+							c0 * c1, s0 * c1, -s1,
+							c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
+							c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
+							);
 
 				model.multdof3_S[joint_id](0,0) = -s1;
 				model.multdof3_S[joint_id](0,2) = 1.;
@@ -131,7 +139,7 @@ namespace RigidBodyDynamics {
 				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
 				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-				c_J = SpatialVector (
+				c_J.set(
 						- s1 * qdot0 * qdot1,
 						-s1 * s2 * qdot0 * qdot1 + c1 * c2 * qdot0 * qdot2 - s2 * qdot1 * qdot2,
 						-s1 * c2 * qdot0 * qdot1 - c1 * s2 * qdot0 * qdot2 - c2 * qdot1 * qdot2,

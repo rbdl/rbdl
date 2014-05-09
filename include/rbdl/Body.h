@@ -40,6 +40,7 @@ struct RBDL_DLLAPI Body {
 		mCenterOfMass (body.mCenterOfMass),
 		mInertia (body.mInertia),
 		mSpatialInertia (body.mSpatialInertia),
+		mRigidBodyInertia (body.mRigidBodyInertia),
 		mIsVirtual (body.mIsVirtual)
 	{};
 	Body& operator= (const Body &body) {
@@ -48,6 +49,7 @@ struct RBDL_DLLAPI Body {
 			mInertia = body.mInertia;
 			mCenterOfMass = body.mCenterOfMass;
 			mSpatialInertia = body.mSpatialInertia;
+			mRigidBodyInertia = body.mRigidBodyInertia;
 			mIsVirtual = body.mIsVirtual;
 		}
 
@@ -99,6 +101,8 @@ struct RBDL_DLLAPI Body {
 					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
 					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
 					);
+
+			mRigidBodyInertia.createFromMatrix (mSpatialInertia);
 		}
 
 	/** \brief Constructs a body from mass, center of mass, and a 3x3 inertia matrix 
@@ -140,6 +144,8 @@ struct RBDL_DLLAPI Body {
 					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
 					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
 					);
+
+			mRigidBodyInertia.createFromMatrix (mSpatialInertia);
 		}
 	
 	/** \brief Joins inertial parameters of two bodies to create a composite
@@ -227,6 +233,8 @@ struct RBDL_DLLAPI Body {
 	Math::Matrix3d mInertia;
 	/// \brief The spatial inertia that contains both mass and inertia information
 	Math::SpatialMatrix mSpatialInertia;
+
+	Math::SpatialRigidBodyInertia mRigidBodyInertia;
 
 	bool mIsVirtual;
 };
