@@ -22,6 +22,7 @@ struct SphericalJoint {
 
 		emulated_model.gravity = Vector3d (0., 0., -9.81); 
 		multdof3_model.gravity = Vector3d (0., 0., -9.81); 
+		eulerzyx_model.gravity = Vector3d (0., 0., -9.81); 
 
 		body = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
@@ -31,6 +32,7 @@ struct SphericalJoint {
 				SpatialVector (1., 0., 0., 0., 0., 0.)
 				);
 		joint_spherical = Joint (JointTypeSpherical);
+		joint_eulerzyx = Joint (JointTypeEulerZYX);
 
 		joint_rot_y = Joint (SpatialVector (0., 1., 0., 0., 0., 0.));
 
@@ -42,6 +44,10 @@ struct SphericalJoint {
 		sph_body_id = multdof3_model.AppendBody (Xtrans (Vector3d (1., 0., 0.)), joint_spherical, body);
 		sph_child_id = multdof3_model.AppendBody (Xtrans (Vector3d (1., 0., 0.)), joint_rot_y, body);
 
+		eulerzyx_model.AppendBody (Xtrans(Vector3d (0., 0., 0.)), joint_rot_y, body);
+		eulerzyx_body_id = eulerzyx_model.AppendBody (Xtrans (Vector3d (1., 0., 0.)), joint_eulerzyx, body);
+		eulerzyx_child_id = eulerzyx_model.AppendBody (Xtrans (Vector3d (1., 0., 0.)), joint_rot_y, body);
+
 		emuQ = VectorNd::Zero ((size_t) emulated_model.q_size);
 		emuQDot = VectorNd::Zero ((size_t) emulated_model.qdot_size);
 		emuQDDot = VectorNd::Zero ((size_t) emulated_model.qdot_size);
@@ -51,17 +57,26 @@ struct SphericalJoint {
 		sphQDot = VectorNd::Zero ((size_t) multdof3_model.qdot_size);
 		sphQDDot = VectorNd::Zero ((size_t) multdof3_model.qdot_size);
 		sphTau = VectorNd::Zero ((size_t) multdof3_model.qdot_size);
+
+		eulerzyxQ = VectorNd::Zero ((size_t) eulerzyx_model.q_size);
+		eulerzyxQDot = VectorNd::Zero ((size_t) eulerzyx_model.qdot_size);
+		eulerzyxQDDot = VectorNd::Zero ((size_t) eulerzyx_model.qdot_size);
+		eulerzyxTau = VectorNd::Zero ((size_t) eulerzyx_model.qdot_size);
 	}
 
 	Joint joint_rot_zyx;
 	Joint joint_spherical;
+	Joint joint_eulerzyx;
 	Joint joint_rot_y;
 	Body body;
 
-	unsigned int emu_body_id, emu_child_id, sph_body_id, sph_child_id;
+	unsigned int emu_body_id, emu_child_id,
+							 sph_body_id, sph_child_id,
+							 eulerzyx_body_id, eulerzyx_child_id;
 
 	Model emulated_model;
 	Model multdof3_model;
+	Model eulerzyx_model;
 
 	VectorNd emuQ;
 	VectorNd emuQDot;
@@ -72,6 +87,11 @@ struct SphericalJoint {
 	VectorNd sphQDot;
 	VectorNd sphQDDot;
 	VectorNd sphTau;
+
+	VectorNd eulerzyxQ;
+	VectorNd eulerzyxQDot;
+	VectorNd eulerzyxQDDot;
+	VectorNd eulerzyxTau;
 };
 
 void ConvertQAndQDotFromEmulated (
@@ -401,8 +421,8 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
 	VectorNd QDDot_aba = VectorNd::Zero (multdof3_model.qdot_size);
 	VectorNd QDDot_lag = VectorNd::Zero (multdof3_model.qdot_size);
 
-	ForwardDynamics (multdof3_model, sphQ, sphQDot, sphTau, QDDot_aba);
 	ForwardDynamicsLagrangian (multdof3_model, sphQ, sphQDot, sphTau, QDDot_lag);
+	ForwardDynamics (multdof3_model, sphQ, sphQDot, sphTau, QDDot_aba);
 
 	CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), multdof3_model.qdot_size, TEST_PREC);
 }
@@ -455,4 +475,32 @@ TEST_FIXTURE(SphericalJoint, TestContacts) {
 	VectorNd sph_force_kokkevis = constraint_set_sph.force;
 
 	CHECK_ARRAY_CLOSE (emu_force_kokkevis.data(), sph_force_kokkevis.data(), 3, TEST_PREC);
+}
+
+TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulated ) {
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
+	emuQ[4] = 1.5;
+
+	emuQDot[0] = 1.;
+	emuQDot[1] = 2.;
+	emuQDot[2] = 3.;
+	emuQDot[3] = 4.;
+	emuQDot[4] = 5.;
+
+	emuTau[0] = 5.;
+	emuTau[1] = 4.;
+	emuTau[2] = 7.;
+	emuTau[3] = 3.;
+	emuTau[4] = 2.;
+
+	VectorNd QDDot_emu = VectorNd::Zero (emulated_model.qdot_size);
+	VectorNd QDDot_eulerzyx = VectorNd::Zero (eulerzyx_model.qdot_size);
+
+	ForwardDynamicsLagrangian (emulated_model, emuQ, emuQDot, emuTau, QDDot_emu);
+	ForwardDynamicsLagrangian (eulerzyx_model, emuQ, emuQDot, emuTau, QDDot_eulerzyx);
+
+	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
 }

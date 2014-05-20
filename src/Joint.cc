@@ -80,10 +80,9 @@ namespace RigidBodyDynamics {
 			// exception if we calculate it for the root body
 			assert (joint_id > 0);
 
-			if (model.mJoints[joint_id].mJointType != JointTypeEulerZYX)
+			if (model.mJoints[joint_id].mDoFCount == 1) {
 				XJ = jcalc_XJ (model, joint_id, q);
 
-			if (model.mJoints[joint_id].mDoFCount == 1) {
 				// Set the joint axis
 				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
 
@@ -93,6 +92,8 @@ namespace RigidBodyDynamics {
 
 				v_J = model.S[joint_id] * qdot[model.mJoints[joint_id].q_index];
 			} else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
+				XJ = jcalc_XJ (model, joint_id, q);
+
 				model.multdof3_S[joint_id].setZero();
 
 				model.multdof3_S[joint_id](0,0) = 1.;
@@ -126,6 +127,8 @@ namespace RigidBodyDynamics {
 							c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
 							);
 
+				model.multdof3_S[joint_id].setZero();
+
 				model.multdof3_S[joint_id](0,0) = -s1;
 				model.multdof3_S[joint_id](0,2) = 1.;
 
@@ -139,8 +142,10 @@ namespace RigidBodyDynamics {
 				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
 				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
+				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
+
 				c_J.set(
-						- s1 * qdot0 * qdot1,
+						- c1 * qdot0 * qdot1,
 						-s1 * s2 * qdot0 * qdot1 + c1 * c2 * qdot0 * qdot2 - s2 * qdot1 * qdot2,
 						-s1 * c2 * qdot0 * qdot1 - c1 * s2 * qdot0 * qdot2 - c2 * qdot1 * qdot2,
 						0., 0., 0.
