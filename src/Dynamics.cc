@@ -237,28 +237,21 @@ void InverseDynamics (
 
 		model.X_lambda[i] = X_J * model.X_T[i];
 
-		if (lambda == 0) {
-			model.X_base[i] = model.X_lambda[i];
-			model.v[i] = v_J;
-			
-			if (model.mJoints[i].mDoFCount == 3) {
-				model.a[i] = model.X_base[i].apply(model.a[0]) + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]); 
-			} else {
-				model.a[i] = model.X_base[i].apply(model.a[0]) + model.S[i] * QDDot[q_index];
-			}	
-
-		}	else {
+		if (lambda != 0) {
 			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
-			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
-			model.c[i] = c_J + crossm(model.v[i],v_J);
-
-			if (model.mJoints[i].mDoFCount == 3) {
-				model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
-			} else {
-				model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
-			}	
+		} else {
+			model.X_base[i] = model.X_lambda[i];
 		}
 
+		model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
+		model.c[i] = c_J + crossm(model.v[i],v_J);
+
+		if (model.mJoints[i].mDoFCount == 3) {
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
+		} else {
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
+		}	
+		
 		model.f[i] = model.mBodies[i].mRigidBodyInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mRigidBodyInertia * model.v[i]);
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
