@@ -487,7 +487,7 @@ struct RBDL_DLLAPI Joint {
  *	modeled. See RBDA Section 4.4 for details.
  *
  * \param model    the rigid body model
- * \param joint_id the id of the joint we are interested in (output)
+ * \param joint_id the id of the joint we are interested in. This will be used to determine the type of joint and also the entries of \f[ q, \dot{q} \f].
  * \param XJ       the joint transformation (output)
  * \param v_J      joint velocity (output)
  * \param c_J      joint acceleration for rhenomic joints (output)
@@ -510,8 +510,6 @@ Math::SpatialTransform jcalc_XJ (
 		Model &model,
 		unsigned int joint_id,
 		const Math::VectorNd &q);
-
 }
-
 
 #endif /* _JOINT_H */
