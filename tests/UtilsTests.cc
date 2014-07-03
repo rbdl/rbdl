@@ -91,28 +91,68 @@ TEST(TestCOMSimple) {
 	CHECK_EQUAL (Vector3d (0., 1., 0.), com_velocity);
 }
 
-TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
-	Vector3d momentum = Utils::CalcAngularMomentum (*model, q, qdot, true);
+TEST(TestAngularMomentumSimple) {
+	Model model;
+	Matrix3d inertia = Matrix3d::Zero(3,3);
+	inertia(0,0) = 1.1;
+	inertia(1,1) = 2.2;
+	inertia(2,2) = 3.3;
 
-	CHECK_EQUAL (Vector3d (0., 0., 0.), momentum);
+	Body body (0.5, Vector3d (1., 0., 0.), inertia);
+	Joint joint (
+			SpatialVector (1., 0., 0., 0., 0., 0.),
+			SpatialVector (0., 1., 0., 0., 0., 0.),
+			SpatialVector (0., 0., 1., 0., 0., 0.)
+			);
+
+	model.AppendBody (Xtrans (Vector3d(0., 0., 0.)), joint, body);
+
+	VectorNd q = VectorNd::Zero(model.q_size);
+	VectorNd qdot = VectorNd::Zero(model.qdot_size);
+
+	double mass;
+	Vector3d com;
+	Vector3d angular_momentum;
+
+	qdot << 1., 0., 0.;
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
+	CHECK_EQUAL (Vector3d (1.1, 0., 0.), angular_momentum);
+
+	qdot << 0., 1., 0.;
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
+	CHECK_EQUAL (Vector3d (0., 2.2, 0.), angular_momentum);
+
+	qdot << 0., 0., 1.;
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
+	CHECK_EQUAL (Vector3d (0., 0., 3.3), angular_momentum);
+}
+
+TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
+	double mass;
+	Vector3d com;
+	Vector3d angular_momentum;
+
+	Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
+	
+	CHECK_EQUAL (Vector3d (0., 0., 0.), angular_momentum);
 
 	qdot[0] = 1.;
 	qdot[1] = 2.;
 	qdot[2] = 3.;
 
-	momentum = Utils::CalcAngularMomentum (*model, q, qdot, true);
+	Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
 
 	// only a rough guess from test calculation
-	CHECK_ARRAY_CLOSE (Vector3d (9.9, 7.62, 4.5).data(), momentum.data(), 3, 1.0e-1);
+	CHECK_ARRAY_CLOSE (Vector3d (3.3, 2.54, 1.5).data(), angular_momentum.data(), 3, 1.0e-1);
 
 	qdot[3] = -qdot[0];
 	qdot[4] = -qdot[1];
 	qdot[5] = -qdot[2];
 
 	ClearLogOutput();
-	momentum = Utils::CalcAngularMomentum (*model, q, qdot, true);
+	Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
 
-	CHECK (momentum[0] == 0);
-	CHECK (momentum[1] < 0);
-	CHECK (momentum[2] == 0.);
+	CHECK (angular_momentum[0] == 0);
+	CHECK (angular_momentum[1] < 0);
+	CHECK (angular_momentum[2] == 0.);
 }

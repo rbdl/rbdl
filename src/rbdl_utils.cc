@@ -134,7 +134,7 @@ RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model) {
 	return result.str();
 }
 
-RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, double &mass, Math::Vector3d &com, Math::Vector3d *com_velocity, bool update_kinematics) {
+RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, double &mass, Math::Vector3d &com, Math::Vector3d *com_velocity, Vector3d *angular_momentum, bool update_kinematics) {
 	if (update_kinematics)
 		UpdateKinematicsCustom (model, &q, &qdot, NULL);
 
@@ -164,12 +164,17 @@ RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const 
 
 	if (com_velocity) 
 		*com_velocity = Vector3d (htot[3] / mass, htot[4] / mass, htot[5] / mass);
+
+	if (angular_momentum) {
+		htot = Xtrans (com).applyAdjoint (htot);
+		angular_momentum->set (htot[0], htot[1], htot[2]);
+	}
 }
 
 RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics) {
 	double mass;
 	Vector3d com;
-	CalcCenterOfMass (model, q, VectorNd::Zero (model.qdot_size), mass, com, NULL, update_kinematics);
+	CalcCenterOfMass (model, q, VectorNd::Zero (model.qdot_size), mass, com, NULL, NULL, update_kinematics);
 
 	Vector3d g = - Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
 	LOG << "pot_energy: " << " mass = " << mass << " com = " << com.transpose() << std::endl;
@@ -187,40 +192,6 @@ RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, con
 		result += 0.5 * model.v[i].transpose() * model.mBodies[i].mSpatialInertia * model.v[i];
 	}
 	return result;
-}
-
-RBDL_DLLAPI Vector3d CalcAngularMomentum (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics) {
-	if (update_kinematics)
-		UpdateKinematicsCustom (model, &q, &qdot, NULL);
-
-	for (size_t i = 1; i < model.mBodies.size(); i++) {
-		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
-		model.hc[i] = model.Ic[i].toMatrix() * model.v[i];
-	}
-
-	double mass;
-	Vector3d com;
-	CalcCenterOfMass (model, q, qdot, mass, com, NULL, false);
-
-	SpatialVector htot (SpatialVector::Zero(6));
-
-	for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
-		unsigned int lambda = model.lambda[i];
-
-		if (lambda != 0) {
-			model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].applyTranspose (model.hc[i]);
-		} else {
-			htot = htot + model.X_lambda[i].applyTranspose (model.hc[i]);
-		}
-	}
-
-	LOG << "com : " << com.transpose() << std::endl;
-	LOG << "htot: " << htot.transpose() << std::endl;
-	SpatialTransform X_to_COM (Xtrans (com));
-	htot = X_to_COM.applyAdjoint (htot);
-	LOG << "htot (at COM): " << htot.transpose() << std::endl;
-
-	return Vector3d (htot[0], htot[1], htot[2]);
 }
 
 }
