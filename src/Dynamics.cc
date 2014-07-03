@@ -51,7 +51,6 @@ void ForwardDynamics (
 	SpatialVector c_J;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		unsigned int q_index = model.mJoints[i].q_index;
 		unsigned int lambda = model.lambda[i];
 
 		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
@@ -232,8 +231,6 @@ void NonlinearEffects (
 	SpatialVector c_J;
 
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		unsigned int q_index = model.mJoints[i].q_index;
-
 		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
 
 		model.X_lambda[i] = X_J * model.X_T[i];

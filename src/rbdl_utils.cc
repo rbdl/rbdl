@@ -35,14 +35,9 @@ string get_dof_name (const SpatialVector &joint_dof) {
 
 string get_body_name (const RigidBodyDynamics::Model &model, unsigned int body_id) {
 	if (model.mBodies[body_id].mIsVirtual) {
-		// this is a virtual body that was added by a multi dof joint
-		unsigned int child_index = 0;
-
 		// if there is not a unique child we do not know what to do...
 		if (model.mu[body_id].size() != 1)
 			return "";
-
-		unsigned int child_id = model.mu[body_id][0];
 
 		return get_body_name (model, model.mu[body_id][0]);
 	}

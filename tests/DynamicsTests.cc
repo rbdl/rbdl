@@ -315,13 +315,11 @@ TEST (TestForwardDynamics3DoFModel) {
 	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
 
 	unsigned int base_id_rot_z, base_id_rot_y;
-	// thes are the ids of the baseren with masses
-	unsigned int base_id = std::numeric_limits<unsigned int>::max();
 
 	// we can reuse both bodies and joints as they are copied
 	base_id_rot_z = model.AddBody (0, Xtrans (Vector3d(0., 0., 0.)), joint_rot_z, null_body);
 	base_id_rot_y = model.AddBody (base_id_rot_z, Xtrans (Vector3d(0., 0., 0.)), joint_rot_y, null_body);
-	base_id = model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
+	model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
 
 	// Initialization of the input vectors
 	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
@@ -365,13 +363,11 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
 	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
 
 	unsigned int base_id_rot_z, base_id_rot_y;
-	// thes are the ids of the baseren with masses
-	unsigned int base_id = std::numeric_limits<unsigned int>::max();
 
 	// we can reuse both bodies and joints as they are copied
 	base_id_rot_z = model.AddBody (0, Xtrans (Vector3d(0., 0., 0.)), joint_rot_z, null_body);
 	base_id_rot_y = model.AddBody (base_id_rot_z, Xtrans (Vector3d(0., 0., 0.)), joint_rot_y, null_body);
-	base_id = model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
+	model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
 
 	// Initialization of the input vectors
 	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);

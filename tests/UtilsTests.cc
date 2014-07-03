@@ -21,7 +21,7 @@ TEST_FIXTURE(FloatingBase12DoF, TestKineticEnergy) {
 	VectorNd q = VectorNd::Zero(model->q_size);
 	VectorNd qdot = VectorNd::Zero(model->q_size);
 
-	for (int i = 0; i < q.size(); i++) {
+	for (unsigned int i = 0; i < q.size(); i++) {
 		q[i] = 0.1 * i;
 		qdot[i] = 0.3 * i;
 	}

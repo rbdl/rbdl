@@ -85,7 +85,6 @@ void UpdateKinematicsCustom (Model &model,
 
 	if (Q) {
 		for (i = 1; i < model.mBodies.size(); i++) {
-			unsigned int q_index = model.mJoints[i].q_index;
 			SpatialVector v_J;
 			SpatialVector c_J;
 			SpatialTransform X_J;
@@ -108,7 +107,6 @@ void UpdateKinematicsCustom (Model &model,
 
 	if (QDot) {
 		for (i = 1; i < model.mBodies.size(); i++) {
-			unsigned int q_index = model.mJoints[i].q_index;
 			SpatialVector v_J;
 			SpatialVector c_J;
 			SpatialTransform X_J;

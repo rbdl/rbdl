@@ -143,16 +143,16 @@ TEST(TestQuaternionIntegration ) {
 }
 
 TEST_FIXTURE(SphericalJoint, TestQIndices) {
-	CHECK_EQUAL (0, multdof3_model.mJoints[1].q_index);
-	CHECK_EQUAL (1, multdof3_model.mJoints[2].q_index);
-	CHECK_EQUAL (4, multdof3_model.mJoints[3].q_index);
+	CHECK_EQUAL (0u, multdof3_model.mJoints[1].q_index);
+	CHECK_EQUAL (1u, multdof3_model.mJoints[2].q_index);
+	CHECK_EQUAL (4u, multdof3_model.mJoints[3].q_index);
 
-	CHECK_EQUAL (5, emulated_model.q_size);
-	CHECK_EQUAL (5, emulated_model.qdot_size);
+	CHECK_EQUAL (5u, emulated_model.q_size);
+	CHECK_EQUAL (5u, emulated_model.qdot_size);
 
-	CHECK_EQUAL (6, multdof3_model.q_size);
-	CHECK_EQUAL (5, multdof3_model.qdot_size);
-	CHECK_EQUAL (5, multdof3_model.multdof3_w_index[2]);
+	CHECK_EQUAL (6u, multdof3_model.q_size);
+	CHECK_EQUAL (5u, multdof3_model.qdot_size);
+	CHECK_EQUAL (5u, multdof3_model.multdof3_w_index[2]);
 }
 
 TEST_FIXTURE(SphericalJoint, TestGetQuaternion) {
@@ -163,16 +163,16 @@ TEST_FIXTURE(SphericalJoint, TestGetQuaternion) {
 	sphQDDot = VectorNd::Zero ((size_t) multdof3_model.qdot_size);
 	sphTau = VectorNd::Zero ((size_t) multdof3_model.qdot_size);
 
-	CHECK_EQUAL (10, multdof3_model.q_size);
-	CHECK_EQUAL (8, multdof3_model.qdot_size);
+	CHECK_EQUAL (10u, multdof3_model.q_size);
+	CHECK_EQUAL (8u, multdof3_model.qdot_size);
 
-	CHECK_EQUAL (0, multdof3_model.mJoints[1].q_index);
-	CHECK_EQUAL (1, multdof3_model.mJoints[2].q_index);
-	CHECK_EQUAL (4, multdof3_model.mJoints[3].q_index);
-	CHECK_EQUAL (5, multdof3_model.mJoints[4].q_index);
+	CHECK_EQUAL (0u, multdof3_model.mJoints[1].q_index);
+	CHECK_EQUAL (1u, multdof3_model.mJoints[2].q_index);
+	CHECK_EQUAL (4u, multdof3_model.mJoints[3].q_index);
+	CHECK_EQUAL (5u, multdof3_model.mJoints[4].q_index);
 
-	CHECK_EQUAL (8, multdof3_model.multdof3_w_index[2]);
-	CHECK_EQUAL (9, multdof3_model.multdof3_w_index[4]);
+	CHECK_EQUAL (8u, multdof3_model.multdof3_w_index[2]);
+	CHECK_EQUAL (9u, multdof3_model.multdof3_w_index[4]);
 
 	sphQ[0] = 100.;
 	sphQ[1] = 0.;
