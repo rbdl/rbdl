@@ -480,7 +480,7 @@ TEST ( ModelFixedJointRotationOrderTranslationRotation ) {
 	SpatialTransform rot_z = Xrotz (45. * M_PI / 180.);
 
 	model.AddBody (0, trans_x, joint_rot_z, body);
-//	unsigned int fixed_body_id = model.AppendBody (rot_z, Joint(JointTypeFixed), fixed_body, "fixed_body");
+	model.AppendBody (rot_z, Joint(JointTypeFixed), fixed_body, "fixed_body");
 	unsigned int body_after_fixed = model.AppendBody (trans_x, joint_rot_z, body);
 
 	VectorNd Q (VectorNd::Zero(model.dof_count));
@@ -506,7 +506,7 @@ TEST ( ModelFixedJointRotationOrderRotationTranslation ) {
 	SpatialTransform trans_x = Xtrans (Vector3d (1., 0., 0.));
 
 	model.AddBody (0, rot_z, joint_rot_z, body);
-//	unsigned int fixed_body_id = model.AppendBody (trans_x, Joint(JointTypeFixed), fixed_body, "fixed_body");
+	model.AppendBody (trans_x, Joint(JointTypeFixed), fixed_body, "fixed_body");
 	unsigned int body_after_fixed = model.AppendBody (trans_x, joint_rot_z, body);
 
 	VectorNd Q (VectorNd::Zero(model.dof_count));
@@ -525,7 +525,7 @@ TEST ( ModelGetBodyName ) {
 
 	Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
-//	unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
+	model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
 	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
 	unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
 
