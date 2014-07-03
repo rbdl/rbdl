@@ -284,9 +284,6 @@ void ComputeContactImpulsesLagrangian (
 	MatrixNd Gi (3, model.dof_count);
 
 	for (i = 0; i < CS.size(); i++) {
-		// Only alow contact normals along the coordinate axes
-		unsigned int axis_index = 0;
-
 		// only compute the matrix Gi if actually needed
 		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
 			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
@@ -518,8 +515,6 @@ void ForwardDynamicsAccelerationDeltas (
 	}
 
 	for (unsigned int i = body_id; i > 0; i--) {
-		unsigned int q_index = model.mJoints[i].q_index;
-
 		if (i == body_id) {
 			CS.d_pA[i] = -model.X_base[i].applyAdjoint(f_t[i]);
 		}
