@@ -1,3 +1,13 @@
+2.3.0 -> next (2.4.0?)
+- Fixed error in JointTypeEulerZYX.
+- Removed/Fixed CalcAngularMomentum.
+  The function produced wrong values. The functionality has been integrated into CalcCenterOfMass.
+- Added optional parameter to CalcCenterOfMass to compute angular momentum.
+- Added ComputeContactJacobian()
+- Added NonlinearEffects()
+- Added LuaModelReadFromLuaState()
+- Various performance improvements
+
 2.2.2 -> 2.3.0
 - disabled clearing of joint space inertia matrix in CRBA.
   It is expected that the matrix is cleared by the user when neccessary.
