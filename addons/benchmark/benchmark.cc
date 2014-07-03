@@ -31,6 +31,7 @@ bool benchmark_run_fd_aba = true;
 bool benchmark_run_fd_lagrangian = true;
 bool benchmark_run_id_rnea = true;
 bool benchmark_run_crba = true;
+bool benchmark_run_nle = true;
 bool benchmark_run_contacts = false;
 
 string model_file = "";
@@ -128,6 +129,31 @@ double run_CRBA_benchmark (Model *model, int sample_count) {
 
 	for (int i = 0; i < sample_count; i++) {
 		CompositeRigidBodyAlgorithm (*model, sample_data.q_data[i], H, true);
+	}
+
+	double duration = timer_stop (&tinfo);
+
+	cout << "#DOF: " << setw(3) << model->dof_count 
+		<< " #samples: " << sample_count 
+		<< " duration = " << setw(10) << duration << "(s)"
+		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
+
+	return duration;
+}
+
+double run_nle_benchmark (Model *model, int sample_count) {
+	SampleData sample_data;
+	sample_data.fill_random_data(model->dof_count, sample_count);
+
+	TimerInfo tinfo;
+	timer_start (&tinfo);
+
+	for (int i = 0; i < sample_count; i++) {
+		NonlinearEffects (*model,
+				sample_data.q_data[i],
+				sample_data.qdot_data[i],
+				sample_data.tau_data[i]
+				);
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -350,6 +376,7 @@ void print_usage () {
 	cout << "                                the recursive newton euler algorithm." << endl;
 	cout << "  --no-crba                   : disables benchmark for joint space inertia" << endl;
 	cout << "                                matrix computation using the composite rigid." << endl;
+	cout << "  --no-nle                    : disables benchmark for the nonlinear effects." << endl;
 	cout << "                                body algorithm." << endl;
 	cout << "  --only-contacts | -C        : only runs contact model benchmarks." << endl;
 	cout << "  --help | -h                 : prints this help." << endl;
@@ -362,6 +389,7 @@ void disable_all_benchmarks () {
 	benchmark_run_fd_lagrangian = false;
 	benchmark_run_id_rnea = false;
 	benchmark_run_crba = false;
+	benchmark_run_nle = false;
 	benchmark_run_contacts = false;
 }
 
@@ -409,6 +437,8 @@ void parse_args (int argc, char* argv[]) {
 			benchmark_run_id_rnea = false;
 		} else if (arg == "--no-crba" ) {
 			benchmark_run_crba = false;
+		} else if (arg == "--no-nle" ) {
+			benchmark_run_nle = false;
 		} else if (arg == "--only-contacts" || arg == "-C") {
 			disable_all_benchmarks();
 			benchmark_run_contacts = true;
@@ -454,6 +484,12 @@ int main (int argc, char *argv[]) {
 		if (benchmark_run_crba) {
 			cout << "= Joint Space Inertia Matrix: CRBA =" << endl;
 			run_CRBA_benchmark (model, benchmark_sample_count);
+		}
+
+		if (benchmark_run_nle) {
+			cout << "= Nonlinear effects  =" << endl;
+			cout << "= model.mBodies.size() = " << model->mBodies.size() << endl;
+			run_nle_benchmark (model, benchmark_sample_count);
 		}
 
 		delete model;
@@ -529,6 +565,21 @@ int main (int argc, char *argv[]) {
 		cout << endl;
 	}
 
+	if (benchmark_run_nle) {
+		cout << "= Nonlinear Effects =" << endl;
+		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
+			model = new Model();
+			model->gravity = Vector3d (0., -9.81, 0.);
+
+			generate_planar_tree (model, depth);
+
+			run_nle_benchmark (model, benchmark_sample_count);
+
+			delete model;
+		}
+		cout << endl;
+	}
+
 	if (benchmark_run_contacts) {
 		cout << "= Contacts: ForwardDynamicsContactsLagrangian" << endl;
 		contacts_benchmark (benchmark_sample_count, ContactsBenchmarkLagrangian);
@@ -536,8 +587,6 @@ int main (int argc, char *argv[]) {
 		cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
 		contacts_benchmark (benchmark_sample_count, ContactsBenchmarkKokkevis);
 	}
-
-
 
 	return 0;
 }

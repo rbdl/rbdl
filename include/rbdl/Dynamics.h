@@ -81,6 +81,25 @@ void ForwardDynamicsLagrangian (
 		std::vector<Math::SpatialVector> *f_ext = NULL
 		);
 
+/** \brief Computes the coriolis forces
+ *
+ * This function computes the generalized forces from given generalized
+ * states, velocities, and accelerations:
+ *   \f$ \tau = M(q) \ddot{q} + N(q, \dot{q}) \f$
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints (output)
+ */
+RBDL_DLLAPI
+void NonlinearEffects (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		Math::VectorNd &Tau
+		);
+
 /** \brief Computes inverse dynamics with the Newton-Euler Algorithm
  *
  * This function computes the generalized forces from given generalized

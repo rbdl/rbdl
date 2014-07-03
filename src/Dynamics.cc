@@ -46,11 +46,12 @@ void ForwardDynamics (
 	// Reset the velocity of the root body
 	model.v[0].setZero();
 
+	SpatialTransform X_J;
+	SpatialVector v_J;
+	SpatialVector c_J;
+
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int q_index = model.mJoints[i].q_index;
-		SpatialTransform X_J;
-		SpatialVector v_J;
-		SpatialVector c_J;
 		unsigned int lambda = model.lambda[i];
 
 		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
@@ -76,7 +77,7 @@ void ForwardDynamics (
 		model.c[i] = c_J + crossm(model.v[i],v_J);
 		model.IA[i] = model.mBodies[i].mSpatialInertia;
 
-		model.pA[i] = crossf(model.v[i],model.IA[i] * model.v[i]);
+		model.pA[i] = crossf(model.v[i],model.mBodies[i].mRigidBodyInertia * model.v[i]);
 
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
 			LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * (*f_ext)[i] << std::endl;
@@ -212,6 +213,57 @@ void ForwardDynamicsLagrangian (
 }
 
 RBDL_DLLAPI
+void NonlinearEffects (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		VectorNd &Tau
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	SpatialVector spatial_gravity (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
+
+	// Reset the velocity of the root body
+	model.v[0].setZero();
+	model.a[0] = spatial_gravity;
+
+	SpatialTransform X_J;
+	SpatialVector v_J;
+	SpatialVector c_J;
+
+	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
+
+		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
+
+		model.X_lambda[i] = X_J * model.X_T[i];
+
+		if (model.lambda[i] == 0) {
+			model.v[i] = v_J;
+			model.a[i] = model.X_base[i].apply(spatial_gravity);
+		}	else {
+			model.v[i] = model.X_lambda[i].apply(model.v[model.lambda[i]]) + v_J;
+			model.c[i] = c_J + crossm(model.v[i],v_J);
+			model.a[i] = model.X_lambda[i].apply(model.a[model.lambda[i]]) + model.c[i];
+		}
+
+		model.f[i] = model.mBodies[i].mRigidBodyInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mRigidBodyInertia * model.v[i]);
+	}
+
+	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
+		if (model.mJoints[i].mDoFCount == 3) {
+			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
+		} else {
+			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
+		}
+
+		if (model.lambda[i] != 0) {
+			model.f[model.lambda[i]] = model.f[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.f[i]);
+		}
+	}
+}
+
+RBDL_DLLAPI
 void InverseDynamics (
 		Model &model,
 		const VectorNd &Q,
@@ -258,17 +310,14 @@ void InverseDynamics (
 	}
 
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
-		unsigned int q_index = model.mJoints[i].q_index;
-		unsigned int lambda = model.lambda[i];
-
 		if (model.mJoints[i].mDoFCount == 3) {
-			Tau.block<3,1>(q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
+			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
 		} else {
-			Tau[q_index] = model.S[i].dot(model.f[i]);
+			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
 		}
 
-		if (lambda != 0) {
-			model.f[lambda] = model.f[lambda] + model.X_lambda[i].applyTranspose(model.f[i]);
+		if (model.lambda[i] != 0) {
+			model.f[model.lambda[i]] = model.f[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.f[i]);
 		}
 	}
 }
