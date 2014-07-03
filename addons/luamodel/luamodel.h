@@ -3,6 +3,10 @@
 
 #include <rbdl/rbdl_config.h>
 
+extern "C" {
+	struct lua_State;
+};
+
 namespace RigidBodyDynamics {
 
 class Model;
@@ -147,6 +151,8 @@ namespace Addons {
 	 */
 
 	RBDL_DLLAPI bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose = false);
+
+	RBDL_DLLAPI bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose = false);
 
 	/** @} */
 }

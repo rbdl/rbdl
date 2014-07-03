@@ -17,12 +17,6 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-
-static void bail(lua_State *L, const char *msg){
-	std::cerr << msg << lua_tostring(L, -1) << endl;
-	abort();
-}
-
 template<> Vector3d LuaTableNode::getDefault<Vector3d>(const Vector3d &default_value) { 
 	Vector3d result = default_value;
 
@@ -217,12 +211,23 @@ template<> Body LuaTableNode::getDefault<Body>(const Body &default_value) {
 
 	return result;
 }
+
 namespace RigidBodyDynamics {
 
 namespace Addons {
 
+bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose);
+
 typedef map<string, unsigned int> StringIntMap;
 StringIntMap body_table_id_map;
+
+RBDL_DLLAPI bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose) {
+	assert (model);
+
+	LuaTable model_table = LuaTable::fromLuaState (L);
+
+	return LuaModelReadFromTable (model_table, model, verbose);
+}
 
 RBDL_DLLAPI
 bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
@@ -230,6 +235,10 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 
 	LuaTable model_table = LuaTable::fromFile (filename);
 
+	return LuaModelReadFromTable (model_table, model, verbose);
+}
+
+bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose) {
 	if (model_table["gravity"].exists()) {
 		model->gravity = model_table["gravity"].get<Vector3d>();
 
