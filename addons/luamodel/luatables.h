@@ -207,6 +207,7 @@ struct RBDL_DLLAPI LuaTable {
 	int length();
 	void addSearchPath (const char* path);
 	std::string serialize ();
+	std::string orderedSerialize ();
 
 	static LuaTable fromFile (const char *_filename);
 	static LuaTable fromLuaExpression (const char* lua_expr);
