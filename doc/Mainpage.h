@@ -37,6 +37,13 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li>13 July 2014: New version: 2.3.1:
+ *   <ul>
+ *     <li>fixed angular momentum computation. Version 2.3.0 produced wrong
+ *       results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!)</li>
+ *     <li>fixed library version number for the LuaModel addon.</li>
+ *   </ul>
+ * </li>
  * <li>17 March 2014: New version: 2.3.0:
  *   <ul>
  *     <li>Joint Space Inertia Matrix does \b not get cleared anymore when

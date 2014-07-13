@@ -1,18 +1,20 @@
 2.3.0 -> 2.3.1
 - fixed angular momentum computation. Version 2.3.0 produced wrong
-	results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!) 
+  results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!) 
+- fixed library version number for the LuaModel addon. It now uses version
+  2.3 instead of the wrong 2.2.
 
 2.2.2 -> 2.3.0
 - disabled clearing of joint space inertia matrix in CRBA.
   It is expected that the matrix is cleared by the user when neccessary.
 - Added experimental joint type JointTypeEulerZYX. It does not emulate
-	multiple degrees of freedom using virtual bodies instead it uses a 3 DoF
-	motion subspace. Performance is better for the
-	CompositeRigidBodyAlgorithm but worse for other algorithms.
+  multiple degrees of freedom using virtual bodies instead it uses a 3 DoF
+  motion subspace. Performance is better for the
+  CompositeRigidBodyAlgorithm but worse for other algorithms.
 - Using Eigen3's default column-major ordering for matrices when using
-	Eigen3. This should have no effect for the user unless matrix elements
-	are accessed using the .data()[i] operator of Eigen3's matrix class. However
-	if .data()[i] is used the access indices have to be adjusted.
+  Eigen3. This should have no effect for the user unless matrix elements
+  are accessed using the .data()[i] operator of Eigen3's matrix class. However
+  if .data()[i] is used the access indices have to be adjusted.
 - added functions to compute kinetic and potential energy and the
   computation of the center of mass and its linear velocity:
     RigidBodyDynamics::Utils::CalcCenterOfMass

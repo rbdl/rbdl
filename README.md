@@ -18,6 +18,10 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
+   * 13 July 2014: New version 2.3.1:
+     * fixed angular momentum computation. Version 2.3.0 produced wrong
+       results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!)
+     * fixed library version number for the LuaModel addon.
    * 14 March 2014: New version 2.3.0:
      * Joint Space Inertia Matrix does not get cleared anymore when calling CompositeRigidBodyAlgorithm
      * using the default column-major ordering when using Eigen3
