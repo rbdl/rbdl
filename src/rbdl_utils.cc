@@ -203,10 +203,6 @@ RBDL_DLLAPI Vector3d CalcAngularMomentum (Model &model, const Math::VectorNd &q,
 		model.hc[i] = model.Ic[i].toMatrix() * model.v[i];
 	}
 
-	double mass;
-	Vector3d com;
-	CalcCenterOfMass (model, q, qdot, mass, com, NULL, false);
-
 	SpatialVector htot (SpatialVector::Zero(6));
 
 	for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
@@ -218,6 +214,10 @@ RBDL_DLLAPI Vector3d CalcAngularMomentum (Model &model, const Math::VectorNd &q,
 			htot = htot + model.X_lambda[i].applyTranspose (model.hc[i]);
 		}
 	}
+
+	double mass;
+	Vector3d com;
+	CalcCenterOfMass (model, q, qdot, mass, com, NULL, false);
 
 	LOG << "com : " << com.transpose() << std::endl;
 	LOG << "htot: " << htot.transpose() << std::endl;

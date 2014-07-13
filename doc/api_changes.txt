@@ -1,3 +1,7 @@
+2.3.0 -> 2.3.1
+- fixed angular momentum computation. Version 2.3.0 produced wrong
+	results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!) 
+
 2.2.2 -> 2.3.0
 - disabled clearing of joint space inertia matrix in CRBA.
   It is expected that the matrix is cleared by the user when neccessary.
