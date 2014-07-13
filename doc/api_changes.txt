@@ -1,6 +1,8 @@
 2.3.0 -> 2.3.1
-- fixed angular momentum computation. Version 2.3.0 produced wrong
-  results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!) 
+- critical: fixed angular momentum computation. Version 2.3.0 produced wrong
+  results Thanks to Hilario Tome and Benjamin Michaud for reporting!
+- critical: fixed JointTypeEulerZYX. Previous versions produce wrong
+  results!
 - fixed library version number for the LuaModel addon. It now uses version
   2.3 instead of the wrong 2.2.
 
