@@ -335,29 +335,17 @@ Vector3d CalcPointVelocity (
 	Vector3d point_abs_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false); 
 
 	unsigned int reference_body_id = body_id;
+	Vector3d reference_point = point_position;
 
 	if (model.IsFixedBodyId(body_id)) {
 		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
 		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		Vector3d base_coords = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
+		reference_point = CalcBaseToBodyCoordinates (model, Q, reference_body_id, base_coords, false);
+
 	}
 
-	LOG << "body_index     = " << body_id << std::endl;
-	LOG << "point_pos      = " << point_position.transpose() << std::endl;
-//	LOG << "global_velo    = " << global_velocities.at(body_id) << std::endl;
-	LOG << "body_transf    = " << std::endl << model.X_base[reference_body_id].toMatrix() << std::endl;
-	LOG << "point_abs_ps   = " << point_abs_pos.transpose() << std::endl;
-	LOG << "X   = " << std::endl << Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) << std::endl;
-	LOG << "v   = " << model.v[reference_body_id].transpose() << std::endl;
-
-	// Now we can compute the spatial velocity at the given point
-//	SpatialVector body_global_velocity (global_velocities.at(body_id));
-	SpatialVector point_spatial_velocity = Xtrans_mat (point_abs_pos) * spatial_inverse(model.X_base[reference_body_id].toMatrix()) * model.v[reference_body_id];
-
-	LOG << "point_velocity = " <<	Vector3d (
-			point_spatial_velocity[3],
-			point_spatial_velocity[4],
-			point_spatial_velocity[5]
-			) << std::endl;
+	SpatialVector point_spatial_velocity = SpatialTransform (CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose(), reference_point).apply(model.v[reference_body_id]);
 
 	return Vector3d (
 			point_spatial_velocity[3],
@@ -403,13 +391,13 @@ Vector3d CalcPointAcceleration (
 	SpatialTransform p_X_i (CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose(), reference_point);
 
 	SpatialVector p_v_i = p_X_i.apply(model.v[reference_body_id]);
-
-	SpatialVector p_a_i_dash = p_X_i.apply(model.a[reference_body_id]) - crossm( SpatialVector(0., 0., 0., p_v_i[3], p_v_i[4], p_v_i[5]), (body_global_velocity));
+	Vector3d a_dash = Vector3d (p_v_i[0], p_v_i[1], p_v_i[2]).cross(Vector3d (p_v_i[3], p_v_i[4], p_v_i[5]));
+	SpatialVector p_a_i = p_X_i.apply(model.a[reference_body_id]);
 
 	return Vector3d (
-			p_a_i_dash[3],
-			p_a_i_dash[4],
-			p_a_i_dash[5]
+			p_a_i[3] + a_dash[0],
+			p_a_i[4] + a_dash[1],
+			p_a_i[5] + a_dash[2]
 			);
 }
 
