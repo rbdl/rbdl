@@ -488,7 +488,6 @@ int main (int argc, char *argv[]) {
 
 		if (benchmark_run_nle) {
 			cout << "= Nonlinear effects  =" << endl;
-			cout << "= model.mBodies.size() = " << model->mBodies.size() << endl;
 			run_nle_benchmark (model, benchmark_sample_count);
 		}
 
