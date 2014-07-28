@@ -342,9 +342,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 		if (model.mJoints[i].mDoFCount == 3) {
 			Matrix63 F_63 = model.Ic[i].toMatrix() * model.multdof3_S[i];
-			Matrix3d H_temp = model.multdof3_S[i].transpose() * F_63;
-
-			H.block<3,3>(dof_index_i, dof_index_i) = H_temp;
+			H.block<3,3>(dof_index_i, dof_index_i) = model.multdof3_S[i].transpose() * F_63;
 
 			unsigned int j = i;
 			unsigned int dof_index_j = dof_index_i;
