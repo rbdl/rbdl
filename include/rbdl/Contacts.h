@@ -187,8 +187,16 @@ struct RBDL_DLLAPI ConstraintSet {
 	std::vector<Math::Vector3d> d_multdof3_u;
 };
 
+/** \brief Computes the Jacobian for the given ConstraintSet
+ *
+ * \param model the model
+ * \param Q     the generalized positions of the joints
+ * \param CS    the constraint set for which the Jacobian should be computed
+ * \param G     (output) matrix where the output will be stored in
+ * \param update_kinematics whether the kinematics of the model should be * updated from Q
+ */
 RBDL_DLLAPI
-void ComputeContactJacobian(
+void CalcContactJacobian(
 		Model &model,
 		const Math::VectorNd &Q,
 		const ConstraintSet &CS,

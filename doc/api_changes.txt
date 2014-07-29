@@ -3,7 +3,7 @@
 - Removed/Fixed CalcAngularMomentum.
   The function produced wrong values. The functionality has been integrated into CalcCenterOfMass.
 - Added optional parameter to CalcCenterOfMass to compute angular momentum.
-- Added ComputeContactJacobian()
+- Added CalcContactJacobian()
 - Added NonlinearEffects()
 - Added LuaModelReadFromLuaState()
 - Various performance improvements

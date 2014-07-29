@@ -139,7 +139,7 @@ void ConstraintSet::clear() {
 }
 
 RBDL_DLLAPI
-void ComputeContactJacobian(
+void CalcContactJacobian(
 		Model &model,
 		const Math::VectorNd &Q,
 		const ConstraintSet &CS,
@@ -192,7 +192,7 @@ void ForwardDynamicsContactsLagrangian (
 	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
 
 	// Compute G
-	ComputeContactJacobian (model, Q, CS, CS.G, false);
+	CalcContactJacobian (model, Q, CS, CS.G, false);
 
 	// Compute gamma
 	unsigned int prev_body_id = 0;
