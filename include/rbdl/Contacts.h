@@ -182,8 +182,6 @@ struct RBDL_DLLAPI ConstraintSet {
 	/// Workspace when applying constraint forces
 	Math::VectorNd d_d;
 
-	std::vector<Math::Matrix63> d_multdof3_U;
-	std::vector<Math::Matrix3d> d_multdof3_Dinv;
 	std::vector<Math::Vector3d> d_multdof3_u;
 };
 
