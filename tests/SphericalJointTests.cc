@@ -394,7 +394,7 @@ TEST_FIXTURE(SphericalJoint, TestCRBA ) {
 		H_id.block(0, i, multdof3_model.qdot_size, 1) = H_col;
 	}
 
-	CHECK_ARRAY_CLOSE (H_id.data(), H_crba.data(), multdof3_model.qdot_size, TEST_PREC);
+	CHECK_ARRAY_CLOSE (H_id.data(), H_crba.data(), multdof3_model.qdot_size * multdof3_model.qdot_size, TEST_PREC);
 }
 
 TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
@@ -477,7 +477,7 @@ TEST_FIXTURE(SphericalJoint, TestContacts) {
 	CHECK_ARRAY_CLOSE (emu_force_kokkevis.data(), sph_force_kokkevis.data(), 3, TEST_PREC);
 }
 
-TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulated ) {
+TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedLagrangian ) {
 	emuQ[0] = 1.1;
 	emuQ[1] = 1.2;
 	emuQ[2] = 1.3;
@@ -503,4 +503,20 @@ TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulated ) {
 	ForwardDynamicsLagrangian (eulerzyx_model, emuQ, emuQDot, emuTau, QDDot_eulerzyx);
 
 	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
+}
+
+TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedCRBA ) {
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
+	emuQ[4] = 1.5;
+
+	MatrixNd H_emulated (MatrixNd::Zero (emulated_model.q_size, emulated_model.q_size));
+	MatrixNd H_eulerzyx (MatrixNd::Zero (eulerzyx_model.q_size, eulerzyx_model.q_size));
+
+	CompositeRigidBodyAlgorithm (emulated_model, emuQ, H_emulated);
+	CompositeRigidBodyAlgorithm (eulerzyx_model, emuQ, H_eulerzyx);
+
+	CHECK_ARRAY_CLOSE (H_emulated.data(), H_eulerzyx.data(), emulated_model.q_size * emulated_model.q_size, TEST_PREC);
 }

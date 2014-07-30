@@ -326,8 +326,9 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 	assert (H.rows() == model.dof_count && H.cols() == model.dof_count);
 
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		if (update_kinematics)
-			model.X_lambda[i] = jcalc_XJ (model, i, Q) * model.X_T[i];
+		if (update_kinematics) {
+			jcalc_X_lambda_S (model, i, Q);
+		}
 		model.Ic[i] = model.mBodies[i].mRigidBodyInertia;
 	}
 
@@ -378,6 +379,9 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 				if (model.mJoints[j].mDoFCount == 3) {
 					Vector3d H_temp2 = (F.transpose() * model.multdof3_S[j]).transpose();
+
+					LOG << F.transpose() << std::endl << model.multdof3_S[j] << std::endl;
+					LOG << H_temp2.transpose() << std::endl;
 
 					H.block<1,3>(dof_index_i,dof_index_j) = H_temp2.transpose();
  					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;

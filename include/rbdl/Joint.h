@@ -510,6 +510,15 @@ Math::SpatialTransform jcalc_XJ (
 		Model &model,
 		unsigned int joint_id,
 		const Math::VectorNd &q);
+
+
+RBDL_DLLAPI
+void jcalc_X_lambda_S (
+		Model &model,
+		unsigned int joint_id,
+		const Math::VectorNd &q
+		);
+
 }
 
 #endif /* _JOINT_H */
