@@ -1,12 +1,20 @@
-2.3.0 -> next (2.4.0?)
-- Fixed error in JointTypeEulerZYX.
-- Removed/Fixed CalcAngularMomentum.
-  The function produced wrong values. The functionality has been integrated into CalcCenterOfMass.
+2.3.1 -> next (2.4.0?)
+- Fixed ForwardDynamicsContacts when using 3-dof joints
+- Fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)
+- Removed/Fixed CalcAngularMomentum. The function produced wrong values. The functionality has been integrated into CalcCenterOfMass.
 - Added optional parameter to CalcCenterOfMass to compute angular momentum.
 - Added CalcContactJacobian()
 - Added NonlinearEffects()
 - Added LuaModelReadFromLuaState()
 - Various performance improvements
+
+2.3.0 -> 2.3.1
+- critical: fixed angular momentum computation. Version 2.3.0 produced wrong
+  results. Thanks to Hilario Tome and Benjamin Michaud for reporting!
+- critical: fixed JointTypeEulerZYX. Previous versions produce wrong
+  results!
+- fixed library version number for the LuaModel addon. It now uses version
+  2.3 instead of the wrong 2.2.
 
 2.2.2 -> 2.3.0
 - disabled clearing of joint space inertia matrix in CRBA.
