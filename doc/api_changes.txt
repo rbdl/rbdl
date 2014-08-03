@@ -1,6 +1,7 @@
 2.3.1 -> next (2.4.0?)
 - Fixed ForwardDynamicsContacts when using 3-dof joints
 - Fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)
+- Fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)
 - Removed/Fixed CalcAngularMomentum. The function produced wrong values. The functionality has been integrated into CalcCenterOfMass.
 - Added optional parameter to CalcCenterOfMass to compute angular momentum.
 - Added CalcContactJacobian()
