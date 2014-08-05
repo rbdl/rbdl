@@ -28,6 +28,9 @@
 namespace SimpleMath {
 
 template <typename matrix_type>
+class LLT;
+
+template <typename matrix_type>
 class HouseholderQR;
 
 template <typename matrix_type>
@@ -729,6 +732,10 @@ class Matrix {
 
 		Matrix inverse() const {
 			return colPivHouseholderQr().inverse();
+		}
+
+		const LLT<matrix_type> llt() const {
+			return LLT<matrix_type>(*this);
 		}
 
 		const HouseholderQR<matrix_type> householderQr() const {
