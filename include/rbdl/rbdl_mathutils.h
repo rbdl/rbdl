@@ -27,6 +27,7 @@ enum RBDL_DLLAPI LinearSolver {
 	LinearSolverUnknown = 0,
 	LinearSolverPartialPivLU,
 	LinearSolverColPivHouseholderQR,
+	LinearSolverHouseholderQR,
 	LinearSolverLast,
 };
 

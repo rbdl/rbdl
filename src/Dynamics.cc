@@ -210,6 +210,9 @@ void ForwardDynamicsLagrangian (
 		case (LinearSolverColPivHouseholderQR) :
 			QDDot = H->colPivHouseholderQr().solve (*C * -1. + Tau);
 			break;
+		case (LinearSolverHouseholderQR) :
+			QDDot = H->householderQr().solve (*C * -1. + Tau);
+			break;
 		default:
 			LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
 			assert (0);

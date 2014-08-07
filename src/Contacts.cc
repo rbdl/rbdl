@@ -240,6 +240,9 @@ void ForwardDynamicsContactsLagrangian (
 		case (LinearSolverColPivHouseholderQR) :
 			CS.x = CS.A.colPivHouseholderQr().solve(CS.b);
 			break;
+		case (LinearSolverHouseholderQR) :
+			CS.x = CS.A.householderQr().solve(CS.b);
+			break;
 		default:
 			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
 			assert (0);
@@ -338,6 +341,9 @@ void ComputeContactImpulsesLagrangian (
 			break;
 		case (LinearSolverColPivHouseholderQR) :
 			CS.x = CS.A.colPivHouseholderQr().solve(CS.b);
+			break;
+		case (LinearSolverHouseholderQR) :
+			CS.x = CS.A.householderQr().solve(CS.b);
 			break;
 		default:
 			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
@@ -663,6 +669,9 @@ void ForwardDynamicsContacts (
 			break;
 		case (LinearSolverColPivHouseholderQR) :
 			CS.force = CS.K.colPivHouseholderQr().solve(CS.a);
+			break;
+		case (LinearSolverHouseholderQR) :
+			CS.force = CS.K.householderQr().solve(CS.a);
 			break;
 		default:
 			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;

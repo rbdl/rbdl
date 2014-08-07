@@ -8,6 +8,7 @@
 - Added CalcContactJacobian()
 - Added NonlinearEffects()
 - Added LuaModelReadFromLuaState()
+- Added solving of linear systems using standard Householder QR
 - Various performance improvements
 
 2.3.0 -> 2.3.1
