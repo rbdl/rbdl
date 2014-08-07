@@ -624,3 +624,38 @@ TEST_FIXTURE(FixedAndMovableJoint, TestInverseDynamicsFixedJoint) {
 
 	CHECK_ARRAY_CLOSE (Tau_2dof.data(), Tau_fixed.data(), 2, TEST_PREC);
 }
+
+TEST_FIXTURE ( FloatingBase12DoF, TestForwardDynamicsLagrangianPrealloc ) {
+	for (unsigned int i = 0; i < model->dof_count; i++) {
+		Q[i] = static_cast<double>(i + 1) * 0.1;
+		QDot[i] = static_cast<double>(i + 1) * 1.1;
+		Tau[i] = static_cast<double>(i + 1) * -1.2;
+	}
+
+	ForwardDynamicsLagrangian (*model,
+			Q,
+			QDot,
+			Tau,
+			QDDot,
+			Math::LinearSolverPartialPivLU,
+			NULL,
+			NULL,
+			NULL
+			);
+
+	MatrixNd H (MatrixNd::Zero(model->dof_count, model->dof_count));
+	VectorNd C (VectorNd::Zero(model->dof_count));
+	VectorNd QDDot_prealloc (VectorNd::Zero (model->dof_count));
+	ForwardDynamicsLagrangian (*model,
+			Q,
+			QDot,
+			Tau,
+			QDDot_prealloc,
+			Math::LinearSolverPartialPivLU,
+			NULL,
+			&H,
+			&C
+			);
+
+	CHECK_ARRAY_EQUAL (QDDot.data(), QDDot_prealloc.data(), model->dof_count);
+}

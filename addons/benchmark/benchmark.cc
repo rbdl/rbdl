@@ -73,12 +73,19 @@ double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
+	MatrixNd H (MatrixNd::Zero(model->dof_count, model->dof_count));
+	VectorNd C (VectorNd::Zero(model->dof_count));
+
 	for (int i = 0; i < sample_count; i++) {
 		ForwardDynamicsLagrangian (*model,
 				sample_data.q_data[i],
 				sample_data.qdot_data[i],
 				sample_data.tau_data[i],
-				sample_data.qddot_data[i]
+				sample_data.qddot_data[i],
+				Math::LinearSolverPartialPivLU,
+				NULL,
+				&H,
+				&C
 );
 	}
 

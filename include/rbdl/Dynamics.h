@@ -69,6 +69,8 @@ void ForwardDynamics (
  * \param QDDot accelerations of the internal joints (output)
  * \param linear_solver specification which method should be used for solving the linear system
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
+ * \param H     preallocated workspace area for the joint space inertia matrix of size dof_count x dof_count (optional, defaults to NULL and allocates temporary matrix)
+ * \param C     preallocated workspace area for the right hand side vector of size dof_count x 1 (optional, defaults to NULL and allocates temporary vector)
  */
 RBDL_DLLAPI
 void ForwardDynamicsLagrangian (
@@ -78,7 +80,9 @@ void ForwardDynamicsLagrangian (
 		const Math::VectorNd &Tau,
 		Math::VectorNd &QDDot,
 		Math::LinearSolver linear_solver = Math::LinearSolverColPivHouseholderQR,
-		std::vector<Math::SpatialVector> *f_ext = NULL
+		std::vector<Math::SpatialVector> *f_ext = NULL,
+		Math::MatrixNd *H = NULL,
+		Math::VectorNd *C = NULL	
 		);
 
 /** \brief Computes the coriolis forces

@@ -173,30 +173,42 @@ void ForwardDynamicsLagrangian (
 		const VectorNd &Tau,
 		VectorNd &QDDot,
 		Math::LinearSolver linear_solver,
-		std::vector<SpatialVector> *f_ext
+		std::vector<SpatialVector> *f_ext,
+		Math::MatrixNd *H,
+		Math::VectorNd *C
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	MatrixNd H = MatrixNd::Zero(model.dof_count, model.dof_count);
-	VectorNd C = VectorNd::Zero(model.dof_count);
+	bool free_H = false;
+	bool free_C = false;
+
+	if (H == NULL) {
+		H = new MatrixNd (MatrixNd::Zero(model.dof_count, model.dof_count));
+		free_H = true;
+	}
+
+	if (C == NULL) {
+		C = new VectorNd (VectorNd::Zero(model.dof_count));
+		free_C = true;
+	}
 
 	// we set QDDot to zero to compute C properly with the InverseDynamics
 	// method.
 	QDDot.setZero();
 
-	InverseDynamics (model, Q, QDot, QDDot, C, f_ext);
-	CompositeRigidBodyAlgorithm (model, Q, H, false);
+	InverseDynamics (model, Q, QDot, QDDot, (*C), f_ext);
+	CompositeRigidBodyAlgorithm (model, Q, *H, false);
 
-	LOG << "A = " << std::endl << H << std::endl;
-	LOG << "b = " << std::endl << C * -1. + Tau << std::endl;
+	LOG << "A = " << std::endl << *H << std::endl;
+	LOG << "b = " << std::endl << *C * -1. + Tau << std::endl;
 
 #ifndef RBDL_USE_SIMPLE_MATH
 	switch (linear_solver) {
 		case (LinearSolverPartialPivLU) :
-			QDDot = H.partialPivLu().solve (C * -1. + Tau);
+			QDDot = H->partialPivLu().solve (*C * -1. + Tau);
 			break;
 		case (LinearSolverColPivHouseholderQR) :
-			QDDot = H.colPivHouseholderQr().solve (C * -1. + Tau);
+			QDDot = H->colPivHouseholderQr().solve (*C * -1. + Tau);
 			break;
 		default:
 			LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
@@ -204,9 +216,18 @@ void ForwardDynamicsLagrangian (
 			break;
 	}
 #else
-	bool solve_successful = LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot);
+	bool solve_successful = LinSolveGaussElimPivot (*H, *C * -1. + Tau, QDDot);
 	assert (solve_successful);
 #endif
+
+	if (free_C) {
+		delete C;
+	}
+
+	if (free_H) {
+		delete H;
+	}
+
 
 	LOG << "x = " << QDDot << std::endl;
 }

@@ -3,6 +3,7 @@
 - Fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)
 - Fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)
 - Removed/Fixed CalcAngularMomentum. The function produced wrong values. The functionality has been integrated into CalcCenterOfMass.
+- Added optional workspace parameters for ForwardDynamicsLagrangian() to optionally reduce memory allocations
 - Added optional parameter to CalcCenterOfMass to compute angular momentum.
 - Added CalcContactJacobian()
 - Added NonlinearEffects()
