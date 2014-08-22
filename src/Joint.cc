@@ -101,6 +101,26 @@ namespace RigidBodyDynamics {
 						-s1 * c2 * qdot0 * qdot1 - c1 * s2 * qdot0 * qdot2 - c2 * qdot1 * qdot2,
 						0., 0., 0.
 						);
+			} else if (model.mJoints[joint_id].mJointType == JointTypeTranslationXYZ) {
+				double q0 = q[model.mJoints[joint_id].q_index];
+				double q1 = q[model.mJoints[joint_id].q_index + 1];
+				double q2 = q[model.mJoints[joint_id].q_index + 2];
+
+				XJ.r = Vector3d (q0, q1, q2);
+
+				model.multdof3_S[joint_id].setZero();
+
+				model.multdof3_S[joint_id](3,0) = 1.;
+				model.multdof3_S[joint_id](4,1) = 1.;
+				model.multdof3_S[joint_id](5,2) = 1.;
+
+				double qdot0 = qdot[model.mJoints[joint_id].q_index];
+				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
+				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
+
+				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
+
+				c_J.setZero();
 			} else {
 				// Only revolute joints supported so far
 				assert (0);
@@ -149,6 +169,12 @@ namespace RigidBodyDynamics {
 							c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
 							c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
 							), Vector3d (0., 0., 0.));
+			} else if (model.mJoints[joint_id].mJointType == JointTypeTranslationXYZ) {
+				double q0 = q[model.mJoints[joint_id].q_index];
+				double q1 = q[model.mJoints[joint_id].q_index + 1];
+				double q2 = q[model.mJoints[joint_id].q_index + 2];
+
+				return SpatialTransform ( Matrix3d::Identity(3,3), Vector3d (q0, q1, q2));
 			}
 
 			std::cerr << "Error: invalid joint type!" << std::endl;

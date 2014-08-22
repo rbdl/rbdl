@@ -130,6 +130,7 @@ enum JointType {
 	JointTypePrismatic,
 	JointTypeSpherical, ///< 3 DoF joint using Quaternions for joint positional variables and angular velocity for joint velocity variables.
 	JointTypeEulerZYX, ///< Experimental 3 DoF joint that uses Euler ZYX convention (not using virtual bodies).
+	JointTypeTranslationXYZ,
 	JointTypeFixed, ///< Fixed joint which causes the inertial properties to be merged with the parent body.
 	JointType1DoF,
 	JointType2DoF, ///< Emulated 2 DoF joint.
@@ -172,6 +173,14 @@ struct RBDL_DLLAPI Joint {
 				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
 				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
 				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+			} else if (type == JointTypeTranslationXYZ) {
+				mDoFCount = 3;
+
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+
+				mJointAxes[0] = Math::SpatialVector (0., 0., 0., 1., 0., 0.);
+				mJointAxes[1] = Math::SpatialVector (0., 0., 0., 0., 1., 0.);
+				mJointAxes[2] = Math::SpatialVector (0., 0., 0., 0., 0., 1.);
 			} else if (type != JointTypeFixed) {
 				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
 				assert (0);

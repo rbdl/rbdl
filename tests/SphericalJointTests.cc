@@ -600,3 +600,36 @@ TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedCRBA ) {
 
 	CHECK_ARRAY_CLOSE (H_emulated.data(), H_eulerzyx.data(), emulated_model.q_size * emulated_model.q_size, TEST_PREC);
 }
+
+TEST ( TestJointTypeTranslationZYX ) {
+	Model model_emulated;
+	Model model_3dof;
+
+	Body body (1., Vector3d (1., 2., 1.), Matrix3d (1., 0., 0, 0., 1., 0., 0., 0., 1.));
+	Joint joint_emulated (
+			SpatialVector (0., 0., 0., 1., 0., 0.),
+			SpatialVector (0., 0., 0., 0., 1., 0.),
+			SpatialVector (0., 0., 0., 0., 0., 1.)
+			);
+	Joint joint_3dof (JointTypeTranslationXYZ);
+
+	model_emulated.AppendBody (SpatialTransform (), joint_emulated, body);
+	model_3dof.AppendBody (SpatialTransform (), joint_3dof, body);
+
+	VectorNd q (VectorNd::Zero (model_emulated.q_size));
+	VectorNd qdot (VectorNd::Zero (model_emulated.qdot_size));
+	VectorNd qddot_emulated (VectorNd::Zero (model_emulated.qdot_size));
+	VectorNd qddot_3dof (VectorNd::Zero (model_emulated.qdot_size));
+	VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
+
+	for (int i = 0; i < q.size(); i++) {
+		q[i] = 1.1 * (static_cast<double>(i + 1));
+		qdot[i] = 0.1 * (static_cast<double>(i + 1));
+		tau[i] = 2.1 * (static_cast<double>(i + 1));
+	}
+
+	ForwardDynamicsLagrangian (model_emulated, q, qdot, tau, qddot_emulated);
+	ForwardDynamicsLagrangian (model_3dof, q, qdot, tau, qddot_3dof);
+
+	CHECK_ARRAY_EQUAL (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size());
+}
