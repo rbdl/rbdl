@@ -142,6 +142,47 @@ namespace RigidBodyDynamics {
 						c1 * qdot1 * qdot0,
 						0., 0., 0.
 						);
+			} else if (model.mJoints[joint_id].mJointType == JointTypeEulerYXZ) {
+				double q0 = q[model.mJoints[joint_id].q_index];
+				double q1 = q[model.mJoints[joint_id].q_index + 1];
+				double q2 = q[model.mJoints[joint_id].q_index + 2];
+
+				double s0 = sin (q0);
+				double c0 = cos (q0);
+				double s1 = sin (q1);
+				double c1 = cos (q1);
+				double s2 = sin (q2);
+				double c2 = cos (q2);
+
+				XJ.E = Matrix3d(
+						c2 * c0 + s2 * s1 * s0, s2 * c1, -c2 * s0 + s2 * s1 * c0,
+						-s2 * c0 + c2 * s1 * s0, c2 * c1, s2 * s0 + c2 * s1 * c0,
+						c1 * s0, - s1, c1 * c0
+						);
+
+				model.multdof3_S[joint_id].setZero();
+
+				model.multdof3_S[joint_id](0,0) = s2 * c1;
+				model.multdof3_S[joint_id](0,1) = c2;
+
+				model.multdof3_S[joint_id](1,0) = c2 * c1;
+				model.multdof3_S[joint_id](1,1) = -s2;
+
+				model.multdof3_S[joint_id](2,0) = -s1;
+				model.multdof3_S[joint_id](2,2) = 1.;
+
+				double qdot0 = qdot[model.mJoints[joint_id].q_index];
+				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
+				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
+
+				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
+
+				c_J.set(
+						 c2 * c1 * qdot2 * qdot0 - s2 * s1 * qdot1 * qdot0 - s2 * qdot2 * qdot1,
+						-s2 * c1 * qdot2 * qdot0 - c2 * s1 * qdot1 * qdot0 - c2 * qdot2 * qdot1,
+						-c1 * qdot1 * qdot0,
+						0., 0., 0.
+						);
 			} else if (model.mJoints[joint_id].mJointType == JointTypeTranslationXYZ) {
 				double q0 = q[model.mJoints[joint_id].q_index];
 				double q1 = q[model.mJoints[joint_id].q_index + 1];
@@ -281,7 +322,38 @@ namespace RigidBodyDynamics {
 
 				model.multdof3_S[joint_id](2,0) = s1;
 				model.multdof3_S[joint_id](2,2) = 1.;
- 			} else if (model.mJoints[joint_id].mJointType == JointTypeTranslationXYZ ) {
+ 			} else if (model.mJoints[joint_id].mJointType == JointTypeEulerYXZ ) {
+				double q0 = q[model.mJoints[joint_id].q_index];
+				double q1 = q[model.mJoints[joint_id].q_index + 1];
+				double q2 = q[model.mJoints[joint_id].q_index + 2];
+
+				double s0 = sin (q0);
+				double c0 = cos (q0);
+				double s1 = sin (q1);
+				double c1 = cos (q1);
+				double s2 = sin (q2);
+				double c2 = cos (q2);
+
+				model.X_lambda[joint_id] = SpatialTransform (
+						Matrix3d(
+						c2 * c0 + s2 * s1 * s0, s2 * c1, -c2 * s0 + s2 * s1 * c0,
+						-s2 * c0 + c2 * s1 * s0, c2 * c1, s2 * s0 + c2 * s1 * c0,
+						c1 * s0, - s1, c1 * c0
+							),
+						Vector3d (0., 0., 0.))
+					* model.X_T[joint_id];
+
+				model.multdof3_S[joint_id].setZero();
+
+				model.multdof3_S[joint_id](0,0) = s2 * c1;
+				model.multdof3_S[joint_id](0,1) = c2;
+
+				model.multdof3_S[joint_id](1,0) = c2 * c1;
+				model.multdof3_S[joint_id](1,1) = -s2;
+
+				model.multdof3_S[joint_id](2,0) = -s1;
+				model.multdof3_S[joint_id](2,2) = 1.;
+			} else if (model.mJoints[joint_id].mJointType == JointTypeTranslationXYZ ) {
 				double q0 = q[model.mJoints[joint_id].q_index];
 				double q1 = q[model.mJoints[joint_id].q_index + 1];
 				double q2 = q[model.mJoints[joint_id].q_index + 2];

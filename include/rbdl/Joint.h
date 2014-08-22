@@ -129,8 +129,9 @@ enum JointType {
 	JointTypeRevolute,
 	JointTypePrismatic,
 	JointTypeSpherical, ///< 3 DoF joint using Quaternions for joint positional variables and angular velocity for joint velocity variables.
-	JointTypeEulerZYX, ///< Experimental 3 DoF joint that uses Euler ZYX convention (not using virtual bodies).
-	JointTypeEulerXYZ,
+	JointTypeEulerZYX, ///< 3 DoF joint that uses Euler ZYX convention (faster than emulated multi DoF joints).
+	JointTypeEulerXYZ, ///< 3 DoF joint that uses Euler XYZ convention (faster than emulated multi DoF joints).
+	JointTypeEulerYXZ, ///< 3 DoF joint that uses Euler YXZ convention (faster than emulated multi DoF joints).
 	JointTypeTranslationXYZ,
 	JointTypeFixed, ///< Fixed joint which causes the inertial properties to be merged with the parent body.
 	JointType1DoF,
@@ -181,6 +182,14 @@ struct RBDL_DLLAPI Joint {
 
 				mJointAxes[0] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
 				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+				mJointAxes[2] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+			} else if (type == JointTypeEulerYXZ) {
+				mDoFCount = 3;
+
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+
+				mJointAxes[0] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+				mJointAxes[1] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
 				mJointAxes[2] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
 			} else if (type == JointTypeTranslationXYZ) {
 				mDoFCount = 3;
@@ -528,7 +537,6 @@ Math::SpatialTransform jcalc_XJ (
 		Model &model,
 		unsigned int joint_id,
 		const Math::VectorNd &q);
-
 
 RBDL_DLLAPI
 void jcalc_X_lambda_S (

@@ -211,7 +211,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	if (joint.mJointType == JointTypeFixed) {
 		previously_added_body_id = AddBodyFixedJoint (*this, parent_id, joint_frame, joint, body, body_name);
 		return previously_added_body_id;
-	} else if ((joint.mJointType == JointTypeSpherical) || (joint.mJointType == JointTypeEulerZYX) || (joint.mJointType == JointTypeEulerXYZ) || (joint.mJointType == JointTypeTranslationXYZ) ) {
+	} else if ((joint.mJointType == JointTypeSpherical) || (joint.mJointType == JointTypeEulerZYX) || (joint.mJointType == JointTypeEulerXYZ) || (joint.mJointType == JointTypeEulerYXZ) || (joint.mJointType == JointTypeTranslationXYZ) ) {
 		// no action required
 	} else if (joint.mJointType != JointTypePrismatic 
 			&& joint.mJointType != JointTypeRevolute) {

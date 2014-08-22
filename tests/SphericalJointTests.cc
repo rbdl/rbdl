@@ -691,3 +691,52 @@ TEST ( TestJointTypeEulerXYZ ) {
 
 	CHECK_ARRAY_CLOSE (H_emulated.data(), H_3dof.data(), q.size() * q.size(), TEST_PREC);
 }
+
+TEST ( TestJointTypeEulerYXZ ) {
+	Model model_emulated;
+	Model model_3dof;
+
+	Body body (1., Vector3d (1., 2., 1.), Matrix3d (1., 0., 0, 0., 1., 0., 0., 0., 1.));
+	Joint joint_emulated (
+			SpatialVector (0., 1., 0., 0., 0., 0.),
+			SpatialVector (1., 0., 0., 0., 0., 0.),
+			SpatialVector (0., 0., 1., 0., 0., 0.)
+			);
+	Joint joint_3dof (JointTypeEulerYXZ);
+
+	model_emulated.AppendBody (SpatialTransform (), joint_emulated, body);
+	model_3dof.AppendBody (SpatialTransform (), joint_3dof, body);
+
+	VectorNd q (VectorNd::Zero (model_emulated.q_size));
+	VectorNd qdot (VectorNd::Zero (model_emulated.qdot_size));
+	VectorNd qddot_emulated (VectorNd::Zero (model_emulated.qdot_size));
+	VectorNd qddot_3dof (VectorNd::Zero (model_emulated.qdot_size));
+	VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
+
+	for (int i = 0; i < q.size(); i++) {
+		q[i] = 1.1 * (static_cast<double>(i + 1));
+		qdot[i] = 0.55* (static_cast<double>(i + 1));
+		qddot_emulated[i] = 0.23 * (static_cast<double>(i + 1));
+		qddot_3dof[i] = 0.22 * (static_cast<double>(i + 1));
+		tau[i] = 2.1 * (static_cast<double>(i + 1));
+	}
+
+	UpdateKinematicsCustom (model_emulated, &q, &qdot, &qddot_emulated);
+	UpdateKinematicsCustom (model_3dof, &q, &qdot, &qddot_emulated);
+
+	CHECK_ARRAY_EQUAL (model_emulated.X_base[3].E.data(), model_3dof.X_base[1].E.data(), 9);
+	CHECK_ARRAY_EQUAL (model_emulated.v[3].data(), model_3dof.v[1].data(), 6);
+
+	ForwardDynamicsLagrangian (model_emulated, q, qdot, tau, qddot_emulated);
+	ForwardDynamicsLagrangian (model_3dof, q, qdot, tau, qddot_3dof);
+
+	CHECK_ARRAY_CLOSE (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size(), TEST_PREC);
+
+	MatrixNd H_emulated (MatrixNd::Zero (q.size(), q.size()));
+	MatrixNd H_3dof (MatrixNd::Zero (q.size(), q.size()));
+
+	CompositeRigidBodyAlgorithm (model_emulated, q, H_emulated);
+	CompositeRigidBodyAlgorithm (model_3dof, q, H_3dof);
+
+	CHECK_ARRAY_CLOSE (H_emulated.data(), H_3dof.data(), q.size() * q.size(), TEST_PREC);
+}
