@@ -14,6 +14,7 @@
 #include "rbdl/rbdl_math.h"
 
 namespace RigidBodyDynamics {
+struct Model;
 
 namespace Math {
 
@@ -211,6 +212,22 @@ RBDL_DLLAPI inline Vector3d angular_acceleration_from_angle_rates (const Vector3
 			-cx * xdot * ydot - sx * yddot - sx * xdot * cy * zdot + cx * ( - sy * ydot * zdot + cy * zddot)
 			);
 }
+
+RBDL_DLLAPI
+void SparseFactorizeLTL (Model &model, Math::MatrixNd &H);
+
+RBDL_DLLAPI
+void SparseMultiplyHx (Model &model, Math::MatrixNd &L);
+
+RBDL_DLLAPI
+void SparseMultiplyLx (Model &model, Math::MatrixNd &L);
+RBDL_DLLAPI
+void SparseMultiplyLTx (Model &model, Math::MatrixNd &L);
+
+RBDL_DLLAPI
+void SparseSolveLx (Model &model, Math::MatrixNd &L, Math::VectorNd &x);
+RBDL_DLLAPI
+void SparseSolveLTx (Model &model, Math::MatrixNd &L, Math::VectorNd &x); 
 
 } /* Math */
 

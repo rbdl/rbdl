@@ -28,7 +28,8 @@ Model::Model() {
 	SpatialVector zero_spatial (0., 0., 0., 0., 0., 0.);
 
 	// structural information
-	lambda.push_back(0.);
+	lambda.push_back(0);
+	lambda_q.push_back(0);
 	mu.push_back(std::vector<unsigned int>());
 	dof_count = 0;
 	q_size = 0;
@@ -232,6 +233,12 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 
 	// structural information
 	lambda.push_back(movable_parent_id);
+	unsigned int lambda_q_last = mJoints[mJoints.size() - 1].q_index;
+	if (mJoints[mJoints.size() - 1].mDoFCount > 0)
+		lambda_q_last = lambda_q_last + mJoints[mJoints.size() - 1].mDoFCount;
+	for (unsigned int i = 0; i < joint.mDoFCount; i++) {
+		lambda_q.push_back(lambda_q_last + i);
+	}
 	mu.push_back(std::vector<unsigned int>());
 	mu.at(movable_parent_id).push_back(mBodies.size());
 

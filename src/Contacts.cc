@@ -275,6 +275,92 @@ void ForwardDynamicsContactsLagrangian (
 }
 
 RBDL_DLLAPI
+void ForwardDynamicsContactsLagrangianSparse (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		ConstraintSet &CS,
+		Math::VectorNd &QDDot
+		) {
+	// Compute C
+	CS.QDDot_0.setZero();
+	InverseDynamics (model, Q, QDot, CS.QDDot_0, CS.C);
+
+	assert (CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
+
+	// Compute H
+	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+
+	// Compute G
+	CalcContactJacobian (model, Q, CS, CS.G, false);
+
+	// Compute gamma
+	unsigned int prev_body_id = 0;
+	Vector3d prev_body_point = Vector3d::Zero();
+	Vector3d gamma_i = Vector3d::Zero();
+
+	// update Kinematics just once
+	UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
+
+	for (unsigned int i = 0; i < CS.size(); i++) {
+		// only compute point accelerations when necessary
+		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
+			gamma_i = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, CS.body[i], CS.point[i], false);
+			prev_body_id = CS.body[i];
+			prev_body_point = CS.point[i];
+		}
+
+		// we also substract ContactData[i].acceleration such that the contact
+		// point will have the desired acceleration
+		CS.gamma[i] = CS.normal[i].dot(gamma_i) - CS.acceleration[i];
+	}
+
+	SparseFactorizeLTL (model, CS.H);
+
+	VectorNd tau_dash = Tau - CS.C;
+	
+	MatrixNd Y (CS.G.transpose());
+
+//	std::cout << Y << std::endl;
+	for (unsigned int i = 0; i < Y.cols(); i++) {
+		VectorNd Y_col = Y.block(0,i,Y.rows(),1);
+		SparseSolveLTx (model, CS.H, Y_col);
+		Y.block(0,i,Y.rows(),1) = Y_col;
+//		std::cout << "i = " << i << std::endl << Y << std::endl;
+	}
+
+	VectorNd z (tau_dash);
+	SparseSolveLTx (model, CS.H, z);
+
+	CS.K = Y.transpose() * Y;
+
+	CS.a = CS.gamma * -1. - Y.transpose() * z;
+
+#ifndef RBDL_USE_SIMPLE_MATH
+	switch (CS.linear_solver) {
+		case (LinearSolverPartialPivLU) :
+			CS.force = CS.K.partialPivLu().solve(CS.a);
+			break;
+		case (LinearSolverColPivHouseholderQR) :
+			CS.force = CS.K.colPivHouseholderQr().solve(CS.a);
+			break;
+		default:
+			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
+			assert (0);
+			break;
+	}
+#else
+	bool solve_successful = LinSolveGaussElimPivot (CS.K, CS.a, CS.force);
+	assert (solve_successful);
+#endif
+
+	QDDot = tau_dash + CS.G.transpose() * CS.force;
+	SparseSolveLTx (model, CS.H, QDDot);
+	SparseSolveLx (model, CS.H, QDDot);
+}
+
+RBDL_DLLAPI
 void ComputeContactImpulsesLagrangian (
 		Model &model,
 		const VectorNd &Q,

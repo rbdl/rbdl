@@ -966,4 +966,84 @@ struct TwoArms12DoF {
 
 };
 
+struct FixedBase6DoF12DoFFloatingBase {
+	FixedBase6DoF12DoFFloatingBase () {
+		ClearLogOutput();
+		model = new RigidBodyDynamics::Model;
 
+		model->gravity = RigidBodyDynamics::Math::Vector3d  (0., -9.81, 0.);
+
+		/* 3 DoF (rot.) joint at base
+		 * 3 DoF (rot.) joint child origin
+		 *
+		 *          X Contact point (ref child)
+		 *          |
+		 *    Base  |
+		 *   / body |
+		 *  O-------*
+		 *           \
+		 *             Child body
+		 */
+
+		// base body (3 DoF)
+		base = RigidBodyDynamics::Body (
+				1.,
+				RigidBodyDynamics::Math::Vector3d (0.5, 0., 0.),
+				RigidBodyDynamics::Math::Vector3d (1., 1., 1.)
+				);
+		base_id = model->SetFloatingBaseBody (base);
+
+		// child body 1 (3 DoF)
+		child = RigidBodyDynamics::Body (
+				1.,
+				RigidBodyDynamics::Math::Vector3d (0., 0.5, 0.),
+				RigidBodyDynamics::Math::Vector3d (1., 1., 1.)
+				);
+		joint_rotzyx = RigidBodyDynamics::Joint (
+				RigidBodyDynamics::Math::SpatialVector (0., 0., 1., 0., 0., 0.),
+				RigidBodyDynamics::Math::SpatialVector (0., 1., 0., 0., 0., 0.),
+				RigidBodyDynamics::Math::SpatialVector (1., 0., 0., 0., 0., 0.)
+				);
+		child_id = model->AddBody (base_id, RigidBodyDynamics::Math::Xtrans (RigidBodyDynamics::Math::Vector3d (1., 0., 0.)), joint_rotzyx, child);
+
+		// child body (3 DoF)
+		child_2 = RigidBodyDynamics::Body (
+				1.,
+				RigidBodyDynamics::Math::Vector3d (0., 0.5, 0.),
+				RigidBodyDynamics::Math::Vector3d (1., 1., 1.)
+				);
+		child_2_id = model->AddBody (child_id, RigidBodyDynamics::Math::Xtrans (RigidBodyDynamics::Math::Vector3d (1., 0., 0.)), joint_rotzyx, child_2);
+
+		Q = RigidBodyDynamics::Math::VectorNd::Constant (model->dof_count, 0.);
+		QDot = RigidBodyDynamics::Math::VectorNd::Constant (model->dof_count, 0.);
+		QDDot = RigidBodyDynamics::Math::VectorNd::Constant (model->dof_count, 0.);
+		Tau = RigidBodyDynamics::Math::VectorNd::Constant (model->dof_count, 0.);
+
+		contact_body_id = child_id;
+		contact_point = RigidBodyDynamics::Math::Vector3d  (0.5, 0.5, 0.);
+		contact_normal = RigidBodyDynamics::Math::Vector3d  (0., 1., 0.);
+
+		ClearLogOutput();
+	}
+	
+	~FixedBase6DoF12DoFFloatingBase () {
+		delete model;
+	}
+	RigidBodyDynamics::Model *model;
+
+	unsigned int base_id, child_id, child_2_id;
+
+	RigidBodyDynamics::Body base, child, child_2;
+
+	RigidBodyDynamics::Joint joint_rotzyx;
+
+	RigidBodyDynamics::Math::VectorNd Q;
+	RigidBodyDynamics::Math::VectorNd QDot;
+	RigidBodyDynamics::Math::VectorNd QDDot;
+	RigidBodyDynamics::Math::VectorNd Tau;
+
+	unsigned int contact_body_id;
+	RigidBodyDynamics::Math::Vector3d contact_point;
+	RigidBodyDynamics::Math::Vector3d contact_normal;
+	RigidBodyDynamics::ConstraintSet constraint_set;
+};

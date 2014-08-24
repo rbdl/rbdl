@@ -197,7 +197,7 @@ double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		ForwardDynamicsContacts (*model, sample_data.q_data[i], sample_data.qdot_data[i], sample_data.tau_data[i], *constraint_set, sample_data.qddot_data[i]); 
+		ForwardDynamicsContacts(*model, sample_data.q_data[i], sample_data.qdot_data[i], sample_data.tau_data[i], *constraint_set, sample_data.qddot_data[i]); 
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -506,6 +506,10 @@ int main (int argc, char *argv[]) {
 
 	generate_human36model (model);
 	cout << "Human dofs = " << model->dof_count << endl;
+	cout << "CRBA:" << endl;
+	run_CRBA_benchmark (model, benchmark_sample_count);
+	cout << "RNEA:" << endl;
+	run_inverse_dynamics_RNEA_benchmark (model, benchmark_sample_count);
 	delete model;
 
 	rbdl_print_version();

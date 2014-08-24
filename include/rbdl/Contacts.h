@@ -262,6 +262,16 @@ void ForwardDynamicsContactsLagrangian (
 		Math::VectorNd &QDDot
 		);
 
+RBDL_DLLAPI
+void ForwardDynamicsContactsLagrangianSparse (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		ConstraintSet &CS,
+		Math::VectorNd &QDDot
+		);
+
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
  *
  * This method builds and solves the linear system \f[

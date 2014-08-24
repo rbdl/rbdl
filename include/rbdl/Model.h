@@ -123,6 +123,8 @@ struct RBDL_DLLAPI Model {
 
 	/// \brief The id of the parents body
 	std::vector<unsigned int> lambda;
+	/// \brief The index of the parent degree of freedom that is directly influencing the current one
+	std::vector<unsigned int> lambda_q;
 	/// \brief Contains the ids of all the children of a given body
 	std::vector<std::vector<unsigned int> >mu;
 

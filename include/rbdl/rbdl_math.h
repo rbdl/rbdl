@@ -12,6 +12,7 @@
 
 #ifdef RBDL_USE_SIMPLE_MATH
   #include "rbdl/SimpleMath/SimpleMath.h"
+	#include "rbdl/SimpleMath/SimpleMathCholesky.h"
 	#include <vector>
 
 	typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3_t;
