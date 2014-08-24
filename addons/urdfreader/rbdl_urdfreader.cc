@@ -52,14 +52,13 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 	Matrix3d root_inertial_inertia;
 	double root_inertial_mass;
 
-	if (root->inertial)
-	{
+	if (root->inertial) {
 		root_inertial_mass = root->inertial->mass;
 
 		root_inertial_position.set (
-			root->inertial->origin.position.x,
-			root->inertial->origin.position.y,
-			root->inertial->origin.position.z);
+				root->inertial->origin.position.x,
+				root->inertial->origin.position.y,
+				root->inertial->origin.position.z);
 
 		root_inertial_inertia(0,0) = root->inertial->ixx;
 		root_inertial_inertia(0,1) = root->inertial->ixy;
@@ -74,36 +73,37 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 		root_inertial_inertia(2,2) = root->inertial->izz;
 
 		root->inertial->origin.rotation.getRPY (root_inertial_rpy[0], root_inertial_rpy[1], root_inertial_rpy[2]);
-	}
-	Body root_link = Body (root_inertial_mass,
-	root_inertial_position,
-	root_inertial_inertia);
-	Joint root_joint = Joint (
-		SpatialVector (0., 0., 0., 1., 0., 0.),
-		SpatialVector (0., 0., 0., 0., 1., 0.),
-		SpatialVector (0., 0., 0., 0., 0., 1.),
-		SpatialVector (1., 0., 0., 0., 0., 0.),
-		SpatialVector (0., 1., 0., 0., 0., 0.),
-		SpatialVector (0., 0., 1., 0., 0., 0.));
 
-	SpatialTransform root_joint_frame = SpatialTransform ();
+		Body root_link = Body (root_inertial_mass,
+				root_inertial_position,
+				root_inertial_inertia);
+		Joint root_joint = Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (1., 0., 0., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (0., 0., 1., 0., 0., 0.));
 
-	if (verbose) {
-		cout << "+ Adding Root Body " << endl;
-		cout << "  joint frame: " << root_joint_frame << endl;
-		cout << "  joint dofs : " << root_joint.mDoFCount << endl;
-		for (unsigned int j = 0; j < root_joint.mDoFCount; j++) {
-			cout << "    " << j << ": " << root_joint.mJointAxes[j].transpose() << endl;
+		SpatialTransform root_joint_frame = SpatialTransform ();
+
+		if (verbose) {
+			cout << "+ Adding Root Body " << endl;
+			cout << "  joint frame: " << root_joint_frame << endl;
+			cout << "  joint dofs : " << root_joint.mDoFCount << endl;
+			for (unsigned int j = 0; j < root_joint.mDoFCount; j++) {
+				cout << "    " << j << ": " << root_joint.mJointAxes[j].transpose() << endl;
+			}
+			cout << "  body inertia: " << endl << root_link.mSpatialInertia << endl;
+			cout << "  body mass   : " << root_link.mMass << endl;
+			cout << "  body name   : " << root->name << endl;
 		}
-		cout << "  body inertia: " << endl << root_link.mSpatialInertia << endl;
-		cout << "  body mass   : " << root_link.mMass << endl;
-		cout << "  body name   : " << root->name << endl;
-	}
 
-	rbdl_model->AppendBody(root_joint_frame,
-		root_joint,
-		root_link,
-		root->name);
+		rbdl_model->AppendBody(root_joint_frame,
+				root_joint,
+				root_link,
+				root->name);
+	}
 
 	if (link_stack.top()->child_joints.size() > 0) {
 		joint_index_stack.push(0);
