@@ -500,6 +500,7 @@ void ForwardDynamicsAccelerationDeltas (
 		CS.d_pA[i].setZero();
 		CS.d_a[i].setZero();
 		CS.d_u[i] = 0.;
+		CS.d_multdof3_u[i].setZero();
 	}
 
 	for (unsigned int i = body_id; i > 0; i--) {

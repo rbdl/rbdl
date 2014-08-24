@@ -740,3 +740,27 @@ TEST ( TestJointTypeEulerYXZ ) {
 
 	CHECK_ARRAY_CLOSE (H_emulated.data(), H_3dof.data(), q.size() * q.size(), TEST_PREC);
 }
+
+TEST_FIXTURE (Human36, TestContactsEmulatedMultdofKokkevisMultiple ) {
+	for (unsigned int i = 0; i < q.size(); i++) {
+		q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+	}
+
+	VectorNd qddot_kokkevis (qddot_emulated);
+	VectorNd qddot_kokkevis_2 (qddot_emulated);
+
+	ForwardDynamicsContacts(*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_kokkevis);
+	ForwardDynamicsContacts(*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_kokkevis_2);
+	CHECK_ARRAY_CLOSE (qddot_kokkevis.data(), qddot_kokkevis_2.data(), qddot_kokkevis.size(), TEST_PREC * qddot_kokkevis.norm());
+
+	ForwardDynamicsContacts(*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_kokkevis);
+	ForwardDynamicsContacts(*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_kokkevis_2);
+	CHECK_ARRAY_CLOSE (qddot_kokkevis.data(), qddot_kokkevis_2.data(), qddot_kokkevis.size(), TEST_PREC * qddot_kokkevis.norm());
+
+	ForwardDynamicsContacts(*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_kokkevis);
+	ForwardDynamicsContacts(*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_kokkevis_2);
+	CHECK_ARRAY_CLOSE (qddot_kokkevis.data(), qddot_kokkevis_2.data(), qddot_kokkevis.size(), TEST_PREC * qddot_kokkevis.norm());
+}
+
