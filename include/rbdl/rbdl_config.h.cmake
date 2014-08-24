@@ -16,6 +16,7 @@
 #cmakedefine RBDL_BUILD_TYPE "@RBDL_BUILD_TYPE@"
 #cmakedefine RBDL_BUILD_BRANCH "@RBDL_BUILD_BRANCH@"
 #cmakedefine BUILD_ADDON_LUAMODEL
+#cmakedefine BUILD_ADDON_URDFREADER
 
 /* compatibility defines */
 #ifdef _WIN32

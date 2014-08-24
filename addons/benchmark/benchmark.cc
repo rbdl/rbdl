@@ -20,6 +20,15 @@ bool have_luamodel = true;
 bool have_luamodel = false;
 #endif
 
+#ifdef BUILD_ADDON_URDFREADER
+#include "../addons/urdfreader/rbdl_urdfreader.h"
+bool have_urdfreader = true;
+#else
+bool have_urdfreader = false;
+#endif
+
+
+
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
@@ -478,7 +487,7 @@ void parse_args (int argc, char* argv[]) {
 		} else if (arg == "--only-contacts" || arg == "-C") {
 			disable_all_benchmarks();
 			benchmark_run_contacts = true;
-#ifdef BUILD_ADDON_LUAMODEL
+#if (defined(BUILD_ADDON_LUAMODEL) || defined	(BUILD_ADDON_URDFREADER))
 		} else if (model_file == "") {
 			model_file = arg;
 #endif
@@ -498,9 +507,23 @@ int main (int argc, char *argv[]) {
 
 	model = new Model();
 
-#ifdef BUILD_ADDON_LUAMODEL
 	if (model_file != "") {
-		RigidBodyDynamics::Addons::LuaModelReadFromFile (model_file.c_str(), model);
+		if (model_file.substr (model_file.size() - 4, 4) == ".lua") {
+#ifdef BUILD_ADDON_LUAMODEL
+			RigidBodyDynamics::Addons::LuaModelReadFromFile (model_file.c_str(), model);
+#else
+			cerr << "Could not load Lua model: LuaModel addon not enabled!" << endl;
+			abort();
+#endif
+		}
+		if (model_file.substr (model_file.size() - 5, 5) == ".urdf") {
+#ifdef BUILD_ADDON_URDFREADER
+			RigidBodyDynamics::Addons::URDFReadFromFile(model_file.c_str(), model);
+#else
+			cerr << "Could not load URDF model: urdfreader addon not enabled!" << endl;
+			abort();
+#endif
+		}
 
 		if (benchmark_run_fd_aba) {
 			cout << "= Forward Dynamics: ABA =" << endl;
@@ -531,7 +554,6 @@ int main (int argc, char *argv[]) {
 
 		return 0;
 	}
-#endif
 
 	rbdl_print_version();
 	cout << endl;

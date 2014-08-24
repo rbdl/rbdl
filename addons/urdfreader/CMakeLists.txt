@@ -30,7 +30,6 @@ ADD_LIBRARY ( rbdl_urdfreader SHARED ${URDFREADER_SOURCES} )
 
 ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
 
-
 IF (BUILD_STATIC)
 	ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${URDFREADER_SOURCES} )
 
