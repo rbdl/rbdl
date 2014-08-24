@@ -47,10 +47,10 @@ struct SampleData {
 			tau_data[si].resize (dof_count);
 
 			for (int i = 0; i < dof_count; i++) {
-				q_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
-				qdot_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
-				qddot_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
-				tau_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
+				q_data[si][i] = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * 2. -1.;
+				qdot_data[si][i] = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * 2. -1.;
+				qddot_data[si][i] = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * 2. -1.;
+				tau_data[si][i] = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * 2. -1.;
 			}
 		}
 	}
