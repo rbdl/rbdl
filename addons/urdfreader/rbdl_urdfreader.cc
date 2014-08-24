@@ -247,7 +247,18 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 			cout << "  body name   : " << urdf_child->name << endl;
 		}
 
-		rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, rbdl_joint, rbdl_body, urdf_child->name);
+		if (urdf_joint->type == urdf::Joint::FLOATING) {
+			Matrix3d zero_matrix = Matrix3d::Zero();
+			Body null_body (0., Vector3d::Zero(3), zero_matrix);
+			Joint joint_txtytz(JointTypeTranslationXYZ);
+			string trans_body_name = urdf_child->name + "_Translate";
+			rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, joint_txtytz, null_body, trans_body_name);
+
+			Joint joint_euler_zyx (JointTypeEulerXYZ);
+			rbdl_model->AppendBody (SpatialTransform(), joint_euler_zyx, rbdl_body, urdf_child->name);
+		} else {
+			rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, rbdl_joint, rbdl_body, urdf_child->name);
+		}
 	}
 
 	return true;
