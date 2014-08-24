@@ -72,19 +72,19 @@ double SegmentRadiiOfGyration[SegmentNameLast][3] = {
 };
 
 Body create_body (SegmentName segment) {
-	return Body (
+	Matrix3d inertia_C (Matrix3d::Zero());
+	inertia_C(0,0) = pow(SegmentRadiiOfGyration[segment][0] * SegmentLengths[segment], 2) * SegmentMass[segment];
+	inertia_C(1,1) = pow(SegmentRadiiOfGyration[segment][1] * SegmentLengths[segment], 2) * SegmentMass[segment];
+	inertia_C(2,2) = pow(SegmentRadiiOfGyration[segment][2] * SegmentLengths[segment], 2) * SegmentMass[segment];
+
+	return RigidBodyDynamics::Body (
 			SegmentMass[segment],
-			Vector3d (
+			RigidBodyDynamics::Math::Vector3d (
 				SegmentCOM[segment][0],
 				SegmentCOM[segment][1],
 				SegmentCOM[segment][2]
 				),
-			Vector3d (
-				SegmentRadiiOfGyration[segment][0],
-				SegmentRadiiOfGyration[segment][1],
-				SegmentRadiiOfGyration[segment][2]
-				)
-			);
+			inertia_C);
 }
 
 void generate_human36model (RigidBodyDynamics::Model *model) {
@@ -108,10 +108,10 @@ void generate_human36model (RigidBodyDynamics::Model *model) {
 		SpatialVector (1., 0., 0., 0., 0., 0.)
 		);
 
-	Joint rot_yzx (
+	Joint rot_yxz (
 			SpatialVector (0., 1., 0., 0., 0., 0.),
-			SpatialVector (0., 0., 1., 0., 0., 0.),
-			SpatialVector (1., 0., 0., 0., 0., 0.)
+			SpatialVector (1., 0., 0., 0., 0., 0.),
+			SpatialVector (0., 0., 1., 0., 0., 0.)
 			);
 
 	Joint rot_yz (
@@ -130,29 +130,29 @@ void generate_human36model (RigidBodyDynamics::Model *model) {
 	unsigned int pelvis_id = model->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), free_flyer, pelvis_body, "pelvis");
 
 	// right leg
-	model->AddBody (pelvis_id, Xtrans(Vector3d(0., -0.0872, 0.)), rot_yzx, thigh_body, "thigh_r");
+	model->AddBody (pelvis_id, Xtrans(Vector3d(0., -0.0872, 0.)), rot_yxz, thigh_body, "thigh_r");
 	model->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentThigh])), rot_y, shank_body, "shank_r");
 	model->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentShank])), rot_yz, foot_body, "foot_r");
 
 	// left leg
-	model->AddBody (pelvis_id, Xtrans(Vector3d(0., 0.0872, 0.)), rot_yzx, thigh_body, "thigh_l");
+	model->AddBody (pelvis_id, Xtrans(Vector3d(0., 0.0872, 0.)), rot_yxz, thigh_body, "thigh_l");
 	model->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentThigh])), rot_y, shank_body, "shank_l");
 	model->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentShank])), rot_yz, foot_body, "foot_l");
 
 	// trunk
-	model->AddBody (pelvis_id, Xtrans(Vector3d(0., 0., SegmentLengths[SegmentPelvis])), rot_yzx, middle_trunk_body, "middletrunk");
+	model->AddBody (pelvis_id, Xtrans(Vector3d(0., 0., SegmentLengths[SegmentPelvis])), rot_yxz, middle_trunk_body, "middletrunk");
 	unsigned int uppertrunk_id = model->AppendBody (Xtrans(Vector3d(0., 0., SegmentLengths[SegmentMiddleTrunk])), fixed, upper_trunk_body, "uppertrunk");
 
 	// right arm
-	model->AddBody (uppertrunk_id, Xtrans(Vector3d(0., -0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yzx, upperarm_body, "upperarm_r");
+	model->AddBody (uppertrunk_id, Xtrans(Vector3d(0., -0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yxz, upperarm_body, "upperarm_r");
 	model->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentUpperArm])), rot_y, lowerarm_body, "lowerarm_r");
 	model->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentLowerArm])), rot_yz, hand_body, "hand_r");
 
 	// left arm
-	model->AddBody (uppertrunk_id, Xtrans(Vector3d(0.,  0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yzx, upperarm_body, "upperarm_l");
+	model->AddBody (uppertrunk_id, Xtrans(Vector3d(0.,  0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yxz, upperarm_body, "upperarm_l");
 	model->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentUpperArm])), rot_y, lowerarm_body, "lowerarm_l");
 	model->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentLowerArm])), rot_yz, hand_body, "hand_l");
 
 	// head	
-	model->AddBody (uppertrunk_id, Xtrans(Vector3d(0., 0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yzx, upperarm_body, "head");
+	model->AddBody (uppertrunk_id, Xtrans(Vector3d(0., 0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yxz, upperarm_body, "head");
 }

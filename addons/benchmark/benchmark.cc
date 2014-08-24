@@ -36,9 +36,10 @@ bool benchmark_run_contacts = false;
 
 string model_file = "";
 
-enum ContactsBenchmark {
-	ContactsBenchmarkLagrangian = 0,
-	ContactsBenchmarkKokkevis
+enum ContactsMethod {
+	ContactsMethodLagrangian = 0,
+	ContactsMethodLagrangianSparse,
+	ContactsMethodKokkevis
 };
 
 double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
@@ -189,6 +190,22 @@ double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constrain
 	return duration;
 }
 
+double run_contacts_lagrangian_sparse_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
+	SampleData sample_data;
+	sample_data.fill_random_data(model->dof_count, sample_count);
+
+	TimerInfo tinfo;
+	timer_start (&tinfo);
+
+	for (int i = 0; i < sample_count; i++) {
+		ForwardDynamicsContactsLagrangianSparse (*model, sample_data.q_data[i], sample_data.qdot_data[i], sample_data.tau_data[i], *constraint_set, sample_data.qddot_data[i]); 
+	}
+
+	double duration = timer_stop (&tinfo);
+
+	return duration;
+}
+
 double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
 	SampleData sample_data;
 	sample_data.fill_random_data(model->dof_count, sample_count);
@@ -205,7 +222,7 @@ double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_
 	return duration;
 }
 
-double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmark) {
+double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
 	// initialize the human model
 	Model *model = new Model();
 	generate_human36model(model);
@@ -291,8 +308,10 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 	double duration;
 
 	// one body one
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &one_body_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodLagrangianSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &one_body_one_constraint, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &one_body_one_constraint, sample_count);
 	}
@@ -302,8 +321,10 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
 	// two_bodies_one
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &two_bodies_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodLagrangianSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &two_bodies_one_constraint, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &two_bodies_one_constraint, sample_count);
 	}
@@ -314,8 +335,10 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 
 
 	// four_bodies_one
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &four_bodies_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodLagrangianSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &four_bodies_one_constraint, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &four_bodies_one_constraint, sample_count);
 	}
@@ -325,8 +348,10 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
 	// one_body_four
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &one_body_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodLagrangianSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &one_body_four_constraints, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &one_body_four_constraints, sample_count);
 	}
@@ -336,8 +361,10 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
 	// two_bodies_four
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &two_bodies_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodLagrangianSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &two_bodies_four_constraints, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &two_bodies_four_constraints, sample_count);
 	}
@@ -348,8 +375,10 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 
 
 	// four_bodies_four
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &four_bodies_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodLagrangianSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &four_bodies_four_constraints, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &four_bodies_four_constraints, sample_count);
 	}
@@ -504,14 +533,6 @@ int main (int argc, char *argv[]) {
 	}
 #endif
 
-	generate_human36model (model);
-	cout << "Human dofs = " << model->dof_count << endl;
-	cout << "CRBA:" << endl;
-	run_CRBA_benchmark (model, benchmark_sample_count);
-	cout << "RNEA:" << endl;
-	run_inverse_dynamics_RNEA_benchmark (model, benchmark_sample_count);
-	delete model;
-
 	rbdl_print_version();
 	cout << endl;
 
@@ -592,10 +613,13 @@ int main (int argc, char *argv[]) {
 
 	if (benchmark_run_contacts) {
 		cout << "= Contacts: ForwardDynamicsContactsLagrangian" << endl;
-		contacts_benchmark (benchmark_sample_count, ContactsBenchmarkLagrangian);
+		contacts_benchmark (benchmark_sample_count, ContactsMethodLagrangian);
+
+		cout << "= Contacts: ForwardDynamicsContactsLagrangianSparse" << endl;
+		contacts_benchmark (benchmark_sample_count, ContactsMethodLagrangianSparse);
 
 		cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
-		contacts_benchmark (benchmark_sample_count, ContactsBenchmarkKokkevis);
+		contacts_benchmark (benchmark_sample_count, ContactsMethodKokkevis);
 	}
 
 	return 0;
