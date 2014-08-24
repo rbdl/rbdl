@@ -1,10 +1,18 @@
 2.3.1 -> next (2.4.0?)
 - Fixed ForwardDynamicsContacts when using 3-dof joints
-- Fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)
+- Fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning
+  Koch!)
 - Fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)
-- Removed/Fixed CalcAngularMomentum. The function produced wrong values. The functionality has been integrated into CalcCenterOfMass.
-- Added optional workspace parameters for ForwardDynamicsLagrangian() to optionally reduce memory allocations
-- Added JointTypeTranslationXYZ, JointTypeEulerXYZ, and JointTypeEulerYXZ which are equivalent to the emulated multidof joints but faster
+- Removed/Fixed CalcAngularMomentum. The function produced wrong values. The
+  functionality has been integrated into CalcCenterOfMass.
+- Added ForwardDynamicsContactsLagrangianSparse. It uses a sparse LTL
+  decomposition for the joint space inertia matrix and first solves for the
+  constraint forces. Depending on the branching of the model it is
+  considerably faster than ForwardDynamicsContactsLagrangian.
+- Added optional workspace parameters for ForwardDynamicsLagrangian() to
+  optionally reduce memory allocations
+- Added JointTypeTranslationXYZ, JointTypeEulerXYZ, and JointTypeEulerYXZ
+  which are equivalent to the emulated multidof joints but faster
 - Added optional parameter to CalcCenterOfMass to compute angular momentum.
 - Added CalcContactJacobian()
 - Added NonlinearEffects()
@@ -24,13 +32,13 @@
 - disabled clearing of joint space inertia matrix in CRBA.
   It is expected that the matrix is cleared by the user when neccessary.
 - Added experimental joint type JointTypeEulerZYX. It does not emulate
-	multiple degrees of freedom using virtual bodies instead it uses a 3 DoF
-	motion subspace. Performance is better for the
-	CompositeRigidBodyAlgorithm but worse for other algorithms.
+  multiple degrees of freedom using virtual bodies instead it uses a 3 DoF
+  motion subspace. Performance is better for the
+  CompositeRigidBodyAlgorithm but worse for other algorithms.
 - Using Eigen3's default column-major ordering for matrices when using
-	Eigen3. This should have no effect for the user unless matrix elements
-	are accessed using the .data()[i] operator of Eigen3's matrix class. However
-	if .data()[i] is used the access indices have to be adjusted.
+  Eigen3. This should have no effect for the user unless matrix elements
+  are accessed using the .data()[i] operator of Eigen3's matrix class. However
+  if .data()[i] is used the access indices have to be adjusted.
 - added functions to compute kinetic and potential energy and the
   computation of the center of mass and its linear velocity:
     RigidBodyDynamics::Utils::CalcCenterOfMass
