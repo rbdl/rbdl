@@ -48,8 +48,17 @@ string get_body_name (const RigidBodyDynamics::Model &model, unsigned int body_i
 RBDL_DLLAPI std::string GetModelDOFOverview (const Model &model) {
 	stringstream result ("");
 
+	unsigned int q_index = 0;
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		result << setfill(' ') << setw(3) << i - 1 << ": " << get_body_name(model, i) << "_" << get_dof_name (model.S[i]) << endl;
+		if (model.mJoints[i].mDoFCount == 1) {
+			result << setfill(' ') << setw(3) << q_index << ": " << get_body_name(model, i) << "_" << get_dof_name (model.S[i]) << endl;
+			q_index++;
+		} else {
+			for (unsigned int j = 0; j < model.mJoints[i].mDoFCount; j++) {
+				result << setfill(' ') << setw(3) << q_index << ": " << get_body_name(model, i) << "_" << get_dof_name (model.mJoints[i].mJointAxes[j]) << endl;
+				q_index++;
+			}
+		}
 	}
 
 	return result.str();
