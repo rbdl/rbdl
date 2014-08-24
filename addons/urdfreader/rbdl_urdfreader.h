@@ -8,7 +8,8 @@ namespace RigidBodyDynamics {
 class Model;
 
 namespace Addons {
-	RBDL_DLLAPI bool read_urdf_model (const char* filename, Model* model, bool verbose = false);
+	RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verbose = false);
+	RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string, Model* model, bool verbose = false);
 }
 
 }

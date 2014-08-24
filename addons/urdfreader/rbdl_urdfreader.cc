@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <fstream>
 #include <map>
 #include <stack>
 
@@ -252,19 +253,30 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 	return true;
 }
 
-RBDL_DLLAPI bool read_urdf_model (const char* filename, Model* model, bool verbose) {
+RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verbose) {
+	ifstream model_file (filename);
+	if (!model_file) {
+		cerr << "Error opening file '" << filename << "'." << endl;
+		abort();
+	}
+	
+	// reserve memory for the contents of the file
+	string model_xml_string;
+	model_file.seekg(0, std::ios::end);
+	model_xml_string.reserve(model_file.tellg());
+	model_file.seekg(0, std::ios::beg);
+	model_xml_string.assign((std::istreambuf_iterator<char>(model_file)), std::istreambuf_iterator<char>());
+
+	model_file.close();
+
+	return URDFReadFromString (model_xml_string.c_str(), model, verbose);
+}
+
+RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string, Model* model, bool verbose) {
 	assert (model);
 
-	cerr << "Warning: this code (RigidBodyDynamics::Addons::" << __func__ << "()) is not properly tested as" << endl;
-	cerr << "         I do not have a proper urdf model that I can use to validate the model loading." << endl;
-	cerr << "         Please use with care." << endl;
-
-	boost::shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDFFile (filename);
-
-	if (!urdf_model) {
-		cerr << "Error opening urdf file" << endl;
-	}
-
+	boost::shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDF (model_xml_string);
+ 
 	if (!construct_model (model, urdf_model, verbose)) {
 		cerr << "Error constructing model from urdf file." << endl;
 		return false;

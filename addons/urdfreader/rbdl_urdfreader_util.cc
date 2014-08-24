@@ -19,7 +19,6 @@ void usage (const char* argv_0) {
 	exit (1);
 }
 
-
 int main (int argc, char *argv[]) {
 	if (argc < 2 || argc > 4) {
 		usage(argv[0]);
@@ -46,7 +45,7 @@ int main (int argc, char *argv[]) {
 
 	RigidBodyDynamics::Model model;
 
-	if (!RigidBodyDynamics::Addons::read_urdf_model(filename.c_str(), &model, verbose)) {
+	if (!RigidBodyDynamics::Addons::URDFReadFromFile(filename.c_str(), &model, verbose)) {
 		cerr << "Loading of urdf model failed!" << endl;
 		return -1;
 	}
