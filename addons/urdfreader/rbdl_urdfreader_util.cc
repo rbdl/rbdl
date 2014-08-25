@@ -1,7 +1,7 @@
 #include <rbdl/rbdl.h>
 #include <rbdl/rbdl_utils.h>
 
-#include "rbdl_urdfreader.h"
+#include "urdfreader.h"
 
 #include <iostream>
 

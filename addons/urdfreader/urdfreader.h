@@ -1,5 +1,5 @@
-#ifndef _RBDL_URDFREADER_H
-#define _RBDL_URDFREADER_H
+#ifndef RBDL_URDFREADER_H
+#define RBDL_URDFREADER_H
 
 #include <rbdl/rbdl_config.h>
 

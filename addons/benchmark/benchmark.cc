@@ -21,7 +21,7 @@ bool have_luamodel = false;
 #endif
 
 #ifdef BUILD_ADDON_URDFREADER
-#include "../addons/urdfreader/rbdl_urdfreader.h"
+#include "../addons/urdfreader/urdfreader.h"
 bool have_urdfreader = true;
 #else
 bool have_urdfreader = false;

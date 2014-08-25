@@ -23,7 +23,7 @@ SET (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Options
 SET ( URDFREADER_SOURCES
-	rbdl_urdfreader.cc
+	urdfreader.cc
 	)
 
 ADD_LIBRARY ( rbdl_urdfreader SHARED ${URDFREADER_SOURCES} )

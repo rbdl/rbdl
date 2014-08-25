@@ -1,6 +1,6 @@
 #include <rbdl/rbdl.h>
 
-#include "rbdl_urdfreader.h"
+#include "urdfreader.h"
 
 #include <assert.h>
 #include <iostream>
