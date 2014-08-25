@@ -128,6 +128,9 @@ enum JointType {
 	JointTypeUndefined = 0,
 	JointTypeRevolute,
 	JointTypePrismatic,
+	JointTypeRevoluteX,
+	JointTypeRevoluteY,
+	JointTypeRevoluteZ,
 	JointTypeSpherical, ///< 3 DoF joint using Quaternions for joint positional variables and angular velocity for joint velocity variables.
 	JointTypeEulerZYX, ///< 3 DoF joint that uses Euler ZYX convention (faster than emulated multi DoF joints).
 	JointTypeEulerXYZ, ///< 3 DoF joint that uses Euler XYZ convention (faster than emulated multi DoF joints).
@@ -159,7 +162,19 @@ struct RBDL_DLLAPI Joint {
 		mJointType (type),
 	  mDoFCount (0),
 		q_index (0) {
-			if (type == JointTypeSpherical) {
+			if (type == JointTypeRevoluteX) {
+				mDoFCount = 1;
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+				mJointAxes[0] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+			} else if (type == JointTypeRevoluteY) {
+				mDoFCount = 1;
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+				mJointAxes[0] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+			} else if (type == JointTypeRevoluteZ) {
+				mDoFCount = 1;
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+			} else if (type == JointTypeSpherical) {
 				mDoFCount = 3;
 
 				mJointAxes = new Math::SpatialVector[mDoFCount];
@@ -297,12 +312,18 @@ struct RBDL_DLLAPI Joint {
 	Joint (
 			const Math::SpatialVector &axis_0
 			) {
-		mJointType = JointType1DoF;
 		mDoFCount = 1;
-
 		mJointAxes = new Math::SpatialVector[mDoFCount];
-		mJointAxes[0] = axis_0;
-
+		mJointAxes[0] = Math::SpatialVector (axis_0);
+		if (axis_0 == Math::SpatialVector(1., 0., 0., 0., 0., 0.)) {
+			mJointType = JointTypeRevoluteX;
+		} else if (axis_0 == Math::SpatialVector(0., 1., 0., 0., 0., 0.)) {
+			mJointType = JointTypeRevoluteY;
+		} else if (axis_0 == Math::SpatialVector(0., 0., 1., 0., 0., 0.)) {
+			mJointType = JointTypeRevoluteZ;
+		} else {
+			mJointType = JointType1DoF;
+		}
 		validate_spatial_axis (mJointAxes[0]);
 	}
 

@@ -31,7 +31,25 @@ namespace RigidBodyDynamics {
 			// exception if we calculate it for the root body
 			assert (joint_id > 0);
 
-			if (model.mJoints[joint_id].mDoFCount == 1) {
+			if (model.mJoints[joint_id].mJointType == JointTypeRevoluteX) {
+				XJ = Xrotx (q[model.mJoints[joint_id].q_index]);
+				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
+				c_J.setZero();
+
+				v_J.set (qdot[model.mJoints[joint_id].q_index], 0., 0., 0., 0., 0.);
+			} else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteY) {
+				XJ = Xroty (q[model.mJoints[joint_id].q_index]);
+
+				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
+				c_J.setZero();
+				v_J.set (0., qdot[model.mJoints[joint_id].q_index], 0., 0., 0., 0.);
+			} else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
+				XJ = Xrotz (q[model.mJoints[joint_id].q_index]);
+
+				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
+				c_J.setZero();
+				v_J.set (0., 0., qdot[model.mJoints[joint_id].q_index], 0., 0., 0.);
+			} else if (model.mJoints[joint_id].mDoFCount == 1) {
 				XJ = jcalc_XJ (model, joint_id, q);
 
 				// Set the joint axis
@@ -247,7 +265,16 @@ namespace RigidBodyDynamics {
 			// exception if we calculate it for the root body
 			assert (joint_id > 0);
 
-			if (model.mJoints[joint_id].mDoFCount == 1) {
+			if (model.mJoints[joint_id].mJointType == JointTypeRevoluteX) {
+				model.X_lambda[joint_id] = Xrotx (q[model.mJoints[joint_id].q_index]) * model.X_T[joint_id];
+				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
+			} else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteY) {
+				model.X_lambda[joint_id] = Xroty (q[model.mJoints[joint_id].q_index]) * model.X_T[joint_id];
+				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
+			} else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
+				model.X_lambda[joint_id] = Xrotz (q[model.mJoints[joint_id].q_index]) * model.X_T[joint_id];
+				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
+			} else if (model.mJoints[joint_id].mDoFCount == 1) {
 				model.X_lambda[joint_id] = jcalc_XJ (model, joint_id, q) * model.X_T[joint_id];
 
 				// Set the joint axis

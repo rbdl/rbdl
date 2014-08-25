@@ -125,8 +125,7 @@ template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 			if (dof_string == "JointTypeSpherical") {
 				stackRestore();
 				return Joint(JointTypeSpherical);
-			}
-			if (dof_string == "JointTypeEulerZYX") {
+			} else if (dof_string == "JointTypeEulerZYX") {
 				stackRestore();
 				return Joint(JointTypeEulerZYX);
 			}
@@ -142,7 +141,7 @@ template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 		switch (joint_dofs) {
 			case 0: result = Joint(JointTypeFixed);
 							break;
-			case 1: result = Joint(vector_table[1].get<SpatialVector>());
+			case 1: result = Joint (vector_table[1].get<SpatialVector>());
 							break;
 			case 2: result = Joint(
 									vector_table[1].get<SpatialVector>(),
