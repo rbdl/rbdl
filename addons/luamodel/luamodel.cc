@@ -129,6 +129,18 @@ template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 				stackRestore();
 				return Joint(JointTypeEulerZYX);
 			}
+			if (dof_string == "JointTypeEulerXYZ") {
+				stackRestore();
+				return Joint(JointTypeEulerXYZ);
+			}
+			if (dof_string == "JointTypeEulerYXZ") {
+				stackRestore();
+				return Joint(JointTypeEulerYXZ);
+			}
+			if (dof_string == "JointTypeTranslationXYZ") {
+				stackRestore();
+				return Joint(JointTypeTranslationXYZ);
+			}
 		}
 
 		if (joint_dofs > 0) {
