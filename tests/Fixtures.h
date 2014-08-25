@@ -518,7 +518,7 @@ struct Human36 {
 		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
 		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
 		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_3dof.Bind (*model);
+		constraints_4B4C_3dof.Bind (*model_3dof);
 	}
 
 	Human36 () {
