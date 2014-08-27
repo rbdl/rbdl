@@ -167,19 +167,26 @@ unsigned int AddBodyMultiDofJoint (
 	// which each is attached to the model with a single degree of freedom
 	// joint.
 	for (j = 0; j < joint_count; j++) {
-		Vector3d rotation (
-				joint.mJointAxes[j][0],
-				joint.mJointAxes[j][1],
-				joint.mJointAxes[j][2]);
-		Vector3d translation (
-				joint.mJointAxes[j][3],
-				joint.mJointAxes[j][4],
-				joint.mJointAxes[j][5]);
+		single_dof_joint = Joint (joint.mJointAxes[j]);
 
-		if (rotation == Vector3d (0., 0., 0.)) {
-			single_dof_joint = Joint (JointTypePrismatic, translation);
-		} else if (translation == Vector3d (0., 0., 0.)) {
-			single_dof_joint = Joint (JointTypeRevolute, rotation);
+		if (single_dof_joint.mJointType == JointType1DoF) {
+			Vector3d rotation (
+					joint.mJointAxes[j][0],
+					joint.mJointAxes[j][1],
+					joint.mJointAxes[j][2]);
+			Vector3d translation (
+					joint.mJointAxes[j][3],
+					joint.mJointAxes[j][4],
+					joint.mJointAxes[j][5]);
+
+			if (rotation == Vector3d (0., 0., 0.)) {
+				single_dof_joint = Joint (JointTypePrismatic, translation);
+			} else if (translation == Vector3d (0., 0., 0.)) {
+				single_dof_joint = Joint (JointTypeRevolute, rotation);
+			} else {
+				std::cerr << "Invalid joint axis: " << joint.mJointAxes[0].transpose() << ". Helical joints not (yet) supported." << std::endl;
+				abort();
+			}
 		}
 
 		// the first joint has to be transformed by joint_frame, all the
@@ -212,7 +219,11 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	if (joint.mJointType == JointTypeFixed) {
 		previously_added_body_id = AddBodyFixedJoint (*this, parent_id, joint_frame, joint, body, body_name);
 		return previously_added_body_id;
-	} else if ((joint.mJointType == JointTypeSpherical) || (joint.mJointType == JointTypeEulerZYX) || (joint.mJointType == JointTypeEulerXYZ) || (joint.mJointType == JointTypeEulerYXZ) || (joint.mJointType == JointTypeTranslationXYZ) ) {
+	} else if ( (joint.mJointType == JointTypeSpherical) 
+			|| (joint.mJointType == JointTypeEulerZYX) 
+			|| (joint.mJointType == JointTypeEulerXYZ) 
+			|| (joint.mJointType == JointTypeEulerYXZ) 
+			|| (joint.mJointType == JointTypeTranslationXYZ) ) {
 		// no action required
 	} else if (joint.mJointType != JointTypePrismatic 
 			&& joint.mJointType != JointTypeRevolute
