@@ -51,13 +51,12 @@ void UpdateKinematics (Model &model,
 		if (lambda != 0) {
 			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
 			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
-			model.c[i] = c_J + crossm(model.v[i],v_J);
 		}	else {
 			model.X_base[i] = model.X_lambda[i];
 			model.v[i] = v_J;
-			model.c[i].setZero();
 		}
 		
+		model.c[i] = c_J + crossm(model.v[i],v_J);
 		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 
 		if (model.mJoints[i].mDoFCount == 3) {
@@ -88,7 +87,6 @@ void UpdateKinematicsCustom (Model &model,
 			SpatialVector v_J;
 			SpatialVector c_J;
 			SpatialTransform X_J;
-			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
 			VectorNd QDot_zero (VectorNd::Zero (model.q_size));
@@ -110,7 +108,6 @@ void UpdateKinematicsCustom (Model &model,
 			SpatialVector v_J;
 			SpatialVector c_J;
 			SpatialTransform X_J;
-			Joint joint = model.mJoints[i];
 			unsigned int lambda = model.lambda[i];
 
 			jcalc (model, i, X_J, v_J, c_J, *Q, *QDot);
@@ -120,7 +117,7 @@ void UpdateKinematicsCustom (Model &model,
 				model.c[i] = c_J + crossm(model.v[i],v_J);
 			}	else {
 				model.v[i] = v_J;
-				model.c[i].setZero();
+				model.c[i] = c_J + crossm(model.v[i],v_J);
 			}
 			// LOG << "v[" << i << "] = " << model.v[i].transpose() << std::endl;
 		}
@@ -135,7 +132,7 @@ void UpdateKinematicsCustom (Model &model,
 			if (lambda != 0) {
 				model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 			}	else {
-				model.a[i].setZero();
+				model.a[i] = model.c[i];
 			}
 
 			if (model.mJoints[i].mDoFCount == 3) {
