@@ -35,23 +35,20 @@ namespace RigidBodyDynamics {
 				XJ = Xrotx (q[model.mJoints[joint_id].q_index]);
 				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
 				c_J.setZero();
-
 				v_J.set (qdot[model.mJoints[joint_id].q_index], 0., 0., 0., 0., 0.);
 			} else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteY) {
 				XJ = Xroty (q[model.mJoints[joint_id].q_index]);
-
 				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
 				c_J.setZero();
 				v_J.set (0., qdot[model.mJoints[joint_id].q_index], 0., 0., 0., 0.);
 			} else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
 				XJ = Xrotz (q[model.mJoints[joint_id].q_index]);
-
 				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
 				c_J.setZero();
 				v_J.set (0., 0., qdot[model.mJoints[joint_id].q_index], 0., 0., 0.);
 			} else if (model.mJoints[joint_id].mDoFCount == 1) {
 				XJ = jcalc_XJ (model, joint_id, q);
-
+				
 				// Set the joint axis
 				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
 
@@ -95,6 +92,7 @@ namespace RigidBodyDynamics {
 						c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
 						c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
 						);
+				XJ.r.setZero();
 
 				model.multdof3_S[joint_id].setZero();
 
@@ -136,6 +134,7 @@ namespace RigidBodyDynamics {
 						-s2 * c1, c2 * c0 - s2 * s1 * s0, c2 * s0 + s2 * s1 * c0,
 						s1, -c1 * s0, c1 * c0
 						);
+				XJ.r.setZero();
 
 				model.multdof3_S[joint_id].setZero();
 
@@ -177,6 +176,7 @@ namespace RigidBodyDynamics {
 						-s2 * c0 + c2 * s1 * s0, c2 * c1, s2 * s0 + c2 * s1 * c0,
 						c1 * s0, - s1, c1 * c0
 						);
+				XJ.r.setZero();
 
 				model.multdof3_S[joint_id].setZero();
 
@@ -206,6 +206,7 @@ namespace RigidBodyDynamics {
 				double q1 = q[model.mJoints[joint_id].q_index + 1];
 				double q2 = q[model.mJoints[joint_id].q_index + 2];
 
+				XJ.E = Matrix3d::Identity();
 				XJ.r = Vector3d (q0, q1, q2);
 
 				model.multdof3_S[joint_id].setZero();
@@ -220,7 +221,7 @@ namespace RigidBodyDynamics {
 
 				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
-				c_J.setZero();
+				c_J.set(0., 0., 0., 0., 0., 0.);
 			} else {
 				std::cerr << "Error: invalid joint type!" << std::endl;
 				abort();
