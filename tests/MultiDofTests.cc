@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Fixtures.h"
+#include "Human36Fixture.h"
 #include "rbdl/rbdl_mathutils.h"
 #include "rbdl/Logging.h"
 
