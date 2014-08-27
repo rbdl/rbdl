@@ -776,7 +776,6 @@ TEST_FIXTURE (Human36, TestUpdateKinematics) {
 	CHECK_ARRAY_CLOSE (model_emulated->v[body_id_emulated[BodyShankRight]].data(), model_3dof->v[body_id_3dof[BodyShankRight]].data(), 6, TEST_PREC);
 }
 
-/*
 TEST_FIXTURE (Human36, TestInverseDynamics) {
 	for (unsigned int i = 0; i < q.size(); i++) {
 		q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
@@ -939,4 +938,3 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofKokkevisMultiple ) {
 	ForwardDynamicsContacts(*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_kokkevis_2);
 	CHECK_ARRAY_CLOSE (qddot_kokkevis.data(), qddot_kokkevis_2.data(), qddot_kokkevis.size(), TEST_PREC * qddot_kokkevis.norm());
 }
-*/

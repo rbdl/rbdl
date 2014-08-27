@@ -381,6 +381,7 @@ struct Human36 {
 	}
 
 	Human36 () {
+		ClearLogOutput();
 		using namespace RigidBodyDynamics;
 		using namespace RigidBodyDynamics::Math;
 
