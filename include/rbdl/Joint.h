@@ -511,6 +511,13 @@ Math::SpatialTransform jcalc_XJ (
 		unsigned int joint_id,
 		const Math::VectorNd &q);
 
+RBDL_DLLAPI
+void jcalc_X_lambda_S (
+		Model &model,
+		unsigned int joint_id,
+		const Math::VectorNd &q
+		);
+
 }
 
 

@@ -585,3 +585,19 @@ TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedContacts ) {
 	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC * QDDot_emu.norm());
 }
 
+TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedCRBA ) {
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
+	emuQ[4] = 1.5;
+
+	MatrixNd H_emulated (MatrixNd::Zero (emulated_model.q_size, emulated_model.q_size));
+	MatrixNd H_eulerzyx (MatrixNd::Zero (eulerzyx_model.q_size, eulerzyx_model.q_size));
+
+	CompositeRigidBodyAlgorithm (emulated_model, emuQ, H_emulated);
+	CompositeRigidBodyAlgorithm (eulerzyx_model, emuQ, H_eulerzyx);
+
+	CHECK_ARRAY_CLOSE (H_emulated.data(), H_eulerzyx.data(), emulated_model.q_size * emulated_model.q_size, TEST_PREC);
+}
+

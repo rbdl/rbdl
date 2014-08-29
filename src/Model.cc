@@ -273,8 +273,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	// of the q vector
 	int multdof3_joint_counter = 0;
 	for (unsigned int i = 1; i < mJoints.size(); i++) {
-		if ((mJoints[i].mJointType == JointTypeSpherical)
-				|| (mJoints[i].mJointType == JointTypeEulerZYX)) {
+		if (mJoints[i].mJointType == JointTypeSpherical) {
 			multdof3_w_index[i] = dof_count + multdof3_joint_counter;
 			multdof3_joint_counter++;
 		}
