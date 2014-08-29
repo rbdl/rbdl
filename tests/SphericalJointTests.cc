@@ -504,3 +504,84 @@ TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulated ) {
 
 	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
 }
+
+TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedArticulatedBodyAlgorithm ) {
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
+	emuQ[4] = 1.5;
+
+	emuQDot[0] = 1.;
+	emuQDot[1] = 2.;
+	emuQDot[2] = 3.;
+	emuQDot[3] = 4.;
+	emuQDot[4] = 5.;
+
+	emuTau[0] = 5.;
+	emuTau[1] = 4.;
+	emuTau[2] = 7.;
+	emuTau[3] = 3.;
+	emuTau[4] = 2.;
+
+	VectorNd QDDot_emu = VectorNd::Zero (emulated_model.qdot_size);
+	VectorNd QDDot_eulerzyx = VectorNd::Zero (eulerzyx_model.qdot_size);
+
+	ForwardDynamics (emulated_model, emuQ, emuQDot, emuTau, QDDot_emu);
+	ForwardDynamics (eulerzyx_model, emuQ, emuQDot, emuTau, QDDot_eulerzyx);
+
+	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
+}
+
+TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedContacts ) {
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
+	emuQ[4] = 1.5;
+
+	emuQDot[0] = 1.;
+	emuQDot[1] = 2.;
+	emuQDot[2] = 3.;
+	emuQDot[3] = 4.;
+	emuQDot[4] = 5.;
+
+	emuTau[0] = 5.;
+	emuTau[1] = 4.;
+	emuTau[2] = 7.;
+	emuTau[3] = 3.;
+	emuTau[4] = 2.;
+
+	VectorNd QDDot_emu = VectorNd::Zero (emulated_model.qdot_size);
+	VectorNd QDDot_eulerzyx = VectorNd::Zero (eulerzyx_model.qdot_size);
+
+	ConstraintSet CS_euler;
+	CS_euler.AddConstraint (eulerzyx_child_id, Vector3d (1., 1., 1.), Vector3d (1., 0., 0.));
+	CS_euler.AddConstraint (eulerzyx_child_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.));
+	CS_euler.AddConstraint (eulerzyx_child_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.));
+	CS_euler.Bind (eulerzyx_model);
+
+	ConstraintSet CS_emulated;
+	CS_emulated.AddConstraint (emu_child_id, Vector3d (1., 1., 1.), Vector3d (1., 0., 0.));
+	CS_emulated.AddConstraint (emu_child_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.));
+	CS_emulated.AddConstraint (emu_child_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.));
+	CS_emulated.Bind (emulated_model);
+
+	ForwardDynamicsContactsLagrangian (emulated_model, emuQ, emuQDot, emuTau, CS_emulated, QDDot_emu);
+	ForwardDynamicsContactsLagrangian (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
+
+	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
+
+	ClearLogOutput();
+
+	ForwardDynamicsContacts (emulated_model, emuQ, emuQDot, emuTau, CS_emulated, QDDot_emu);
+	ForwardDynamicsContacts (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
+
+	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC * QDDot_emu.norm());
+
+	ForwardDynamicsContacts (emulated_model, emuQ, emuQDot, emuTau, CS_emulated, QDDot_emu);
+	ForwardDynamicsContactsLagrangian (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
+
+	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC * QDDot_emu.norm());
+}
+
