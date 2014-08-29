@@ -37,6 +37,14 @@
  *
  * \section recent_changes Recent Changes :
  * <ul>
+ * <li>29 August 2014: New version 2.3.2:
+ *   <ul>
+ *     <li><b>critical</b>: fixed ForwardDynamicsLagrangian which used uninitialized values for the joint space inertia matrix (thanks to Benjamin Michaud)</li>
+ *     <li><b>critical</b>: fixed ForwardDynamicsContacts when using 3-dof joints</li>
+ *     <li><b>critical</b>: fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)</li>
+ *     <li><b>critical</b>: fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)</li>
+ *   </ul>
+ * </li>
  * <li>13 July 2014: New version: 2.3.1:
  *   <ul>
  *     <li><b>critical</b>: fixed angular momentum computation. Version 2.3.0 produced wrong
