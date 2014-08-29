@@ -71,17 +71,28 @@ bool ConstraintSet::Bind (const Model &model) {
 	unsigned int n_constr = size();
 
 	H.conservativeResize (model.dof_count, model.dof_count);
+	H.setZero();
 	C.conservativeResize (model.dof_count);
+	C.setZero();
 	gamma.conservativeResize (n_constr);
+	gamma.setZero();
 	G.conservativeResize (n_constr, model.dof_count);
+	G.setZero();
 	A.conservativeResize (model.dof_count + n_constr, model.dof_count + n_constr);
+	A.setZero();
 	b.conservativeResize (model.dof_count + n_constr);
+	b.setZero();
 	x.conservativeResize (model.dof_count + n_constr);
+	x.setZero();
 
 	K.conservativeResize (n_constr, n_constr);
+	K.setZero();
 	a.conservativeResize (n_constr);
+	a.setZero();
 	QDDot_t.conservativeResize (model.dof_count);
+	QDDot_t.setZero();
 	QDDot_0.conservativeResize (model.dof_count);
+	QDDot_0.setZero();
 	f_t.resize (n_constr, SpatialVectorZero);
 	f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
 	point_accel_0.resize (n_constr, Vector3d::Zero());
@@ -93,6 +104,8 @@ bool ConstraintSet::Bind (const Model &model) {
 	d_IA = std::vector<SpatialMatrix> (model.mBodies.size(), SpatialMatrixIdentity);
 	d_U = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
 	d_d = VectorNd::Zero (model.mBodies.size());
+
+	d_multdof3_u = std::vector<Math::Vector3d> (model.mBodies.size(), Math::Vector3d::Zero());
 
 	bound = true;
 
