@@ -578,4 +578,26 @@ TEST_FIXTURE(RotZRotZYXFixed, ModelSetJointFrame) {
 	CHECK_ARRAY_EQUAL (Vector3d(0., 0., 0.).data(), transform_root.r.data(), 3);
 }
 
+TEST (CalcBodyWorldOrientationFixedJoint) {
+	Model model_fixed;
+	Model model_movable;
+
+	Body body (1., Vector3d (1., 1., 1.), Vector3d (1., 1., 1.));
+	Joint joint_fixed (JointTypeFixed);
+	Joint joint_rot_x = (SpatialVector (1., 0., 0., 0., 0., 0.));
+
+	model_fixed.AppendBody (Xrotx (45 * M_PI / 180), joint_rot_x, body);
+	unsigned int body_id_fixed = model_fixed.AppendBody (Xroty (45 * M_PI / 180), joint_fixed, body);
+
+	model_movable.AppendBody (Xrotx (45 * M_PI / 180), joint_rot_x, body);
+	unsigned int body_id_movable = model_movable.AppendBody (Xroty (45 * M_PI / 180), joint_rot_x, body);
+
+	VectorNd q_fixed (VectorNd::Zero (model_fixed.q_size));
+	VectorNd q_movable (VectorNd::Zero (model_movable.q_size));
+
+	Matrix3d E_fixed = CalcBodyWorldOrientation (model_fixed, q_fixed, body_id_fixed);
+	Matrix3d E_movable = CalcBodyWorldOrientation (model_movable, q_movable, body_id_movable);
+
+	CHECK_ARRAY_CLOSE (E_movable.data(), E_fixed.data(), 9, TEST_PREC);
+}
 
