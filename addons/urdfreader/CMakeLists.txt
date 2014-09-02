@@ -68,5 +68,5 @@ FILE ( GLOB headers
 
 INSTALL ( FILES ${headers} 
 	DESTINATION
-	${CMAKE_INSTALL_INCLUDEDIR}include/rbdl/addons/urdfreader 
+	${CMAKE_INSTALL_INCLUDEDIR}/rbdl/addons/urdfreader 
 	)
