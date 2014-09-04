@@ -4,21 +4,23 @@
  *
  * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
  * library contains highly efficient code for both forward and inverse
- * dynamics. It includes:
+ * dynamics for kinematic chains and branched models. It includes:
  *
  * \li Recursive Newton Euler Algorithm
  * \li Composite Rigid Body Algorithm
  * \li Articulated Body Algorithm.
  *
- * Furthermore it contains functions for forward and inverse kinematics and
- * contact handling.
+ * Furthermore it contains functions for forward and inverse kinematics,
+ * computations of Jacobians, contact handling. \link
+ * RigidBodyDynamics::Model Models \endlink can be loaded from Lua scripts
+ * or URDF files.
  *
  * The code is written by <a
  * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
  * <martin.felis@iwr.uni-heidelberg.de></a> and heavily inspired by the
  * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
  * href="http://royfeatherstone.org" target="_parent">Roy Featherstone</a>.
- * 
+ *
  * For optimal performance it is advised to use version 3 of the Eigen 
  * <a href="http://eigen.tuxfamily.org/" target="_parent">Eigen</a> math library. More
  * information about it can be found here:
@@ -131,4 +133,12 @@ freely, subject to the following restrictions:
    3. This notice may not be removed or altered from any source
    distribution.
 \endverbatim
+
+ * \section Acknowledgement
+ *
+ * Work on this library was funded by the <a
+ * href="http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/">Heidelberg Graduate School of Mathematical and
+ * Computational Methods for the Sciences (HGS)</a> and the European Commission under
+ * the FP7 project <a href="http://echord.eu">ECHORD</a> (grant number 231143).
+ *
  */

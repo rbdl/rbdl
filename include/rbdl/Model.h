@@ -62,7 +62,7 @@ namespace RigidBodyDynamics {
  * \endlink makes use of carefully designed constructors of the classes
  * \link RigidBodyDynamics::Body Body \endlink and \link
  * RigidBodyDynamics::Joint Joint \endlink to ease the process of
- * articulated models.
+ * creating articulated models.
  *
  * \link RigidBodyDynamics::Body Bodies \endlink are created by calling one
  * of its constructors. Usually they are created by specifying the mass,
@@ -72,7 +72,7 @@ namespace RigidBodyDynamics {
  * parent body by its id, the transformation from the parent origin to the
  * joint origin, the joint specification as an object, and the body itself.
  * These parameters are then fed to the function
- * RigidBodyDynamics::Model::AddBody().
+ * RigidBodyDynamics::Model::AddBody() or RigidBodyDynamics::Model::AppendBody().
  *
  * To create a model with a floating base (a.k.a a model with a free-flyer
  * joint) it is recommended to use \link
