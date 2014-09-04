@@ -7,7 +7,7 @@ namespace RigidBodyDynamics {
 
 namespace Math {
 
-/** Quaternion 
+/** \brief Quaternion that are used for \ref joint_singularities "singularity free" joints.
  *
  * order: x,y,z,w
  */

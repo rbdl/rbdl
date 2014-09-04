@@ -23,8 +23,7 @@ inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
 			);
 }
 
-/** \brief Spatial algebra matrices, vectors, and operators. */
-
+/** \brief Compact representation for Spatial Inertia. */
 struct RBDL_DLLAPI SpatialRigidBodyInertia {
 	SpatialRigidBodyInertia() :
 		m (0.),

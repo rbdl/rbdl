@@ -25,7 +25,7 @@
  * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>.
  * The library must be obtained and installed separately.
  *
- * \section download Download :
+ * \section download Download
  *
  * You can download the most recent stable version as zip file from
  * here:<br>
@@ -35,7 +35,7 @@
  * development here:<br>
  *   <a href="https://bitbucket.org/rbdl/rbdl">https://bitbucket.org/rbdl/rbdl</a>
  *
- * \section recent_changes Recent Changes :
+ * \section recent_changes Recent Changes
  * <ul>
  * <li>17 March 2014: New version: 2.3.0:
  *   <ul>
