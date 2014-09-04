@@ -135,7 +135,7 @@ Acknowledgement
 ===============
 
 Work on this library was funded by the
-[http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/](Heidelberg Graduate School
-of Mathematical and Computational Methods for the Sciences (HGS)) and the
-European Commission under the FP7 project ["http://echord.eu"](ECHORD)
+[Heidelberg Graduate School
+of Mathematical and Computational Methods for the Sciences (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/) and the
+European Commission under the FP7 project [ECHORD](http://echord.eu)
 (grant number 231143).
