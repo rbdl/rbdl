@@ -15,7 +15,7 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-const double TEST_PREC = 1.0e-10;
+const double TEST_PREC = 1.0e-12;
 
 struct SphericalJoint {
 	SphericalJoint () {
@@ -578,12 +578,12 @@ TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedContacts ) {
 	ForwardDynamicsContacts (emulated_model, emuQ, emuQDot, emuTau, CS_emulated, QDDot_emu);
 	ForwardDynamicsContacts (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
 
-	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
+	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC * QDDot_emu.norm());
 
 	ForwardDynamicsContacts (emulated_model, emuQ, emuQDot, emuTau, CS_emulated, QDDot_emu);
 	ForwardDynamicsContactsLagrangian (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
 
-	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
+	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC * QDDot_emu.norm());
 }
 
 TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedCRBA ) {
@@ -938,3 +938,32 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofKokkevisMultiple ) {
 	ForwardDynamicsContacts(*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_kokkevis_2);
 	CHECK_ARRAY_CLOSE (qddot_kokkevis.data(), qddot_kokkevis_2.data(), qddot_kokkevis.size(), TEST_PREC * qddot_kokkevis.norm());
 }
+
+TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulated ) {
+	emuQ[0] = 1.1;
+	emuQ[1] = 1.2;
+	emuQ[2] = 1.3;
+	emuQ[3] = 1.4;
+	emuQ[4] = 1.5;
+
+	emuQDot[0] = 1.;
+	emuQDot[1] = 2.;
+	emuQDot[2] = 3.;
+	emuQDot[3] = 4.;
+	emuQDot[4] = 5.;
+
+	emuTau[0] = 5.;
+	emuTau[1] = 4.;
+	emuTau[2] = 7.;
+	emuTau[3] = 3.;
+	emuTau[4] = 2.;
+
+	VectorNd QDDot_emu = VectorNd::Zero (emulated_model.qdot_size);
+	VectorNd QDDot_eulerzyx = VectorNd::Zero (eulerzyx_model.qdot_size);
+
+	ForwardDynamicsLagrangian (emulated_model, emuQ, emuQDot, emuTau, QDDot_emu);
+	ForwardDynamicsLagrangian (eulerzyx_model, emuQ, emuQDot, emuTau, QDDot_eulerzyx);
+
+	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
+}
+

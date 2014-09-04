@@ -15,8 +15,6 @@ using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-13;
 
-Model *model = NULL;
-
 unsigned int hip_id,
 		 upper_leg_right_id,
 		 lower_leg_right_id,
@@ -182,8 +180,13 @@ Vector3d rgyration[RGyrationLast] = {
 Vector3d heel_point (0., 0., 0.);
 Vector3d medial_point (0., 0., 0.);
 
-void init_model () {
+void init_model (Model* model) {
 	assert (model);
+	
+	constraint_set_right = ConstraintSet();
+	constraint_set_left = ConstraintSet();
+	constraint_set_left_flat = ConstraintSet();
+	constraint_set_both = ConstraintSet();
 
 	model->gravity = Vector3d (0., -9.81, 0.);
 
@@ -270,9 +273,9 @@ void copy_values (T *dest, const T *src, size_t count) {
 }
 
 TEST ( TestForwardDynamicsContactsLagrangianFootmodel ) {
-	model = new Model;
+	Model* model = new Model;
 
-	init_model();
+	init_model(model);
 
 	Q.resize(model->dof_count);
 	QDot.resize(model->dof_count);
@@ -342,6 +345,60 @@ TEST ( TestForwardDynamicsContactsLagrangianFootmodel ) {
 //	cout << contact_accel_left << endl;
 
 	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), contact_accel_left.data(), 3, TEST_PREC);
+
+	delete model;
+}
+
+TEST ( TestClearContactsInertiaMatrix ) {
+	Model* model = new Model;
+
+	init_model(model);
+
+	Q.resize(model->dof_count);
+	QDot.resize(model->dof_count);
+	QDDot.resize(model->dof_count);
+	Tau.resize(model->dof_count);
+
+	Q[0] = -0.2;
+	Q[1] = 0.9;
+	Q[2] = 0;
+	Q[3] = -0.15;
+	Q[4] = -0.15;
+	Q[5] = 0.1;
+	Q[6] = 0.15;
+	Q[7] = -0.15;
+	Q[8] = 0;
+
+	QDot.setZero();
+
+	Tau[0] = 0;
+	Tau[1] = 0;
+	Tau[2] = 0;
+	Tau[3] = 1;
+	Tau[4] = 1;
+	Tau[5] = 1;
+	Tau[6] = 1;
+	Tau[7] = 1;
+	Tau[8] = 1;
+
+	VectorNd QDDot_aba (QDDot);
+	VectorNd QDDot_lag (QDDot);
+
+	// initialize matrix with erroneous values
+	constraint_set_right.bound = false;
+	constraint_set_right.H = MatrixNd::Zero (model->dof_count, model->dof_count);
+	for (unsigned int i = 0; i < model->dof_count; i++) {
+		for (unsigned int j = 0; j < model->dof_count; j++) {
+			constraint_set_right.H(i,j) = 1.234;
+		}
+	}
+
+	constraint_set_right.Bind (*model);
+
+	ForwardDynamicsContactsLagrangian (*model, Q, QDot, Tau, constraint_set_right, QDDot_lag);
+	ForwardDynamicsContacts (*model, Q, QDot, Tau, constraint_set_right, QDDot_aba);
+
+	CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), QDDot.size(), TEST_PREC * QDDot_lag.norm());
 
 	delete model;
 }

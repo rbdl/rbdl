@@ -210,8 +210,7 @@ Matrix3d CalcBodyWorldOrientation (
 		Model &model,
 		const VectorNd &Q,
 		const unsigned int body_id,
-		bool update_kinematics) 
-{
+		bool update_kinematics) {
 	// update the Kinematics if necessary
 	if (update_kinematics) {
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);

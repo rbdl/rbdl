@@ -18,6 +18,16 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
+   * 29 August 2014: New version 2.3.2:
+     * critical: fixed ForwardDynamicsLagrangian which used uninitialized values for the joint space inertia matrix (thanks to Benjamin Michaud!)
+     * critical: fixed ForwardDynamicsContacts when using 3-dof joints
+     * critical: fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)
+     * critical: fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)
+   * 13 July 2014: New version 2.3.1:
+     * critical: fixed angular momentum computation. Version 2.3.0 produced wrong
+       results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!)
+     * critical: fixed JointTypeEulerZYX. Previous versions produce wrong results!
+     * fixed library version number for the LuaModel addon.
    * 14 March 2014: New version 2.3.0:
      * Joint Space Inertia Matrix does not get cleared anymore when calling CompositeRigidBodyAlgorithm
      * using the default column-major ordering when using Eigen3

@@ -533,8 +533,6 @@ void ForwardDynamicsApplyConstraintForces (
 			}
 		}
 	}
-
-//	ClearLogOutput();
 	
 	model.a[0] = SpatialVector (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
 
@@ -559,7 +557,7 @@ void ForwardDynamicsApplyConstraintForces (
 	}
 
 	LOG << "QDDot = " << QDDot.transpose() << std::endl;
-}
+} 
 
 /** \brief Computes the effect of external forces on the generalized accelerations.
  *

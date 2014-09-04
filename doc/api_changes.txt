@@ -1,8 +1,4 @@
-2.3.1 -> next (2.4.0?)
-- Fixed ForwardDynamicsContacts when using 3-dof joints
-- Fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning
-  Koch!)
-- Fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)
+2.3.2 -> next (2.4.0?)
 - Removed/Fixed CalcAngularMomentum. The function produced wrong values. The
   functionality has been integrated into CalcCenterOfMass.
 - Added ForwardDynamicsContactsLagrangianSparse. It uses a sparse LTL
@@ -19,6 +15,12 @@
 - Added LuaModelReadFromLuaState()
 - Added solving of linear systems using standard Householder QR
 - Various performance improvements
+
+2.3.1 -> 2.3.2
+- critical: fixed ForwardDynamicsLagrangian which used uninitialized values for the joint space inertia matrix
+- critical: fixed ForwardDynamicsContacts when using 3-dof joints
+- critical: fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)
+- critical: fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)
 
 2.3.0 -> 2.3.1
 - critical: fixed angular momentum computation. Version 2.3.0 produced wrong

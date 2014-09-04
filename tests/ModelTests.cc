@@ -601,4 +601,3 @@ TEST (CalcBodyWorldOrientationFixedJoint) {
 	CHECK_ARRAY_CLOSE (E_movable.data(), E_fixed.data(), 9, TEST_PREC);
 }
 
-
