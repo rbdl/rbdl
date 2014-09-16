@@ -95,6 +95,38 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 		return result;
 	}
 
+	void setSpatialMatrix (SpatialMatrix &mat) const {
+		mat(0,0) = Ixx; mat(0,1) = Iyx; mat(0,2) = Izx;
+		mat(1,0) = Iyx; mat(1,1) = Iyy; mat(1,2) = Izy;
+		mat(2,0) = Izx; mat(2,1) = Izy; mat(2,2) = Izz;
+
+		mat(3,0) =    0.; mat(3,1) =  h[2]; mat(3,2) = -h[1];
+		mat(4,0) = -h[2]; mat(4,1) =    0.; mat(4,2) =  h[0];
+		mat(5,0) =  h[1]; mat(5,1) = -h[0]; mat(5,2) =    0.;
+
+		mat(0,3) =    0.; mat(0,4) = -h[2]; mat(0,5) =  h[1];
+		mat(1,3) =  h[2]; mat(1,4) =    0.; mat(1,5) = -h[0];
+		mat(2,3) = -h[1]; mat(2,4) =  h[0]; mat(2,5) =    0.;
+
+		mat(3,3) =     m; mat(3,4) =    0.; mat(3,5) =    0.;
+		mat(4,3) =    0.; mat(4,4) =     m; mat(4,5) =    0.; 
+		mat(5,3) =    0.; mat(5,4) =    0.; mat(5,5) =     m;
+	}
+
+	static SpatialRigidBodyInertia createFromMassComInertiaC (double mass, const Vector3d &com, const Matrix3d &inertia_C) {
+		SpatialRigidBodyInertia result;
+		result.m = mass;
+		result.h = com * mass;
+		Matrix3d I = inertia_C + VectorCrossMatrix (com) * VectorCrossMatrix(com).transpose() * mass;
+		result.Ixx = I(0,0);
+		result.Iyx = I(1,0);
+		result.Iyy = I(1,1);
+		result.Izx = I(2,0);
+		result.Izy = I(2,1);
+		result.Izz = I(2,2);
+		return result;
+	}
+
 	/// Mass
 	double m;
 	/// Coordinates of the center of mass

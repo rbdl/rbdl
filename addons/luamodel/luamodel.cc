@@ -288,7 +288,6 @@ bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose) {
 				cout << "    " << j << ": " << joint.mJointAxes[j].transpose() << endl;
 			}
 			cout << "  joint_frame: " << joint_frame << endl;
-			cout << "  body inertia: " << endl << body.mSpatialInertia << endl;
 		}
 	}
 

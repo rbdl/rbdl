@@ -525,9 +525,9 @@ TEST(TestSpatialRigidBodyInertiaCreateFromMatrix) {
 				0.5, 1.2, 0.4,
 				0.3, 0.4, 1.3
 			);
-	Body body(mass, com , inertia);
-
-	SpatialMatrix spatial_inertia = body.mSpatialInertia;
+	SpatialRigidBodyInertia body_rbi(mass, com , inertia);
+	
+	SpatialMatrix spatial_inertia = body_rbi.toMatrix();
 
 	SpatialRigidBodyInertia rbi;
 	rbi.createFromMatrix (spatial_inertia);

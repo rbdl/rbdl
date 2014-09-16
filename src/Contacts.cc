@@ -482,8 +482,8 @@ void ForwardDynamicsApplyConstraintForces (
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 
-		model.IA[i] = model.mBodies[i].mSpatialInertia;
-		model.pA[i] = crossf(model.v[i],model.mBodies[i].mRigidBodyInertia * model.v[i]);
+		model.IA[i] = model.I[i].toMatrix();;
+		model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
 		if (CS.f_ext_constraints[i] != SpatialVectorZero) {
 			LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i] << std::endl;

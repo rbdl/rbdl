@@ -74,9 +74,9 @@ void ForwardDynamics (
 		*/
 
 		model.c[i] = c_J + crossm(model.v[i],v_J);
-		model.IA[i] = model.mBodies[i].mSpatialInertia;
+		model.I[i].setSpatialMatrix (model.IA[i]);
 
-		model.pA[i] = crossf(model.v[i],model.mBodies[i].mRigidBodyInertia * model.v[i]);
+		model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
 			LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * (*f_ext)[i] << std::endl;
@@ -268,7 +268,7 @@ void NonlinearEffects (
 			model.a[i] = model.X_lambda[i].apply(model.a[model.lambda[i]]) + model.c[i];
 		}
 
-		model.f[i] = model.mBodies[i].mRigidBodyInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mRigidBodyInertia * model.v[i]);
+		model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
 	}
 
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
@@ -325,7 +325,7 @@ void InverseDynamics (
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
 		}	
 		
-		model.f[i] = model.mBodies[i].mRigidBodyInertia * model.a[i] + crossf(model.v[i],model.mBodies[i].mRigidBodyInertia * model.v[i]);
+		model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
 	}
@@ -353,7 +353,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 		if (update_kinematics) {
 			jcalc_X_lambda_S (model, i, Q);
 		}
-		model.Ic[i] = model.mBodies[i].mRigidBodyInertia;
+		model.Ic[i] = model.I[i];
 	}
 
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {

@@ -64,13 +64,9 @@ Model::Model() {
 	d = VectorNd::Zero(1);
 
 	f.push_back (zero_spatial);
-	Ic.push_back (
-			SpatialRigidBodyInertia(
-				0.,
-				Vector3d (0., 0., 0.),
-				Matrix3d::Zero(3,3)
-				)
-			);
+	SpatialRigidBodyInertia rbi (0., Vector3d (0., 0., 0.), Matrix3d::Zero(3,3));
+	Ic.push_back (rbi);
+	I.push_back(rbi);
 	hc.push_back (zero_spatial);
 
 	// Bodies
@@ -105,6 +101,7 @@ unsigned int AddBodyFixedJoint (
 	Body parent_body = model.mBodies[fbody.mMovableParent];
 	parent_body.Join (fbody.mParentTransform, body);
 	model.mBodies[fbody.mMovableParent] = parent_body;
+	model.I[fbody.mMovableParent] = SpatialRigidBodyInertia::createFromMassComInertiaC (parent_body.mMass, parent_body.mCenterOfMass, parent_body.mInertia);
 
 	model.mFixedBodies.push_back (fbody);
 
@@ -310,7 +307,7 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 
 	// Dynamic variables
 	c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
-	IA.push_back(body.mSpatialInertia);
+	IA.push_back(SpatialMatrix::Zero(6,6));
 	pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 	U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 
@@ -318,13 +315,11 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	u = VectorNd::Zero (mBodies.size());
 
 	f.push_back (SpatialVector (0., 0., 0., 0., 0., 0.));
-	Ic.push_back (
-			SpatialRigidBodyInertia(
-				body.mMass,
-				body.mCenterOfMass,
-				body.mInertia
-				)
-			);
+
+	SpatialRigidBodyInertia rbi = SpatialRigidBodyInertia::createFromMassComInertiaC (body.mMass, body.mCenterOfMass, body.mInertia);
+
+	Ic.push_back (rbi);
+	I.push_back (rbi);
 	hc.push_back (SpatialVector(0., 0., 0., 0., 0., 0.));
 
 	if (mBodies.size() == fixed_body_discriminator) {

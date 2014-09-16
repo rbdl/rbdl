@@ -199,6 +199,7 @@ struct RBDL_DLLAPI Model {
 	/// \brief Internal forces on the body (used only InverseDynamics())
 	std::vector<Math::SpatialVector> f;
 	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
+	std::vector<Math::SpatialRigidBodyInertia> I;
 	std::vector<Math::SpatialRigidBodyInertia> Ic;
 	std::vector<Math::SpatialVector> hc;
 

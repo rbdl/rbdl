@@ -84,8 +84,7 @@ int main (int argc, char *argv[]) {
 			if (model.mBodies[i].mIsVirtual)
 				continue;
 
-			SpatialRigidBodyInertia rbi_base;
-			rbi_base.createFromMatrix(model.X_base[i].toMatrixTranspose() * model.mBodies[i].mSpatialInertia);
+			SpatialRigidBodyInertia rbi_base = model.X_base[i].apply(model.I[i]);
 			Vector3d body_com = rbi_base.h / rbi_base.m;
 			cout << setw(12) << model.GetBodyName (i) << ": " << setw(10) <<  body_com.transpose() << endl;		
 		}

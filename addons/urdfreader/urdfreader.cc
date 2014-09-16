@@ -94,7 +94,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 			for (unsigned int j = 0; j < root_joint.mDoFCount; j++) {
 				cout << "    " << j << ": " << root_joint.mJointAxes[j].transpose() << endl;
 			}
-			cout << "  body inertia: " << endl << root_link.mSpatialInertia << endl;
+			cout << "  body inertia: " << endl << root_link.mInertia << endl;
 			cout << "  body mass   : " << root_link.mMass << endl;
 			cout << "  body name   : " << root->name << endl;
 		}
@@ -242,12 +242,12 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 			for (unsigned int j = 0; j < rbdl_joint.mDoFCount; j++) {
 				cout << "    " << j << ": " << rbdl_joint.mJointAxes[j].transpose() << endl;
 			}
-			cout << "  body inertia: " << endl << rbdl_body.mSpatialInertia << endl;
+			cout << "  body inertia: " << endl << rbdl_body.mInertia << endl;
 			cout << "  body mass   : " << rbdl_body.mMass << endl;
 			cout << "  body name   : " << urdf_child->name << endl;
 		}
 
-		if (urdf_joint->type == urdf::Joint::FLOATING) {
+		if (0 && urdf_joint->type == urdf::Joint::FLOATING) {
 			Matrix3d zero_matrix = Matrix3d::Zero();
 			Body null_body (0., Vector3d::Zero(3), zero_matrix);
 			Joint joint_txtytz(JointTypeTranslationXYZ);

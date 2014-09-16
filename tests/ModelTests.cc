@@ -49,6 +49,7 @@ TEST_FIXTURE(ModelFixture, TestInit) {
 	CHECK_EQUAL (1u, model->d.size());
 	CHECK_EQUAL (1u, model->u.size());
 	CHECK_EQUAL (1u, model->Ic.size());
+	CHECK_EQUAL (1u, model->I.size());
 	
 	CHECK_EQUAL (1u, model->X_lambda.size());
 	CHECK_EQUAL (1u, model->X_base.size());
@@ -80,6 +81,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 	CHECK_EQUAL (2u, model->d.size());
 	CHECK_EQUAL (2u, model->u.size());
 	CHECK_EQUAL (2u, model->Ic.size());
+	CHECK_EQUAL (2u, model->I.size());
 
 	SpatialVector spatial_zero;
 	spatial_zero.setZero();

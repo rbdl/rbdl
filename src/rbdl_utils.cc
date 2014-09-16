@@ -148,7 +148,7 @@ RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const 
 		UpdateKinematicsCustom (model, &q, &qdot, NULL);
 
 	for (size_t i = 1; i < model.mBodies.size(); i++) {
-		model.Ic[i].createFromMatrix(model.mBodies[i].mSpatialInertia);
+		model.Ic[i] = model.I[i];
 		model.hc[i] = model.Ic[i].toMatrix() * model.v[i];
 	}
 
@@ -198,7 +198,7 @@ RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, con
 	double result = 0.;
 
 	for (size_t i = 1; i < model.mBodies.size(); i++) {
-		result += 0.5 * model.v[i].transpose() * model.mBodies[i].mSpatialInertia * model.v[i];
+		result += 0.5 * model.v[i].transpose() * (model.I[i] * model.v[i]);
 	}
 	return result;
 }
