@@ -268,7 +268,11 @@ void NonlinearEffects (
 			model.a[i] = model.X_lambda[i].apply(model.a[model.lambda[i]]) + model.c[i];
 		}
 
-		model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
+		if (!model.mBodies[i].mIsVirtual) {
+			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
+		} else {
+			model.f[i].setZero();
+		}
 	}
 
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
@@ -324,8 +328,13 @@ void InverseDynamics (
 		} else {
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
 		}	
-		
-		model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
+
+		if (!model.mBodies[i].mIsVirtual) {
+			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
+		} else {
+			model.f[i].setZero();
+		}
+
 		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
 	}
@@ -357,10 +366,8 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 	}
 
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
-		unsigned int lambda = model.lambda[i];
-
-		if (lambda != 0) {
-			model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].applyTranspose(model.Ic[i]);
+		if (model.lambda[i] != 0) {
+			model.Ic[model.lambda[i]] = model.Ic[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.Ic[i]);
 		}
 
 		unsigned int dof_index_i = model.mJoints[i].q_index;

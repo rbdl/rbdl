@@ -794,6 +794,24 @@ TEST_FIXTURE (Human36, TestInverseDynamics) {
 	CHECK_ARRAY_CLOSE (id_emulated.data(), id_3dof.data(), id_emulated.size(), TEST_PREC * id_emulated.norm());
 }
 
+TEST_FIXTURE (Human36, TestNonlinearEffects) {
+	for (unsigned int i = 0; i < q.size(); i++) {
+		q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		qddot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+	}
+
+	VectorNd nle_emulated (tau);
+	VectorNd nle_3dof (tau);
+
+	ClearLogOutput();
+	NonlinearEffects (*model_emulated, q, qdot, nle_emulated);
+	NonlinearEffects (*model_3dof, q, qdot, nle_3dof);
+
+	CHECK_ARRAY_CLOSE (nle_emulated.data(), nle_3dof.data(), nle_emulated.size(), TEST_PREC * nle_emulated.norm());
+}
+
 TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianKokkevis) {
 	for (unsigned int i = 0; i < q.size(); i++) {
 		q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
