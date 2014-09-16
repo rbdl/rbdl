@@ -27,8 +27,6 @@ bool have_urdfreader = true;
 bool have_urdfreader = false;
 #endif
 
-
-
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
@@ -53,17 +51,17 @@ enum ContactsMethod {
 
 double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
 		ForwardDynamics (*model,
-				sample_data.q_data[i],
-				sample_data.qdot_data[i],
-				sample_data.tau_data[i],
-				sample_data.qddot_data[i]);
+				sample_data.q[i],
+				sample_data.qdot[i],
+				sample_data.tau[i],
+				sample_data.qddot[i]);
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -78,7 +76,7 @@ double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
 
 double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
@@ -88,10 +86,10 @@ double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count
 
 	for (int i = 0; i < sample_count; i++) {
 		ForwardDynamicsLagrangian (*model,
-				sample_data.q_data[i],
-				sample_data.qdot_data[i],
-				sample_data.tau_data[i],
-				sample_data.qddot_data[i],
+				sample_data.q[i],
+				sample_data.qdot[i],
+				sample_data.tau[i],
+				sample_data.qddot[i],
 				Math::LinearSolverPartialPivLU,
 				NULL,
 				&H,
@@ -111,17 +109,17 @@ double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count
 
 double run_inverse_dynamics_RNEA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
 		InverseDynamics (*model,
-				sample_data.q_data[i],
-				sample_data.qdot_data[i],
-				sample_data.qddot_data[i],
-				sample_data.tau_data[i]
+				sample_data.q[i],
+				sample_data.qdot[i],
+				sample_data.qddot[i],
+				sample_data.tau[i]
 				);
 	}
 
@@ -137,7 +135,7 @@ double run_inverse_dynamics_RNEA_benchmark (Model *model, int sample_count) {
 
 double run_CRBA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	Math::MatrixNd H = Math::MatrixNd::Zero(model->dof_count, model->dof_count);
 
@@ -145,7 +143,7 @@ double run_CRBA_benchmark (Model *model, int sample_count) {
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		CompositeRigidBodyAlgorithm (*model, sample_data.q_data[i], H, true);
+		CompositeRigidBodyAlgorithm (*model, sample_data.q[i], H, true);
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -160,16 +158,16 @@ double run_CRBA_benchmark (Model *model, int sample_count) {
 
 double run_nle_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
 		NonlinearEffects (*model,
-				sample_data.q_data[i],
-				sample_data.qdot_data[i],
-				sample_data.tau_data[i]
+				sample_data.q[i],
+				sample_data.qdot[i],
+				sample_data.tau[i]
 				);
 	}
 
@@ -185,13 +183,13 @@ double run_nle_benchmark (Model *model, int sample_count) {
 
 double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		ForwardDynamicsContactsLagrangian (*model, sample_data.q_data[i], sample_data.qdot_data[i], sample_data.tau_data[i], *constraint_set, sample_data.qddot_data[i]); 
+		ForwardDynamicsContactsLagrangian (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -201,13 +199,13 @@ double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constrain
 
 double run_contacts_lagrangian_sparse_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		ForwardDynamicsContactsLagrangianSparse (*model, sample_data.q_data[i], sample_data.qdot_data[i], sample_data.tau_data[i], *constraint_set, sample_data.qddot_data[i]); 
+		ForwardDynamicsContactsLagrangianSparse (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -217,13 +215,13 @@ double run_contacts_lagrangian_sparse_benchmark (Model *model, ConstraintSet *co
 
 double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		ForwardDynamicsContacts(*model, sample_data.q_data[i], sample_data.qdot_data[i], sample_data.tau_data[i], *constraint_set, sample_data.qddot_data[i]); 
+		ForwardDynamicsContacts(*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
 	}
 
 	double duration = timer_stop (&tinfo);
