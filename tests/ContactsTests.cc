@@ -10,6 +10,7 @@
 #include "rbdl/Kinematics.h"
 
 #include "Fixtures.h"
+#include "Human36Fixture.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -651,4 +652,27 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsMultipleCon
 	CHECK_CLOSE (0., point_accel_2_c[1], TEST_PREC);
 
 	CHECK_ARRAY_CLOSE (QDDot_lagrangian.data(), QDDot.data(), QDDot.size(), TEST_PREC);
+}
+
+TEST_FIXTURE (Human36, ForwardDynamicsContactsFixedBody) {
+	VectorNd qddot_lagrangian (VectorNd::Zero(qddot.size()));
+	VectorNd qddot_sparse (VectorNd::Zero(qddot.size()));
+
+	for (int i = 0; i < q.size(); i++) {
+		q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		qddot_3dof[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+	}
+
+	ConstraintSet constraint_upper_trunk;
+	constraint_upper_trunk.AddConstraint (body_id_3dof[BodyUpperTrunk], Vector3d (1.1, 2.2, 3.3), Vector3d (1., 0., 0.));
+	constraint_upper_trunk.Bind (*model_3dof);
+
+	ForwardDynamicsContactsLagrangian (*model_3dof, q, qdot, tau, constraint_upper_trunk, qddot_lagrangian);
+	ForwardDynamicsContactsLagrangianSparse (*model_3dof, q, qdot, tau, constraint_upper_trunk, qddot_sparse);
+	ForwardDynamicsContacts (*model_3dof, q, qdot, tau, constraint_upper_trunk, qddot);
+
+	CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
+	CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_sparse.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 }

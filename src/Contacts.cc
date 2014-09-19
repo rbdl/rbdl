@@ -713,6 +713,12 @@ void ForwardDynamicsContacts (
 		Vector3d point = CS.point[ci];
 		Vector3d normal = CS.normal[ci];
 
+		unsigned int movable_body_id = body_id;
+		if (model.IsFixedBodyId(body_id)) {
+			unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+			movable_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		}
+
 		// assemble the test force
 		LOG << "normal = " << normal.transpose() << std::endl;
 
@@ -720,17 +726,18 @@ void ForwardDynamicsContacts (
 		LOG << "point_global = " << point_global.transpose() << std::endl;
 
 		CS.f_t[ci] = SpatialTransform (Matrix3d::Identity(), -point_global).applyAdjoint (SpatialVector (0., 0., 0., -normal[0], -normal[1], -normal[2]));
-		CS.f_ext_constraints[body_id] = CS.f_t[ci];
-		LOG << "f_t[" << body_id << "] = " << CS.f_t[ci].transpose() << std::endl;
+		CS.f_ext_constraints[movable_body_id] = CS.f_t[ci];
+		LOG << "f_t[" << movable_body_id << "] = " << CS.f_t[ci].transpose() << std::endl;
 
 		{
 //			SUPPRESS_LOGGING;
-			ForwardDynamicsAccelerationDeltas (model, CS, CS.QDDot_t, body_id, CS.f_ext_constraints);
+			ForwardDynamicsAccelerationDeltas (model, CS, CS.QDDot_t, movable_body_id, CS.f_ext_constraints);
 			LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
 			LOG << "QDDot_t = " << (CS.QDDot_t + CS.QDDot_0).transpose() << std::endl;
 			LOG << "QDDot_t - QDDot_0= " << (CS.QDDot_t).transpose() << std::endl;
 		}
-		CS.f_ext_constraints[body_id].setZero();
+
+		CS.f_ext_constraints[movable_body_id].setZero();
 
 		CS.QDDot_t += CS.QDDot_0;
 
@@ -781,9 +788,15 @@ void ForwardDynamicsContacts (
 
 	for (ci = 0; ci < CS.size(); ci++) {
 		unsigned int body_id = CS.body[ci];
+		unsigned int movable_body_id = body_id;
 
-		CS.f_ext_constraints[body_id] -= CS.f_t[ci] * CS.force[ci]; 
-		LOG << "f_ext[" << body_id << "] = " << CS.f_ext_constraints[body_id].transpose() << std::endl;
+		if (model.IsFixedBodyId(body_id)) {
+			unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+			movable_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		}
+
+		CS.f_ext_constraints[movable_body_id] -= CS.f_t[ci] * CS.force[ci]; 
+		LOG << "f_ext[" << movable_body_id << "] = " << CS.f_ext_constraints[movable_body_id].transpose() << std::endl;
 	}
 
 	{
