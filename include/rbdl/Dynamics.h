@@ -136,8 +136,11 @@ void InverseDynamics (
  * \param model rigid body model
  * \param Q     state vector of the model
  * \param H     a matrix where the result will be stored in
- * \param update_kinematics  whether the kinematics should be updated
- * (safer, but at a higher computational cost!)
+ * \param update_kinematics  whether the kinematics should be updated (safer, but at a higher computational cost!)
+ *
+ * \note This function only evaluates the entries of H that are non-zero. One
+ * Before calling this function one has to ensure that all other values
+ * have been set to zero, e.g. by calling H.setZero().
  */
 RBDL_DLLAPI
 void CompositeRigidBodyAlgorithm (

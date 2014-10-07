@@ -320,6 +320,7 @@ TEST(TestCalcPointJacobian) {
 	// Compute the reference velocity
 	point_velocity_ref = CalcPointVelocity (model, Q, QDot, base_body_id, point_position);
 
+	G.setZero();
 	CalcPointJacobian (model, Q, base_body_id, point_position, G);
 
 	point_velocity = G * QDot;
@@ -559,7 +560,7 @@ TEST ( FixedJointCalcPointJacobian ) {
 
 	Vector3d point_position (1., 0., 0.);
 
-	MatrixNd G = MatrixNd (3, model.dof_count);	
+	MatrixNd G = MatrixNd::Zero (3, model.dof_count);	
 	CalcPointJacobian (model, Q, fixed_body_id, point_position, G);
 	Vector3d point_velocity_jacobian = G * QDot;
 	Vector3d point_velocity_reference = CalcPointVelocity (model, Q, QDot, fixed_body_id, point_position);

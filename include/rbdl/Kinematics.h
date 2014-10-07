@@ -133,11 +133,16 @@ Math::Matrix3d CalcBodyWorldOrientation (
  * \param Q       state vector of the internal joints
  * \param body_id the id of the body
  * \param point_position the position of the point in body-local data
- * \param G       a matrix where the result will be stored in
+ * \param G       a matrix of dimensions 3 x \#qdot_size where the result will be stored in
  * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
  *
- * \returns A 3 x \#dof_count matrix of the point jacobian
- */
+ * The result will be returned via the G argument.
+ *
+ * \note This function only evaluates the entries of G that are non-zero. One
+ * Before calling this function one has to ensure that all other values
+ * have been set to zero, e.g. by calling G.setZero().
+ *
+ */ 
 RBDL_DLLAPI
 void CalcPointJacobian (Model &model,
 		const Math::VectorNd &Q,
@@ -149,18 +154,23 @@ void CalcPointJacobian (Model &model,
 
 /** \brief Computes the spatial jacobian for a body
  *
- * If a position of a point is computed by a function \f$g(q(t))\f$ for which its
- * time derivative is \f$\frac{d}{dt} g(q(t)) = G(q)\dot{q}\f$ then this
- * function computes the jacobian matrix \f$G(q)\f$.
+ * The spatial velocity of a body at the origin of the base coordinat
+ * system can be expressed as \f${}^0 \hat{v}_i = G(q) * \dot{q}\f$. The
+ * matrix \f$G(q)\f$ is called the spatial body jacobian of the body and
+ * can be computed using this function.
  *
  * \param model   rigid body model
  * \param Q       state vector of the internal joints
  * \param body_id the id of the body
- * \param G       a matrix where the result will be stored in
+ * \param G       a matrix of size 6 x \#qdot_size where the result will be stored in
  * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
  *
- * \returns A 6 x \#dof_count matrix which contains the spatial jacobian of
- * the body expressed at the origin of the base coordinate system.
+ * The result will be returned via the G argument and represents the
+ * body Jacobian expressed at the origin of the base coordinate system.
+ *
+ * \note This function only evaluates the entries of G that are non-zero. One
+ * Before calling this function one has to ensure that all other values
+ * have been set to zero, e.g. by calling G.setZero().
  */
 RBDL_DLLAPI
 void CalcBodySpatialJacobian (

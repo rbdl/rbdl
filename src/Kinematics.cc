@@ -247,8 +247,6 @@ void CalcPointJacobian (
 
 	assert (G.rows() == 3 && G.cols() == model.qdot_size );
 
-	G.setZero();
-
 	// we have to make sure that only the joints that contribute to the
 	// bodies motion also get non-zero columns in the jacobian.
 	// VectorNd e = VectorNd::Zero(Q.size() + 1);
@@ -466,7 +464,7 @@ bool InverseKinematics (
 		UpdateKinematicsCustom (model, &Qres, NULL, NULL);
 
 		for (unsigned int k = 0; k < body_id.size(); k++) {
-			MatrixNd G (3, model.qdot_size);
+			MatrixNd G (MatrixNd::Zero(3, model.qdot_size));
 			CalcPointJacobian (model, Qres, body_id[k], body_point[k], G, false);
 			Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, body_id[k], body_point[k], false);
 			LOG << "current_pos = " << point_base.transpose() << std::endl;

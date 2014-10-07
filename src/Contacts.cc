@@ -168,6 +168,7 @@ void CalcContactJacobian(
 	for (i = 0; i < CS.size(); i++) {
 		// only compute the matrix Gi if actually needed
 		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
+			Gi.setZero();
 			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
 			prev_body_id = CS.body[i];
 			prev_body_point = CS.point[i];
