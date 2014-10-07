@@ -444,30 +444,6 @@ inline SpatialVector crossf (const SpatialVector &v1, const SpatialVector &v2) {
 			);
 }
 
-inline SpatialMatrix spatial_adjoint(const SpatialMatrix &m) {
-	SpatialMatrix res (m);
-	res.block<3,3>(3,0) = m.block<3,3>(0,3);
-	res.block<3,3>(0,3) = m.block<3,3>(3,0);
-	return res;
-}
-
-inline SpatialMatrix spatial_inverse(const SpatialMatrix &m) {
-	SpatialMatrix res(m);
-	res.block<3,3>(0,0) = m.block<3,3>(0,0).transpose();
-	res.block<3,3>(3,0) = m.block<3,3>(3,0).transpose();
-	res.block<3,3>(0,3) = m.block<3,3>(0,3).transpose();
-	res.block<3,3>(3,3) = m.block<3,3>(3,3).transpose();
-	return res;
-}
-
-inline Matrix3d get_rotation (const SpatialMatrix &m) {
-	return m.block<3,3>(0,0);
-}
-
-inline Vector3d get_translation (const SpatialMatrix &m) {
-	return Vector3d (-m(4,2), m(3,2), -m(3,1));
-}
-
 } /* Math */
 
 } /* RigidBodyDynamics */

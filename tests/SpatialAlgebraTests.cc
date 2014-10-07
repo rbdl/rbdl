@@ -13,6 +13,30 @@ using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
+SpatialMatrix spatial_adjoint(const SpatialMatrix &m) {
+	SpatialMatrix res (m);
+	res.block<3,3>(3,0) = m.block<3,3>(0,3);
+	res.block<3,3>(0,3) = m.block<3,3>(3,0);
+	return res;
+}
+
+SpatialMatrix spatial_inverse(const SpatialMatrix &m) {
+	SpatialMatrix res(m);
+	res.block<3,3>(0,0) = m.block<3,3>(0,0).transpose();
+	res.block<3,3>(3,0) = m.block<3,3>(3,0).transpose();
+	res.block<3,3>(0,3) = m.block<3,3>(0,3).transpose();
+	res.block<3,3>(3,3) = m.block<3,3>(3,3).transpose();
+	return res;
+}
+
+Matrix3d get_rotation (const SpatialMatrix &m) {
+	return m.block<3,3>(0,0);
+}
+
+Vector3d get_translation (const SpatialMatrix &m) {
+	return Vector3d (-m(4,2), m(3,2), -m(3,1));
+}
+
 /// \brief Checks the multiplication of a SpatialMatrix with a SpatialVector
 TEST(TestSpatialMatrixTimesSpatialVector) {
 	SpatialMatrix s_matrix (
