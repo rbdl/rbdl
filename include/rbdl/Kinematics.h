@@ -147,6 +147,30 @@ void CalcPointJacobian (Model &model,
 		bool update_kinematics = true
 		);
 
+/** \brief Computes the spatial jacobian for a body
+ *
+ * If a position of a point is computed by a function \f$g(q(t))\f$ for which its
+ * time derivative is \f$\frac{d}{dt} g(q(t)) = G(q)\dot{q}\f$ then this
+ * function computes the jacobian matrix \f$G(q)\f$.
+ *
+ * \param model   rigid body model
+ * \param Q       state vector of the internal joints
+ * \param body_id the id of the body
+ * \param G       a matrix where the result will be stored in
+ * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
+ *
+ * \returns A 6 x \#dof_count matrix which contains the spatial jacobian of
+ * the body expressed at the origin of the base coordinate system.
+ */
+RBDL_DLLAPI
+void CalcBodySpatialJacobian (
+		Model &model,
+		const Math::VectorNd &Q,
+		unsigned int body_id,
+		Math::MatrixNd &G,
+		bool update_kinematics = true
+		);
+
 /** \brief Computes the velocity of a point on a body 
  *
  * \param model   rigid body model

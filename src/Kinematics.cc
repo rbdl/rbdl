@@ -307,6 +307,49 @@ void CalcPointJacobian (
 }
 
 RBDL_DLLAPI
+void CalcBodySpatialJacobian (
+		Model &model,
+		const VectorNd &Q,
+		unsigned int body_id,
+		MatrixNd &G,
+		bool update_kinematics
+	) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	// update the Kinematics if necessary
+	if (update_kinematics) {
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	}
+
+	assert (G.rows() == 6 && G.cols() == model.qdot_size );
+
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
+	unsigned int j = reference_body_id;
+
+	while (j != 0) {
+		unsigned int q_index = model.mJoints[j].q_index;
+
+		if (model.mJoints[j].mDoFCount == 3) {
+			Matrix63 S_base = spatial_inverse (model.X_base[j].toMatrix()) * model.multdof3_S[j];
+
+			G.block(0,q_index,6,3) = S_base;
+		} else {
+			SpatialVector S_base = model.X_base[j].inverse().apply(model.S[j]);
+
+			G.block(0,q_index,6,1) = S_base;
+		}
+	
+		j = model.lambda[j];
+	}
+}
+
+RBDL_DLLAPI
 Vector3d CalcPointVelocity (
 		Model &model,
 		const VectorNd &Q,

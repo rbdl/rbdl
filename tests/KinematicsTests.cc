@@ -9,6 +9,8 @@
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
 
+#include "Human36Fixture.h"
+
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
@@ -563,4 +565,34 @@ TEST ( FixedJointCalcPointJacobian ) {
 	Vector3d point_velocity_reference = CalcPointVelocity (model, Q, QDot, fixed_body_id, point_position);
 
 	CHECK_ARRAY_CLOSE (point_velocity_reference.data(), point_velocity_jacobian.data(), 3, TEST_PREC);
+}
+
+TEST_FIXTURE ( Human36, SpatialJacobianSimple ) {
+	randomizeStates();
+
+	unsigned int foot_r_id = model->GetBodyId ("foot_r");
+	MatrixNd G (MatrixNd::Zero (6, model->dof_count));
+
+	CalcBodySpatialJacobian (*model, q, foot_r_id, G);
+
+	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
+	SpatialVector v_body = model->X_base[foot_r_id].apply(SpatialVector(G * qdot));
+
+	CHECK_ARRAY_CLOSE (model->v[foot_r_id].data(), v_body.data(), 6, TEST_PREC);
+}
+
+TEST_FIXTURE ( Human36, SpatialJacobianFixedBody ) {
+	randomizeStates();
+
+	unsigned int uppertrunk_id = model->GetBodyId ("uppertrunk");
+	MatrixNd G (MatrixNd::Zero (6, model->dof_count));
+
+	CalcBodySpatialJacobian (*model, q, uppertrunk_id, G);
+
+	unsigned int movable_parent = model->mFixedBodies[uppertrunk_id - model->fixed_body_discriminator].mMovableParent;
+
+	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
+	SpatialVector v_body = model->X_base[movable_parent].apply(SpatialVector(G * qdot));
+
+	CHECK_ARRAY_CLOSE (model->v[movable_parent].data(), v_body.data(), 6, TEST_PREC);
 }

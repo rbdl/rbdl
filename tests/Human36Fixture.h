@@ -380,6 +380,17 @@ struct Human36 {
 		constraints_4B4C_3dof.Bind (*model_3dof);
 	}
 
+	void randomizeStates () {
+		for (int i = 0; i < q.size(); i++) {
+			q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+			qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+			tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+			qddot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		}
+		qddot_emulated = qddot;
+		qddot_3dof = qddot;
+	}
+
 	Human36 () {
 		ClearLogOutput();
 		using namespace RigidBodyDynamics;

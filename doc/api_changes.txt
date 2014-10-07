@@ -13,6 +13,7 @@
 - Added JointTypeTranslationXYZ, JointTypeEulerXYZ, and JointTypeEulerYXZ
   which are equivalent to the emulated multidof joints but faster
 - Added optional parameter to CalcCenterOfMass to compute angular momentum.
+- Added CalcBodySpatialJacobian()
 - Added CalcContactJacobian()
 - Added NonlinearEffects()
 - Added LuaModelReadFromLuaState()
