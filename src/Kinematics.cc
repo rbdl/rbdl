@@ -247,16 +247,6 @@ void CalcPointJacobian (
 
 	assert (G.rows() == 3 && G.cols() == model.qdot_size );
 
-	// we have to make sure that only the joints that contribute to the
-	// bodies motion also get non-zero columns in the jacobian.
-	// VectorNd e = VectorNd::Zero(Q.size() + 1);
-	char *e = new char[Q.size() + 1];
-	if (e == NULL) {
-		std::cerr << "Error: allocating memory." << std::endl;
-		abort();
-	}
-	memset (&e[0], 0, Q.size() + 1);
-
 	unsigned int reference_body_id = body_id;
 
 	if (model.IsFixedBodyId(body_id)) {
@@ -269,39 +259,20 @@ void CalcPointJacobian (
 	// e[j] is set to 1 if joint j contributes to the jacobian that we are
 	// computing. For all other joints the column will be zero.
 	while (j != 0) {
-		e[j] = 1;
+		unsigned int q_index = model.mJoints[j].q_index;
+
+		if (model.mJoints[j].mDoFCount == 3) {
+			Matrix63 S_base = point_trans.toMatrix() * model.X_base[j].inverse().toMatrix() * model.multdof3_S[j];
+
+			G.block(0, q_index, 3, 3) = S_base.block(3,0,3,3);
+		} else {
+			SpatialVector S_base = point_trans.apply(model.X_base[j].inverse().apply(model.S[j]));
+
+			G.block(0,q_index, 3, 1)  = S_base.block(3,0,3,1);
+		}
+
 		j = model.lambda[j];
 	}
-
-	for (j = 1; j < model.mBodies.size(); j++) {
-		if (e[j] == 1) {
-			unsigned int q_index = model.mJoints[j].q_index;
-
-			if (model.mJoints[j].mDoFCount == 3) {
-				Matrix63 S_base = point_trans.toMatrix() * spatial_inverse (model.X_base[j].toMatrix()) * model.multdof3_S[j];
-
-				G(0, q_index) = S_base(3, 0);
-				G(1, q_index) = S_base(4, 0);
-				G(2, q_index) = S_base(5, 0);
-
-				G(0, q_index + 1) = S_base(3, 1);
-				G(1, q_index + 1) = S_base(4, 1);
-				G(2, q_index + 1) = S_base(5, 1);
-
-				G(0, q_index + 2) = S_base(3, 2);
-				G(1, q_index + 2) = S_base(4, 2);
-				G(2, q_index + 2) = S_base(5, 2);
-			} else {
-				SpatialVector S_base = point_trans.apply(model.X_base[j].inverse().apply(model.S[j]));
-
-				G(0, q_index) = S_base[3];
-				G(1, q_index) = S_base[4];
-				G(2, q_index) = S_base[5];
-			}
-		}
-	}
-	
-	delete[] e;
 }
 
 RBDL_DLLAPI
@@ -334,7 +305,7 @@ void CalcBodySpatialJacobian (
 		unsigned int q_index = model.mJoints[j].q_index;
 
 		if (model.mJoints[j].mDoFCount == 3) {
-			Matrix63 S_base = spatial_inverse (model.X_base[j].toMatrix()) * model.multdof3_S[j];
+			Matrix63 S_base = model.X_base[j].inverse().toMatrix() * model.multdof3_S[j];
 
 			G.block(0,q_index,6,3) = S_base;
 		} else {
