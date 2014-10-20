@@ -166,7 +166,7 @@ void CalcPointJacobian (Model &model,
  * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
  *
  * The result will be returned via the G argument and represents the
- * body Jacobian expressed at the origin of the base coordinate system.
+ * body Jacobian expressed at the origin of the body.
  *
  * \note This function only evaluates the entries of G that are non-zero. One
  * Before calling this function one has to ensure that all other values

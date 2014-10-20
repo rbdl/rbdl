@@ -577,7 +577,7 @@ TEST_FIXTURE ( Human36, SpatialJacobianSimple ) {
 	CalcBodySpatialJacobian (*model, q, foot_r_id, G);
 
 	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
-	SpatialVector v_body = model->X_base[foot_r_id].apply(SpatialVector(G * qdot));
+	SpatialVector v_body = SpatialVector(G * qdot);
 
 	CHECK_ARRAY_CLOSE (model->v[foot_r_id].data(), v_body.data(), 6, TEST_PREC);
 }
@@ -590,10 +590,13 @@ TEST_FIXTURE ( Human36, SpatialJacobianFixedBody ) {
 
 	CalcBodySpatialJacobian (*model, q, uppertrunk_id, G);
 
-	unsigned int movable_parent = model->mFixedBodies[uppertrunk_id - model->fixed_body_discriminator].mMovableParent;
+	unsigned int fixed_body_id = uppertrunk_id - model->fixed_body_discriminator;
+	unsigned int movable_parent = model->mFixedBodies[fixed_body_id].mMovableParent;
 
 	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
-	SpatialVector v_body = model->X_base[movable_parent].apply(SpatialVector(G * qdot));
+	SpatialVector v_body = SpatialVector(G * qdot);
 
-	CHECK_ARRAY_CLOSE (model->v[movable_parent].data(), v_body.data(), 6, TEST_PREC);
+	SpatialVector v_fixed_body = model->mFixedBodies[fixed_body_id].mParentTransform.apply (model->v[movable_parent]);
+
+	CHECK_ARRAY_CLOSE (v_fixed_body.data(), v_body.data(), 6, TEST_PREC);
 }

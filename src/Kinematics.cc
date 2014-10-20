@@ -294,9 +294,14 @@ void CalcBodySpatialJacobian (
 
 	unsigned int reference_body_id = body_id;
 
+	SpatialTransform base_to_body;
+
 	if (model.IsFixedBodyId(body_id)) {
 		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
 		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		base_to_body = model.mFixedBodies[fbody_id].mParentTransform * model.X_base[reference_body_id];
+	} else {
+		base_to_body = model.X_base[reference_body_id];
 	}
 
 	unsigned int j = reference_body_id;
@@ -305,11 +310,11 @@ void CalcBodySpatialJacobian (
 		unsigned int q_index = model.mJoints[j].q_index;
 
 		if (model.mJoints[j].mDoFCount == 3) {
-			Matrix63 S_base = model.X_base[j].inverse().toMatrix() * model.multdof3_S[j];
+			Matrix63 S_base = base_to_body.toMatrix() * model.X_base[j].inverse().toMatrix() * model.multdof3_S[j];
 
 			G.block(0,q_index,6,3) = S_base;
 		} else {
-			SpatialVector S_base = model.X_base[j].inverse().apply(model.S[j]);
+			SpatialVector S_base = base_to_body.apply(model.X_base[j].inverse().apply(model.S[j]));
 
 			G.block(0,q_index,6,1) = S_base;
 		}
