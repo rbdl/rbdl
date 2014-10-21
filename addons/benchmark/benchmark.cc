@@ -13,7 +13,7 @@
 #include "SampleData.h"
 #include "Timer.h"
 
-#ifdef BUILD_ADDON_LUAMODEL
+#ifdef RBDL_BUILD_ADDON_LUAMODEL
 #include "../addons/luamodel/luamodel.h"
 bool have_luamodel = true;
 #else
@@ -331,7 +331,7 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 }
 
 void print_usage () {
-#ifdef BUILD_ADDON_LUAMODEL
+#ifdef RBDL_BUILD_ADDON_LUAMODEL
 	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>] <model.lua>" << endl;
 #else
 	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>]" << endl;
@@ -353,8 +353,6 @@ void print_usage () {
 	cout << "                                body algorithm." << endl;
 	cout << "  --only-contacts | -C        : only runs contact model benchmarks." << endl;
 	cout << "  --help | -h                 : prints this help." << endl;
-#ifdef BUILD_ADDON_LUAMODEL
-#endif
 }
 
 void disable_all_benchmarks () {
@@ -412,7 +410,7 @@ void parse_args (int argc, char* argv[]) {
 		} else if (arg == "--only-contacts" || arg == "-C") {
 			disable_all_benchmarks();
 			benchmark_run_contacts = true;
-#ifdef BUILD_ADDON_LUAMODEL
+#ifdef RBDL_BUILD_ADDON_LUAMODEL
 		} else if (model_file == "") {
 			model_file = arg;
 #endif
@@ -432,7 +430,7 @@ int main (int argc, char *argv[]) {
 
 	model = new Model();
 
-#ifdef BUILD_ADDON_LUAMODEL
+#ifdef RBDL_BUILD_ADDON_LUAMODEL
 	if (model_file != "") {
 		RigidBodyDynamics::Addons::LuaModelReadFromFile (model_file.c_str(), model);
 

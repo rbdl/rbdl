@@ -7,7 +7,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} )
 
 # Search for the RBDL include directory and library
-FIND_PACKAGE (RBDL REQUIRED)
+FIND_PACKAGE (RBDL COMPONENTS LuaModel REQUIRED)
 FIND_PACKAGE (Eigen3 3.0.0 REQUIRED)
 
 # Add the include directory to the include paths
@@ -18,5 +18,6 @@ ADD_EXECUTABLE (example_luamodel example_luamodel.cc)
 
 # And link the library against the executable
 TARGET_LINK_LIBRARIES ( example_luamodel
-	${RBDL_LIBRARIES}
+	${RBDL_LIBRARY}
+	${RBDL_LuaModel_LIBRARY}
 	)

@@ -32,8 +32,7 @@ ADD_LIBRARY ( rbdl_urdfreader SHARED ${URDFREADER_SOURCES} )
 
 ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
 
-
-IF (BUILD_STATIC)
+IF (RBDL_BUILD_STATIC)
 	ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${URDFREADER_SOURCES} )
 
 	SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES PREFIX "lib")
@@ -45,10 +44,9 @@ IF (BUILD_STATIC)
 		)
 
 	INSTALL (TARGETS rbdl_urdfreader-static
-	  LIBRARY DESTINATION lib
-  	ARCHIVE DESTINATION lib
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	)
-ENDIF (BUILD_STATIC)
+ENDIF (RBDL_BUILD_STATIC)
 
 TARGET_LINK_LIBRARIES (rbdl_urdfreader
 	rbdl
@@ -57,12 +55,14 @@ TARGET_LINK_LIBRARIES (rbdl_urdfreader
 
 TARGET_LINK_LIBRARIES (rbdl_urdfreader_util
 	rbdl_urdfreader
+	rbdl
 	)
 
 # Installing
-INSTALL (TARGETS rbdl_urdfreader
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
+INSTALL (TARGETS rbdl_urdfreader_util rbdl_urdfreader 
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	)
 
 FILE ( GLOB headers

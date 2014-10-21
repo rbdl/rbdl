@@ -9,8 +9,8 @@
 
 #include <rbdl/rbdl.h>
 
-#ifndef BUILD_ADDON_URDFREADER
-	#error "Error: RBDL addon BUILD_ADDON_URDFREADER not activated."
+#ifndef RBDL_BUILD_ADDON_URDFREADER
+	#error "Error: RBDL addon URDFReader not enabled."
 #endif
 
 #include <rbdl/addons/urdfreader/rbdl_urdfreader.h>

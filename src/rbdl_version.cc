@@ -73,10 +73,15 @@ RBDL_DLLAPI void rbdl_print_version() {
 	std::cout << "  simplemath   : off" << std::endl;
 #endif
 
-#ifdef BUILD_ADDON_LUAMODEL
-	std::cout << "  luamodel     : on" << std::endl;
+#ifdef RBDL_BUILD_ADDON_LUAMODEL
+	std::cout << "  LuaModel     : on" << std::endl;
 #else
-	std::cout << "  luamodel     : off" << std::endl;
+	std::cout << "  LuaModel     : off" << std::endl;
+#endif
+#ifdef RBDL_BUILD_ADDON_URDFREADER
+	std::cout << "  URDFReader   : on" << std::endl;
+#else
+	std::cout << "  URDFReader   : off" << std::endl;
 #endif
 
 	std::string build_revision (RBDL_BUILD_REVISION);
