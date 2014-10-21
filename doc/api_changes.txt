@@ -1,4 +1,4 @@
-2.3.2 -> next (2.4.0?)
+2.3.3 -> next (2.4.0?)
 - Fixed ForwardDynamicsContacts with constraints on a body that is attached
   with a fixed joint. Previous versions simply crashed. Thanks to Yue Hu
   for reporting!
@@ -22,6 +22,17 @@
 - Added LuaModelReadFromLuaState()
 - Added solving of linear systems using standard Householder QR
 - Various performance improvements
+
+2.3.2 -> 2.3.3
+- critical: fixed ForwardDynamicsContacts with constraints on a body
+  that is attached with a fixed joint. Previous versions simply crashed.
+  Thanks to Yue Hu for reporting!
+- rbdl_print_version() now properly prints whether URDFReader was enabled
+  at build time
+- build system: fixed roblems especially building of the URDFreader
+- build system: all CMake variables for RBDL are now prefixed with RBDL_ 
+- FindRBDL.cmake now can use components to search for the LuaModel or
+  URDFReader addon
 
 2.3.1 -> 2.3.2
 - critical: fixed ForwardDynamicsLagrangian which used uninitialized values for the joint space inertia matrix

@@ -9,8 +9,8 @@
 
 #include <rbdl/rbdl.h>
 
-#ifndef BUILD_ADDON_LUAMODEL
-	#error "Error: RBDL addon BUILD_LUAMODELS not activated."
+#ifndef RBDL_BUILD_ADDON_LUAMODEL
+	#error "Error: RBDL addon LuaModel not enabled."
 #endif
 
 #include <rbdl/addons/luamodel/luamodel.h>

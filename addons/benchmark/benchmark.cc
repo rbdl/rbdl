@@ -13,14 +13,14 @@
 #include "SampleData.h"
 #include "Timer.h"
 
-#ifdef BUILD_ADDON_LUAMODEL
+#ifdef RBDL_BUILD_ADDON_LUAMODEL
 #include "../addons/luamodel/luamodel.h"
 bool have_luamodel = true;
 #else
 bool have_luamodel = false;
 #endif
 
-#ifdef BUILD_ADDON_URDFREADER
+#ifdef RBDL_BUILD_ADDON_URDFREADER
 #include "../addons/urdfreader/urdfreader.h"
 bool have_urdfreader = true;
 #else
@@ -400,7 +400,7 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
 }
 
 void print_usage () {
-#ifdef BUILD_ADDON_LUAMODEL
+#if defined (RBDL_BUILD_ADDON_LUAMODEL) || defined (RBDL_BUILD_ADDON_URDFREADER)
 	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>] <model.lua>" << endl;
 #else
 	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>]" << endl;
@@ -423,8 +423,6 @@ void print_usage () {
 	cout << "                                body algorithm." << endl;
 	cout << "  --only-contacts | -C        : only runs contact model benchmarks." << endl;
 	cout << "  --help | -h                 : prints this help." << endl;
-#ifdef BUILD_ADDON_LUAMODEL
-#endif
 }
 
 void disable_all_benchmarks () {
@@ -485,7 +483,7 @@ void parse_args (int argc, char* argv[]) {
 		} else if (arg == "--only-contacts" || arg == "-C") {
 			disable_all_benchmarks();
 			benchmark_run_contacts = true;
-#if (defined(BUILD_ADDON_LUAMODEL) || defined	(BUILD_ADDON_URDFREADER))
+#if defined (RBDL_BUILD_ADDON_LUAMODEL) || defined (RBDL_BUILD_ADDON_URDFREADER)
 		} else if (model_file == "") {
 			model_file = arg;
 #endif
@@ -507,7 +505,7 @@ int main (int argc, char *argv[]) {
 
 	if (model_file != "") {
 		if (model_file.substr (model_file.size() - 4, 4) == ".lua") {
-#ifdef BUILD_ADDON_LUAMODEL
+#ifdef RBDL_BUILD_ADDON_LUAMODEL
 			RigidBodyDynamics::Addons::LuaModelReadFromFile (model_file.c_str(), model);
 #else
 			cerr << "Could not load Lua model: LuaModel addon not enabled!" << endl;
@@ -515,7 +513,7 @@ int main (int argc, char *argv[]) {
 #endif
 		}
 		if (model_file.substr (model_file.size() - 5, 5) == ".urdf") {
-#ifdef BUILD_ADDON_URDFREADER
+#ifdef RBDL_BUILD_ADDON_URDFREADER
 			RigidBodyDynamics::Addons::URDFReadFromFile(model_file.c_str(), model);
 #else
 			cerr << "Could not load URDF model: urdfreader addon not enabled!" << endl;
