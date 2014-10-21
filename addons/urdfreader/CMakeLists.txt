@@ -32,6 +32,11 @@ ADD_LIBRARY ( rbdl_urdfreader SHARED ${URDFREADER_SOURCES} )
 
 ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
 
+SET_TARGET_PROPERTIES ( rbdl_urdfreader PROPERTIES
+	VERSION ${RBDL_VERSION}
+	SOVERSION ${RBDL_SO_VERSION}
+  )
+
 IF (RBDL_BUILD_STATIC)
 	ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${URDFREADER_SOURCES} )
 

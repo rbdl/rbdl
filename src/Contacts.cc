@@ -666,9 +666,6 @@ void ForwardDynamicsContacts (
 		case (LinearSolverColPivHouseholderQR) :
 			CS.force = CS.K.colPivHouseholderQr().solve(CS.a);
 			break;
-		case (LinearSolverHouseholderQR) :
-			CS.force = CS.K.householderQr().solve(CS.a);
-			break;
 		default:
 			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
 			assert (0);
