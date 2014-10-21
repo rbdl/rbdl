@@ -1,5 +1,5 @@
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2013 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2014 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
 Introduction
 ============
@@ -18,7 +18,17 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
-   * 29 August 2014: New version 2.3.2:
+  * 21 October 2014: New version 2.3.3:
+    * critical: fixed ForwardDynamicsContacts with constraints on a body
+      that is attached with a fixed joint. Previous versions simply crashed.
+      Thanks to Yue Hu for reporting!
+    * rbdl_print_version() now properly prints whether URDFReader was enabled
+      at build time
+    * build system: fixed roblems especially building of the URDFreader
+    * build system: all CMake variables for RBDL are now prefixed with RBDL_ 
+    * FindRBDL.cmake now can use components to search for the LuaModel or
+      URDFReader addon
+  * 29 August 2014: New version 2.3.2:
      * critical: fixed ForwardDynamicsLagrangian which used uninitialized values for the joint space inertia matrix (thanks to Benjamin Michaud!)
      * critical: fixed ForwardDynamicsContacts when using 3-dof joints
      * critical: fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)
@@ -110,7 +120,7 @@ license which should allow you to use the software wherever you need.
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
-    Copyright (c) 2011-2013 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+    Copyright (c) 2011-2014 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
