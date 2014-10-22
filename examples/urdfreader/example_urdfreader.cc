@@ -13,7 +13,7 @@
 	#error "Error: RBDL addon URDFReader not enabled."
 #endif
 
-#include <rbdl/addons/urdfreader/rbdl_urdfreader.h>
+#include <rbdl/addons/urdfreader/urdfreader.h>
 
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
@@ -23,7 +23,7 @@ int main (int argc, char* argv[]) {
 
 	Model* model = new Model();
 
-	if (!Addons::read_urdf_model ("./samplemodel.urdf", model, false)) {
+	if (!Addons::URDFReadFromFile ("./samplemodel.urdf", model, false)) {
 		std::cerr << "Error loading model ./samplemodel.urdf" << std::endl;
 		abort();
 	}
