@@ -43,9 +43,14 @@ SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
 	OUTPUT_NAME runtests
 	)
 
+SET (RBDL_LIBRARY rbdl)
+IF (RBDL_BUILD_STATIC)
+	SET (RBDL_LIBRARY rbdl-static)
+ENDIF (RBDL_BUILD_STATIC)
+
 TARGET_LINK_LIBRARIES ( rbdl_tests
 		${UNITTEST++_LIBRARY}
-		rbdl	
+		${RBDL_LIBRARY}
 	)
 	
 OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)

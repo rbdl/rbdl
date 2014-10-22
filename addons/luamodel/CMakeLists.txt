@@ -20,11 +20,7 @@ SET ( LUAMODEL_SOURCES
 	luatables.cc
 	)
 
-ADD_LIBRARY ( rbdl_luamodel SHARED ${LUAMODEL_SOURCES} )
-SET_TARGET_PROPERTIES ( rbdl_luamodel PROPERTIES
-	VERSION ${RBDL_VERSION}
-	SOVERSION ${RBDL_SO_VERSION}
-  )
+ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
 
 IF (RBDL_BUILD_STATIC)
 	ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
@@ -32,33 +28,41 @@ IF (RBDL_BUILD_STATIC)
 	SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES OUTPUT_NAME "rbdl_luamodel")
 
 	TARGET_LINK_LIBRARIES (rbdl_luamodel-static
-		rbdl
+		rbdl-static
 		${LUA_LIBRARIES}
 	)
 
-	INSTALL (TARGETS rbdl_luamodel-static
+	TARGET_LINK_LIBRARIES (rbdl_luamodel_util
+		rbdl_luamodel-static
+		rbdl-static
+		)
+
+	INSTALL (TARGETS rbdl_luamodel-static rbdl_luamodel_util 
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	)
+		)
+ELSE (RBDL_BUILD_STATIC)
+	ADD_LIBRARY ( rbdl_luamodel SHARED ${LUAMODEL_SOURCES} )
+	SET_TARGET_PROPERTIES ( rbdl_luamodel PROPERTIES
+		VERSION ${RBDL_VERSION}
+		SOVERSION ${RBDL_SO_VERSION}
+  )
+
+	TARGET_LINK_LIBRARIES (rbdl_luamodel
+		rbdl
+		${LUA_LIBRARIES}
+		)
+
+	TARGET_LINK_LIBRARIES (rbdl_luamodel_util
+		rbdl_luamodel
+		rbdl
+		)
+
+	INSTALL (TARGETS rbdl_luamodel rbdl_luamodel_util 
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		)
 ENDIF (RBDL_BUILD_STATIC)
-
-ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
-
-TARGET_LINK_LIBRARIES (rbdl_luamodel
-	rbdl
-	${LUA_LIBRARIES}
-	)
-
-TARGET_LINK_LIBRARIES (rbdl_luamodel_util
-	rbdl_luamodel
-	rbdl
-	)
-
-# Installing
-INSTALL (TARGETS rbdl_luamodel rbdl_luamodel_util 
-	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	)
 
 FILE ( GLOB headers 
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
