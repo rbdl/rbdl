@@ -111,7 +111,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 
 	while (link_stack.size() > 0) {
 		LinkPtr cur_link = link_stack.top();
-		int joint_idx = joint_index_stack.top();
+		unsigned int joint_idx = joint_index_stack.top();
 
 		if (joint_idx < cur_link->child_joints.size()) {
 			JointPtr cur_joint = cur_link->child_joints[joint_idx];
@@ -124,7 +124,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 			joint_index_stack.push(0);
 
 			if (verbose) {
-				for (int i = 1; i < joint_index_stack.size() - 1; i++) {
+				for (unsigned int i = 1; i < joint_index_stack.size() - 1; i++) {
 					cout << "  ";
 				}
 				cout << "joint '" << cur_joint->name << "' child link '" << link_stack.top()->name << "' type = " << cur_joint->type << endl;
@@ -201,7 +201,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 		Vector3d link_inertial_position;
 		Vector3d link_inertial_rpy;
 		Matrix3d link_inertial_inertia = Matrix3d::Zero();
-		double link_inertial_mass;
+		double link_inertial_mass = 0.;
 
 		// but only if we actually have inertial data
 		if (urdf_child->inertial) {

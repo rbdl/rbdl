@@ -5,7 +5,7 @@
 
 namespace RigidBodyDynamics {
 
-class Model;
+struct Model;
 
 namespace Addons {
 	RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verbose = false);

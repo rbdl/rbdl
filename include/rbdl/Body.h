@@ -64,25 +64,11 @@ struct RBDL_DLLAPI Body {
 		mMass (mass),
 		mCenterOfMass(com),
 		mIsVirtual (false) {
-			Math::Matrix3d com_cross (
-					0., -com[2],  com[1],
-					com[2],      0., -com[0],
-					-com[1],  com[0],      0.
-					);
-			Math::Matrix3d parallel_axis;
-			parallel_axis = mass * com_cross * com_cross.transpose();
-
 			mInertia = Math::Matrix3d (
 					gyration_radii[0], 0., 0.,
 					0., gyration_radii[1], 0.,
 					0., 0., gyration_radii[2]
 					);
-
-			Math::Matrix3d pa (parallel_axis);
-			Math::Matrix3d mcc = mass * com_cross;
-			Math::Matrix3d mccT = mcc.transpose();
-
-			Math::Matrix3d inertia_O = mInertia + pa;
 		}
 
 	/** \brief Constructs a body from mass, center of mass, and a 3x3 inertia matrix 
@@ -102,21 +88,8 @@ struct RBDL_DLLAPI Body {
 		mMass (mass),
 		mCenterOfMass(com),
 		mInertia (inertia_C),
-		mIsVirtual (false) {
-			Math::Matrix3d com_cross (
-					0., -com[2],  com[1],
-					com[2],      0., -com[0],
-					-com[1],  com[0],      0.
-					);
-			Math::Matrix3d parallel_axis = mass * com_cross * com_cross.transpose();
+		mIsVirtual (false) { }
 
-			LOG << "parrallel axis = " << std::endl << parallel_axis << std::endl;
-
-			Math::Matrix3d pa (parallel_axis);
-			Math::Matrix3d mcc = mass * com_cross;
-			Math::Matrix3d mccT = mcc.transpose();
-		}
-	
 	/** \brief Joins inertial parameters of two bodies to create a composite
 	 * body.
 	 *

@@ -15,8 +15,6 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-const double TEST_PREC = 1.0e-14;
-
 TEST_FIXTURE(FloatingBase12DoF, TestKineticEnergy) {
 	VectorNd q = VectorNd::Zero(model->q_size);
 	VectorNd qdot = VectorNd::Zero(model->q_size);

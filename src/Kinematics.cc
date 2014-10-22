@@ -345,8 +345,6 @@ Vector3d CalcPointVelocity (
 		UpdateKinematicsCustom (model, &Q, &QDot, NULL);
 	}
 
-	Vector3d point_abs_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false); 
-
 	unsigned int reference_body_id = body_id;
 	Vector3d reference_point = point_position;
 
@@ -398,8 +396,6 @@ Vector3d CalcPointAcceleration (
 		Vector3d base_coords = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
 		reference_point = CalcBaseToBodyCoordinates (model, Q, reference_body_id, base_coords, false);
 	}
-
-	SpatialVector body_global_velocity = model.X_base[reference_body_id].inverse().apply(model.v[reference_body_id]);
 
 	SpatialTransform p_X_i (CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose(), reference_point);
 

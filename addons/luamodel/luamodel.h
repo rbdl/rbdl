@@ -9,7 +9,7 @@ extern "C" {
 
 namespace RigidBodyDynamics {
 
-class Model;
+struct Model;
 
 namespace Addons {
 	

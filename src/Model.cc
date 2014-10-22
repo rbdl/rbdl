@@ -133,7 +133,7 @@ unsigned int AddBodyMultiDofJoint (
 	// Here we emulate multi DoF joints by simply adding nullbodies. This
 	// allows us to use fixed size elements for S,v,a, etc. which is very
 	// fast in Eigen.
-	unsigned int joint_count;
+	unsigned int joint_count = 0;
 	if (joint.mJointType == JointType1DoF)
 		joint_count = 1;
 	else if (joint.mJointType == JointType2DoF)
