@@ -80,13 +80,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 	Body root_link = Body (root_inertial_mass,
 	root_inertial_position,
 	root_inertial_inertia);
-	Joint root_joint = Joint (
-		SpatialVector (0., 0., 0., 1., 0., 0.),
-		SpatialVector (0., 0., 0., 0., 1., 0.),
-		SpatialVector (0., 0., 0., 0., 0., 1.),
-		SpatialVector (1., 0., 0., 0., 0., 0.),
-		SpatialVector (0., 1., 0., 0., 0., 0.),
-		SpatialVector (0., 0., 1., 0., 0., 0.));
+	Joint root_joint = Joint ( JointTypeFixed );
 
 	SpatialTransform root_joint_frame = SpatialTransform ();
 
