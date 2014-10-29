@@ -17,6 +17,7 @@
 #cmakedefine RBDL_BUILD_BRANCH "@RBDL_BUILD_BRANCH@"
 #cmakedefine RBDL_BUILD_ADDON_LUAMODEL
 #cmakedefine RBDL_BUILD_ADDON_URDFREADER
+#cmakedefine RBDL_BUILD_STATIC
 
 /* compatibility defines */
 #ifdef _WIN32
@@ -52,13 +53,21 @@
 #  endif // __GNUC__ >= 4
 # endif // defined _WIN32 || defined __CYGWIN__
 
+# ifdef RBDL_BUILD_STATIC
+// If one is using the library statically, get rid of
+// extra information.
+#  define RBDL_DLLAPI
+#  define RBDL_LOCAL
+# else
 // Depending on whether one is building or using the
 // library define DLLAPI to import or export.
-# ifdef rbdl_EXPORTS
-#  define RBDL_DLLAPI RBDL_DLLEXPORT
-# else
-#  define RBDL_DLLAPI RBDL_DLLIMPORT
-# endif // RBDL_EXPORTS
-# define RBDL_LOCAL RBDL_DLLLOCAL
+#  ifdef rbdl_EXPORTS
+#   define RBDL_DLLAPI RBDL_DLLEXPORT
+#  else
+#   define RBDL_DLLAPI RBDL_DLLIMPORT
+#  endif // RBDL_EXPORTS
+#  define RBDL_LOCAL RBDL_DLLLOCAL
+# endif // RBDL_BUILD_STATIC
+
 
 #endif
