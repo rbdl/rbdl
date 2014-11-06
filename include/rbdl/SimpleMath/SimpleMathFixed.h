@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <assert.h>
+#include <algorithm>
 
 #include "compileassert.h"
 #include "SimpleMathBlock.h"

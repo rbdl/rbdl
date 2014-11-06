@@ -14,7 +14,7 @@ namespace Math {
 class Quaternion : public Vector4d {
 	public:
 		Quaternion () :
-			Vector4d (0.f, 0.f, 0.f, 1.f)
+			Vector4d (0., 0., 0., 1.)
 		{}
 		Quaternion (const Vector4d &vec4) :
 			Vector4d (vec4)
@@ -50,12 +50,12 @@ class Quaternion : public Vector4d {
 		}
 
 		static Quaternion fromGLRotate (double angle, double x, double y, double z) {
-			double st = std::sin (angle * M_PI / 360.f);
+			double st = std::sin (angle * M_PI / 360.);
 			return Quaternion (
 						st * x,
 						st * y,
 						st * z,
-						cosf (angle * M_PI / 360.f)
+						cos (angle * M_PI / 360.)
 						);
 		}
 

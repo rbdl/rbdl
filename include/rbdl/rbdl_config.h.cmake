@@ -22,6 +22,7 @@
 /* compatibility defines */
 #ifdef _WIN32
 	#define __func__ __FUNCTION__
+	#define M_PI 3.1415926535897932384
 #endif
 
 // Handle portable symbol export.
