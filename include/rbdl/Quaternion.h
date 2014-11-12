@@ -55,7 +55,7 @@ class Quaternion : public Vector4d {
 						st * x,
 						st * y,
 						st * z,
-						cos (angle * M_PI / 360.)
+						std::cos (angle * M_PI / 360.)
 						);
 		}
 
