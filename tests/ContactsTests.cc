@@ -676,3 +676,35 @@ TEST_FIXTURE (Human36, ForwardDynamicsContactsFixedBody) {
 	CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 	CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_sparse.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 }
+
+TEST_FIXTURE (Human36, ForwardDynamicsContactsImpulses) {
+	VectorNd qddot_lagrangian (VectorNd::Zero(qddot.size()));
+
+	for (int i = 0; i < q.size(); i++) {
+		q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+		qddot_3dof[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+	}
+
+	Vector3d heel_point (-0.03, 0., -0.03);
+
+	ConstraintSet constraint_upper_trunk;
+	constraint_upper_trunk.AddConstraint (body_id_3dof[BodyFootLeft], heel_point, Vector3d (1., 0., 0.));
+	constraint_upper_trunk.AddConstraint (body_id_3dof[BodyFootLeft], heel_point, Vector3d (0., 1., 0.));
+	constraint_upper_trunk.AddConstraint (body_id_3dof[BodyFootLeft], heel_point, Vector3d (0., 0., 1.));
+	constraint_upper_trunk.AddConstraint (body_id_3dof[BodyFootRight], heel_point, Vector3d (1., 0., 0.));
+	constraint_upper_trunk.AddConstraint (body_id_3dof[BodyFootRight], heel_point, Vector3d (0., 1., 0.));
+	constraint_upper_trunk.AddConstraint (body_id_3dof[BodyFootRight], heel_point, Vector3d (0., 0., 1.));
+	constraint_upper_trunk.Bind (*model_3dof);
+
+	VectorNd qdotplus (VectorNd::Zero (qdot.size()));
+
+	ComputeContactImpulsesLagrangian (*model_3dof, q, qdot, constraint_upper_trunk, qdotplus);  
+
+	Vector3d heel_left_velocity = CalcPointVelocity (*model_3dof, q, qdotplus, body_id_3dof[BodyFootLeft], heel_point);
+	Vector3d heel_right_velocity = CalcPointVelocity (*model_3dof, q, qdotplus, body_id_3dof[BodyFootRight], heel_point);
+
+	CHECK_ARRAY_CLOSE (Vector3d(0., 0., 0.).data(), heel_left_velocity.data(), 3, TEST_PREC);
+	CHECK_ARRAY_CLOSE (Vector3d(0., 0., 0.).data(), heel_right_velocity.data(), 3, TEST_PREC);
+}

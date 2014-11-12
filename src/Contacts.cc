@@ -375,30 +375,10 @@ void ComputeContactImpulsesLagrangian (
 	UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
 
-	unsigned int i,j;
+	CS.G.setZero();
 
-	// variables to check whether we need to recompute G
-	unsigned int prev_body_id = 0;
-	Vector3d prev_body_point = Vector3d::Zero();
-	MatrixNd Gi (3, model.dof_count);
-
-	for (i = 0; i < CS.size(); i++) {
-		// only compute the matrix Gi if actually needed
-		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
-			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
-			prev_body_id = CS.body[i];
-			prev_body_point = CS.point[i];
-		}
-
-		for (j = 0; j < model.dof_count; j++) {
-			Vector3d g_block (Gi(0,j), Gi(1, j), Gi(2,j));
-			/// \TODO use Gi.block<3,0> notation (SimpleMath does not give proper results for that currently.
-			CS.G(i,j) = CS.normal[i].transpose() * g_block;
-		}
-	}
-
-	// Compute H * \dot{q}^-
-	VectorNd Hqdotminus (CS.H * QDotMinus);
+	// Compute G
+	CalcContactJacobian (model, Q, CS, CS.G, false);
 
 	// Build the system
 	CS.A.setZero();
@@ -406,29 +386,15 @@ void ComputeContactImpulsesLagrangian (
 	CS.x.setZero();
 
 	// Build the system: Copy H
-	for (i = 0; i < model.dof_count; i++) {
-		for (j = 0; j < model.dof_count; j++) {
-			CS.A(i,j) = CS.H(i,j);	
-		}
-	}
+	CS.A.block(0, 0, model.qdot_size, model.qdot_size) = CS.H;
 
-	// Build the system: Copy G, and G^T
-	for (i = 0; i < CS.size(); i++) {
-		for (j = 0; j < model.dof_count; j++) {
-			CS.A(i + model.dof_count, j) = CS.G (i,j);
-			CS.A(j, i + model.dof_count) = CS.G (i,j);
-		}
-	}
+	// Copy G and G^T
+	CS.A.block(0, model.qdot_size, model.qdot_size, CS.size()) = CS.G.transpose();
+	CS.A.block(model.qdot_size, 0, CS.size(), model.qdot_size) = CS.G;
 
-	// Build the system: Copy -C + \tau
-	for (i = 0; i < model.dof_count; i++) {
-		CS.b[i] = Hqdotminus[i];
-	}
-
-	// Build the system: Copy -gamma
-	for (i = 0; i < CS.size(); i++) {
-		CS.b[i + model.dof_count] = CS.v_plus[i];
-	}
+	// Compute H * \dot{q}^-
+	CS.b.block(0,0, model.dof_count, 1) = CS.H * QDotMinus;
+	CS.b.block(model.qdot_size, 0, CS.size(), 1) = CS.v_plus;
 
 #ifndef RBDL_USE_SIMPLE_MATH
 	switch (CS.linear_solver) {
@@ -452,11 +418,11 @@ void ComputeContactImpulsesLagrangian (
 #endif
 
 	// Copy back QDDot
-	for (i = 0; i < model.dof_count; i++)
+	for (unsigned int i = 0; i < model.dof_count; i++)
 		QDotPlus[i] = CS.x[i];
 
 	// Copy back contact impulses
-	for (i = 0; i < CS.size(); i++) {
+	for (unsigned int i = 0; i < CS.size(); i++) {
 		CS.impulse[i] = -CS.x[model.dof_count + i];
 	}
 }
