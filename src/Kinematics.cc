@@ -262,12 +262,10 @@ void CalcPointJacobian (
 		unsigned int q_index = model.mJoints[j].q_index;
 
 		if (model.mJoints[j].mDoFCount == 3) {
-			Matrix63 S_base = point_trans.toMatrix() * model.X_base[j].inverse().toMatrix() * model.multdof3_S[j];
-
+			Matrix63 S_base = (point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j];
 			G.block(0, q_index, 3, 3) = S_base.block(3,0,3,3);
 		} else {
 			SpatialVector S_base = point_trans.apply(model.X_base[j].inverse().apply(model.S[j]));
-
 			G.block(0,q_index, 3, 1)  = S_base.block(3,0,3,1);
 		}
 
@@ -310,13 +308,9 @@ void CalcBodySpatialJacobian (
 		unsigned int q_index = model.mJoints[j].q_index;
 
 		if (model.mJoints[j].mDoFCount == 3) {
-			Matrix63 S_base = base_to_body.toMatrix() * model.X_base[j].inverse().toMatrix() * model.multdof3_S[j];
-
-			G.block(0,q_index,6,3) = S_base;
+			G.block(0,q_index,6,3) = (base_to_body * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j];
 		} else {
-			SpatialVector S_base = base_to_body.apply(model.X_base[j].inverse().apply(model.S[j]));
-
-			G.block(0,q_index,6,1) = S_base;
+			G.block(0,q_index,6,1) = base_to_body.apply(model.X_base[j].inverse().apply(model.S[j]));
 		}
 	
 		j = model.lambda[j];
