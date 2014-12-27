@@ -1,6 +1,17 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+
 PROJECT (RBDL)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
+SET ( RBDL_VERSION_MAJOR 2 )
+SET ( RBDL_VERSION_MINOR 4 )
+SET ( RBDL_VERSION_PATCH 0 )
+SET ( RBDL_VERSION 
+	${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}
+)
+SET ( RBDL_SO_VERSION 
+	${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}
+)
+SET (PROJECT_VERSION ${RBDL_VERSION})
 
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake )
 
@@ -13,21 +24,17 @@ INCLUDE_DIRECTORIES (
 
 INCLUDE(GNUInstallDirs)
 
-SET ( RBDL_VERSION_MAJOR 2 )
-SET ( RBDL_VERSION_MINOR 4 )
-SET ( RBDL_VERSION_PATCH 0 )
-SET ( RBDL_VERSION 
-	${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}
-)
-SET ( RBDL_SO_VERSION 
-	${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}
-)
-
-SET (PROJECT_VERSION )
-
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
 		LINKER_LANGUAGE CXX
 	)
+
+# Set a default build type to 'Release' if none was specified
+IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+	MESSAGE(STATUS "Setting build type to 'Release' as none was specified.")
+	SET(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+ENDIF()
 
 # Find and use the system's Eigen3 library
 FIND_PACKAGE (Eigen3 3.0.0)
@@ -50,25 +57,7 @@ OPTION (RBDL_BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" OFF)
 OPTION (RBDL_BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 OPTION (RBDL_BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
 
-# If compiler support symbol visibility, enable it.
-INCLUDE (CheckCCompilerFlag)
-CHECK_C_COMPILER_FLAG(-fvisibility=hidden HAS_VISIBILITY)
-IF (HAS_VISIBILITY)
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-ENDIF ()
-
-SET ( RBDL_SOURCES 
-	src/rbdl_version.cc
-	src/rbdl_mathutils.cc
-	src/rbdl_utils.cc
-	src/Contacts.cc
-	src/Dynamics.cc
-	src/Logging.cc
-	src/Joint.cc
-	src/Model.cc
-	src/Kinematics.cc
-	)
-
+# Addons
 IF (RBDL_BUILD_ADDON_URDFREADER)
   ADD_SUBDIRECTORY ( addons/urdfreader )
 ENDIF (RBDL_BUILD_ADDON_URDFREADER)
@@ -82,11 +71,30 @@ IF (RBDL_BUILD_ADDON_LUAMODEL)
 ENDIF (RBDL_BUILD_ADDON_LUAMODEL)
 
 IF (RBDL_BUILD_TESTS)
-#	ADD_SUBDIRECTORY ( vendor/UnitTest++ )
-#	INCLUDE_DIRECTORIES ( vendor/UnitTest++/src )
  ADD_SUBDIRECTORY ( tests )
 ENDIF (RBDL_BUILD_TESTS)
 
+# Source files for RBDL
+SET ( RBDL_SOURCES 
+	src/rbdl_version.cc
+	src/rbdl_mathutils.cc
+	src/rbdl_utils.cc
+	src/Contacts.cc
+	src/Dynamics.cc
+	src/Logging.cc
+	src/Joint.cc
+	src/Model.cc
+	src/Kinematics.cc
+	)
+
+# If compiler support symbol visibility, enable it.
+INCLUDE (CheckCCompilerFlag)
+CHECK_C_COMPILER_FLAG(-fvisibility=hidden HAS_VISIBILITY)
+IF (HAS_VISIBILITY)
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+ENDIF ()
+
+# Static / dynamic builds
 IF (RBDL_BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
   SET_TARGET_PROPERTIES ( rbdl-static PROPERTIES PREFIX "lib")
@@ -133,6 +141,7 @@ CONFIGURE_FILE (
 	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdl_config.h"
 	)
 
+# Installation
 FILE ( GLOB headers 
 	${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/*.h
 	${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdl_config.h
