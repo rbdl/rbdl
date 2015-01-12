@@ -264,7 +264,7 @@ void NonlinearEffects (
 
 		if (model.lambda[i] == 0) {
 			model.v[i] = v_J;
-			model.a[i] = model.X_base[i].apply(spatial_gravity);
+			model.a[i] = model.X_lambda[i].apply(spatial_gravity);
 		}	else {
 			model.v[i] = model.X_lambda[i].apply(model.v[model.lambda[i]]) + v_J;
 			model.c[i] = c_J + crossm(model.v[i],v_J);

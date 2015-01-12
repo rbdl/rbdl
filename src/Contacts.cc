@@ -224,19 +224,15 @@ void SolveContactSystemRangeSpaceSparse (
 	) {
 	SparseFactorizeLTL (model, H);
 
-	VectorNd tau_dash = c;
-	
 	MatrixNd Y (G.transpose());
 
-//	std::cout << Y << std::endl;
 	for (unsigned int i = 0; i < Y.cols(); i++) {
 		VectorNd Y_col = Y.block(0,i,Y.rows(),1);
 		SparseSolveLTx (model, H, Y_col);
 		Y.block(0,i,Y.rows(),1) = Y_col;
-//		std::cout << "i = " << i << std::endl << Y << std::endl;
 	}
 
-	VectorNd z (tau_dash);
+	VectorNd z (c);
 	SparseSolveLTx (model, H, z);
 
 	K = Y.transpose() * Y;
@@ -373,15 +369,18 @@ void CalcContactSystemVariables (
 		ConstraintSet &CS
 		) {
 	// Compute C
-	CS.QDDot_0.setZero();
-	InverseDynamics (model, Q, QDot, CS.QDDot_0, CS.C);
-
+	NonlinearEffects (model, Q, QDot, CS.C);
 	assert (CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
 
 	// Compute H
 	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
 
 	// Compute G
+	// We have to update model.X_base as they are not automatically computed
+	// by NonlinearEffects()
+	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		model.X_base[i] = model.X_lambda[i] * model.X_base[model.lambda[i]];
+	}
 	CalcContactJacobian (model, Q, CS, CS.G, false);
 
 	// Compute gamma
@@ -389,7 +388,7 @@ void CalcContactSystemVariables (
 	Vector3d prev_body_point = Vector3d::Zero();
 	Vector3d gamma_i = Vector3d::Zero();
 
-	// update Kinematics just once
+	CS.QDDot_0.setZero();
 	UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
 
 	for (unsigned int i = 0; i < CS.size(); i++) {
@@ -402,7 +401,6 @@ void CalcContactSystemVariables (
 
 		// we also substract ContactData[i].acceleration such that the contact
 		// point will have the desired acceleration
-//		CS.gamma[i] = CS.normal[i].dot(gamma_i) - CS.acceleration[i];
 		CS.gamma[i] = CS.acceleration[i] - CS.normal[i].dot(gamma_i);
 	}
 }

@@ -242,8 +242,7 @@ void CalcPointJacobian (
 		UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	}
 
-	Vector3d point_base_pos = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
-	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), point_base_pos);
+	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
 
 	assert (G.rows() == 3 && G.cols() == model.qdot_size );
 
@@ -262,11 +261,9 @@ void CalcPointJacobian (
 		unsigned int q_index = model.mJoints[j].q_index;
 
 		if (model.mJoints[j].mDoFCount == 3) {
-			Matrix63 S_base = (point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j];
-			G.block(0, q_index, 3, 3) = S_base.block(3,0,3,3);
+			G.block(0, q_index, 3, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(3,0,3,3);
 		} else {
-			SpatialVector S_base = point_trans.apply(model.X_base[j].inverse().apply(model.S[j]));
-			G.block(0,q_index, 3, 1)  = S_base.block(3,0,3,1);
+			G.block(0,q_index, 3, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(3,0,3,1);
 		}
 
 		j = model.lambda[j];
