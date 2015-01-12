@@ -15,6 +15,7 @@
 	#include "rbdl/SimpleMath/SimpleMathDynamic.h"
 	#include "rbdl/SimpleMath/SimpleMathMixed.h"
 	#include "rbdl/SimpleMath/SimpleMathQR.h"
+	#include "rbdl/SimpleMath/SimpleMathCholesky.h"
 	#include "rbdl/SimpleMath/SimpleMathCommaInitializer.h"
 	#include <vector>
 

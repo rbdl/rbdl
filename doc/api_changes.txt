@@ -1,16 +1,20 @@
 2.3.3 -> next (2.4.0?)
-- Fixed ForwardDynamicsContacts with constraints on a body that is attached
+- Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
+	and ComputeContactImpulsesRangeSpaceSparse() 
+- Added null-space method ForwardDynamicsContactsNullSpace()
+	and ComputeContactImpulsesNullSpace() 
+- Renamed ForwardDynamicsContactsLagrangian() to
+	ForwardDynamicsContactsDirect() and
+	ComputeContactImpulsesLagrangian() to ComputeContactImpulsesDirect()
+- Renamed ForwardDynamicsContacts() to ForwardDynamicsContactsKokkevis()
+- Fixed ForwardDynamicsContacts() with constraints on a body that is attached
   with a fixed joint. Previous versions simply crashed. Thanks to Yue Hu
   for reporting!
-- Removed/Fixed CalcAngularMomentum. The function produced wrong values. The
-  functionality has been integrated into CalcCenterOfMass.
-- CalcPointJacobian does not clear the argument of the result anymore.
+- Removed/Fixed CalcAngularMomentum(). The function produced wrong values. The
+  functionality has been integrated into CalcCenterOfMass().
+- CalcPointJacobian() does not clear the argument of the result anymore.
   Caller has to ensure that the matrix was set to zero before using this
   function.
-- Added ForwardDynamicsContactsLagrangianSparse. It uses a sparse LTL
-  decomposition for the joint space inertia matrix and first solves for the
-  constraint forces. Depending on the branching of the model it is
-  considerably faster than ForwardDynamicsContactsLagrangian.
 - Added optional workspace parameters for ForwardDynamicsLagrangian() to
   optionally reduce memory allocations
 - Added JointTypeTranslationXYZ, JointTypeEulerXYZ, and JointTypeEulerYXZ

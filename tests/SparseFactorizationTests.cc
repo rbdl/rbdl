@@ -103,10 +103,10 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsSparse) {
 	QDot[8] = -3.5; 
 
 	ClearLogOutput();
-	ForwardDynamicsContacts (*model, Q, QDot, Tau, constraint_set, QDDot);
+	ForwardDynamicsContactsKokkevis (*model, Q, QDot, Tau, constraint_set, QDDot);
 	
 	ClearLogOutput();
-	ForwardDynamicsContactsLagrangianSparse (*model, Q, QDot, Tau, constraint_set_var1, QDDot_var1);
+	ForwardDynamicsContactsRangeSpaceSparse (*model, Q, QDot, Tau, constraint_set_var1, QDDot_var1);
 
 	CHECK_ARRAY_CLOSE (QDDot.data(), QDDot_var1.data(), QDDot.size(), TEST_PREC);
 }
