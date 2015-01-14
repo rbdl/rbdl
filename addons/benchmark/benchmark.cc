@@ -265,12 +265,14 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
 	ConstraintSet two_bodies_four_constraints;
 	ConstraintSet four_bodies_four_constraints;
 
-//	one_body_one_constraint.linear_solver = LinearSolverPartialPivLU;
-//	two_bodies_one_constraint.linear_solver = LinearSolverPartialPivLU;
-//	four_bodies_one_constraint.linear_solver = LinearSolverPartialPivLU;
-//	one_body_four_constraints.linear_solver = LinearSolverPartialPivLU;
-//	two_bodies_four_constraints.linear_solver = LinearSolverPartialPivLU;
-//	four_bodies_four_constraints.linear_solver = LinearSolverPartialPivLU;
+	LinearSolver linear_solver = LinearSolverPartialPivLU;
+
+	one_body_one_constraint.linear_solver = linear_solver;
+	two_bodies_one_constraint.linear_solver = linear_solver;
+	four_bodies_one_constraint.linear_solver = linear_solver;
+	one_body_four_constraints.linear_solver = linear_solver;
+	two_bodies_four_constraints.linear_solver = linear_solver;
+	four_bodies_four_constraints.linear_solver = linear_solver;
 
 	// one_body_one
 	one_body_one_constraint.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
