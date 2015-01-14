@@ -257,9 +257,9 @@ struct RBDL_DLLAPI ConstraintSet {
 
 	/// Workspace for the QR decomposition of the null-space method
 #ifdef RBDL_USE_SIMPLE_MATH
-	SimpleMath::ColPivHouseholderQR<Math::MatrixNd> GT_qr;
+	SimpleMath::HouseholderQR<Math::MatrixNd> GT_qr;
 #else
-	Eigen::ColPivHouseholderQR<Math::MatrixNd> GT_qr;
+	Eigen::HouseholderQR<Math::MatrixNd> GT_qr;
 #endif
 
 	Math::MatrixNd GT_qr_Q;

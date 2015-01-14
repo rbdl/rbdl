@@ -84,9 +84,9 @@ bool ConstraintSet::Bind (const Model &model) {
 	x.setZero();
 
 #ifdef RBDL_USE_SIMPLE_MATH
-	GT_qr = SimpleMath::ColPivHouseholderQR<Math::MatrixNd> (G);
+	GT_qr = SimpleMath::HouseholderQR<Math::MatrixNd> (G.transpose());
 #else
-	GT_qr = Eigen::ColPivHouseholderQR<Math::MatrixNd> (G);
+	GT_qr = Eigen::HouseholderQR<Math::MatrixNd> (G.transpose());
 #endif
 	GT_qr_Q = MatrixNd::Zero (model.dof_count, model.dof_count);
 	Y = MatrixNd::Zero (model.dof_count, G.rows());
@@ -439,7 +439,11 @@ void ForwardDynamicsContactsNullSpace (
 	CalcContactSystemVariables (model, Q, QDot, Tau, CS);
 
 	CS.GT_qr.compute (CS.G.transpose());
+#ifdef RBDL_USE_SIMPLE_MATH
 	CS.GT_qr_Q = CS.GT_qr.householderQ();
+#else
+	CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
+#endif
 
 	CS.Y = CS.GT_qr_Q.block(0,0,QDot.rows(), CS.G.rows());
 	CS.Z = CS.GT_qr_Q.block(0,CS.G.rows(),QDot.rows(), QDot.rows() - CS.G.rows());
