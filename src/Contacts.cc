@@ -239,26 +239,7 @@ void SolveContactSystemRangeSpaceSparse (
 
 	a = gamma - Y.transpose() * z;
 
-	switch (linear_solver) {
-		case (LinearSolverPartialPivLU) :
-#ifdef RBDL_USE_SIMPLE_MATH
-			// SimpleMath does not have a LU solver so just use its QR solver
-			lambda = K.householderQr().solve (a);
-#else
-			lambda = K.partialPivLu().solve (a);
-#endif
-			break;
-		case (LinearSolverColPivHouseholderQR) :
-			lambda = K.colPivHouseholderQr().solve (a);
-				break;
-		case (LinearSolverHouseholderQR) :
-			lambda = K.householderQr().solve (a);
-			break;
-		default:
-			LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
-			assert (0);
-			break;
-	}
+	lambda = K.llt().solve(a);
 
 	qddot = c + G.transpose() * lambda;
 	SparseSolveLTx (model, H, qddot);
