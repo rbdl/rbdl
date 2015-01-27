@@ -164,13 +164,8 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 	VectorNd Q = VectorNd::Zero (model->q_size);
 	VectorNd QDot = VectorNd::Zero (model->q_size);
 
-	SpatialTransform X_j;
-	SpatialVector S;
-	SpatialVector v_j;
-	SpatialVector c;
-
 	QDot[0] = 1.;
-	jcalc (*model, 1, X_j, v_j, c, Q, QDot);
+	jcalc (*model, 1, Q, QDot);
 
 	SpatialMatrix test_matrix (
 			1.,  0.,  0.,  0.,  0.,  0.,
@@ -187,14 +182,14 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 			0., 0., 1., 0., 0., 0.
 			);
 
-	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), 1.0e-16));
-	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, 1.0e-16));
+	CHECK (SpatialMatrixCompareEpsilon (test_matrix, model->X_J[1].toMatrix(), 1.0e-16));
+	CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
 	CHECK_EQUAL (test_joint_axis, model->S[1]);
 
 	Q[0] = M_PI * 0.5;
 	QDot[0] = 1.;
 
-	jcalc (*model, 1, X_j, v_j, c, Q, QDot);
+	jcalc (*model, 1, Q, QDot);
 
 	test_matrix.set (
 			0.,  1.,  0.,  0.,  0.,  0.,
@@ -205,8 +200,8 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 			0.,  0.,  0.,  0.,  0.,  1.
 			);
 
-	CHECK (SpatialMatrixCompareEpsilon (test_matrix, X_j.toMatrix(), TEST_PREC));
-	CHECK (SpatialVectorCompareEpsilon (test_vector, v_j, TEST_PREC));
+	CHECK (SpatialMatrixCompareEpsilon (test_matrix, model->X_J[1].toMatrix(), 1.0e-16));
+	CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
 	CHECK_EQUAL (test_joint_axis, model->S[1]);
 }
 

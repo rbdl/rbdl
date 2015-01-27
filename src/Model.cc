@@ -47,6 +47,10 @@ Model::Model() {
 	S.push_back (zero_spatial);
 	X_T.push_back(SpatialTransform());
 
+	X_J.push_back (SpatialTransform());
+	v_J.push_back (zero_spatial);
+	c_J.push_back (zero_spatial);
+
 	// Spherical joints
 	multdof3_S.push_back (Matrix63::Zero());
 	multdof3_U.push_back (Matrix63::Zero());
@@ -279,6 +283,11 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 
 	S.push_back (joint.mJointAxes[0]);
 
+	// Joint state variables
+	X_J.push_back (SpatialTransform());
+	v_J.push_back (joint.mJointAxes[0]);
+	c_J.push_back (SpatialVector(0., 0., 0., 0., 0., 0.));
+
 	// workspace for joints with 3 dof
 	multdof3_S.push_back (Matrix63::Zero(6,3));
 	multdof3_U.push_back (Matrix63::Zero());
@@ -329,6 +338,36 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	}
 	
 	previously_added_body_id = mBodies.size() - 1;
+
+	mJointUpdateOrder.clear();
+
+	// update the joint order computation
+	std::vector<std::pair<JointType, unsigned int> > joint_types;
+	for (unsigned int i = 0; i < mJoints.size(); i++) {
+		joint_types.push_back (std::pair<JointType, unsigned int> (mJoints[i].mJointType,i));
+		mJointUpdateOrder.push_back (mJoints[i].mJointType);
+	}
+
+	mJointUpdateOrder.clear();
+	JointType current_joint_type = JointTypeUndefined;
+	while (joint_types.size() != 0) {
+		current_joint_type = joint_types[0].first;
+
+		std::vector<std::pair<JointType, unsigned int> >::iterator type_iter = joint_types.begin();
+
+		while (type_iter != joint_types.end()) {
+			if (type_iter->first == current_joint_type) {
+				mJointUpdateOrder.push_back (type_iter->second);
+				type_iter = joint_types.erase (type_iter);
+			} else {
+				++type_iter;
+			}
+		}
+	}
+
+//	for (unsigned int i = 0; i < mJointUpdateOrder.size(); i++) {
+//		std::cout << "i = " << i << ": joint_id = " << mJointUpdateOrder[i] << " joint_type = " << mJoints[mJointUpdateOrder[i]].mJointType << std::endl;
+//	}
 
 	return previously_added_body_id;
 }

@@ -166,6 +166,14 @@ struct RBDL_DLLAPI Model {
 	std::vector<Joint> mJoints;
 	/// \brief The joint axis for joint i
 	std::vector<Math::SpatialVector> S;
+
+	// Joint state variables
+	std::vector<Math::SpatialTransform> X_J;
+	std::vector<Math::SpatialVector> v_J;
+	std::vector<Math::SpatialVector> c_J;
+
+	std::vector<unsigned int> mJointUpdateOrder;
+
 	/// \brief Transformations from the parent body to the frame of the joint.
 	// It is expressed in the coordinate frame of the parent.
 	std::vector<Math::SpatialTransform> X_T;

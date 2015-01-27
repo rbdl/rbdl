@@ -38,25 +38,22 @@ void UpdateKinematics (Model &model,
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int q_index = model.mJoints[i].q_index;
 
-		SpatialTransform X_J;
-		SpatialVector v_J;
-		SpatialVector c_J;
 		Joint joint = model.mJoints[i];
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
+		jcalc (model, i, Q, QDot);
 
-		model.X_lambda[i] = X_J * model.X_T[i];
+		model.X_lambda[i] = model.X_J[i] * model.X_T[i];
 
 		if (lambda != 0) {
 			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
-			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
+			model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
 		}	else {
 			model.X_base[i] = model.X_lambda[i];
-			model.v[i] = v_J;
+			model.v[i] = model.v_J[i];
 		}
 		
-		model.c[i] = c_J + crossm(model.v[i],v_J);
+		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 
 		if (model.mJoints[i].mDoFCount == 3) {
@@ -84,16 +81,13 @@ void UpdateKinematicsCustom (Model &model,
 
 	if (Q) {
 		for (i = 1; i < model.mBodies.size(); i++) {
-			SpatialVector v_J;
-			SpatialVector c_J;
-			SpatialTransform X_J;
 			unsigned int lambda = model.lambda[i];
 
 			VectorNd QDot_zero (VectorNd::Zero (model.q_size));
 
-			jcalc (model, i, X_J, v_J, c_J, (*Q), QDot_zero);
+			jcalc (model, i, (*Q), QDot_zero);
 
-			model.X_lambda[i] = X_J * model.X_T[i];
+			model.X_lambda[i] = model.X_J[i] * model.X_T[i];
 
 			if (lambda != 0) {
 				model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
@@ -105,19 +99,16 @@ void UpdateKinematicsCustom (Model &model,
 
 	if (QDot) {
 		for (i = 1; i < model.mBodies.size(); i++) {
-			SpatialVector v_J;
-			SpatialVector c_J;
-			SpatialTransform X_J;
 			unsigned int lambda = model.lambda[i];
 
-			jcalc (model, i, X_J, v_J, c_J, *Q, *QDot);
+			jcalc (model, i, *Q, *QDot);
 
 			if (lambda != 0) {
-				model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
-				model.c[i] = c_J + crossm(model.v[i],v_J);
+				model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
+				model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 			}	else {
-				model.v[i] = v_J;
-				model.c[i] = c_J + crossm(model.v[i],v_J);
+				model.v[i] = model.v_J[i];
+				model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 			}
 			// LOG << "v[" << i << "] = " << model.v[i].transpose() << std::endl;
 		}

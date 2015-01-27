@@ -46,23 +46,17 @@ void ForwardDynamics (
 	// Reset the velocity of the root body
 	model.v[0].setZero();
 
-	SpatialTransform X_J;
-	SpatialVector v_J;
-	SpatialVector c_J;
-
 	for (i = 1; i < model.mBodies.size(); i++) {
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
-
-		model.X_lambda[i] = X_J * model.X_T[i];
+		jcalc (model, i, Q, QDot);
 
 		if (lambda != 0)
 			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
 		else
 			model.X_base[i] = model.X_lambda[i];
 
-		model.v[i] = model.X_lambda[i].apply( model.v[lambda]) + v_J;
+		model.v[i] = model.X_lambda[i].apply( model.v[lambda]) + model.v_J[i];
 
 		/*
 		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
@@ -73,7 +67,7 @@ void ForwardDynamics (
 		LOG << "SpatialVelocity (" << i << "): " << model.v[i] << std::endl;
 		*/
 
-		model.c[i] = c_J + crossm(model.v[i],v_J);
+		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 		model.I[i].setSpatialMatrix (model.IA[i]);
 
 		model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
@@ -253,21 +247,17 @@ void NonlinearEffects (
 	model.v[0].setZero();
 	model.a[0] = spatial_gravity;
 
-	SpatialTransform X_J;
-	SpatialVector v_J;
-	SpatialVector c_J;
+	for (unsigned int i = 1; i < model.mJointUpdateOrder.size(); i++) {
+		jcalc (model, model.mJointUpdateOrder[i], Q, QDot);
+	}
 
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
-
-		model.X_lambda[i] = X_J * model.X_T[i];
-
 		if (model.lambda[i] == 0) {
-			model.v[i] = v_J;
+			model.v[i] = model.v_J[i];
 			model.a[i] = model.X_lambda[i].apply(spatial_gravity);
 		}	else {
-			model.v[i] = model.X_lambda[i].apply(model.v[model.lambda[i]]) + v_J;
-			model.c[i] = c_J + crossm(model.v[i],v_J);
+			model.v[i] = model.X_lambda[i].apply(model.v[model.lambda[i]]) + model.v_J[i];
+			model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 			model.a[i] = model.X_lambda[i].apply(model.a[model.lambda[i]]) + model.c[i];
 		}
 
@@ -305,17 +295,12 @@ void InverseDynamics (
 	// Reset the velocity of the root body
 	model.v[0].setZero();
 	model.a[0].set (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
-	SpatialTransform X_J;
-	SpatialVector v_J;
-	SpatialVector c_J;
 
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
 		unsigned int q_index = model.mJoints[i].q_index;
 		unsigned int lambda = model.lambda[i];
 
-		jcalc (model, i, X_J, v_J, c_J, Q, QDot);
-
-		model.X_lambda[i] = X_J * model.X_T[i];
+		jcalc (model, i, Q, QDot);
 
 		if (lambda != 0) {
 			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
@@ -323,8 +308,8 @@ void InverseDynamics (
 			model.X_base[i] = model.X_lambda[i];
 		}
 
-		model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + v_J;
-		model.c[i] = c_J + crossm(model.v[i],v_J);
+		model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
+		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 
 		if (model.mJoints[i].mDoFCount == 3) {
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);

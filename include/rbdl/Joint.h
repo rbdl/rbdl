@@ -583,9 +583,6 @@ RBDL_DLLAPI
 void jcalc (
 		Model &model,
 		unsigned int joint_id,
-		Math::SpatialTransform &XJ,
-		Math::SpatialVector &v_J,
-		Math::SpatialVector &c_J,
 		const Math::VectorNd &q,
 		const Math::VectorNd &qdot
 		);

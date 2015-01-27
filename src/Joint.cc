@@ -22,9 +22,6 @@ namespace RigidBodyDynamics {
 		void jcalc (
 				Model &model,
 				unsigned int joint_id,
-				SpatialTransform &XJ,
-				SpatialVector &v_J,
-				SpatialVector &c_J,
 				const VectorNd &q,
 				const VectorNd &qdot
 				) {
@@ -32,35 +29,20 @@ namespace RigidBodyDynamics {
 			assert (joint_id > 0);
 
 			if (model.mJoints[joint_id].mJointType == JointTypeRevoluteX) {
-				XJ = Xrotx (q[model.mJoints[joint_id].q_index]);
-				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
-				c_J.setZero();
-				v_J.set (qdot[model.mJoints[joint_id].q_index], 0., 0., 0., 0., 0.);
+				model.X_J[joint_id] = Xrotx (q[model.mJoints[joint_id].q_index]);
+				model.v_J[joint_id][0] = qdot[model.mJoints[joint_id].q_index];
 			} else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteY) {
-				XJ = Xroty (q[model.mJoints[joint_id].q_index]);
-				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
-				c_J.setZero();
-				v_J.set (0., qdot[model.mJoints[joint_id].q_index], 0., 0., 0., 0.);
+				model.X_J[joint_id] = Xroty (q[model.mJoints[joint_id].q_index]);
+				model.v_J[joint_id][1] = qdot[model.mJoints[joint_id].q_index];
 			} else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
-				XJ = Xrotz (q[model.mJoints[joint_id].q_index]);
-				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
-				c_J.setZero();
-				v_J.set (0., 0., qdot[model.mJoints[joint_id].q_index], 0., 0., 0.);
+				model.X_J[joint_id] = Xrotz (q[model.mJoints[joint_id].q_index]);
+				model.v_J[joint_id][2] = qdot[model.mJoints[joint_id].q_index];
 			} else if (model.mJoints[joint_id].mDoFCount == 1) {
-				XJ = jcalc_XJ (model, joint_id, q);
+				model.X_J[joint_id] = jcalc_XJ (model, joint_id, q);
 				
-				// Set the joint axis
-				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
-
-				// the velocity dependent spatial acceleration is != 0 only for rhenomic
-				// constraints (see RBDA, p. 55)
-				c_J.setZero();
-
-				v_J = model.S[joint_id] * qdot[model.mJoints[joint_id].q_index];
+				model.v_J[joint_id] = model.S[joint_id] * qdot[model.mJoints[joint_id].q_index];
 			} else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
-				XJ = SpatialTransform ( model.GetQuaternion (joint_id, q).toMatrix(), Vector3d (0., 0., 0.));
-
-				model.multdof3_S[joint_id].setZero();
+				model.X_J[joint_id] = SpatialTransform ( model.GetQuaternion (joint_id, q).toMatrix(), Vector3d (0., 0., 0.));
 
 				model.multdof3_S[joint_id](0,0) = 1.;
 				model.multdof3_S[joint_id](1,1) = 1.;
@@ -70,11 +52,9 @@ namespace RigidBodyDynamics {
 						qdot[model.mJoints[joint_id].q_index+1],
 						qdot[model.mJoints[joint_id].q_index+2]);
 
-				v_J = SpatialVector (
+				model.v_J[joint_id] = SpatialVector (
 						omega[0], omega[1], omega[2],
 						0., 0., 0.);
-
-				c_J.setZero();
 			} else if (model.mJoints[joint_id].mJointType == JointTypeEulerZYX) {
 				double q0 = q[model.mJoints[joint_id].q_index];
 				double q1 = q[model.mJoints[joint_id].q_index + 1];
@@ -87,14 +67,11 @@ namespace RigidBodyDynamics {
 				double s2 = sin (q2);
 				double c2 = cos (q2);
 
-				XJ.E = Matrix3d(
+				model.X_J[joint_id].E = Matrix3d(
 						c0 * c1, s0 * c1, -s1,
 						c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
 						c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
 						);
-				XJ.r.setZero();
-
-				model.multdof3_S[joint_id].setZero();
 
 				model.multdof3_S[joint_id](0,0) = -s1;
 				model.multdof3_S[joint_id](0,2) = 1.;
@@ -109,9 +86,9 @@ namespace RigidBodyDynamics {
 				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
 				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
+				model.v_J[joint_id] = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
-				c_J.set(
+				model.c_J[joint_id].set(
 						- c1 * qdot0 * qdot1,
 						-s1 * s2 * qdot0 * qdot1 + c1 * c2 * qdot0 * qdot2 - s2 * qdot1 * qdot2,
 						-s1 * c2 * qdot0 * qdot1 - c1 * s2 * qdot0 * qdot2 - c2 * qdot1 * qdot2,
@@ -129,14 +106,11 @@ namespace RigidBodyDynamics {
 				double s2 = sin (q2);
 				double c2 = cos (q2);
 
-				XJ.E = Matrix3d(
+				model.X_J[joint_id].E = Matrix3d(
 						c2 * c1, s2 * c0 + c2 * s1 * s0, s2 * s0 - c2 * s1 * c0,
 						-s2 * c1, c2 * c0 - s2 * s1 * s0, c2 * s0 + s2 * s1 * c0,
 						s1, -c1 * s0, c1 * c0
 						);
-				XJ.r.setZero();
-
-				model.multdof3_S[joint_id].setZero();
 
 				model.multdof3_S[joint_id](0,0) = c2 * c1;
 				model.multdof3_S[joint_id](0,1) = s2;
@@ -151,9 +125,9 @@ namespace RigidBodyDynamics {
 				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
 				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
+				model.v_J[joint_id] = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
-				c_J.set(
+				model.c_J[joint_id].set(
 						-s2 * c1 * qdot2 * qdot0 - c2 * s1 * qdot1 * qdot0 + c2 * qdot2 * qdot1,
 						-c2 * c1 * qdot2 * qdot0 + s2 * s1 * qdot1 * qdot0 - s2 * qdot2 * qdot1,
 						c1 * qdot1 * qdot0,
@@ -171,15 +145,11 @@ namespace RigidBodyDynamics {
 				double s2 = sin (q2);
 				double c2 = cos (q2);
 
-				XJ.E = Matrix3d(
+				model.X_J[joint_id].E = Matrix3d(
 						c2 * c0 + s2 * s1 * s0, s2 * c1, -c2 * s0 + s2 * s1 * c0,
 						-s2 * c0 + c2 * s1 * s0, c2 * c1, s2 * s0 + c2 * s1 * c0,
 						c1 * s0, - s1, c1 * c0
 						);
-				XJ.r.setZero();
-
-				model.multdof3_S[joint_id].setZero();
-
 				model.multdof3_S[joint_id](0,0) = s2 * c1;
 				model.multdof3_S[joint_id](0,1) = c2;
 
@@ -193,9 +163,9 @@ namespace RigidBodyDynamics {
 				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
 				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
+				model.v_J[joint_id] = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
-				c_J.set(
+				model.c_J[joint_id].set(
 						 c2 * c1 * qdot2 * qdot0 - s2 * s1 * qdot1 * qdot0 - s2 * qdot2 * qdot1,
 						-s2 * c1 * qdot2 * qdot0 - c2 * s1 * qdot1 * qdot0 - c2 * qdot2 * qdot1,
 						-c1 * qdot1 * qdot0,
@@ -206,10 +176,8 @@ namespace RigidBodyDynamics {
 				double q1 = q[model.mJoints[joint_id].q_index + 1];
 				double q2 = q[model.mJoints[joint_id].q_index + 2];
 
-				XJ.E = Matrix3d::Identity();
-				XJ.r = Vector3d (q0, q1, q2);
-
-				model.multdof3_S[joint_id].setZero();
+				model.X_J[joint_id].E = Matrix3d::Identity();
+				model.X_J[joint_id].r = Vector3d (q0, q1, q2);
 
 				model.multdof3_S[joint_id](3,0) = 1.;
 				model.multdof3_S[joint_id](4,1) = 1.;
@@ -219,13 +187,15 @@ namespace RigidBodyDynamics {
 				double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
 				double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-				v_J = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
+				model.v_J[joint_id] = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
-				c_J.set(0., 0., 0., 0., 0., 0.);
+				model.c_J[joint_id].set(0., 0., 0., 0., 0., 0.);
 			} else {
-				std::cerr << "Error: invalid joint type!" << std::endl;
+				std::cerr << "Error: invalid joint type " << model.mJoints[joint_id].mJointType << " at id " << joint_id << std::endl;
 				abort();
 			}
+
+			model.X_lambda[joint_id] = model.X_J[joint_id] * model.X_T[joint_id];
 		}
 
 	RBDL_DLLAPI
