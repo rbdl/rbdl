@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _MATHUTILS_H
-#define _MATHUTILS_H
+#ifndef RBDL_MATHUTILS_H
+#define RBDL_MATHUTILS_H
 
 #include <assert.h>
 #include <cmath>
@@ -233,4 +233,6 @@ void SparseSolveLTx (Model &model, Math::MatrixNd &L, Math::VectorNd &x);
 } /* Math */
 
 } /* RigidBodyDynamics */
-#endif /* _MATHUTILS_H */
+
+/* RBDL_MATHUTILS_H */
+#endif

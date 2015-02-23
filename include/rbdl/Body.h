@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _BODY_H
-#define _BODY_H
+#ifndef RBDL_BODY_H
+#define RBDL_BODY_H
 
 #include "rbdl/rbdl_math.h"
 #include "rbdl/rbdl_mathutils.h"
@@ -214,4 +214,5 @@ struct RBDL_DLLAPI FixedBody {
 
 }
 
-#endif /* _BODY_H */
+/* RBDL_BODY_H */
+#endif

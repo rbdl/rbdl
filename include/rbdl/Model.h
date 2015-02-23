@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _MODEL_H
-#define _MODEL_H
+#ifndef RBDL_MODEL_H
+#define RBDL_MODEL_H
 
 #include "rbdl/rbdl_math.h"
 #include <map>
@@ -470,4 +470,5 @@ struct RBDL_DLLAPI Model {
 /** @} */
 }
 
-#endif /* _MODEL_H */
+/* _MODEL_H */
+#endif

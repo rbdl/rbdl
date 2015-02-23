@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _CONTACTS_H
-#define _CONTACTS_H
+#ifndef RBDL_CONTACTS_H
+#define RBDL_CONTACTS_H
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
@@ -652,4 +652,5 @@ void SolveContactSystemNullSpace (
 
 } /* namespace RigidBodyDynamics */
 
-#endif /* _CONTACTS_H */
+/* RBDL_CONTACTS_H */
+#endif

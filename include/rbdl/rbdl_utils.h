@@ -1,5 +1,5 @@
-#ifndef _RBDL_UTILS_H
-#define _RBDL_UTILS_H
+#ifndef RBDL_UTILS_H
+#define RBDL_UTILS_H
 
 #include <string>
 #include <rbdl/rbdl_config.h>
@@ -43,5 +43,5 @@ namespace Utils {
 
 }
 
-/* _RBDL_UTILS_H */
+/* RBDL_UTILS_H */
 #endif

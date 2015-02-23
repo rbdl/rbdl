@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _RBDLCONFIG_H
-#define _RBDLCONFIG_H
+#ifndef RBDL_CONFIG_H
+#define RBDL_CONFIG_H
 
 #define RBDL_API_VERSION (@RBDL_VERSION_MAJOR@ << 16) + (@RBDL_VERSION_MINOR@ << 8) + @RBDL_VERSION_PATCH@
 
@@ -69,6 +69,5 @@
 #  endif // RBDL_EXPORTS
 #  define RBDL_LOCAL RBDL_DLLLOCAL
 # endif // RBDL_BUILD_STATIC
-
 
 #endif

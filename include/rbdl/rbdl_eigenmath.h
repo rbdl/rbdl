@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _RBDL_EIGENMATH_H
-#define _RBDL_EIGENMATH_H
+#ifndef RBDL_EIGENMATH_H
+#define RBDL_EIGENMATH_H
 
 class RBDL_DLLAPI Vector3_t : public Eigen::Vector3d
 {
@@ -221,4 +221,6 @@ class RBDL_DLLAPI SpatialMatrix_t : public Eigen::Matrix<double, 6, 6>
 				;
 		}
 };
-#endif /* _RBDL_EIGENMATH_H */
+
+/* _RBDL_EIGENMATH_H */
+#endif

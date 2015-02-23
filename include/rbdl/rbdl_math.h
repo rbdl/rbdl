@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _MATHWRAPPER_H
-#define _MATHWRAPPER_H
+#ifndef RBDL_MATH_H
+#define RBDL_MATH_H
 
 #include "rbdl/rbdl_config.h"
 
@@ -73,4 +73,5 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialTransform
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialRigidBodyInertia)
 #endif
 
-#endif /* _MATHWRAPPER_H */
+/* RBDL_MATH_H_H */
+#endif

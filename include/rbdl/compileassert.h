@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _COMPILE_ASSERT_H
-#define _COMPILE_ASSERT_H
+#ifndef RBDL_COMPILE_ASSERT_H
+#define RBDL_COMPILE_ASSERT_H
 
 /* 
  * This is a simple compile time assertion tool taken from:
@@ -42,5 +42,5 @@ namespace custom_static_assert
 
 #define VERIFY_EXPLICIT_CAST(from, to) COMPILE_ASSERT(sizeof(from) == sizeof(to)) 
 
-// _COMPILE_ASSERT_H_
+// RBDL_COMPILE_ASSERT_H_
 #endif

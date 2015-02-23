@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _JOINT_H
-#define _JOINT_H
+#ifndef RBDL_JOINT_H
+#define RBDL_JOINT_H
 
 #include "rbdl/rbdl_math.h"
 #include <assert.h>
@@ -602,4 +602,5 @@ void jcalc_X_lambda_S (
 
 }
 
-#endif /* _JOINT_H */
+/* RBDL_JOINT_H */
+#endif

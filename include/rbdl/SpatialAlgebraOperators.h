@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _SPATIALALGEBRAOPERATORS_H
-#define _SPATIALALGEBRAOPERATORS_H
+#ifndef RBDL_SPATIALALGEBRAOPERATORS_H
+#define RBDL_SPATIALALGEBRAOPERATORS_H
 
 #include <iostream>
 #include <cmath>
@@ -448,5 +448,5 @@ inline SpatialVector crossf (const SpatialVector &v1, const SpatialVector &v2) {
 
 } /* RigidBodyDynamics */
 
-/* _SPATIALALGEBRAOPERATORS_H*/
+/* RBDL_SPATIALALGEBRAOPERATORS_H*/
 #endif

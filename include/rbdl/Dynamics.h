@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _DYNAMICS_H
-#define _DYNAMICS_H
+#ifndef RBDL_DYNAMICS_H
+#define RBDL_DYNAMICS_H
 
 #include <assert.h>
 #include <iostream>
@@ -154,4 +154,5 @@ void CompositeRigidBodyAlgorithm (
 
 }
 
-#endif /* _DYNAMICS_H */
+/* RBDL_DYNAMICS_H */
+#endif

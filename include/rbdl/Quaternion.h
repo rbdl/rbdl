@@ -1,5 +1,5 @@
-#ifndef _RBDL_QUATERNION_H
-#define _RBDL_QUATERNION_H
+#ifndef RBDL_QUATERNION_H
+#define RBDL_QUATERNION_H
 
 #include <cmath>
 
@@ -170,5 +170,5 @@ class Quaternion : public Vector4d {
 
 }
 
-/* _RBDL_QUATERNION_H */
+/* RBDL_QUATERNION_H */
 #endif

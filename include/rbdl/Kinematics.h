@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _KINEMATICS_H
-#define _KINEMATICS_H
+#ifndef RBDL_KINEMATICS_H
+#define RBDL_KINEMATICS_H
 
 #include "rbdl/rbdl_math.h"
 #include <assert.h>
@@ -288,4 +288,5 @@ bool InverseKinematics (
 
 }
 
-#endif /* _KINEMATICS_H */
+/* RBDL_KINEMATICS_H */
+#endif 

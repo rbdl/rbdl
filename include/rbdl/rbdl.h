@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _RBDL_H
-#define _RBDL_H
+#ifndef RBDL_H
+#define RBDL_H
 
 #include "rbdl/rbdl_math.h"
 #include "rbdl/rbdl_mathutils.h"
@@ -65,4 +65,5 @@ RBDL_DLLAPI void rbdl_check_api_version(int version);
 /** Prints version information to standard output */
 RBDL_DLLAPI void rbdl_print_version();
 
-#endif /* _RBDL_H */
+/* RBDL_H */
+#endif
