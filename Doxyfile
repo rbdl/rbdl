@@ -663,6 +663,7 @@ INPUT                  = ./src \
                          doc/example.h \
                          doc/Mainpage.h \
                          addons/luamodel/luamodel.h \
+                         addons/urdfreader/rbdl_urdfreader.h \
                          addons/urdfreader/urdfreader.h \
                          doc/luamodel_example.h \
                          ./include/rbdl
