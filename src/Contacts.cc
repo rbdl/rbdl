@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -83,6 +83,17 @@ bool ConstraintSet::Bind (const Model &model) {
 	x.conservativeResize (model.dof_count + n_constr);
 	x.setZero();
 
+#ifdef RBDL_USE_SIMPLE_MATH
+	GT_qr = SimpleMath::HouseholderQR<Math::MatrixNd> (G.transpose());
+#else
+	GT_qr = Eigen::HouseholderQR<Math::MatrixNd> (G.transpose());
+#endif
+	GT_qr_Q = MatrixNd::Zero (model.dof_count, model.dof_count);
+	Y = MatrixNd::Zero (model.dof_count, G.rows());
+	Z = MatrixNd::Zero (model.dof_count, model.dof_count - G.rows());
+	qddot_y = VectorNd::Zero (model.dof_count);
+	qddot_z = VectorNd::Zero (model.dof_count);
+
 	K.conservativeResize (n_constr, n_constr);
 	K.setZero();
 	a.conservativeResize (n_constr);
@@ -148,26 +159,165 @@ void ConstraintSet::clear() {
 }
 
 RBDL_DLLAPI
-void ForwardDynamicsContactsLagrangian (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &Tau,
-		ConstraintSet &CS,
-		VectorNd &QDDot
+void SolveContactSystemDirect (
+		Math::MatrixNd &H, 
+		const Math::MatrixNd &G, 
+		const Math::VectorNd &c, 
+		const Math::VectorNd &gamma, 
+		Math::VectorNd &qddot, 
+		Math::VectorNd &lambda, 
+		Math::MatrixNd &A, 
+		Math::VectorNd &b,
+		Math::VectorNd &x,
+		Math::LinearSolver &linear_solver
 		) {
-	LOG << "-------- " << __func__ << " --------" << std::endl;
+	// Build the system: Copy H
+	A.block(0, 0, c.rows(), c.rows()) = H;
 
-	// Compute C
-	CS.QDDot_0.setZero();
-	InverseDynamics (model, Q, QDot, CS.QDDot_0, CS.C);
+	// Copy G and G^T
+	A.block(0, c.rows(), c.rows(), gamma.rows()) = G.transpose();
+	A.block(c.rows(), 0, gamma.rows(), c.rows()) = G;
 
-	assert (CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
+	// Build the system: Copy -C + \tau
+	b.block(0, 0, c.rows(), 1) = c;
+	b.block(c.rows(), 0, gamma.rows(), 1) = gamma;
 
-	// Compute H
-	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+	LOG << "A = " << std::endl << A << std::endl;
+	LOG << "b = " << std::endl << b << std::endl;
 
-	// Compute G
+	switch (linear_solver) {
+		case (LinearSolverPartialPivLU) :
+#ifdef RBDL_USE_SIMPLE_MATH
+			// SimpleMath does not have a LU solver so just use its QR solver
+			x = A.householderQr().solve(b);
+#else
+			x = A.partialPivLu().solve(b);
+#endif
+			break;
+		case (LinearSolverColPivHouseholderQR) :
+			x = A.colPivHouseholderQr().solve(b);
+			break;
+		case (LinearSolverHouseholderQR) :
+			x = A.householderQr().solve(b);
+			break;
+		default:
+			LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
+			assert (0);
+			break;
+	}
+
+	LOG << "x = " << std::endl << x << std::endl;
+}
+
+RBDL_DLLAPI
+void SolveContactSystemRangeSpaceSparse (
+		Model &model, 
+		Math::MatrixNd &H, 
+		const Math::MatrixNd &G, 
+		const Math::VectorNd &c, 
+		const Math::VectorNd &gamma, 
+		Math::VectorNd &qddot, 
+		Math::VectorNd &lambda, 
+		Math::MatrixNd &K, 
+		Math::VectorNd &a,
+		Math::LinearSolver linear_solver
+	) {
+	SparseFactorizeLTL (model, H);
+
+	MatrixNd Y (G.transpose());
+
+	for (unsigned int i = 0; i < Y.cols(); i++) {
+		VectorNd Y_col = Y.block(0,i,Y.rows(),1);
+		SparseSolveLTx (model, H, Y_col);
+		Y.block(0,i,Y.rows(),1) = Y_col;
+	}
+
+	VectorNd z (c);
+	SparseSolveLTx (model, H, z);
+
+	K = Y.transpose() * Y;
+
+	a = gamma - Y.transpose() * z;
+
+	lambda = K.llt().solve(a);
+
+	qddot = c + G.transpose() * lambda;
+	SparseSolveLTx (model, H, qddot);
+	SparseSolveLx (model, H, qddot);
+}
+
+RBDL_DLLAPI
+void SolveContactSystemNullSpace (
+		Math::MatrixNd &H, 
+		const Math::MatrixNd &G, 
+		const Math::VectorNd &c, 
+		const Math::VectorNd &gamma, 
+		Math::VectorNd &qddot, 
+		Math::VectorNd &lambda,
+		Math::MatrixNd &Y,
+		Math::MatrixNd &Z,
+		Math::VectorNd &qddot_y,
+		Math::VectorNd &qddot_z,
+		Math::LinearSolver &linear_solver
+		) {
+	switch (linear_solver) {
+		case (LinearSolverPartialPivLU) :
+#ifdef RBDL_USE_SIMPLE_MATH
+			// SimpleMath does not have a LU solver so just use its QR solver
+			qddot_y = (G * Y).householderQr().solve (gamma);
+#else
+			qddot_y = (G * Y).partialPivLu().solve (gamma);
+#endif
+			break;
+		case (LinearSolverColPivHouseholderQR) :
+			qddot_y = (G * Y).colPivHouseholderQr().solve (gamma);
+			break;
+		case (LinearSolverHouseholderQR) :
+			qddot_y = (G * Y).householderQr().solve (gamma);
+			break;
+		default:
+			LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
+			assert (0);
+			break;
+	}
+
+	qddot_z = (Z.transpose() * H * Z).llt().solve(Z.transpose() * (c - H * Y * qddot_y));
+
+	qddot = Y * qddot_y + Z * qddot_z;
+
+	switch (linear_solver) {
+		case (LinearSolverPartialPivLU) :
+#ifdef RBDL_USE_SIMPLE_MATH
+			// SimpleMath does not have a LU solver so just use its QR solver
+			qddot_y = (G * Y).householderQr().solve (gamma);
+#else
+			lambda = (G * Y).partialPivLu().solve (Y.transpose() * (H * qddot - c));
+#endif
+			break;
+		case (LinearSolverColPivHouseholderQR) :
+			lambda = (G * Y).colPivHouseholderQr().solve (Y.transpose() * (H * qddot - c));
+			break;
+		case (LinearSolverHouseholderQR) :
+			lambda = (G * Y).householderQr().solve (Y.transpose() * (H * qddot - c));
+			break;
+		default:
+			LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
+			assert (0);
+			break;
+	}
+}
+
+RBDL_DLLAPI
+void CalcContactJacobian(
+		Model &model,
+		const Math::VectorNd &Q,
+		const ConstraintSet &CS,
+		Math::MatrixNd &G,
+		bool update_kinematics
+		) {
+	if (update_kinematics)
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+
 	unsigned int i,j;
 
 	// variables to check whether we need to recompute G
@@ -186,16 +336,40 @@ void ForwardDynamicsContactsLagrangian (
 
 		for (j = 0; j < model.dof_count; j++) {
 			Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
-			CS.G(i,j) = gaxis.transpose() * CS.normal[i];
+			G(i,j) = gaxis.transpose() * CS.normal[i];
 		}
 	}
+}
+
+RBDL_DLLAPI
+void CalcContactSystemVariables (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		ConstraintSet &CS
+		) {
+	// Compute C
+	NonlinearEffects (model, Q, QDot, CS.C);
+	assert (CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
+
+	// Compute H
+	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+
+	// Compute G
+	// We have to update model.X_base as they are not automatically computed
+	// by NonlinearEffects()
+	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		model.X_base[i] = model.X_lambda[i] * model.X_base[model.lambda[i]];
+	}
+	CalcContactJacobian (model, Q, CS, CS.G, false);
 
 	// Compute gamma
+	unsigned int prev_body_id = 0;
+	Vector3d prev_body_point = Vector3d::Zero();
 	Vector3d gamma_i = Vector3d::Zero();
-	prev_body_id = 0;
-	prev_body_point = Vector3d::Zero();
 
-	// update Kinematics just once
+	CS.QDDot_0.setZero();
 	UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
 
 	for (unsigned int i = 0; i < CS.size(); i++) {
@@ -205,45 +379,27 @@ void ForwardDynamicsContactsLagrangian (
 			prev_body_id = CS.body[i];
 			prev_body_point = CS.point[i];
 		}
-	
+
 		// we also substract ContactData[i].acceleration such that the contact
 		// point will have the desired acceleration
-		CS.gamma[i] = CS.normal[i].dot(gamma_i) - CS.acceleration[i];
+		CS.gamma[i] = CS.acceleration[i] - CS.normal[i].dot(gamma_i);
 	}
+}
 
-	// Build the system: Copy H
-	CS.A.block(0, 0, model.qdot_size, model.qdot_size) = CS.H;
+RBDL_DLLAPI
+void ForwardDynamicsContactsDirect (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
+		ConstraintSet &CS,
+		VectorNd &QDDot
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
 
-	// Copy G and G^T
-	CS.A.block(0, model.qdot_size, model.qdot_size, CS.size()) = CS.G.transpose();
-	CS.A.block(model.qdot_size, 0, CS.size(), model.qdot_size) = CS.G;
+	CalcContactSystemVariables (model, Q, QDot, Tau, CS);
 
-	// Build the system: Copy -C + \tau
-	CS.b.block(0, 0, model.dof_count, 1) = CS.C * -1. + Tau;
-	CS.b.block(model.qdot_size, 0, CS.size(), 1) = CS.gamma * -1.;
-
-	LOG << "A = " << std::endl << CS.A << std::endl;
-	LOG << "b = " << std::endl << CS.b << std::endl;
-
-#ifndef RBDL_USE_SIMPLE_MATH
-	switch (CS.linear_solver) {
-		case (LinearSolverPartialPivLU) :
-			CS.x = CS.A.partialPivLu().solve(CS.b);
-			break;
-		case (LinearSolverColPivHouseholderQR) :
-			CS.x = CS.A.colPivHouseholderQr().solve(CS.b);
-			break;
-		default:
-			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
-			assert (0);
-			break;
-	}
-#else
-	bool solve_successful = LinSolveGaussElimPivot (CS.A, CS.b, CS.x);
-	assert (solve_successful);
-#endif
-
-	LOG << "x = " << std::endl << CS.x << std::endl;
+	SolveContactSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
 
 	// Copy back QDDot
 	for (unsigned int i = 0; i < model.dof_count; i++)
@@ -253,106 +409,115 @@ void ForwardDynamicsContactsLagrangian (
 	for (unsigned int i = 0; i < CS.size(); i++) {
 		CS.force[i] = -CS.x[model.dof_count + i];
 	}
-} 
+}
 
 RBDL_DLLAPI
-void ComputeContactImpulsesLagrangian (
+void ForwardDynamicsContactsRangeSpaceSparse (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		ConstraintSet &CS,
+		Math::VectorNd &QDDot
+		) {
+	CalcContactSystemVariables (model, Q, QDot, Tau, CS);
+
+	SolveContactSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
+}
+
+RBDL_DLLAPI
+void ForwardDynamicsContactsNullSpace (
 		Model &model,
 		const VectorNd &Q,
-		const VectorNd &QDotMinus,
+		const VectorNd &QDot,
+		const VectorNd &Tau,
 		ConstraintSet &CS,
-		VectorNd &QDotPlus
+		VectorNd &QDDot
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
 
+	CalcContactSystemVariables (model, Q, QDot, Tau, CS);
+
+	CS.GT_qr.compute (CS.G.transpose());
+#ifdef RBDL_USE_SIMPLE_MATH
+	CS.GT_qr_Q = CS.GT_qr.householderQ();
+#else
+	CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
+#endif
+
+	CS.Y = CS.GT_qr_Q.block(0,0,QDot.rows(), CS.G.rows());
+	CS.Z = CS.GT_qr_Q.block(0,CS.G.rows(),QDot.rows(), QDot.rows() - CS.G.rows());
+
+	SolveContactSystemNullSpace (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
+}
+
+RBDL_DLLAPI
+void ComputeContactImpulsesDirect (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDotMinus,
+		ConstraintSet &CS,
+		Math::VectorNd &QDotPlus
+		) {
 	// Compute H
 	UpdateKinematicsCustom (model, &Q, NULL, NULL);
 	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
 
-	unsigned int i,j;
+	// Compute G
+	CalcContactJacobian (model, Q, CS, CS.G, false);
 
-	// variables to check whether we need to recompute G
-	unsigned int prev_body_id = 0;
-	Vector3d prev_body_point = Vector3d::Zero();
-	MatrixNd Gi (3, model.dof_count);
+	SolveContactSystemDirect (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus, QDotPlus, CS.impulse, CS.A, CS.b, CS.x, CS.linear_solver);
 
-	for (i = 0; i < CS.size(); i++) {
-		// Only alow contact normals along the coordinate axes
-		unsigned int axis_index = 0;
-
-		// only compute the matrix Gi if actually needed
-		if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
-			CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
-			prev_body_id = CS.body[i];
-			prev_body_point = CS.point[i];
-		}
-
-		for (j = 0; j < model.dof_count; j++) {
-			Vector3d g_block (Gi(0,j), Gi(1, j), Gi(2,j));
-			/// \TODO use Gi.block<3,0> notation (SimpleMath does not give proper results for that currently.
-			CS.G(i,j) = CS.normal[i].transpose() * g_block;
-		}
-	}
-
-	// Compute H * \dot{q}^-
-	VectorNd Hqdotminus (CS.H * QDotMinus);
-
-	// Build the system
-	CS.A.setZero();
-	CS.b.setZero();
-	CS.x.setZero();
-
-	// Build the system: Copy H
-	for (i = 0; i < model.dof_count; i++) {
-		for (j = 0; j < model.dof_count; j++) {
-			CS.A(i,j) = CS.H(i,j);	
-		}
-	}
-
-	// Build the system: Copy G, and G^T
-	for (i = 0; i < CS.size(); i++) {
-		for (j = 0; j < model.dof_count; j++) {
-			CS.A(i + model.dof_count, j) = CS.G (i,j);
-			CS.A(j, i + model.dof_count) = CS.G (i,j);
-		}
-	}
-
-	// Build the system: Copy -C + \tau
-	for (i = 0; i < model.dof_count; i++) {
-		CS.b[i] = Hqdotminus[i];
-	}
-
-	// Build the system: Copy -gamma
-	for (i = 0; i < CS.size(); i++) {
-		CS.b[i + model.dof_count] = CS.v_plus[i];
-	}
-
-#ifndef RBDL_USE_SIMPLE_MATH
-	switch (CS.linear_solver) {
-		case (LinearSolverPartialPivLU) :
-			CS.x = CS.A.partialPivLu().solve(CS.b);
-			break;
-		case (LinearSolverColPivHouseholderQR) :
-			CS.x = CS.A.colPivHouseholderQr().solve(CS.b);
-			break;
-		default:
-			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
-			assert (0);
-			break;
-	}
-#else
-	bool solve_successful = LinSolveGaussElimPivot (CS.A, CS.b, CS.x);
-	assert (solve_successful);
-#endif
-
-	// Copy back QDDot
-	for (i = 0; i < model.dof_count; i++)
+	// Copy back QDotPlus
+	for (unsigned int i = 0; i < model.dof_count; i++)
 		QDotPlus[i] = CS.x[i];
 
-	// Copy back contact impulses
-	for (i = 0; i < CS.size(); i++) {
-		CS.impulse[i] = -CS.x[model.dof_count + i];
+	// Copy back constraint impulses 
+	for (unsigned int i = 0; i < CS.size(); i++) {
+		CS.impulse[i] = CS.x[model.dof_count + i];
 	}
+}
+
+RBDL_DLLAPI
+void ComputeContactImpulsesRangeSpaceSparse (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDotMinus,
+		ConstraintSet &CS,
+		Math::VectorNd &QDotPlus
+		) {
+	// Compute H
+	UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+
+	// Compute G
+	CalcContactJacobian (model, Q, CS, CS.G, false);
+
+	SolveContactSystemRangeSpaceSparse (model, CS.H, CS.G, CS.H * QDotMinus, CS.v_plus, QDotPlus, CS.impulse, CS.K, CS.a, CS.linear_solver);
+}
+
+RBDL_DLLAPI
+void ComputeContactImpulsesNullSpace (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDotMinus,
+		ConstraintSet &CS,
+		Math::VectorNd &QDotPlus
+		) {
+	// Compute H
+	UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+
+	// Compute G
+	CalcContactJacobian (model, Q, CS, CS.G, false);
+
+	CS.GT_qr.compute (CS.G.transpose());
+	CS.GT_qr_Q = CS.GT_qr.householderQ();
+
+	CS.Y = CS.GT_qr_Q.block(0,0,QDotMinus.rows(), CS.G.rows());
+	CS.Z = CS.GT_qr_Q.block(0,CS.G.rows(),QDotMinus.rows(), QDotMinus.rows() - CS.G.rows());
+
+	SolveContactSystemNullSpace (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus, QDotPlus, CS.impulse, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
 }
 
 /** \brief Compute only the effects of external forces on the generalized accelerations
@@ -375,10 +540,8 @@ void ForwardDynamicsApplyConstraintForces (
 	unsigned int i = 0;
 
 	for (i = 1; i < model.mBodies.size(); i++) {
-		unsigned int lambda = model.lambda[i];
-
-		model.IA[i] = model.mBodies[i].mSpatialInertia;
-		model.pA[i] = crossf(model.v[i],model.mBodies[i].mSpatialInertia * model.v[i]);
+		model.IA[i] = model.I[i].toMatrix();;
+		model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
 		if (CS.f_ext_constraints[i] != SpatialVectorZero) {
 			LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i] << std::endl;
@@ -547,7 +710,7 @@ inline void set_zero (std::vector<SpatialVector> &spatial_values) {
 }
 
 RBDL_DLLAPI
-void ForwardDynamicsContacts (
+void ForwardDynamicsContactsKokkevis (
 		Model &model,
 		const VectorNd &Q,
 		const VectorNd &QDot,
@@ -665,6 +828,9 @@ void ForwardDynamicsContacts (
 			break;
 		case (LinearSolverColPivHouseholderQR) :
 			CS.force = CS.K.colPivHouseholderQr().solve(CS.a);
+			break;
+		case (LinearSolverHouseholderQR) :
+			CS.force = CS.K.householderQr().solve(CS.a);
 			break;
 		default:
 			LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;

@@ -1,12 +1,12 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _KINEMATICS_H
-#define _KINEMATICS_H
+#ifndef RBDL_KINEMATICS_H
+#define RBDL_KINEMATICS_H
 
 #include "rbdl/rbdl_math.h"
 #include <assert.h>
@@ -133,16 +133,50 @@ Math::Matrix3d CalcBodyWorldOrientation (
  * \param Q       state vector of the internal joints
  * \param body_id the id of the body
  * \param point_position the position of the point in body-local data
- * \param G       a matrix where the result will be stored in
+ * \param G       a matrix of dimensions 3 x \#qdot_size where the result will be stored in
  * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
  *
- * \returns A 3 x \#dof_count matrix of the point jacobian
- */
+ * The result will be returned via the G argument.
+ *
+ * \note This function only evaluates the entries of G that are non-zero. One
+ * Before calling this function one has to ensure that all other values
+ * have been set to zero, e.g. by calling G.setZero().
+ *
+ */ 
 RBDL_DLLAPI
 void CalcPointJacobian (Model &model,
 		const Math::VectorNd &Q,
 		unsigned int body_id,
 		const Math::Vector3d &point_position,
+		Math::MatrixNd &G,
+		bool update_kinematics = true
+		);
+
+/** \brief Computes the spatial jacobian for a body
+ *
+ * The spatial velocity of a body at the origin of the base coordinat
+ * system can be expressed as \f${}^0 \hat{v}_i = G(q) * \dot{q}\f$. The
+ * matrix \f$G(q)\f$ is called the spatial body jacobian of the body and
+ * can be computed using this function.
+ *
+ * \param model   rigid body model
+ * \param Q       state vector of the internal joints
+ * \param body_id the id of the body
+ * \param G       a matrix of size 6 x \#qdot_size where the result will be stored in
+ * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
+ *
+ * The result will be returned via the G argument and represents the
+ * body Jacobian expressed at the origin of the body.
+ *
+ * \note This function only evaluates the entries of G that are non-zero. One
+ * Before calling this function one has to ensure that all other values
+ * have been set to zero, e.g. by calling G.setZero().
+ */
+RBDL_DLLAPI
+void CalcBodySpatialJacobian (
+		Model &model,
+		const Math::VectorNd &Q,
+		unsigned int body_id,
 		Math::MatrixNd &G,
 		bool update_kinematics = true
 		);
@@ -254,4 +288,5 @@ bool InverseKinematics (
 
 }
 
-#endif /* _KINEMATICS_H */
+/* RBDL_KINEMATICS_H */
+#endif 

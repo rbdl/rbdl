@@ -9,6 +9,8 @@
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
 
+#include "Human36Fixture.h"
+
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
@@ -318,6 +320,7 @@ TEST(TestCalcPointJacobian) {
 	// Compute the reference velocity
 	point_velocity_ref = CalcPointVelocity (model, Q, QDot, base_body_id, point_position);
 
+	G.setZero();
 	CalcPointJacobian (model, Q, base_body_id, point_position, G);
 
 	point_velocity = G * QDot;
@@ -557,10 +560,43 @@ TEST ( FixedJointCalcPointJacobian ) {
 
 	Vector3d point_position (1., 0., 0.);
 
-	MatrixNd G = MatrixNd (3, model.dof_count);	
+	MatrixNd G = MatrixNd::Zero (3, model.dof_count);	
 	CalcPointJacobian (model, Q, fixed_body_id, point_position, G);
 	Vector3d point_velocity_jacobian = G * QDot;
 	Vector3d point_velocity_reference = CalcPointVelocity (model, Q, QDot, fixed_body_id, point_position);
 
 	CHECK_ARRAY_CLOSE (point_velocity_reference.data(), point_velocity_jacobian.data(), 3, TEST_PREC);
+}
+
+TEST_FIXTURE ( Human36, SpatialJacobianSimple ) {
+	randomizeStates();
+
+	unsigned int foot_r_id = model->GetBodyId ("foot_r");
+	MatrixNd G (MatrixNd::Zero (6, model->dof_count));
+
+	CalcBodySpatialJacobian (*model, q, foot_r_id, G);
+
+	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
+	SpatialVector v_body = SpatialVector(G * qdot);
+
+	CHECK_ARRAY_CLOSE (model->v[foot_r_id].data(), v_body.data(), 6, TEST_PREC);
+}
+
+TEST_FIXTURE ( Human36, SpatialJacobianFixedBody ) {
+	randomizeStates();
+
+	unsigned int uppertrunk_id = model->GetBodyId ("uppertrunk");
+	MatrixNd G (MatrixNd::Zero (6, model->dof_count));
+
+	CalcBodySpatialJacobian (*model, q, uppertrunk_id, G);
+
+	unsigned int fixed_body_id = uppertrunk_id - model->fixed_body_discriminator;
+	unsigned int movable_parent = model->mFixedBodies[fixed_body_id].mMovableParent;
+
+	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
+	SpatialVector v_body = SpatialVector(G * qdot);
+
+	SpatialVector v_fixed_body = model->mFixedBodies[fixed_body_id].mParentTransform.apply (model->v[movable_parent]);
+
+	CHECK_ARRAY_CLOSE (v_fixed_body.data(), v_body.data(), 6, TEST_PREC);
 }

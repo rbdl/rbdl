@@ -17,12 +17,6 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-
-static void bail(lua_State *L, const char *msg){
-	std::cerr << msg << lua_tostring(L, -1) << endl;
-	abort();
-}
-
 template<> Vector3d LuaTableNode::getDefault<Vector3d>(const Vector3d &default_value) { 
 	Vector3d result = default_value;
 
@@ -131,10 +125,21 @@ template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 			if (dof_string == "JointTypeSpherical") {
 				stackRestore();
 				return Joint(JointTypeSpherical);
-			}
-			if (dof_string == "JointTypeEulerZYX") {
+			} else if (dof_string == "JointTypeEulerZYX") {
 				stackRestore();
 				return Joint(JointTypeEulerZYX);
+			}
+			if (dof_string == "JointTypeEulerXYZ") {
+				stackRestore();
+				return Joint(JointTypeEulerXYZ);
+			}
+			if (dof_string == "JointTypeEulerYXZ") {
+				stackRestore();
+				return Joint(JointTypeEulerYXZ);
+			}
+			if (dof_string == "JointTypeTranslationXYZ") {
+				stackRestore();
+				return Joint(JointTypeTranslationXYZ);
 			}
 		}
 
@@ -148,7 +153,7 @@ template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
 		switch (joint_dofs) {
 			case 0: result = Joint(JointTypeFixed);
 							break;
-			case 1: result = Joint(vector_table[1].get<SpatialVector>());
+			case 1: result = Joint (vector_table[1].get<SpatialVector>());
 							break;
 			case 2: result = Joint(
 									vector_table[1].get<SpatialVector>(),
@@ -217,12 +222,23 @@ template<> Body LuaTableNode::getDefault<Body>(const Body &default_value) {
 
 	return result;
 }
+
 namespace RigidBodyDynamics {
 
 namespace Addons {
 
+bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose);
+
 typedef map<string, unsigned int> StringIntMap;
 StringIntMap body_table_id_map;
+
+RBDL_DLLAPI bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose) {
+	assert (model);
+
+	LuaTable model_table = LuaTable::fromLuaState (L);
+
+	return LuaModelReadFromTable (model_table, model, verbose);
+}
 
 RBDL_DLLAPI
 bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
@@ -230,6 +246,10 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 
 	LuaTable model_table = LuaTable::fromFile (filename);
 
+	return LuaModelReadFromTable (model_table, model, verbose);
+}
+
+bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose) {
 	if (model_table["gravity"].exists()) {
 		model->gravity = model_table["gravity"].get<Vector3d>();
 
@@ -268,7 +288,6 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 				cout << "    " << j << ": " << joint.mJointAxes[j].transpose() << endl;
 			}
 			cout << "  joint_frame: " << joint_frame << endl;
-			cout << "  body inertia: " << endl << body.mSpatialInertia << endl;
 		}
 	}
 

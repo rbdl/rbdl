@@ -1,6 +1,6 @@
 /*
  * LuaTables++
- * Copyright (c) 2013-2014 Martin Felis <martin@fyxs.org>.
+ * Copyright (c) 2013-2015 Martin Felis <martin@fyxs.org>.
  * All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -207,6 +207,7 @@ struct RBDL_DLLAPI LuaTable {
 	int length();
 	void addSearchPath (const char* path);
 	std::string serialize ();
+	std::string orderedSerialize ();
 
 	static LuaTable fromFile (const char *_filename);
 	static LuaTable fromLuaExpression (const char* lua_expr);

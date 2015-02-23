@@ -315,13 +315,11 @@ TEST (TestForwardDynamics3DoFModel) {
 	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
 
 	unsigned int base_id_rot_z, base_id_rot_y;
-	// thes are the ids of the baseren with masses
-	unsigned int base_id = std::numeric_limits<unsigned int>::max();
 
 	// we can reuse both bodies and joints as they are copied
 	base_id_rot_z = model.AddBody (0, Xtrans (Vector3d(0., 0., 0.)), joint_rot_z, null_body);
 	base_id_rot_y = model.AddBody (base_id_rot_z, Xtrans (Vector3d(0., 0., 0.)), joint_rot_y, null_body);
-	base_id = model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
+	model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
 
 	// Initialization of the input vectors
 	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
@@ -365,13 +363,11 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
 	Joint joint_rot_x ( SpatialVector (1., 0., 0., 0., 0., 0.));
 
 	unsigned int base_id_rot_z, base_id_rot_y;
-	// thes are the ids of the baseren with masses
-	unsigned int base_id = std::numeric_limits<unsigned int>::max();
 
 	// we can reuse both bodies and joints as they are copied
 	base_id_rot_z = model.AddBody (0, Xtrans (Vector3d(0., 0., 0.)), joint_rot_z, null_body);
 	base_id_rot_y = model.AddBody (base_id_rot_z, Xtrans (Vector3d(0., 0., 0.)), joint_rot_y, null_body);
-	base_id = model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
+	model.AddBody (base_id_rot_y, Xtrans (Vector3d(0., 0., 0.)), joint_rot_x, base_body);
 
 	// Initialization of the input vectors
 	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
@@ -627,4 +623,39 @@ TEST_FIXTURE(FixedAndMovableJoint, TestInverseDynamicsFixedJoint) {
 	Tau_2dof[1] = Tau[2];
 
 	CHECK_ARRAY_CLOSE (Tau_2dof.data(), Tau_fixed.data(), 2, TEST_PREC);
+}
+
+TEST_FIXTURE ( FloatingBase12DoF, TestForwardDynamicsLagrangianPrealloc ) {
+	for (unsigned int i = 0; i < model->dof_count; i++) {
+		Q[i] = static_cast<double>(i + 1) * 0.1;
+		QDot[i] = static_cast<double>(i + 1) * 1.1;
+		Tau[i] = static_cast<double>(i + 1) * -1.2;
+	}
+
+	ForwardDynamicsLagrangian (*model,
+			Q,
+			QDot,
+			Tau,
+			QDDot,
+			Math::LinearSolverPartialPivLU,
+			NULL,
+			NULL,
+			NULL
+			);
+
+	MatrixNd H (MatrixNd::Zero(model->dof_count, model->dof_count));
+	VectorNd C (VectorNd::Zero(model->dof_count));
+	VectorNd QDDot_prealloc (VectorNd::Zero (model->dof_count));
+	ForwardDynamicsLagrangian (*model,
+			Q,
+			QDot,
+			Tau,
+			QDDot_prealloc,
+			Math::LinearSolverPartialPivLU,
+			NULL,
+			&H,
+			&C
+			);
+
+	CHECK_ARRAY_EQUAL (QDDot.data(), QDDot_prealloc.data(), model->dof_count);
 }

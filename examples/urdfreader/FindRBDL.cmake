@@ -15,63 +15,69 @@ SET (RBDL_LuaModel_FOUND FALSE)
 SET (RBDL_URDFReader_FOUND FALSE)
 
 FIND_PATH (RBDL_INCLUDE_DIR rbdl/rbdl.h
-	/usr/include
-	/usr/local/include
+	HINTS
 	$ENV{HOME}/local/include
 	$ENV{RBDL_PATH}/src
 	$ENV{RBDL_PATH}/include
 	$ENV{RBDL_INCLUDE_PATH}
+	/usr/local/include
+	/usr/include
 	)
 
-FIND_LIBRARY (RBDL_LIBRARY NAMES rbdl	PATHS
-	/usr/lib
-	/usr/lib/x86_64-linux-gnu
-	/usr/local/lib
-	/usr/local/lib/x86_64-linux-gnu
+FIND_LIBRARY (RBDL_LIBRARY NAMES rbdl
+	PATHS
 	$ENV{HOME}/local/lib
 	$ENV{HOME}/local/lib/x86_64-linux-gnu
-	$ENV{RBDL_PATH}
+	$ENV{RBDL_PATH}/lib
 	$ENV{RBDL_LIBRARY_PATH}
+	/usr/local/lib
+	/usr/local/lib/x86_64-linux-gnu
+	/usr/lib
+	/usr/lib/x86_64-linux-gnu
 	)
 
 FIND_PATH (RBDL_LuaModel_INCLUDE_DIR rbdl/addons/luamodel/luamodel.h
-	/usr/include
-	/usr/local/include
+	HINTS
 	$ENV{HOME}/local/include
 	$ENV{RBDL_PATH}/src
 	$ENV{RBDL_PATH}/include
 	$ENV{RBDL_INCLUDE_PATH}
+	/usr/local/include
+	/usr/include
 	)
 
-FIND_LIBRARY (RBDL_LuaModel_LIBRARY NAMES rbdl_luamodel	PATHS
-	/usr/lib
-	/usr/lib/x86_64-linux-gnu
-	/usr/local/lib
-	/usr/local/lib/x86_64-linux-gnu
+FIND_LIBRARY (RBDL_LuaModel_LIBRARY NAMES rbdl_luamodel
+	PATHS
 	$ENV{HOME}/local/lib
 	$ENV{HOME}/local/lib/x86_64-linux-gnu
 	$ENV{RBDL_PATH}
 	$ENV{RBDL_LIBRARY_PATH}
+	/usr/local/lib
+	/usr/local/lib/x86_64-linux-gnu
+	/usr/lib
+	/usr/lib/x86_64-linux-gnu
 	)
 
 FIND_PATH (RBDL_URDFReader_INCLUDE_DIR rbdl/addons/urdfreader/urdfreader.h
-	/usr/include
-	/usr/local/include
+	HINTS
 	$ENV{HOME}/local/include
 	$ENV{RBDL_PATH}/src
 	$ENV{RBDL_PATH}/include
 	$ENV{RBDL_INCLUDE_PATH}
+	/usr/local/include
+	/usr/include
 	)
 
-FIND_LIBRARY (RBDL_URDFReader_LIBRARY NAMES rbdl_urdfreader PATHS
-	/usr/lib
-	/usr/lib/x86_64-linux-gnu
-	/usr/local/lib
-	/usr/local/lib/x86_64-linux-gnu
+FIND_LIBRARY (RBDL_URDFReader_LIBRARY NAMES rbdl_urdfreader
+	PATHS
 	$ENV{HOME}/local/lib
 	$ENV{HOME}/local/lib/x86_64-linux-gnu
 	$ENV{RBDL_PATH}
 	$ENV{RBDL_LIBRARY_PATH}
+	/usr/local/lib
+	/usr/local/lib/x86_64-linux-gnu
+	/usr/lib
+	/usr/lib/x86_64-linux-gnu
 	)
 
 IF (NOT RBDL_LIBRARY)

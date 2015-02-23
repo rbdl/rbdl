@@ -1,6 +1,6 @@
 #include <rbdl/rbdl.h>
 
-#include "rbdl_urdfreader.h"
+#include "urdfreader.h"
 
 #include <assert.h>
 #include <iostream>
@@ -16,8 +16,6 @@ using namespace std;
 namespace RigidBodyDynamics {
 
 namespace Addons {
-
-RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string, Model* model, bool verbose);
 
 using namespace Math;
 
@@ -54,14 +52,13 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 	Matrix3d root_inertial_inertia;
 	double root_inertial_mass;
 
-	if (root->inertial)
-	{
+	if (root->inertial) {
 		root_inertial_mass = root->inertial->mass;
 
 		root_inertial_position.set (
-			root->inertial->origin.position.x,
-			root->inertial->origin.position.y,
-			root->inertial->origin.position.z);
+				root->inertial->origin.position.x,
+				root->inertial->origin.position.y,
+				root->inertial->origin.position.z);
 
 		root_inertial_inertia(0,0) = root->inertial->ixx;
 		root_inertial_inertia(0,1) = root->inertial->ixy;
@@ -76,30 +73,37 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 		root_inertial_inertia(2,2) = root->inertial->izz;
 
 		root->inertial->origin.rotation.getRPY (root_inertial_rpy[0], root_inertial_rpy[1], root_inertial_rpy[2]);
-	}
-	Body root_link = Body (root_inertial_mass,
-	root_inertial_position,
-	root_inertial_inertia);
-	Joint root_joint = Joint ( JointTypeFixed );
 
-	SpatialTransform root_joint_frame = SpatialTransform ();
+		Body root_link = Body (root_inertial_mass,
+				root_inertial_position,
+				root_inertial_inertia);
+		Joint root_joint = Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (1., 0., 0., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (0., 0., 1., 0., 0., 0.));
 
-	if (verbose) {
-		cout << "+ Adding Root Body " << endl;
-		cout << "  joint frame: " << root_joint_frame << endl;
-		cout << "  joint dofs : " << root_joint.mDoFCount << endl;
-		for (unsigned int j = 0; j < root_joint.mDoFCount; j++) {
-			cout << "    " << j << ": " << root_joint.mJointAxes[j].transpose() << endl;
+		SpatialTransform root_joint_frame = SpatialTransform ();
+
+		if (verbose) {
+			cout << "+ Adding Root Body " << endl;
+			cout << "  joint frame: " << root_joint_frame << endl;
+			cout << "  joint dofs : " << root_joint.mDoFCount << endl;
+			for (unsigned int j = 0; j < root_joint.mDoFCount; j++) {
+				cout << "    " << j << ": " << root_joint.mJointAxes[j].transpose() << endl;
+			}
+			cout << "  body inertia: " << endl << root_link.mInertia << endl;
+			cout << "  body mass   : " << root_link.mMass << endl;
+			cout << "  body name   : " << root->name << endl;
 		}
-		cout << "  body inertia: " << endl << root_link.mSpatialInertia << endl;
-		cout << "  body mass   : " << root_link.mMass << endl;
-		cout << "  body name   : " << root->name << endl;
-	}
 
-	rbdl_model->AppendBody(root_joint_frame,
-		root_joint,
-		root_link,
-		root->name);
+		rbdl_model->AppendBody(root_joint_frame,
+				root_joint,
+				root_link,
+				root->name);
+	}
 
 	if (link_stack.top()->child_joints.size() > 0) {
 		joint_index_stack.push(0);
@@ -107,7 +111,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 
 	while (link_stack.size() > 0) {
 		LinkPtr cur_link = link_stack.top();
-		int joint_idx = joint_index_stack.top();
+		unsigned int joint_idx = joint_index_stack.top();
 
 		if (joint_idx < cur_link->child_joints.size()) {
 			JointPtr cur_joint = cur_link->child_joints[joint_idx];
@@ -120,7 +124,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 			joint_index_stack.push(0);
 
 			if (verbose) {
-				for (int i = 1; i < joint_index_stack.size() - 1; i++) {
+				for (unsigned int i = 1; i < joint_index_stack.size() - 1; i++) {
 					cout << "  ";
 				}
 				cout << "joint '" << cur_joint->name << "' child link '" << link_stack.top()->name << "' type = " << cur_joint->type << endl;
@@ -197,7 +201,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 		Vector3d link_inertial_position;
 		Vector3d link_inertial_rpy;
 		Matrix3d link_inertial_inertia = Matrix3d::Zero();
-		double link_inertial_mass;
+		double link_inertial_mass = 0.;
 
 		// but only if we actually have inertial data
 		if (urdf_child->inertial) {
@@ -238,18 +242,29 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 			for (unsigned int j = 0; j < rbdl_joint.mDoFCount; j++) {
 				cout << "    " << j << ": " << rbdl_joint.mJointAxes[j].transpose() << endl;
 			}
-			cout << "  body inertia: " << endl << rbdl_body.mSpatialInertia << endl;
+			cout << "  body inertia: " << endl << rbdl_body.mInertia << endl;
 			cout << "  body mass   : " << rbdl_body.mMass << endl;
 			cout << "  body name   : " << urdf_child->name << endl;
 		}
 
-		rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, rbdl_joint, rbdl_body, urdf_child->name);
+		if (0 && urdf_joint->type == urdf::Joint::FLOATING) {
+			Matrix3d zero_matrix = Matrix3d::Zero();
+			Body null_body (0., Vector3d::Zero(3), zero_matrix);
+			Joint joint_txtytz(JointTypeTranslationXYZ);
+			string trans_body_name = urdf_child->name + "_Translate";
+			rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, joint_txtytz, null_body, trans_body_name);
+
+			Joint joint_euler_zyx (JointTypeEulerXYZ);
+			rbdl_model->AppendBody (SpatialTransform(), joint_euler_zyx, rbdl_body, urdf_child->name);
+		} else {
+			rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, rbdl_joint, rbdl_body, urdf_child->name);
+		}
 	}
 
 	return true;
 }
 
-RBDL_DLLAPI bool read_urdf_model (const char* filename, Model* model, bool verbose) {
+RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verbose) {
 	ifstream model_file (filename);
 	if (!model_file) {
 		cerr << "Error opening file '" << filename << "'." << endl;

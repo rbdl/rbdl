@@ -1,12 +1,12 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _MATHUTILS_H
-#define _MATHUTILS_H
+#ifndef RBDL_MATHUTILS_H
+#define RBDL_MATHUTILS_H
 
 #include <assert.h>
 #include <cmath>
@@ -14,6 +14,7 @@
 #include "rbdl/rbdl_math.h"
 
 namespace RigidBodyDynamics {
+struct Model;
 
 namespace Math {
 
@@ -27,6 +28,8 @@ enum RBDL_DLLAPI LinearSolver {
 	LinearSolverUnknown = 0,
 	LinearSolverPartialPivLU,
 	LinearSolverColPivHouseholderQR,
+	LinearSolverHouseholderQR,
+	LinearSolverLLT,
 	LinearSolverLast,
 };
 
@@ -184,7 +187,6 @@ RBDL_DLLAPI inline Vector3d angular_velocity_from_angle_rates (const Vector3d &z
 RBDL_DLLAPI inline Vector3d global_angular_velocity_from_rates (const Vector3d &zyx_angles, const Vector3d &zyx_rates) {
 	Matrix3d RzT = rotz(zyx_angles[0]).transpose();
 	Matrix3d RyT = roty(zyx_angles[1]).transpose();
-	Matrix3d RxT = rotx(zyx_angles[2]).transpose();
 
 	return Vector3d (
 			Vector3d (0., 0., zyx_rates[0])
@@ -212,7 +214,25 @@ RBDL_DLLAPI inline Vector3d angular_acceleration_from_angle_rates (const Vector3
 			);
 }
 
+RBDL_DLLAPI
+void SparseFactorizeLTL (Model &model, Math::MatrixNd &H);
+
+RBDL_DLLAPI
+void SparseMultiplyHx (Model &model, Math::MatrixNd &L);
+
+RBDL_DLLAPI
+void SparseMultiplyLx (Model &model, Math::MatrixNd &L);
+RBDL_DLLAPI
+void SparseMultiplyLTx (Model &model, Math::MatrixNd &L);
+
+RBDL_DLLAPI
+void SparseSolveLx (Model &model, Math::MatrixNd &L, Math::VectorNd &x);
+RBDL_DLLAPI
+void SparseSolveLTx (Model &model, Math::MatrixNd &L, Math::VectorNd &x); 
+
 } /* Math */
 
 } /* RigidBodyDynamics */
-#endif /* _MATHUTILS_H */
+
+/* RBDL_MATHUTILS_H */
+#endif

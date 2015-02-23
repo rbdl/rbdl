@@ -32,10 +32,10 @@ TEST ( TestComputeSpatialInertiaFromAbsoluteRadiiGyration ) {
 			);
 
 //	cout << LogOutput.str() << endl;
+	
+	SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC (body.mMass, body.mCenterOfMass, body.mInertia);
 
-	Body com_body(1.1, Vector3d (0., 0., 0.), Vector3d (1.4, 2., 3.));
-
-	CHECK_ARRAY_CLOSE (reference_inertia.data(), body.mSpatialInertia.data(), 36, TEST_PREC);
+	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_rbi.toMatrix().data(), 36, TEST_PREC);
 	CHECK_ARRAY_CLOSE (inertia_C.data(), body.mInertia.data(), 9, TEST_PREC);
 }
 
@@ -58,8 +58,9 @@ TEST ( TestBodyConstructorMassComInertia ) {
 			-1.43, 0, 1.65, 0, 1.1, 0,
 			1.32, -1.65, 0, 0, 0, 1.1
 			);
-
-	CHECK_ARRAY_CLOSE (reference_inertia.data(), body.mSpatialInertia.data(), 36, TEST_PREC);
+	
+	SpatialRigidBodyInertia body_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC (body.mMass, body.mCenterOfMass, body.mInertia);
+	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_rbi.toMatrix().data(), 36, TEST_PREC);
 	CHECK_ARRAY_CLOSE (inertia_C.data(), body.mInertia.data(), 9, TEST_PREC);
 }
 
@@ -68,17 +69,15 @@ TEST ( TestBodyJoinNullbody ) {
 	Body body(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
 	Body nullbody (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
 
-	SpatialMatrix spatial_inertia = body.mSpatialInertia;
-
-	body.Join (Xtrans(Vector3d (0., 0., 0.)), nullbody);
-	// cout << LogOutput.str() << endl;
-	// cout << "old spatial inertia = " << endl << spatial_inertia << endl;
-	// cout << "new spatial inertia = " << endl << body.mSpatialInertia << endl;
-	// cout << "error = " << endl << body.mSpatialInertia - spatial_inertia << endl;
+	Body joined_body = body;
+	joined_body.Join (Xtrans(Vector3d (0., 0., 0.)), nullbody);
+	
+	SpatialRigidBodyInertia body_rbi (body.mMass, body.mCenterOfMass, body.mInertia);
+	SpatialRigidBodyInertia joined_body_rbi (joined_body.mMass, joined_body.mCenterOfMass, joined_body.mInertia);
 
 	CHECK_EQUAL (1.1, body.mMass);
-	CHECK_ARRAY_CLOSE (Vector3d (1.5, 1.2, 1.3).data(), body.mCenterOfMass.data(), 3, TEST_PREC);
-	CHECK_ARRAY_CLOSE (spatial_inertia.data(), body.mSpatialInertia.data(), 36, TEST_PREC);
+	CHECK_ARRAY_CLOSE (body.mCenterOfMass.data(), joined_body.mCenterOfMass.data(), 3, TEST_PREC);
+	CHECK_ARRAY_CLOSE (body_rbi.toMatrix().data(), joined_body_rbi.toMatrix().data(), 36, TEST_PREC);
 }
 
 TEST ( TestBodyJoinTwoBodies ) {
@@ -86,14 +85,10 @@ TEST ( TestBodyJoinTwoBodies ) {
 	Body body_a(1.1, Vector3d (-1.1, 1.3, 0.), Vector3d (3.1, 3.2, 3.3));
 	Body body_b(1.1, Vector3d (1.1, 1.3, 0.), Vector3d (3.1, 3.2, 3.3));
 
-	// cout << "body_a = " << endl << body_a.mSpatialInertia << endl;
-	// cout << "body_b = " << endl << body_b.mSpatialInertia << endl;
-
 	Body body_joined (body_a);
 	body_joined.Join (Xtrans(Vector3d (0., 0., 0.)), body_b);
 
-	// cout << LogOutput.str() << endl;
-	// cout << "body_joined = " << endl << body_joined.mSpatialInertia << endl;
+	SpatialRigidBodyInertia body_joined_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC (body_joined.mMass, body_joined.mCenterOfMass, body_joined.mInertia);
 
 	SpatialMatrix reference_inertia (
 			9.918, 0, 0, 0, -0, 2.86,
@@ -106,7 +101,7 @@ TEST ( TestBodyJoinTwoBodies ) {
 
 	CHECK_EQUAL (2.2, body_joined.mMass);
 	CHECK_ARRAY_EQUAL (Vector3d (0., 1.3, 0.).data(), body_joined.mCenterOfMass.data(), 3);
-	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_joined.mSpatialInertia.data(), 36, TEST_PREC);
+	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_joined_rbi.toMatrix().data(), 36, TEST_PREC);
 }
 
 TEST ( TestBodyJoinTwoBodiesDisplaced ) {
@@ -114,14 +109,10 @@ TEST ( TestBodyJoinTwoBodiesDisplaced ) {
 	Body body_a(1.1, Vector3d (-1.1, 1.3, 0.), Vector3d (3.1, 3.2, 3.3));
 	Body body_b(1.1, Vector3d (0., 0., 0.), Vector3d (3.1, 3.2, 3.3));
 
-	// cout << "body_a = " << endl << body_a.mSpatialInertia << endl;
-	// cout << "body_b = " << endl << body_b.mSpatialInertia << endl;
-
 	Body body_joined (body_a);
 	body_joined.Join (Xtrans(Vector3d (1.1, 1.3, 0.)), body_b);
 
-	// cout << LogOutput.str() << endl;
-	// cout << "body_joined = " << endl << body_joined.mSpatialInertia << endl;
+	SpatialRigidBodyInertia body_joined_rbi = SpatialRigidBodyInertia::createFromMassComInertiaC (body_joined.mMass, body_joined.mCenterOfMass, body_joined.mInertia);
 
 	SpatialMatrix reference_inertia (
 			9.918, 0, 0, 0, -0, 2.86,
@@ -134,7 +125,9 @@ TEST ( TestBodyJoinTwoBodiesDisplaced ) {
 
 	CHECK_EQUAL (2.2, body_joined.mMass);
 	CHECK_ARRAY_EQUAL (Vector3d (0., 1.3, 0.).data(), body_joined.mCenterOfMass.data(), 3);
-	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_joined.mSpatialInertia.data(), 36, TEST_PREC);
+	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_joined_rbi.toMatrix().data(), 36, TEST_PREC);
+
+
 }
 
 TEST ( TestBodyJoinTwoBodiesRotated ) {
@@ -142,15 +135,11 @@ TEST ( TestBodyJoinTwoBodiesRotated ) {
 	Body body_a(1.1, Vector3d (0., 0., 0.), Vector3d (3.1, 3.2, 3.3));
 	Body body_b(1.1, Vector3d (0., 0., 0.), Vector3d (3.1, 3.3, 3.2));
 
-	// cout << "body_a = " << endl << body_a.mSpatialInertia << endl;
-	// cout << "body_b = " << endl << body_b.mSpatialInertia << endl;
-
 	Body body_joined (body_a);
 	body_joined.Join (Xrotx(-M_PI*0.5), body_b);
-	
-	// cout << LogOutput.str() << endl;
-	// cout << "body_joined = " << endl << body_joined.mSpatialInertia << endl;
 
+	SpatialRigidBodyInertia body_joined_rbi (body_joined.mMass, body_joined.mCenterOfMass, body_joined.mInertia);
+	
 	SpatialMatrix reference_inertia (
 			6.2, 0., 0., 0., 0., 0.,
 			0., 6.4, 0., 0., 0., 0.,
@@ -162,7 +151,7 @@ TEST ( TestBodyJoinTwoBodiesRotated ) {
 
 	CHECK_EQUAL (2.2, body_joined.mMass);
 	CHECK_ARRAY_EQUAL (Vector3d (0., 0., 0.).data(), body_joined.mCenterOfMass.data(), 3);
-	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_joined.mSpatialInertia.data(), 36, TEST_PREC);
+	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_joined_rbi.toMatrix().data(), 36, TEST_PREC);
 }
 
 TEST ( TestBodyJoinTwoBodiesRotatedAndTranslated ) {
@@ -170,15 +159,11 @@ TEST ( TestBodyJoinTwoBodiesRotatedAndTranslated ) {
 	Body body_a(1.1, Vector3d (0., 0., 0.), Vector3d (3.1, 3.2, 3.3));
 	Body body_b(1.1, Vector3d (-1., 1., 0.), Vector3d (3.2, 3.1, 3.3));
 
-	// cout << "body_a = " << endl << body_a.mSpatialInertia << endl;
-	// cout << "body_b = " << endl << body_b.mSpatialInertia << endl;
-
 	Body body_joined (body_a);
 	body_joined.Join (Xrotz(M_PI*0.5) * Xtrans(Vector3d (1., 1., 0.)), body_b);
-	
-	// cout << LogOutput.str() << endl;
-	// cout << "body_joined = " << endl << body_joined.mSpatialInertia << endl;
 
+	SpatialRigidBodyInertia body_joined_rbi (body_joined.mMass, body_joined.mCenterOfMass, body_joined.mInertia);
+	
 	SpatialMatrix reference_inertia (
 			6.2, 0., 0., 0., 0., 0.,
 			0., 6.4, 0., 0., 0., 0.,
@@ -190,21 +175,20 @@ TEST ( TestBodyJoinTwoBodiesRotatedAndTranslated ) {
 
 	CHECK_EQUAL (2.2, body_joined.mMass);
 	CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), body_joined.mCenterOfMass.data(), 3, TEST_PREC);
-	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_joined.mSpatialInertia.data(), 36, TEST_PREC);
+	CHECK_ARRAY_CLOSE (reference_inertia.data(), body_joined_rbi.toMatrix().data(), 36, TEST_PREC);
 }
 
 TEST ( TestBodyConstructorSpatialRigidBodyInertiaMultiplyMotion ) {
 	Body body(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
 
-	SpatialMatrix spatial_inertia = body.mSpatialInertia;
 	SpatialRigidBodyInertia rbi = SpatialRigidBodyInertia(
 				body.mMass,
 				body.mCenterOfMass * body.mMass,
-				body.mSpatialInertia.block<3,3>(0,0)
+				body.mInertia
 				);
 
 	SpatialVector mv (1.1, 1.2, 1.3, 1.4, 1.5, 1.6);
-	SpatialVector fv_matrix = spatial_inertia * mv;
+	SpatialVector fv_matrix = rbi.toMatrix() * mv;
 	SpatialVector fv_rbi = rbi * mv;
 
 	CHECK_ARRAY_CLOSE (
@@ -218,18 +202,12 @@ TEST ( TestBodyConstructorSpatialRigidBodyInertiaMultiplyMotion ) {
 TEST ( TestBodyConstructorSpatialRigidBodyInertia ) {
 	Body body(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
 
-	SpatialMatrix spatial_inertia = body.mSpatialInertia;
 	SpatialRigidBodyInertia rbi = SpatialRigidBodyInertia(
 				body.mMass,
 				body.mCenterOfMass * body.mMass,
-				body.mSpatialInertia.block<3,3>(0,0)
+				body.mInertia
 				);
-
-//	cout << "Spatial Inertia = " << endl << spatial_inertia << endl;
-//	cout << "rbi = " << endl << rbi.toMatrix() << endl;
-//	cout << "rbi.m = " << rbi.m << endl;
-//	cout << "rbi.h = " << rbi.h.transpose() << endl;
-//	cout << "rbi.I = " << endl << rbi.I << endl;
+	SpatialMatrix spatial_inertia = rbi.toMatrix();
 
 	CHECK_ARRAY_CLOSE (
 			spatial_inertia.data(),
@@ -242,10 +220,14 @@ TEST ( TestBodyConstructorSpatialRigidBodyInertia ) {
 TEST ( TestBodyConstructorCopySpatialRigidBodyInertia ) {
 	Body body(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
 
-	SpatialMatrix spatial_inertia = body.mSpatialInertia;
+	SpatialRigidBodyInertia rbi = SpatialRigidBodyInertia(
+				body.mMass,
+				body.mCenterOfMass * body.mMass,
+				body.mInertia
+				);
 
-	SpatialRigidBodyInertia rbi;
-	rbi.createFromMatrix (spatial_inertia);
+	SpatialRigidBodyInertia rbi_from_matrix;
+	rbi_from_matrix.createFromMatrix (rbi.toMatrix());
 
 //	cout << "Spatial Inertia = " << endl << spatial_inertia << endl;
 //	cout << "rbi = " << endl << rbi.toMatrix() << endl;
@@ -254,8 +236,8 @@ TEST ( TestBodyConstructorCopySpatialRigidBodyInertia ) {
 //	cout << "rbi.I = " << endl << rbi.I << endl;
 
 	CHECK_ARRAY_CLOSE (
-			spatial_inertia.data(),
 			rbi.toMatrix().data(),
+			rbi_from_matrix.toMatrix().data(),
 			36,
 			TEST_PREC
 			);

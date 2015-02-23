@@ -5,7 +5,7 @@ includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 Name: RBDL
 Description: Rigid Body Dynamics Library
 URL: http://rbdl.bitbucket.org/
-Version: @PROJECT_VERSION@
+Version: @RBDL_VERSION@
 Requires: eigen3
 Conflicts:
 Libs: -L${libdir} -lrbdl -Wl,-rpath ${libdir}

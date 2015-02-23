@@ -6,6 +6,7 @@
 struct Human36 {
 	RigidBodyDynamics::Model *model;
 	RigidBodyDynamics::Model *model_emulated;
+	RigidBodyDynamics::Model *model_3dof;
 
 	RigidBodyDynamics::Math::VectorNd q;
 	RigidBodyDynamics::Math::VectorNd qdot;
@@ -13,10 +14,15 @@ struct Human36 {
 	RigidBodyDynamics::Math::VectorNd tau;
 
 	RigidBodyDynamics::Math::VectorNd qddot_emulated;
+	RigidBodyDynamics::Math::VectorNd qddot_3dof;
 
 	RigidBodyDynamics::ConstraintSet constraints_1B1C_emulated;
 	RigidBodyDynamics::ConstraintSet constraints_1B4C_emulated;
 	RigidBodyDynamics::ConstraintSet constraints_4B4C_emulated;
+
+	RigidBodyDynamics::ConstraintSet constraints_1B1C_3dof;
+	RigidBodyDynamics::ConstraintSet constraints_1B4C_3dof;
+	RigidBodyDynamics::ConstraintSet constraints_4B4C_3dof;
 
 	enum SegmentName {
 		SegmentPelvis = 0,
@@ -58,6 +64,7 @@ struct Human36 {
 	double SegmentRadiiOfGyration[SegmentNameLast][3];
 
 	unsigned int body_id_emulated[BodyNameLast];
+	unsigned int body_id_3dof[BodyNameLast];
 
 	void initParameters () {
 		SegmentLengths[SegmentPelvis     ] = 0.1457;
@@ -215,11 +222,9 @@ struct Human36 {
 				SpatialVector (0., 0., 1., 0., 0., 0.)
 				);
 
-		Joint trans_xyz = Joint(
-				SpatialVector (0., 0., 0., 1., 0., 0.),
-				SpatialVector (0., 0., 0., 0., 1., 0.),
-				SpatialVector (0., 0., 0., 0., 0., 1.)
-				);
+		Joint trans_xyz = Joint(JointTypeTranslationXYZ);
+
+		Joint rot_yxz_3dof = Joint(JointTypeEulerYXZ);
 
 		Joint rot_yz (
 				SpatialVector (0., 1., 0., 0., 0., 0.),
@@ -263,6 +268,41 @@ struct Human36 {
 
 		// head	
 		body_id_emulated[BodyHead] = model_emulated->AddBody (body_id_emulated[BodyUpperTrunk], Xtrans(Vector3d(0., 0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yxz_emulated, upperarm_body, "head");
+
+		// Generate 3dof model
+		model_3dof->gravity = Vector3d (0., 0., -9.81);
+
+		unsigned int pelvis_trans = model_3dof->AddBody (0, Xtrans(Vector3d (0., 0., 0.)), trans_xyz, null_body, "pelvis_trans_xyz");
+
+		body_id_3dof[BodyPelvis] = model_3dof->AddBody (pelvis_trans, Xtrans (Vector3d (0., 0., 0.)), rot_yxz_3dof, pelvis_body, "pelvis");
+//		body_id_3dof[BodyPelvis] = model_3dof->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), free_flyer, pelvis_body, "pelvis");
+
+		// right leg
+		body_id_3dof[BodyThighRight] = model_3dof->AddBody (body_id_3dof[BodyPelvis], Xtrans(Vector3d(0., -0.0872, 0.)), rot_yxz_3dof, thigh_body, "thigh_r");
+		body_id_3dof[BodyShankRight] = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentThigh])), rot_y, shank_body, "shank_r");
+		body_id_3dof[BodyFootRight]  = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentShank])), rot_yz, foot_body, "foot_r");
+
+		// left leg
+		body_id_3dof[BodyThighLeft] = model_3dof->AddBody (body_id_3dof[BodyPelvis], Xtrans(Vector3d(0., 0.0872, 0.)), rot_yxz_3dof, thigh_body, "thigh_l");
+		body_id_3dof[BodyShankLeft] = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentThigh])), rot_y, shank_body, "shank_l");
+		body_id_3dof[BodyFootLeft]  = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentShank])), rot_yz, foot_body, "foot_l");
+
+		// trunk
+		body_id_3dof[BodyMiddleTrunk] = model_3dof->AddBody (body_id_3dof[BodyPelvis], Xtrans(Vector3d(0., 0., SegmentLengths[SegmentPelvis])), rot_yxz_3dof, middle_trunk_body, "middletrunk");
+		body_id_3dof[BodyUpperTrunk]  = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., SegmentLengths[SegmentMiddleTrunk])), fixed, upper_trunk_body, "uppertrunk");
+
+		// right arm
+		body_id_3dof[BodyUpperArmRight] = model_3dof->AddBody (body_id_3dof[BodyUpperTrunk], Xtrans(Vector3d(0., -0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yxz_3dof, upperarm_body, "upperarm_r");
+		body_id_3dof[BodyLowerArmRight] = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentUpperArm])), rot_y, lowerarm_body, "lowerarm_r");
+		body_id_3dof[BodyHandRight]  = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentLowerArm])), rot_yz, hand_body, "hand_r");
+
+		// left arm
+		body_id_3dof[BodyUpperArmLeft] = model_3dof->AddBody (body_id_3dof[BodyUpperTrunk], Xtrans(Vector3d(0.,  0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yxz_3dof, upperarm_body, "upperarm_l");
+		body_id_3dof[BodyLowerArmLeft] = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentUpperArm])), rot_y, lowerarm_body, "lowerarm_l");
+		body_id_3dof[BodyHandLeft]  = model_3dof->AppendBody (Xtrans(Vector3d(0., 0., -SegmentLengths[SegmentLowerArm])), rot_yz, hand_body, "hand_l");
+
+		// head	
+		body_id_3dof[BodyHead] = model_3dof->AddBody (body_id_3dof[BodyUpperTrunk], Xtrans(Vector3d(0., 0.1900, SegmentLengths[SegmentUpperTrunk])), rot_yxz_3dof, upperarm_body, "head");
 	}
 
 	void initConstraintSets () {
@@ -303,6 +343,41 @@ struct Human36 {
 		constraints_4B4C_emulated.AddConstraint (hand_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
 		constraints_4B4C_emulated.AddConstraint (hand_l_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 		constraints_4B4C_emulated.Bind (*model);
+
+		unsigned int foot_r_3dof = model_3dof->GetBodyId ("foot_r");
+		unsigned int foot_l_3dof = model_3dof->GetBodyId ("foot_l");
+		unsigned int hand_r_3dof = model_3dof->GetBodyId ("hand_r");
+		unsigned int hand_l_3dof = model_3dof->GetBodyId ("hand_l");
+
+		constraints_1B1C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B1C_3dof.Bind (*model_3dof);	
+
+		constraints_1B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_1B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_1B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B4C_3dof.Bind (*model_3dof);	
+
+		constraints_4B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+
+		constraints_4B4C_3dof.AddConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_3dof.AddConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_3dof.AddConstraint (foot_l_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+
+		constraints_4B4C_3dof.AddConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_3dof.AddConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_3dof.AddConstraint (hand_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+
+		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.Bind (*model_3dof);
 	}
 
 	void randomizeStates () {
@@ -313,6 +388,7 @@ struct Human36 {
 			qddot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
 		}
 		qddot_emulated = qddot;
+		qddot_3dof = qddot;
 	}
 
 	Human36 () {
@@ -322,6 +398,7 @@ struct Human36 {
 
 		initParameters();
 		model_emulated = new RigidBodyDynamics::Model();
+		model_3dof = new RigidBodyDynamics::Model();
 		model = model_emulated;
 		generate();
 		initConstraintSets();
@@ -332,9 +409,11 @@ struct Human36 {
 		tau = VectorNd::Zero (model_emulated->qdot_size);
 
 		qddot_emulated = VectorNd::Zero (model_emulated->qdot_size);
+		qddot_3dof= VectorNd::Zero (model_emulated->qdot_size);
 	};
 	~Human36 () {
 		delete model_emulated;
+		delete model_3dof;
 	}
 
 };

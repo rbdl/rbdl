@@ -1,12 +1,12 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _MODEL_H
-#define _MODEL_H
+#ifndef RBDL_MODEL_H
+#define RBDL_MODEL_H
 
 #include "rbdl/rbdl_math.h"
 #include <map>
@@ -36,9 +36,19 @@ namespace RigidBodyDynamics {
 
 /** \page modeling_page Model 
  *
- * There are two ways of creating \link RigidBodyDynamics::Model Models\endlink for RBDL:
+ * \section model_structure Model Structure
  *
- *   \li Using \ref luamodel_introduction that uses Lua files or
+ * RBDL stores the model internally in the \link RigidBodyDynamics::Model
+ * Model Structure\endlink. For each \link RigidBodyDynamics::Body Body
+ * \endlink it contains spatial velocities, accelerations and other
+ * variables that describe the state of the rigid body system. Furthermore
+ * it contains variables that are used as temporary variables in the
+ * algorithms.
+ * 
+ * There are multiple ways of creating \link RigidBodyDynamics::Model Models\endlink for RBDL:
+ *
+ *   \li Loading models from Lua files using the \ref luamodel_introduction "LuaModel" addon
+ *   \li Loading models from URDF (the Unified Robot Description Format) xml files or strings using the URDFReader addon
  *   \li using the C++ interface.
  *
  * The first approach requires the addon \ref luamodel_introduction to be
@@ -46,36 +56,23 @@ namespace RigidBodyDynamics {
  * recommended when one is not interested in the details of RBDL and simply
  * wants to create a model.
  *
- * \section modeling_lua Modeling using Lua
- *
- * For this see the documentation of \ref luamodel_introduction.
- *
  * \section modeling_cpp Modeling using C++
  *
- * The API for the RBDL Models can be found at \ref RigidBodyDynamics::Model.
+ * The construction of \link RigidBodyDynamics::Model Model Structures
+ * \endlink makes use of carefully designed constructors of the classes
+ * \link RigidBodyDynamics::Body Body \endlink and \link
+ * RigidBodyDynamics::Joint Joint \endlink to ease the process of
+ * creating articulated models.
  *
- * Using the C++ interface is more advanced but gives some overview about the
- * internals of RBDL.
+ * \link RigidBodyDynamics::Body Bodies \endlink are created by calling one
+ * of its constructors. Usually they are created by specifying the mass,
+ * center of mass and the inertia at the center of mass. \link RigidJointDynamics::Joint Joints \endlink are similarly created and is described in detail in \ref joint_description.
  *
- * \subsection modeling_overview Overview
- *
- * All model related values are stored in the model structure \link
- * RigidBodyDynamics::Model\endlink. The functions 
- * \link RigidBodyDynamics::Model::AddBody Model::AddBody(...)\endlink,
- * \link RigidBodyDynamics::Model::AppendBody Model::AppendBody(...)\endlink, and
- * \link RigidBodyDynamics::Model::GetBodyId Model::GetBodyId(...)\endlink,
- * are used to construct the \ref model_structure.
- *
- * \section model_construction Model Construction
- *
- * The construction of \link RigidBodyDynamics::Model Model Structures \endlink makes
- * use of carefully designed constructors of the classes \link
- * RigidBodyDynamics::Body Body \endlink and \link RigidBodyDynamics::Joint
- * Joint \endlink to ease the process of articulated models. Adding bodies to
- * the model is done by specifying the parent body by its id, the
- * transformation from the parent origin to the joint origin, the joint
- * specification as an object, and the body itself. These parameters are
- * then fed to the function RigidBodyDynamics::Model::AddBody().
+ * Adding bodies to the model is done by specifying the
+ * parent body by its id, the transformation from the parent origin to the
+ * joint origin, the joint specification as an object, and the body itself.
+ * These parameters are then fed to the function
+ * RigidBodyDynamics::Model::AddBody() or RigidBodyDynamics::Model::AppendBody().
  *
  * To create a model with a floating base (a.k.a a model with a free-flyer
  * joint) it is recommended to use \link
@@ -88,15 +85,15 @@ namespace RigidBodyDynamics {
  *
  * A simple example can be found \ref SimpleExample "here".
  *
- * \subsection model_structure Model Structure
+ * \section modeling_lua Using LuaModels
+ *
+ * For this see the documentation of \ref luamodel_introduction and \link
+ * RigidBodyDynamics::Addons::LuaModelReadFromFile \endlink.
  
- * The \link RigidBodyDynamics::Model Model Structure \endlink contains all
- * the parameters of the rigid multi-body model such as joint informations,
- * mass and inertial parameters of the rigid bodies, etc. It also contains
- * storage for the transformations and current state, such as velocity and
- * acceleration of each body.
- 
- * See also \ref joint_description for information about Joint modeling.
+ * \section modeling_urdf Using URDF
+ *
+ * For this see the documentation see \link
+ * RigidBodyDynamics::Addons::URDFReadFromFile \endlink.
  */
 
 /** \brief Contains all information about the rigid body model
@@ -123,6 +120,8 @@ struct RBDL_DLLAPI Model {
 
 	/// \brief The id of the parents body
 	std::vector<unsigned int> lambda;
+	/// \brief The index of the parent degree of freedom that is directly influencing the current one
+	std::vector<unsigned int> lambda_q;
 	/// \brief Contains the ids of all the children of a given body
 	std::vector<std::vector<unsigned int> >mu;
 
@@ -167,6 +166,14 @@ struct RBDL_DLLAPI Model {
 	std::vector<Joint> mJoints;
 	/// \brief The joint axis for joint i
 	std::vector<Math::SpatialVector> S;
+
+	// Joint state variables
+	std::vector<Math::SpatialTransform> X_J;
+	std::vector<Math::SpatialVector> v_J;
+	std::vector<Math::SpatialVector> c_J;
+
+	std::vector<unsigned int> mJointUpdateOrder;
+
 	/// \brief Transformations from the parent body to the frame of the joint.
 	// It is expressed in the coordinate frame of the parent.
 	std::vector<Math::SpatialTransform> X_T;
@@ -200,6 +207,7 @@ struct RBDL_DLLAPI Model {
 	/// \brief Internal forces on the body (used only InverseDynamics())
 	std::vector<Math::SpatialVector> f;
 	/// \brief The spatial inertia of body i (used only in CompositeRigidBodyAlgorithm())
+	std::vector<Math::SpatialRigidBodyInertia> I;
 	std::vector<Math::SpatialRigidBodyInertia> Ic;
 	std::vector<Math::SpatialVector> hc;
 
@@ -462,4 +470,5 @@ struct RBDL_DLLAPI Model {
 /** @} */
 }
 
-#endif /* _MODEL_H */
+/* _MODEL_H */
+#endif

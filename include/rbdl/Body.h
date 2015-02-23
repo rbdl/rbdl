@@ -1,12 +1,12 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _BODY_H
-#define _BODY_H
+#ifndef RBDL_BODY_H
+#define RBDL_BODY_H
 
 #include "rbdl/rbdl_math.h"
 #include "rbdl/rbdl_mathutils.h"
@@ -22,24 +22,18 @@ namespace RigidBodyDynamics {
  * mass, and the ineria tensor in the center of mass. This class is
  * designed to use the given information and transform it such that it can
  * directly be used by the spatial algebra.
- * 
- * The spatial inertia of the member variable Body::mSpatialInertia is
- * expressed at the origin of the coordinate frame.
- *
  */
 struct RBDL_DLLAPI Body {
 	Body() :
-		mMass (1.),
+		mMass (0.),
 		mCenterOfMass (0., 0., 0.),
-		mInertia (Math::Matrix3d::Identity(3,3)),
-		mSpatialInertia (Math::SpatialMatrix::Zero(6,6)),
+		mInertia (Math::Matrix3d::Zero(3,3)),
 		mIsVirtual (false)
 	{ };
 	Body(const Body &body) :
 		mMass (body.mMass),
 		mCenterOfMass (body.mCenterOfMass),
 		mInertia (body.mInertia),
-		mSpatialInertia (body.mSpatialInertia),
 		mIsVirtual (body.mIsVirtual)
 	{};
 	Body& operator= (const Body &body) {
@@ -47,7 +41,6 @@ struct RBDL_DLLAPI Body {
 			mMass = body.mMass;
 			mInertia = body.mInertia;
 			mCenterOfMass = body.mCenterOfMass;
-			mSpatialInertia = body.mSpatialInertia;
 			mIsVirtual = body.mIsVirtual;
 		}
 
@@ -71,33 +64,10 @@ struct RBDL_DLLAPI Body {
 		mMass (mass),
 		mCenterOfMass(com),
 		mIsVirtual (false) {
-			Math::Matrix3d com_cross (
-					0., -com[2],  com[1],
-					com[2],      0., -com[0],
-					-com[1],  com[0],      0.
-					);
-			Math::Matrix3d parallel_axis;
-			parallel_axis = mass * com_cross * com_cross.transpose();
-
 			mInertia = Math::Matrix3d (
 					gyration_radii[0], 0., 0.,
 					0., gyration_radii[1], 0.,
 					0., 0., gyration_radii[2]
-					);
-
-			Math::Matrix3d pa (parallel_axis);
-			Math::Matrix3d mcc = mass * com_cross;
-			Math::Matrix3d mccT = mcc.transpose();
-
-			Math::Matrix3d inertia_O = mInertia + pa;
-
-			mSpatialInertia.set (
-					inertia_O(0,0), inertia_O(0,1), inertia_O(0,2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
-					inertia_O(1,0), inertia_O(1,1), inertia_O(1,2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
-					inertia_O(2,0), inertia_O(2,1), inertia_O(2,2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
-					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
-					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
-					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
 					);
 		}
 
@@ -118,30 +88,8 @@ struct RBDL_DLLAPI Body {
 		mMass (mass),
 		mCenterOfMass(com),
 		mInertia (inertia_C),
-		mIsVirtual (false) {
-			Math::Matrix3d com_cross (
-					0., -com[2],  com[1],
-					com[2],      0., -com[0],
-					-com[1],  com[0],      0.
-					);
-			Math::Matrix3d parallel_axis = mass * com_cross * com_cross.transpose();
+		mIsVirtual (false) { }
 
-			LOG << "parrallel axis = " << std::endl << parallel_axis << std::endl;
-
-			Math::Matrix3d pa (parallel_axis);
-			Math::Matrix3d mcc = mass * com_cross;
-			Math::Matrix3d mccT = mcc.transpose();
-
-			mSpatialInertia.set (
-					inertia_C(0,0) + pa(0, 0), inertia_C(0,1) + pa(0, 1), inertia_C(0,2) + pa(0, 2), mcc(0, 0), mcc(0, 1), mcc(0, 2),
-					inertia_C(1,0) + pa(1, 0), inertia_C(1,1) + pa(1, 1), inertia_C(1,2) + pa(1, 2), mcc(1, 0), mcc(1, 1), mcc(1, 2),
-					inertia_C(2,0) + pa(2, 0), inertia_C(2,1) + pa(2, 1), inertia_C(2,2) + pa(2, 2), mcc(2, 0), mcc(2, 1), mcc(2, 2),
-					mccT(0, 0), mccT(0, 1), mccT(0, 2), mass, 0., 0.,
-					mccT(1, 0), mccT(1, 1), mccT(1, 2), 0., mass, 0.,
-					mccT(2, 0), mccT(2, 1), mccT(2, 2), 0., 0., mass
-					);
-		}
-	
 	/** \brief Joins inertial parameters of two bodies to create a composite
 	 * body.
 	 *
@@ -187,7 +135,10 @@ struct RBDL_DLLAPI Body {
 		// 4. Sum the two inertias
 		// 5. Transform the summed inertia to the new COM
 
-		Math::Matrix3d inertia_other = other_body.mSpatialInertia.block<3,3>(0,0);
+		Math::SpatialRigidBodyInertia other_rbi = Math::SpatialRigidBodyInertia::createFromMassComInertiaC (other_body.mMass, other_body.mCenterOfMass, other_body.mInertia);
+		Math::SpatialRigidBodyInertia this_rbi = Math::SpatialRigidBodyInertia::createFromMassComInertiaC (mMass, mCenterOfMass, mInertia);
+
+		Math::Matrix3d inertia_other = other_rbi.toMatrix().block<3,3>(0,0);
 		LOG << "inertia_other = " << std::endl << inertia_other << std::endl;
 
 		// 1. Transform the inertia from other origin to other COM
@@ -204,7 +155,7 @@ struct RBDL_DLLAPI Body {
 		LOG << "inertia_other_com_rotated_this_origin = " << std::endl << inertia_other_com_rotated_this_origin << std::endl;
 
 		// 4. Sum the two inertias
-		Math::Matrix3d inertia_summed = Math::Matrix3d (mSpatialInertia.block<3,3>(0,0)) + inertia_other_com_rotated_this_origin;
+		Math::Matrix3d inertia_summed = Math::Matrix3d (this_rbi.toMatrix().block<3,3>(0,0)) + inertia_other_com_rotated_this_origin;
 		LOG << "inertia_summed  = " << std::endl << inertia_summed << std::endl;
 
 		// 5. Transform the summed inertia to the new COM
@@ -225,8 +176,6 @@ struct RBDL_DLLAPI Body {
 	Math::Vector3d mCenterOfMass;
 	/// \brief Inertia matrix at the center of mass
 	Math::Matrix3d mInertia;
-	/// \brief The spatial inertia that contains both mass and inertia information
-	Math::SpatialMatrix mSpatialInertia;
 
 	bool mIsVirtual;
 };
@@ -243,7 +192,7 @@ struct RBDL_DLLAPI FixedBody {
 	/// \brief The position of the center of mass in body coordinates
 	Math::Vector3d mCenterOfMass;
 	/// \brief The spatial inertia that contains both mass and inertia information
-	Math::SpatialMatrix mSpatialInertia;
+	Math::Matrix3d mInertia;
 
 	/// \brief Id of the movable body that this fixed body is attached to.
 	unsigned int mMovableParent;
@@ -257,7 +206,7 @@ struct RBDL_DLLAPI FixedBody {
 
 		fbody.mMass = body.mMass;
 		fbody.mCenterOfMass = body.mCenterOfMass;
-		fbody.mSpatialInertia = body.mSpatialInertia;
+		fbody.mInertia = body.mInertia;
 
 		return fbody;
 	}
@@ -265,4 +214,5 @@ struct RBDL_DLLAPI FixedBody {
 
 }
 
-#endif /* _BODY_H */
+/* RBDL_BODY_H */
+#endif

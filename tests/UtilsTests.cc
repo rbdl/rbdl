@@ -15,8 +15,6 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-const double TEST_PREC = 1.0e-14;
-
 TEST_FIXTURE(FloatingBase12DoF, TestKineticEnergy) {
 	VectorNd q = VectorNd::Zero(model->q_size);
 	VectorNd qdot = VectorNd::Zero(model->q_size);
@@ -110,33 +108,37 @@ TEST(TestAngularMomentumSimple) {
 	VectorNd q = VectorNd::Zero(model.q_size);
 	VectorNd qdot = VectorNd::Zero(model.qdot_size);
 
+	double mass;
+	Vector3d com;
 	Vector3d angular_momentum;
 
 	qdot << 1., 0., 0.;
-	angular_momentum = Utils::CalcAngularMomentum (model, q, qdot);
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
 	CHECK_EQUAL (Vector3d (1.1, 0., 0.), angular_momentum);
 
 	qdot << 0., 1., 0.;
-	angular_momentum = Utils::CalcAngularMomentum (model, q, qdot);
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
 	CHECK_EQUAL (Vector3d (0., 2.2, 0.), angular_momentum);
 
 	qdot << 0., 0., 1.;
-	angular_momentum = Utils::CalcAngularMomentum (model, q, qdot);
+	Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
 	CHECK_EQUAL (Vector3d (0., 0., 3.3), angular_momentum);
 }
 
 TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
+	double mass;
+	Vector3d com;
 	Vector3d angular_momentum;
 
-	angular_momentum = Utils::CalcAngularMomentum (*model, q, qdot);
-
+	Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
+	
 	CHECK_EQUAL (Vector3d (0., 0., 0.), angular_momentum);
 
 	qdot[0] = 1.;
 	qdot[1] = 2.;
 	qdot[2] = 3.;
 
-	angular_momentum = Utils::CalcAngularMomentum (*model, q, qdot);
+	Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
 
 	// only a rough guess from test calculation
 	CHECK_ARRAY_CLOSE (Vector3d (3.3, 2.54, 1.5).data(), angular_momentum.data(), 3, 1.0e-1);
@@ -146,7 +148,7 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
 	qdot[5] = -qdot[2];
 
 	ClearLogOutput();
-	angular_momentum = Utils::CalcAngularMomentum (*model, q, qdot);
+	Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
 
 	CHECK (angular_momentum[0] == 0);
 	CHECK (angular_momentum[1] < 0);

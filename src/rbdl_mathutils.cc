@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -12,6 +12,7 @@
 #include <assert.h>
 
 #include <rbdl/rbdl_mathutils.h>
+#include <rbdl/Model.h>
 
 #include "rbdl/Logging.h"
 
@@ -263,6 +264,73 @@ SpatialMatrix Xrotz_mat (const double &zrot) {
 RBDL_DLLAPI
 SpatialMatrix XtransRotZYXEuler (const Vector3d &displacement, const Vector3d &zyx_euler) {
 	return Xrotz_mat(zyx_euler[0]) * Xroty_mat(zyx_euler[1]) * Xrotx_mat(zyx_euler[2]) * Xtrans_mat(displacement);
+}
+
+RBDL_DLLAPI
+void SparseFactorizeLTL (Model &model, Math::MatrixNd &H) {
+	for (unsigned int i = 0; i < model.qdot_size; i++) {
+		for (unsigned int j = i + 1; j < model.qdot_size; j++) {
+			H(i,j) = 0.;
+		}
+	}
+
+	for (unsigned int k = model.qdot_size; k > 0; k--) {
+		H(k - 1,k - 1) = sqrt (H(k - 1,k - 1));
+		unsigned int i = model.lambda_q[k];
+		while (i != 0) {
+			H(k - 1,i - 1) = H(k - 1,i - 1) / H(k - 1,k - 1);
+			i = model.lambda_q[i];
+		}
+
+		i = model.lambda_q[k];
+		while (i != 0) {
+			unsigned int j = i;
+			while (j != 0) {
+				H(i - 1,j - 1) = H(i - 1,j - 1) - H(k - 1,i - 1) * H(k - 1, j - 1);
+				j = model.lambda_q[j];
+			}
+			i = model.lambda_q[i];
+		}
+	}
+}
+
+RBDL_DLLAPI
+void SparseMultiplyHx (Model &model, Math::MatrixNd &L) {
+	assert (0 && !"Not yet implemented!");
+}
+
+RBDL_DLLAPI
+void SparseMultiplyLx (Model &model, Math::MatrixNd &L) {
+	assert (0 && !"Not yet implemented!");
+}
+
+RBDL_DLLAPI
+void SparseMultiplyLTx (Model &model, Math::MatrixNd &L) {
+	assert (0 && !"Not yet implemented!");
+}
+
+RBDL_DLLAPI
+void SparseSolveLx (Model &model, Math::MatrixNd &L, Math::VectorNd &x) {
+	for (unsigned int i = 1; i <= model.qdot_size; i++) {
+		unsigned int j = model.lambda_q[i];
+		while (j != 0) {
+			x[i - 1] = x[i - 1] - L(i - 1,j - 1) * x[j - 1];
+			j = model.lambda_q[j];
+		}
+		x[i - 1] = x[i - 1] / L(i - 1,i - 1);
+	}
+}
+
+RBDL_DLLAPI
+void SparseSolveLTx (Model &model, Math::MatrixNd &L, Math::VectorNd &x) {
+	for (int i = model.qdot_size; i > 0; i--) {
+		x[i - 1] = x[i - 1] / L(i - 1,i - 1);
+		unsigned int j = model.lambda_q[i];
+		while (j != 0) {
+			x[j - 1] = x[j - 1] - L(i - 1,j - 1) * x[i - 1];
+			j = model.lambda_q[j];
+		}
+	}
 }
 
 } /* Math */

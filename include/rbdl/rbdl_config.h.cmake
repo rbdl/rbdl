@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _RBDLCONFIG_H
-#define _RBDLCONFIG_H
+#ifndef RBDL_CONFIG_H
+#define RBDL_CONFIG_H
 
 #define RBDL_API_VERSION (@RBDL_VERSION_MAJOR@ << 16) + (@RBDL_VERSION_MINOR@ << 8) + @RBDL_VERSION_PATCH@
 
@@ -22,6 +22,7 @@
 /* compatibility defines */
 #ifdef _WIN32
 	#define __func__ __FUNCTION__
+	#define M_PI 3.1415926535897932384
 #endif
 
 // Handle portable symbol export.
@@ -53,7 +54,7 @@
 #  endif // __GNUC__ >= 4
 # endif // defined _WIN32 || defined __CYGWIN__
 
-# ifdef RBDL_STATIC
+# ifdef RBDL_BUILD_STATIC
 // If one is using the library statically, get rid of
 // extra information.
 #  define RBDL_DLLAPI
@@ -67,6 +68,6 @@
 #   define RBDL_DLLAPI RBDL_DLLIMPORT
 #  endif // RBDL_EXPORTS
 #  define RBDL_LOCAL RBDL_DLLLOCAL
-# endif // RBDL_STATIC
+# endif // RBDL_BUILD_STATIC
 
 #endif

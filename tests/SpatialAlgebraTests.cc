@@ -13,6 +13,30 @@ using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-14;
 
+SpatialMatrix spatial_adjoint(const SpatialMatrix &m) {
+	SpatialMatrix res (m);
+	res.block<3,3>(3,0) = m.block<3,3>(0,3);
+	res.block<3,3>(0,3) = m.block<3,3>(3,0);
+	return res;
+}
+
+SpatialMatrix spatial_inverse(const SpatialMatrix &m) {
+	SpatialMatrix res(m);
+	res.block<3,3>(0,0) = m.block<3,3>(0,0).transpose();
+	res.block<3,3>(3,0) = m.block<3,3>(3,0).transpose();
+	res.block<3,3>(0,3) = m.block<3,3>(0,3).transpose();
+	res.block<3,3>(3,3) = m.block<3,3>(3,3).transpose();
+	return res;
+}
+
+Matrix3d get_rotation (const SpatialMatrix &m) {
+	return m.block<3,3>(0,0);
+}
+
+Vector3d get_translation (const SpatialMatrix &m) {
+	return Vector3d (-m(4,2), m(3,2), -m(3,1));
+}
+
 /// \brief Checks the multiplication of a SpatialMatrix with a SpatialVector
 TEST(TestSpatialMatrixTimesSpatialVector) {
 	SpatialMatrix s_matrix (
@@ -525,16 +549,21 @@ TEST(TestSpatialRigidBodyInertiaCreateFromMatrix) {
 				0.5, 1.2, 0.4,
 				0.3, 0.4, 1.3
 			);
-	Body body(mass, com , inertia);
-
-	SpatialMatrix spatial_inertia = body.mSpatialInertia;
+	SpatialRigidBodyInertia body_rbi(mass, com , inertia);
+	
+	SpatialMatrix spatial_inertia = body_rbi.toMatrix();
 
 	SpatialRigidBodyInertia rbi;
 	rbi.createFromMatrix (spatial_inertia);
 
 	CHECK_EQUAL (mass, rbi.m);
 	CHECK_ARRAY_EQUAL (Vector3d(mass * com).data(), rbi.h.data(), 3);
-	CHECK_ARRAY_EQUAL (inertia.data(), rbi.I.data(), 9);
+	Matrix3d rbi_I_matrix (
+			rbi.Ixx, rbi.Iyx, rbi.Izx,
+			rbi.Iyx, rbi.Iyy, rbi.Izy,
+			rbi.Izx, rbi.Izy, rbi.Izz
+			);
+	CHECK_ARRAY_EQUAL (inertia.data(), rbi_I_matrix.data(), 9);
 }
 
 #ifdef USE_SLOW_SPATIAL_ALGEBRA

@@ -4,10 +4,10 @@ doc/html/*
 doc/notes/*.aux
 doc/notes/*.pdf
 
-Debug/*
-Release/*
-RelWithDebInfo/*
-build/*
+*Debug/*
+*Release/*
+*RelWithDebInfo/*
+*build/*
 
 .*.swp
 CMakeFiles/*

@@ -1,5 +1,5 @@
-#ifndef _RBDL_UTILS_H
-#define _RBDL_UTILS_H
+#ifndef RBDL_UTILS_H
+#define RBDL_UTILS_H
 
 #include <string>
 #include <rbdl/rbdl_config.h>
@@ -29,21 +29,19 @@ namespace Utils {
 	 * \param mass (output) total mass of the model
 	 * \param com (output) location of the Center of Mass of the model in base coordinates
 	 * \param com_velocity (optional output) linear velocity of the COM in base coordinates 
+	 * \param angular_momentum (optional output) angular momentum of the model at the COM in base coordinates 
 	 * \param update_kinematics (optional input) whether the kinematics should be updated (defaults to true)
 	 */
-	RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, double &mass, Math::Vector3d &com, Math::Vector3d *com_velocity = NULL, bool update_kinematics = true);
+	RBDL_DLLAPI void CalcCenterOfMass (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, double &mass, Math::Vector3d &com, Math::Vector3d *com_velocity = NULL, Math::Vector3d *angular_momentum = NULL, bool update_kinematics = true);
 
 	/** \brief Computes the potential energy of the full model. */
 	RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics = true);
 
 	/** \brief Computes the kinetic energy of the full model. */
 	RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics = true);
-
-	/** \brief Computes the angular momentum of the model about the model's Center of Mass */
-	RBDL_DLLAPI Math::Vector3d CalcAngularMomentum (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics = true);
 }
 
 }
 
-/* _RBDL_UTILS_H */
+/* RBDL_UTILS_H */
 #endif

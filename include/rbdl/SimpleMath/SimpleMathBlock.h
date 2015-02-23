@@ -117,16 +117,22 @@ class Block {
 		}
 
 		unsigned int rows() const {
-			return mRowCount;
-		}
-		unsigned int cols() const {
+			if (!mTransposed)
+				return mRowCount;
+
 			return mColCount;
 		}
+		unsigned int cols() const {
+			if (!mTransposed)
+				return mColCount;
+			
+			return mRowCount;
+		}
 		const val_type& operator() (const unsigned int i, const unsigned int j) const {
-			assert (i < mRowCount);
-			assert (j < mColCount);
 
 			if (!mTransposed) {
+				assert (i < mRowCount);
+				assert (j < mColCount);
 				return (*mParentMatrix) (i + mParentRowStart, j + mParentColStart);
 			}
 
@@ -134,13 +140,14 @@ class Block {
 		}
 
 		val_type& operator() (const unsigned int i, const unsigned int j) {
-			assert (i < mRowCount);
-			assert (j < mColCount);
-
 			if (!mTransposed) {
+				assert (i < mRowCount);
+				assert (j < mColCount);
 				return (*mParentMatrix) (i + mParentRowStart, j + mParentColStart);
 			}
 
+			assert (j < mRowCount);
+			assert (i < mColCount);
 			return (*mParentMatrix) (j + mParentRowStart, i + mParentColStart);
 		}
 

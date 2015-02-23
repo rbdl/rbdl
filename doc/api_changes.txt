@@ -1,6 +1,34 @@
+2.3.3 -> 2.4.0
+- Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
+  and ComputeContactImpulsesRangeSpaceSparse() 
+- Added null-space method ForwardDynamicsContactsNullSpace()
+  and ComputeContactImpulsesNullSpace() 
+- Renamed ForwardDynamicsContactsLagrangian() to
+  ForwardDynamicsContactsDirect() and
+  ComputeContactImpulsesLagrangian() to ComputeContactImpulsesDirect()
+- Renamed ForwardDynamicsContacts() to ForwardDynamicsContactsKokkevis()
+- Removed/Fixed CalcAngularMomentum(). The function produced wrong values. The
+  functionality has been integrated into CalcCenterOfMass().
+- CalcPointJacobian() does not clear the argument of the result anymore.
+  Caller has to ensure that the matrix was set to zero before using this
+  function.
+- Added optional workspace parameters for ForwardDynamicsLagrangian() to
+  optionally reduce memory allocations
+- Added JointTypeTranslationXYZ, JointTypeEulerXYZ, and JointTypeEulerYXZ
+  which are equivalent to the emulated multidof joints but faster.
+- Added optional parameter to CalcCenterOfMass to compute angular momentum.
+- Added CalcBodySpatialJacobian()
+- Added CalcContactJacobian()
+- Added NonlinearEffects()
+- Added solving of linear systems using standard Householder QR
+- LuaModel: Added LuaModelReadFromLuaState()
+- URDFReader: Fixed various issues and using faster joints for floating
+  base models
+- Various performance improvements
+
 2.3.2 -> 2.3.3
 - critical: fixed ForwardDynamicsContacts with constraints on a body
-  that is attached with a fixed joint. Previous versions simply crashed.
+  hat is attached with a fixed joint. Previous versions simply crashed.
   Thanks to Yue Hu for reporting!
 - rbdl_print_version() now properly prints whether URDFReader was enabled
   at build time
@@ -17,7 +45,7 @@
 
 2.3.0 -> 2.3.1
 - critical: fixed angular momentum computation. Version 2.3.0 produced wrong
-  results Thanks to Hilario Tome and Benjamin Michaud for reporting!
+  results. Thanks to Hilario Tome and Benjamin Michaud for reporting!
 - critical: fixed JointTypeEulerZYX. Previous versions produce wrong
   results!
 - fixed library version number for the LuaModel addon. It now uses version

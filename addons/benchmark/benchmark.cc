@@ -20,6 +20,13 @@ bool have_luamodel = true;
 bool have_luamodel = false;
 #endif
 
+#ifdef RBDL_BUILD_ADDON_URDFREADER
+#include "../addons/urdfreader/urdfreader.h"
+bool have_urdfreader = true;
+#else
+bool have_urdfreader = false;
+#endif
+
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
@@ -31,28 +38,31 @@ bool benchmark_run_fd_aba = true;
 bool benchmark_run_fd_lagrangian = true;
 bool benchmark_run_id_rnea = true;
 bool benchmark_run_crba = true;
+bool benchmark_run_nle = true;
 bool benchmark_run_contacts = false;
 
 string model_file = "";
 
-enum ContactsBenchmark {
-	ContactsBenchmarkLagrangian = 0,
-	ContactsBenchmarkKokkevis
+enum ContactsMethod {
+	ContactsMethodLagrangian = 0,
+	ContactsMethodRangeSpaceSparse,
+	ContactsMethodNullSpace,
+	ContactsMethodKokkevis
 };
 
 double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
 		ForwardDynamics (*model,
-				sample_data.q_data[i],
-				sample_data.qdot_data[i],
-				sample_data.tau_data[i],
-				sample_data.qddot_data[i]);
+				sample_data.q[i],
+				sample_data.qdot[i],
+				sample_data.tau[i],
+				sample_data.qddot[i]);
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -67,17 +77,24 @@ double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
 
 double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
+	MatrixNd H (MatrixNd::Zero(model->dof_count, model->dof_count));
+	VectorNd C (VectorNd::Zero(model->dof_count));
+
 	for (int i = 0; i < sample_count; i++) {
 		ForwardDynamicsLagrangian (*model,
-				sample_data.q_data[i],
-				sample_data.qdot_data[i],
-				sample_data.tau_data[i],
-				sample_data.qddot_data[i]
+				sample_data.q[i],
+				sample_data.qdot[i],
+				sample_data.tau[i],
+				sample_data.qddot[i],
+				Math::LinearSolverPartialPivLU,
+				NULL,
+				&H,
+				&C
 );
 	}
 
@@ -93,17 +110,17 @@ double run_forward_dynamics_lagrangian_benchmark (Model *model, int sample_count
 
 double run_inverse_dynamics_RNEA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
 		InverseDynamics (*model,
-				sample_data.q_data[i],
-				sample_data.qdot_data[i],
-				sample_data.qddot_data[i],
-				sample_data.tau_data[i]
+				sample_data.q[i],
+				sample_data.qdot[i],
+				sample_data.qddot[i],
+				sample_data.tau[i]
 				);
 	}
 
@@ -119,15 +136,40 @@ double run_inverse_dynamics_RNEA_benchmark (Model *model, int sample_count) {
 
 double run_CRBA_benchmark (Model *model, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
-	Math::MatrixNd H = Math::MatrixNd(model->dof_count, model->dof_count);
+	Math::MatrixNd H = Math::MatrixNd::Zero(model->dof_count, model->dof_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		CompositeRigidBodyAlgorithm (*model, sample_data.q_data[i], H, true);
+		CompositeRigidBodyAlgorithm (*model, sample_data.q[i], H, true);
+	}
+
+	double duration = timer_stop (&tinfo);
+
+	cout << "#DOF: " << setw(3) << model->dof_count 
+		<< " #samples: " << sample_count 
+		<< " duration = " << setw(10) << duration << "(s)"
+		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
+
+	return duration;
+}
+
+double run_nle_benchmark (Model *model, int sample_count) {
+	SampleData sample_data;
+	sample_data.fillRandom(model->dof_count, sample_count);
+
+	TimerInfo tinfo;
+	timer_start (&tinfo);
+
+	for (int i = 0; i < sample_count; i++) {
+		NonlinearEffects (*model,
+				sample_data.q[i],
+				sample_data.qdot[i],
+				sample_data.tau[i]
+				);
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -142,13 +184,45 @@ double run_CRBA_benchmark (Model *model, int sample_count) {
 
 double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		ForwardDynamicsContactsLagrangian (*model, sample_data.q_data[i], sample_data.qdot_data[i], sample_data.tau_data[i], *constraint_set, sample_data.qddot_data[i]); 
+		ForwardDynamicsContactsDirect (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
+	}
+
+	double duration = timer_stop (&tinfo);
+
+	return duration;
+}
+
+double run_contacts_lagrangian_sparse_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
+	SampleData sample_data;
+	sample_data.fillRandom(model->dof_count, sample_count);
+
+	TimerInfo tinfo;
+	timer_start (&tinfo);
+
+	for (int i = 0; i < sample_count; i++) {
+		ForwardDynamicsContactsRangeSpaceSparse (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
+	}
+
+	double duration = timer_stop (&tinfo);
+
+	return duration;
+}
+
+double run_contacts_null_space (Model *model, ConstraintSet *constraint_set, int sample_count) {
+	SampleData sample_data;
+	sample_data.fillRandom(model->dof_count, sample_count);
+
+	TimerInfo tinfo;
+	timer_start (&tinfo);
+
+	for (int i = 0; i < sample_count; i++) {
+		ForwardDynamicsContactsNullSpace (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -158,13 +232,13 @@ double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constrain
 
 double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
 	SampleData sample_data;
-	sample_data.fill_random_data(model->dof_count, sample_count);
+	sample_data.fillRandom(model->dof_count, sample_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		ForwardDynamicsContacts (*model, sample_data.q_data[i], sample_data.qdot_data[i], sample_data.tau_data[i], *constraint_set, sample_data.qddot_data[i]); 
+		ForwardDynamicsContactsKokkevis (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
 	}
 
 	double duration = timer_stop (&tinfo);
@@ -172,7 +246,7 @@ double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_
 	return duration;
 }
 
-double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmark) {
+double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
 	// initialize the human model
 	Model *model = new Model();
 	generate_human36model(model);
@@ -190,6 +264,15 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 	ConstraintSet one_body_four_constraints;
 	ConstraintSet two_bodies_four_constraints;
 	ConstraintSet four_bodies_four_constraints;
+
+	LinearSolver linear_solver = LinearSolverPartialPivLU;
+
+	one_body_one_constraint.linear_solver = linear_solver;
+	two_bodies_one_constraint.linear_solver = linear_solver;
+	four_bodies_one_constraint.linear_solver = linear_solver;
+	one_body_four_constraints.linear_solver = linear_solver;
+	two_bodies_four_constraints.linear_solver = linear_solver;
+	four_bodies_four_constraints.linear_solver = linear_solver;
 
 	// one_body_one
 	one_body_one_constraint.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
@@ -258,8 +341,12 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 	double duration;
 
 	// one body one
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &one_body_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodRangeSpaceSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &one_body_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodNullSpace) {
+		duration = run_contacts_null_space (model, &one_body_one_constraint, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &one_body_one_constraint, sample_count);
 	}
@@ -269,8 +356,12 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
 	// two_bodies_one
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &two_bodies_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodRangeSpaceSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &two_bodies_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodNullSpace) {
+		duration = run_contacts_null_space (model, &two_bodies_one_constraint, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &two_bodies_one_constraint, sample_count);
 	}
@@ -281,8 +372,12 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 
 
 	// four_bodies_one
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &four_bodies_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodRangeSpaceSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &four_bodies_one_constraint, sample_count);
+	} else if (contacts_method == ContactsMethodNullSpace) {
+		duration = run_contacts_null_space (model, &four_bodies_one_constraint, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &four_bodies_one_constraint, sample_count);
 	}
@@ -292,8 +387,12 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
 	// one_body_four
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &one_body_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodRangeSpaceSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &one_body_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodNullSpace) {
+		duration = run_contacts_null_space (model, &one_body_four_constraints, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &one_body_four_constraints, sample_count);
 	}
@@ -303,8 +402,12 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
 	// two_bodies_four
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &two_bodies_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodRangeSpaceSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &two_bodies_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodNullSpace) {
+		duration = run_contacts_null_space (model, &two_bodies_four_constraints, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &two_bodies_four_constraints, sample_count);
 	}
@@ -315,8 +418,12 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 
 
 	// four_bodies_four
-	if (contacts_benchmark == ContactsBenchmarkLagrangian) {
+	if (contacts_method == ContactsMethodLagrangian) {
 		duration = run_contacts_lagrangian_benchmark (model, &four_bodies_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodRangeSpaceSparse) {
+		duration = run_contacts_lagrangian_sparse_benchmark (model, &four_bodies_four_constraints, sample_count);
+	} else if (contacts_method == ContactsMethodNullSpace) {
+		duration = run_contacts_null_space (model, &four_bodies_four_constraints, sample_count);
 	} else {
 		duration = run_contacts_kokkevis_benchmark (model, &four_bodies_four_constraints, sample_count);
 	}
@@ -331,7 +438,7 @@ double contacts_benchmark (int sample_count, ContactsBenchmark contacts_benchmar
 }
 
 void print_usage () {
-#ifdef RBDL_BUILD_ADDON_LUAMODEL
+#if defined (RBDL_BUILD_ADDON_LUAMODEL) || defined (RBDL_BUILD_ADDON_URDFREADER)
 	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>] <model.lua>" << endl;
 #else
 	cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>]" << endl;
@@ -350,6 +457,7 @@ void print_usage () {
 	cout << "                                the recursive newton euler algorithm." << endl;
 	cout << "  --no-crba                   : disables benchmark for joint space inertia" << endl;
 	cout << "                                matrix computation using the composite rigid." << endl;
+	cout << "  --no-nle                    : disables benchmark for the nonlinear effects." << endl;
 	cout << "                                body algorithm." << endl;
 	cout << "  --only-contacts | -C        : only runs contact model benchmarks." << endl;
 	cout << "  --help | -h                 : prints this help." << endl;
@@ -360,6 +468,7 @@ void disable_all_benchmarks () {
 	benchmark_run_fd_lagrangian = false;
 	benchmark_run_id_rnea = false;
 	benchmark_run_crba = false;
+	benchmark_run_nle = false;
 	benchmark_run_contacts = false;
 }
 
@@ -407,10 +516,12 @@ void parse_args (int argc, char* argv[]) {
 			benchmark_run_id_rnea = false;
 		} else if (arg == "--no-crba" ) {
 			benchmark_run_crba = false;
+		} else if (arg == "--no-nle" ) {
+			benchmark_run_nle = false;
 		} else if (arg == "--only-contacts" || arg == "-C") {
 			disable_all_benchmarks();
 			benchmark_run_contacts = true;
-#ifdef RBDL_BUILD_ADDON_LUAMODEL
+#if defined (RBDL_BUILD_ADDON_LUAMODEL) || defined (RBDL_BUILD_ADDON_URDFREADER)
 		} else if (model_file == "") {
 			model_file = arg;
 #endif
@@ -430,9 +541,23 @@ int main (int argc, char *argv[]) {
 
 	model = new Model();
 
-#ifdef RBDL_BUILD_ADDON_LUAMODEL
 	if (model_file != "") {
-		RigidBodyDynamics::Addons::LuaModelReadFromFile (model_file.c_str(), model);
+		if (model_file.substr (model_file.size() - 4, 4) == ".lua") {
+#ifdef RBDL_BUILD_ADDON_LUAMODEL
+			RigidBodyDynamics::Addons::LuaModelReadFromFile (model_file.c_str(), model);
+#else
+			cerr << "Could not load Lua model: LuaModel addon not enabled!" << endl;
+			abort();
+#endif
+		}
+		if (model_file.substr (model_file.size() - 5, 5) == ".urdf") {
+#ifdef RBDL_BUILD_ADDON_URDFREADER
+			RigidBodyDynamics::Addons::URDFReadFromFile(model_file.c_str(), model);
+#else
+			cerr << "Could not load URDF model: urdfreader addon not enabled!" << endl;
+			abort();
+#endif
+		}
 
 		if (benchmark_run_fd_aba) {
 			cout << "= Forward Dynamics: ABA =" << endl;
@@ -454,15 +579,15 @@ int main (int argc, char *argv[]) {
 			run_CRBA_benchmark (model, benchmark_sample_count);
 		}
 
+		if (benchmark_run_nle) {
+			cout << "= Nonlinear effects  =" << endl;
+			run_nle_benchmark (model, benchmark_sample_count);
+		}
+
 		delete model;
 
 		return 0;
 	}
-#endif
-
-	generate_human36model (model);
-	cout << "Human dofs = " << model->dof_count << endl;
-	delete model;
 
 	rbdl_print_version();
 	cout << endl;
@@ -527,15 +652,34 @@ int main (int argc, char *argv[]) {
 		cout << endl;
 	}
 
-	if (benchmark_run_contacts) {
-		cout << "= Contacts: ForwardDynamicsContactsLagrangian" << endl;
-		contacts_benchmark (benchmark_sample_count, ContactsBenchmarkLagrangian);
+	if (benchmark_run_nle) {
+		cout << "= Nonlinear Effects =" << endl;
+		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
+			model = new Model();
+			model->gravity = Vector3d (0., -9.81, 0.);
 
-		cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
-		contacts_benchmark (benchmark_sample_count, ContactsBenchmarkKokkevis);
+			generate_planar_tree (model, depth);
+
+			run_nle_benchmark (model, benchmark_sample_count);
+
+			delete model;
+		}
+		cout << endl;
 	}
 
+	if (benchmark_run_contacts) {
+		cout << "= Contacts: ForwardDynamicsContactsLagrangian" << endl;
+		contacts_benchmark (benchmark_sample_count, ContactsMethodLagrangian);
 
+		cout << "= Contacts: ForwardDynamicsContactsRangeSpaceSparse" << endl;
+		contacts_benchmark (benchmark_sample_count, ContactsMethodRangeSpaceSparse);
+
+		cout << "= Contacts: ForwardDynamicsContactsNullSpace" << endl;
+		contacts_benchmark (benchmark_sample_count, ContactsMethodNullSpace);
+
+		cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
+		contacts_benchmark (benchmark_sample_count, ContactsMethodKokkevis);
+	}
 
 	return 0;
 }

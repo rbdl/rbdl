@@ -3,54 +3,80 @@
 
 struct SampleData {
 	SampleData() :
-		q_data(NULL), qdot_data(NULL), qddot_data(NULL), tau_data(NULL)
+		count (0), q(NULL), qdot(NULL), qddot(NULL), tau(NULL)
 	{}
 	~SampleData() {
-		delete_data();
+		deleteData();
+	}
+	SampleData(const SampleData &data) {
+		count = data.count;
+
+		q = new RigidBodyDynamics::Math::VectorNd[count];
+		qdot = new RigidBodyDynamics::Math::VectorNd[count];
+		qddot = new RigidBodyDynamics::Math::VectorNd[count];
+		tau = new RigidBodyDynamics::Math::VectorNd[count];
+
+		for (int si = 0; si < count; si++) {
+			q[si] = data.q[si];
+			qdot[si] = data.qdot[si];
+			qddot[si] = data.qddot[si];
+			tau[si] = data.tau[si];
+		}
+	}
+	SampleData& operator= (const SampleData &data) {
+		if (this != &data) {
+			deleteData();
+			*this = SampleData (data);
+		}
+		return *this;
 	}
 
-	RigidBodyDynamics::Math::VectorNd *q_data;
-	RigidBodyDynamics::Math::VectorNd *qdot_data;
-	RigidBodyDynamics::Math::VectorNd *qddot_data;
-	RigidBodyDynamics::Math::VectorNd *tau_data;
+	unsigned int count;
+	RigidBodyDynamics::Math::VectorNd *q;
+	RigidBodyDynamics::Math::VectorNd *qdot;
+	RigidBodyDynamics::Math::VectorNd *qddot;
+	RigidBodyDynamics::Math::VectorNd *tau;
 
-	void delete_data() {
-		if (q_data)
-			delete[] q_data;
-		q_data = NULL;
+	void deleteData() {
+		count = 0;
 
-		if (qdot_data)
-			delete[] qdot_data;
-		qdot_data = NULL;
+		if (q)
+			delete[] q;
+		q = NULL;
 
-		if (qddot_data)
-			delete[] qddot_data;
-		qddot_data = NULL;
+		if (qdot)
+			delete[] qdot;
+		qdot = NULL;
 
-		if (tau_data)
-			delete[] tau_data;
-		tau_data = NULL;
+		if (qddot)
+			delete[] qddot;
+		qddot = NULL;
+
+		if (tau)
+			delete[] tau;
+		tau = NULL;
 	}
 
-	void fill_random_data (int dof_count, int sample_count) {
-		delete_data();
+	void fillRandom (int dof_count, int sample_count) {
+		deleteData();
+		count = sample_count;
 
-		q_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
-		qdot_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
-		qddot_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
-		tau_data = new RigidBodyDynamics::Math::VectorNd[sample_count];
+		q = new RigidBodyDynamics::Math::VectorNd[count];
+		qdot = new RigidBodyDynamics::Math::VectorNd[count];
+		qddot = new RigidBodyDynamics::Math::VectorNd[count];
+		tau = new RigidBodyDynamics::Math::VectorNd[count];
 
-		for (int si = 0; si < sample_count; si++) {
-			q_data[si].resize (dof_count);
-			qdot_data[si].resize (dof_count);
-			qddot_data[si].resize (dof_count);
-			tau_data[si].resize (dof_count);
+		for (int si = 0; si < count; si++) {
+			q[si].resize (dof_count);
+			qdot[si].resize (dof_count);
+			qddot[si].resize (dof_count);
+			tau[si].resize (dof_count);
 
 			for (int i = 0; i < dof_count; i++) {
-				q_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
-				qdot_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
-				qddot_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
-				tau_data[si][i] = (rand() / RAND_MAX) * 2. -1.;
+				q[si][i] = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * 2. -1.;
+				qdot[si][i] = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * 2. -1.;
+				qddot[si][i] = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * 2. -1.;
+				tau[si][i] = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * 2. -1.;
 			}
 		}
 	}

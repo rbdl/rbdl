@@ -1,12 +1,12 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _SPATIALALGEBRAOPERATORS_H
-#define _SPATIALALGEBRAOPERATORS_H
+#ifndef RBDL_SPATIALALGEBRAOPERATORS_H
+#define RBDL_SPATIALALGEBRAOPERATORS_H
 
 #include <iostream>
 #include <cmath>
@@ -23,25 +23,40 @@ inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
 			);
 }
 
-/** \brief Spatial algebra matrices, vectors, and operators. */
-
+/** \brief Compact representation for Spatial Inertia. */
 struct RBDL_DLLAPI SpatialRigidBodyInertia {
 	SpatialRigidBodyInertia() :
 		m (0.),
 		h (Vector3d::Zero(3,1)),
-		I (Matrix3d::Zero(3,3))
+		Ixx (0.), Iyx(0.), Iyy(0.), Izx(0.), Izy(0.), Izz(0.)
 	{}
 	SpatialRigidBodyInertia (
 			double mass, const Vector3d &com_mass, const Matrix3d &inertia) : 
-		m (mass), h (com_mass), I (inertia)
+		m (mass), h (com_mass),
+		Ixx (inertia(0,0)),
+		Iyx (inertia(1,0)), Iyy(inertia(1,1)),
+		Izx (inertia(2,0)), Izy(inertia(2,1)), Izz(inertia(2,2))
+	{ }
+	SpatialRigidBodyInertia (double m, const Vector3d &h,
+			const double &Ixx,
+			const double &Iyx, const double &Iyy,
+			const double &Izx, const double &Izy, const double &Izz
+			) :
+		m (m), h (h),
+		Ixx (Ixx),
+		Iyx (Iyx), Iyy(Iyy),
+		Izx (Izx), Izy(Izy), Izz(Izz)
 	{ }
 
 	SpatialVector operator* (const SpatialVector &mv) {
-		Vector3d mv_upper (mv[0], mv[1], mv[2]);
 		Vector3d mv_lower (mv[3], mv[4], mv[5]);
 
-		Vector3d res_upper = I * Vector3d (mv[0], mv[1], mv[2]) + h.cross(mv_lower);
-		Vector3d res_lower = m * mv_lower - h.cross (mv_upper);
+		Vector3d res_upper = Vector3d (
+				Ixx * mv[0] + Iyx * mv[1] + Izx * mv[2],
+				Iyx * mv[0] + Iyy * mv[1] + Izy * mv[2],
+				Izx * mv[0] + Izy * mv[1] + Izz * mv[2]
+				) + h.cross(mv_lower);
+		Vector3d res_lower = m * mv_lower - h.cross (Vector3d (mv[0], mv[1], mv[2]));
 			
 		return SpatialVector (
 				res_upper[0], res_upper[1], res_upper[2],
@@ -53,23 +68,62 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 		return SpatialRigidBodyInertia (
 				m + rbi.m,
 				h + rbi.h,
-				I + rbi.I
+				Ixx + rbi.Ixx,
+				Iyx + rbi.Iyx, Iyy + rbi.Iyy,
+				Izx + rbi.Izx, Izy + rbi.Izy, Izz + rbi.Izz
 				);
 	}
 
 	void createFromMatrix (const SpatialMatrix &Ic) {
 		m = Ic(3,3);
 		h.set (-Ic(1,5), Ic(0,5), -Ic(0,4));
-		I = Ic.block<3,3>(0,0);
+		Ixx = Ic(0,0);
+		Iyx = Ic(1,0); Iyy = Ic(1,1);
+		Izx = Ic(2,0); Izy = Ic(2,1); Izz = Ic(2,2);
 	}
 
 	SpatialMatrix toMatrix() const {
 		SpatialMatrix result;
-		result.block<3,3>(0,0) = I;
+		result(0,0) = Ixx; result(0,1) = Iyx; result(0,2) = Izx;
+		result(1,0) = Iyx; result(1,1) = Iyy; result(1,2) = Izy;
+		result(2,0) = Izx; result(2,1) = Izy; result(2,2) = Izz;
+
 		result.block<3,3>(0,3) = VectorCrossMatrix(h);
 		result.block<3,3>(3,0) = - VectorCrossMatrix(h);
 		result.block<3,3>(3,3) = Matrix3d::Identity(3,3) * m;
 
+		return result;
+	}
+
+	void setSpatialMatrix (SpatialMatrix &mat) const {
+		mat(0,0) = Ixx; mat(0,1) = Iyx; mat(0,2) = Izx;
+		mat(1,0) = Iyx; mat(1,1) = Iyy; mat(1,2) = Izy;
+		mat(2,0) = Izx; mat(2,1) = Izy; mat(2,2) = Izz;
+
+		mat(3,0) =    0.; mat(3,1) =  h[2]; mat(3,2) = -h[1];
+		mat(4,0) = -h[2]; mat(4,1) =    0.; mat(4,2) =  h[0];
+		mat(5,0) =  h[1]; mat(5,1) = -h[0]; mat(5,2) =    0.;
+
+		mat(0,3) =    0.; mat(0,4) = -h[2]; mat(0,5) =  h[1];
+		mat(1,3) =  h[2]; mat(1,4) =    0.; mat(1,5) = -h[0];
+		mat(2,3) = -h[1]; mat(2,4) =  h[0]; mat(2,5) =    0.;
+
+		mat(3,3) =     m; mat(3,4) =    0.; mat(3,5) =    0.;
+		mat(4,3) =    0.; mat(4,4) =     m; mat(4,5) =    0.; 
+		mat(5,3) =    0.; mat(5,4) =    0.; mat(5,5) =     m;
+	}
+
+	static SpatialRigidBodyInertia createFromMassComInertiaC (double mass, const Vector3d &com, const Matrix3d &inertia_C) {
+		SpatialRigidBodyInertia result;
+		result.m = mass;
+		result.h = com * mass;
+		Matrix3d I = inertia_C + VectorCrossMatrix (com) * VectorCrossMatrix(com).transpose() * mass;
+		result.Ixx = I(0,0);
+		result.Iyx = I(1,0);
+		result.Iyy = I(1,1);
+		result.Izx = I(2,0);
+		result.Izy = I(2,1);
+		result.Izz = I(2,2);
 		return result;
 	}
 
@@ -78,7 +132,7 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 	/// Coordinates of the center of mass
 	Vector3d h;
 	/// Inertia expressed at the origin
-	Matrix3d I;
+	double Ixx, Iyx, Iyy, Izx, Izy, Izz;
 };
 
 /** \brief Compact representation of spatial transformations.
@@ -93,7 +147,7 @@ struct RBDL_DLLAPI SpatialTransform {
 		E (Matrix3d::Identity(3,3)),
 		r (Vector3d::Zero(3,1))
 	{}
-	SpatialTransform (Matrix3d rotation, Vector3d translation) :
+	SpatialTransform (const Matrix3d &rotation, const Vector3d &translation) :
 		E (rotation),
 		r (translation)
 	{}
@@ -147,7 +201,12 @@ struct RBDL_DLLAPI SpatialTransform {
 				E * (rbi.h - rbi.m * r),
 				E * 
 					( 
-						rbi.I + VectorCrossMatrix (r) * VectorCrossMatrix (rbi.h)
+					 	Matrix3d (
+							rbi.Ixx, rbi.Iyx, rbi.Izx,
+							rbi.Iyx, rbi.Iyy, rbi.Izy,
+							rbi.Izx, rbi.Izy, rbi.Izz
+							) 
+						+ VectorCrossMatrix (r) * VectorCrossMatrix (rbi.h)
 						+ (VectorCrossMatrix(rbi.h - rbi.m * r) * VectorCrossMatrix (r))
 					)
 				* E.transpose()
@@ -161,7 +220,12 @@ struct RBDL_DLLAPI SpatialTransform {
 		return SpatialRigidBodyInertia (
 				rbi.m,
 				E_T_mr,
-				E.transpose() * rbi.I * E 
+				E.transpose() * 
+					 	Matrix3d (
+							rbi.Ixx, rbi.Iyx, rbi.Izx,
+							rbi.Iyx, rbi.Iyy, rbi.Izy,
+							rbi.Izx, rbi.Izy, rbi.Izz
+							) * E
 					- VectorCrossMatrix(r) * VectorCrossMatrix (E.transpose() * rbi.h)  
 					- VectorCrossMatrix (E_T_mr) * VectorCrossMatrix (r));
 	}
@@ -251,7 +315,9 @@ struct RBDL_DLLAPI SpatialTransform {
 inline std::ostream& operator<<(std::ostream& output, const SpatialRigidBodyInertia &rbi) {
 	output << "rbi.m = " << rbi.m << std::endl;
 	output << "rbi.h = " << rbi.h.transpose();
-	output << "rbi.I = " << std::endl << rbi.I << std::endl;
+	output << "rbi.Ixx = " << rbi.Ixx << std::endl;
+	output << "rbi.Iyx = " << rbi.Iyx << " rbi.Iyy = " << rbi.Iyy << std::endl;
+	output << "rbi.Izx = " << rbi.Izx << " rbi.Izy = " << rbi.Izy << " rbi.Izz = " << rbi.Izz  << std::endl;
 	return output;
 }
 
@@ -378,33 +444,9 @@ inline SpatialVector crossf (const SpatialVector &v1, const SpatialVector &v2) {
 			);
 }
 
-inline SpatialMatrix spatial_adjoint(const SpatialMatrix &m) {
-	SpatialMatrix res (m);
-	res.block<3,3>(3,0) = m.block<3,3>(0,3);
-	res.block<3,3>(0,3) = m.block<3,3>(3,0);
-	return res;
-}
-
-inline SpatialMatrix spatial_inverse(const SpatialMatrix &m) {
-	SpatialMatrix res(m);
-	res.block<3,3>(0,0) = m.block<3,3>(0,0).transpose();
-	res.block<3,3>(3,0) = m.block<3,3>(3,0).transpose();
-	res.block<3,3>(0,3) = m.block<3,3>(0,3).transpose();
-	res.block<3,3>(3,3) = m.block<3,3>(3,3).transpose();
-	return res;
-}
-
-inline Matrix3d get_rotation (const SpatialMatrix &m) {
-	return m.block<3,3>(0,0);
-}
-
-inline Vector3d get_translation (const SpatialMatrix &m) {
-	return Vector3d (-m(4,2), m(3,2), -m(3,1));
-}
-
 } /* Math */
 
 } /* RigidBodyDynamics */
 
-/* _SPATIALALGEBRAOPERATORS_H*/
+/* RBDL_SPATIALALGEBRAOPERATORS_H*/
 #endif

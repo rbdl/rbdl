@@ -1,12 +1,12 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _JOINT_H
-#define _JOINT_H
+#ifndef RBDL_JOINT_H
+#define RBDL_JOINT_H
 
 #include "rbdl/rbdl_math.h"
 #include <assert.h>
@@ -18,15 +18,25 @@ namespace RigidBodyDynamics {
 
 struct Model;
 
-/** \page joint_description Joint Description
+/** \page joint_description Joint Modeling
  *
- * The Rigid Body Dynamics Library supports models with multiple degrees of
- * freedom. By default, a joint with multiple degrees of freedom is split
- * up into multiple single degrees of freedom joints. This simplifies the
- * required algebra and code branching within RBDL. However this approach
- * may lead to models, that suffer from singularities. For this case RBDL
- * contains a special joint that can be used to model singularity-free
- * models.
+ * \section joint_overview Overview
+ *
+ * The Rigid Body Dynamics Library supports a multitude of joints:
+ * revolute, planar, fixed, singularity-free spherical joints and joints
+ * with multiple degrees of freedom in any combinations.
+ *
+ * Fixed joints do not cause any overhead in RBDL as the bodies that are
+ * rigidly connected are merged into a single body. For details see \ref
+ * joint_models_fixed.
+ *
+ * Joints with multiple degrees of freedom are emulated by default which
+ * means that they are split up into multiple single degree of freedom
+ * joints which results in equivalent models. This has the benefit that it
+ * simplifies the required algebra and also code branching in RBDL. A
+ * special case are joints with three degrees of freedom for which specific
+ * joints are available that should be used for performance reasons
+ * whenever possible. See \ref joint_three_dof for details.
  *
  * Joints are defined by their motion subspace. For each degree of freedom
  * a one dimensional motion subspace is specified as a Math::SpatialVector.
@@ -47,7 +57,7 @@ struct Model;
 
  * \note Please note that in the Rigid %Body Dynamics Library all angles
  * are specified in radians.
- 
+ *
  * \section joint_models_fixed Fixed Joints
  *
  * Fixed joints do not add an additional degree of freedom to the model.
@@ -66,6 +76,33 @@ struct Model;
  * To check whether a body is connected by a fixed joint you can use the
  * function Model::IsFixedBodyId().
  
+ * \section joint_three_dof 3-DoF Joints
+ *
+ * RBDL has highly efficient implementations for the following three degree
+ * of freedom joints:
+ * <ul>
+ *   <li>\ref JointTypeTranslationXYZ which first translates along X, then
+ *   Y, and finally Z.</li>
+ *   <li>\ref JointTypeEulerZYX which first rotates around Z, then Y, and
+ *   then X.</li>
+ *   <li>\ref JointTypeEulerXYZ which first rotates around X, then Y, and
+ *   then Z.</li>
+ *   <li>\ref JointTypeEulerYXZ which first rotates around Y, then X, and
+ *   then Z.</li>
+ *   <li>\ref JointTypeSpherical which is a singularity free joint that
+ *   uses a Quaternion and the bodies angular velocity (see \ref
+ *   joint_singularities for details).</li>
+ * </ul>
+ *
+ * These joints can be created by providing the joint type as an argument
+ * to the Joint constructor, e.g.:
+ *
+ * \code Joint joint_rot_zyx = Joint ( JointTypeEulerZYX ); \endcode
+ *
+ * Using 3-Dof joints is always favourable over using their emulated
+ * counterparts as they are considerably faster and describe the same
+ * kinematics and dynamics.
+
  * \section joint_singularities Singularities
  
  * Singularities in the models arise when a joint has three rotational
@@ -128,8 +165,14 @@ enum JointType {
 	JointTypeUndefined = 0,
 	JointTypeRevolute,
 	JointTypePrismatic,
+	JointTypeRevoluteX,
+	JointTypeRevoluteY,
+	JointTypeRevoluteZ,
 	JointTypeSpherical, ///< 3 DoF joint using Quaternions for joint positional variables and angular velocity for joint velocity variables.
-	JointTypeEulerZYX, ///< Experimental 3 DoF joint that uses Euler ZYX convention (not using virtual bodies).
+	JointTypeEulerZYX, ///< 3 DoF joint that uses Euler ZYX convention (faster than emulated multi DoF joints).
+	JointTypeEulerXYZ, ///< 3 DoF joint that uses Euler XYZ convention (faster than emulated multi DoF joints).
+	JointTypeEulerYXZ, ///< 3 DoF joint that uses Euler YXZ convention (faster than emulated multi DoF joints).
+	JointTypeTranslationXYZ,
 	JointTypeFixed, ///< Fixed joint which causes the inertial properties to be merged with the parent body.
 	JointType1DoF,
 	JointType2DoF, ///< Emulated 2 DoF joint.
@@ -156,7 +199,19 @@ struct RBDL_DLLAPI Joint {
 		mJointType (type),
 	  mDoFCount (0),
 		q_index (0) {
-			if (type == JointTypeSpherical) {
+			if (type == JointTypeRevoluteX) {
+				mDoFCount = 1;
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+				mJointAxes[0] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+			} else if (type == JointTypeRevoluteY) {
+				mDoFCount = 1;
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+				mJointAxes[0] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+			} else if (type == JointTypeRevoluteZ) {
+				mDoFCount = 1;
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+			} else if (type == JointTypeSpherical) {
 				mDoFCount = 3;
 
 				mJointAxes = new Math::SpatialVector[mDoFCount];
@@ -172,6 +227,30 @@ struct RBDL_DLLAPI Joint {
 				mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
 				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
 				mJointAxes[2] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+			} else if (type == JointTypeEulerXYZ) {
+				mDoFCount = 3;
+
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+
+				mJointAxes[0] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+				mJointAxes[1] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+				mJointAxes[2] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+			} else if (type == JointTypeEulerYXZ) {
+				mDoFCount = 3;
+
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+
+				mJointAxes[0] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
+				mJointAxes[1] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+				mJointAxes[2] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+			} else if (type == JointTypeTranslationXYZ) {
+				mDoFCount = 3;
+
+				mJointAxes = new Math::SpatialVector[mDoFCount];
+
+				mJointAxes[0] = Math::SpatialVector (0., 0., 0., 1., 0., 0.);
+				mJointAxes[1] = Math::SpatialVector (0., 0., 0., 0., 1., 0.);
+				mJointAxes[2] = Math::SpatialVector (0., 0., 0., 0., 0., 1.);
 			} else if (type != JointTypeFixed) {
 				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
 				assert (0);
@@ -270,12 +349,18 @@ struct RBDL_DLLAPI Joint {
 	Joint (
 			const Math::SpatialVector &axis_0
 			) {
-		mJointType = JointType1DoF;
 		mDoFCount = 1;
-
 		mJointAxes = new Math::SpatialVector[mDoFCount];
-		mJointAxes[0] = axis_0;
-
+		mJointAxes[0] = Math::SpatialVector (axis_0);
+		if (axis_0 == Math::SpatialVector(1., 0., 0., 0., 0., 0.)) {
+			mJointType = JointTypeRevoluteX;
+		} else if (axis_0 == Math::SpatialVector(0., 1., 0., 0., 0., 0.)) {
+			mJointType = JointTypeRevoluteY;
+		} else if (axis_0 == Math::SpatialVector(0., 0., 1., 0., 0., 0.)) {
+			mJointType = JointTypeRevoluteZ;
+		} else {
+			mJointType = JointType1DoF;
+		}
 		validate_spatial_axis (mJointAxes[0]);
 	}
 
@@ -487,7 +572,7 @@ struct RBDL_DLLAPI Joint {
  *	modeled. See RBDA Section 4.4 for details.
  *
  * \param model    the rigid body model
- * \param joint_id the id of the joint we are interested in (output)
+ * \param joint_id the id of the joint we are interested in. This will be used to determine the type of joint and also the entries of \f[ q, \dot{q} \f].
  * \param XJ       the joint transformation (output)
  * \param v_J      joint velocity (output)
  * \param c_J      joint acceleration for rhenomic joints (output)
@@ -498,9 +583,6 @@ RBDL_DLLAPI
 void jcalc (
 		Model &model,
 		unsigned int joint_id,
-		Math::SpatialTransform &XJ,
-		Math::SpatialVector &v_J,
-		Math::SpatialVector &c_J,
 		const Math::VectorNd &q,
 		const Math::VectorNd &qdot
 		);
@@ -520,5 +602,5 @@ void jcalc_X_lambda_S (
 
 }
 
-
-#endif /* _JOINT_H */
+/* RBDL_JOINT_H */
+#endif

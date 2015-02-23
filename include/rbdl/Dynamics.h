@@ -1,12 +1,12 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _DYNAMICS_H
-#define _DYNAMICS_H
+#ifndef RBDL_DYNAMICS_H
+#define RBDL_DYNAMICS_H
 
 #include <assert.h>
 #include <iostream>
@@ -69,6 +69,8 @@ void ForwardDynamics (
  * \param QDDot accelerations of the internal joints (output)
  * \param linear_solver specification which method should be used for solving the linear system
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
+ * \param H     preallocated workspace area for the joint space inertia matrix of size dof_count x dof_count (optional, defaults to NULL and allocates temporary matrix)
+ * \param C     preallocated workspace area for the right hand side vector of size dof_count x 1 (optional, defaults to NULL and allocates temporary vector)
  */
 RBDL_DLLAPI
 void ForwardDynamicsLagrangian (
@@ -78,7 +80,28 @@ void ForwardDynamicsLagrangian (
 		const Math::VectorNd &Tau,
 		Math::VectorNd &QDDot,
 		Math::LinearSolver linear_solver = Math::LinearSolverColPivHouseholderQR,
-		std::vector<Math::SpatialVector> *f_ext = NULL
+		std::vector<Math::SpatialVector> *f_ext = NULL,
+		Math::MatrixNd *H = NULL,
+		Math::VectorNd *C = NULL	
+		);
+
+/** \brief Computes the coriolis forces
+ *
+ * This function computes the generalized forces from given generalized
+ * states, velocities, and accelerations:
+ *   \f$ \tau = M(q) \ddot{q} + N(q, \dot{q}) \f$
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints (output)
+ */
+RBDL_DLLAPI
+void NonlinearEffects (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		Math::VectorNd &Tau
 		);
 
 /** \brief Computes inverse dynamics with the Newton-Euler Algorithm
@@ -113,8 +136,11 @@ void InverseDynamics (
  * \param model rigid body model
  * \param Q     state vector of the model
  * \param H     a matrix where the result will be stored in
- * \param update_kinematics  whether the kinematics should be updated
- * (safer, but at a higher computational cost!)
+ * \param update_kinematics  whether the kinematics should be updated (safer, but at a higher computational cost!)
+ *
+ * \note This function only evaluates the entries of H that are non-zero. One
+ * Before calling this function one has to ensure that all other values
+ * have been set to zero, e.g. by calling H.setZero().
  */
 RBDL_DLLAPI
 void CompositeRigidBodyAlgorithm (
@@ -128,4 +154,5 @@ void CompositeRigidBodyAlgorithm (
 
 }
 
-#endif /* _DYNAMICS_H */
+/* RBDL_DYNAMICS_H */
+#endif

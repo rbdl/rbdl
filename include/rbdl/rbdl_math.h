@@ -1,17 +1,22 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _MATHWRAPPER_H
-#define _MATHWRAPPER_H
+#ifndef RBDL_MATH_H
+#define RBDL_MATH_H
 
 #include "rbdl/rbdl_config.h"
 
 #ifdef RBDL_USE_SIMPLE_MATH
-  #include "rbdl/SimpleMath/SimpleMath.h"
+	#include "rbdl/SimpleMath/SimpleMathFixed.h"
+	#include "rbdl/SimpleMath/SimpleMathDynamic.h"
+	#include "rbdl/SimpleMath/SimpleMathMixed.h"
+	#include "rbdl/SimpleMath/SimpleMathQR.h"
+	#include "rbdl/SimpleMath/SimpleMathCholesky.h"
+	#include "rbdl/SimpleMath/SimpleMathCommaInitializer.h"
 	#include <vector>
 
 	typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3_t;
@@ -68,4 +73,5 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialTransform
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Math::SpatialRigidBodyInertia)
 #endif
 
-#endif /* _MATHWRAPPER_H */
+/* RBDL_MATH_H_H */
+#endif

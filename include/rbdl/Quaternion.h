@@ -1,5 +1,5 @@
-#ifndef _RBDL_QUATERNION_H
-#define _RBDL_QUATERNION_H
+#ifndef RBDL_QUATERNION_H
+#define RBDL_QUATERNION_H
 
 #include <cmath>
 
@@ -7,16 +7,16 @@ namespace RigidBodyDynamics {
 
 namespace Math {
 
-/** Quaternion 
+/** \brief Quaternion that are used for \ref joint_singularities "singularity free" joints.
  *
  * order: x,y,z,w
  */
 class Quaternion : public Vector4d {
 	public:
 		Quaternion () :
-			Vector4d (0.f, 0.f, 0.f, 1.f)
+			Vector4d (0., 0., 0., 1.)
 		{}
-		Quaternion (const Vector4d vec4) :
+		Quaternion (const Vector4d &vec4) :
 			Vector4d (vec4)
 		{}
 		Quaternion (double x, double y, double z, double w):
@@ -50,12 +50,12 @@ class Quaternion : public Vector4d {
 		}
 
 		static Quaternion fromGLRotate (double angle, double x, double y, double z) {
-			double st = std::sin (angle * M_PI / 360.f);
+			double st = std::sin (angle * M_PI / 360.);
 			return Quaternion (
 						st * x,
 						st * y,
 						st * z,
-						cosf (angle * M_PI / 360.f)
+						std::cos (angle * M_PI / 360.)
 						);
 		}
 
@@ -170,5 +170,5 @@ class Quaternion : public Vector4d {
 
 }
 
-/* _RBDL_QUATERNION_H */
+/* RBDL_QUATERNION_H */
 #endif

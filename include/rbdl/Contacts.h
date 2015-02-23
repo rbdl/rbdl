@@ -1,12 +1,12 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef _CONTACTS_H
-#define _CONTACTS_H
+#ifndef RBDL_CONTACTS_H
+#define RBDL_CONTACTS_H
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
@@ -39,7 +39,110 @@ namespace RigidBodyDynamics {
  * impulse values for each constraint when returning from one of the
  * contact functions.
  *
-*
+ * \section solution_constraint_system Solution of the Constraint System
+ *
+ * \subsection constraint_system Linear System of the Constrained Dynamics
+ *
+ * External contacts are constraints that act on the model. To compute the
+ * acceleration one has to solve a linear system of the form: \f[
+ \left(
+   \begin{array}{cc}
+	   H & G^T \\
+		 G & 0
+   \end{array}
+ \right)
+ \left(
+   \begin{array}{c}
+	   \ddot{q} \\
+		 - \lambda
+   \end{array}
+ \right)
+ =
+ \left(
+   \begin{array}{c}
+	   -C + \tau \\
+		 \gamma
+   \end{array}
+ \right)
+ * \f] where \f$H\f$ is the joint space inertia matrix computed with the
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
+ * contact points, \f$C\f$ the bias force (sometimes called "non-linear
+ * effects"), and \f$\gamma\f$ the generalized acceleration independent
+ * part of the contact point accelerations.
+ *
+ * \subsection collision_system Linear System of the Contact Collision
+ *
+ * Similarly to compute the response of the model to a contact gain one has
+ * to solve a system of the following form: \f[
+ \left(
+   \begin{array}{cc}
+	   H & G^T \\
+		 G & 0
+   \end{array}
+ \right)
+ \left(
+   \begin{array}{c}
+	   \dot{q}^{+} \\
+		 \Lambda
+   \end{array}
+ \right)
+ =
+ \left(
+   \begin{array}{c}
+	   H \dot{q}^{-} \\
+		v^{+} 
+   \end{array}
+ \right)
+ * \f] where \f$H\f$ is the joint space inertia matrix computed with the
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
+ * contact points, \f$\dot{q}^{+}\f$ the generalized velocity after the
+ * impact, \f$\Lambda\f$ the impulses at each constraint, \f$\dot{q}^{-}\f$
+ * the generalized velocity before the impact, and \f$v^{+}\f$ the desired
+ * velocity of each constraint after the impact (known beforehand, usually
+ * 0). The value of \f$v^{+}\f$ can is specified via the variable
+ * ConstraintSet::v_plus and defaults to 0.
+ *
+ * \subsection solution_methods Solution Methods
+ *
+ * There are essentially three different approaches to solve these systems:
+ * -# \b Direct: solve the full system to simultaneously compute
+ *  \f$\ddot{q}\f$ and \f$\lambda\f$. This may be slow for large systems
+ *  and many constraints.
+ * -# \b Range-Space: solve first for \f$\lambda\f$ and then for
+ *  \f$\ddot{q}\f$.
+ * -# \b Null-Space: solve furst for \f$\ddot{q}\f$ and then for
+ *  \f$\lambda\f$
+ * The methods are the same for the contact gaints just with different
+ * variables on the right-hand-side.
+ *
+ * RBDL provides methods for all approaches. The implementation for the
+ * range-space method also exploits sparsities in the joint space inertia
+ * matrix using a sparse structure preserving \f$L^TL\f$ decomposition as
+ * described in Chapter 8.5 of "Rigid Body Dynamics Algorithms".
+ *
+ * None of the methods is generally superior to the others and each has
+ * different trade-offs as factors such as model topology, number of
+ * constraints, constrained bodies, numerical stability, and performance
+ * vary and evaluation has to be made on a case-by-case basis.
+ * 
+ * \subsection solving_constraints_dynamics Methods for Solving Constrained Dynamics
+ * 
+ * RBDL provides the following methods to compute the acceleration of a
+ * constrained system:
+ *
+ * - ForwardDynamicsContactsDirect()
+ * - ForwardDynamicsContactsRangeSpaceSparse()
+ * - ForwardDynamicsContactsNullSpace()
+ *
+ * \subsection solving_constraints_collisions Methods for Computing Collisions
+ *
+ * RBDL provides the following methods to compute the collision response on
+ * new contact gains:
+ *
+ * - ComputeContactImpulsesDirect()
+ * - ComputeContactImpulsesRangeSpaceSparse()
+ * - ComputeContactImpulsesNullSpace()
+ *
  * @{
  */
 
@@ -108,7 +211,7 @@ struct RBDL_DLLAPI ConstraintSet {
 	bool Bind (const Model &model);
 
 	/** \brief Returns the number of constraints. */
-	unsigned int size() {
+	size_t size() const {
 		return acceleration.size();
 	}
 
@@ -152,6 +255,19 @@ struct RBDL_DLLAPI ConstraintSet {
 	/// Workspace for the Lagrangian solution.
 	Math::VectorNd x;
 
+	/// Workspace for the QR decomposition of the null-space method
+#ifdef RBDL_USE_SIMPLE_MATH
+	SimpleMath::HouseholderQR<Math::MatrixNd> GT_qr;
+#else
+	Eigen::HouseholderQR<Math::MatrixNd> GT_qr;
+#endif
+
+	Math::MatrixNd GT_qr_Q;
+	Math::MatrixNd Y;
+	Math::MatrixNd Z;
+	Math::VectorNd qddot_y;
+	Math::VectorNd qddot_z;
+
 	// Variables used by the IABI methods
 
 	/// Workspace for the Inverse Articulated-Body Inertia.
@@ -185,6 +301,32 @@ struct RBDL_DLLAPI ConstraintSet {
 	std::vector<Math::Vector3d> d_multdof3_u;
 };
 
+/** \brief Computes the Jacobian for the given ConstraintSet
+ *
+ * \param model the model
+ * \param Q     the generalized positions of the joints
+ * \param CS    the constraint set for which the Jacobian should be computed
+ * \param G     (output) matrix where the output will be stored in
+ * \param update_kinematics whether the kinematics of the model should be * updated from Q
+ */
+RBDL_DLLAPI
+void CalcContactJacobian(
+		Model &model,
+		const Math::VectorNd &Q,
+		const ConstraintSet &CS,
+		Math::MatrixNd &G,
+		bool update_kinematics = true
+		);
+
+RBDL_DLLAPI
+void CalcContactSystemVariables (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		ConstraintSet &CS
+		);
+
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
  *
  * This method builds and solves the linear system \f[
@@ -197,14 +339,14 @@ struct RBDL_DLLAPI ConstraintSet {
  \left(
    \begin{array}{c}
 	   \ddot{q} \\
-		 \lambda
+		 -\lambda
    \end{array}
  \right)
  =
  \left(
    \begin{array}{c}
 	   -C + \tau \\
-		 -\gamma
+		 \gamma
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
@@ -236,7 +378,7 @@ struct RBDL_DLLAPI ConstraintSet {
  *
  */
 RBDL_DLLAPI
-void ForwardDynamicsContactsLagrangian (
+void ForwardDynamicsContactsDirect (
 		Model &model,
 		const Math::VectorNd &Q,
 		const Math::VectorNd &QDot,
@@ -245,60 +387,24 @@ void ForwardDynamicsContactsLagrangian (
 		Math::VectorNd &QDDot
 		);
 
-/** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
- *
- * This method builds and solves the linear system \f[
- \left(
-   \begin{array}{cc}
-	   H & G^T \\
-		 G & 0
-   \end{array}
- \right)
- \left(
-   \begin{array}{c}
-	   \dot{q}^{+} \\
-		 \Lambda
-   \end{array}
- \right)
- =
- \left(
-   \begin{array}{c}
-	   H \dot{q}^{-} \\
-		v^{+} 
-   \end{array}
- \right)
- * \f] where \f$H\f$ is the joint space inertia matrix computed with the
- * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
- * contact points, \f$\dot{q}^{+}\f$ the generalized velocity after the
- * impact, \f$\Lambda\f$ the impulses at each constraint, \f$\dot{q}^{-}\f$
- * the generalized velocity before the impact, and \f$v^{+}\f$ the desired
- * velocity of each constraint after the impact (known beforehand, usually
- * 0). The value of \f$v^{+}\f$ can is specified via the variable
- * ConstraintSet::v_plus and defaults to 0.
- *
- * \note So far, only constraints acting along cartesian coordinate axes
- * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
- * not specify redundant constraints!
- * 
- * \par 
- *
- * \note To increase performance group constraints body and pointwise such
- * that constraints acting on the same body point are sequentially in
- * ConstraintSet. This can save computation of point jacobians \f$G\f$.
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDotMinus  velocity vector of the internal joints before the impact
- * \param CS the set of active constraints
- * \param QDotPlus velocities of the internals joints after the impact (output)
- */
 RBDL_DLLAPI
-void ComputeContactImpulsesLagrangian (
+void ForwardDynamicsContactsRangeSpaceSparse (
 		Model &model,
 		const Math::VectorNd &Q,
-		const Math::VectorNd &QDotMinus,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
 		ConstraintSet &CS,
-		Math::VectorNd &QDotPlus
+		Math::VectorNd &QDDot
+		);
+
+RBDL_DLLAPI
+void ForwardDynamicsContactsNullSpace (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &Tau,
+		ConstraintSet &CS,
+		Math::VectorNd &QDDot
 		);
 
 /** \brief Computes forward dynamics that accounts for active contacts in ConstraintSet.
@@ -364,7 +470,7 @@ void ComputeContactImpulsesLagrangian (
  * \todo Allow for external forces
  */
 RBDL_DLLAPI
-void ForwardDynamicsContacts (
+void ForwardDynamicsContactsKokkevis (
 		Model &model,
 		const Math::VectorNd &Q,
 		const Math::VectorNd &QDot,
@@ -373,8 +479,178 @@ void ForwardDynamicsContacts (
 		Math::VectorNd &QDDot
 		);
 
+/** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
+ *
+ * This method builds and solves the linear system \f[
+ \left(
+   \begin{array}{cc}
+	   H & G^T \\
+		 G & 0
+   \end{array}
+ \right)
+ \left(
+   \begin{array}{c}
+	   \dot{q}^{+} \\
+		 \Lambda
+   \end{array}
+ \right)
+ =
+ \left(
+   \begin{array}{c}
+	   H \dot{q}^{-} \\
+		v^{+} 
+   \end{array}
+ \right)
+ * \f] where \f$H\f$ is the joint space inertia matrix computed with the
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
+ * contact points, \f$\dot{q}^{+}\f$ the generalized velocity after the
+ * impact, \f$\Lambda\f$ the impulses at each constraint, \f$\dot{q}^{-}\f$
+ * the generalized velocity before the impact, and \f$v^{+}\f$ the desired
+ * velocity of each constraint after the impact (known beforehand, usually
+ * 0). The value of \f$v^{+}\f$ can is specified via the variable
+ * ConstraintSet::v_plus and defaults to 0.
+ *
+ * \note So far, only constraints acting along cartesian coordinate axes
+ * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
+ * not specify redundant constraints!
+ * 
+ * \par 
+ *
+ * \note To increase performance group constraints body and pointwise such
+ * that constraints acting on the same body point are sequentially in
+ * ConstraintSet. This can save computation of point Jacobians \f$G\f$.
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDotMinus  velocity vector of the internal joints before the impact
+ * \param CS the set of active constraints
+ * \param QDotPlus velocities of the internals joints after the impact (output)
+ */
+RBDL_DLLAPI
+void ComputeContactImpulsesDirect (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDotMinus,
+		ConstraintSet &CS,
+		Math::VectorNd &QDotPlus
+		);
+
+RBDL_DLLAPI
+void ComputeContactImpulsesRangeSpaceSparse (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDotMinus,
+		ConstraintSet &CS,
+		Math::VectorNd &QDotPlus
+		);
+
+RBDL_DLLAPI
+void ComputeContactImpulsesNullSpace (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDotMinus,
+		ConstraintSet &CS,
+		Math::VectorNd &QDotPlus
+		);
+
+/** \brief Solves the full contact system directly, i.e. simultaneously for contact forces and joint accelerations.
+ *
+ * This solves a \f$ (n_\textit{dof} +
+ * n_c) \times (n_\textit{dof} + n_c\f$ linear system.
+ *
+ * \param H the joint space inertia matrix
+ * \param G the constraint jacobian
+ * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of the right hand side of the system
+ * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the right hand side of the system
+ * \param qddot result: joint accelerations
+ * \param lambda result: constraint forces
+ * \param A work-space for the matrix of the linear system 
+ * \param b work-space for the right-hand-side of the linear system
+ * \param x work-space for the solution of the linear system
+ * \param type of solver that should be used to solve the system
+ */
+RBDL_DLLAPI
+void SolveContactSystemDirect (
+		Math::MatrixNd &H, 
+		const Math::MatrixNd &G, 
+		const Math::VectorNd &c, 
+		const Math::VectorNd &gamma, 
+		Math::VectorNd &qddot, 
+		Math::VectorNd &lambda, 
+		Math::MatrixNd &A, 
+		Math::VectorNd &b,
+		Math::VectorNd &x,
+		Math::LinearSolver &linear_solver
+		);
+
+/** \brief Solves the contact system by first solving for the constraint forces and then for the joint accelerations.
+ *
+ * This methods requires a \f$n_\textit{dof} \times n_\textit{dof}\f$
+ * matrix of the form \f$\left[ \ Y \ | Z \ \right]\f$ with the property
+ * \f$GZ = 0\f$ that can be computed using a QR decomposition (e.g. see
+ * code for ForwardDynamicsContactsNullSpace()).
+ *
+ * \param H the joint space inertia matrix
+ * \param G the constraint jacobian
+ * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of the right hand side of the system
+ * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the right hand side of the system
+ * \param qddot result: joint accelerations
+ * \param lambda result: constraint forces
+ * \param K work-space for the matrix of the constraint force linear system
+ * \param a work-space for the right-hand-side of the constraint force linear system
+ * \param linear_solver type of solver that should be used to solve the constraint force system
+ */
+RBDL_DLLAPI
+void SolveContactSystemRangeSpaceSparse (
+		Model &model, 
+		Math::MatrixNd &H, 
+		const Math::MatrixNd &G, 
+		const Math::VectorNd &c, 
+		const Math::VectorNd &gamma, 
+		Math::VectorNd &qddot, 
+		Math::VectorNd &lambda, 
+		Math::MatrixNd &K, 
+		Math::VectorNd &a,
+		Math::LinearSolver linear_solver
+		);
+
+/** \brief Solves the contact system by first solving for the joint accelerations and then for the constraint forces.
+ *
+ * This methods requires a \f$n_\textit{dof} \times n_\textit{dof}\f$
+ * matrix of the form \f$\left[ \ Y \ | Z \ \right]\f$ with the property
+ * \f$GZ = 0\f$ that can be computed using a QR decomposition (e.g. see
+ * code for ForwardDynamicsContactsNullSpace()).
+ *
+ * \param H the joint space inertia matrix
+ * \param G the constraint jacobian
+ * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of the right hand side of the system
+ * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the right hand side of the system
+ * \param qddot result: joint accelerations
+ * \param lambda result: constraint forces
+ * \param Y basis for the range-space of the constraints
+ * \param Z basis for the null-space of the constraints
+ * \param qddot_y work-space of size \f$\mathbb{R}^{n_\textit{dof}}\f$
+ * \param qddot_z work-space of size \f$\mathbb{R}^{n_\textit{dof}}\f$
+ * \param linear_solver type of solver that should be used to solve the system
+ */
+RBDL_DLLAPI
+void SolveContactSystemNullSpace (
+		Math::MatrixNd &H, 
+		const Math::MatrixNd &G, 
+		const Math::VectorNd &c, 
+		const Math::VectorNd &gamma, 
+		Math::VectorNd &qddot, 
+		Math::VectorNd &lambda,
+		Math::MatrixNd &Y,
+		Math::MatrixNd &Z,
+		Math::VectorNd &qddot_y,
+		Math::VectorNd &qddot_z,
+		Math::LinearSolver &linear_solver
+		);
+
 /** @} */
 
 } /* namespace RigidBodyDynamics */
 
-#endif /* _CONTACTS_H */
+/* RBDL_CONTACTS_H */
+#endif

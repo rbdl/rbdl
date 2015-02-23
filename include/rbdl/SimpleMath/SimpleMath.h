@@ -19,5 +19,6 @@ typedef SimpleMath::Fixed::Matrix<float, 4, 1> Vector4f;
 typedef SimpleMath::Fixed::Matrix<float, 3, 3> Matrix33f;
 typedef SimpleMath::Fixed::Matrix<float, 4, 4> Matrix44f;
 
+typedef SimpleMath::Dynamic::Matrix<double> VectorNd;
 
 #endif /* _SIMPLEMATH_H */
