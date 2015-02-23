@@ -18,6 +18,33 @@ Body Dynamics Algorithm".
 
 Recent Changes
 ==============
+  * 23 February 2015: New version 2.4.0:
+    * Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
+      and ComputeContactImpulsesRangeSpaceSparse() 
+    * Added null-space method ForwardDynamicsContactsNullSpace()
+      and ComputeContactImpulsesNullSpace() 
+    * Renamed ForwardDynamicsContactsLagrangian() to
+      ForwardDynamicsContactsDirect() and
+      ComputeContactImpulsesLagrangian() to ComputeContactImpulsesDirect()
+    * Renamed ForwardDynamicsContacts() to ForwardDynamicsContactsKokkevis()
+    * Removed/Fixed CalcAngularMomentum(). The function produced wrong values. The
+      functionality has been integrated into CalcCenterOfMass().
+    * CalcPointJacobian() does not clear the argument of the result anymore.
+      Caller has to ensure that the matrix was set to zero before using this
+      function.
+    * Added optional workspace parameters for ForwardDynamicsLagrangian() to
+      optionally reduce memory allocations
+    * Added JointTypeTranslationXYZ, JointTypeEulerXYZ, and JointTypeEulerYXZ
+      which are equivalent to the emulated multidof joints but faster.
+    * Added optional parameter to CalcCenterOfMass to compute angular momentum.
+    * Added CalcBodySpatialJacobian()
+    * Added CalcContactJacobian()
+    * Added NonlinearEffects()
+    * Added solving of linear systems using standard Householder QR
+    * LuaModel: Added LuaModelReadFromLuaState()
+    * URDFReader: Fixed various issues and using faster joints for floating
+      base models
+    * Various performance improvements
   * 21 October 2014: New version 2.3.3:
     * critical: fixed ForwardDynamicsContacts with constraints on a body
       that is attached with a fixed joint. Previous versions simply crashed.
@@ -120,7 +147,7 @@ license which should allow you to use the software wherever you need.
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
-    Copyright (c) 2011-2014 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+    Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -141,11 +168,11 @@ This is the full license text (zlib license):
        3. This notice may not be removed or altered from any source
        distribution.
 
-Acknowledgement
-===============
+Acknowledgements
+================
 
 Work on this library was funded by the
 [Heidelberg Graduate School
-of Mathematical and Computational Methods for the Sciences (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/) and the
-European Commission under the FP7 project [ECHORD](http://echord.eu)
-(grant number 231143).
+of Mathematical and Computational Methods for the Sciences (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the
+European FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and
+[Koroibot](http://koroibot.eu) (grand number 611909)

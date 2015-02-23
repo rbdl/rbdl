@@ -39,6 +39,26 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>23 February 2015: New version 2.4.0:
+ *   <ul>
+ *    <li>Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse() and ComputeContactImpulsesRangeSpaceSparse()</li>
+ *    <li>Added null-space method ForwardDynamicsContactsNullSpace() and ComputeContactImpulsesNullSpace()</li>
+ *    <li>Renamed ForwardDynamicsContactsLagrangian() to ForwardDynamicsContactsDirect() and ComputeContactImpulsesLagrangian() to ComputeContactImpulsesDirect()</li>
+ *    <li>Renamed ForwardDynamicsContacts() to ForwardDynamicsContactsKokkevis()</li>
+ *    <li>Removed/Fixed CalcAngularMomentum(). The function produced wrong values. The functionality has been integrated into CalcCenterOfMass().</li>
+ *    <li>CalcPointJacobian() does not clear the argument of the result anymore.  Caller has to ensure that the matrix was set to zero before using this function.</li>
+ *    <li>Added optional workspace parameters for ForwardDynamicsLagrangian() to optionally reduce memory allocations</li>
+ *    <li>Added JointTypeTranslationXYZ, JointTypeEulerXYZ, and JointTypeEulerYXZ which are equivalent to the emulated multidof joints but faster.</li>
+ *    <li>Added optional parameter to CalcCenterOfMass() to compute angular momentum.</li>
+ *    <li>Added CalcBodySpatialJacobian()</li>
+ *    <li>Added CalcContactJacobian()</li>
+ *    <li>Added NonlinearEffects()</li>
+ *    <li>Added solving of linear systems using standard Householder QR</li>
+ *    <li>LuaModel: Added LuaModelReadFromLuaState()</li>
+ *    <li>URDFReader: Fixed various issues and using faster joints for floating base models</li>
+ *    <li>Various performance improvements</li>
+ *  </ul>
+ * </li>
  * <li>21 October 2014: New version 2.3.3:
  *   <ul>
  *     <li><b>critical</b>: fixed ForwardDynamicsContacts with constraints on a body that is attached with a fixed joint. Previous versions simply crashed.  Thanks to Yue Hu for reporting!</li>
@@ -143,11 +163,12 @@ freely, subject to the following restrictions:
    distribution.
 \endverbatim
 
- * \section Acknowledgement
+ * \section Acknowledgements
  *
  * Work on this library was funded by the <a
  * href="http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/">Heidelberg Graduate School of Mathematical and
- * Computational Methods for the Sciences (HGS)</a> and the European Commission under
- * the FP7 project <a href="http://echord.eu">ECHORD</a> (grant number 231143).
+ * Computational Methods for the Sciences (HGS)</a> and the European FP7
+ * projects <a href="http://echord.eu">ECHORD</a> (grant number 231143) and
+ * <a href="http://www.koroibot.eu">Koroibot</a> (grant number 611909).
  *
  */

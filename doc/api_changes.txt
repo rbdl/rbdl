@@ -1,15 +1,12 @@
-2.3.3 -> next (2.4.0?)
+2.3.3 -> 2.4.0
 - Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
-	and ComputeContactImpulsesRangeSpaceSparse() 
+  and ComputeContactImpulsesRangeSpaceSparse() 
 - Added null-space method ForwardDynamicsContactsNullSpace()
-	and ComputeContactImpulsesNullSpace() 
+  and ComputeContactImpulsesNullSpace() 
 - Renamed ForwardDynamicsContactsLagrangian() to
-	ForwardDynamicsContactsDirect() and
-	ComputeContactImpulsesLagrangian() to ComputeContactImpulsesDirect()
+  ForwardDynamicsContactsDirect() and
+  ComputeContactImpulsesLagrangian() to ComputeContactImpulsesDirect()
 - Renamed ForwardDynamicsContacts() to ForwardDynamicsContactsKokkevis()
-- Fixed ForwardDynamicsContacts() with constraints on a body that is attached
-  with a fixed joint. Previous versions simply crashed. Thanks to Yue Hu
-  for reporting!
 - Removed/Fixed CalcAngularMomentum(). The function produced wrong values. The
   functionality has been integrated into CalcCenterOfMass().
 - CalcPointJacobian() does not clear the argument of the result anymore.
@@ -23,13 +20,15 @@
 - Added CalcBodySpatialJacobian()
 - Added CalcContactJacobian()
 - Added NonlinearEffects()
-- Added LuaModelReadFromLuaState()
 - Added solving of linear systems using standard Householder QR
+- LuaModel: Added LuaModelReadFromLuaState()
+- URDFReader: Fixed various issues and using faster joints for floating
+  base models
 - Various performance improvements
 
 2.3.2 -> 2.3.3
 - critical: fixed ForwardDynamicsContacts with constraints on a body
-  that is attached with a fixed joint. Previous versions simply crashed.
+  hat is attached with a fixed joint. Previous versions simply crashed.
   Thanks to Yue Hu for reporting!
 - rbdl_print_version() now properly prints whether URDFReader was enabled
   at build time
