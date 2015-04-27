@@ -12,18 +12,18 @@ namespace RigidBodyDynamics {
 struct Model;
 
 namespace Addons {
-	
-	/** \page addon_luamodel_page Addon: rbdl_luamodel
-	 * @{
-	 *
-	 * \section luamodel_introduction Lua Models
-	 *
-	 * The Addon LuaModel allows to load \link RigidBodyDynamics::Model Models\endlink
-	 * that are specified as Lua scripts. <a href="http://www.lua.org">Lua</a> is
-	 * an open-source light-weight scripting language (http://www.lua.org).
-	 * This addon is not enabled by default and one has to enable it by
-	 * setting BUILD_ADDON_LUAMODEL to true in when configuring the RBDL with
-	 * CMake.
+  
+  /** \page addon_luamodel_page Addon: rbdl_luamodel
+   * @{
+   *
+   * \section luamodel_introduction Lua Models
+   *
+   * The Addon LuaModel allows to load \link RigidBodyDynamics::Model Models\endlink
+   * that are specified as Lua scripts. <a href="http://www.lua.org">Lua</a> is
+   * an open-source light-weight scripting language (http://www.lua.org).
+   * This addon is not enabled by default and one has to enable it by
+   * setting BUILD_ADDON_LUAMODEL to true in when configuring the RBDL with
+   * CMake.
    * 
    * This addon comes with a standalone utility that can show various
    * information of a lua model such as degree of freedom overview or model
@@ -58,23 +58,23 @@ namespace Addons {
    * 
    * return model
    * \endcode
-	 *
-	 * Apart from the frames you can also specify gravity in the model file.
-	 *
-	 * Example:
-	 * \code
-	 * model = {
-	 *   gravity = {0., 0., -9.81}
-	 *
-	 *   frames = {
-	 *   ...
-	 *   }
-	 * }
-	 * \endcode
+   *
+   * Apart from the frames you can also specify gravity in the model file.
+   *
+   * Example:
+   * \code
+   * model = {
+   *   gravity = {0., 0., -9.81}
+   *
+   *   frames = {
+   *   ...
+   *   }
+   * }
+   * \endcode
    * 
    * \note The table frames must contain all Frame Information Tables as a list
    * and individual tables must *not* be specified with a key, i.e.
-	 * \code
+   * \code
    *   frames = {
    *     some_frame = {
    *       ...
@@ -83,10 +83,10 @@ namespace Addons {
    *       ..
    *     }
    *   }
-	 * \endcode
+   * \endcode
    * is not possible as Lua does not retain the order of the individual
-	 * frames when an explicit key is specified.
-	 * 
+   * frames when an explicit key is specified.
+   * 
    * \section luamodel_frame_table Frame Information Table
    * 
    * The Frame Information Table is searched for values needed to call
@@ -104,12 +104,12 @@ namespace Addons {
    * \par body (optional, type: table)
    *     Specification of the dynamical parameters of the body. It uses the
    *     values (if existing):
-	 *     \code
+   *     \code
    *       mass (scalar value, default 1.),
    *       com (3-d vector, default:  (0., 0., 0.))
    *       inertia (3x3  matrix, default: identity matrix)
-	 *     \endcode
-	 * \par
+   *     \endcode
+   * \par
    *     to create a \ref RigidBodyDynamics::Body.
    * 
    * \par joint (optional, type: table)
@@ -120,8 +120,18 @@ namespace Addons {
    *     Default joint type is a fixed joint that attaches the body rigidly to
    *     its parent.
    * \par
-	 *    Examples:
-	 * \code    
+   *     3-DoF joints are described by using strings. The following 3-DoF
+   *     joints are available:
+   *
+   *     - "JointTypeSpherical": for singularity-free spherical joints
+   *     - "JointTypeEulerZYX": Euler ZYX joint
+   *     - "JointTypeEulerXYZ": Euler XYZ joint
+   *     - "JointTypeEulerYXZ": Euler YXZ joint
+   *     - "JointTypeTranslationXYZ": Free translational joint
+   *
+   * \par
+   *    Examples:
+   * \code    
    *       joint_fixed = {}
    *       joint_translate_x = { {0., 0., 0., 1., 0., 0.} }
    *       joint_translate_xy = { 
@@ -133,22 +143,23 @@ namespace Addons {
    *         {0., 1., 0., 0., 0., 0.},
    *         {1., 0., 0., 0., 0., 0.},
    *       }
-	 *   \endcode
+   *       joint_rotate_euler_zyx = { "JointTypeEulerZYX" }
+   *   \endcode
    *       
    * \par  joint_frame (optional, type: table)
    *     Specifies the origin of the joint in the frame of the parent. It uses
    *     the values (if existing):
-	 *   \code
+   *   \code
    *       r (3-d vector, default: (0., 0., 0.))
    *       E (3x3 matrix, default: identity matrix)
    *   \endcode
-	 * \par
+   * \par
    *    for which r is the translation and E the rotation of the joint frame
-	 *    
+   *    
    * \section luamodel_example Example
-	 * Here is an example of a model:
-	 * \include samplemodel.lua
-	 */
+   * Here is an example of a model:
+   * \include samplemodel.lua
+   */
 
 	RBDL_DLLAPI bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose = false);
 
