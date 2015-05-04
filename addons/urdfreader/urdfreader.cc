@@ -247,7 +247,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 			cout << "  body name   : " << urdf_child->name << endl;
 		}
 
-		if (0 && urdf_joint->type == urdf::Joint::FLOATING) {
+		if (urdf_joint->type == urdf::Joint::FLOATING) {
 			Matrix3d zero_matrix = Matrix3d::Zero();
 			Body null_body (0., Vector3d::Zero(3), zero_matrix);
 			Joint joint_txtytz(JointTypeTranslationXYZ);
