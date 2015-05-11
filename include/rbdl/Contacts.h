@@ -387,6 +387,7 @@ void ForwardDynamicsContactsDirect (
 		Math::VectorNd &QDDot
 		);
 
+/**
 RBDL_DLLAPI
 void ForwardDynamicsContactsRangeSpaceSparse (
 		Model &model,
@@ -479,7 +480,7 @@ void ForwardDynamicsContactsKokkevis (
 		Math::VectorNd &QDDot
 		);
 
-/** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
+/** \brief Computes contact gain by constructing and solving the full lagrangian equation
  *
  * This method builds and solves the linear system \f[
  \left(
@@ -535,6 +536,8 @@ void ComputeContactImpulsesDirect (
 		Math::VectorNd &QDotPlus
 		);
 
+/** \brief Resolves contact gain using SolveContactSystemRangeSpaceSparse()
+ */
 RBDL_DLLAPI
 void ComputeContactImpulsesRangeSpaceSparse (
 		Model &model,
@@ -544,6 +547,8 @@ void ComputeContactImpulsesRangeSpaceSparse (
 		Math::VectorNd &QDotPlus
 		);
 
+/** \brief Resolves contact gain using SolveContactSystemNullSpace()
+ */
 RBDL_DLLAPI
 void ComputeContactImpulsesNullSpace (
 		Model &model,
@@ -583,13 +588,11 @@ void SolveContactSystemDirect (
 		Math::LinearSolver &linear_solver
 		);
 
-/** \brief Solves the contact system by first solving for the constraint forces and then for the joint accelerations.
+/** \brief Solves the contact system by first solving for the the joint accelerations and then the contact forces using a sparse matrix decomposition of the joint space inertia matrix.
  *
- * This methods requires a \f$n_\textit{dof} \times n_\textit{dof}\f$
- * matrix of the form \f$\left[ \ Y \ | Z \ \right]\f$ with the property
- * \f$GZ = 0\f$ that can be computed using a QR decomposition (e.g. see
- * code for ForwardDynamicsContactsNullSpace()).
- *
+ * This method exploits the branch-induced sparsity by the structure
+ * preserving \f$L^TL \f$ decomposition described in RBDL, Section 6.5.
+ * 
  * \param H the joint space inertia matrix
  * \param G the constraint jacobian
  * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of the right hand side of the system
