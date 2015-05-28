@@ -1,14 +1,5 @@
 urdfreader - load models from (URDF Unified Robot Description Format) files
-Copyright (c) 2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
-
-Requirements
-============
-
-This addon depends on urdfdom to load and access the model data in the URDF
-files.
-
-See https://github.com/ros/urdfdom for more details on how to
-install urdfdom.
+Copyright (c) 2012-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
 Warning
 =======
@@ -24,11 +15,15 @@ This code is published under the zlib license, however some parts of the
 CMake scripts are taken from other projects and are licensed under
 different terms.
 
+This addon uses the URDF code imported from the Bullet3 code base and also
+uses the tinyxml library. Please check the files in the thirdparty/ folder
+for their respective licenses.
+
 Full license text:
 
 -------
 urdfreader - load models from URDF (Unified Robot Description Format) files
-Copyright (c) 2011-2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2012-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

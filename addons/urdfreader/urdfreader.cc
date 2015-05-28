@@ -8,8 +8,8 @@
 #include <map>
 #include <stack>
 
-#include <urdf_model/model.h>
-#include <urdf_parser/urdf_parser.h>
+#include <urdf/urdfdom_headers/urdf_model/include/urdf_model/model.h>
+#include <urdf/urdfdom/urdf_parser/include/urdf_parser/urdf_parser.h>
 
 using namespace std;
 
@@ -19,9 +19,9 @@ namespace Addons {
 
 using namespace Math;
 
-typedef boost::shared_ptr<urdf::Link> LinkPtr;
-typedef boost::shared_ptr<urdf::Joint> JointPtr;
-typedef boost::shared_ptr<urdf::ModelInterface> ModelPtr;
+typedef my_shared_ptr<urdf::Link> LinkPtr;
+typedef my_shared_ptr<urdf::Joint> JointPtr;
+typedef my_shared_ptr<urdf::ModelInterface> ModelPtr;
 
 typedef vector<LinkPtr> URDFLinkVector;
 typedef vector<JointPtr> URDFJointVector;
@@ -29,7 +29,7 @@ typedef map<string, LinkPtr > URDFLinkMap;
 typedef map<string, JointPtr > URDFJointMap;
 
 bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
-	boost::shared_ptr<urdf::Link> urdf_root_link;
+	my_shared_ptr<urdf::Link> urdf_root_link;
 
 	URDFLinkMap link_map;
 	link_map = urdf_model->links_;
@@ -46,7 +46,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 	link_stack.push (link_map[(urdf_model->getRoot()->name)]);
 
 	// add the root body
-	const boost::shared_ptr<const urdf::Link>& root = urdf_model->getRoot ();
+	const my_shared_ptr<const urdf::Link>& root = urdf_model->getRoot ();
 	Vector3d root_inertial_rpy;
 	Vector3d root_inertial_position;
 	Matrix3d root_inertial_inertia;
@@ -286,7 +286,7 @@ RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verb
 RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string, Model* model, bool verbose) {
 	assert (model);
 
-	boost::shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDF (model_xml_string);
+	my_shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDF (model_xml_string);
  
 	if (!construct_model (model, urdf_model, verbose)) {
 		cerr << "Error constructing model from urdf file." << endl;
