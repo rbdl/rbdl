@@ -10,6 +10,7 @@
 #include "rbdl/Model.h"
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
+#include "rbdl/Contacts.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;

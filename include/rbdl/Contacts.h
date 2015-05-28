@@ -387,7 +387,6 @@ void ForwardDynamicsContactsDirect (
 		Math::VectorNd &QDDot
 		);
 
-/**
 RBDL_DLLAPI
 void ForwardDynamicsContactsRangeSpaceSparse (
 		Model &model,
