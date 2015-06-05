@@ -88,13 +88,6 @@ SET ( RBDL_SOURCES
 	src/Kinematics.cc
 	)
 
-# If compiler support symbol visibility, enable it.
-INCLUDE (CheckCCompilerFlag)
-CHECK_C_COMPILER_FLAG(-fvisibility=hidden HAS_VISIBILITY)
-IF (HAS_VISIBILITY)
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-ENDIF ()
-
 # Static / dynamic builds
 IF (RBDL_BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
