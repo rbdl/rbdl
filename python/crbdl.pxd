@@ -59,6 +59,11 @@ cdef extern from "<rbdl/SpatialAlgebraOperators.h>" namespace "RigidBodyDynamics
     cdef cppclass SpatialRigidBodyInertia:
         SpatialRigidBodyInertia()
 
+cdef extern from "<rbdl/Body.h>" namespace "RigidBodyDynamics":
+    cdef cppclass Body:
+        Body()
+
 cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
     cdef cppclass Model:
         Model()
+

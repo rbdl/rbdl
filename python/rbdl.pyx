@@ -1,5 +1,6 @@
 import numpy as np
 cimport numpy as np
+from libc.stdint cimport uintptr_t
 
 cimport crbdl
 
@@ -70,6 +71,18 @@ cdef class SpatialTransform:
             for i in range (3):
                 (&(self.thisptr.r[i]))[0] = value[i]
 
+cdef class Body:
+    cdef crbdl.Body *thisptr
+
+    def __cinit__(self):
+        self.thisptr = new crbdl.Body()
+
+    def __dealloc__(self):
+        del self.thisptr
+
+    def __repr__(self):
+        return "rbdl.Body (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
+
 cdef class Model:
     cdef crbdl.Model *thisptr
 
@@ -80,5 +93,5 @@ cdef class Model:
         del self.thisptr
 
     def __repr__(self):
-        return "Model"
+        return "rbdl.Model (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
 
