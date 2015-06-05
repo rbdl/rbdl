@@ -83,6 +83,144 @@ cdef class Body:
     def __repr__(self):
         return "rbdl.Body (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
 
+    property mMass:
+        def __get__ (self):
+            return self.thisptr.mMass
+
+        def __set__ (self, value):
+            self.thisptr.mMass = value
+
+    property mCenterOfMass:
+        def __get__ (self):
+            result = np.ndarray ((3))
+            for i in range (3):
+                result[i] = self.thisptr.mCenterOfMass[i]
+
+            return result
+
+        def __set__ (self, value):
+            for i in range (3):
+                (&(self.thisptr.mCenterOfMass[i]))[0] = value[i]
+
+    property mInertia:
+        def __get__ (self):
+            result = np.ndarray ((3,3))
+            for i in range (3):
+                for j in range (3):
+                    result[i,j] = self.thisptr.mInertia.coeff(i,j)
+
+            return result
+
+        def __set__ (self, value):
+            for i in range (3):
+                for j in range (3):
+                    (&(self.thisptr.mInertia.coeff(i,j)))[0] = value[i,j]
+
+    property mIsVirtual:
+        def __get__ (self):
+            return self.thisptr.mIsVirtual
+
+        def __set__ (self, value):
+            self.thisptr.mIsVirtual = value
+
+cdef enum JointType:
+    JointTypeUndefined = 0
+    JointTypeRevolute
+    JointTypePrismatic
+    JointTypeRevoluteX
+    JointTypeRevoluteY
+    JointTypeRevoluteZ
+    JointTypeSpherical
+    JointTypeEulerZYX
+    JointTypeEulerXYZ
+    JointTypeEulerYXZ
+    JointTypeTranslationXYZ
+    JointTypeFixed
+    JointType1DoF
+    JointType2DoF
+    JointType3DoF
+    JointType4DoF
+    JointType5DoF
+    JointType6DoF
+
+cdef class Joint:
+    cdef crbdl.Joint *thisptr
+    joint_type_map = {
+            JointTypeUndefined: "JointTypeUndefined",
+            JointTypeRevolute: "JointTypeRevolute",
+            JointTypePrismatic: "JointTypePrismatic",
+            JointTypeRevoluteX: "JointTypeRevoluteX",
+            JointTypeRevoluteY: "JointTypeRevoluteY",
+            JointTypeRevoluteZ: "JointTypeRevoluteZ",
+            JointTypeSpherical: "JointTypeSpherical",
+            JointTypeEulerZYX: "JointTypeEulerZYX",
+            JointTypeEulerXYZ: "JointTypeEulerXYZ",
+            JointTypeEulerYXZ: "JointTypeEulerYXZ",
+            JointTypeTranslationXYZ: "JointTypeTranslationXYZ",
+            JointTypeFixed: "JointTypeFixed",
+            JointType1DoF: "JointType1DoF",
+            JointType2DoF: "JointType2DoF",
+            JointType3DoF: "JointType3DoF",
+            JointType4DoF: "JointType4DoF",
+            JointType5DoF: "JointType5DoF",
+            JointType6DoF: "JointType6DoF",
+            }
+
+    def _joint_type_from_str (self, joint_type_str):
+        if joint_type_str not in self.joint_type_map.values():
+            raise ValueError("Invalid JointType '" + str(joint_type_str) + "'!")
+        else:
+            for joint_type, joint_str in self.joint_type_map.iteritems():
+                if joint_str == joint_type_str:
+                    return joint_type
+
+    def __cinit__(self, joint_type=-1):
+        if joint_type == -1:
+            self.thisptr = new crbdl.Joint()
+        else:
+            self.thisptr = new crbdl.Joint(self._joint_type_from_str(joint_type))
+
+    def __dealloc__(self):
+        del self.thisptr
+
+    def __repr__(self):
+        joint_type_str = "JointTypeUndefined"
+
+        if self.thisptr.mJointType in self.joint_type_map.keys():
+            joint_type_str = self.joint_type_map[self.thisptr.mJointType]
+
+        return "rbdl.Joint (0x{:0x}), JointType: {:s}".format(<uintptr_t><void *> self.thisptr, joint_type_str)
+
+    "Constructors"
+
+    property mDoFCount:
+        def __get__ (self):
+            return self.thisptr.mDoFCount
+
+        def __set__ (self, value):
+            self.thisptr.mDoFCount = value
+
+    property mJointType:
+        def __get__ (self):
+            return self.joint_type_map[self.thisptr.mJointType]
+
+    property q_index:
+        def __get__ (self):
+            return self.thisptr.q_index
+
+    def getJointAxis (self, index):
+        assert index >= 0 and index < self.thisptr.mDoFCount, "Invalid joint axis index!"
+        result = SpatialVector()
+        for i in range (6):
+            result[i] = self.thisptr.mJointAxes[index][i]
+        return result
+
+    def setJointAxis (self, index, value):
+        assert index >= 0 and index < self.thisptr.mDoFCount, "Invalid joint axis index!"
+        for i in range (6):
+            (&(self.thisptr.mJointAxes[index][i]))[0] = value[i]
+            self.thisptr.mJointAxes[index][i]
+
 cdef class Model:
     cdef crbdl.Model *thisptr
 

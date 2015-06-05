@@ -62,6 +62,40 @@ cdef extern from "<rbdl/SpatialAlgebraOperators.h>" namespace "RigidBodyDynamics
 cdef extern from "<rbdl/Body.h>" namespace "RigidBodyDynamics":
     cdef cppclass Body:
         Body()
+        double mMass
+        Vector3d mCenterOfMass
+        Matrix3d mInertia
+        bool mIsVirtual
+
+cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
+    cdef enum JointType:
+        JointTypeUndefined = 0
+        JointTypeRevolute
+        JointTypePrismatic
+        JointTypeRevoluteX
+        JointTypeRevoluteY
+        JointTypeRevoluteZ
+        JointTypeSpherical
+        JointTypeEulerZYX
+        JointTypeEulerXYZ
+        JointTypeEulerYXZ
+        JointTypeTranslationXYZ
+        JointTypeFixed
+        JointType1DoF
+        JointType2DoF
+        JointType3DoF
+        JointType4DoF
+        JointType5DoF
+        JointType6DoF
+
+cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
+    cdef cppclass Joint:
+        Joint()
+        Joint(JointType joint_type)
+        SpatialVector* mJointAxes
+        JointType mJointType
+        unsigned int mDoFCount
+        unsigned int q_index
 
 cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
     cdef cppclass Model:
