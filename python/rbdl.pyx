@@ -74,12 +74,19 @@ cdef class SpatialTransform:
 
 cdef class Body:
     cdef crbdl.Body *thisptr
+    cdef free_on_dealloc
 
-    def __cinit__(self):
-        self.thisptr = new crbdl.Body()
+    def __cinit__(self, uintptr_t address=0):
+        if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdl.Body()
+        else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdl.Body*>address
 
     def __dealloc__(self):
-        del self.thisptr
+        if self.free_on_dealloc:
+            del self.thisptr
 
     def __repr__(self):
         return "rbdl.Body (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
@@ -192,8 +199,6 @@ cdef class Joint:
 
         return "rbdl.Joint (0x{:0x}), JointType: {:s}".format(<uintptr_t><void *> self.thisptr, joint_type_str)
 
-    "Constructors"
-
     property mDoFCount:
         def __get__ (self):
             return self.thisptr.mDoFCount
@@ -222,11 +227,27 @@ cdef class Joint:
             (&(self.thisptr.mJointAxes[index][i]))[0] = value[i]
             self.thisptr.mJointAxes[index][i]
 
+cdef class Model
+
+cdef class BodyArrayWrapper:
+    cdef crbdl.Model *parent
+
+    def __cinit__ (self, uintptr_t ptr):
+        self.parent = <crbdl.Model *> ptr
+
+    def __getitem__(self, key):
+        return Body (<uintptr_t> &(self.parent.mBodies[key]))
+
+    def __setitem__(self, key, Body value not None):
+        self.parent.mBodies[key] = value.thisptr[0]
+
 cdef class Model:
     cdef crbdl.Model *thisptr
+    cdef BodyArrayWrapper mBodies
 
     def __cinit__(self):
         self.thisptr = new crbdl.Model()
+        self.mBodies = BodyArrayWrapper (<uintptr_t> self.thisptr)
 
     def __dealloc__(self):
         del self.thisptr
@@ -248,6 +269,13 @@ cdef class Model:
                 body_name
                 )
 
+    def GetBody (self, index):
+        return Body (<uintptr_t> &(self.thisptr.mBodies[index]))
+
     property dof_count:
         def __get__ (self):
             return self.thisptr.dof_count
+
+    property mBodies:
+        def __get__ (self):
+            return self.mBodies

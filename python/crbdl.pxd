@@ -1,5 +1,6 @@
 from libcpp.string cimport string
 from libcpp cimport bool
+from libcpp.vector cimport vector
 
 cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
     cdef cppclass VectorNd:
@@ -108,4 +109,4 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 )
         unsigned int dof_count
 
-
+        vector[Body] mBodies
