@@ -100,4 +100,12 @@ cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
 cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
     cdef cppclass Model:
         Model()
+        unsigned int AddBody (const unsigned int parent_id,
+                const SpatialTransform &joint_frame,
+                const Joint &joint,
+                const Body &body,
+                string body_name
+                )
+        unsigned int dof_count
+
 

@@ -1,6 +1,7 @@
 import numpy as np
 cimport numpy as np
 from libc.stdint cimport uintptr_t
+from libcpp.string cimport string
 
 cimport crbdl
 
@@ -233,3 +234,20 @@ cdef class Model:
     def __repr__(self):
         return "rbdl.Model (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
 
+    def AddBody (self, 
+            parent_id,
+            SpatialTransform joint_frame not None,
+            Joint joint not None,
+            Body body not None,
+            string body_name = ""):
+        return self.thisptr.AddBody (
+                parent_id,
+                joint_frame.thisptr[0], 
+                joint.thisptr[0],
+                body.thisptr[0],
+                body_name
+                )
+
+    property dof_count:
+        def __get__ (self):
+            return self.thisptr.dof_count
