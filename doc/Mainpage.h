@@ -1,32 +1,37 @@
-/** \file Mainpage.h 
- * \mainpage Mainpage
- * \image html rbdl_logo.png
+/** \file Mainpage.h \mainpage Mainpage \image html rbdl_logo.png
  *
  * This is the documentation of RBDL, the Rigid Body Dynamics Library. The
  * library contains highly efficient code for both forward and inverse
  * dynamics for kinematic chains and branched models. It includes:
  *
- * \li Recursive Newton Euler Algorithm
- * \li Composite Rigid Body Algorithm
- * \li Articulated Body Algorithm.
+ * \li Recursive Newton Euler Algorithm (RNEA)
+ * \li Composite Rigid Body Algorithm (CRBA)
+ * \li Articulated Body Algorithm (ABA).
  *
- * Furthermore it contains functions for forward and inverse kinematics,
+ * Furthermore it contains code for forward and inverse kinematics,
  * computations of Jacobians, contact handling. \link
  * RigidBodyDynamics::Model Models \endlink can be loaded from Lua scripts
  * or URDF files.
- *
- * The code is written by <a
+ * 
+ * The code is developed by <a
  * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
- * <martin.felis@iwr.uni-heidelberg.de></a> and heavily inspired by the
- * pseudo code of the book "Rigid Body Dynamics Algorithms" of <a
- * href="http://royfeatherstone.org" target="_parent">Roy Featherstone</a>.
- *
- * For optimal performance it is advised to use version 3 of the Eigen 
- * <a href="http://eigen.tuxfamily.org/" target="_parent">Eigen</a> math library. More
- * information about it can be found here:
- * <a href="http://eigen.tuxfamily.org/" target="_parent">http://eigen.tuxfamily.org/</a>.
- * The library must be obtained and installed separately.
- *
+ * <martin.felis@iwr.uni-heidelberg.de></a> at the research group <a
+ * href="http://orb.iwr.uni-heidelberg.de/">Optimization in Robotics and
+ * Biomechanics (ORB)</a> of the <a
+ * href="http://www.iwr.uni-heidelberg.de"> Interdisciplinary Center for
+ * Scientific Computing (IWR)</a> at <a
+ * href="http://www.uni-heidelberg.de">Heidelberg University</a>. The code
+ * is heavily inspired by the pseudo code of the book "Rigid Body Dynamics
+ * Algorithms" of <a href="http://royfeatherstone.org" target="_parent">Roy
+ * Featherstone</a>.
+ *  
+ * The code has no external dependencies but for optimal performance it is
+ * advised to use version 3 of the <a href="http://eigen.tuxfamily.org/"
+ * target="_parent">Eigen</a> math library. More information about it can
+ * be found here: <a href="http://eigen.tuxfamily.org/"
+ * target="_parent">http://eigen.tuxfamily.org/</a>. The Eigen3 library
+ * must be obtained and installed separately.
+ * 
  * \section download Download
  *
  * You can download the most recent stable version as zip file from
@@ -164,11 +169,12 @@ freely, subject to the following restrictions:
 \endverbatim
 
  * \section Acknowledgements
- *
+ * 
  * Work on this library was funded by the <a
- * href="http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/">Heidelberg Graduate School of Mathematical and
- * Computational Methods for the Sciences (HGS)</a> and the European FP7
- * projects <a href="http://echord.eu">ECHORD</a> (grant number 231143) and
- * <a href="http://www.koroibot.eu">Koroibot</a> (grant number 611909).
- *
+ * href="http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/">Heidelberg
+ * Graduate School of Mathematical and Computational Methods for the
+ * Sciences (HGS)</a> and the European FP7 projects <a
+ * href="http://echord.eu">ECHORD</a> (grant number 231143) and <a
+ * href="http://www.koroibot.eu">Koroibot</a> (grant number 611909).
+ * 
  */

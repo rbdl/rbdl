@@ -6,15 +6,19 @@ Introduction
 
 RBDL is a highly efficient C++ library that contains some essential rigid
 body dynamics algorithms such as the Articulated Body Algorithm (ABA) for
-forward dynamics, Newton-Euler Algorithm for inverse dynamics and the
-Composite Rigid Body Algorithm (CRBA) for the efficient computation of the
-joint space inertia matrix. It further contains code for forward and
-inverse kinematics and handling of external constraints such as contacts
-and collisions.
+forward dynamics, Recursive Newton-Euler Algorithm (RNEA) for inverse
+dynamics and the Composite Rigid Body Algorithm (CRBA) for the efficient
+computation of the joint space inertia matrix. It further contains code for
+Jacobians, forward and inverse kinematics, and handling of external
+constraints such as contacts and collisions.
 
-The code was written by Martin Felis <martin.felis@iwr.uni-heidelberg.de>
-and tightly follows the notation used in Roy Featherstone''s book "Rigid
-Body Dynamics Algorithm".
+The code is developed by Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+at the research group [Optimization in Robotics and Biomechanics
+(ORB)](http://orb.iwr.uni-heidelberg.de) of the [Interdisciplinary Center
+for Scientific Computing (IWR)](http://www.iwr.uni-heidelberg.de) at
+[Heidelberg University](http://www.uni-heidelberg.de). The code tightly
+follows the notation used in Roy Featherstone''s book "Rigid Body Dynamics
+Algorithm".
 
 Recent Changes
 ==============
@@ -171,8 +175,8 @@ This is the full license text (zlib license):
 Acknowledgements
 ================
 
-Work on this library was funded by the
-[Heidelberg Graduate School
-of Mathematical and Computational Methods for the Sciences (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the
-European FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and
-[Koroibot](http://koroibot.eu) (grand number 611909)
+Work on this library was funded by the [Heidelberg Graduate School of
+Mathematical and Computational Methods for the Sciences
+(HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the European
+FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and
+[Koroibot](http://koroibot.eu) (grant number 611909).
