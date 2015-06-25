@@ -1,3 +1,7 @@
+2.4.0 -> next
+- Fixed CompositeRigidBodyAlgorithm when using spherical joints (thanks to
+	Sébastien Barthélémy for reporting!)
+
 2.3.3 -> 2.4.0
 - Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
   and ComputeContactImpulsesRangeSpaceSparse() 
