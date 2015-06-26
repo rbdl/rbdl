@@ -41,6 +41,37 @@ extern RBDL_DLLAPI SpatialVector SpatialVectorZero;
 extern RBDL_DLLAPI SpatialMatrix SpatialMatrixIdentity;
 extern RBDL_DLLAPI SpatialMatrix SpatialMatrixZero;
 
+RBDL_DLLAPI inline VectorNd VectorFromPtr (unsigned int n, double *ptr) {
+	// TODO: use memory mapping operators for Eigen
+	VectorNd result (n);
+
+	for (unsigned int i = 0; i < n; i++) {
+		result[i] = ptr[i];
+	}
+
+	return result;
+}
+
+RBDL_DLLAPI inline MatrixNd MatrixFromPtr (unsigned int rows, unsigned int cols, double *ptr, bool row_major = true) {
+	MatrixNd result (rows, cols);
+
+	if (row_major) {
+		for (unsigned int i = 0; i < rows; i++) {
+			for (unsigned int j = 0; j < cols; j++) {
+				result(i,j) = ptr[i * cols + j];
+			}
+		}
+	} else {
+		for (unsigned int i = 0; i < rows; i++) {
+			for (unsigned int j = 0; j < cols; j++) {
+				result(i,j) = ptr[i + j * rows];
+			}
+		}
+	}
+
+	return result;
+}
+
 /// \brief Solves a linear system using gaussian elimination with pivoting
 RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 
