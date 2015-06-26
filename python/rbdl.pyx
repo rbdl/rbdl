@@ -209,10 +209,23 @@ cdef class Body:
     cdef crbdl.Body *thisptr
     cdef free_on_dealloc
 
-    def __cinit__(self, uintptr_t address=0, mass=None, com=None, inertia=None):
+    def __cinit__(self, **kwargs):
         cdef double c_mass
         cdef crbdl.Vector3d c_com
         cdef crbdl.Matrix3d c_inertia
+        cdef uintptr_t address=0
+
+        if "address" in kwargs.keys():
+            address=kwargs["address"]
+        mass = None
+        if "mass" in kwargs.keys():
+            mass=kwargs["mass"]
+        com = None
+        if "com" in kwargs.keys():
+            com=kwargs["com"]
+        inertia = None
+        if "inertia" in kwargs.keys():
+            inertia=kwargs["inertia"]
 
         if address == 0:
             self.free_on_dealloc = True
@@ -243,7 +256,7 @@ cdef class Body:
     # Constructors
     @classmethod
     def fromPointer(cls, uintptr_t address):
-        return Body (address)
+        return Body (address=address)
 
     @classmethod
     def fromMassComInertia(cls, double mass, 
