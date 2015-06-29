@@ -42,34 +42,25 @@ extern RBDL_DLLAPI SpatialMatrix SpatialMatrixIdentity;
 extern RBDL_DLLAPI SpatialMatrix SpatialMatrixZero;
 
 RBDL_DLLAPI inline VectorNd VectorFromPtr (unsigned int n, double *ptr) {
-	// TODO: use memory mapping operators for Eigen
-	VectorNd result (n);
-
-	for (unsigned int i = 0; i < n; i++) {
-		result[i] = ptr[i];
-	}
-
-	return result;
+#ifdef RBDL_USE_SIMPLE_MATH
+	return SimpleMath::Map<VectorNd> (ptr, n, 1);
+#elif EIGEN_CORE_H
+	return Eigen::Map<VectorNd> (ptr, n, 1);
+#endif
+	std::cerr << __func__ << " not defined for used math library!" << std::endl;
+	abort();
+	return VectorNd::Constant (1,1./0.);
 }
 
 RBDL_DLLAPI inline MatrixNd MatrixFromPtr (unsigned int rows, unsigned int cols, double *ptr, bool row_major = true) {
-	MatrixNd result (rows, cols);
-
-	if (row_major) {
-		for (unsigned int i = 0; i < rows; i++) {
-			for (unsigned int j = 0; j < cols; j++) {
-				result(i,j) = ptr[i * cols + j];
-			}
-		}
-	} else {
-		for (unsigned int i = 0; i < rows; i++) {
-			for (unsigned int j = 0; j < cols; j++) {
-				result(i,j) = ptr[i + j * rows];
-			}
-		}
-	}
-
-	return result;
+#ifdef RBDL_USE_SIMPLE_MATH
+	return SimpleMath::Map<MatrixNd> (ptr, rows, cols);
+#elif EIGEN_CORE_H
+	return Eigen::Map<MatrixNd> (ptr, rows, cols);
+#endif
+	std::cerr << __func__ << " not defined for used math library!" << std::endl;
+	abort();
+	return MatrixNd::Constant (1,1, 1./0.);
 }
 
 /// \brief Solves a linear system using gaussian elimination with pivoting

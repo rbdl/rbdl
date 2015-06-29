@@ -17,6 +17,7 @@
 	#include "rbdl/SimpleMath/SimpleMathQR.h"
 	#include "rbdl/SimpleMath/SimpleMathCholesky.h"
 	#include "rbdl/SimpleMath/SimpleMathCommaInitializer.h"
+	#include "rbdl/SimpleMath/SimpleMathMap.h"
 	#include <vector>
 
 	typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3_t;

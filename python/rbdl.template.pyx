@@ -479,352 +479,15 @@ cdef class Joint:
 
 cdef class Model
 
-cdef class _Model_v_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.v[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.v[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.v.size()
-
-cdef class _Model_a_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.a[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.a[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.a.size()
-
-cdef class _Model_mJoints_Joint_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return Joint.fromPointer (<uintptr_t> &(self.parent.mJoints[key]))
-
-    def __setitem__(self, key, Joint value not None):
-        self.parent.mJoints[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.mJoints.size()
-
-cdef class _Model_S_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.S[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.S[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.S.size()
-
-cdef class _Model_X_J_SpatialTransform_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_J[key]))
-
-    def __setitem__(self, key, SpatialTransform value not None):
-        self.parent.X_J[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.X_J.size()
-
-cdef class _Model_v_J_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.v_J[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.v_J[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.v_J.size()
-
-cdef class _Model_c_J_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.c_J[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.c_J[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.c_J.size()
-
-cdef class _Model_X_T_SpatialTransform_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_T[key]))
-
-    def __setitem__(self, key, SpatialTransform value not None):
-        self.parent.X_T[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.X_T.size()
-
-cdef class _Model_c_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.c[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.c[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.c.size()
-
-cdef class _Model_IA_SpatialMatrix_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialMatrix.fromPointer (<uintptr_t> &(self.parent.IA[key]))
-
-    def __setitem__(self, key, SpatialMatrix value not None):
-        self.parent.IA[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.IA.size()
-
-cdef class _Model_pA_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.pA[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.pA[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.pA.size()
-
-cdef class _Model_U_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.U[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.U[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.U.size()
-
-cdef class _Model_f_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.f[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.f[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.f.size()
-
-cdef class _Model_I_SpatialRigidBodyInertia_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialRigidBodyInertia.fromPointer (<uintptr_t> &(self.parent.I[key]))
-
-    def __setitem__(self, key, SpatialRigidBodyInertia value not None):
-        self.parent.I[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.I.size()
-
-cdef class _Model_Ic_SpatialRigidBodyInertia_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialRigidBodyInertia.fromPointer (<uintptr_t> &(self.parent.Ic[key]))
-
-    def __setitem__(self, key, SpatialRigidBodyInertia value not None):
-        self.parent.Ic[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.Ic.size()
-
-cdef class _Model_hc_SpatialVector_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.hc[key]))
-
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.hc[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.hc.size()
-
-cdef class _Model_X_lambda_SpatialTransform_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_lambda[key]))
-
-    def __setitem__(self, key, SpatialTransform value not None):
-        self.parent.X_lambda[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.X_lambda.size()
-
-cdef class _Model_X_base_SpatialTransform_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_base[key]))
-
-    def __setitem__(self, key, SpatialTransform value not None):
-        self.parent.X_base[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.X_base.size()
-
-cdef class _Model_mFixedBodies_FixedBody_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return FixedBody.fromPointer (<uintptr_t> &(self.parent.mFixedBodies[key]))
-
-    def __setitem__(self, key, FixedBody value not None):
-        self.parent.mFixedBodies[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.mFixedBodies.size()
-
-cdef class _Model_mBodies_Body_VectorWrapper:
-    cdef crbdl.Model *parent
-
-    def __cinit__ (self, uintptr_t ptr):
-        self.parent = <crbdl.Model *> ptr
-
-    def __getitem__(self, key):
-        return Body.fromPointer (<uintptr_t> &(self.parent.mBodies[key]))
-
-    def __setitem__(self, key, Body value not None):
-        self.parent.mBodies[key] = value.thisptr[0]
-
-    def __len__(self):
-        return self.parent.mBodies.size()
-
+%VectorWrapperClassDefinitions(PARENT=Model)%
 
 cdef class Model:
     cdef crbdl.Model *thisptr
-    cdef _Model_v_SpatialVector_VectorWrapper v
-    cdef _Model_a_SpatialVector_VectorWrapper a
-    cdef _Model_mJoints_Joint_VectorWrapper mJoints
-    cdef _Model_S_SpatialVector_VectorWrapper S
-    cdef _Model_X_J_SpatialTransform_VectorWrapper X_J
-    cdef _Model_v_J_SpatialVector_VectorWrapper v_J
-    cdef _Model_c_J_SpatialVector_VectorWrapper c_J
-    cdef _Model_X_T_SpatialTransform_VectorWrapper X_T
-    cdef _Model_c_SpatialVector_VectorWrapper c
-    cdef _Model_IA_SpatialMatrix_VectorWrapper IA
-    cdef _Model_pA_SpatialVector_VectorWrapper pA
-    cdef _Model_U_SpatialVector_VectorWrapper U
-    cdef _Model_f_SpatialVector_VectorWrapper f
-    cdef _Model_I_SpatialRigidBodyInertia_VectorWrapper I
-    cdef _Model_Ic_SpatialRigidBodyInertia_VectorWrapper Ic
-    cdef _Model_hc_SpatialVector_VectorWrapper hc
-    cdef _Model_X_lambda_SpatialTransform_VectorWrapper X_lambda
-    cdef _Model_X_base_SpatialTransform_VectorWrapper X_base
-    cdef _Model_mFixedBodies_FixedBody_VectorWrapper mFixedBodies
-    cdef _Model_mBodies_Body_VectorWrapper mBodies
+    %VectorWrapperMemberDefinitions (PARENT=Model)%
 
     def __cinit__(self):
         self.thisptr = new crbdl.Model()
-        self.v = _Model_v_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.a = _Model_a_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.mJoints = _Model_mJoints_Joint_VectorWrapper (<uintptr_t> self.thisptr)
-        self.S = _Model_S_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.X_J = _Model_X_J_SpatialTransform_VectorWrapper (<uintptr_t> self.thisptr)
-        self.v_J = _Model_v_J_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.c_J = _Model_c_J_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.X_T = _Model_X_T_SpatialTransform_VectorWrapper (<uintptr_t> self.thisptr)
-        self.c = _Model_c_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.IA = _Model_IA_SpatialMatrix_VectorWrapper (<uintptr_t> self.thisptr)
-        self.pA = _Model_pA_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.U = _Model_U_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.f = _Model_f_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.I = _Model_I_SpatialRigidBodyInertia_VectorWrapper (<uintptr_t> self.thisptr)
-        self.Ic = _Model_Ic_SpatialRigidBodyInertia_VectorWrapper (<uintptr_t> self.thisptr)
-        self.hc = _Model_hc_SpatialVector_VectorWrapper (<uintptr_t> self.thisptr)
-        self.X_lambda = _Model_X_lambda_SpatialTransform_VectorWrapper (<uintptr_t> self.thisptr)
-        self.X_base = _Model_X_base_SpatialTransform_VectorWrapper (<uintptr_t> self.thisptr)
-        self.mFixedBodies = _Model_mFixedBodies_FixedBody_VectorWrapper (<uintptr_t> self.thisptr)
-        self.mBodies = _Model_mBodies_Body_VectorWrapper (<uintptr_t> self.thisptr)
+        %VectorWrapperCInitCode (PARENT=Model)%
 
     def __dealloc__(self):
         del self.thisptr
@@ -877,44 +540,20 @@ cdef class Model:
             for i in range (0,3):
                 self.thisptr.gravity[i] = values[i]
 
-    property v:
-        def __get__ (self):
-            return self.v
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=v, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=a, PARENT=Model)% 
 
-    property a:
-        def __get__ (self):
-            return self.a
-
-
-    property mJoints:
-        def __get__ (self):
-            return self.mJoints
-
-    property S:
-        def __get__ (self):
-            return self.S
-
-    property X_J:
-        def __get__ (self):
-            return self.X_J
-
-    property v_J:
-        def __get__ (self):
-            return self.v_J
-
-    property c_J:
-        def __get__ (self):
-            return self.c_J
-
+    %VectorWrapperAddProperty (TYPE=Joint, MEMBER=mJoints, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=S, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_J, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=v_J, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=c_J, PARENT=Model)% 
 
     property mJointUpdateOrder:
         def __get__ (self):
             return self.thisptr.mJointUpdateOrder
 
-    property X_T:
-        def __get__ (self):
-            return self.X_T
-
+    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_T, PARENT=Model)% 
 
     property mFixedJointCount:
         def __get__ (self):
@@ -930,66 +569,30 @@ cdef class Model:
         def __get__ (self):
             return self.thisptr.multdof3_w_index
 
-    property c:
-        def __get__ (self):
-            return self.c
-
-    property IA:
-        def __get__ (self):
-            return self.IA
-
-    property pA:
-        def __get__ (self):
-            return self.pA
-
-    property U:
-        def __get__ (self):
-            return self.U
-
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=c, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialMatrix, MEMBER=IA, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=pA, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=U, PARENT=Model)%
 
     # TODO
     # d
     # u
 
-    property f:
-        def __get__ (self):
-            return self.f
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=f, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialRigidBodyInertia, MEMBER=I, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialRigidBodyInertia, MEMBER=Ic, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=hc, PARENT=Model)%
 
-    property I:
-        def __get__ (self):
-            return self.I
+    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_lambda, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_base, PARENT=Model)% 
 
-    property Ic:
-        def __get__ (self):
-            return self.Ic
-
-    property hc:
-        def __get__ (self):
-            return self.hc
-
-
-    property X_lambda:
-        def __get__ (self):
-            return self.X_lambda
-
-    property X_base:
-        def __get__ (self):
-            return self.X_base
-
-
-    property mFixedBodies:
-        def __get__ (self):
-            return self.mFixedBodies
-
+    %VectorWrapperAddProperty (TYPE=FixedBody, MEMBER=mFixedBodies, PARENT=Model)%
 
     property fixed_body_discriminator:
         def __get__ (self):
             return self.thisptr.fixed_body_discriminator
 
-    property mBodies:
-        def __get__ (self):
-            return self.mBodies
-
+    %VectorWrapperAddProperty (TYPE=Body, MEMBER=mBodies, PARENT=Model)%
 
 
 cdef class VectorNd:
@@ -1050,5 +653,4 @@ def ForwardDynamics (Model model,
             <double*>qddot.data, 
             NULL
             )
-
 
