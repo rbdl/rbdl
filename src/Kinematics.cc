@@ -262,6 +262,48 @@ void CalcPointJacobian (
 }
 
 RBDL_DLLAPI
+void CalcPointJacobian6D (
+		Model &model,
+		const VectorNd &Q,
+		unsigned int body_id,
+		const Vector3d &point_position,
+		MatrixNd &G,
+		bool update_kinematics
+	) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	// update the Kinematics if necessary
+	if (update_kinematics) {
+		UpdateKinematicsCustom (model, &Q, NULL, NULL);
+	}
+
+	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
+
+	assert (G.rows() == 6 && G.cols() == model.qdot_size );
+
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
+	unsigned int j = reference_body_id;
+
+	while (j != 0) {
+		unsigned int q_index = model.mJoints[j].q_index;
+
+		if (model.mJoints[j].mDoFCount == 3) {
+			G.block(0, q_index, 6, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(0,0,6,3);
+		} else {
+			G.block(0,q_index, 6, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(0,0,6,1);
+		}
+
+		j = model.lambda[j];
+	}
+}
+
+RBDL_DLLAPI
 void CalcBodySpatialJacobian (
 		Model &model,
 		const VectorNd &Q,
@@ -348,6 +390,42 @@ Vector3d CalcPointVelocity (
 }
 
 RBDL_DLLAPI
+Math::SpatialVector CalcPointVelocity6D (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		unsigned int body_id,
+		const Math::Vector3d &point_position,
+		bool update_kinematics
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+	assert (model.IsBodyId(body_id));
+	assert (model.q_size == Q.size());
+	assert (model.qdot_size == QDot.size());
+
+	// Reset the velocity of the root body
+	model.v[0].setZero();
+
+	// update the Kinematics with zero acceleration
+	if (update_kinematics) {
+		UpdateKinematicsCustom (model, &Q, &QDot, NULL);
+	}
+
+	unsigned int reference_body_id = body_id;
+	Vector3d reference_point = point_position;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		Vector3d base_coords = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
+		reference_point = CalcBaseToBodyCoordinates (model, Q, reference_body_id, base_coords, false);
+
+	}
+
+	return SpatialTransform (CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose(), reference_point).apply(model.v[reference_body_id]);
+}
+
+RBDL_DLLAPI
 Vector3d CalcPointAcceleration (
 		Model &model,
 		const VectorNd &Q,
@@ -390,6 +468,45 @@ Vector3d CalcPointAcceleration (
 			p_a_i[4] + a_dash[1],
 			p_a_i[5] + a_dash[2]
 			);
+}
+
+RBDL_DLLAPI
+SpatialVector CalcPointAcceleration6D (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &QDDot,
+		unsigned int body_id,
+		const Vector3d &point_position,
+		bool update_kinematics
+	)
+{
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	// Reset the velocity of the root body
+	model.v[0].setZero();
+	model.a[0].setZero();
+
+	if (update_kinematics)
+		UpdateKinematics (model, Q, QDot, QDDot);
+
+	LOG << std::endl;
+
+	unsigned int reference_body_id = body_id;
+	Vector3d reference_point = point_position;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		Vector3d base_coords = CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false);
+		reference_point = CalcBaseToBodyCoordinates (model, Q, reference_body_id, base_coords, false);
+	}
+
+	SpatialTransform p_X_i (CalcBodyWorldOrientation (model, Q, reference_body_id, false).transpose(), reference_point);
+
+	SpatialVector p_v_i = p_X_i.apply(model.v[reference_body_id]);
+	Vector3d a_dash = Vector3d (p_v_i[0], p_v_i[1], p_v_i[2]).cross(Vector3d (p_v_i[3], p_v_i[4], p_v_i[5]));
+	return p_X_i.apply(model.a[reference_body_id]) + SpatialVector (0, 0, 0, a_dash[0], a_dash[1], a_dash[2]);
 }
 
 RBDL_DLLAPI 
