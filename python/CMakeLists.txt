@@ -6,6 +6,18 @@ ADD_CUSTOM_COMMAND ( OUTPUT ${PROJECT_SOURCE_DIR}/python/rbdl.pyx
 	DEPENDS ${PROJECT_SOURCE_DIR}/python/rbdl.template.pyx ${PROJECT_SOURCE_DIR}/python/wrappergen.py
 	)
 
+# Enable C++11 (or C++0x for older compilers)
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+if(COMPILER_SUPPORTS_CXX11)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(COMPILER_SUPPORTS_CXX0X)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+else()
+        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+endif()
+
 # If the pyx file is a C++ file, we should specify that here.
 set_source_files_properties(
 	${PROJECT_SOURCE_DIR}/python/rbdl.pyx
