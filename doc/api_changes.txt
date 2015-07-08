@@ -1,6 +1,7 @@
 2.4.0 -> next
 - Removed dependency on external URDF libraries by using the URDF code from
   Bullet3
+- Added CalcPointVelocity6D, CalcPointAcceleration6D, and CalcPointJacobian6D that compute both linear and angular quantities
 
 2.3.3 -> 2.4.0
 - Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()

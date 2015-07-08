@@ -600,3 +600,71 @@ TEST_FIXTURE ( Human36, SpatialJacobianFixedBody ) {
 
 	CHECK_ARRAY_CLOSE (v_fixed_body.data(), v_body.data(), 6, TEST_PREC);
 }
+
+TEST_FIXTURE ( Human36, CalcPointJacobian6D ) {
+	randomizeStates();
+
+	unsigned int foot_r_id = model->GetBodyId ("foot_r");
+	Vector3d point_local (1.1, 2.2, 3.3);
+
+	// Compute the 6-D velocity using the 6-D Jacobian
+	MatrixNd G (MatrixNd::Zero (6, model->dof_count));
+	CalcPointJacobian6D (*model, q, foot_r_id, point_local, G);
+	SpatialVector v_foot_0_jac = SpatialVector (G * qdot);
+
+	// Compute the 6-D velocity by transforming the body velocity to the
+	// reference point and aligning it with the base coordinate system
+	Vector3d r_point = CalcBodyToBaseCoordinates (*model, q, foot_r_id, point_local);
+	SpatialTransform X_foot (Matrix3d::Identity(), r_point);
+	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
+	SpatialVector v_foot_0_ref = X_foot.apply(model->X_base[foot_r_id].inverse().apply(model->v[foot_r_id]));
+
+	CHECK_ARRAY_CLOSE (v_foot_0_ref.data(), v_foot_0_jac.data(), 6, TEST_PREC);
+}
+
+TEST_FIXTURE ( Human36, CalcPointVelocity6D ) {
+	randomizeStates();
+
+	unsigned int foot_r_id = model->GetBodyId ("foot_r");
+	Vector3d point_local (1.1, 2.2, 3.3);
+
+	// Compute the 6-D velocity 
+	SpatialVector v_foot_0 = CalcPointVelocity6D (*model, q, qdot, foot_r_id, point_local);
+
+	// Compute the 6-D velocity by transforming the body velocity to the
+	// reference point and aligning it with the base coordinate system
+	Vector3d r_point = CalcBodyToBaseCoordinates (*model, q, foot_r_id, point_local);
+	SpatialTransform X_foot (Matrix3d::Identity(), r_point);
+	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
+	SpatialVector v_foot_0_ref = X_foot.apply(model->X_base[foot_r_id].inverse().apply(model->v[foot_r_id]));
+
+	CHECK_ARRAY_CLOSE (v_foot_0_ref.data(), v_foot_0.data(), 6, TEST_PREC);
+}
+
+TEST_FIXTURE ( Human36, CalcPointAcceleration6D ) {
+	randomizeStates();
+
+	unsigned int foot_r_id = model->GetBodyId ("foot_r");
+	Vector3d point_local (1.1, 2.2, 3.3);
+
+	// Compute the 6-D acceleration 
+	SpatialVector a_foot_0 = CalcPointAcceleration6D (*model, q, qdot, qddot, foot_r_id, point_local);
+
+	// Compute the 6-D acceleration by adding the coriolis term to the
+	// acceleration of the body and transforming the result to the
+	// point and align it with the base coordinate system.
+	Vector3d r_point = CalcBodyToBaseCoordinates (*model, q, foot_r_id, point_local);
+	Vector3d v_foot_0 = CalcPointVelocity (*model, q, qdot, foot_r_id, point_local);
+	SpatialVector rdot (0., 0., 0., v_foot_0[0], v_foot_0[1], v_foot_0[2]);
+
+	SpatialTransform X_foot (Matrix3d::Identity(), r_point);
+	UpdateKinematicsCustom (*model, &q, &qdot, NULL);
+	SpatialVector a_foot_0_ref = X_foot.apply(
+			model->X_base[foot_r_id].inverse().apply(model->a[foot_r_id]) 
+			- crossm(rdot, 
+				model->X_base[foot_r_id].inverse().apply(model->v[foot_r_id])
+				)
+			);
+
+	CHECK_ARRAY_CLOSE (a_foot_0_ref.data(), a_foot_0.data(), 6, TEST_PREC);
+}

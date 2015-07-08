@@ -152,6 +152,35 @@ void CalcPointJacobian (Model &model,
 		bool update_kinematics = true
 		);
 
+/** \brief Computes a 6-D Jacobian for a point on a body
+ *
+ * Computes the 6-D Jacobian \f$G(q)\f$ that when multiplied with
+ * \f$\dot{q}\f$ gives a 6-D vector that has the angular velocity as the
+ * first three entries and the linear velocity as the last three entries.
+ *
+ * \param model   rigid body model
+ * \param Q       state vector of the internal joints
+ * \param body_id the id of the body
+ * \param point_position the position of the point in body-local data
+ * \param G       a matrix of dimensions 6 x \#qdot_size where the result will be stored in
+ * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
+ *
+ * The result will be returned via the G argument.
+ *
+ * \note This function only evaluates the entries of G that are non-zero. One
+ * Before calling this function one has to ensure that all other values
+ * have been set to zero, e.g. by calling G.setZero().
+ *
+ */ 
+RBDL_DLLAPI
+void CalcPointJacobian6D (Model &model,
+		const Math::VectorNd &Q,
+		unsigned int body_id,
+		const Math::Vector3d &point_position,
+		Math::MatrixNd &G,
+		bool update_kinematics = true
+		);
+
 /** \brief Computes the spatial jacobian for a body
  *
  * The spatial velocity of a body at the origin of the base coordinate
@@ -202,7 +231,30 @@ Math::Vector3d CalcPointVelocity (
 		bool update_kinematics = true
 		);
 
-/** \brief Computes the acceleration of a point on a body 
+/** \brief Computes angular and linear velocity of a point that is fixed on a body
+ *
+ * \param model   rigid body model
+ * \param Q       state vector of the internal joints
+ * \param QDot    velocity vector of the internal joints
+ * \param body_id the id of the body
+ * \param point_position the position of the point in body-local data
+ * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
+ *
+ * \returns The a 6-D vector for which the first three elements are the
+ * angular velocity and the last three elements the linear velocity in the
+ * global reference system.
+ */
+RBDL_DLLAPI
+Math::SpatialVector CalcPointVelocity6D (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		unsigned int body_id,
+		const Math::Vector3d &point_position,
+		bool update_kinematics = true
+		);
+
+/** \brief Computes the linear acceleration of a point on a body 
  *
  * \param model   rigid body model
  * \param Q       state vector of the internal joints
@@ -219,18 +271,46 @@ Math::Vector3d CalcPointVelocity (
  * UpdateKinematics() or setting the last parameter update_kinematics to
  * true (default).
  *
- * \note During the execution of ForwardDynamics() the acceleration
- * is only applied on the root body and propagated form there. Therefore
- * in the internal state the accelerations of the bodies only represent
- * the relative accelerations without any gravitational effects.
+ * \warning  If this function is called after ForwardDynamics() without
+ * an update of the kinematic state one has to add the gravity
+ * acceleration has to be added to the result.
+ */
+RBDL_DLLAPI
+Math::Vector3d CalcPointAcceleration (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &QDDot,
+		unsigned int body_id,
+		const Math::Vector3d &point_position,
+		bool update_kinematics = true
+	);
+
+/** \brief Computes linear and angular acceleration of a point on a body 
+ *
+ * \param model   rigid body model
+ * \param Q       state vector of the internal joints
+ * \param QDot    velocity vector of the internal joints
+ * \param QDDot    velocity vector of the internal joints
+ * \param body_id the id of the body
+ * \param point_position the position of the point in body-local data
+ * \param update_kinematics whether UpdateKinematics() should be called or not (default: true)
+ *
+ * \returns A 6-D vector where the first three elements are the angular
+ * acceleration and the last three elements the linear accelerations of
+ * the point.
+ *
+ * The kinematic state of the model has to be updated before valid
+ * values can be obtained. This can either be done by calling
+ * UpdateKinematics() or setting the last parameter update_kinematics to
+ * true (default).
  *
  * \warning  If this function is called after ForwardDynamics() without
  * an update of the kinematic state one has to add the gravity
  * acceleration has to be added to the result.
  */
-
 RBDL_DLLAPI
-Math::Vector3d CalcPointAcceleration (
+Math::SpatialVector CalcPointAcceleration6D (
 		Model &model,
 		const Math::VectorNd &Q,
 		const Math::VectorNd &QDot,

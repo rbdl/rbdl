@@ -139,12 +139,15 @@ double run_CRBA_benchmark (Model *model, int sample_count) {
 	sample_data.fillRandom(model->dof_count, sample_count);
 
 	Math::MatrixNd H = Math::MatrixNd::Zero(model->dof_count, model->dof_count);
+	Math::MatrixNd identity = Math::MatrixNd::Identity(model->dof_count, model->dof_count);
+	Math::MatrixNd Hinv = Math::MatrixNd::Zero(model->dof_count, model->dof_count);
 
 	TimerInfo tinfo;
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
 		CompositeRigidBodyAlgorithm (*model, sample_data.q[i], H, true);
+		Hinv = H.llt().solve (identity);
 	}
 
 	double duration = timer_stop (&tinfo);

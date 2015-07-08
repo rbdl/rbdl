@@ -673,8 +673,8 @@ TEST_FIXTURE (Human36, ForwardDynamicsContactsFixedBody) {
 	ForwardDynamicsContactsRangeSpaceSparse (*model_3dof, q, qdot, tau, constraint_upper_trunk, qddot_sparse);
 	ForwardDynamicsContactsKokkevis (*model_3dof, q, qdot, tau, constraint_upper_trunk, qddot);
 
-	CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
-	CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_sparse.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
+	CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm() * 10.);
+	CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_sparse.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm() * 10.);
 }
 
 TEST_FIXTURE (Human36, ForwardDynamicsContactsImpulses) {
