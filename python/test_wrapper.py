@@ -55,5 +55,24 @@ class SampleModel3R (unittest.TestCase):
       
         assert_almost_equal (point_local, point_local_2)
 
+    def test_CalcPointVelocity (self):
+        """
+        Checks whether CalcBodyToBaseCoordinates and CalcBaseToBodyCoordinates
+        give the right results.
+        """
+        q = np.zeros(self.model.q_size)
+        qdot = np.zeros(self.model.q_size)
+        qdot[0] = 1.
+        point_local = np.array ([0., 0., 0.])
+        point_vel = rbdl.CalcPointVelocity (
+                self.model,
+                q,
+                qdot,
+                self.body_3,
+                point_local
+                )
+
+        assert_almost_equal (np.array([2., 0., 0.]), point_vel)
+
 if __name__ == '__main__':
     unittest.main()

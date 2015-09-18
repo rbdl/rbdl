@@ -207,6 +207,36 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const Vector3d &body_point_coordinates,
             bool update_kinematics)
 
+    cdef Vector3d CalcPointVelocity (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef Vector3d CalcPointAcceleration (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const VectorNd &qddot,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef SpatialVector CalcPointVelocity6D (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef SpatialVector CalcPointAcceleration6D (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const VectorNd &qddot,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
 cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
     cdef cppclass ConstraintSet:
         ConstraintSet()

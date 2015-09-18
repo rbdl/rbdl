@@ -798,6 +798,13 @@ cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx):
 
     return result
 
+cdef np.ndarray SpatialVectorToNumpy (crbdl.SpatialVector cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
 def CalcBodyToBaseCoordinates (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         int body_id,
@@ -819,6 +826,70 @@ def CalcBaseToBodyCoordinates (Model model,
     return Vector3dToNumpy (crbdl.CalcBaseToBodyCoordinates (
             model.thisptr[0],
             NumpyToVectorNd (q),
+            body_id,
+            NumpyToVector3d (body_point_position),
+            update_kinematics 
+            ))
+
+def CalcPointVelocity (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        update_kinematics=True):
+    return Vector3dToNumpy (crbdl.CalcPointVelocity (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            NumpyToVectorNd (qdot),
+            body_id,
+            NumpyToVector3d (body_point_position),
+            update_kinematics 
+            ))
+
+def CalcPointAcceleration (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        update_kinematics=True):
+    return Vector3dToNumpy (crbdl.CalcPointAcceleration (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            NumpyToVectorNd (qdot),
+            NumpyToVectorNd (qddot),
+            body_id,
+            NumpyToVector3d (body_point_position),
+            update_kinematics 
+            ))
+
+def CalcPointVelocity6D (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        update_kinematics=True):
+    return SpatialVectorToNumpy (crbdl.CalcPointVelocity6D (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            NumpyToVectorNd (qdot),
+            body_id,
+            NumpyToVector3d (body_point_position),
+            update_kinematics 
+            ))
+
+def CalcPointAcceleration6D (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        update_kinematics=True):
+    return SpatialVectorToNumpy (crbdl.CalcPointAcceleration6D (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            NumpyToVectorNd (qdot),
+            NumpyToVectorNd (qddot),
             body_id,
             NumpyToVector3d (body_point_position),
             update_kinematics 
