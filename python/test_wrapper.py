@@ -21,14 +21,14 @@ class SampleModel3R (unittest.TestCase):
     def setUp(self):
         self.model = rbdl.Model()
         joint_rot_y = rbdl.Joint.fromJointType ("JointTypeRevoluteY")
-        body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), np.eye(3) *
+        self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), np.eye(3) *
                 0.05)
-        xtrans = rbdl.SpatialTransform()
-        xtrans.r = np.array([0., 0., 1.])
+        self.xtrans = rbdl.SpatialTransform()
+        self.xtrans.r = np.array([0., 0., 1.])
         
-        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), joint_rot_y, body)
-        self.body_2 = self.model.AppendBody (xtrans, joint_rot_y, body)
-        self.body_3 = self.model.AppendBody (xtrans, joint_rot_y, body)
+        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), joint_rot_y, self.body)
+        self.body_2 = self.model.AppendBody (self.xtrans, joint_rot_y, self.body)
+        self.body_3 = self.model.AppendBody (self.xtrans, joint_rot_y, self.body)
 
         self.q = np.zeros (self.model.q_size)
         self.qdot = np.zeros (self.model.qdot_size)
@@ -144,6 +144,71 @@ class SampleModel3R (unittest.TestCase):
                 )
 
         assert_almost_equal (tau, tau_id)
+
+    def test_CalcPointJacobian (self):
+        """ Computes point Jacobian and checks whether G * qdot is consistent
+        with CalcPointVelocity. """
+        q = np.zeros (self.model.q_size)
+        G = np.zeros ([3, self.model.q_size])
+        point_coords = np.array ([0., 0., 1.])
+
+        rbdl.CalcPointJacobian (
+                self.model,
+                q,
+                self.body_3,
+                point_coords,
+                G
+                )
+
+        qdot = np.ones(self.model.qdot_size)
+        point_vel = rbdl.CalcPointVelocity (
+                self.model,
+                q,
+                qdot,
+                self.body_3,
+                point_coords
+                )
+
+        jac_point_vel = np.dot (G, qdot)
+        assert_almost_equal (jac_point_vel, point_vel)
+
+    def test_CalcPointJacobianNonSquare (self):
+        """ Computes point Jacobian and checks whether G * qdot is consistent
+        with CalcPointVelocity. """
+
+        self.model = rbdl.Model()
+        joint_trans_xyz = rbdl.Joint.fromJointType ("JointTypeTranslationXYZ")
+
+        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(),
+                joint_trans_xyz, self.body)
+
+        self.body_4 = self.model.AppendBody (rbdl.SpatialTransform(),
+                joint_trans_xyz, self.body)
+
+        point_coords = np.array ([0., 0., 1.])
+        q = np.zeros (self.model.q_size)
+        G = np.zeros ([3, self.model.q_size])
+
+        rbdl.CalcPointJacobian (
+                self.model,
+                q,
+                self.body_4,
+                point_coords,
+                G
+                )
+
+        qdot = np.ones(self.model.qdot_size)
+        jac_point_vel = np.dot (G, qdot)
+
+        point_vel = rbdl.CalcPointVelocity (
+                self.model,
+                q,
+                qdot,
+                self.body_4,
+                point_coords
+                )
+       
+        assert_almost_equal (jac_point_vel, point_vel)
 
 if __name__ == '__main__':
     unittest.main()

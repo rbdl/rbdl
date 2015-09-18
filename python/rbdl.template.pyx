@@ -96,7 +96,6 @@ cdef class VectorNd:
     @classmethod
     def fromPointer(cls, uintptr_t address):
         cdef crbdl.VectorNd* vector_ptr = <crbdl.VectorNd*> address
-        print ("sending pointer with size ", vector_ptr.rows())
         return VectorNd (vector_ptr.rows(), <uintptr_t> address)
 
 cdef class SpatialVector:
@@ -175,16 +174,25 @@ cdef class SpatialMatrix:
 #
 ##############################
 
-cdef crbdl.VectorNd NumpyToVectorNd (np.ndarray[double, ndim=1, mode="c"] x):
-    cdef crbdl.VectorNd cx = crbdl.VectorNd(x.shape[0])
-    for i in range (x.shape[0]):
+# Vector3d
+cdef crbdl.Vector3d NumpyToVector3d (np.ndarray[double, ndim=1, mode="c"] x):
+    cdef crbdl.Vector3d cx = crbdl.Vector3d()
+    for i in range (3):
         cx[i] = x[i]
 
     return cx
 
-cdef crbdl.Vector3d NumpyToVector3d (np.ndarray[double, ndim=1, mode="c"] x):
-    cdef crbdl.Vector3d cx = crbdl.Vector3d()
-    for i in range (3):
+cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
+# VectorNd
+cdef crbdl.VectorNd NumpyToVectorNd (np.ndarray[double, ndim=1, mode="c"] x):
+    cdef crbdl.VectorNd cx = crbdl.VectorNd(x.shape[0])
+    for i in range (x.shape[0]):
         cx[i] = x[i]
 
     return cx
@@ -196,13 +204,24 @@ cdef np.ndarray VectorNdToNumpy (crbdl.VectorNd cx):
 
     return result
 
-cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx):
-    result = np.ndarray ((cx.rows()))
-    for i in range (cx.rows()):
-        result[i] = cx[i]
+# MatrixNd
+cdef crbdl.MatrixNd NumpyToMatrixNd (np.ndarray[double, ndim=2, mode="c"] M):
+    cdef crbdl.MatrixNd cM = crbdl.MatrixNd(M.shape[0], M.shape[1])
+    for i in range (M.shape[0]):
+        for j in range (M.shape[1]):
+            (&(cM.coeff(i,j)))[0] = M[i,j]
+
+    return cM 
+
+cdef np.ndarray MatrixNdToNumpy (crbdl.MatrixNd cM):
+    result = np.ndarray ([cM.rows(), cM.cols()])
+    for i in range (cM.rows()):
+        for j in range (cM.cols()):
+            result[i,j] = cM.coeff(i,j)
 
     return result
 
+# SpatialVector
 cdef np.ndarray SpatialVectorToNumpy (crbdl.SpatialVector cx):
     result = np.ndarray ((cx.rows()))
     for i in range (cx.rows()):
@@ -930,6 +949,25 @@ def CalcPointAcceleration6D (Model model,
             NumpyToVector3d (body_point_position),
             update_kinematics 
             ))
+
+def CalcPointJacobian (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        np.ndarray[double, ndim=2, mode="c"] G,
+        update_kinematics=True):
+    cdef crbdlMatrixNd cG
+    cG = NumpyToMatrixNd (G)
+
+    crbdl.CalcPointJacobian (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            body_id,
+            NumpyToVector3d (body_point_position),
+            cG
+            update_kinematics 
+            ))
+
 
 ##############################
 #

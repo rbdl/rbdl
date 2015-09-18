@@ -18,12 +18,25 @@ namespace RigidBodyDynamics {
 
 namespace Math {
 
+// PTR_DATA_ROW_MAJOR :
+// Specifies whether the data that is provided via raw double pointers is
+// stored as row major. Eigen uses column major by default and therefore
+// this has to be properly mapped.
+#define PTR_DATA_ROW_MAJOR 1
+
 #ifdef RBDL_USE_SIMPLE_MATH
 	typedef VectorNd VectorNdRef;
 	typedef MatrixNd MatrixNdRef;
 #else
 	typedef Eigen::Ref<Eigen::VectorXd> VectorNdRef;
+
+#ifdef PTR_DATA_ROW_MAJOR
+	typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> MatrixNdRowMaj;
+	typedef Eigen::Ref<MatrixNdRowMaj> MatrixNdRef;
+#else
 	typedef Eigen::Ref<Eigen::MatrixXd> MatrixNdRef;
+#endif
+
 #endif
 
 RBDL_DLLAPI inline VectorNdRef VectorFromPtr (double *ptr, unsigned int n) {
@@ -42,7 +55,11 @@ RBDL_DLLAPI inline MatrixNdRef MatrixFromPtr (double *ptr, unsigned int rows, un
 #ifdef RBDL_USE_SIMPLE_MATH
 	return SimpleMath::Map<MatrixNd> (ptr, rows, cols);
 #elif defined EIGEN_CORE_H
+#ifdef PTR_DATA_ROW_MAJOR
+	return Eigen::Map<MatrixNdRowMaj> (ptr, rows, cols);
+#else
 	return Eigen::Map<MatrixNd> (ptr, rows, cols);
+#endif
 #else
 	std::cerr << __func__ << " not defined for used math library!" << std::endl;
 	abort();
@@ -51,6 +68,135 @@ RBDL_DLLAPI inline MatrixNdRef MatrixFromPtr (double *ptr, unsigned int rows, un
 
 }
 
+}
+
+RBDL_DLLAPI
+void UpdateKinematicsCustomPtr (Model &model,
+		const double *q_ptr,
+		const double *qdot_ptr,
+		const double *qddot_ptr
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+	
+	using namespace RigidBodyDynamics::Math;
+
+	unsigned int i;
+
+	if (q_ptr) {
+		VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+
+		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int lambda = model.lambda[i];
+
+			VectorNd QDot_zero (VectorNd::Zero (model.q_size));
+
+			jcalc (model, i, (Q), QDot_zero);
+
+			model.X_lambda[i] = model.X_J[i] * model.X_T[i];
+
+			if (lambda != 0) {
+				model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
+			}	else {
+				model.X_base[i] = model.X_lambda[i];
+			}
+		}
+	}
+
+	if (qdot_ptr) {
+		VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+		VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
+
+		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int lambda = model.lambda[i];
+
+			jcalc (model, i, Q, QDot);
+
+			if (lambda != 0) {
+				model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
+				model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
+			}	else {
+				model.v[i] = model.v_J[i];
+				model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
+			}
+			// LOG << "v[" << i << "] = " << model.v[i].transpose() << std::endl;
+		}
+	}
+
+	if (qddot_ptr) {
+		VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+		VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
+		VectorNdRef QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
+
+		for (i = 1; i < model.mBodies.size(); i++) {
+			unsigned int q_index = model.mJoints[i].q_index;
+
+			unsigned int lambda = model.lambda[i];
+
+			if (lambda != 0) {
+				model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
+			}	else {
+				model.a[i] = model.c[i];
+			}
+
+			if (model.mJoints[i].mDoFCount == 3) {
+				Vector3d omegadot_temp ((QDDot)[q_index], (QDDot)[q_index + 1], (QDDot)[q_index + 2]);
+				model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
+			} else {
+				model.a[i] = model.a[i] + model.S[i] * (QDDot)[q_index];
+			}
+		}
+	}
+}
+
+RBDL_DLLAPI
+void CalcPointJacobianPtr (
+		Model &model,
+		const double *q_ptr,
+		unsigned int body_id,
+		const Math::Vector3d &point_position,
+		double * G_ptr,
+		bool update_kinematics
+	) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	using namespace RigidBodyDynamics::Math;
+
+	// update the Kinematics if necessary
+	if (update_kinematics) {
+		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
+	}
+
+	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
+
+
+	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 3, model.q_size);
+
+	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
+
+	assert (G.rows() == 3 && G.cols() == model.qdot_size );
+
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
+	unsigned int j = reference_body_id;
+
+	// e[j] is set to 1 if joint j contributes to the jacobian that we are
+	// computing. For all other joints the column will be zero.
+	while (j != 0) {
+		unsigned int q_index = model.mJoints[j].q_index;
+
+		if (model.mJoints[j].mDoFCount == 3) {
+			G.block(0, q_index, 3, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(3,0,3,3);
+		} else {
+			G.block(0,q_index, 3, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(3,0,3,1);
+		}
+
+		j = model.lambda[j];
+	}
 }
 
 RBDL_DLLAPI

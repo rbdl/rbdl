@@ -35,7 +35,7 @@ cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
 
     cdef cppclass MatrixNd:
         MatrixNd ()
-        MatrixNd (rows, cols)
+        MatrixNd (int rows, int cols)
         int rows()
         int cols()
         void resize (int,int)
@@ -311,6 +311,13 @@ cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
         vector[Vector3d] d_multdof3_u
 
 cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
+    cdef void CalcPointJacobianPtr (Model& model,
+            const double *q_ptr,
+            unsigned int body_id,
+            const Vector3d &point_position,
+            double *G,
+            bool update_kinematics)
+
     cdef void InverseDynamicsPtr (
             Model &model,
             const double* q_ptr,
