@@ -175,7 +175,7 @@ struct RBDL_DLLAPI ConstraintSet {
 	 * (optional, default: 0.)
 	 */
 	unsigned int AddConstraint (
-			unsigned int body_id,
+			const unsigned int body_id,
 			const Math::Vector3d &body_point,
 			const Math::Vector3d &world_normal,
 			const char *constraint_name = NULL,

@@ -5,6 +5,48 @@ from libcpp.string cimport string
 
 cimport crbdl
 
+cdef class Vector3d:
+    cdef crbdl.Vector3d *thisptr
+    cdef free_on_dealloc
+
+    def __cinit__(self, uintptr_t address=0, pyvalues=None):
+        if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdl.Vector3d()
+
+            if pyvalues != None:
+                for i in range (3):
+                    self.thisptr.data()[i] = pyvalues[i]
+        else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdl.Vector3d*>address
+
+    def __dealloc__(self):
+        if self.free_on_dealloc:
+            del self.thisptr
+
+    def __repr__(self):
+        return "Vector3d [{:3.4f}, {:3.4f}, {:3.4f}]".format (
+                self.thisptr.data()[0], self.thisptr.data()[1], self.thisptr.data()[2])
+
+    def __getitem__(self, key):
+        return self.thisptr.data()[key]
+
+    def __setitem__(self, key, value):
+        self.thisptr.data()[key] = value
+
+    def __len__ (self):
+        return 3
+
+    # Constructors
+    @classmethod
+    def fromPointer(cls, uintptr_t address):
+        return Vector3d (address)
+
+    @classmethod
+    def fromPythonArray (cls, python_values):
+        return Vector3d (0, python_values)
+
 cdef class SpatialVector:
     cdef crbdl.SpatialVector *thisptr
     cdef free_on_dealloc
@@ -77,12 +119,19 @@ cdef class SpatialMatrix:
 
 cdef class SpatialTransform:
     cdef crbdl.SpatialTransform *thisptr
+    cdef free_on_dealloc
 
-    def __cinit__(self):
-        self.thisptr = new crbdl.SpatialTransform()
-
+    def __cinit__(self, uintptr_t address=0):
+         if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdl.SpatialTransform()
+         else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdl.SpatialTransform*>address
+ 
     def __dealloc__(self):
-        del self.thisptr
+        if self.free_on_dealloc:
+            del self.thisptr
 
     def __repr__(self):
         return "SpatialTransform E = [ [{:3.4f}, {:3.4f}, {:3.4f}], [{:3.4f}, {:3.4f}, {:3.4f}], [{:3.4f}, {:3.4f}, {:3.4f}] ], r = [{:3.4f}, {:3.4f}, {:3.4f}]".format (
@@ -118,6 +167,11 @@ cdef class SpatialTransform:
         def __set__ (self, value):
             for i in range (3):
                 (&(self.thisptr.r[i]))[0] = value[i]
+
+    # Constructors
+    @classmethod
+    def fromPointer(cls, uintptr_t address):
+        return SpatialTransform (address)
 
 cdef class SpatialRigidBodyInertia:
     cdef crbdl.SpatialRigidBodyInertia *thisptr
@@ -263,7 +317,7 @@ cdef class Body:
             np.ndarray[double, ndim=1] com,
             np.ndarray[double, ndim=2] inertia):
 
-        return Body (0, mass, com, inertia)
+        return Body (address=0, mass=mass, com=com, inertia=inertia)
 
     # Properties
     property mMass:
@@ -509,6 +563,18 @@ cdef class Model:
                 body_name
                 )
 
+    def AppendBody (self, 
+            SpatialTransform joint_frame not None,
+            Joint joint not None,
+            Body body not None,
+            string body_name = ""):
+        return self.thisptr.AppendBody (
+                joint_frame.thisptr[0], 
+                joint.thisptr[0],
+                body.thisptr[0],
+                body_name
+                )
+
     def GetBody (self, index):
         return Body (<uintptr_t> &(self.thisptr.mBodies[index]))
 
@@ -594,19 +660,89 @@ cdef class Model:
 
     %VectorWrapperAddProperty (TYPE=Body, MEMBER=mBodies, PARENT=Model)%
 
+cdef class ConstraintSet
 
-cdef class VectorNd:
-    cdef crbdl.VectorNd *thisptr
+%VectorWrapperClassDefinitions(PARENT=ConstraintSet)%
 
-    def __cinit__ (self, ndim, uintptr_t data_ptr=0, pyvalues=None):
-        self.thisptr = new crbdl.VectorNd(ndim)
+cdef class ConstraintSet:
+    cdef crbdl.ConstraintSet *thisptr
+    %VectorWrapperMemberDefinitions (PARENT=ConstraintSet)%
 
-        if pyvalues != None:
-            for i in range (ndim):
-                self.thisptr.data()[i] = pyvalues[i]
+    def __cinit__(self):
+        self.thisptr = new crbdl.ConstraintSet()
+        %VectorWrapperCInitCode (PARENT=ConstraintSet)%
 
     def __dealloc__(self):
         del self.thisptr
+
+    def __repr__(self):
+        return "rbdl.ConstraintSet (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
+
+    def AddConstraint (self, 
+            body_id not None,
+            body_point not None,
+            world_normal not None,
+            constraint_name = None,
+            normal_acceleration = 0.):
+        cdef crbdl.Vector3d c_body_point
+        cdef crbdl.Vector3d c_world_normal
+
+        for i in range (3):
+            c_body_point[i] = body_point[i]
+            c_world_normal[i] = world_normal[i]
+
+        return self.thisptr.AddConstraint (
+                body_id,
+                c_body_point,
+                c_world_normal,
+                constraint_name,
+                normal_acceleration
+                )
+
+    def Bind (self, model):
+        return self.thisptr.Bind ((<Model>model).thisptr[0])
+
+    def size (self):
+        return self.thisptr.size()
+
+    def clear (self):
+        self.thisptr.clear()
+
+    property bound:
+        def __get__ (self):
+            return self.thisptr.bound
+
+#    %VectorWrapperAddProperty (TYPE=string, MEMBER=name, PARENT=ConstraintSet)%
+
+    %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=point, PARENT=ConstraintSet)%
+    %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=normal, PARENT=ConstraintSet)%
+
+#    property acceleration:
+#        def __get__(self):
+#            return VectorNd.fromPointer (<uintptr_t> &(self.thisptr.acceleration)).toNumpy()
+#        def __set__(self, values):
+#            vec = VectorNd.fromPythonArray (values)
+#            self.thisptr.acceleration = <crbdl.VectorNd> (vec.thisptr[0])
+
+cdef class VectorNd:
+    cdef crbdl.VectorNd *thisptr
+    cdef free_on_dealloc
+
+    def __cinit__(self, ndim, uintptr_t address=0, pyvalues=None):
+        if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdl.VectorNd(ndim)
+
+            if pyvalues != None:
+                for i in range (ndim):
+                    self.thisptr.data()[i] = pyvalues[i]
+        else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdl.VectorNd*>address
+
+    def __dealloc__(self):
+        if self.free_on_dealloc:
+            del self.thisptr
 
     def __getitem__(self, key):
         return self.thisptr.data()[key]
@@ -614,10 +750,79 @@ cdef class VectorNd:
     def __setitem__(self, key, value):
         self.thisptr.data()[key] = value
 
+    def __len__ (self):
+        return self.thisptr.rows()
+
+    def toNumpy (self):
+        result = np.ndarray (self.thisptr.rows())
+        for i in range (0, self.thisptr.rows()):
+            result[i] = self.thisptr[0][i]
+        return result
+
     # Constructors
     @classmethod
     def fromPythonArray (cls, python_values):
         return VectorNd (len(python_values), 0, python_values)
+
+    @classmethod
+    def fromPointer(cls, uintptr_t address):
+        cdef crbdl.VectorNd* vector_ptr = <crbdl.VectorNd*> address
+        print ("sending pointer with size ", vector_ptr.rows())
+        return VectorNd (vector_ptr.rows(), <uintptr_t> address)
+
+cdef crbdl.VectorNd NumpyToVectorNd (np.ndarray[double, ndim=1, mode="c"] x):
+    cdef crbdl.VectorNd cx = crbdl.VectorNd(x.shape[0])
+    for i in range (x.shape[0]):
+        cx[i] = x[i]
+
+    return cx
+
+cdef crbdl.Vector3d NumpyToVector3d (np.ndarray[double, ndim=1, mode="c"] x):
+    cdef crbdl.Vector3d cx = crbdl.Vector3d()
+    for i in range (3):
+        cx[i] = x[i]
+
+    return cx
+
+cdef np.ndarray VectorNdToNumpy (crbdl.VectorNd cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
+cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
+def CalcBodyToBaseCoordinates (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        update_kinematics=True):
+    return Vector3dToNumpy (crbdl.CalcBodyToBaseCoordinates (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            body_id,
+            NumpyToVector3d (body_point_position),
+            update_kinematics 
+            ))
+
+def CalcBaseToBodyCoordinates (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        update_kinematics=True):
+    return Vector3dToNumpy (crbdl.CalcBaseToBodyCoordinates (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            body_id,
+            NumpyToVector3d (body_point_position),
+            update_kinematics 
+            ))
 
 def InverseDynamics (Model model, 
         np.ndarray[double, ndim=1, mode="c"] q,

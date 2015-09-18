@@ -24,7 +24,7 @@ namespace RigidBodyDynamics {
 using namespace Math;
 
 unsigned int ConstraintSet::AddConstraint (
-		unsigned int body_id,
+		const unsigned int body_id,
 		const Vector3d &body_point,
 		const Vector3d &world_normal,
 		const char *constraint_name,

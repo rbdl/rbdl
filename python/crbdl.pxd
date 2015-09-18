@@ -57,10 +57,6 @@ cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
         double& coeff "operator()"(int,int)
         double* data()
 
-cdef extern from "<rbdl/rbdl_mathutils.h>" namespace "RigidBodyDynamics::Math":
-    cdef VectorNd VectorFromPtr (unsigned int n, double *ptr)
-    cdef MatrixNd MatrixFromPtr (unsigned int rows, unsigned int cols, double *ptr, bool row_major)
-
 cdef extern from "<rbdl/SpatialAlgebraOperators.h>" namespace "RigidBodyDynamics::Math":
     cdef cppclass SpatialTransform:
         SpatialTransform()
@@ -137,8 +133,14 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 const Body &body,
                 string body_name
                 )
-#        vector[unsigned int] lambda
-#        vector[unsigned int] lambda_q
+        unsigned int AppendBody (const SpatialTransform &joint_frame,
+                const Joint &joint,
+                const Body &body,
+                string body_name
+                )
+
+        vector[unsigned int] _lambda
+        vector[unsigned int] lambda_q
 #        vector[vector[unsigned int]] mu
 
         unsigned int dof_count
@@ -192,6 +194,81 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const VectorNd &q,
             const VectorNd &qdot,
             const VectorNd &qddot)
+
+    cdef Vector3d CalcBodyToBaseCoordinates (Model& model,
+            const VectorNd &q,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef Vector3d CalcBaseToBodyCoordinates (Model& model,
+            const VectorNd &q,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
+    cdef cppclass ConstraintSet:
+        ConstraintSet()
+        unsigned int AddConstraint (
+                unsigned int body_id,
+                const Vector3d &body_point,
+                const Vector3d &world_normal,
+                const char* constraint_name,
+                double normal_acceleration)
+
+        ConstraintSet Copy()
+        # void SetSolver (Math::LinearSolver solver)
+        bool Bind (const Model &model)
+
+        size_t size()
+        void clear()
+        # Math::LinearSolver
+        bool bound
+
+        vector[string] name
+        vector[unsigned int] body
+        vector[Vector3d] point
+        vector[Vector3d] normal
+
+        VectorNd acceleration
+        VectorNd force
+        VectorNd impulse
+        VectorNd v_plus
+
+        MatrixNd H
+        VectorNd C
+        VectorNd gamma
+        VectorNd G
+        
+        MatrixNd A
+        VectorNd b
+        VectorNd x
+
+        MatrixNd GT_qr_Q
+        MatrixNd Y
+        MatrixNd Z
+        VectorNd qddot_y
+        VectorNd qddot_z
+
+        MatrixNd K
+        VectorNd a
+        VectorNd QDDot_t
+        VectorNd QDDot_0
+
+        vector[SpatialVector] f_t
+        vector[SpatialVector] f_ext_constraints
+        vector[Vector3d] point_accel_0
+
+        vector[SpatialVector] d_pA
+        vector[SpatialVector] d_a
+        VectorNd d_u
+
+        vector[SpatialMatrix] d_IA
+        vector[SpatialVector] d_U
+        
+        VectorNd d_d
+        vector[Vector3d] d_multdof3_u
 
 cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
     cdef void InverseDynamicsPtr (

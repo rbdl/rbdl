@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import VectorWrapperTemplate
 import sys, re
 
 def usage(arg0):
@@ -37,6 +36,9 @@ wrapper_command_strings = {
 def parse_line (line_str):
     command = ""
     args = {}
+
+    # remove comments
+    line_str = line_str.split("#")[0]
 
     wrapper_line_str_match = re.search ("%VectorWrapper(\S*)\s*\((.*)\).*%", line_str)
     if (wrapper_line_str_match):
