@@ -1,3 +1,5 @@
+#cython: boundscheck=False
+
 import numpy as np
 cimport numpy as np
 from libc.stdint cimport uintptr_t
@@ -1525,4 +1527,19 @@ def ForwardDynamics (Model model,
             NULL
             )
 
+def loadModel (
+        filename,
+        verbose=False):
+    if filename[-4:] == ".lua":
+        result = Model()
+        crbdl.LuaModelReadFromFile (filename, result.thisptr, verbose)
+        return result
+    elif filename[-5:] == ".urdf":
+        result = Model()
+        crbdl.URDFReadFromFile (filename, result.thisptr, verbose)
+        return result
+    else:
+        print ("Invalid model type! Only .lua or .urdf are supported!")
+
+    return None
 

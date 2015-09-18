@@ -1,3 +1,5 @@
+#cython: boundscheck=False
+
 from libcpp.string cimport string
 from libcpp cimport bool
 from libcpp.vector cimport vector
@@ -339,7 +341,7 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             const double* qddot_ptr,
             double* tau_ptr,
             vector[SpatialVector] *f_ext
-            ) 
+            )
 
     cdef void CompositeRigidBodyAlgorithmPtr (Model& model,
             const double *q,
@@ -354,5 +356,17 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             const double* qddot_ptr,
             vector[SpatialVector] *f_ext
             ) 
+
+cdef extern from "<addons/luamodel/luamodel.h>" namespace "RigidBodyDynamics::Addons":
+    cdef bool LuaModelReadFromFile (
+            const char* filename, 
+            Model* model, 
+            bool verbose)
+
+cdef extern from "<addons/urdfreader/urdfreader.h>" namespace "RigidBodyDynamics::Addons":
+    cdef bool URDFReadFromFile (
+            const char* filename, 
+            Model* model, 
+            bool verbose)
 
 

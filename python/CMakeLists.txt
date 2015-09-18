@@ -32,9 +32,10 @@ SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES OUTPUT_NAME "rbdl")
 INCLUDE_DIRECTORIES (
 	${PROJECT_SOURCE_DIR}/include
 	${PROJECT_SOURCE_DIR}/python
+	${PROJECT_SOURCE_DIR}
 	)
 
-TARGET_LINK_LIBRARIES (rbdl-python rbdl)
+TARGET_LINK_LIBRARIES (rbdl-python rbdl_luamodel rbdl_urdfreader )
 
 INSTALL ( TARGETS rbdl-python
 	LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/python-2.7/rbdl
