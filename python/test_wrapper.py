@@ -119,5 +119,31 @@ class SampleModel3R (unittest.TestCase):
         self.assertEqual (3, mass)
         assert_almost_equal (np.array([0., 0., 1.5]), com)
 
+    def test_DynamicsConsistency (self):
+        """ Checks whether forward and inverse dynamics are consistent """
+        q = np.random.rand (self.model.q_size)
+        qdot = np.random.rand (self.model.q_size)
+        qddot = np.random.rand (self.model.q_size)
+
+        tau = np.random.rand (self.model.q_size)
+
+        rbdl.ForwardDynamics (
+                self.model,
+                q,
+                qdot,
+                tau,
+                qddot)
+
+        tau_id = np.zeros ((self.model.q_size))
+        rbdl.InverseDynamics (
+                self.model,
+                q,
+                qdot, 
+                qddot,
+                tau_id
+                )
+
+        assert_almost_equal (tau, tau_id)
+
 if __name__ == '__main__':
     unittest.main()
