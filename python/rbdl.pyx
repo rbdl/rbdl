@@ -5,6 +5,12 @@ from libcpp.string cimport string
 
 cimport crbdl
 
+##############################
+#
+# Linear Algebra Types
+#
+##############################
+
 cdef class Vector3d:
     cdef crbdl.Vector3d *thisptr
     cdef free_on_dealloc
@@ -46,6 +52,52 @@ cdef class Vector3d:
     @classmethod
     def fromPythonArray (cls, python_values):
         return Vector3d (0, python_values)
+
+cdef class VectorNd:
+    cdef crbdl.VectorNd *thisptr
+    cdef free_on_dealloc
+
+    def __cinit__(self, ndim, uintptr_t address=0, pyvalues=None):
+        if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdl.VectorNd(ndim)
+
+            if pyvalues != None:
+                for i in range (ndim):
+                    self.thisptr.data()[i] = pyvalues[i]
+        else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdl.VectorNd*>address
+
+    def __dealloc__(self):
+        if self.free_on_dealloc:
+            del self.thisptr
+
+    def __getitem__(self, key):
+        return self.thisptr.data()[key]
+
+    def __setitem__(self, key, value):
+        self.thisptr.data()[key] = value
+
+    def __len__ (self):
+        return self.thisptr.rows()
+
+    def toNumpy (self):
+        result = np.ndarray (self.thisptr.rows())
+        for i in range (0, self.thisptr.rows()):
+            result[i] = self.thisptr[0][i]
+        return result
+
+    # Constructors
+    @classmethod
+    def fromPythonArray (cls, python_values):
+        return VectorNd (len(python_values), 0, python_values)
+
+    @classmethod
+    def fromPointer(cls, uintptr_t address):
+        cdef crbdl.VectorNd* vector_ptr = <crbdl.VectorNd*> address
+        print ("sending pointer with size ", vector_ptr.rows())
+        return VectorNd (vector_ptr.rows(), <uintptr_t> address)
 
 cdef class SpatialVector:
     cdef crbdl.SpatialVector *thisptr
@@ -116,6 +168,53 @@ cdef class SpatialMatrix:
     @classmethod
     def fromPointer(cls, uintptr_t address):
         return SpatialMatrix (address)
+
+##############################
+#
+# Conversion Numpy <-> Eigen
+#
+##############################
+
+cdef crbdl.VectorNd NumpyToVectorNd (np.ndarray[double, ndim=1, mode="c"] x):
+    cdef crbdl.VectorNd cx = crbdl.VectorNd(x.shape[0])
+    for i in range (x.shape[0]):
+        cx[i] = x[i]
+
+    return cx
+
+cdef crbdl.Vector3d NumpyToVector3d (np.ndarray[double, ndim=1, mode="c"] x):
+    cdef crbdl.Vector3d cx = crbdl.Vector3d()
+    for i in range (3):
+        cx[i] = x[i]
+
+    return cx
+
+cdef np.ndarray VectorNdToNumpy (crbdl.VectorNd cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
+cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
+cdef np.ndarray SpatialVectorToNumpy (crbdl.SpatialVector cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
+##############################
+#
+# Spatial Algebra Types
+#
+##############################
 
 cdef class SpatialTransform:
     cdef crbdl.SpatialTransform *thisptr
@@ -258,6 +357,12 @@ cdef class SpatialRigidBodyInertia:
 
         def __set__ (self, value):
             self.thisptr.Izz = value
+
+##############################
+#
+# Rigid Multibody Types
+#
+##############################
 
 cdef class Body:
     cdef crbdl.Body *thisptr
@@ -1057,6 +1162,12 @@ cdef class Model:
             return self.mBodies
 
 
+##############################
+#
+# Constraint Types
+#
+##############################
+
 cdef class ConstraintSet
 
 cdef class _ConstraintSet_point_Vector3d_VectorWrapper:
@@ -1158,86 +1269,11 @@ cdef class ConstraintSet:
 #            vec = VectorNd.fromPythonArray (values)
 #            self.thisptr.acceleration = <crbdl.VectorNd> (vec.thisptr[0])
 
-cdef class VectorNd:
-    cdef crbdl.VectorNd *thisptr
-    cdef free_on_dealloc
-
-    def __cinit__(self, ndim, uintptr_t address=0, pyvalues=None):
-        if address == 0:
-            self.free_on_dealloc = True
-            self.thisptr = new crbdl.VectorNd(ndim)
-
-            if pyvalues != None:
-                for i in range (ndim):
-                    self.thisptr.data()[i] = pyvalues[i]
-        else:
-            self.free_on_dealloc = False
-            self.thisptr = <crbdl.VectorNd*>address
-
-    def __dealloc__(self):
-        if self.free_on_dealloc:
-            del self.thisptr
-
-    def __getitem__(self, key):
-        return self.thisptr.data()[key]
-
-    def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
-
-    def __len__ (self):
-        return self.thisptr.rows()
-
-    def toNumpy (self):
-        result = np.ndarray (self.thisptr.rows())
-        for i in range (0, self.thisptr.rows()):
-            result[i] = self.thisptr[0][i]
-        return result
-
-    # Constructors
-    @classmethod
-    def fromPythonArray (cls, python_values):
-        return VectorNd (len(python_values), 0, python_values)
-
-    @classmethod
-    def fromPointer(cls, uintptr_t address):
-        cdef crbdl.VectorNd* vector_ptr = <crbdl.VectorNd*> address
-        print ("sending pointer with size ", vector_ptr.rows())
-        return VectorNd (vector_ptr.rows(), <uintptr_t> address)
-
-cdef crbdl.VectorNd NumpyToVectorNd (np.ndarray[double, ndim=1, mode="c"] x):
-    cdef crbdl.VectorNd cx = crbdl.VectorNd(x.shape[0])
-    for i in range (x.shape[0]):
-        cx[i] = x[i]
-
-    return cx
-
-cdef crbdl.Vector3d NumpyToVector3d (np.ndarray[double, ndim=1, mode="c"] x):
-    cdef crbdl.Vector3d cx = crbdl.Vector3d()
-    for i in range (3):
-        cx[i] = x[i]
-
-    return cx
-
-cdef np.ndarray VectorNdToNumpy (crbdl.VectorNd cx):
-    result = np.ndarray ((cx.rows()))
-    for i in range (cx.rows()):
-        result[i] = cx[i]
-
-    return result
-
-cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx):
-    result = np.ndarray ((cx.rows()))
-    for i in range (cx.rows()):
-        result[i] = cx[i]
-
-    return result
-
-cdef np.ndarray SpatialVectorToNumpy (crbdl.SpatialVector cx):
-    result = np.ndarray ((cx.rows()))
-    for i in range (cx.rows()):
-        result[i] = cx[i]
-
-    return result
+##############################
+#
+# Kinematics.h
+#
+##############################
 
 def CalcBodyToBaseCoordinates (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
@@ -1328,6 +1364,68 @@ def CalcPointAcceleration6D (Model model,
             NumpyToVector3d (body_point_position),
             update_kinematics 
             ))
+
+##############################
+#
+# rbdl_utils.h
+#
+##############################
+
+def CalcCenterOfMass (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] com,
+        np.ndarray[double, ndim=1, mode="c"] com_velocity=None,
+        np.ndarray[double, ndim=1, mode="c"] angular_momentum=None,
+        update_kinematics=True):
+    cdef double cmass
+    cdef crbdl.Vector3d c_com = crbdl.Vector3d()
+    cdef crbdl.Vector3d* c_com_vel_ptr # = crbdl.Vector3d()
+    cdef crbdl.Vector3d* c_ang_momentum_ptr # = crbdl.Vector3d()
+
+    c_com_vel_ptr = <crbdl.Vector3d*> NULL
+    c_ang_momentum_ptr = <crbdl.Vector3d*> NULL
+
+    if com_velocity != None:
+        c_com_vel_ptr = new crbdl.Vector3d()
+
+    if angular_momentum != None:
+        c_ang_momentum_ptr = new crbdl.Vector3d()
+
+    cmass = 0.0
+    crbdl.CalcCenterOfMass (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            NumpyToVectorNd (qdot),
+            cmass,
+            c_com,
+            c_com_vel_ptr,
+            c_ang_momentum_ptr,
+            update_kinematics)
+
+    com[0] = c_com[0]
+    com[1] = c_com[1]
+    com[2] = c_com[2]
+
+    if com_velocity != None:
+        com_velocity[0] = c_com_vel_ptr.data()[0]
+        com_velocity[1] = c_com_vel_ptr.data()[1]
+        com_velocity[2] = c_com_vel_ptr.data()[2]
+        del c_com_vel_ptr
+
+    if angular_momentum != None:
+        angular_momentum[0] = c_ang_momentum_ptr.data()[0]
+        angular_momentum[1] = c_ang_momentum_ptr.data()[1]
+        angular_momentum[2] = c_ang_momentum_ptr.data()[2]
+        del c_ang_momentum_ptr
+
+    return cmass 
+
+##############################
+#
+# Dynamics.h
+#
+##############################
 
 def InverseDynamics (Model model, 
         np.ndarray[double, ndim=1, mode="c"] q,

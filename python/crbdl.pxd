@@ -237,6 +237,16 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const Vector3d &body_point_coordinates,
             bool update_kinematics)
 
+cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
+    cdef void CalcCenterOfMass (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            double &mass,
+            Vector3d &com,
+            Vector3d *com_velocity,
+            Vector3d *angular_momentum,
+            bool update_kinematics)
+
 cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
     cdef cppclass ConstraintSet:
         ConstraintSet()

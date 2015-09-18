@@ -74,5 +74,50 @@ class SampleModel3R (unittest.TestCase):
 
         assert_almost_equal (np.array([2., 0., 0.]), point_vel)
 
+    def test_CalcCenterOfMass (self):
+        """ Tests calculation of center of mass
+        TODO: add checks for angular momentum
+        """
+
+        com = np.array ([-1., -1., -1.])
+        com_vel = np.array([-2., -2., -2.])
+        ang_mom = np.array([-3., -3., -3.])
+        self.qdot[0] = 1.
+
+        mass = rbdl.CalcCenterOfMass (
+                self.model,
+                self.q,
+                self.qdot,
+                com,
+                None,
+                None 
+                )
+        self.assertEqual (3, mass)
+        assert_almost_equal (np.array([0., 0., 1.5]), com)
+        assert_almost_equal (np.array([0., 0., 1.5]), com)
+
+        mass = rbdl.CalcCenterOfMass (
+                self.model,
+                self.q,
+                self.qdot,
+                com,
+                com_vel,
+                None 
+                )
+        self.assertEqual (3, mass)
+        assert_almost_equal (np.array([0., 0., 1.5]), com)
+        assert_almost_equal (np.array([1.5, 0., 0.0]), com_vel)
+
+        mass = rbdl.CalcCenterOfMass (
+                self.model,
+                self.q,
+                self.qdot,
+                com,
+                com_vel,
+                ang_mom
+                )
+        self.assertEqual (3, mass)
+        assert_almost_equal (np.array([0., 0., 1.5]), com)
+
 if __name__ == '__main__':
     unittest.main()
