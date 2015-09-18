@@ -956,18 +956,43 @@ def CalcPointJacobian (Model model,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         np.ndarray[double, ndim=2, mode="c"] G,
         update_kinematics=True):
-    cdef crbdlMatrixNd cG
-    cG = NumpyToMatrixNd (G)
-
-    crbdl.CalcPointJacobian (
+    crbdl.CalcPointJacobianPtr (
             model.thisptr[0],
-            NumpyToVectorNd (q),
+            <double*>q.data,
             body_id,
             NumpyToVector3d (body_point_position),
-            cG
+            <double*>G.data,
             update_kinematics 
-            ))
+            )
 
+def CalcPointJacobian6D (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        np.ndarray[double, ndim=2, mode="c"] G,
+        update_kinematics=True):
+    crbdl.CalcPointJacobian6DPtr (
+            model.thisptr[0],
+            <double*>q.data,
+            body_id,
+            NumpyToVector3d (body_point_position),
+            <double*>G.data,
+            update_kinematics 
+            )
+
+def CalcBodySpatialJacobian(Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        int body_id,
+        np.ndarray[double, ndim=1, mode="c"] body_point_position,
+        np.ndarray[double, ndim=2, mode="c"] G,
+        update_kinematics=True):
+    crbdl.CalcBodySpatialJacobianPtr(
+            model.thisptr[0],
+            <double*>q.data,
+            body_id,
+            <double*>G.data,
+            update_kinematics 
+            )
 
 ##############################
 #

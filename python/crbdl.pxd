@@ -318,6 +318,20 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             double *G,
             bool update_kinematics)
 
+    cdef void CalcPointJacobian6DPtr (Model &model,
+            const double *q_ptr,
+            unsigned int body_id,
+            const Vector3d &point_position,
+            double *G,
+            bool update_kinematics)
+
+    cdef void CalcBodySpatialJacobianPtr (
+            Model &model,
+            const double *q_ptr,
+            unsigned int body_id,
+            double *G,
+            bool update_kinematics)
+
     cdef void InverseDynamicsPtr (
             Model &model,
             const double* q_ptr,

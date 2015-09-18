@@ -65,7 +65,6 @@ RBDL_DLLAPI inline MatrixNdRef MatrixFromPtr (double *ptr, unsigned int rows, un
 	abort();
 	return MatrixNd::Constant (1,1, 1./0.);
 #endif
-
 }
 
 }
@@ -167,8 +166,6 @@ void CalcPointJacobianPtr (
 	}
 
 	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
-
-
 	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 3, model.q_size);
 
 	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
@@ -195,6 +192,102 @@ void CalcPointJacobianPtr (
 			G.block(0,q_index, 3, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(3,0,3,1);
 		}
 
+		j = model.lambda[j];
+	}
+}
+
+RBDL_DLLAPI
+void CalcPointJacobian6DPtr (
+		Model &model,
+		const double *q_ptr,
+		unsigned int body_id,
+		const Math::Vector3d &point_position,
+		double *G_ptr,
+		bool update_kinematics
+	) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	using namespace RigidBodyDynamics::Math;
+
+	// update the Kinematics if necessary
+	if (update_kinematics) {
+		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
+	}
+
+	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
+	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.q_size);
+
+	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
+
+	assert (G.rows() == 6 && G.cols() == model.qdot_size );
+
+	unsigned int reference_body_id = body_id;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+	}
+
+	unsigned int j = reference_body_id;
+
+	while (j != 0) {
+		unsigned int q_index = model.mJoints[j].q_index;
+
+		if (model.mJoints[j].mDoFCount == 3) {
+			G.block(0, q_index, 6, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(0,0,6,3);
+		} else {
+			G.block(0,q_index, 6, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(0,0,6,1);
+		}
+
+		j = model.lambda[j];
+	}
+}
+
+RBDL_DLLAPI
+void CalcBodySpatialJacobianPtr (
+		Model &model,
+		const double *q_ptr,
+		unsigned int body_id,
+		double *G_ptr,
+		bool update_kinematics
+	) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	using namespace RigidBodyDynamics::Math;
+
+	// update the Kinematics if necessary
+	if (update_kinematics) {
+		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
+	}
+
+	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
+	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.q_size);
+
+	assert (G.rows() == 6 && G.cols() == model.qdot_size );
+
+	unsigned int reference_body_id = body_id;
+
+	SpatialTransform base_to_body;
+
+	if (model.IsFixedBodyId(body_id)) {
+		unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+		reference_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+		base_to_body = model.mFixedBodies[fbody_id].mParentTransform * model.X_base[reference_body_id];
+	} else {
+		base_to_body = model.X_base[reference_body_id];
+	}
+
+	unsigned int j = reference_body_id;
+
+	while (j != 0) {
+		unsigned int q_index = model.mJoints[j].q_index;
+
+		if (model.mJoints[j].mDoFCount == 3) {
+			G.block(0,q_index,6,3) = (base_to_body * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j];
+		} else {
+			G.block(0,q_index,6,1) = base_to_body.apply(model.X_base[j].inverse().apply(model.S[j]));
+		}
+	
 		j = model.lambda[j];
 	}
 }
