@@ -13,31 +13,54 @@ INCLUDE_DIRECTORIES (
 	${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/
 )
 
-# Options
 SET ( URDFREADER_SOURCES
 	urdfreader.cc
-	thirdparty/urdf/urdfdom/urdf_parser/src/check_urdf.cpp	
-	thirdparty/urdf/urdfdom/urdf_parser/src/pose.cpp
-	thirdparty/urdf/urdfdom/urdf_parser/src/model.cpp
-	thirdparty/urdf/urdfdom/urdf_parser/src/link.cpp
-	thirdparty/urdf/urdfdom/urdf_parser/src/joint.cpp
-	thirdparty/urdf/urdfdom/urdf_parser/include/urdf_parser/urdf_parser.h
-	thirdparty/urdf/urdfdom_headers/urdf_exception/include/urdf_exception/exception.h	
-	thirdparty/urdf/urdfdom_headers/urdf_model/include/urdf_model/pose.h
-	thirdparty/urdf/urdfdom_headers/urdf_model/include/urdf_model/model.h
-	thirdparty/urdf/urdfdom_headers/urdf_model/include/urdf_model/link.h
-	thirdparty/urdf/urdfdom_headers/urdf_model/include/urdf_model/joint.h
-	thirdparty/tinyxml/tinystr.cpp
-	thirdparty/tinyxml/tinyxml.cpp
-	thirdparty/tinyxml/tinyxmlerror.cpp
-	thirdparty/tinyxml/tinyxmlparser.cpp
-	thirdparty/urdf/boost_replacement/lexical_cast.h
-	thirdparty/urdf/boost_replacement/shared_ptr.h
-	thirdparty/urdf/boost_replacement/printf_console.cpp
-	thirdparty/urdf/boost_replacement/printf_console.h
-	thirdparty/urdf/boost_replacement/string_split.cpp
-	thirdparty/urdf/boost_replacement/string_split.h
 	)
+
+IF (DEFINED ENV{ROS_ROOT})
+	MESSAGE (STATUS "ROS found: $ENV{ROS_ROOT}")
+	find_package(catkin REQUIRED COMPONENTS urdf)
+	OPTION (RBDL_USE_ROS_URDF_LIBRARY "Use the URDF library provided by ROS" ON)
+ELSE ()
+	SET (RBDL_USE_ROS_URDF_LIBRARY FALSE)
+ENDIF ()
+
+IF (RBDL_USE_ROS_URDF_LIBRARY)
+	#	find_package(Boost REQUIRED COMPONENTS system)
+	SET (URDFREADER_DEPENDENCIES
+		rbdl
+		${urdf_LIBRARIES}
+		#		${Boost_SYSTEM_LIBRARY}
+		)
+ELSE()
+	SET (URDFREADER_SOURCES
+		${URDFREADER_SOURCES}
+		thirdparty/urdf/urdfdom/urdf_parser/src/check_urdf.cpp	
+		thirdparty/urdf/urdfdom/urdf_parser/src/pose.cpp
+		thirdparty/urdf/urdfdom/urdf_parser/src/model.cpp
+		thirdparty/urdf/urdfdom/urdf_parser/src/link.cpp
+		thirdparty/urdf/urdfdom/urdf_parser/src/joint.cpp
+		thirdparty/urdf/urdfdom/urdf_parser/include/urdf_parser/urdf_parser.h
+		thirdparty/urdf/urdfdom_headers/urdf_exception/include/urdf_exception/exception.h	
+		thirdparty/urdf/urdfdom_headers/urdf_model/include/urdf_model/pose.h
+		thirdparty/urdf/urdfdom_headers/urdf_model/include/urdf_model/model.h
+		thirdparty/urdf/urdfdom_headers/urdf_model/include/urdf_model/link.h
+		thirdparty/urdf/urdfdom_headers/urdf_model/include/urdf_model/joint.h
+		thirdparty/tinyxml/tinystr.cpp
+		thirdparty/tinyxml/tinyxml.cpp
+		thirdparty/tinyxml/tinyxmlerror.cpp
+		thirdparty/tinyxml/tinyxmlparser.cpp
+		thirdparty/urdf/boost_replacement/lexical_cast.h
+		thirdparty/urdf/boost_replacement/shared_ptr.h
+		thirdparty/urdf/boost_replacement/printf_console.cpp
+		thirdparty/urdf/boost_replacement/printf_console.h
+		thirdparty/urdf/boost_replacement/string_split.cpp
+		thirdparty/urdf/boost_replacement/string_split.h
+		)
+	SET (URDFREADER_DEPENDENCIES
+		rbdl
+		)
+ENDIF()
 
 ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
 
@@ -68,12 +91,11 @@ ELSE (RBDL_BUILD_STATIC)
   )
 
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader
-		rbdl
+		${URDFREADER_DEPENDENCIES}
 		)
 
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader_util
 		rbdl_urdfreader
-		rbdl
 		)
 
 	INSTALL (TARGETS rbdl_urdfreader rbdl_urdfreader_util
