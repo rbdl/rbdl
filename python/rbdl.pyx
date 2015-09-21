@@ -1529,14 +1529,22 @@ def ForwardDynamics (Model model,
 
 def loadModel (
         filename,
-        verbose=False):
+        **kwargs
+        ):
+    verbose = False
+    if "verbose" in kwargs.keys():
+        verbose=kwargs["verbose"]
+
     if filename[-4:] == ".lua":
         result = Model()
         crbdl.LuaModelReadFromFile (filename, result.thisptr, verbose)
         return result
     elif filename[-5:] == ".urdf":
         result = Model()
-        crbdl.URDFReadFromFile (filename, result.thisptr, verbose)
+        floating_base = False
+        if "floating_base" in kwargs.keys():
+            floating_base=kwargs["floating_base"]
+        crbdl.URDFReadFromFile (filename, result.thisptr, floating_base, verbose)
         return result
     else:
         print ("Invalid model type! Only .lua or .urdf are supported!")

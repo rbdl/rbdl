@@ -367,6 +367,7 @@ cdef extern from "<addons/urdfreader/urdfreader.h>" namespace "RigidBodyDynamics
     cdef bool URDFReadFromFile (
             const char* filename, 
             Model* model, 
+            bool floating_base,
             bool verbose)
 
 

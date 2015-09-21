@@ -202,7 +202,16 @@ struct FloatingBase12DoF {
 				Vector3d (0.5, 0., 0.),
 				Vector3d (1., 1., 1.)
 				);
-		base_rot_x_id = model->SetFloatingBaseBody(base_rot_x);
+		base_rot_x_id = model->AddBody (0, SpatialTransform(), 
+				Joint (
+					SpatialVector (0., 0., 0., 1., 0., 0.),
+					SpatialVector (0., 0., 0., 0., 1., 0.),
+					SpatialVector (0., 0., 0., 0., 0., 1.),
+					SpatialVector (0., 0., 1., 0., 0., 0.),
+					SpatialVector (0., 1., 0., 0., 0., 0.),
+					SpatialVector (1., 0., 0., 0., 0., 0.)
+					),
+				base_rot_x);
 
 		// child body 1 (3 DoF)
 		child_rot_z = Body (
@@ -596,10 +605,13 @@ struct TwoArms12DoF {
 
 struct FixedBase6DoF12DoFFloatingBase {
 	FixedBase6DoF12DoFFloatingBase () {
-		ClearLogOutput();
-		model = new RigidBodyDynamics::Model;
+		using namespace RigidBodyDynamics;
+		using namespace RigidBodyDynamics::Math;
 
-		model->gravity = RigidBodyDynamics::Math::Vector3d  (0., -9.81, 0.);
+		ClearLogOutput();
+		model = new Model;
+
+		model->gravity = Vector3d  (0., -9.81, 0.);
 
 		/* 3 DoF (rot.) joint at base
 		 * 3 DoF (rot.) joint child origin
@@ -614,42 +626,51 @@ struct FixedBase6DoF12DoFFloatingBase {
 		 */
 
 		// base body (3 DoF)
-		base = RigidBodyDynamics::Body (
+		base = Body (
 				1.,
-				RigidBodyDynamics::Math::Vector3d (0.5, 0., 0.),
-				RigidBodyDynamics::Math::Vector3d (1., 1., 1.)
+				Vector3d (0.5, 0., 0.),
+				Vector3d (1., 1., 1.)
 				);
-		base_id = model->SetFloatingBaseBody (base);
+		base_id = model->AddBody (0, SpatialTransform(), 
+				Joint (
+					SpatialVector (0., 0., 0., 1., 0., 0.),
+					SpatialVector (0., 0., 0., 0., 1., 0.),
+					SpatialVector (0., 0., 0., 0., 0., 1.),
+					SpatialVector (0., 0., 1., 0., 0., 0.),
+					SpatialVector (0., 1., 0., 0., 0., 0.),
+					SpatialVector (1., 0., 0., 0., 0., 0.)
+					),
+				base);	
 
 		// child body 1 (3 DoF)
-		child = RigidBodyDynamics::Body (
+		child = Body (
 				1.,
-				RigidBodyDynamics::Math::Vector3d (0., 0.5, 0.),
-				RigidBodyDynamics::Math::Vector3d (1., 1., 1.)
+				Vector3d (0., 0.5, 0.),
+				Vector3d (1., 1., 1.)
 				);
-		joint_rotzyx = RigidBodyDynamics::Joint (
-				RigidBodyDynamics::Math::SpatialVector (0., 0., 1., 0., 0., 0.),
-				RigidBodyDynamics::Math::SpatialVector (0., 1., 0., 0., 0., 0.),
-				RigidBodyDynamics::Math::SpatialVector (1., 0., 0., 0., 0., 0.)
+		joint_rotzyx = Joint (
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
 				);
-		child_id = model->AddBody (base_id, RigidBodyDynamics::Math::Xtrans (RigidBodyDynamics::Math::Vector3d (1., 0., 0.)), joint_rotzyx, child);
+		child_id = model->AddBody (base_id, Xtrans (Vector3d (1., 0., 0.)), joint_rotzyx, child);
 
 		// child body (3 DoF)
-		child_2 = RigidBodyDynamics::Body (
+		child_2 = Body (
 				1.,
-				RigidBodyDynamics::Math::Vector3d (0., 0.5, 0.),
-				RigidBodyDynamics::Math::Vector3d (1., 1., 1.)
+				Vector3d (0., 0.5, 0.),
+				Vector3d (1., 1., 1.)
 				);
-		child_2_id = model->AddBody (child_id, RigidBodyDynamics::Math::Xtrans (RigidBodyDynamics::Math::Vector3d (1., 0., 0.)), joint_rotzyx, child_2);
+		child_2_id = model->AddBody (child_id, Xtrans (Vector3d (1., 0., 0.)), joint_rotzyx, child_2);
 
-		Q = RigidBodyDynamics::Math::VectorNd::Constant (model->dof_count, 0.);
-		QDot = RigidBodyDynamics::Math::VectorNd::Constant (model->dof_count, 0.);
-		QDDot = RigidBodyDynamics::Math::VectorNd::Constant (model->dof_count, 0.);
-		Tau = RigidBodyDynamics::Math::VectorNd::Constant (model->dof_count, 0.);
+		Q = VectorNd::Constant (model->dof_count, 0.);
+		QDot = VectorNd::Constant (model->dof_count, 0.);
+		QDDot = VectorNd::Constant (model->dof_count, 0.);
+		Tau = VectorNd::Constant (model->dof_count, 0.);
 
 		contact_body_id = child_id;
-		contact_point = RigidBodyDynamics::Math::Vector3d  (0.5, 0.5, 0.);
-		contact_normal = RigidBodyDynamics::Math::Vector3d  (0., 1., 0.);
+		contact_point = Vector3d  (0.5, 0.5, 0.);
+		contact_normal = Vector3d  (0., 1., 0.);
 
 		ClearLogOutput();
 	}

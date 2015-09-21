@@ -191,7 +191,7 @@ namespace RigidBodyDynamics {
 
 				model.c_J[joint_id].set(0., 0., 0., 0., 0., 0.);
 			} else {
-				std::cerr << "Error: invalid joint type " << model.mJoints[joint_id].mJointType << " at id " << joint_id << std::endl;
+				std::cerr << "Error (" << __FILE__ << ":" << __LINE__ << ": invalid joint type " << model.mJoints[joint_id].mJointType << " at joint id " << joint_id << std::endl;
 				abort();
 			}
 
@@ -222,7 +222,7 @@ namespace RigidBodyDynamics {
 							);
 				}
 			}
-			std::cerr << "Error: invalid joint type!" << std::endl;
+			std::cerr << "Error (" << __FILE__ << ":" << __LINE__ << ": invalid joint type " << model.mJoints[joint_id].mJointType << " at joint id " << joint_id << std::endl;
 			abort();
 			return SpatialTransform();
 		}
@@ -367,7 +367,7 @@ namespace RigidBodyDynamics {
 				model.multdof3_S[joint_id](4,1) = 1.;
 				model.multdof3_S[joint_id](5,2) = 1.;
 			} else {
-				std::cerr << "Error: invalid joint type!" << std::endl;
+				std::cerr << "Error (" << __FILE__ << ":" << __LINE__ << ": invalid joint type " << model.mJoints[joint_id].mJointType << " at joint id " << joint_id << std::endl;
 				abort();
 			}
 		}

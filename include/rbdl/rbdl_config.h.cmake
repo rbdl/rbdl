@@ -18,6 +18,7 @@
 #cmakedefine RBDL_BUILD_ADDON_LUAMODEL
 #cmakedefine RBDL_BUILD_ADDON_URDFREADER
 #cmakedefine RBDL_BUILD_STATIC
+#cmakedefine RBDL_USE_ROS_URDF_LIBRARY
 
 /* compatibility defines */
 #ifdef _WIN32

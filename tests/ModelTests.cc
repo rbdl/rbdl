@@ -93,40 +93,35 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
 
 TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
 	Body body;
+	Joint float_base_joint (JointTypeFloatingBase);
 
-	model->SetFloatingBaseBody(body);
+	model->AppendBody (SpatialTransform(), float_base_joint, body);
 
-	CHECK_EQUAL (7u, model->lambda.size());
-	CHECK_EQUAL (7u, model->mu.size());
+	CHECK_EQUAL (3u, model->lambda.size());
+	CHECK_EQUAL (3u, model->mu.size());
 	CHECK_EQUAL (6u, model->dof_count);
+	CHECK_EQUAL (7u, model->q_size);
+	CHECK_EQUAL (6u, model->qdot_size);
 
-	CHECK_EQUAL (7u, model->v.size());
-	CHECK_EQUAL (7u, model->a.size());
+	CHECK_EQUAL (3u, model->v.size());
+	CHECK_EQUAL (3u, model->a.size());
 	
-	CHECK_EQUAL (7u, model->mJoints.size());
-	CHECK_EQUAL (7u, model->S.size());
+	CHECK_EQUAL (3u, model->mJoints.size());
+	CHECK_EQUAL (3u, model->S.size());
 
-	CHECK_EQUAL (7u, model->c.size());
-	CHECK_EQUAL (7u, model->IA.size());
-	CHECK_EQUAL (7u, model->pA.size());
-	CHECK_EQUAL (7u, model->U.size());
-	CHECK_EQUAL (7u, model->d.size());
-	CHECK_EQUAL (7u, model->u.size());
+	CHECK_EQUAL (3u, model->c.size());
+	CHECK_EQUAL (3u, model->IA.size());
+	CHECK_EQUAL (3u, model->pA.size());
+	CHECK_EQUAL (3u, model->U.size());
+	CHECK_EQUAL (3u, model->d.size());
+	CHECK_EQUAL (3u, model->u.size());
 
 	SpatialVector spatial_zero;
 	spatial_zero.setZero();
 	
-	CHECK_EQUAL (7u, model->X_lambda.size());
-	CHECK_EQUAL (7u, model->X_base.size());
-	CHECK_EQUAL (7u, model->mBodies.size());
-
-	CHECK_EQUAL (0u, model->mJoints[0].q_index);
-	CHECK_EQUAL (0u, model->mJoints[1].q_index);
-	CHECK_EQUAL (1u, model->mJoints[2].q_index);
-	CHECK_EQUAL (2u, model->mJoints[3].q_index);
-	CHECK_EQUAL (3u, model->mJoints[4].q_index);
-	CHECK_EQUAL (4u, model->mJoints[5].q_index);
-	CHECK_EQUAL (5u, model->mJoints[6].q_index);
+	CHECK_EQUAL (3u, model->X_lambda.size());
+	CHECK_EQUAL (3u, model->X_base.size());
+	CHECK_EQUAL (3u, model->mBodies.size());
 }
 
 /** \brief Tests whether the joint and body information stored in the Model are computed correctly 
@@ -207,7 +202,17 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
 TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
 	Body body;
-	unsigned int body_id = model->SetFloatingBaseBody (body);
+
+	unsigned int body_id = model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			body);
 
 	VectorNd q = VectorNd::Zero (model->dof_count);
 	VectorNd qdot = VectorNd::Zero (model->dof_count);
@@ -341,15 +346,6 @@ TEST ( Model6DoFJoint ) {
 
 	unsigned int body_id;
 
-	// in total we add two bodies to make sure that the transformations are
-	// correct.
-	body_id = model_std.SetFloatingBaseBody (body);
-
-	model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
-	model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
-	body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
-
-	// using a model with a 2 DoF joint
 	Joint joint_floating_base (
 		SpatialVector (0., 0., 0., 1., 0., 0.),
 		SpatialVector (0., 0., 0., 0., 1., 0.),
@@ -358,7 +354,13 @@ TEST ( Model6DoFJoint ) {
 		SpatialVector (0., 1., 0., 0., 0., 0.),
 		SpatialVector (1., 0., 0., 0., 0., 0.)
 		);
+	body_id = model_std.AddBody (0, SpatialTransform(), joint_floating_base, body);
 
+	model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
+	model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
+	body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+
+	// using a model with a 2 DoF joint
 	Joint joint_rot_zyx (
 		SpatialVector (0., 0., 1., 0., 0., 0.),
 		SpatialVector (0., 1., 0., 0., 0., 0.),
@@ -379,6 +381,8 @@ TEST ( Model6DoFJoint ) {
 
 	VectorNd QDDot_2 = VectorNd::Zero(model_std.dof_count);
 	VectorNd QDDot_std = VectorNd::Zero(model_std.dof_count);
+
+	assert (model_std.q_size == model_2.q_size);
 
 	ForwardDynamics (model_std, Q, QDot, Tau, QDDot_std);
 	ForwardDynamics (model_2, Q, QDot, Tau, QDDot_2);
