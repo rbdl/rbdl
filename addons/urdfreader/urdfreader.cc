@@ -42,7 +42,7 @@ typedef vector<JointPtr> URDFJointVector;
 typedef map<string, LinkPtr > URDFLinkMap;
 typedef map<string, JointPtr > URDFJointMap;
 
-bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
+bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base, bool verbose) {
 	LinkPtr urdf_root_link;
 
 	URDFLinkMap link_map;
@@ -91,22 +91,21 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 		Body root_link = Body (root_inertial_mass,
 				root_inertial_position,
 				root_inertial_inertia);
-		Joint root_joint = Joint (
-				SpatialVector (0., 0., 0., 1., 0., 0.),
-				SpatialVector (0., 0., 0., 0., 1., 0.),
-				SpatialVector (0., 0., 0., 0., 0., 1.),
-				SpatialVector (1., 0., 0., 0., 0., 0.),
-				SpatialVector (0., 1., 0., 0., 0., 0.),
-				SpatialVector (0., 0., 1., 0., 0., 0.));
+
+		Joint root_joint (JointTypeFixed);
+		if (floating_base) {
+			root_joint = JointTypeFloatingBase;
+		}
 
 		SpatialTransform root_joint_frame = SpatialTransform ();
 
 		if (verbose) {
 			cout << "+ Adding Root Body " << endl;
 			cout << "  joint frame: " << root_joint_frame << endl;
-			cout << "  joint dofs : " << root_joint.mDoFCount << endl;
-			for (unsigned int j = 0; j < root_joint.mDoFCount; j++) {
-				cout << "    " << j << ": " << root_joint.mJointAxes[j].transpose() << endl;
+			if (floating_base) {
+				cout << "  joint type : floating" << endl;
+			} else {
+				cout << "  joint type : fixed" << endl;
 			}
 			cout << "  body inertia: " << endl << root_link.mInertia << endl;
 			cout << "  body mass   : " << root_link.mMass << endl;
@@ -278,7 +277,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 	return true;
 }
 
-RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verbose) {
+RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool floating_base, bool verbose) {
 	ifstream model_file (filename);
 	if (!model_file) {
 		cerr << "Error opening file '" << filename << "'." << endl;
@@ -294,15 +293,15 @@ RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verb
 
 	model_file.close();
 
-	return URDFReadFromString (model_xml_string.c_str(), model, verbose);
+	return URDFReadFromString (model_xml_string.c_str(), model, floating_base, verbose);
 }
 
-RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string, Model* model, bool verbose) {
+RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string, Model* model, bool floating_base, bool verbose) {
 	assert (model);
 
 	ModelPtr urdf_model = urdf::parseURDF (model_xml_string);
  
-	if (!construct_model (model, urdf_model, verbose)) {
+	if (!construct_model (model, urdf_model, floating_base, verbose)) {
 		cerr << "Error constructing model from urdf file." << endl;
 		return false;
 	}

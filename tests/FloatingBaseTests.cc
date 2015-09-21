@@ -35,7 +35,16 @@ struct FloatingBaseFixture {
 };
 
 TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
-	base_body_id = model->SetFloatingBaseBody(base);
+	base_body_id = model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base);	
 
 	q = VectorNd::Constant(model->dof_count, 0.);
 	qdot = VectorNd::Constant(model->dof_count, 0.);
@@ -53,7 +62,16 @@ TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 	// floating base
-	base_body_id = model->SetFloatingBaseBody(base);
+	base_body_id = model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base);	
 
 	// body_a
 	Body body_a (1., Vector3d (1., 0., 0), Vector3d (1., 1., 1.));
@@ -142,7 +160,16 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 	// floating base
-	base_body_id = model->SetFloatingBaseBody(base);
+	base_body_id = model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base);	
 
 	VectorNd Q = VectorNd::Zero (model->dof_count);
 	VectorNd QDot = VectorNd::Zero (model->dof_count);
@@ -199,7 +226,16 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
 	// floating base
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
-	base_body_id = model->SetFloatingBaseBody(base);
+	base_body_id = model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base);	
 
 	VectorNd q = VectorNd::Zero (model->dof_count);
 	VectorNd qdot = VectorNd::Zero (model->dof_count);
@@ -253,7 +289,16 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
 	// floating base
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
-	base_body_id = model->SetFloatingBaseBody(base);
+	base_body_id = model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base);	
 
 	VectorNd q = VectorNd::Zero (model->dof_count);
 	VectorNd qdot = VectorNd::Zero (model->dof_count);
@@ -337,7 +382,16 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
 	// floating base
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
-	base_body_id = model->SetFloatingBaseBody(base);
+	base_body_id = model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base);
 
 	VectorNd q = VectorNd::Zero (model->dof_count);
 	VectorNd qdot = VectorNd::Zero (model->dof_count);
@@ -411,7 +465,16 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
 TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFull) {
 	// floating base
 	base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
-	base_body_id = model->SetFloatingBaseBody(base);
+	base_body_id = model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base);
 
 	VectorNd q = VectorNd::Zero (model->dof_count);
 	VectorNd qdot = VectorNd::Zero (model->dof_count);

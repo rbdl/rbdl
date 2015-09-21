@@ -29,7 +29,16 @@ struct CompositeRigidBodyFixture {
 TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsFloatingBase) {
 	Body base_body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
-	model->SetFloatingBaseBody(base_body);
+	model->AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base_body);
 
 	// Initialization of the input vectors
 	VectorNd Q = VectorNd::Constant ((size_t) model->dof_count, 0.);

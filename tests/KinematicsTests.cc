@@ -294,7 +294,17 @@ TEST_FIXTURE(KinematicsFixture, TestCalcBodyToBaseCoordinatesRotated) {
 TEST(TestCalcPointJacobian) {
 	Model model;
 	Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
-	unsigned int base_body_id = model.SetFloatingBaseBody(base_body);
+
+	unsigned int base_body_id = model.AddBody (0, SpatialTransform(), 
+			Joint (
+				SpatialVector (0., 0., 0., 1., 0., 0.),
+				SpatialVector (0., 0., 0., 0., 1., 0.),
+				SpatialVector (0., 0., 0., 0., 0., 1.),
+				SpatialVector (0., 0., 1., 0., 0., 0.),
+				SpatialVector (0., 1., 0., 0., 0., 0.),
+				SpatialVector (1., 0., 0., 0., 0., 0.)
+				),
+			base_body);
 
 	VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
 	VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);

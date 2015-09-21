@@ -450,12 +450,22 @@ struct RBDL_DLLAPI Model {
 		}
 	}
 
+	/** Gets the quaternion for body i (only valid if body i is connected by
+	 * a JointTypeSpherical joint)
+	 *
+	 * See \ref joint_singularities for details.
+	 */
 	Math::Quaternion GetQuaternion (unsigned int i, const Math::VectorNd &Q) const {
 		assert (mJoints[i].mJointType == JointTypeSpherical);
 		unsigned int q_index = mJoints[i].q_index;
 		return Math::Quaternion (Q[q_index], Q[q_index + 1], Q[q_index + 2], Q[multdof3_w_index[i]]);
 	}
 
+	/** Sets the quaternion for body i (only valid if body i is connected by
+	 * a JointTypeSpherical joint)
+	 *
+	 * See \ref joint_singularities for details.
+	 */
 	void SetQuaternion (unsigned int i, const Math::Quaternion &quat, Math::VectorNd &Q) const {
 		assert (mJoints[i].mJointType == JointTypeSpherical);
 		unsigned int q_index = mJoints[i].q_index;

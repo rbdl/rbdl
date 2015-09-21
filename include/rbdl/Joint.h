@@ -102,7 +102,22 @@ struct Model;
  * counterparts as they are considerably faster and describe the same
  * kinematics and dynamics.
 
- * \section joint_singularities Singularities
+ * \section joint_floatingbase Floating-Base Joint (a.k.a. Freeflyer Joint)
+ *
+ * RBDL has a special joint type for floating-base systems that uses the
+ * enum JointTypeFloatingBase. The first three DoF are translations along
+ * X,Y, and Z. For the rotational part it uses a JointTypeSpherical joint.
+ * It is internally modeled by a JointTypeTranslationXYZ and a
+ * JointTypeSpherical joint. It is recommended to only use this joint for
+ * the very first body added to the model.
+ *
+ * Positional variables are translations along X, Y, and Z, and for
+ * rotations it uses Quaternions. To set/get the orientation use
+ * Model::SetQuaternion () / Model::GetQuaternion() with the body id
+ * returned when adding the floating base (i.e. the call to
+ * Model::AddBody() or Model::AppendBody()).
+
+ * \section joint_singularities Joint Singularities
  
  * Singularities in the models arise when a joint has three rotational
  * degrees of freedom and the rotations are described by Euler- or
@@ -172,6 +187,7 @@ enum JointType {
 	JointTypeEulerXYZ, ///< 3 DoF joint that uses Euler XYZ convention (faster than emulated multi DoF joints).
 	JointTypeEulerYXZ, ///< 3 DoF joint that uses Euler YXZ convention (faster than emulated multi DoF joints).
 	JointTypeTranslationXYZ,
+	JointTypeFloatingBase, ///< A 6-DoF joint for floating-base (or freeflyer) systems.
 	JointTypeFixed, ///< Fixed joint which causes the inertial properties to be merged with the parent body.
 	JointType1DoF,
 	JointType2DoF, ///< Emulated 2 DoF joint.
@@ -250,7 +266,7 @@ struct RBDL_DLLAPI Joint {
 				mJointAxes[0] = Math::SpatialVector (0., 0., 0., 1., 0., 0.);
 				mJointAxes[1] = Math::SpatialVector (0., 0., 0., 0., 1., 0.);
 				mJointAxes[2] = Math::SpatialVector (0., 0., 0., 0., 0., 1.);
-			} else if (type != JointTypeFixed) {
+			} else if (type != JointTypeFixed && type != JointTypeFloatingBase) {
 				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
 				assert (0);
 				abort();

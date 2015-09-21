@@ -150,6 +150,9 @@ unsigned int AddBodyMultiDofJoint (
 		joint_count = 5;
 	else if (joint.mJointType == JointType6DoF)
 		joint_count = 6;
+	else if (joint.mJointType == JointTypeFloatingBase)
+		// no action required
+	{}
 	else {
 		std::cerr << "Error: Invalid joint type: " << joint.mJointType << std::endl;
 		assert (0 && !"Invalid joint type!");
@@ -160,6 +163,11 @@ unsigned int AddBodyMultiDofJoint (
 
 	unsigned int null_parent = parent_id;
 	SpatialTransform joint_frame_transform;
+
+	if (joint.mJointType == JointTypeFloatingBase) {
+		null_parent = model.AddBody (parent_id, joint_frame, JointTypeTranslationXYZ, null_body);
+		return model.AddBody (null_parent, SpatialTransform(), JointTypeSpherical, body, body_name);
+	}
 
 	Joint single_dof_joint;
 	unsigned int j;
@@ -380,26 +388,4 @@ unsigned int Model::AppendBody (
 		) {
 	return Model::AddBody (previously_added_body_id, joint_frame,
 			joint, body, body_name);
-}
-
-unsigned int Model::SetFloatingBaseBody (const Body &body) {
-	assert (lambda.size() >= 0);
-
-	// Add five zero weight bodies and append the given body last. Order of
-	// the degrees of freedom is:
-	// 		tx ty tz rz ry rx
-	//
-
-	Joint floating_base_joint (
-			SpatialVector (0., 0., 0., 1., 0., 0.),
-			SpatialVector (0., 0., 0., 0., 1., 0.),
-			SpatialVector (0., 0., 0., 0., 0., 1.),
-			SpatialVector (0., 0., 1., 0., 0., 0.),
-			SpatialVector (0., 1., 0., 0., 0., 0.),
-			SpatialVector (1., 0., 0., 0., 0., 0.)
-			);
-
-	unsigned int body_id = this->AddBody (0, Xtrans (Vector3d (0., 0., 0.)), floating_base_joint, body);
-
-	return body_id;
 }
