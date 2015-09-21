@@ -38,10 +38,21 @@ cdef class Vector3d:
                 self.thisptr.data()[0], self.thisptr.data()[1], self.thisptr.data()[2])
 
     def __getitem__(self, key):
-        return self.thisptr.data()[key]
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 3
@@ -84,7 +95,14 @@ cdef class Matrix3d:
         return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 3
@@ -120,10 +138,21 @@ cdef class VectorNd:
             del self.thisptr
 
     def __getitem__(self, key):
-        return self.thisptr.data()[key]
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return self.thisptr.rows()
@@ -176,10 +205,21 @@ cdef class Quaternion:
                 self.thisptr.data()[2], self.thisptr.data()[3])
 
     def __getitem__(self, key):
-        return self.thisptr.data()[key]
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 4
@@ -229,10 +269,21 @@ cdef class SpatialVector:
                 self.thisptr.data()[3], self.thisptr.data()[4], self.thisptr.data()[5])
 
     def __getitem__(self, key):
-        return self.thisptr.data()[key]
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 6
@@ -267,7 +318,14 @@ cdef class SpatialMatrix:
         return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 6

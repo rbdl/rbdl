@@ -245,7 +245,7 @@ class FloatingBaseModel (unittest.TestCase):
         self.assertEqual (4, len(rbdl_quat))
         ref_q = self.q.copy()
         self.model.SetQuaternion (2, np.asarray (rbdl_quat), self.q)
-        ref_q[3:6] = [rbdl_quat[0], rbdl_quat[1], rbdl_quat[2]]
+        ref_q[3:6] = rbdl_quat[0:3]
         ref_q[-1] = rbdl_quat[3]
 
         assert_array_equal (ref_q, self.q)

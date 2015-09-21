@@ -14,10 +14,23 @@ wrapper_command_strings = {
         self.parent = <crbdl.%PARENT% *> ptr
 
     def __getitem__(self, key):
-        return %TYPE%.fromPointer (<uintptr_t> &(self.parent.%MEMBER%[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [%TYPE%.fromPointer (<uintptr_t> &(self.parent.%MEMBER%[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return %TYPE%.fromPointer (<uintptr_t> &(self.parent.%MEMBER%[key]))
 
-    def __setitem__(self, key, %TYPE% value not None):
-        self.parent.%MEMBER%[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], %TYPE%), "Invalid type! Expected %TYPE%, but got " + str(type(value[src_index])) + "."
+                self.parent.%MEMBER%[i] = (<%TYPE%> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, %TYPE%), "Invalid type! Expected %TYPE%, but got " + str(type(value)) + "."
+            self.parent.%MEMBER%[key] = (<%TYPE%> value).thisptr[0]
 
     def __len__(self):
         return self.parent.%MEMBER%.size()

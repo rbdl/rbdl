@@ -38,10 +38,21 @@ cdef class Vector3d:
                 self.thisptr.data()[0], self.thisptr.data()[1], self.thisptr.data()[2])
 
     def __getitem__(self, key):
-        return self.thisptr.data()[key]
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 3
@@ -84,7 +95,14 @@ cdef class Matrix3d:
         return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 3
@@ -120,10 +138,21 @@ cdef class VectorNd:
             del self.thisptr
 
     def __getitem__(self, key):
-        return self.thisptr.data()[key]
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return self.thisptr.rows()
@@ -176,10 +205,21 @@ cdef class Quaternion:
                 self.thisptr.data()[2], self.thisptr.data()[3])
 
     def __getitem__(self, key):
-        return self.thisptr.data()[key]
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 4
@@ -229,10 +269,21 @@ cdef class SpatialVector:
                 self.thisptr.data()[3], self.thisptr.data()[4], self.thisptr.data()[5])
 
     def __getitem__(self, key):
-        return self.thisptr.data()[key]
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 6
@@ -267,7 +318,14 @@ cdef class SpatialMatrix:
         return self.thisptr.data()[key]
 
     def __setitem__(self, key, value):
-        self.thisptr.data()[key] = value
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
 
     def __len__ (self):
         return 6
@@ -789,10 +847,23 @@ cdef class _Model_v_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.v[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.v[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.v[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.v[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.v[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.v[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.v.size()
@@ -804,10 +875,23 @@ cdef class _Model_a_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.a[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.a[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.a[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.a[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.a[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.a[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.a.size()
@@ -819,10 +903,23 @@ cdef class _Model_mJoints_Joint_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return Joint.fromPointer (<uintptr_t> &(self.parent.mJoints[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [Joint.fromPointer (<uintptr_t> &(self.parent.mJoints[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return Joint.fromPointer (<uintptr_t> &(self.parent.mJoints[key]))
 
-    def __setitem__(self, key, Joint value not None):
-        self.parent.mJoints[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], Joint), "Invalid type! Expected Joint, but got " + str(type(value[src_index])) + "."
+                self.parent.mJoints[i] = (<Joint> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, Joint), "Invalid type! Expected Joint, but got " + str(type(value)) + "."
+            self.parent.mJoints[key] = (<Joint> value).thisptr[0]
 
     def __len__(self):
         return self.parent.mJoints.size()
@@ -834,10 +931,23 @@ cdef class _Model_S_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.S[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.S[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.S[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.S[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.S[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.S[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.S.size()
@@ -849,10 +959,23 @@ cdef class _Model_X_J_SpatialTransform_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_J[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_J[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_J[key]))
 
-    def __setitem__(self, key, SpatialTransform value not None):
-        self.parent.X_J[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialTransform), "Invalid type! Expected SpatialTransform, but got " + str(type(value[src_index])) + "."
+                self.parent.X_J[i] = (<SpatialTransform> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialTransform), "Invalid type! Expected SpatialTransform, but got " + str(type(value)) + "."
+            self.parent.X_J[key] = (<SpatialTransform> value).thisptr[0]
 
     def __len__(self):
         return self.parent.X_J.size()
@@ -864,10 +987,23 @@ cdef class _Model_v_J_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.v_J[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.v_J[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.v_J[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.v_J[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.v_J[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.v_J[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.v_J.size()
@@ -879,10 +1015,23 @@ cdef class _Model_c_J_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.c_J[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.c_J[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.c_J[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.c_J[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.c_J[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.c_J[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.c_J.size()
@@ -894,10 +1043,23 @@ cdef class _Model_X_T_SpatialTransform_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_T[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_T[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_T[key]))
 
-    def __setitem__(self, key, SpatialTransform value not None):
-        self.parent.X_T[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialTransform), "Invalid type! Expected SpatialTransform, but got " + str(type(value[src_index])) + "."
+                self.parent.X_T[i] = (<SpatialTransform> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialTransform), "Invalid type! Expected SpatialTransform, but got " + str(type(value)) + "."
+            self.parent.X_T[key] = (<SpatialTransform> value).thisptr[0]
 
     def __len__(self):
         return self.parent.X_T.size()
@@ -909,10 +1071,23 @@ cdef class _Model_c_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.c[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.c[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.c[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.c[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.c[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.c[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.c.size()
@@ -924,10 +1099,23 @@ cdef class _Model_IA_SpatialMatrix_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialMatrix.fromPointer (<uintptr_t> &(self.parent.IA[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialMatrix.fromPointer (<uintptr_t> &(self.parent.IA[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialMatrix.fromPointer (<uintptr_t> &(self.parent.IA[key]))
 
-    def __setitem__(self, key, SpatialMatrix value not None):
-        self.parent.IA[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialMatrix), "Invalid type! Expected SpatialMatrix, but got " + str(type(value[src_index])) + "."
+                self.parent.IA[i] = (<SpatialMatrix> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialMatrix), "Invalid type! Expected SpatialMatrix, but got " + str(type(value)) + "."
+            self.parent.IA[key] = (<SpatialMatrix> value).thisptr[0]
 
     def __len__(self):
         return self.parent.IA.size()
@@ -939,10 +1127,23 @@ cdef class _Model_pA_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.pA[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.pA[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.pA[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.pA[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.pA[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.pA[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.pA.size()
@@ -954,10 +1155,23 @@ cdef class _Model_U_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.U[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.U[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.U[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.U[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.U[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.U[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.U.size()
@@ -969,10 +1183,23 @@ cdef class _Model_f_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.f[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.f[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.f[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.f[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.f[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.f[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.f.size()
@@ -984,10 +1211,23 @@ cdef class _Model_I_SpatialRigidBodyInertia_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialRigidBodyInertia.fromPointer (<uintptr_t> &(self.parent.I[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialRigidBodyInertia.fromPointer (<uintptr_t> &(self.parent.I[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialRigidBodyInertia.fromPointer (<uintptr_t> &(self.parent.I[key]))
 
-    def __setitem__(self, key, SpatialRigidBodyInertia value not None):
-        self.parent.I[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialRigidBodyInertia), "Invalid type! Expected SpatialRigidBodyInertia, but got " + str(type(value[src_index])) + "."
+                self.parent.I[i] = (<SpatialRigidBodyInertia> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialRigidBodyInertia), "Invalid type! Expected SpatialRigidBodyInertia, but got " + str(type(value)) + "."
+            self.parent.I[key] = (<SpatialRigidBodyInertia> value).thisptr[0]
 
     def __len__(self):
         return self.parent.I.size()
@@ -999,10 +1239,23 @@ cdef class _Model_Ic_SpatialRigidBodyInertia_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialRigidBodyInertia.fromPointer (<uintptr_t> &(self.parent.Ic[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialRigidBodyInertia.fromPointer (<uintptr_t> &(self.parent.Ic[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialRigidBodyInertia.fromPointer (<uintptr_t> &(self.parent.Ic[key]))
 
-    def __setitem__(self, key, SpatialRigidBodyInertia value not None):
-        self.parent.Ic[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialRigidBodyInertia), "Invalid type! Expected SpatialRigidBodyInertia, but got " + str(type(value[src_index])) + "."
+                self.parent.Ic[i] = (<SpatialRigidBodyInertia> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialRigidBodyInertia), "Invalid type! Expected SpatialRigidBodyInertia, but got " + str(type(value)) + "."
+            self.parent.Ic[key] = (<SpatialRigidBodyInertia> value).thisptr[0]
 
     def __len__(self):
         return self.parent.Ic.size()
@@ -1014,10 +1267,23 @@ cdef class _Model_hc_SpatialVector_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialVector.fromPointer (<uintptr_t> &(self.parent.hc[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialVector.fromPointer (<uintptr_t> &(self.parent.hc[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialVector.fromPointer (<uintptr_t> &(self.parent.hc[key]))
 
-    def __setitem__(self, key, SpatialVector value not None):
-        self.parent.hc[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value[src_index])) + "."
+                self.parent.hc[i] = (<SpatialVector> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialVector), "Invalid type! Expected SpatialVector, but got " + str(type(value)) + "."
+            self.parent.hc[key] = (<SpatialVector> value).thisptr[0]
 
     def __len__(self):
         return self.parent.hc.size()
@@ -1029,10 +1295,23 @@ cdef class _Model_X_lambda_SpatialTransform_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_lambda[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_lambda[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_lambda[key]))
 
-    def __setitem__(self, key, SpatialTransform value not None):
-        self.parent.X_lambda[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialTransform), "Invalid type! Expected SpatialTransform, but got " + str(type(value[src_index])) + "."
+                self.parent.X_lambda[i] = (<SpatialTransform> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialTransform), "Invalid type! Expected SpatialTransform, but got " + str(type(value)) + "."
+            self.parent.X_lambda[key] = (<SpatialTransform> value).thisptr[0]
 
     def __len__(self):
         return self.parent.X_lambda.size()
@@ -1044,10 +1323,23 @@ cdef class _Model_X_base_SpatialTransform_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_base[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_base[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return SpatialTransform.fromPointer (<uintptr_t> &(self.parent.X_base[key]))
 
-    def __setitem__(self, key, SpatialTransform value not None):
-        self.parent.X_base[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], SpatialTransform), "Invalid type! Expected SpatialTransform, but got " + str(type(value[src_index])) + "."
+                self.parent.X_base[i] = (<SpatialTransform> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, SpatialTransform), "Invalid type! Expected SpatialTransform, but got " + str(type(value)) + "."
+            self.parent.X_base[key] = (<SpatialTransform> value).thisptr[0]
 
     def __len__(self):
         return self.parent.X_base.size()
@@ -1059,10 +1351,23 @@ cdef class _Model_mFixedBodies_FixedBody_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return FixedBody.fromPointer (<uintptr_t> &(self.parent.mFixedBodies[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [FixedBody.fromPointer (<uintptr_t> &(self.parent.mFixedBodies[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return FixedBody.fromPointer (<uintptr_t> &(self.parent.mFixedBodies[key]))
 
-    def __setitem__(self, key, FixedBody value not None):
-        self.parent.mFixedBodies[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], FixedBody), "Invalid type! Expected FixedBody, but got " + str(type(value[src_index])) + "."
+                self.parent.mFixedBodies[i] = (<FixedBody> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, FixedBody), "Invalid type! Expected FixedBody, but got " + str(type(value)) + "."
+            self.parent.mFixedBodies[key] = (<FixedBody> value).thisptr[0]
 
     def __len__(self):
         return self.parent.mFixedBodies.size()
@@ -1074,10 +1379,23 @@ cdef class _Model_mBodies_Body_VectorWrapper:
         self.parent = <crbdl.Model *> ptr
 
     def __getitem__(self, key):
-        return Body.fromPointer (<uintptr_t> &(self.parent.mBodies[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [Body.fromPointer (<uintptr_t> &(self.parent.mBodies[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return Body.fromPointer (<uintptr_t> &(self.parent.mBodies[key]))
 
-    def __setitem__(self, key, Body value not None):
-        self.parent.mBodies[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], Body), "Invalid type! Expected Body, but got " + str(type(value[src_index])) + "."
+                self.parent.mBodies[i] = (<Body> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, Body), "Invalid type! Expected Body, but got " + str(type(value)) + "."
+            self.parent.mBodies[key] = (<Body> value).thisptr[0]
 
     def __len__(self):
         return self.parent.mBodies.size()
@@ -1338,10 +1656,23 @@ cdef class _ConstraintSet_point_Vector3d_VectorWrapper:
         self.parent = <crbdl.ConstraintSet *> ptr
 
     def __getitem__(self, key):
-        return Vector3d.fromPointer (<uintptr_t> &(self.parent.point[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [Vector3d.fromPointer (<uintptr_t> &(self.parent.point[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return Vector3d.fromPointer (<uintptr_t> &(self.parent.point[key]))
 
-    def __setitem__(self, key, Vector3d value not None):
-        self.parent.point[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], Vector3d), "Invalid type! Expected Vector3d, but got " + str(type(value[src_index])) + "."
+                self.parent.point[i] = (<Vector3d> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, Vector3d), "Invalid type! Expected Vector3d, but got " + str(type(value)) + "."
+            self.parent.point[key] = (<Vector3d> value).thisptr[0]
 
     def __len__(self):
         return self.parent.point.size()
@@ -1353,10 +1684,23 @@ cdef class _ConstraintSet_normal_Vector3d_VectorWrapper:
         self.parent = <crbdl.ConstraintSet *> ptr
 
     def __getitem__(self, key):
-        return Vector3d.fromPointer (<uintptr_t> &(self.parent.normal[key]))
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [Vector3d.fromPointer (<uintptr_t> &(self.parent.normal[i])) for i in xrange (*key.indices(len(self)))]
+        else:
+            return Vector3d.fromPointer (<uintptr_t> &(self.parent.normal[key]))
 
-    def __setitem__(self, key, Vector3d value not None):
-        self.parent.normal[key] = value.thisptr[0]
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                assert isinstance (value[src_index], Vector3d), "Invalid type! Expected Vector3d, but got " + str(type(value[src_index])) + "."
+                self.parent.normal[i] = (<Vector3d> value[src_index]).thisptr[0]
+                src_index = src_index + 1
+        else:
+            assert isinstance (value, Vector3d), "Invalid type! Expected Vector3d, but got " + str(type(value)) + "."
+            self.parent.normal[key] = (<Vector3d> value).thisptr[0]
 
     def __len__(self):
         return self.parent.normal.size()
