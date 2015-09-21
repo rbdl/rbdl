@@ -7,6 +7,7 @@
 
 import unittest
 
+import math
 import numpy as np
 from numpy.testing import *
 import rbdl
@@ -209,6 +210,58 @@ class SampleModel3R (unittest.TestCase):
                 )
        
         assert_almost_equal (jac_point_vel, point_vel)
+
+class FloatingBaseModel (unittest.TestCase):
+    """ Model with a floating base
+    """
+    def setUp(self):
+        self.model = rbdl.Model()
+        joint_rot_y = rbdl.Joint.fromJointType ("JointTypeFloatingBase")
+        self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), np.eye(3) *
+                0.05)
+        self.xtrans = rbdl.SpatialTransform()
+        self.xtrans.r = np.array([0., 0., 0.])
+        
+        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), joint_rot_y, self.body)
+
+        self.q = np.zeros (self.model.q_size)
+        self.qdot = np.zeros (self.model.qdot_size)
+        self.qddot = np.zeros (self.model.qdot_size)
+        self.tau = np.zeros (self.model.qdot_size)
+
+    def test_Dimensions (self):
+        """
+        Checks whether the dimensions of q and qdot are correct
+        """
+
+        q = np.random.rand(self.model.q_size)
+        self.assertEqual (7, self.model.q_size)
+        self.assertEqual (6, self.model.qdot_size)
+
+    def test_SetQuaternion (self):
+        mat = np.asarray ([[0., 1., 0.], [-1., 0., 0.], [0., 0., 1.]])
+        rbdl_quat = rbdl.Quaternion.fromPythonMatrix (mat)
+
+        self.assertEqual (4, len(rbdl_quat))
+        ref_q = self.q.copy()
+        self.model.SetQuaternion (2, np.asarray (rbdl_quat), self.q)
+        ref_q[3:6] = [rbdl_quat[0], rbdl_quat[1], rbdl_quat[2]]
+        ref_q[-1] = rbdl_quat[3]
+
+        assert_array_equal (ref_q, self.q)
+
+    def test_GetQuaternion (self):
+        mat = np.asarray ([[0., 1., 0.], [-1., 0., 0.], [0., 0., 1.]])
+        rbdl_quat = rbdl.Quaternion.fromPythonMatrix (mat)
+
+        self.assertEqual (4, len(rbdl_quat))
+        self.q[5] = math.sqrt(2.) * 0.5
+        self.q[6] = math.sqrt(2.) * 0.5
+
+        ref_quat = [0., 0., math.sqrt(2.) * 0.5, math.sqrt(2.) * 0.5]
+        quat = self.model.GetQuaternion (2, self.q)
+
+        assert_array_equal (np.asarray(ref_quat), quat)
 
 if __name__ == '__main__':
     unittest.main()

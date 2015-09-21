@@ -55,6 +55,50 @@ cdef class Vector3d:
     def fromPythonArray (cls, python_values):
         return Vector3d (0, python_values)
 
+cdef class Matrix3d:
+    cdef crbdl.Matrix3d *thisptr
+    cdef free_on_dealloc
+
+    def __cinit__(self, uintptr_t address=0, pyvalues=None):
+        if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdl.Matrix3d()
+
+            if pyvalues != None:
+                for i in range (3):
+                    for j in range (3):
+                        (&(self.thisptr.coeff(i,j)))[0] = pyvalues[i,j]
+        else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdl.Matrix3d*>address
+
+    def __dealloc__(self):
+        if self.free_on_dealloc:
+            del self.thisptr
+
+    def __repr__(self):
+        return "Matrix3d [{:3.4f}, {:3.4f}, {:3.4f}]".format (
+                self.thisptr.data()[0], self.thisptr.data()[1], self.thisptr.data()[2])
+
+    def __getitem__(self, key):
+        return self.thisptr.data()[key]
+
+    def __setitem__(self, key, value):
+        self.thisptr.data()[key] = value
+
+    def __len__ (self):
+        return 3
+
+    # Constructors
+    @classmethod
+    def fromPointer(cls, uintptr_t address):
+        return Matrix3d (address)
+
+    @classmethod
+    def fromPythonArray (cls, python_values):
+        return Matrix3d (0, python_values)
+
+
 cdef class VectorNd:
     cdef crbdl.VectorNd *thisptr
     cdef free_on_dealloc
@@ -99,6 +143,69 @@ cdef class VectorNd:
     def fromPointer(cls, uintptr_t address):
         cdef crbdl.VectorNd* vector_ptr = <crbdl.VectorNd*> address
         return VectorNd (vector_ptr.rows(), <uintptr_t> address)
+
+cdef class Quaternion:
+    cdef crbdl.Quaternion *thisptr
+    cdef free_on_dealloc
+
+    def __cinit__(self, uintptr_t address=0, pyvalues=None, pymatvalues=None):
+        if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdl.Quaternion()
+
+            if pyvalues != None:
+                for i in range (4):
+                    self.thisptr.data()[i] = pyvalues[i]
+            elif pymatvalues != None:
+                mat = Matrix3d()
+                for i in range (3):
+                    for j in range (3):
+                        (&(mat.thisptr.coeff(i,j)))[0] = pymatvalues[i,j]
+                self.thisptr[0] = crbdl.fromMatrix (mat.thisptr[0])
+        else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdl.Quaternion*>address
+
+    def __dealloc__(self):
+        if self.free_on_dealloc:
+            del self.thisptr
+
+    def __repr__(self):
+        return "Quaternion [{:3.4f}, {:3.4f}, {:3.4f}, {:3.4}]".format (
+                self.thisptr.data()[0], self.thisptr.data()[1],
+                self.thisptr.data()[2], self.thisptr.data()[3])
+
+    def __getitem__(self, key):
+        return self.thisptr.data()[key]
+
+    def __setitem__(self, key, value):
+        self.thisptr.data()[key] = value
+
+    def __len__ (self):
+        return 4
+
+    def toMatrix(self):
+        cdef crbdl.Matrix3d mat
+        mat = self.thisptr.toMatrix()
+        result = np.array ([3,3])
+        for i in range (3):
+            for j in range (3):
+                result[i,j] = mat.coeff(i,j)
+
+        return result
+
+    # Constructors
+    @classmethod
+    def fromPointer(cls, uintptr_t address):
+        return Quaternion (address)
+
+    @classmethod
+    def fromPythonArray (cls, python_values):
+        return Quaternion (0, python_values)
+
+    @classmethod
+    def fromPythonMatrix (cls, python_matrix_values):
+        return Quaternion (0, None, python_matrix_values)
 
 cdef class SpatialVector:
     cdef crbdl.SpatialVector *thisptr
@@ -225,6 +332,20 @@ cdef np.ndarray MatrixNdToNumpy (crbdl.MatrixNd cM):
 
 # SpatialVector
 cdef np.ndarray SpatialVectorToNumpy (crbdl.SpatialVector cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
+cdef crbdl.Quaternion NumpyToQuaternion (np.ndarray[double, ndim=1, mode="c"] x):
+    cdef crbdl.Quaternion cx = crbdl.Quaternion()
+    for i in range (3):
+        cx[i] = x[i]
+
+    return cx
+
+cdef np.ndarray QuaternionToNumpy (crbdl.Quaternion cx):
     result = np.ndarray ((cx.rows()))
     for i in range (cx.rows()):
         result[i] = cx[i]
@@ -556,6 +677,7 @@ cdef enum JointType:
     JointTypeEulerXYZ
     JointTypeEulerYXZ
     JointTypeTranslationXYZ
+    JointTypeFloatingBase
     JointTypeFixed
     JointType1DoF
     JointType2DoF
@@ -580,6 +702,7 @@ cdef class Joint:
             JointTypeEulerXYZ: "JointTypeEulerXYZ",
             JointTypeEulerYXZ: "JointTypeEulerYXZ",
             JointTypeTranslationXYZ: "JointTypeTranslationXYZ",
+            JointTypeFloatingBase: "JointTypeFloatingBase",
             JointTypeFixed: "JointTypeFixed",
             JointType1DoF: "JointType1DoF",
             JointType2DoF: "JointType2DoF",
@@ -1037,6 +1160,23 @@ cdef class Model:
                 body.thisptr[0],
                 body_name
                 )
+
+    def SetQuaternion (self,
+            int body_id,
+            np.ndarray[double, ndim=1, mode="c"] quat,
+            np.ndarray[double, ndim=1, mode="c"] q):
+        q_index = self.mJoints[body_id].q_index
+        q[q_index] = quat[0]
+        q[q_index + 1] = quat[1]
+        q[q_index + 2] = quat[2]
+
+        q[self.multdof3_w_index[body_id]] = quat[3]
+
+    def GetQuaternion (self,
+            int body_id,
+            np.ndarray[double, ndim=1, mode="c"] q):
+        q_index = self.mJoints[body_id].q_index
+        return np.asarray ([q[q_index], q[q_index+1], q[q_index+2], q[self.multdof3_w_index[body_id]]])
 
     def GetBody (self, index):
         return Body (<uintptr_t> &(self.thisptr.mBodies[index]))

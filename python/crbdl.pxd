@@ -21,6 +21,15 @@ cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
         double& operator[](int)
         double* data()
 
+    cdef cppclass Quaternion:
+        Quaternion ()
+        int rows()
+        int cols()
+        double& operator[](int)
+        double* data()
+        Matrix3d toMatrix()
+#        Quaternion fromMatrix (Matrix3d &mat)
+
     cdef cppclass SpatialVector:
         SpatialVector ()
         int rows()
@@ -58,6 +67,9 @@ cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
         int cols()
         double& coeff "operator()"(int,int)
         double* data()
+
+cdef extern from "<rbdl/Quaternion.h>" namespace "RigidBodyDynamics::Math::Quaternion":
+    Quaternion fromMatrix(const Matrix3d &mat)
 
 cdef extern from "<rbdl/SpatialAlgebraOperators.h>" namespace "RigidBodyDynamics::Math":
     cdef cppclass SpatialTransform:
@@ -109,6 +121,7 @@ cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
         JointTypeEulerXYZ
         JointTypeEulerYXZ
         JointTypeTranslationXYZ
+        JointTypeFloatingBase
         JointTypeFixed
         JointType1DoF
         JointType2DoF
@@ -140,6 +153,13 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 const Body &body,
                 string body_name
                 )
+        Quaternion GetQuaternion (
+                unsigned int body_id,
+                const VectorNd &q)
+        void SetQuaternion (
+                unsigned int body_id,
+                const Quaternion &quat,
+                VectorNd &q)
 
         vector[unsigned int] _lambda
         vector[unsigned int] lambda_q
