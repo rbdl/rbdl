@@ -1,4 +1,6 @@
 2.4.0 -> next
+- Fixed CompositeRigidBodyAlgorithm when using spherical joints (thanks to
+  Sébastien Barthélémy for reporting!)
 - Added JointTypeFloatingBase which uses TX,TY,TZ and a spherical joint for
   the floating base joint.
 - Loading of floating base URDF models must now be specified as a third
