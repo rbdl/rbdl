@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, re
+import sys, re, os
 
 def usage(arg0):
     print ("Usage: {} <input.template.pyx> <output.pyx>".format(arg0))
@@ -81,6 +81,12 @@ if __name__ == "__main__":
     print ("Processing {} to generate {}".format (infilename, outfilename))
     infile = open(infilename)
     outfile = open(outfilename, "w")
+    outfile.write ("""# WARNING! 
+#
+# This file was automatically created from {} using {}.
+# Do not modify this file directly. Edit original source instead!!
+
+""".format (os.path.basename(infilename), os.path.basename(sys.argv[0])))
 
     template = infile.read()
     template_lines = template.split ("\n")

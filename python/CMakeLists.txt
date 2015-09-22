@@ -1,9 +1,9 @@
 # Process the rbdl.template.pyx to generate rbdl.pyx
-ADD_CUSTOM_COMMAND ( OUTPUT ${PROJECT_SOURCE_DIR}/python/rbdl.pyx
+ADD_CUSTOM_COMMAND ( OUTPUT ${PROJECT_SOURCE_DIR}/python/rbdl_wrappergen.pyx
 	COMMAND "/usr/bin/python"
-	ARGS ${PROJECT_SOURCE_DIR}/python/wrappergen.py ${PROJECT_SOURCE_DIR}/python/rbdl.template.pyx ${PROJECT_SOURCE_DIR}/python/rbdl.pyx
-	COMMENT "Generatying rbdl.pyx from rbdl.template.pyx"
-	DEPENDS ${PROJECT_SOURCE_DIR}/python/rbdl.template.pyx ${PROJECT_SOURCE_DIR}/python/wrappergen.py
+	ARGS ${PROJECT_SOURCE_DIR}/python/wrappergen.py ${PROJECT_SOURCE_DIR}/python/rbdl.pyx ${PROJECT_SOURCE_DIR}/python/rbdl_wrappergen.pyx
+	COMMENT "Generatying rbdl_wrappergen.pyx from rbdl.pyx"
+	DEPENDS ${PROJECT_SOURCE_DIR}/python/rbdl.pyx ${PROJECT_SOURCE_DIR}/python/wrappergen.py
 	)
 
 # Enable C++11 (or C++0x for older compilers)
@@ -20,11 +20,11 @@ endif()
 
 # If the pyx file is a C++ file, we should specify that here.
 set_source_files_properties(
-	${PROJECT_SOURCE_DIR}/python/rbdl.pyx
+	${PROJECT_SOURCE_DIR}/python/rbdl_wrappergen.pyx
   PROPERTIES CYTHON_IS_CXX TRUE )
 
 # Multi-file cython modules do not appear to be working at the moment.
-cython_add_module( rbdl-python rbdl.pyx )
+cython_add_module( rbdl-python rbdl_wrappergen.pyx )
 
 SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES PREFIX "")
 SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES OUTPUT_NAME "rbdl")
