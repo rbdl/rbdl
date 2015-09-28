@@ -1299,18 +1299,13 @@ def loadModel (
     if "verbose" in kwargs.keys():
         verbose=kwargs["verbose"]
 
-    if filename[-4:] == ".lua":
-        result = Model()
-        crbdl.LuaModelReadFromFile (filename, result.thisptr, verbose)
-        return result
-    elif filename[-5:] == ".urdf":
-        result = Model()
-        floating_base = False
-        if "floating_base" in kwargs.keys():
-            floating_base=kwargs["floating_base"]
-        crbdl.URDFReadFromFile (filename, result.thisptr, floating_base, verbose)
-        return result
-    else:
-        print ("Invalid model type! Only .lua or .urdf are supported!")
+    floating_base = False
+    if "floating_base" in kwargs.keys():
+        floating_base=kwargs["floating_base"]
 
+    result = Model()
+    if crbdl.rbdl_loadmodel (filename, result.thisptr, floating_base, verbose):
+        return result
+
+    print ("Error loading model {}!".format (filename))
     return None

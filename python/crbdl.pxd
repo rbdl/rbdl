@@ -377,17 +377,9 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             vector[SpatialVector] *f_ext
             ) 
 
-cdef extern from "<addons/luamodel/luamodel.h>" namespace "RigidBodyDynamics::Addons":
-    cdef bool LuaModelReadFromFile (
-            const char* filename, 
-            Model* model, 
-            bool verbose)
-
-cdef extern from "<addons/urdfreader/urdfreader.h>" namespace "RigidBodyDynamics::Addons":
-    cdef bool URDFReadFromFile (
+cdef extern from "rbdl_loadmodel.cc":
+    cdef bool rbdl_loadmodel (
             const char* filename, 
             Model* model, 
             bool floating_base,
             bool verbose)
-
-
