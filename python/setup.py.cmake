@@ -36,7 +36,11 @@ ext_modules = [
 ]
 
 setup(
-    name='qpOASES interface',
+    name='rbdl',
+    author='Martin Felis',
+    description='Python wrapper for RBDL - the Rigid Body Dynamics Library',
+    license='zlib',
+    url='http://rbdl.bitbucket.org/',
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules),
 )
