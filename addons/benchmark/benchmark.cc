@@ -23,6 +23,7 @@ bool have_luamodel = false;
 #ifdef RBDL_BUILD_ADDON_URDFREADER
 #include "../addons/urdfreader/urdfreader.h"
 bool have_urdfreader = true;
+bool urdf_floating_base = false;
 #else
 bool have_urdfreader = false;
 #endif
@@ -451,6 +452,9 @@ void print_usage () {
 	cout << "                be calculated (default: 1000)" << endl;
 	cout << "  --depth | -d <depth>        : sets maximum depth for the branched test model" << endl;
 	cout << "                which is created increased from 1 to <depth> (default: 5)." << endl;
+#if defined RBDL_BUILD_ADDON_URDFREADER
+	cout << "  --floating-base | -f        : the specified URDF model is a floating base model." << endl;
+#endif
 	cout << "  --no-fd                     : disables benchmarking of forward dynamics." << endl;
 	cout << "  --no-fd-aba                 : disables benchmark for forwards dynamics using" << endl;
 	cout << "                                the Articulated Body Algorithm" << endl;
@@ -508,6 +512,8 @@ void parse_args (int argc, char* argv[]) {
 			stringstream depth_stream (argv[argi]);
 
 			depth_stream >> benchmark_model_max_depth;
+		} else if (arg == "--floating-base" || arg == "-f") {
+			urdf_floating_base = true;
 		} else if (arg == "--no-fd" ) {
 			benchmark_run_fd_aba = false;
 			benchmark_run_fd_lagrangian = false;
@@ -555,7 +561,7 @@ int main (int argc, char *argv[]) {
 		}
 		if (model_file.substr (model_file.size() - 5, 5) == ".urdf") {
 #ifdef RBDL_BUILD_ADDON_URDFREADER
-			RigidBodyDynamics::Addons::URDFReadFromFile(model_file.c_str(), model);
+			RigidBodyDynamics::Addons::URDFReadFromFile(model_file.c_str(), model, urdf_floating_base);
 #else
 			cerr << "Could not load URDF model: urdfreader addon not enabled!" << endl;
 			abort();
