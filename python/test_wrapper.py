@@ -146,6 +146,30 @@ class SampleModel3R (unittest.TestCase):
 
         assert_almost_equal (tau, tau_id)
 
+    def test_NonlinearEffectsConsistency (self):
+        """ Checks whether NonlinearEffects is consistent with InverseDynamics """
+        q = np.random.rand (self.model.q_size)
+        qdot = np.random.rand (self.model.q_size)
+
+        nle_id = np.random.rand (self.model.q_size)
+
+        rbdl.InverseDynamics(
+                self.model,
+                q,
+                qdot,
+                np.zeros (self.model.qdot_size),
+                nle_id)
+
+        nle = np.zeros ((self.model.q_size))
+        rbdl.NonlinearEffects (
+                self.model,
+                q,
+                qdot, 
+                nle
+                )
+
+        assert_almost_equal (nle_id, nle)
+
     def test_CalcPointJacobian (self):
         """ Computes point Jacobian and checks whether G * qdot is consistent
         with CalcPointVelocity. """

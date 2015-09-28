@@ -3,7 +3,7 @@
 # This file was automatically created from rbdl-wrapper.pyx using wrappergen.py.
 # Do not modify this file directly. Edit original source instead!!
 
-#cython: boundscheck=False
+#cython: boundscheck=False, embedsignature=True
 
 import numpy as np
 cimport numpy as np
@@ -1992,6 +1992,16 @@ def InverseDynamics (Model model,
             <double*>qddot.data, 
             <double*>tau.data,
             NULL
+            )
+
+def NonlinearEffects (Model model, 
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] tau):
+    crbdl.NonlinearEffectsPtr (model.thisptr[0], 
+            <double*>q.data, 
+            <double*>qdot.data, 
+            <double*>tau.data
             )
 
 def CompositeRigidBodyAlgorithm (Model model, 

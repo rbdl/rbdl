@@ -359,6 +359,61 @@ void InverseDynamicsPtr (
 }
 
 RBDL_DLLAPI
+void NonlinearEffectsPtr (
+		Model &model,
+		const double *q_ptr,
+		const double *qdot_ptr,
+		const double *tau_ptr
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+	
+	using namespace RigidBodyDynamics::Math;
+
+	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+	VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
+	VectorNdRef Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
+
+	SpatialVector spatial_gravity (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
+
+	// Reset the velocity of the root body
+	model.v[0].setZero();
+	model.a[0] = spatial_gravity;
+
+	for (unsigned int i = 1; i < model.mJointUpdateOrder.size(); i++) {
+		jcalc (model, model.mJointUpdateOrder[i], Q, QDot);
+	}
+
+	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		if (model.lambda[i] == 0) {
+			model.v[i] = model.v_J[i];
+			model.a[i] = model.X_lambda[i].apply(spatial_gravity);
+		}	else {
+			model.v[i] = model.X_lambda[i].apply(model.v[model.lambda[i]]) + model.v_J[i];
+			model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
+			model.a[i] = model.X_lambda[i].apply(model.a[model.lambda[i]]) + model.c[i];
+		}
+
+		if (!model.mBodies[i].mIsVirtual) {
+			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
+		} else {
+			model.f[i].setZero();
+		}
+	}
+
+	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
+		if (model.mJoints[i].mDoFCount == 3) {
+			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
+		} else {
+			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
+		}
+
+		if (model.lambda[i] != 0) {
+			model.f[model.lambda[i]] = model.f[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.f[i]);
+		}
+	}
+}
+
+RBDL_DLLAPI
 inline void CompositeRigidBodyAlgorithmPtr (
 		Model& model,
 		const double *q_ptr,
