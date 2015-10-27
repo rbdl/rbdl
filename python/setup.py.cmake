@@ -16,10 +16,14 @@ extra_params['include_dirs'] = [
     BASEDIR,
     np.get_include(),
     '@RBDL_INCLUDE_DIR@',
+    '@EIGEN3_INCLUDE_DIR@',
+    '@CMAKE_CURRENT_SOURCE_DIR@',
+    '@RBDL_SOURCE_DIR@/include',
+    '@RBDL_BINARY_DIR@/include',
     '/usr/include/eigen3/'
 ]
 
-extra_params['extra_compile_args'] = ["-O2", "-Wno-unused-variable"]
+extra_params['extra_compile_args'] = ["-O3", "-Wno-unused-variable", "-std=c++11"]
 extra_params['extra_link_args'] = ["-Wl,-O1", "-Wl,--as-needed"]
 
 extra_params = extra_params.copy()
@@ -38,8 +42,10 @@ ext_modules = [
 setup(
     name='rbdl',
     author='Martin Felis',
+    author_email='martin.felis@iwr.uni-heidelberg.de',
     description='Python wrapper for RBDL - the Rigid Body Dynamics Library',
     license='zlib',
+    version='${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}',
     url='http://rbdl.bitbucket.org/',
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize(ext_modules),

@@ -122,8 +122,6 @@ void UpdateKinematicsCustomPtr (Model &model,
 	}
 
 	if (qddot_ptr) {
-		VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
-		VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
 		VectorNdRef QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
 
 		for (i = 1; i < model.mBodies.size(); i++) {
@@ -260,7 +258,6 @@ void CalcBodySpatialJacobianPtr (
 		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
 	}
 
-	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
 	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.q_size);
 
 	assert (G.rows() == 6 && G.cols() == model.qdot_size );
