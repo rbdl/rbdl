@@ -512,8 +512,10 @@ void parse_args (int argc, char* argv[]) {
 			stringstream depth_stream (argv[argi]);
 
 			depth_stream >> benchmark_model_max_depth;
+#ifdef RBDL_BUILD_ADDON_URDFREADER
 		} else if (arg == "--floating-base" || arg == "-f") {
 			urdf_floating_base = true;
+#endif
 		} else if (arg == "--no-fd" ) {
 			benchmark_run_fd_aba = false;
 			benchmark_run_fd_lagrangian = false;
