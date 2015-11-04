@@ -40,6 +40,7 @@ bool benchmark_run_fd_lagrangian = true;
 bool benchmark_run_id_rnea = true;
 bool benchmark_run_crba = true;
 bool benchmark_run_nle = true;
+bool benchmark_run_calc_minv_times_tau = true;
 bool benchmark_run_contacts = false;
 
 string model_file = "";
@@ -183,6 +184,29 @@ double run_nle_benchmark (Model *model, int sample_count) {
 		<< " duration = " << setw(10) << duration << "(s)"
 		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
 
+	return duration;
+}
+
+double run_calc_minv_times_tau_benchmark (Model *model, int sample_count) {
+	SampleData sample_data;
+	sample_data.fillRandom(model->dof_count, sample_count);
+
+	CalcMInvTimesTau (*model, sample_data.q[0], sample_data.tau[0], sample_data.qddot[0]);
+
+	TimerInfo tinfo;
+	timer_start (&tinfo);
+
+	for (int i = 0; i < sample_count; i++) {
+		CalcMInvTimesTau (*model, sample_data.q[i], sample_data.tau[i], sample_data.qddot[i], false);
+	}
+
+	double duration = timer_stop (&tinfo);
+
+	cout << "#DOF: " << setw(3) << model->dof_count 
+		<< " #samples: " << sample_count 
+		<< " duration = " << setw(10) << duration << "(s)"
+		<< " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
+	
 	return duration;
 }
 
@@ -476,6 +500,7 @@ void disable_all_benchmarks () {
 	benchmark_run_id_rnea = false;
 	benchmark_run_crba = false;
 	benchmark_run_nle = false;
+	benchmark_run_calc_minv_times_tau = false;
 	benchmark_run_contacts = false;
 }
 
@@ -672,6 +697,21 @@ int main (int argc, char *argv[]) {
 			generate_planar_tree (model, depth);
 
 			run_nle_benchmark (model, benchmark_sample_count);
+
+			delete model;
+		}
+		cout << endl;
+	}
+
+	if (benchmark_run_calc_minv_times_tau) {
+		cout << "= CalcMInvTimesTau =" << endl;
+		for (int depth = 1; depth <= benchmark_model_max_depth; depth++) {
+			model = new Model();
+			model->gravity = Vector3d (0., -9.81, 0.);
+
+			generate_planar_tree (model, depth);
+
+			run_calc_minv_times_tau_benchmark (model, benchmark_sample_count);
 
 			delete model;
 		}

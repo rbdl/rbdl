@@ -436,61 +436,87 @@ void CalcMInvTimesTau (
 			model.v_J[i].setZero();
 			model.v[i].setZero();
 			model.c_J[i].setZero();
+			model.pA[i].setZero();
+			model.I[i].setSpatialMatrix (model.IA[i]);
 		}
 	}
-
+	
 	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
 		model.pA[i].setZero();
-		model.I[i].setSpatialMatrix (model.IA[i]);
 	}
 
 // ClearLogOutput();
 
-	LOG << "--- first loop ---" << std::endl;
+	if (update_kinematics) {
+		// Compute Articulate Body Inertias
+		for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
+			unsigned int q_index = model.mJoints[i].q_index;
 
+			if (model.mJoints[i].mDoFCount == 3) {
+				model.multdof3_U[i] = model.IA[i] * model.multdof3_S[i];
+#ifdef EIGEN_CORE_H
+				model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * model.multdof3_U[i]).inverse().eval();
+#else
+				model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * model.multdof3_U[i]).inverse();
+#endif
+				//			LOG << "multdof3_u[" << i << "] = " << model.multdof3_u[i].transpose() << std::endl;
+				unsigned int lambda = model.lambda[i];
+				if (lambda != 0) {
+					SpatialMatrix Ia = model.IA[i] - model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_U[i].transpose();
+#ifdef EIGEN_CORE_H
+					model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+#else
+					model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+#endif
+				}
+			} else {
+				model.U[i] = model.IA[i] * model.S[i];
+				model.d[i] = model.S[i].dot(model.U[i]);
+				//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
+
+				unsigned int lambda = model.lambda[i];
+				if (lambda != 0) {
+					SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
+#ifdef EIGEN_CORE_H
+					model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+#else
+					model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+#endif
+				}
+			}
+		}
+	}
+
+	// compute articulated bias forces
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int q_index = model.mJoints[i].q_index;
 
 		if (model.mJoints[i].mDoFCount == 3) {
-			model.multdof3_U[i] = model.IA[i] * model.multdof3_S[i];
-#ifdef EIGEN_CORE_H
-			model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * model.multdof3_U[i]).inverse().eval();
-#else
-			model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * model.multdof3_U[i]).inverse();
-#endif
 			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
 
 			model.multdof3_u[i] = tau_temp - model.multdof3_S[i].transpose() * model.pA[i];
 
-//			LOG << "multdof3_u[" << i << "] = " << model.multdof3_u[i].transpose() << std::endl;
+			//			LOG << "multdof3_u[" << i << "] = " << model.multdof3_u[i].transpose() << std::endl;
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				SpatialMatrix Ia = model.IA[i] - model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_U[i].transpose();
-				SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_u[i];
+				SpatialVector pa = model.pA[i] + model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_u[i];
 #ifdef EIGEN_CORE_H
-				model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 				model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
 #else
-				model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 				model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
 #endif
 				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
 		} else {
-			model.U[i] = model.IA[i] * model.S[i];
-			model.d[i] = model.S[i].dot(model.U[i]);
 			model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
-//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
+			//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
 
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
-				SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
+				SpatialVector pa = model.pA[i] + model.U[i] * model.u[i] / model.d[i];
 #ifdef EIGEN_CORE_H
-				model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 				model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
 #else
-				model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 				model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
 #endif
 				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;

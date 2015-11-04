@@ -685,3 +685,31 @@ TEST_FIXTURE ( FixedBase3DoF, SolveMInvTimesTau) {
 
 	CHECK_ARRAY_CLOSE (qddot_solve_llt.data(), qddot_minv.data(), model->dof_count, TEST_PREC);
 }
+
+TEST_FIXTURE ( FixedBase3DoF, SolveMInvTimesTauReuse) {
+	for (unsigned int i = 0; i < model->dof_count; i++) {
+		Q[i] = rand() / static_cast<double>(RAND_MAX);
+		Tau[i] = rand() / static_cast<double>(RAND_MAX);
+	}
+
+	MatrixNd M (MatrixNd::Zero(model->dof_count, model->dof_count));
+	CompositeRigidBodyAlgorithm (*model, Q, M);
+
+	VectorNd qddot_solve_llt = M.llt().solve(Tau);
+
+	VectorNd qddot_minv (Q);
+	CalcMInvTimesTau (*model, Q, Tau, qddot_minv);
+
+	for (unsigned int j = 0; j < 1; j++) {
+		for (unsigned int i = 0; i < model->dof_count; i++) {
+			Tau[i] = rand() / static_cast<double>(RAND_MAX);
+		}
+
+		CompositeRigidBodyAlgorithm (*model, Q, M);
+		qddot_solve_llt = M.llt().solve(Tau);
+
+		CalcMInvTimesTau (*model, Q, Tau, qddot_minv, false);
+
+		CHECK_ARRAY_CLOSE (qddot_solve_llt.data(), qddot_minv.data(), model->dof_count, TEST_PREC);
+	}
+}

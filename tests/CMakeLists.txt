@@ -11,23 +11,23 @@ INCLUDE_DIRECTORIES (${UNITTEST++_INCLUDE_DIR})
 
 SET ( TESTS_SRCS
 	main.cc
-	MathTests.cc
-	SpatialAlgebraTests.cc
+	#	MathTests.cc
+	#	SpatialAlgebraTests.cc
 	MultiDofTests.cc
-	KinematicsTests.cc
-	BodyTests.cc
-	ModelTests.cc
-	FloatingBaseTests.cc
-	CalcVelocitiesTests.cc
-	CalcAccelerationsTests.cc
+	#	KinematicsTests.cc
+	#	BodyTests.cc
+	#	ModelTests.cc
+	#	FloatingBaseTests.cc
+	#	CalcVelocitiesTests.cc
+	#	CalcAccelerationsTests.cc
 	DynamicsTests.cc
-	InverseDynamicsTests.cc
-	CompositeRigidBodyTests.cc
-	ImpulsesTests.cc
-	TwolegModelTests.cc
-	ContactsTests.cc
-	UtilsTests.cc
-	SparseFactorizationTests.cc
+	#	InverseDynamicsTests.cc
+	#	CompositeRigidBodyTests.cc
+	#	ImpulsesTests.cc
+	#	TwolegModelTests.cc
+	#	ContactsTests.cc
+	#	UtilsTests.cc
+	#	SparseFactorizationTests.cc
 	)
 
 INCLUDE_DIRECTORIES ( ../src/ )

@@ -166,6 +166,10 @@ void CompositeRigidBodyAlgorithm (
  *   \f$ \ddot{q} = M(q)^{-1} ( -N(q, \dot{q}) + \tau)\f$
  *
  * in \f$O(n_{\textit{dof}}\f$) time.
+ *
+ * \note When calling this function repeatedly for the same values of Q make sure
+ * to set the last parameter to false as this avoids expensive
+ * recomputations of transformations and articulated body inertias.
  */
 RBDL_DLLAPI
 void CalcMInvTimesTau (
