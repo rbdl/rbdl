@@ -197,7 +197,7 @@ double run_calc_minv_times_tau_benchmark (Model *model, int sample_count) {
 	timer_start (&tinfo);
 
 	for (int i = 0; i < sample_count; i++) {
-		CalcMInvTimesTau (*model, sample_data.q[i], sample_data.tau[i], sample_data.qddot[i], false);
+		CalcMInvTimesTau (*model, sample_data.q[i], sample_data.tau[i], sample_data.qddot[i]);
 	}
 
 	double duration = timer_stop (&tinfo);
