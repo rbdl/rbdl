@@ -1008,3 +1008,20 @@ TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulated ) {
 
 	CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
 }
+
+TEST_FIXTURE ( Human36, SolveMInvTimesTau) {
+	for (unsigned int i = 0; i < model->dof_count; i++) {
+		q[i] = rand() / static_cast<double>(RAND_MAX);
+		tau[i] = rand() / static_cast<double>(RAND_MAX);
+	}
+
+	MatrixNd M (MatrixNd::Zero(model->dof_count, model->dof_count));
+	CompositeRigidBodyAlgorithm (*model, q, M);
+
+	VectorNd qddot_solve_llt = M.llt().solve(tau);
+
+	VectorNd qddot_minv (q);
+	CalcMInvTimesTau (*model, q, tau, qddot_minv);
+
+	CHECK_ARRAY_CLOSE (qddot_solve_llt.data(), qddot_minv.data(), model->dof_count, TEST_PREC * qddot_minv.norm());
+}

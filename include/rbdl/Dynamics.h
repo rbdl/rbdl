@@ -150,6 +150,32 @@ void CompositeRigidBodyAlgorithm (
 		bool update_kinematics = true
 		);
 
+/** \brief Computes the effect of multiplying the inverse of the joint
+ * space inertia matrix with a vector in linear time.
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the generalized positions
+ * \param Tau   the vector that should be multiplied with the inverse of
+ *              the joint space inertia matrix
+ * \param QDDot vector where the result will be stored
+ * \param update_kinematics whether the kinematics should be updated (safer, but at a higher computational cost)
+ *
+ * This function uses a reduced version of the Articulated %Body Algorithm
+ * to compute 
+ *
+ *   \f$ \ddot{q} = M(q)^{-1} ( -N(q, \dot{q}) + \tau)\f$
+ *
+ * in \f$O(n_{\textit{dof}}\f$) time.
+ */
+RBDL_DLLAPI
+void CalcMInvTimesTau (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &Tau,
+		Math::VectorNd &QDDot,
+		bool update_kinematics=true
+		);
+
 /** @} */
 
 }
