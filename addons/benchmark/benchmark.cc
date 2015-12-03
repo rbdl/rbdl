@@ -487,9 +487,10 @@ void print_usage () {
 	cout << "  --no-id-rnea                : disables benchmark for inverse dynamics using" << endl;
 	cout << "                                the recursive newton euler algorithm." << endl;
 	cout << "  --no-crba                   : disables benchmark for joint space inertia" << endl;
-	cout << "                                matrix computation using the composite rigid." << endl;
-	cout << "  --no-nle                    : disables benchmark for the nonlinear effects." << endl;
+	cout << "                                matrix computation using the composite rigid" << endl;
 	cout << "                                body algorithm." << endl;
+	cout << "  --no-nle                    : disables benchmark for the nonlinear effects." << endl;
+	cout << "  --no-calc-minv              : disables benchmark M^-1 * tau benchmark." << endl;
 	cout << "  --only-contacts | -C        : only runs contact model benchmarks." << endl;
 	cout << "  --help | -h                 : prints this help." << endl;
 }
@@ -554,6 +555,8 @@ void parse_args (int argc, char* argv[]) {
 			benchmark_run_crba = false;
 		} else if (arg == "--no-nle" ) {
 			benchmark_run_nle = false;
+		} else if (arg == "--no-calc-minv" ) {
+			benchmark_run_calc_minv_times_tau = false;
 		} else if (arg == "--only-contacts" || arg == "-C") {
 			disable_all_benchmarks();
 			benchmark_run_contacts = true;
