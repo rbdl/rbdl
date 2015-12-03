@@ -302,12 +302,6 @@ void InverseDynamics (
 
 		jcalc (model, i, Q, QDot);
 
-		if (lambda != 0) {
-			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
-		} else {
-			model.X_base[i] = model.X_lambda[i];
-		}
-
 		model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
 		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 
@@ -322,9 +316,14 @@ void InverseDynamics (
 		} else {
 			model.f[i].setZero();
 		}
+	}
 
-		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
+	if (f_ext != NULL) {
+		for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+			unsigned int lambda = model.lambda[i];
+			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
+		}
 	}
 
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
