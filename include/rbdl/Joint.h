@@ -202,6 +202,9 @@ enum JointType {
  * This class contains all information required for one single joint. This
  * contains the joint type and the axis of the joint. See \ref joint_description for detailed description.
  *
+ * \note When constructing a joint by only specifying the type using any
+ * of JointType1DoF, ..., JointType6DoF then memory individual joint axes
+ * gets allocated but the individual axes are undefined.
  */
 struct RBDL_DLLAPI Joint {
 	Joint() :
@@ -266,8 +269,11 @@ struct RBDL_DLLAPI Joint {
 				mJointAxes[0] = Math::SpatialVector (0., 0., 0., 1., 0., 0.);
 				mJointAxes[1] = Math::SpatialVector (0., 0., 0., 0., 1., 0.);
 				mJointAxes[2] = Math::SpatialVector (0., 0., 0., 0., 0., 1.);
+			} else if (type >= JointType1DoF && type <= JointType6DoF) {
+				mDoFCount = type - JointType1DoF  + 1;
+				mJointAxes = new Math::SpatialVector[mDoFCount];
 			} else if (type != JointTypeFixed && type != JointTypeFloatingBase) {
-				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
+				std::cerr << "Error: Invalid joint type: " << type << "." << std::endl;
 				assert (0);
 				abort();
 			}

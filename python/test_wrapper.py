@@ -12,6 +12,27 @@ import numpy as np
 from numpy.testing import *
 import rbdl
 
+class JointTests (unittest.TestCase):
+    def test_JointConstructorAxesSimple(self):
+        axis = np.asarray([[1., 0., 0., 0., 0., 0.]])
+        joint_rot_x = rbdl.Joint.fromJointAxes (axis)
+
+        assert_equal (joint_rot_x.getJointAxis(0), axis[0])
+
+    def test_JointConstructorAxes6DoF(self):
+        axis = np.asarray([
+            [1., 0., 0., 0., 0., 0.],
+            [0., 1., 0., 0., 0., 0.],
+            [0., 0., 1., 0., 0., 0.],
+            [0., 0., 0., 1., 0., 0.],
+            [0., 0., 0., 0., 1., 0.],
+            [0., 0., 0., 0., 0., 1.],
+            ])
+        joint = rbdl.Joint.fromJointAxes (axis)
+
+        for i in range (axis.shape[0]):
+            assert_equal (joint.getJointAxis(i), axis[i])
+
 class SampleModel3R (unittest.TestCase):
     """ Example planar triple pendulum 
    

@@ -815,6 +815,19 @@ cdef class Joint:
     def fromJointType(cls, joint_type):
         return Joint (0, joint_type)
 
+    @classmethod
+    def fromJointAxes(cls, axes):
+        assert (len(axes) > 0)
+        assert (len(axes[0]) == 6)
+        axes_count = len(axes)
+        joint_type = JointType1DoF + axes_count - 1
+
+        result = Joint (0, cls.joint_type_map[joint_type])
+        for i in range (axes_count):
+            result.setJointAxis(i, axes[i])
+
+        return result
+
     property mDoFCount:
         def __get__ (self):
             return self.thisptr.mDoFCount
