@@ -149,7 +149,6 @@ double run_CRBA_benchmark (Model *model, int sample_count) {
 
 	for (int i = 0; i < sample_count; i++) {
 		CompositeRigidBodyAlgorithm (*model, sample_data.q[i], H, true);
-		Hinv = H.llt().solve (identity);
 	}
 
 	double duration = timer_stop (&tinfo);
