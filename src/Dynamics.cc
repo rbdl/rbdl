@@ -24,6 +24,186 @@ namespace RigidBodyDynamics {
 using namespace Math;
 
 RBDL_DLLAPI
+void InverseDynamics (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		const VectorNd &QDDot,
+		VectorNd &Tau,
+		std::vector<SpatialVector> *f_ext
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	// Reset the velocity of the root body
+	model.v[0].setZero();
+	model.a[0].set (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
+
+	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		unsigned int q_index = model.mJoints[i].q_index;
+		unsigned int lambda = model.lambda[i];
+
+		jcalc (model, i, Q, QDot);
+
+		model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
+		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
+
+		if (model.mJoints[i].mDoFCount == 1) {
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
+		} else {
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
+		}	
+
+		if (!model.mBodies[i].mIsVirtual) {
+			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
+		} else {
+			model.f[i].setZero();
+		}
+	}
+
+	if (f_ext != NULL) {
+		for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+			unsigned int lambda = model.lambda[i];
+			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
+			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
+		}
+	}
+
+	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
+		if (model.mJoints[i].mDoFCount == 1) {
+			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
+		} else {
+			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
+		}
+
+		if (model.lambda[i] != 0) {
+			model.f[model.lambda[i]] = model.f[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.f[i]);
+		}
+	}
+}
+
+RBDL_DLLAPI
+void NonlinearEffects (
+		Model &model,
+		const VectorNd &Q,
+		const VectorNd &QDot,
+		VectorNd &Tau
+		) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	SpatialVector spatial_gravity (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
+
+	// Reset the velocity of the root body
+	model.v[0].setZero();
+	model.a[0] = spatial_gravity;
+
+	for (unsigned int i = 1; i < model.mJointUpdateOrder.size(); i++) {
+		jcalc (model, model.mJointUpdateOrder[i], Q, QDot);
+	}
+
+	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		if (model.lambda[i] == 0) {
+			model.v[i] = model.v_J[i];
+			model.a[i] = model.X_lambda[i].apply(spatial_gravity);
+		}	else {
+			model.v[i] = model.X_lambda[i].apply(model.v[model.lambda[i]]) + model.v_J[i];
+			model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
+			model.a[i] = model.X_lambda[i].apply(model.a[model.lambda[i]]) + model.c[i];
+		}
+
+		if (!model.mBodies[i].mIsVirtual) {
+			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
+		} else {
+			model.f[i].setZero();
+		}
+	}
+
+	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
+		if (model.mJoints[i].mDoFCount == 1) {
+			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
+		} else {
+			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
+		}
+
+		if (model.lambda[i] != 0) {
+			model.f[model.lambda[i]] = model.f[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.f[i]);
+		}
+	}
+}
+
+RBDL_DLLAPI
+void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, bool update_kinematics) {
+	LOG << "-------- " << __func__ << " --------" << std::endl;
+
+	assert (H.rows() == model.dof_count && H.cols() == model.dof_count);
+
+	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+		if (update_kinematics) {
+			jcalc_X_lambda_S (model, i, Q);
+		}
+		model.Ic[i] = model.I[i];
+	}
+
+	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
+		if (model.lambda[i] != 0) {
+			model.Ic[model.lambda[i]] = model.Ic[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.Ic[i]);
+		}
+
+		unsigned int dof_index_i = model.mJoints[i].q_index;
+
+		if (model.mJoints[i].mDoFCount == 1) {
+			SpatialVector F = model.Ic[i] * model.S[i];
+			H(dof_index_i, dof_index_i) = model.S[i].dot(F);
+
+			unsigned int j = i;
+			unsigned int dof_index_j = dof_index_i;
+
+			while (model.lambda[j] != 0) {
+				F = model.X_lambda[j].applyTranspose(F);
+				j = model.lambda[j];
+				dof_index_j = model.mJoints[j].q_index;
+
+				if (model.mJoints[j].mDoFCount == 1) {
+					H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
+					H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
+				} else {
+					Vector3d H_temp2 = (F.transpose() * model.multdof3_S[j]).transpose();
+
+					LOG << F.transpose() << std::endl << model.multdof3_S[j] << std::endl;
+					LOG << H_temp2.transpose() << std::endl;
+
+					H.block<1,3>(dof_index_i,dof_index_j) = H_temp2.transpose();
+					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
+				}
+			}
+		} else {
+			Matrix63 F_63 = model.Ic[i].toMatrix() * model.multdof3_S[i];
+			H.block<3,3>(dof_index_i, dof_index_i) = model.multdof3_S[i].transpose() * F_63;
+
+			unsigned int j = i;
+			unsigned int dof_index_j = dof_index_i;
+
+			while (model.lambda[j] != 0) {
+				F_63 = model.X_lambda[j].toMatrixTranspose() * (F_63);
+				j = model.lambda[j];
+				dof_index_j = model.mJoints[j].q_index;
+
+				if (model.mJoints[j].mDoFCount == 1) {
+					Vector3d H_temp2 = F_63.transpose() * (model.S[j]);
+
+					H.block<3,1>(dof_index_i,dof_index_j) = H_temp2;
+					H.block<1,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
+				} else {
+					Matrix3d H_temp2 = F_63.transpose() * (model.multdof3_S[j]);
+
+					H.block<3,3>(dof_index_i,dof_index_j) = H_temp2;
+					H.block<3,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
+				}
+			}
+		}
+	}
+}
+
+RBDL_DLLAPI
 void ForwardDynamics (
 		Model &model,
 		const VectorNd &Q,
@@ -228,188 +408,7 @@ void ForwardDynamicsLagrangian (
 		delete H;
 	}
 
-
 	LOG << "x = " << QDDot << std::endl;
-}
-
-RBDL_DLLAPI
-void NonlinearEffects (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		VectorNd &Tau
-		) {
-	LOG << "-------- " << __func__ << " --------" << std::endl;
-
-	SpatialVector spatial_gravity (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
-
-	// Reset the velocity of the root body
-	model.v[0].setZero();
-	model.a[0] = spatial_gravity;
-
-	for (unsigned int i = 1; i < model.mJointUpdateOrder.size(); i++) {
-		jcalc (model, model.mJointUpdateOrder[i], Q, QDot);
-	}
-
-	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		if (model.lambda[i] == 0) {
-			model.v[i] = model.v_J[i];
-			model.a[i] = model.X_lambda[i].apply(spatial_gravity);
-		}	else {
-			model.v[i] = model.X_lambda[i].apply(model.v[model.lambda[i]]) + model.v_J[i];
-			model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
-			model.a[i] = model.X_lambda[i].apply(model.a[model.lambda[i]]) + model.c[i];
-		}
-
-		if (!model.mBodies[i].mIsVirtual) {
-			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
-		} else {
-			model.f[i].setZero();
-		}
-	}
-
-	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
-		if (model.mJoints[i].mDoFCount == 1) {
-			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
-		} else {
-			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
-		}
-
-		if (model.lambda[i] != 0) {
-			model.f[model.lambda[i]] = model.f[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.f[i]);
-		}
-	}
-}
-
-RBDL_DLLAPI
-void InverseDynamics (
-		Model &model,
-		const VectorNd &Q,
-		const VectorNd &QDot,
-		const VectorNd &QDDot,
-		VectorNd &Tau,
-		std::vector<SpatialVector> *f_ext
-		) {
-	LOG << "-------- " << __func__ << " --------" << std::endl;
-
-	// Reset the velocity of the root body
-	model.v[0].setZero();
-	model.a[0].set (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
-
-	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		unsigned int q_index = model.mJoints[i].q_index;
-		unsigned int lambda = model.lambda[i];
-
-		jcalc (model, i, Q, QDot);
-
-		model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
-		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
-
-		if (model.mJoints[i].mDoFCount == 1) {
-			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
-		} else {
-			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
-		}	
-
-		if (!model.mBodies[i].mIsVirtual) {
-			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
-		} else {
-			model.f[i].setZero();
-		}
-	}
-
-	if (f_ext != NULL) {
-		for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-			unsigned int lambda = model.lambda[i];
-			model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
-			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
-		}
-	}
-
-	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
-		if (model.mJoints[i].mDoFCount == 1) {
-			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
-		} else {
-			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
-		}
-
-		if (model.lambda[i] != 0) {
-			model.f[model.lambda[i]] = model.f[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.f[i]);
-		}
-	}
-}
-
-RBDL_DLLAPI
-void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, bool update_kinematics) {
-	LOG << "-------- " << __func__ << " --------" << std::endl;
-
-	assert (H.rows() == model.dof_count && H.cols() == model.dof_count);
-
-	for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-		if (update_kinematics) {
-			jcalc_X_lambda_S (model, i, Q);
-		}
-		model.Ic[i] = model.I[i];
-	}
-
-	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
-		if (model.lambda[i] != 0) {
-			model.Ic[model.lambda[i]] = model.Ic[model.lambda[i]] + model.X_lambda[i].applyTranspose(model.Ic[i]);
-		}
-
-		unsigned int dof_index_i = model.mJoints[i].q_index;
-
-		if (model.mJoints[i].mDoFCount == 1) {
-			SpatialVector F = model.Ic[i] * model.S[i];
-			H(dof_index_i, dof_index_i) = model.S[i].dot(F);
-
-			unsigned int j = i;
-			unsigned int dof_index_j = dof_index_i;
-
-			while (model.lambda[j] != 0) {
-				F = model.X_lambda[j].applyTranspose(F);
-				j = model.lambda[j];
-				dof_index_j = model.mJoints[j].q_index;
-
-				if (model.mJoints[j].mDoFCount == 1) {
-					H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
-					H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
-				} else {
-					Vector3d H_temp2 = (F.transpose() * model.multdof3_S[j]).transpose();
-
-					LOG << F.transpose() << std::endl << model.multdof3_S[j] << std::endl;
-					LOG << H_temp2.transpose() << std::endl;
-
-					H.block<1,3>(dof_index_i,dof_index_j) = H_temp2.transpose();
-					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
-				}
-			}
-		} else {
-			Matrix63 F_63 = model.Ic[i].toMatrix() * model.multdof3_S[i];
-			H.block<3,3>(dof_index_i, dof_index_i) = model.multdof3_S[i].transpose() * F_63;
-
-			unsigned int j = i;
-			unsigned int dof_index_j = dof_index_i;
-
-			while (model.lambda[j] != 0) {
-				F_63 = model.X_lambda[j].toMatrixTranspose() * (F_63);
-				j = model.lambda[j];
-				dof_index_j = model.mJoints[j].q_index;
-
-				if (model.mJoints[j].mDoFCount == 1) {
-					Vector3d H_temp2 = F_63.transpose() * (model.S[j]);
-
-					H.block<3,1>(dof_index_i,dof_index_j) = H_temp2;
-					H.block<1,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
-				} else {
-					Matrix3d H_temp2 = F_63.transpose() * (model.multdof3_S[j]);
-
-					H.block<3,3>(dof_index_i,dof_index_j) = H_temp2;
-					H.block<3,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
-				}
-			}
-		}
-	}
 }
 
 RBDL_DLLAPI

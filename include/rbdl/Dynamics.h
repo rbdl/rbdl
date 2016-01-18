@@ -29,6 +29,71 @@ struct Model;
  * @{
  */
 
+/** \brief Computes inverse dynamics with the Newton-Euler Algorithm
+ *
+ * This function computes the generalized forces from given generalized
+ * states, velocities, and accelerations:
+ *   \f$ \tau = M(q) \ddot{q} + N(q, \dot{q}) \f$
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param QDDot accelerations of the internals joints
+ * \param Tau   actuations of the internal joints (output)
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
+ */
+RBDL_DLLAPI
+void InverseDynamics (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		const Math::VectorNd &QDDot,
+		Math::VectorNd &Tau,
+		std::vector<Math::SpatialVector> *f_ext = NULL
+		);
+
+/** \brief Computes the coriolis forces
+ *
+ * This function computes the generalized forces from given generalized
+ * states, velocities, and accelerations:
+ *   \f$ \tau = M(q) \ddot{q} + N(q, \dot{q}) \f$
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the internal joints
+ * \param QDot  velocity vector of the internal joints
+ * \param Tau   actuations of the internal joints (output)
+ */
+RBDL_DLLAPI
+void NonlinearEffects (
+		Model &model,
+		const Math::VectorNd &Q,
+		const Math::VectorNd &QDot,
+		Math::VectorNd &Tau
+		);
+
+/** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm
+ *
+ * This function computes the joint space inertia matrix from a given model and
+ * the generalized state vector:
+ *   \f$ M(q) \f$
+ *
+ * \param model rigid body model
+ * \param Q     state vector of the model
+ * \param H     a matrix where the result will be stored in
+ * \param update_kinematics  whether the kinematics should be updated (safer, but at a higher computational cost!)
+ *
+ * \note This function only evaluates the entries of H that are non-zero. One
+ * Before calling this function one has to ensure that all other values
+ * have been set to zero, e.g. by calling H.setZero().
+ */
+RBDL_DLLAPI
+void CompositeRigidBodyAlgorithm (
+		Model& model,
+		const Math::VectorNd &Q,
+		Math::MatrixNd &H,
+		bool update_kinematics = true
+		);
+
 /** \brief Computes forward dynamics with the Articulated Body Algorithm
  *
  * This function computes the generalized accelerations from given
@@ -83,71 +148,6 @@ void ForwardDynamicsLagrangian (
 		std::vector<Math::SpatialVector> *f_ext = NULL,
 		Math::MatrixNd *H = NULL,
 		Math::VectorNd *C = NULL	
-		);
-
-/** \brief Computes the coriolis forces
- *
- * This function computes the generalized forces from given generalized
- * states, velocities, and accelerations:
- *   \f$ \tau = M(q) \ddot{q} + N(q, \dot{q}) \f$
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param Tau   actuations of the internal joints (output)
- */
-RBDL_DLLAPI
-void NonlinearEffects (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		Math::VectorNd &Tau
-		);
-
-/** \brief Computes inverse dynamics with the Newton-Euler Algorithm
- *
- * This function computes the generalized forces from given generalized
- * states, velocities, and accelerations:
- *   \f$ \tau = M(q) \ddot{q} + N(q, \dot{q}) \f$
- *
- * \param model rigid body model
- * \param Q     state vector of the internal joints
- * \param QDot  velocity vector of the internal joints
- * \param QDDot accelerations of the internals joints
- * \param Tau   actuations of the internal joints (output)
- * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
- */
-RBDL_DLLAPI
-void InverseDynamics (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &QDDot,
-		Math::VectorNd &Tau,
-		std::vector<Math::SpatialVector> *f_ext = NULL
-		);
-
-/** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm
- *
- * This function computes the joint space inertia matrix from a given model and
- * the generalized state vector:
- *   \f$ M(q) \f$
- *
- * \param model rigid body model
- * \param Q     state vector of the model
- * \param H     a matrix where the result will be stored in
- * \param update_kinematics  whether the kinematics should be updated (safer, but at a higher computational cost!)
- *
- * \note This function only evaluates the entries of H that are non-zero. One
- * Before calling this function one has to ensure that all other values
- * have been set to zero, e.g. by calling H.setZero().
- */
-RBDL_DLLAPI
-void CompositeRigidBodyAlgorithm (
-		Model& model,
-		const Math::VectorNd &Q,
-		Math::MatrixNd &H,
-		bool update_kinematics = true
 		);
 
 /** \brief Computes the effect of multiplying the inverse of the joint
