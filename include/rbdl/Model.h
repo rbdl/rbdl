@@ -189,6 +189,8 @@ struct RBDL_DLLAPI Model {
 	std::vector<Math::Vector3d> multdof3_u;
 	std::vector<unsigned int> multdof3_w_index;
 
+	std::vector<CustomJoint*> mCustomJoints;
+
 	////////////////////////////////////
 	// Dynamics variables
 
@@ -307,6 +309,15 @@ struct RBDL_DLLAPI Model {
 			const Body &body,
 			std::string body_name = "" 
 			);
+
+	unsigned int AddBodyCustomJoint (
+			const unsigned int parent_id,
+			const Math::SpatialTransform &joint_frame,
+			CustomJoint *custom_joint,
+			const Body &body,
+			std::string body_name = "" 
+			);
+
 
 	/** \brief Specifies the dynamical parameters of the first body and
 	 *  \brief assigns it a 6 DoF joint.

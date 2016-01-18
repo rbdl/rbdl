@@ -49,9 +49,12 @@ void InverseDynamics (
 
 		if (model.mJoints[i].mDoFCount == 1) {
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
-		}	
+		}	else if (model.mJoints[i].mJointType == JointTypeCustom) {
+			// TODO: see UpdateKinematics()
+			assert (false && "CustomJoint not yet implemented!");
+		}
 
 		if (!model.mBodies[i].mIsVirtual) {
 			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
@@ -71,8 +74,11 @@ void InverseDynamics (
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
 		if (model.mJoints[i].mDoFCount == 1) {
 			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
+		} else if (model.mJoints[i].mDoFCount == 3) {
+			// TODO
+			assert (false && "CustomJoint not yet implemented!");
 		}
 
 		if (model.lambda[i] != 0) {
@@ -120,8 +126,11 @@ void NonlinearEffects (
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
 		if (model.mJoints[i].mDoFCount == 1) {
 			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
+		} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+			// TODO
+			assert (false && "CustomJoint not yet implemented!");
 		}
 
 		if (model.lambda[i] != 0) {
@@ -165,7 +174,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 				if (model.mJoints[j].mDoFCount == 1) {
 					H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
 					H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
-				} else {
+				} else if (model.mJoints[j].mDoFCount == 3) {
 					Vector3d H_temp2 = (F.transpose() * model.multdof3_S[j]).transpose();
 
 					LOG << F.transpose() << std::endl << model.multdof3_S[j] << std::endl;
@@ -173,9 +182,12 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 					H.block<1,3>(dof_index_i,dof_index_j) = H_temp2.transpose();
 					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
+				} else if (model.mJoints[j].mJointType == JointTypeCustom) {
+				// TODO
+					assert (false && "CustomJoint not yet implemented!");
 				}
 			}
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			Matrix63 F_63 = model.Ic[i].toMatrix() * model.multdof3_S[i];
 			H.block<3,3>(dof_index_i, dof_index_i) = model.multdof3_S[i].transpose() * F_63;
 
@@ -192,13 +204,18 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 					H.block<3,1>(dof_index_i,dof_index_j) = H_temp2;
 					H.block<1,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
-				} else {
+				} else if (model.mJoints[j].mDoFCount == 3) {
 					Matrix3d H_temp2 = F_63.transpose() * (model.multdof3_S[j]);
 
 					H.block<3,3>(dof_index_i,dof_index_j) = H_temp2;
 					H.block<3,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
+				} else if (model.mJoints[j].mJointType == JointTypeCustom) {
+					assert (false && "CustomJoint not yet implemented!");
 				}
 			}
+		} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+			// TODO
+			assert (false && "CustomJoint not yet implemented!");
 		}
 	}
 }
@@ -284,7 +301,7 @@ void ForwardDynamics (
 #endif
 				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			model.multdof3_U[i] = model.IA[i] * model.multdof3_S[i];
 #ifdef EIGEN_CORE_H
 			model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * model.multdof3_U[i]).inverse().eval();
@@ -309,6 +326,9 @@ void ForwardDynamics (
 #endif
 				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
+		} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+			// TODO
+			assert (false && "CustomJoint not yet implemented!");
 		}
 	}
 
@@ -327,13 +347,16 @@ void ForwardDynamics (
 		if (model.mJoints[i].mDoFCount == 1) {
 			QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
 			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			Vector3d qdd_temp = model.multdof3_Dinv[i] * (model.multdof3_u[i] - model.multdof3_U[i].transpose() * model.a[i]);
 			QDDot[q_index] = qdd_temp[0];
 			QDDot[q_index + 1] = qdd_temp[1];
 			QDDot[q_index + 2] = qdd_temp[2];
 			model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
-		}
+		} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+			// TODO
+			assert (false && "CustomJoint not yet implemented!");
+		} 
 	}
 
 	LOG << "QDDot = " << QDDot.transpose() << std::endl;
@@ -464,7 +487,7 @@ void CalcMInvTimesTau (
 					model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 #endif
 				}
-			} else {
+			} else if (model.mJoints[i].mDoFCount == 3) {
 				model.multdof3_U[i] = model.IA[i] * model.multdof3_S[i];
 #ifdef EIGEN_CORE_H
 				model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * model.multdof3_U[i]).inverse().eval();
@@ -481,6 +504,9 @@ void CalcMInvTimesTau (
 					model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 #endif
 				}
+			} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+				// TODO
+				assert (false && "CustomJoint not yet implemented!");
 			}
 		}
 	}
@@ -503,7 +529,7 @@ void CalcMInvTimesTau (
 #endif
 				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
 
 			model.multdof3_u[i] = tau_temp - model.multdof3_S[i].transpose() * model.pA[i];
@@ -519,6 +545,9 @@ void CalcMInvTimesTau (
 #endif
 				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
+		} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+			// TODO
+			assert (false && "CustomJoint not yet implemented!");
 		}
 	}
 
@@ -535,12 +564,15 @@ void CalcMInvTimesTau (
 		if (model.mJoints[i].mDoFCount == 1) {
 			QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
 			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			Vector3d qdd_temp = model.multdof3_Dinv[i] * (model.multdof3_u[i] - model.multdof3_U[i].transpose() * model.a[i]);
 			QDDot[q_index] = qdd_temp[0];
 			QDDot[q_index + 1] = qdd_temp[1];
 			QDDot[q_index + 2] = qdd_temp[2];
 			model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
+		} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+			// TODO
+			assert (false && "CustomJoint not yet implemented!");
 		}
 	}
 

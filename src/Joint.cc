@@ -190,6 +190,11 @@ namespace RigidBodyDynamics {
 				model.v_J[joint_id] = model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
 				model.c_J[joint_id].set(0., 0., 0., 0., 0., 0.);
+			} else if (model.mJoints[joint_id].mJointType == JointTypeCustom) {
+				const Joint &joint = model.mJoints[joint_id];
+				CustomJoint *custom_joint = model.mCustomJoints[joint.custom_joint_index];
+
+				custom_joint->jcalc (model, joint_id, q, qdot);
 			} else {
 				std::cerr << "Error: invalid joint type " << model.mJoints[joint_id].mJointType << " at id " << joint_id << std::endl;
 				abort();
@@ -369,6 +374,11 @@ namespace RigidBodyDynamics {
 				model.multdof3_S[joint_id](3,0) = 1.;
 				model.multdof3_S[joint_id](4,1) = 1.;
 				model.multdof3_S[joint_id](5,2) = 1.;
+			} else if (model.mJoints[joint_id].mJointType == JointTypeCustom) {
+				const Joint &joint = model.mJoints[joint_id];
+				CustomJoint *custom_joint = model.mCustomJoints[joint.custom_joint_index];
+
+				custom_joint->jcalc_X_lambda_S (model, joint_id, q);
 			} else {
 				std::cerr << "Error: invalid joint type!" << std::endl;
 				abort();

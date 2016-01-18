@@ -195,6 +195,7 @@ enum JointType {
 	JointType4DoF, ///< Emulated 4 DoF joint.
 	JointType5DoF, ///< Emulated 5 DoF joint.
 	JointType6DoF, ///< Emulated 6 DoF joint.
+	JointTypeCustom, ///< User defined joints of varying size
 };
 
 /** \brief Describes a joint relative to the predecessor body.
@@ -266,6 +267,9 @@ struct RBDL_DLLAPI Joint {
 				mJointAxes[0] = Math::SpatialVector (0., 0., 0., 1., 0., 0.);
 				mJointAxes[1] = Math::SpatialVector (0., 0., 0., 0., 1., 0.);
 				mJointAxes[2] = Math::SpatialVector (0., 0., 0., 0., 0., 1.);
+			} else if (type == JointTypeCustom) {
+				mJointAxes = new Math::SpatialVector[1];
+				mJointAxes[0].setZero();
 			} else if (type != JointTypeFixed && type != JointTypeFloatingBase) {
 				std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
 				assert (0);
@@ -573,12 +577,16 @@ struct RBDL_DLLAPI Joint {
 		return axis_rotational || axis_translational;
 	}
 
-	/// \brief The spatial axis of the joint
+	/// \brief The spatial axes of the joint
 	Math::SpatialVector* mJointAxes;
-	/// \brief Type of joint (rotational or prismatic)
+	/// \brief Type of joint 
 	JointType mJointType;
+	/// \brief Number of degrees of freedom of the joint. Note: CustomJoints
+	// have here a value of 0 and their actual numbers of degrees of freedom
+	// can be obtained using the CustomJoint structure.
 	unsigned int mDoFCount;
 	unsigned int q_index;
+	unsigned int custom_joint_index;
 };
 
 /** \brief Computes all variables for a joint model
@@ -614,6 +622,29 @@ void jcalc_X_lambda_S (
 		unsigned int joint_id,
 		const Math::VectorNd &q
 		);
+
+struct RBDL_DLLAPI CustomJoint {
+	CustomJoint() 
+	{ }
+	virtual ~CustomJoint() {};
+
+	virtual void jcalc (Model &model,
+		unsigned int joint_id,
+		const Math::VectorNd &q,
+		const Math::VectorNd &qdot
+		) = 0;
+	virtual void jcalc_X_lambda_S (Model &model,
+		unsigned int joint_id,
+		const Math::VectorNd &q
+		) = 0;
+
+	unsigned int mDoFCount;
+	Math::SpatialTransform XJ;
+	Math::MatrixNd S;
+	Math::MatrixNd U;
+	Math::MatrixNd Dinv;
+	Math::VectorNd u;
+};
 
 }
 

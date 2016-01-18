@@ -58,9 +58,15 @@ void UpdateKinematics (Model &model,
 
 		if (model.mJoints[i].mDoFCount == 1) {
 			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
-		} else {
+		} else if (model.mJoints[i].mDoFCount == 3) {
 			Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
 			model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
+		} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+			unsigned int custom_index = model.mJoints[i].custom_joint_index;
+			const CustomJoint* custom_joint = model.mCustomJoints[custom_index];
+			unsigned int joint_dof_count = custom_joint->mDoFCount;
+
+			model.a[i] = model.a[i] + model.mCustomJoints[custom_index]->S * QDDot.block(q_index, 0, joint_dof_count, 1);
 		}
 	}
 
@@ -128,11 +134,14 @@ void UpdateKinematicsCustom (Model &model,
 
 			if (model.mJoints[i].mDoFCount == 1) {
 				model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
-			} else {
+			} else if (model.mJoints[i].mDoFCount == 3) {
 				Vector3d omegadot_temp ((*QDDot)[q_index], (*QDDot)[q_index + 1], (*QDDot)[q_index + 2]);
 				model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
-			} 
-		}
+			} else if (model.mJoints[i].mJointType == JointTypeCustom) {
+				// TODO: See UpdateKinematics()
+				assert (false && "CustomJoint not yet implemented!");
+			}
+		} 
 	}
 }
 
@@ -253,9 +262,12 @@ void CalcPointJacobian (
 
 		if (model.mJoints[j].mDoFCount == 1) {
 			G.block(0,q_index, 3, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(3,0,3,1);
-		} else {
+		} else if (model.mJoints[j].mDoFCount == 3) {
 			G.block(0, q_index, 3, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(3,0,3,3);
-		} 
+		} else {
+			// TODO: see above with different sizes
+			assert (false && "CustomJoint not yet implemented!");
+		}
 
 		j = model.lambda[j];
 	}
@@ -295,8 +307,11 @@ void CalcPointJacobian6D (
 
 		if (model.mJoints[j].mDoFCount == 1) {
 			G.block(0,q_index, 6, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(0,0,6,1);
-		} else {
+		} else if (model.mJoints[j].mDoFCount == 3) {
 			G.block(0, q_index, 6, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(0,0,6,3);
+		} else {
+			// TODO: see above with different sizes
+			assert (false && "CustomJoint not yet implemented!");
 		}
 
 		j = model.lambda[j];
@@ -339,8 +354,11 @@ void CalcBodySpatialJacobian (
 
 		if (model.mJoints[j].mDoFCount == 1) {
 			G.block(0,q_index,6,1) = base_to_body.apply(model.X_base[j].inverse().apply(model.S[j]));
-		} else {
+		} else if (model.mJoints[j].mDoFCount == 3) {
 			G.block(0,q_index,6,3) = (base_to_body * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j];
+		} else {
+			// TODO: see above with different sizes
+			assert (false && "CustomJoint not yet implemented!");
 		}
 	
 		j = model.lambda[j];

@@ -232,7 +232,9 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 			|| (joint.mJointType == JointTypeEulerZYX) 
 			|| (joint.mJointType == JointTypeEulerXYZ) 
 			|| (joint.mJointType == JointTypeEulerYXZ) 
-			|| (joint.mJointType == JointTypeTranslationXYZ) ) {
+			|| (joint.mJointType == JointTypeTranslationXYZ) 
+			|| (joint.mJointType == JointTypeCustom) 
+			) {
 		// no action required
 	} else if (joint.mJointType != JointTypePrismatic 
 			&& joint.mJointType != JointTypeRevolute
@@ -258,8 +260,13 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	// structural information
 	lambda.push_back(movable_parent_id);
 	unsigned int lambda_q_last = mJoints[mJoints.size() - 1].q_index;
-	if (mJoints[mJoints.size() - 1].mDoFCount > 0)
+	if (mJoints[mJoints.size() - 1].mDoFCount > 0) {
 		lambda_q_last = lambda_q_last + mJoints[mJoints.size() - 1].mDoFCount;
+	} else if (mJoints[mJoints.size() - 1].mJointType == JointTypeCustom) {
+		unsigned int custom_index = mJoints[mJoints.size() - 1].custom_joint_index;
+		lambda_q_last = lambda_q_last + mCustomJoints[mCustomJoints.size() - 1]->mDoFCount;
+	}
+
 	for (unsigned int i = 0; i < joint.mDoFCount; i++) {
 		lambda_q.push_back(lambda_q_last + i);
 	}
@@ -285,10 +292,15 @@ unsigned int Model::AddBody (const unsigned int parent_id,
 	a.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 
 	// Joints
-	unsigned int last_q_index = mJoints.size() - 1;
+	unsigned int prev_joint_index = mJoints.size() - 1;
 	mJoints.push_back(joint);
-	mJoints[mJoints.size() - 1].q_index = mJoints[last_q_index].q_index + mJoints[last_q_index].mDoFCount; 
 
+	if (mJoints[prev_joint_index].mJointType != JointTypeCustom) {
+		mJoints[mJoints.size() - 1].q_index = mJoints[prev_joint_index].q_index + mJoints[prev_joint_index].mDoFCount;
+	} else {
+		mJoints[mJoints.size() - 1].q_index = mJoints[prev_joint_index].q_index + mJoints[prev_joint_index].mDoFCount; 
+	}
+	
 	S.push_back (joint.mJointAxes[0]);
 
 	// Joint state variables
@@ -389,3 +401,20 @@ unsigned int Model::AppendBody (
 	return Model::AddBody (previously_added_body_id, joint_frame,
 			joint, body, body_name);
 }
+
+unsigned int Model::AddBodyCustomJoint (
+		const unsigned int parent_id,
+		const Math::SpatialTransform &joint_frame,
+		CustomJoint *custom_joint,
+		const Body &body,
+		std::string body_name) {
+
+	Joint proxy_joint (JointTypeCustom);
+	proxy_joint.custom_joint_index = mCustomJoints.size();
+	mCustomJoints.push_back (custom_joint);
+
+	unsigned int body_id = AddBody (parent_id, joint_frame, proxy_joint, body, body_name);
+
+	return body_id;
+}
+
