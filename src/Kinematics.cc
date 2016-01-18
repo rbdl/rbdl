@@ -56,12 +56,12 @@ void UpdateKinematics (Model &model,
 		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 		model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i];
 
-		if (model.mJoints[i].mDoFCount == 3) {
+		if (model.mJoints[i].mDoFCount == 1) {
+			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+		} else {
 			Vector3d omegadot_temp (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
 			model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
-		} else {
-			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
-		}	
+		}
 	}
 
 	for (i = 1; i < model.mBodies.size(); i++) {
@@ -126,12 +126,12 @@ void UpdateKinematicsCustom (Model &model,
 				model.a[i] = model.c[i];
 			}
 
-			if (model.mJoints[i].mDoFCount == 3) {
+			if (model.mJoints[i].mDoFCount == 1) {
+				model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
+			} else {
 				Vector3d omegadot_temp ((*QDDot)[q_index], (*QDDot)[q_index + 1], (*QDDot)[q_index + 2]);
 				model.a[i] = model.a[i] + model.multdof3_S[i] * omegadot_temp;
-			} else {
-				model.a[i] = model.a[i] + model.S[i] * (*QDDot)[q_index];
-			}
+			} 
 		}
 	}
 }
@@ -251,11 +251,11 @@ void CalcPointJacobian (
 	while (j != 0) {
 		unsigned int q_index = model.mJoints[j].q_index;
 
-		if (model.mJoints[j].mDoFCount == 3) {
-			G.block(0, q_index, 3, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(3,0,3,3);
-		} else {
+		if (model.mJoints[j].mDoFCount == 1) {
 			G.block(0,q_index, 3, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(3,0,3,1);
-		}
+		} else {
+			G.block(0, q_index, 3, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(3,0,3,3);
+		} 
 
 		j = model.lambda[j];
 	}
@@ -293,10 +293,10 @@ void CalcPointJacobian6D (
 	while (j != 0) {
 		unsigned int q_index = model.mJoints[j].q_index;
 
-		if (model.mJoints[j].mDoFCount == 3) {
-			G.block(0, q_index, 6, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(0,0,6,3);
-		} else {
+		if (model.mJoints[j].mDoFCount == 1) {
 			G.block(0,q_index, 6, 1) = point_trans.apply(model.X_base[j].inverse().apply(model.S[j])).block(0,0,6,1);
+		} else {
+			G.block(0, q_index, 6, 3) = ((point_trans * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j]).block(0,0,6,3);
 		}
 
 		j = model.lambda[j];
@@ -337,10 +337,10 @@ void CalcBodySpatialJacobian (
 	while (j != 0) {
 		unsigned int q_index = model.mJoints[j].q_index;
 
-		if (model.mJoints[j].mDoFCount == 3) {
-			G.block(0,q_index,6,3) = (base_to_body * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j];
-		} else {
+		if (model.mJoints[j].mDoFCount == 1) {
 			G.block(0,q_index,6,1) = base_to_body.apply(model.X_base[j].inverse().apply(model.S[j]));
+		} else {
+			G.block(0,q_index,6,3) = (base_to_body * model.X_base[j].inverse()).toMatrix() * model.multdof3_S[j];
 		}
 	
 		j = model.lambda[j];

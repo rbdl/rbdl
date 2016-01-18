@@ -85,7 +85,26 @@ void ForwardDynamics (
 	for (i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int q_index = model.mJoints[i].q_index;
 
-		if (model.mJoints[i].mDoFCount == 3) {
+		if (model.mJoints[i].mDoFCount == 1) {
+			model.U[i] = model.IA[i] * model.S[i];
+			model.d[i] = model.S[i].dot(model.U[i]);
+			model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
+			//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
+
+			unsigned int lambda = model.lambda[i];
+			if (lambda != 0) {
+				SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
+				SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
+#ifdef EIGEN_CORE_H
+				model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
+#else
+				model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+				model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+#endif
+				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
+			}
+		} else {
 			model.multdof3_U[i] = model.IA[i] * model.multdof3_S[i];
 #ifdef EIGEN_CORE_H
 			model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * model.multdof3_U[i]).inverse().eval();
@@ -110,25 +129,6 @@ void ForwardDynamics (
 #endif
 				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
-		} else {
-			model.U[i] = model.IA[i] * model.S[i];
-			model.d[i] = model.S[i].dot(model.U[i]);
-			model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
-//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
-
-			unsigned int lambda = model.lambda[i];
-			if (lambda != 0) {
-				SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
-				SpatialVector pa = model.pA[i] + Ia * model.c[i] + model.U[i] * model.u[i] / model.d[i];
-#ifdef EIGEN_CORE_H
-				model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-				model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-#else
-				model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-				model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
-				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
-			}
 		}
 	}
 
@@ -144,15 +144,15 @@ void ForwardDynamics (
 		model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
 		LOG << "a'[" << i << "] = " << model.a[i].transpose() << std::endl;
 
-		if (model.mJoints[i].mDoFCount == 3) {
+		if (model.mJoints[i].mDoFCount == 1) {
+			QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
+			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+		} else {
 			Vector3d qdd_temp = model.multdof3_Dinv[i] * (model.multdof3_u[i] - model.multdof3_U[i].transpose() * model.a[i]);
 			QDDot[q_index] = qdd_temp[0];
 			QDDot[q_index + 1] = qdd_temp[1];
 			QDDot[q_index + 2] = qdd_temp[2];
 			model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
-		} else {
-			QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
-			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 		}
 	}
 
@@ -269,10 +269,10 @@ void NonlinearEffects (
 	}
 
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
-		if (model.mJoints[i].mDoFCount == 3) {
-			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
-		} else {
+		if (model.mJoints[i].mDoFCount == 1) {
 			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
+		} else {
+			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
 		}
 
 		if (model.lambda[i] != 0) {
@@ -305,10 +305,10 @@ void InverseDynamics (
 		model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
 		model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
 
-		if (model.mJoints[i].mDoFCount == 3) {
-			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
-		} else {
+		if (model.mJoints[i].mDoFCount == 1) {
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
+		} else {
+			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
 		}	
 
 		if (!model.mBodies[i].mIsVirtual) {
@@ -327,10 +327,10 @@ void InverseDynamics (
 	}
 
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
-		if (model.mJoints[i].mDoFCount == 3) {
-			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
-		} else {
+		if (model.mJoints[i].mDoFCount == 1) {
 			Tau[model.mJoints[i].q_index] = model.S[i].dot(model.f[i]);
+		} else {
+			Tau.block<3,1>(model.mJoints[i].q_index, 0) = model.multdof3_S[i].transpose() * model.f[i];
 		}
 
 		if (model.lambda[i] != 0) {
@@ -359,31 +359,7 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 
 		unsigned int dof_index_i = model.mJoints[i].q_index;
 
-		if (model.mJoints[i].mDoFCount == 3) {
-			Matrix63 F_63 = model.Ic[i].toMatrix() * model.multdof3_S[i];
-			H.block<3,3>(dof_index_i, dof_index_i) = model.multdof3_S[i].transpose() * F_63;
-
-			unsigned int j = i;
-			unsigned int dof_index_j = dof_index_i;
-
-			while (model.lambda[j] != 0) {
-				F_63 = model.X_lambda[j].toMatrixTranspose() * (F_63);
-				j = model.lambda[j];
-				dof_index_j = model.mJoints[j].q_index;
-
-				if (model.mJoints[j].mDoFCount == 3) {
-					Matrix3d H_temp2 = F_63.transpose() * (model.multdof3_S[j]);
-
-					H.block<3,3>(dof_index_i,dof_index_j) = H_temp2;
-					H.block<3,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
-				} else {
-					Vector3d H_temp2 = F_63.transpose() * (model.S[j]);
-
-					H.block<3,1>(dof_index_i,dof_index_j) = H_temp2;
-					H.block<1,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
-				}
-			}
-		} else {
+		if (model.mJoints[i].mDoFCount == 1) {
 			SpatialVector F = model.Ic[i] * model.S[i];
 			H(dof_index_i, dof_index_i) = model.S[i].dot(F);
 
@@ -395,17 +371,41 @@ void CompositeRigidBodyAlgorithm (Model& model, const VectorNd &Q, MatrixNd &H, 
 				j = model.lambda[j];
 				dof_index_j = model.mJoints[j].q_index;
 
-				if (model.mJoints[j].mDoFCount == 3) {
+				if (model.mJoints[j].mDoFCount == 1) {
+					H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
+					H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
+				} else {
 					Vector3d H_temp2 = (F.transpose() * model.multdof3_S[j]).transpose();
 
 					LOG << F.transpose() << std::endl << model.multdof3_S[j] << std::endl;
 					LOG << H_temp2.transpose() << std::endl;
 
 					H.block<1,3>(dof_index_i,dof_index_j) = H_temp2.transpose();
- 					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
+					H.block<3,1>(dof_index_j,dof_index_i) = H_temp2;
+				}
+			}
+		} else {
+			Matrix63 F_63 = model.Ic[i].toMatrix() * model.multdof3_S[i];
+			H.block<3,3>(dof_index_i, dof_index_i) = model.multdof3_S[i].transpose() * F_63;
+
+			unsigned int j = i;
+			unsigned int dof_index_j = dof_index_i;
+
+			while (model.lambda[j] != 0) {
+				F_63 = model.X_lambda[j].toMatrixTranspose() * (F_63);
+				j = model.lambda[j];
+				dof_index_j = model.mJoints[j].q_index;
+
+				if (model.mJoints[j].mDoFCount == 1) {
+					Vector3d H_temp2 = F_63.transpose() * (model.S[j]);
+
+					H.block<3,1>(dof_index_i,dof_index_j) = H_temp2;
+					H.block<1,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
 				} else {
-					H(dof_index_i,dof_index_j) = F.dot(model.S[j]);
-					H(dof_index_j,dof_index_i) = H(dof_index_i,dof_index_j);
+					Matrix3d H_temp2 = F_63.transpose() * (model.multdof3_S[j]);
+
+					H.block<3,3>(dof_index_i,dof_index_j) = H_temp2;
+					H.block<3,3>(dof_index_j,dof_index_i) = H_temp2.transpose();
 				}
 			}
 		}
@@ -451,7 +451,21 @@ void CalcMInvTimesTau (
 		for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
 			unsigned int q_index = model.mJoints[i].q_index;
 
-			if (model.mJoints[i].mDoFCount == 3) {
+			if (model.mJoints[i].mDoFCount == 1) {
+				model.U[i] = model.IA[i] * model.S[i];
+				model.d[i] = model.S[i].dot(model.U[i]);
+				//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
+
+				unsigned int lambda = model.lambda[i];
+				if (lambda != 0) {
+					SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
+#ifdef EIGEN_CORE_H
+					model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+#else
+					model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
+#endif
+				}
+			} else {
 				model.multdof3_U[i] = model.IA[i] * model.multdof3_S[i];
 #ifdef EIGEN_CORE_H
 				model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose() * model.multdof3_U[i]).inverse().eval();
@@ -468,20 +482,6 @@ void CalcMInvTimesTau (
 					model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
 #endif
 				}
-			} else {
-				model.U[i] = model.IA[i] * model.S[i];
-				model.d[i] = model.S[i].dot(model.U[i]);
-				//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
-
-				unsigned int lambda = model.lambda[i];
-				if (lambda != 0) {
-					SpatialMatrix Ia = model.IA[i] - model.U[i] * (model.U[i] / model.d[i]).transpose();
-#ifdef EIGEN_CORE_H
-					model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-#else
-					model.IA[lambda] += model.X_lambda[i].toMatrixTranspose() * Ia * model.X_lambda[i].toMatrix();
-#endif
-				}
 			}
 		}
 	}
@@ -490,15 +490,13 @@ void CalcMInvTimesTau (
 	for (unsigned int i = model.mBodies.size() - 1; i > 0; i--) {
 		unsigned int q_index = model.mJoints[i].q_index;
 
-		if (model.mJoints[i].mDoFCount == 3) {
-			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
+		if (model.mJoints[i].mDoFCount == 1) {
+			model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
+			//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
 
-			model.multdof3_u[i] = tau_temp - model.multdof3_S[i].transpose() * model.pA[i];
-
-			//			LOG << "multdof3_u[" << i << "] = " << model.multdof3_u[i].transpose() << std::endl;
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				SpatialVector pa = model.pA[i] + model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_u[i];
+				SpatialVector pa = model.pA[i] + model.U[i] * model.u[i] / model.d[i];
 #ifdef EIGEN_CORE_H
 				model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
 #else
@@ -507,12 +505,14 @@ void CalcMInvTimesTau (
 				LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() << std::endl;
 			}
 		} else {
-			model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
-			//			LOG << "u[" << i << "] = " << model.u[i] << std::endl;
+			Vector3d tau_temp (Tau[q_index], Tau[q_index + 1], Tau[q_index + 2]);
 
+			model.multdof3_u[i] = tau_temp - model.multdof3_S[i].transpose() * model.pA[i];
+
+			//			LOG << "multdof3_u[" << i << "] = " << model.multdof3_u[i].transpose() << std::endl;
 			unsigned int lambda = model.lambda[i];
 			if (lambda != 0) {
-				SpatialVector pa = model.pA[i] + model.U[i] * model.u[i] / model.d[i];
+				SpatialVector pa = model.pA[i] + model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_u[i];
 #ifdef EIGEN_CORE_H
 				model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
 #else
@@ -533,15 +533,15 @@ void CalcMInvTimesTau (
 		model.a[i] = X_lambda.apply(model.a[lambda]) + model.c[i];
 		LOG << "a'[" << i << "] = " << model.a[i].transpose() << std::endl;
 
-		if (model.mJoints[i].mDoFCount == 3) {
+		if (model.mJoints[i].mDoFCount == 1) {
+			QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
+			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
+		} else {
 			Vector3d qdd_temp = model.multdof3_Dinv[i] * (model.multdof3_u[i] - model.multdof3_U[i].transpose() * model.a[i]);
 			QDDot[q_index] = qdd_temp[0];
 			QDDot[q_index + 1] = qdd_temp[1];
 			QDDot[q_index + 2] = qdd_temp[2];
 			model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
-		} else {
-			QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
-			model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
 		}
 	}
 
