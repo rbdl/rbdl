@@ -1,5 +1,10 @@
 # Coding style for RBDL
 
+This documents gives an overview of the coding style used in RBDL and also
+the general goals of RBDL.
+
+# General Purpose of RBDL
+
 RBDL implements large parts of the algorithms and methods described in
 Featherstone's book Rigid Body Dynamics Algorithms. One of the main goals
 of this library is to serve as an efficient implementation for the methods
@@ -21,17 +26,19 @@ programming patterns.
 This is what RBDL aims to be:
 
 * RBDL aims to be lean 
-* RBDL easy to be integrated into other projects
-* RBDL easy to be used as a foundation for sophisticated dynamics packages
+* RBDL aims to be easily integrated into other projects
+* RBDL aims to be suitable as a foundation for sophisticated dynamics packages
 * RBDL gives you access to its internals and provides only a thin abstraction layer over the actual computation
 * RBDL aims to be self-contained and dependant on as few libraries as possible
 
 And this is what RBDL is ***not*** about:
 
-* RBDL is ***not*** a fully fledget simulator with collision detection or fancy graphics
+* RBDL is ***not*** a fully fledged simulator with collision detection or fancy graphics
 * RBDL does not keep you from screwing up things.
 
-Multibody dynamics is a complicated subject and 
+Multibody dynamics is a complicated subject and in this codebase the
+preference is mathematical and algorithmic clarity over elegant software
+architecture.
 
 # Data Storage
 
@@ -85,13 +92,25 @@ use tabs.
 
 Lines should not exceed 80 characters in width.
 
+# Error Handling
+
+RBDL will fail loudly and abort if an error occurs. This allows you to spot
+errors early on. RBDL does not use exceptions.
+
+# Const Correctness
+
+This code uses const correctness, i.e. parameters that are not expected to
+change must be specified as const. Use const references whenever possible.
+For some optional variables we use pointers, but when possible use
+references.
+
 # Braces
 
 Use braces whenever possible. E.g. even there is only a single line of code
 after an if-statement wrap it with curly braces. The opening brace starts
 in the same line as the ```if``` or the ```else``` statement.
 
-# Documentation
+# Documentation (
 
 Most importantly the code should be readable to someone who is familiar
 with multibody dynamics, especially with Featherstone's notation. The
@@ -105,8 +124,29 @@ The doxygen comments should be written in the header files and not in the
 
 # Testing
 
-Todo.
+All code contributions must provide unit tests. RBDL uses UnitTest++
+(https://github.com/unittest-cpp/unittest-cpp) as a testing framework. Many
+small tests that check single features are preferred over large tests that
+test multiple things simultaneously.
+
+Bugfixes ideally come with a test case that reproduce the bug.
+
+# Branching and Bookmarks
+
+RBDL uses Mercurial (https://mercurial-scm.org) as version control system.
+The branching concept of mercurial is different than in git. Git's
+branching concept is captured in mercurial using bookmarks
+(https://www.mercurial-scm.org/wiki/Bookmarks).
+
+The ```default``` branch is reserved for releases. Bugfixes and
+contributions happen in the ```dev``` branch but should have a bookmark
+assigned to them.
+
+Please do not create new branches, i.e. do not run ```hg branch
+<branchname>```.
 
 # Debugging
 
 Todo: mention logging facility
+Todo: mention SimpleMath as a fast-compiling (but slower runtime) linear
+algebra package.
