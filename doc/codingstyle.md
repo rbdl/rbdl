@@ -3,7 +3,10 @@
 This documents gives an overview of the coding style used in RBDL and also
 the general goals of RBDL.
 
-# General Purpose of RBDL
+If you are considering contributing to this library please read the whole
+document.
+
+## General Purpose of RBDL
 
 RBDL implements large parts of the algorithms and methods described in
 Featherstone's book Rigid Body Dynamics Algorithms. One of the main goals
@@ -21,7 +24,7 @@ The algorithmic parts of RBDL's code try to follow the algorithmic or
 mathematical notations instead of wrapping algorithms in elegant
 programming patterns.
 
-# Aims and Non-Aims of RBDL
+### Aims and Non-Aims of RBDL
 
 This is what RBDL aims to be:
 
@@ -40,7 +43,7 @@ Multibody dynamics is a complicated subject and in this codebase the
 preference is mathematical and algorithmic clarity over elegant software
 architecture.
 
-# Data Storage
+## Data Storage
 
 RBDL tries to avoid dynamic allocations and prefers contiguous memory
 storage such as in ```std::vector```s over possibly fragmented memory as in
@@ -50,7 +53,7 @@ Where possible we use the Structure-of-Arrays (SOA) approach to store data,
 e.g. the velocities v of all bodies is stored in an array (```std::vector```)
 of ```SpatialVector```s in the ```Model``` structure.
 
-# Naming Conventions
+## Naming Conventions
 
 1. Structs and classes use CamelCase, e.g. ```ConstraintSet```
 2. Struct and class members use the lowerCamelCase convention, e.g.
@@ -70,7 +73,7 @@ of ```SpatialVector```s in the ```Model``` structure.
   ```dofCount```.
 4. Variables that are not member variables use the ```snake_case``` convention.
 
-## Examples
+### Examples
 
     struct Model {
       std::vector<SpatialVector> v;          // ok, v is an  
@@ -85,32 +88,32 @@ of ```SpatialVector```s in the ```Model``` structure.
 
     };
 
-# Spacing and Line Width
+## Spacing and Line Width
 
 We use spaces to indent code and use two spaces to indent a block. Do not
 use tabs.
 
 Lines should not exceed 80 characters in width.
 
-# Error Handling
+## Error Handling
 
 RBDL will fail loudly and abort if an error occurs. This allows you to spot
 errors early on. RBDL does not use exceptions.
 
-# Const Correctness
+## Const Correctness
 
 This code uses const correctness, i.e. parameters that are not expected to
 change must be specified as const. Use const references whenever possible.
 For some optional variables we use pointers, but when possible use
 references.
 
-# Braces
+## Braces
 
 Use braces whenever possible. E.g. even there is only a single line of code
 after an if-statement wrap it with curly braces. The opening brace starts
 in the same line as the ```if``` or the ```else``` statement.
 
-# Documentation (
+## Documentation
 
 Most importantly the code should be readable to someone who is familiar
 with multibody dynamics, especially with Featherstone's notation. The
@@ -122,7 +125,7 @@ readable code in the first place as comments easily become deprecated.
 The doxygen comments should be written in the header files and not in the
 ```.cc``` files.
 
-# Testing
+## Testing
 
 All code contributions must provide unit tests. RBDL uses UnitTest++
 (https://github.com/unittest-cpp/unittest-cpp) as a testing framework. Many
@@ -131,7 +134,7 @@ test multiple things simultaneously.
 
 Bugfixes ideally come with a test case that reproduce the bug.
 
-# Branching and Bookmarks
+## Branching and Bookmarks
 
 RBDL uses Mercurial (https://mercurial-scm.org) as version control system.
 The branching concept of mercurial is different than in git. Git's
@@ -145,7 +148,7 @@ assigned to them.
 Please do not create new branches, i.e. do not run ```hg branch
 <branchname>```.
 
-# Debugging
+## Debugging
 
 Todo: mention logging facility
 Todo: mention SimpleMath as a fast-compiling (but slower runtime) linear
