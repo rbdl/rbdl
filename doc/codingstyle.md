@@ -100,6 +100,10 @@ Lines should not exceed 80 characters in width.
 RBDL will fail loudly and abort if an error occurs. This allows you to spot
 errors early on. RBDL does not use exceptions.
 
+Code must compile without warnings with all compiler warnings enabled.
+Please also consider checking code with static code analyzers such as
+clang-analyzer (http://clang-analyzer.llvm.org/).
+
 ## Const Correctness
 
 This code uses const correctness, i.e. parameters that are not expected to
