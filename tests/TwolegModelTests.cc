@@ -5,7 +5,7 @@
 #include "rbdl/Logging.h"
 
 #include "rbdl/Model.h"
-#include "rbdl/Contacts.h"
+#include "rbdl/Constraints.h"
 #include "rbdl/Dynamics.h"
 #include "rbdl/Kinematics.h"
 
@@ -248,19 +248,19 @@ void init_model (Model* model) {
 	heel_point.set (-0.05, -0.0317, 0.);
 	medial_point.set  (-0.05, -0.0317 + segment_lengths[SegmentLengthsFoot], 0.);
 
-	constraint_set_right.AddConstraint(foot_right_id, heel_point, Vector3d (1., 0., 0.), "right_heel_x");
-	constraint_set_right.AddConstraint(foot_right_id, heel_point, Vector3d (0., 1., 0.), "right_heel_y");
+	constraint_set_right.AddContactConstraint(foot_right_id, heel_point, Vector3d (1., 0., 0.), "right_heel_x");
+	constraint_set_right.AddContactConstraint(foot_right_id, heel_point, Vector3d (0., 1., 0.), "right_heel_y");
 
-	constraint_set_left.AddConstraint(foot_left_id, heel_point, Vector3d (1., 0., 0.), "left_heel_x");
-	constraint_set_left.AddConstraint(foot_left_id, heel_point, Vector3d (0., 1., 0.), "left_heel_y");
+	constraint_set_left.AddContactConstraint(foot_left_id, heel_point, Vector3d (1., 0., 0.), "left_heel_x");
+	constraint_set_left.AddContactConstraint(foot_left_id, heel_point, Vector3d (0., 1., 0.), "left_heel_y");
 
-	constraint_set_both.AddConstraint(foot_right_id, heel_point, Vector3d (1., 0., 0.), "right_heel_x");
-	constraint_set_both.AddConstraint(foot_right_id, heel_point, Vector3d (0., 1., 0.), "right_heel_y");
-	constraint_set_both.AddConstraint(foot_right_id, heel_point, Vector3d (0., 0., 1.), "right_heel_z");
+	constraint_set_both.AddContactConstraint(foot_right_id, heel_point, Vector3d (1., 0., 0.), "right_heel_x");
+	constraint_set_both.AddContactConstraint(foot_right_id, heel_point, Vector3d (0., 1., 0.), "right_heel_y");
+	constraint_set_both.AddContactConstraint(foot_right_id, heel_point, Vector3d (0., 0., 1.), "right_heel_z");
 
-	constraint_set_both.AddConstraint(foot_left_id, heel_point, Vector3d (1., 0., 0.), "left_heel_x");
-	constraint_set_both.AddConstraint(foot_left_id, heel_point, Vector3d (0., 1., 0.), "left_heel_y");
-	constraint_set_both.AddConstraint(foot_left_id, heel_point, Vector3d (0., 0., 1.), "left_heel_z");
+	constraint_set_both.AddContactConstraint(foot_left_id, heel_point, Vector3d (1., 0., 0.), "left_heel_x");
+	constraint_set_both.AddContactConstraint(foot_left_id, heel_point, Vector3d (0., 1., 0.), "left_heel_y");
+	constraint_set_both.AddContactConstraint(foot_left_id, heel_point, Vector3d (0., 0., 1.), "left_heel_z");
 
 	constraint_set_right.Bind (*model);
 	constraint_set_left.Bind (*model);
@@ -272,7 +272,7 @@ void copy_values (T *dest, const T *src, size_t count) {
 	memcpy (dest, src, count * sizeof (T));
 }
 
-TEST ( TestForwardDynamicsContactsDirectFootmodel ) {
+TEST ( TestForwardDynamicsConstrainedDirectFootmodel ) {
 	Model* model = new Model;
 
 	init_model(model);
@@ -326,7 +326,7 @@ TEST ( TestForwardDynamicsContactsDirectFootmodel ) {
 
 	ClearLogOutput();
 
-	ForwardDynamicsContactsDirect (*model, Q, QDot, Tau, constraint_set_left, QDDot);
+	ForwardDynamicsConstrainedDirect (*model, Q, QDot, Tau, constraint_set_left, QDDot);
 
 //	cout << "C0: " << contact_data_left[0].body_id << ", " << contact_data_left[0].point.transpose() << endl;
 //	cout << "C1: " << contact_data_left[1].body_id << ", " << contact_data_left[1].point.transpose() << endl;
@@ -395,7 +395,7 @@ TEST ( TestClearContactsInertiaMatrix ) {
 
 	constraint_set_right.Bind (*model);
 
-	ForwardDynamicsContactsDirect (*model, Q, QDot, Tau, constraint_set_right, QDDot_lag);
+	ForwardDynamicsConstrainedDirect (*model, Q, QDot, Tau, constraint_set_right, QDDot_lag);
 	ForwardDynamicsContactsKokkevis (*model, Q, QDot, Tau, constraint_set_right, QDDot_aba);
 
 	CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), QDDot.size(), TEST_PREC * QDDot_lag.norm());

@@ -8,7 +8,7 @@
 #include "rbdl/Model.h"
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
-#include "rbdl/Contacts.h"
+#include "rbdl/Constraints.h"
 
 #include "Fixtures.h"
 
@@ -504,20 +504,20 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 	LOG << "--- model created (" << model->dof_count << " DOF) ---" << endl;
 	
 	// contact data
-	CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
-	CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
-	CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
+	CS_right.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
+	CS_right.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
+	CS_right.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
 
-	CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
-	CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
-	CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
+	CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
+	CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
+	CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
 	
-	CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
-	CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
-	CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
-	CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
-	CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
-	CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
+	CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
+	CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
+	CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
+	CS_both.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
+	CS_both.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
+	CS_both.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
 
 	CS_right.Bind(*model);
 	CS_left.Bind(*model);

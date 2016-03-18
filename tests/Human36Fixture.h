@@ -314,34 +314,34 @@ struct Human36 {
 		unsigned int hand_r_emulated = model_emulated->GetBodyId ("hand_r");
 		unsigned int hand_l_emulated = model_emulated->GetBodyId ("hand_l");
 
-		constraints_1B1C_emulated.AddConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B1C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
 		constraints_1B1C_emulated.Bind (*model_emulated);	
 
-		constraints_1B4C_emulated.AddConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_1B4C_emulated.AddConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_1B4C_emulated.AddConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_1B4C_emulated.AddConstraint (foot_r_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_1B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_1B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 		constraints_1B4C_emulated.Bind (*model_emulated);	
 
-		constraints_4B4C_emulated.AddConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_emulated.AddConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_4B4C_emulated.AddConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_4B4C_emulated.AddConstraint (foot_r_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-		constraints_4B4C_emulated.AddConstraint (foot_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_emulated.AddConstraint (foot_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_4B4C_emulated.AddConstraint (foot_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_4B4C_emulated.AddConstraint (foot_l_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (foot_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (foot_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (foot_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_emulated.AddContactConstraint (foot_l_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-		constraints_4B4C_emulated.AddConstraint (hand_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_emulated.AddConstraint (hand_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_4B4C_emulated.AddConstraint (hand_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_4B4C_emulated.AddConstraint (hand_r_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (hand_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (hand_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (hand_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_emulated.AddContactConstraint (hand_r_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-		constraints_4B4C_emulated.AddConstraint (hand_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_emulated.AddConstraint (hand_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_4B4C_emulated.AddConstraint (hand_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_4B4C_emulated.AddConstraint (hand_l_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (hand_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (hand_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_emulated.AddContactConstraint (hand_l_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_emulated.AddContactConstraint (hand_l_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 		constraints_4B4C_emulated.Bind (*model);
 
 		unsigned int foot_r_3dof = model_3dof->GetBodyId ("foot_r");
@@ -349,34 +349,34 @@ struct Human36 {
 		unsigned int hand_r_3dof = model_3dof->GetBodyId ("hand_r");
 		unsigned int hand_l_3dof = model_3dof->GetBodyId ("hand_l");
 
-		constraints_1B1C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B1C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
 		constraints_1B1C_3dof.Bind (*model_3dof);	
 
-		constraints_1B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_1B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_1B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_1B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B4C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_1B4C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_1B4C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_1B4C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 		constraints_1B4C_3dof.Bind (*model_3dof);	
 
-		constraints_4B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_4B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_4B4C_3dof.AddConstraint (foot_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_3dof.AddContactConstraint (foot_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-		constraints_4B4C_3dof.AddConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_3dof.AddConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_4B4C_3dof.AddConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_4B4C_3dof.AddConstraint (foot_l_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (foot_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_3dof.AddContactConstraint (foot_l_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-		constraints_4B4C_3dof.AddConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_3dof.AddConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_4B4C_3dof.AddConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_4B4C_3dof.AddConstraint (hand_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (hand_r_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_3dof.AddContactConstraint (hand_r_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-		constraints_4B4C_3dof.AddConstraint (hand_l_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+		constraints_4B4C_3dof.AddContactConstraint (hand_l_3dof, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+		constraints_4B4C_3dof.AddContactConstraint (hand_l_3dof, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 		constraints_4B4C_3dof.Bind (*model_3dof);
 	}
 

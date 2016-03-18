@@ -5,7 +5,7 @@
 #include "rbdl/Logging.h"
 
 #include "rbdl/Model.h"
-#include "rbdl/Contacts.h"
+#include "rbdl/Constraints.h"
 #include "rbdl/Dynamics.h"
 #include "rbdl/Kinematics.h"
 
@@ -76,9 +76,9 @@ struct ImpulsesFixture {
 };
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
 
 	constraint_set.Bind (*model);
 
@@ -113,9 +113,9 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
 }
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
 
 	constraint_set.Bind (*model);
 
@@ -156,9 +156,9 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
 }
 
 TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
 
 	constraint_set.Bind (*model);
 
@@ -212,9 +212,9 @@ Q[0] = 0.2;
 	QDot[1] = -0.2;
 	QDot[2] = 0.1;
 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
 
 	constraint_set.Bind (*model);
 
@@ -251,9 +251,9 @@ Q[0] = 0.2;
 	QDot[1] = -0.2;
 	QDot[2] = 0.1;
 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
-	constraint_set.AddConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
+	constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
 
 	constraint_set.Bind (*model);
 

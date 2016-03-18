@@ -72,9 +72,9 @@ TEST_FIXTURE (FloatingBase12DoF, TestSparseSolveLTx) {
 TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsSparse) {
 	ConstraintSet constraint_set_var1;
 
-	constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (1., 0., 0.));
-	constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.));
-	constraint_set.AddConstraint (child_2_id, contact_point, Vector3d (0., 1., 0.));
+	constraint_set.AddContactConstraint (contact_body_id, contact_point, Vector3d (1., 0., 0.));
+	constraint_set.AddContactConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.));
+	constraint_set.AddContactConstraint (child_2_id, contact_point, Vector3d (0., 1., 0.));
 	
 	constraint_set_var1 = constraint_set.Copy();
 	constraint_set_var1.Bind (*model);
@@ -106,7 +106,7 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsSparse) {
 	ForwardDynamicsContactsKokkevis (*model, Q, QDot, Tau, constraint_set, QDDot);
 	
 	ClearLogOutput();
-	ForwardDynamicsContactsRangeSpaceSparse (*model, Q, QDot, Tau, constraint_set_var1, QDDot_var1);
+	ForwardDynamicsConstrainedRangeSpaceSparse (*model, Q, QDot, Tau, constraint_set_var1, QDDot_var1);
 
 	CHECK_ARRAY_CLOSE (QDDot.data(), QDDot_var1.data(), QDDot.size(), TEST_PREC);
 }

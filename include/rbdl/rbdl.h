@@ -18,7 +18,7 @@
 #include "rbdl/Dynamics.h"
 #include "rbdl/Joint.h"
 #include "rbdl/Kinematics.h"
-#include "rbdl/Contacts.h"
+#include "rbdl/Constraints.h"
 
 #include "rbdl/rbdl_utils.h"
 
