@@ -5,8 +5,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef RBDL_CONTACTS_H
-#define RBDL_CONTACTS_H
+#ifndef RBDL_CONSTRAINTS_H
+#define RBDL_CONSTRAINTS_H
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
@@ -47,21 +47,21 @@ namespace RigidBodyDynamics {
  * acceleration one has to solve a linear system of the form: \f[
  \left(
    \begin{array}{cc}
-	   H & G^T \\
-		 G & 0
+     H & G^T \\
+     G & 0
    \end{array}
  \right)
  \left(
    \begin{array}{c}
-	   \ddot{q} \\
-		 - \lambda
+     \ddot{q} \\
+     - \lambda
    \end{array}
  \right)
  =
  \left(
    \begin{array}{c}
-	   -C + \tau \\
-		 \gamma
+     -C + \tau \\
+     \gamma
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
@@ -76,21 +76,21 @@ namespace RigidBodyDynamics {
  * to solve a system of the following form: \f[
  \left(
    \begin{array}{cc}
-	   H & G^T \\
-		 G & 0
+     H & G^T \\
+     G & 0
    \end{array}
  \right)
  \left(
    \begin{array}{c}
-	   \dot{q}^{+} \\
-		 \Lambda
+     \dot{q}^{+} \\
+     \Lambda
    \end{array}
  \right)
  =
  \left(
    \begin{array}{c}
-	   H \dot{q}^{-} \\
-		v^{+} 
+     H \dot{q}^{-} \\
+    v^{+} 
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
@@ -158,147 +158,158 @@ struct Model;
  * ForwardDynamicsContacts \endlink.
  */
 struct RBDL_DLLAPI ConstraintSet {
-	ConstraintSet() :
-		linear_solver (Math::LinearSolverColPivHouseholderQR),
-		bound (false)
-	{}
+  ConstraintSet() :
+    linear_solver (Math::LinearSolverColPivHouseholderQR),
+    bound (false) {}
 
-	/** \brief Adds a constraint to the constraint set.
-	 *
-	 * \param body_id the body which is affected directly by the constraint
-	 * \param body_point the point that is constrained relative to the
-	 * contact body
-	 * \param world_normal the normal along the constraint acts (in base
-	 * coordinates)
-	 * \param constraint_name a human readable name (optional, default: NULL)
-	 * \param normal_acceleration the acceleration of the contact along the normal
-	 * (optional, default: 0.)
-	 */
-	unsigned int AddConstraint (
-			unsigned int body_id,
-			const Math::Vector3d &body_point,
-			const Math::Vector3d &world_normal,
-			const char *constraint_name = NULL,
-			double normal_acceleration = 0.);
+  /** \brief Adds a constraint to the constraint set.
+   *
+   * \param body_id the body which is affected directly by the constraint
+   * \param body_point the point that is constrained relative to the
+   * contact body
+   * \param world_normal the normal along the constraint acts (in base
+   * coordinates)
+   * \param constraint_name a human readable name (optional, default: NULL)
+   * \param normal_acceleration the acceleration of the contact along the normal
+   * (optional, default: 0.)
+   */
+  unsigned int AddContactConstraint (
+    unsigned int body_id,
+    const Math::Vector3d &body_point,
+    const Math::Vector3d &world_normal,
+    const char *constraint_name = NULL,
+    double normal_acceleration = 0.);
 
-	/** \brief Copies the constraints and resets its ConstraintSet::bound
-	 * flag.
-	 */
-	ConstraintSet Copy() {
-		ConstraintSet result (*this);
-		result.bound = false;
 
-		return result;
-	}
+  /** \brief Todo - add comments.
+   */
+  unsigned int AddLoopConstraint(
+    unsigned int predecessor_body_id,
+    unsigned int successor_body_id,
+    const Math::SpatialTransform &X_predecessor,
+    const Math::SpatialTransform &X_successor,
+    const Joint &joint,
+    double *T_stab = NULL,
+    const char *constraint_name = NULL);
 
-	/** \brief Specifies which method should be used for solving undelying linear systems.
-	 */
-	void SetSolver (Math::LinearSolver solver) {
-		linear_solver = solver;
-	}
+  /** \brief Copies the constraints and resets its ConstraintSet::bound
+   * flag.
+   */
+  ConstraintSet Copy() {
+    ConstraintSet result (*this);
+    result.bound = false;
 
-	/** \brief Initializes and allocates memory for the constraint set.
-	 *
-	 * This function allocates memory for temporary values and matrices that
-	 * are required for contact force computation. Both model and constraint
-	 * set must not be changed after a binding as the required memory is
-	 * dependent on the model size (i.e. the number of bodies and degrees of
-	 * freedom) and the number of constraints in the Constraint set.
-	 *
-	 * The values of ConstraintSet::acceleration may still be
-	 * modified after the set is bound to the model.
-	 */
-	bool Bind (const Model &model);
+    return result;
+  }
 
-	/** \brief Returns the number of constraints. */
-	size_t size() const {
-		return acceleration.size();
-	}
+  /** \brief Specifies which method should be used for solving undelying linear systems.
+   */
+  void SetSolver (Math::LinearSolver solver) {
+    linear_solver = solver;
+  }
 
-	/** \brief Clears all variables in the constraint set. */
-	void clear ();
+  /** \brief Initializes and allocates memory for the constraint set.
+   *
+   * This function allocates memory for temporary values and matrices that
+   * are required for contact force computation. Both model and constraint
+   * set must not be changed after a binding as the required memory is
+   * dependent on the model size (i.e. the number of bodies and degrees of
+   * freedom) and the number of constraints in the Constraint set.
+   *
+   * The values of ConstraintSet::acceleration may still be
+   * modified after the set is bound to the model.
+   */
+  bool Bind (const Model &model);
 
-	/// Method that should be used to solve internal linear systems.
-	Math::LinearSolver linear_solver;
-	/// Whether the constraint set was bound to a model (mandatory!).
-	bool bound;
+  /** \brief Returns the number of constraints. */
+  size_t size() const {
+    return acceleration.size();
+  }
 
-	std::vector<std::string> name;
-	std::vector<unsigned int> body;
-	std::vector<Math::Vector3d> point;
-	std::vector<Math::Vector3d> normal;
+  /** \brief Clears all variables in the constraint set. */
+  void clear ();
 
-	/** Enforced accelerations of the contact points along the contact
-	 * normal. */
-	Math::VectorNd acceleration;
-	/** Actual constraint forces along the contact normals. */
-	Math::VectorNd force;
-	/** Actual constraint impulses along the contact normals. */
-	Math::VectorNd impulse;
-	/** The velocities we want to have along the contact normals after
-	 * calling ComputeContactImpulsesLagrangian */
-	Math::VectorNd v_plus;
+  /// Method that should be used to solve internal linear systems.
+  Math::LinearSolver linear_solver;
+  /// Whether the constraint set was bound to a model (mandatory!).
+  bool bound;
 
-	// Variables used by the Lagrangian methods
+  std::vector<std::string> name;
+  std::vector<unsigned int> body;
+  std::vector<Math::Vector3d> point;
+  std::vector<Math::Vector3d> normal;
 
-	/// Workspace for the joint space inertia matrix.
-	Math::MatrixNd H;
-	/// Workspace for the coriolis forces.
-	Math::VectorNd C;
-	/// Workspace of the lower part of b.
-	Math::VectorNd gamma;
-	Math::MatrixNd G;
-	/// Workspace for the Lagrangian left-hand-side matrix.
-	Math::MatrixNd A;
-	/// Workspace for the Lagrangian right-hand-side.
-	Math::VectorNd b;
-	/// Workspace for the Lagrangian solution.
-	Math::VectorNd x;
+  /** Enforced accelerations of the contact points along the contact
+   * normal. */
+  Math::VectorNd acceleration;
+  /** Actual constraint forces along the contact normals. */
+  Math::VectorNd force;
+  /** Actual constraint impulses along the contact normals. */
+  Math::VectorNd impulse;
+  /** The velocities we want to have along the contact normals after
+   * calling ComputeContactImpulsesLagrangian */
+  Math::VectorNd v_plus;
 
-	/// Workspace for the QR decomposition of the null-space method
+  // Variables used by the Lagrangian methods
+
+  /// Workspace for the joint space inertia matrix.
+  Math::MatrixNd H;
+  /// Workspace for the coriolis forces.
+  Math::VectorNd C;
+  /// Workspace of the lower part of b.
+  Math::VectorNd gamma;
+  Math::MatrixNd G;
+  /// Workspace for the Lagrangian left-hand-side matrix.
+  Math::MatrixNd A;
+  /// Workspace for the Lagrangian right-hand-side.
+  Math::VectorNd b;
+  /// Workspace for the Lagrangian solution.
+  Math::VectorNd x;
+
+  /// Workspace for the QR decomposition of the null-space method
 #ifdef RBDL_USE_SIMPLE_MATH
-	SimpleMath::HouseholderQR<Math::MatrixNd> GT_qr;
+  SimpleMath::HouseholderQR<Math::MatrixNd> GT_qr;
 #else
-	Eigen::HouseholderQR<Math::MatrixNd> GT_qr;
+  Eigen::HouseholderQR<Math::MatrixNd> GT_qr;
 #endif
 
-	Math::MatrixNd GT_qr_Q;
-	Math::MatrixNd Y;
-	Math::MatrixNd Z;
-	Math::VectorNd qddot_y;
-	Math::VectorNd qddot_z;
+  Math::MatrixNd GT_qr_Q;
+  Math::MatrixNd Y;
+  Math::MatrixNd Z;
+  Math::VectorNd qddot_y;
+  Math::VectorNd qddot_z;
 
-	// Variables used by the IABI methods
+  // Variables used by the IABI methods
 
-	/// Workspace for the Inverse Articulated-Body Inertia.
-	Math::MatrixNd K;
-	/// Workspace for the accelerations of due to the test forces
-	Math::VectorNd a;
-	/// Workspace for the test accelerations.
-	Math::VectorNd QDDot_t;
-	/// Workspace for the default accelerations.
-	Math::VectorNd QDDot_0;
-	/// Workspace for the test forces.
-	std::vector<Math::SpatialVector> f_t;
-	/// Workspace for the actual spatial forces.
-	std::vector<Math::SpatialVector> f_ext_constraints;
-	/// Workspace for the default point accelerations.
-	std::vector<Math::Vector3d> point_accel_0;
+  /// Workspace for the Inverse Articulated-Body Inertia.
+  Math::MatrixNd K;
+  /// Workspace for the accelerations of due to the test forces
+  Math::VectorNd a;
+  /// Workspace for the test accelerations.
+  Math::VectorNd QDDot_t;
+  /// Workspace for the default accelerations.
+  Math::VectorNd QDDot_0;
+  /// Workspace for the test forces.
+  std::vector<Math::SpatialVector> f_t;
+  /// Workspace for the actual spatial forces.
+  std::vector<Math::SpatialVector> f_ext_constraints;
+  /// Workspace for the default point accelerations.
+  std::vector<Math::Vector3d> point_accel_0;
 
-	/// Workspace for the bias force due to the test force
-	std::vector<Math::SpatialVector> d_pA;
-	/// Workspace for the acceleration due to the test force
-	std::vector<Math::SpatialVector> d_a;
-	Math::VectorNd d_u;
+  /// Workspace for the bias force due to the test force
+  std::vector<Math::SpatialVector> d_pA;
+  /// Workspace for the acceleration due to the test force
+  std::vector<Math::SpatialVector> d_a;
+  Math::VectorNd d_u;
 
-	/// Workspace for the inertia when applying constraint forces
-	std::vector<Math::SpatialMatrix> d_IA;
-	/// Workspace when applying constraint forces
-	std::vector<Math::SpatialVector> d_U;
-	/// Workspace when applying constraint forces
-	Math::VectorNd d_d;
+  /// Workspace for the inertia when applying constraint forces
+  std::vector<Math::SpatialMatrix> d_IA;
+  /// Workspace when applying constraint forces
+  std::vector<Math::SpatialVector> d_U;
+  /// Workspace when applying constraint forces
+  Math::VectorNd d_d;
 
-	std::vector<Math::Vector3d> d_multdof3_u;
+  std::vector<Math::Vector3d> d_multdof3_u;
 };
 
 /** \brief Computes the Jacobian for the given ConstraintSet
@@ -310,43 +321,43 @@ struct RBDL_DLLAPI ConstraintSet {
  * \param update_kinematics whether the kinematics of the model should be * updated from Q
  */
 RBDL_DLLAPI
-void CalcContactJacobian(
-		Model &model,
-		const Math::VectorNd &Q,
-		const ConstraintSet &CS,
-		Math::MatrixNd &G,
-		bool update_kinematics = true
-		);
+void CalcConstraintsJacobian(
+  Model &model,
+  const Math::VectorNd &Q,
+  const ConstraintSet &CS,
+  Math::MatrixNd &G,
+  bool update_kinematics = true
+  );
 
 RBDL_DLLAPI
-void CalcContactSystemVariables (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &Tau,
-		ConstraintSet &CS
-		);
+void CalcConstrainedSystemVariables (
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  const Math::VectorNd &Tau,
+  ConstraintSet &CS
+  );
 
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
  *
  * This method builds and solves the linear system \f[
  \left(
    \begin{array}{cc}
-	   H & G^T \\
-		 G & 0
+     H & G^T \\
+     G & 0
    \end{array}
  \right)
  \left(
    \begin{array}{c}
-	   \ddot{q} \\
-		 -\lambda
+     \ddot{q} \\
+     -\lambda
    \end{array}
  \right)
  =
  \left(
    \begin{array}{c}
-	   -C + \tau \\
-		 \gamma
+     -C + \tau \\
+     \gamma
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
@@ -378,34 +389,34 @@ void CalcContactSystemVariables (
  *
  */
 RBDL_DLLAPI
-void ForwardDynamicsContactsDirect (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &Tau,
-		ConstraintSet &CS,
-		Math::VectorNd &QDDot
-		);
+void ForwardDynamicsConstrainedDirect (
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  const Math::VectorNd &Tau,
+  ConstraintSet &CS,
+  Math::VectorNd &QDDot
+  );
 
 RBDL_DLLAPI
-void ForwardDynamicsContactsRangeSpaceSparse (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &Tau,
-		ConstraintSet &CS,
-		Math::VectorNd &QDDot
-		);
+void ForwardDynamicsConstrainedRangeSpaceSparse (
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  const Math::VectorNd &Tau,
+  ConstraintSet &CS,
+  Math::VectorNd &QDDot
+  );
 
 RBDL_DLLAPI
-void ForwardDynamicsContactsNullSpace (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &Tau,
-		ConstraintSet &CS,
-		Math::VectorNd &QDDot
-		);
+void ForwardDynamicsConstrainedNullSpace (
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  const Math::VectorNd &Tau,
+  ConstraintSet &CS,
+  Math::VectorNd &QDDot
+  );
 
 /** \brief Computes forward dynamics that accounts for active contacts in ConstraintSet.
  *
@@ -418,36 +429,36 @@ void ForwardDynamicsContactsNullSpace (
  \f[
  \left(
    \begin{array}{c}
-	   \dot{v}_1 \\
-		 \dot{v}_2 \\
-		 \vdots \\
-		 \dot{v}_n
+     \dot{v}_1 \\
+     \dot{v}_2 \\
+     \vdots \\
+     \dot{v}_n
    \end{array}
  \right)
  =
  \left(
    \begin{array}{cccc}
-	   \Phi_{1,1} & \Phi_{1,2} & \cdots & \Phi{1,n} \\
-	   \Phi_{2,1} & \Phi_{2,2} & \cdots & \Phi{2,n} \\
-	   \cdots & \cdots & \cdots & \vdots \\
-	   \Phi_{n,1} & \Phi_{n,2} & \cdots & \Phi{n,n} 
+     \Phi_{1,1} & \Phi_{1,2} & \cdots & \Phi{1,n} \\
+     \Phi_{2,1} & \Phi_{2,2} & \cdots & \Phi{2,n} \\
+     \cdots & \cdots & \cdots & \vdots \\
+     \Phi_{n,1} & \Phi_{n,2} & \cdots & \Phi{n,n} 
    \end{array}
  \right)
  \left(
    \begin{array}{c}
-	   f_1 \\
-		 f_2 \\
-		 \vdots \\
-		 f_n
+     f_1 \\
+     f_2 \\
+     \vdots \\
+     f_n
    \end{array}
  \right)
  + 
  \left(
    \begin{array}{c}
-	 \phi_1 \\
-	 \phi_2 \\
-	 \vdots \\
-	 \phi_n
+   \phi_1 \\
+   \phi_2 \\
+   \vdots \\
+   \phi_n
    \end{array}
  \right).
  \f]
@@ -471,34 +482,34 @@ void ForwardDynamicsContactsNullSpace (
  */
 RBDL_DLLAPI
 void ForwardDynamicsContactsKokkevis (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &Tau,
-		ConstraintSet &CS,
-		Math::VectorNd &QDDot
-		);
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  const Math::VectorNd &Tau,
+  ConstraintSet &CS,
+  Math::VectorNd &QDDot
+  );
 
 /** \brief Computes contact gain by constructing and solving the full lagrangian equation
  *
  * This method builds and solves the linear system \f[
  \left(
    \begin{array}{cc}
-	   H & G^T \\
-		 G & 0
+     H & G^T \\
+     G & 0
    \end{array}
  \right)
  \left(
    \begin{array}{c}
-	   \dot{q}^{+} \\
-		 \Lambda
+     \dot{q}^{+} \\
+     \Lambda
    \end{array}
  \right)
  =
  \left(
    \begin{array}{c}
-	   H \dot{q}^{-} \\
-		v^{+} 
+     H \dot{q}^{-} \\
+    v^{+} 
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
@@ -528,34 +539,34 @@ void ForwardDynamicsContactsKokkevis (
  */
 RBDL_DLLAPI
 void ComputeContactImpulsesDirect (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDotMinus,
-		ConstraintSet &CS,
-		Math::VectorNd &QDotPlus
-		);
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDotMinus,
+  ConstraintSet &CS,
+  Math::VectorNd &QDotPlus
+  );
 
 /** \brief Resolves contact gain using SolveContactSystemRangeSpaceSparse()
  */
 RBDL_DLLAPI
 void ComputeContactImpulsesRangeSpaceSparse (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDotMinus,
-		ConstraintSet &CS,
-		Math::VectorNd &QDotPlus
-		);
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDotMinus,
+  ConstraintSet &CS,
+  Math::VectorNd &QDotPlus
+  );
 
 /** \brief Resolves contact gain using SolveContactSystemNullSpace()
  */
 RBDL_DLLAPI
 void ComputeContactImpulsesNullSpace (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDotMinus,
-		ConstraintSet &CS,
-		Math::VectorNd &QDotPlus
-		);
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDotMinus,
+  ConstraintSet &CS,
+  Math::VectorNd &QDotPlus
+  );
 
 /** \brief Solves the full contact system directly, i.e. simultaneously for contact forces and joint accelerations.
  *
@@ -574,18 +585,18 @@ void ComputeContactImpulsesNullSpace (
  * \param type of solver that should be used to solve the system
  */
 RBDL_DLLAPI
-void SolveContactSystemDirect (
-		Math::MatrixNd &H, 
-		const Math::MatrixNd &G, 
-		const Math::VectorNd &c, 
-		const Math::VectorNd &gamma, 
-		Math::VectorNd &qddot, 
-		Math::VectorNd &lambda, 
-		Math::MatrixNd &A, 
-		Math::VectorNd &b,
-		Math::VectorNd &x,
-		Math::LinearSolver &linear_solver
-		);
+void SolveConstrainedSystemDirect (
+  Math::MatrixNd &H, 
+  const Math::MatrixNd &G, 
+  const Math::VectorNd &c, 
+  const Math::VectorNd &gamma, 
+  Math::VectorNd &qddot, 
+  Math::VectorNd &lambda, 
+  Math::MatrixNd &A, 
+  Math::VectorNd &b,
+  Math::VectorNd &x,
+  Math::LinearSolver &linear_solver
+  );
 
 /** \brief Solves the contact system by first solving for the the joint accelerations and then the contact forces using a sparse matrix decomposition of the joint space inertia matrix.
  *
@@ -603,18 +614,18 @@ void SolveContactSystemDirect (
  * \param linear_solver type of solver that should be used to solve the constraint force system
  */
 RBDL_DLLAPI
-void SolveContactSystemRangeSpaceSparse (
-		Model &model, 
-		Math::MatrixNd &H, 
-		const Math::MatrixNd &G, 
-		const Math::VectorNd &c, 
-		const Math::VectorNd &gamma, 
-		Math::VectorNd &qddot, 
-		Math::VectorNd &lambda, 
-		Math::MatrixNd &K, 
-		Math::VectorNd &a,
-		Math::LinearSolver linear_solver
-		);
+void SolveConstrainedSystemRangeSpaceSparse (
+  Model &model, 
+  Math::MatrixNd &H, 
+  const Math::MatrixNd &G, 
+  const Math::VectorNd &c, 
+  const Math::VectorNd &gamma, 
+  Math::VectorNd &qddot, 
+  Math::VectorNd &lambda, 
+  Math::MatrixNd &K, 
+  Math::VectorNd &a,
+  Math::LinearSolver linear_solver
+  );
 
 /** \brief Solves the contact system by first solving for the joint accelerations and then for the constraint forces.
  *
@@ -636,23 +647,23 @@ void SolveContactSystemRangeSpaceSparse (
  * \param linear_solver type of solver that should be used to solve the system
  */
 RBDL_DLLAPI
-void SolveContactSystemNullSpace (
-		Math::MatrixNd &H, 
-		const Math::MatrixNd &G, 
-		const Math::VectorNd &c, 
-		const Math::VectorNd &gamma, 
-		Math::VectorNd &qddot, 
-		Math::VectorNd &lambda,
-		Math::MatrixNd &Y,
-		Math::MatrixNd &Z,
-		Math::VectorNd &qddot_y,
-		Math::VectorNd &qddot_z,
-		Math::LinearSolver &linear_solver
-		);
+void SolveConstrainedSystemNullSpace (
+  Math::MatrixNd &H, 
+  const Math::MatrixNd &G, 
+  const Math::VectorNd &c, 
+  const Math::VectorNd &gamma, 
+  Math::VectorNd &qddot, 
+  Math::VectorNd &lambda,
+  Math::MatrixNd &Y,
+  Math::MatrixNd &Z,
+  Math::VectorNd &qddot_y,
+  Math::VectorNd &qddot_z,
+  Math::LinearSolver &linear_solver
+  );
 
 /** @} */
 
 } /* namespace RigidBodyDynamics */
 
-/* RBDL_CONTACTS_H */
+/* RBDL_CONSTRAINTS_H */
 #endif
