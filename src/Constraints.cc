@@ -36,10 +36,19 @@ unsigned int ConstraintSet::AddContactConstraint (
   if (constraint_name != NULL)
     name_str = constraint_name;
 
+  constraintType.push_back(ContactConstraint);
   name.push_back (name_str);
+
   body.push_back (body_id);
   point.push_back (body_point);
   normal.push_back (world_normal);
+
+  // These variables will not be used.
+  predecessorBody.push_back(0);
+  successorBody.push_back(0);
+  X_p.push_back(SpatialTransform());
+  X_s.push_back(SpatialTransform());
+  T_stab.push_back(0.);
 
   unsigned int n_constr = acceleration.size() + 1;
 
@@ -65,8 +74,56 @@ unsigned int ConstraintSet::AddLoopConstraint(
   unsigned int successor_body_id,
   const Math::SpatialTransform &X_predecessor,
   const Math::SpatialTransform &X_successor,
-  double T_stab,
-  const char *constraint_name) {}
+  double T_stabilization,
+  const char *constraint_name) {
+
+  assert (bound == false);
+
+  std::string name_str;
+  if (constraint_name != NULL)
+    name_str = constraint_name;
+
+  constraintType.push_back(LoopConstraint);
+  name.push_back (name_str);
+
+  // These variables will not be used.
+  body.push_back (0);
+  point.push_back (Vector3d());
+  normal.push_back (Vector3d());
+
+  predecessorBody.push_back(predecessor_body_id);
+  successorBody.push_back(successor_body_id);
+  X_p.push_back(X_predecessor);
+  X_s.push_back(X_successor);
+  T_stab.push_back(T_stabilization);
+
+  unsigned int n_constr = acceleration.size() + 6;
+
+  acceleration.conservativeResize (n_constr);
+  for(unsigned int i = 6; i > 0 ; --i) {
+    acceleration[n_constr - i] = 0.;
+  }
+
+  force.conservativeResize (n_constr);
+  for(unsigned int i = 6; i > 0 ; --i) {
+    force[n_constr - i] = 0.;
+  }
+
+  impulse.conservativeResize (n_constr);
+  for(unsigned int i = 6; i > 0 ; --i) {
+    impulse[n_constr - i] = 0.;
+  }
+
+  v_plus.conservativeResize (n_constr);
+  for(unsigned int i = 6; i > 0 ; --i) {
+    v_plus[n_constr - i] = 0.;
+  }
+
+  d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
+
+  return n_constr - 1;
+
+}
 
 bool ConstraintSet::Bind (const Model &model) {
   assert (bound == false);
@@ -179,6 +236,7 @@ void ComputeAssemblyQ(
 RBDL_DLLAPI
 void ComputeAssemblyQDot(
   const Model& model,
+  const Math::VectorNd& Q,
   const Math::VectorNd& QDotInit,
   const ConstraintSet& cs,
   Math::VectorNd& QDot,

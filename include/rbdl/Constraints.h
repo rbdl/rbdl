@@ -162,6 +162,12 @@ struct RBDL_DLLAPI ConstraintSet {
     linear_solver (Math::LinearSolverColPivHouseholderQR),
     bound (false) {}
 
+  // Enum to describe the type of a constraint.
+  enum ConstraintType {
+    ContactConstraint,
+    LoopConstraint,
+  };
+
   /** \brief Adds a constraint to the constraint set.
    *
    * \param body_id the body which is affected directly by the constraint
@@ -233,10 +239,22 @@ struct RBDL_DLLAPI ConstraintSet {
   /// Whether the constraint set was bound to a model (mandatory!).
   bool bound;
 
+  // Common constraints variables.
+  std::vector<ConstraintType> constraintType;
   std::vector<std::string> name;
+
+  // Contact constraints variables.
   std::vector<unsigned int> body;
   std::vector<Math::Vector3d> point;
   std::vector<Math::Vector3d> normal;
+
+  // Loop constraints variables.
+  std::vector<unsigned int> predecessorBody;
+  std::vector<unsigned int> successorBody;
+  std::vector<Math::SpatialTransform> X_p;
+  std::vector<Math::SpatialTransform> X_s;
+  std::vector<double> T_stab;
+
 
   /** Enforced accelerations of the contact points along the contact
    * normal. */
@@ -323,6 +341,7 @@ void ComputeAssemblyQ(
 RBDL_DLLAPI
 void ComputeAssemblyQDot(
   const Model& model,
+  const Math::VectorNd& Q,
   const Math::VectorNd& QDotInit,
   const ConstraintSet& cs,
   Math::VectorNd& QDot,
