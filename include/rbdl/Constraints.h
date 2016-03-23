@@ -356,12 +356,14 @@ struct RBDL_DLLAPI ConstraintSet {
 /** \brief Todo - add comments.
   */
 RBDL_DLLAPI
-void ComputeAssemblyQ(
+bool ComputeAssemblyQ(
   Model& model,
   Math::VectorNd QInit,
   const ConstraintSet& cs,
   Math::VectorNd& Q,
-  const Math::VectorNd& weights
+  const Math::VectorNd& weights,
+  double tolerance = 1e-10,
+  unsigned int max_iter = 100
 );
 
 /** \brief Todo - add comments.

@@ -292,29 +292,83 @@ void ConstraintSet::clear() {
 
 
 RBDL_DLLAPI
-void ComputeAssemblyQ(
+bool ComputeAssemblyQ(
   Model& model,
   Math::VectorNd QInit,
   const ConstraintSet& cs,
   Math::VectorNd& Q,
-  const Math::VectorNd& weights
-) {
+  const Math::VectorNd& weights,
+  double tolerance,
+  unsigned int max_iter) {
 
   assert(Q.size() == model.dof_count);
   assert(QInit.size() == Q.size());
-  assert(weights.rows() == weights.cols() && weights.rows() == Q.size());
+  assert(weights.size() == Q.size());
 
+  // Initialize variables.
   MatrixNd constraintJac(cs.size(), Q.size());
   MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
-  VectorNd b = VectorNd::Zero(cs.size() + Q.size(), 1);
+  VectorNd b = VectorNd::Zero(cs.size() + Q.size());
   VectorNd x = b;
+  VectorNd d = VectorNd::Zero(Q.size());
+  VectorNd e = VectorNd::Zero(cs.size());
 
-  A.block(0, 0, Q.size(), Q.size()) = weights;
+  // The top-left block is the weight matrix and is constant.
+  for(unsigned int i = 0; i < weights.size(); ++i) {
+    A(i,i) = weights[i];
+  }
 
-  constraintJac.setZero();
-  CalcConstraintsJacobian(model, QInit, cs, constraintJac);
-  A.block(Q.size(), 0, cs.size(), Q.size()) = constraintJac;
-  A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
+  // We solve the linearized problem iteratively.
+  // Iterations are stopped if the maximum is reached.
+  for(unsigned int it = 0; it < max_iter; ++it) {
+
+    // Compute the constraint jacobian and update A.
+    constraintJac.setZero();
+    CalcConstraintsJacobian(model, QInit, cs, constraintJac);
+    A.block(Q.size(), 0, cs.size(), Q.size()) = constraintJac;
+    A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
+
+    // Compute the constraint errors and update b.
+    CalcConstraintsError(model, QInit, cs, e);
+    b.block(0, Q.size(), cs.size(), 1) = e;
+
+    // Solve the siste A*x = b.
+    switch (cs.linear_solver) {
+      case (LinearSolverPartialPivLU) :
+  #ifdef RBDL_USE_SIMPLE_MATH
+        // SimpleMath does not have a LU solver so just use its QR solver
+        x = A.householderQr().solve(b);
+  #else
+        x = A.partialPivLu().solve(b);
+  #endif
+        break;
+      case (LinearSolverColPivHouseholderQR) :
+        x = A.colPivHouseholderQr().solve(b);
+        break;
+      case (LinearSolverHouseholderQR) :
+        x = A.householderQr().solve(b);
+        break;
+      default:
+        std::cerr << "Error: Invalid linear solver: " << cs.linear_solver << std::endl;
+        abort();
+        break;
+    }
+
+    // Extract the d = (Q - QInit) vector from x.
+    // Check if d is small, if yes, update the value of Q and return true.
+    d = x.block(0, 0, Q.size(), 1);
+    if(d.norm() / QInit.norm() < tolerance) {
+      Q = QInit + d;
+      return true;
+    }
+
+    // If not, update the value of QInit and go on with the next iteration.
+    QInit += d;
+
+  }
+
+  // Return false if maximum number of iterations is exceeded.
+  return false;
 
 }
 
@@ -329,6 +383,8 @@ void ComputeAssemblyQDot(
   Math::VectorNd& QDot,
   const Math::VectorNd& weights
 ) {}
+
+
 
 RBDL_DLLAPI
 void SolveConstrainedSystemDirect (
@@ -618,7 +674,7 @@ void CalcConstraintsError(
 
         // Compute the position difference and project it on the constraint axis.
         err[i] = (pos_s - pos_p).transpose() * CS.normal[c];
-        
+
         i = i + 1;
       break;
 
