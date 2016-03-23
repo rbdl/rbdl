@@ -534,30 +534,78 @@ void CalcConstraintsJacobian(
   // variables to check whether we need to recompute G
   unsigned int prev_body_id = 0;
   Vector3d prev_body_point = Vector3d::Zero();
-  MatrixNd Gi (3, model.dof_count);
-  MatrixNd G_pi (6, model.dof_count);
-  MatrixNd G_si = G_pi;
+  
+  MatrixNd Gpi (3, model.dof_count);
+  MatrixNd Gsi = Gpi;
+  MatrixNd Gi = Gpi;
+  MatrixNd GSpi (6, model.dof_count);
+  MatrixNd GSsi = GSpi;
+  MatrixNd GSi = GSpi;
 
   for (c = 0; c < CS.constraintType.size(); c++) {
-    if(CS.constraintType[c] == ConstraintSet::ContactConstraint) {
-      // only compute the matrix Gi if actually needed
-      if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
-        Gi.setZero();
-        CalcPointJacobian (model, Q, CS.body[c], CS.point[c], Gi, false);
-        prev_body_id = CS.body[c];
-        prev_body_point = CS.point[c];
-      }
+    switch(CS.constraintType[c]) {
 
-      for (j = 0; j < model.dof_count; j++) {
-        Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
-        G(i,j) = gaxis.transpose() * CS.normal[i];
-      }
+      case ConstraintSet::ContactConstraint:
+        // only compute the matrix Gi if actually needed
+        if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
+          Gi.setZero();
+          CalcPointJacobian (model, Q, CS.body[c], CS.point[c], Gi, false);
+          prev_body_id = CS.body[c];
+          prev_body_point = CS.point[c];
+        }
 
-      i = i + 1;
+        for (j = 0; j < model.dof_count; j++) {
+          Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
+          G(i,j) = gaxis.transpose() * CS.normal[c];
+        }
+
+        i = i + 1;
+      break;
+
+      case ConstraintSet::LoopPositionConstraint:
+        // Force recomputation. We can actually implement this optimization
+        // in the future also for loop constraints.
+        prev_body_id = 0;
+        Gpi.setZero();
+        Gsi.setZero();
+        CalcPointJacobian(model, Q, CS.body_p[c], CS.pos_p[c], Gpi, false);
+        CalcPointJacobian(model, Q, CS.body_s[c], CS.pos_s[c], Gsi, false);
+        Gi = Gsi - Gpi;
+
+        // std::cout << Gpi << std::endl << std::endl;
+        // std::cout << Gsi << std::endl << std::endl;
+        // std::cout << Gi << std::endl << std::endl; 
+
+        for (j = 0; j < model.dof_count; j++) {
+          Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
+          G(i,j) = gaxis.transpose() * CS.normal[c];
+        }
+        i = i + 1;
+      break;
+
+      case ConstraintSet::LoopOrientationConstraint:
+        prev_body_id = 0;
+        GSpi.setZero();
+        GSsi.setZero();
+        CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
+        CalcBodySpatialJacobian(model, Q, CS.body_s[c], GSsi, false);
+        GSi = GSsi - GSpi;
+
+        // std::cout << GSpi << std::endl << std::endl;
+        // std::cout << GSsi << std::endl << std::endl;
+        // std::cout << GSi << std::endl << std::endl;
+
+        for (j = 0; j < model.dof_count; j++) {
+          Vector3d gaxis (GSi(0,j), GSi(1,j), GSi(2,j));
+          G(i,j) = gaxis.transpose() * CS.normal[c];
+        }
+        i = i + 1;
+      break;
     }
-    
   }
 }
+
+
 
 RBDL_DLLAPI
 void CalcConstrainedSystemVariables (

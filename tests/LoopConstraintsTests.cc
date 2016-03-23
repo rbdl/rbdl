@@ -62,9 +62,6 @@ struct FiveBarLinkage {
       X_p.E, X_s.E,
       Vector3d(0,0,1), 0.1);
 
-    std::cout << cs.size() << std::endl;
-    std::cout << model.dof_count << std::endl;
-
     cs.Bind(model);
 
     q = VectorNd::Zero(model.dof_count);
@@ -128,6 +125,11 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraint) {
 
   q = qInit;
   qd = qdInit;
+
+
+  // MatrixNd jac = MatrixNd::Zero(cs.size(), model.dof_count);
+  // CalcConstraintsJacobian(model, q, cs, jac);
+  // std::cout << jac << std::endl << std::endl;
 
   ComputeAssemblyQ(model, qInit, cs, q, weights);
 
