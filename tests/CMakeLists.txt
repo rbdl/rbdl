@@ -29,6 +29,7 @@ SET ( TESTS_SRCS
 	UtilsTests.cc
 	SparseFactorizationTests.cc
 	CustomJointTests.cc
+	LoopConstraintsTests.cc
 	)
 
 INCLUDE_DIRECTORIES ( ../src/ )

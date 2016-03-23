@@ -188,8 +188,7 @@ struct RBDL_DLLAPI ConstraintSet {
     unsigned int successor_body_id,
     const Math::SpatialTransform &X_predecessor,
     const Math::SpatialTransform &X_successor,
-    const Joint &joint,
-    double *T_stab = NULL,
+    double T_stab,
     const char *constraint_name = NULL);
 
   /** \brief Copies the constraints and resets its ConstraintSet::bound
@@ -312,6 +311,24 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<Math::Vector3d> d_multdof3_u;
 };
 
+RBDL_DLLAPI
+void ComputeAssemblyQ(
+  const Model& model,
+  const Math::VectorNd& QInit,
+  const ConstraintSet& cs,
+  Math::VectorNd& Q,
+  const Math::VectorNd& weights
+);
+
+RBDL_DLLAPI
+void ComputeAssemblyQDot(
+  const Model& model,
+  const Math::VectorNd& QDotInit,
+  const ConstraintSet& cs,
+  Math::VectorNd& QDot,
+  const Math::VectorNd& weights
+);
+
 /** \brief Computes the Jacobian for the given ConstraintSet
  *
  * \param model the model
@@ -327,7 +344,7 @@ void CalcConstraintsJacobian(
   const ConstraintSet &CS,
   Math::MatrixNd &G,
   bool update_kinematics = true
-  );
+);
 
 RBDL_DLLAPI
 void CalcConstrainedSystemVariables (
@@ -336,7 +353,7 @@ void CalcConstrainedSystemVariables (
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
   ConstraintSet &CS
-  );
+);
 
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
  *
@@ -396,7 +413,7 @@ void ForwardDynamicsConstrainedDirect (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDot
-  );
+);
 
 RBDL_DLLAPI
 void ForwardDynamicsConstrainedRangeSpaceSparse (
@@ -406,7 +423,7 @@ void ForwardDynamicsConstrainedRangeSpaceSparse (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDot
-  );
+);
 
 RBDL_DLLAPI
 void ForwardDynamicsConstrainedNullSpace (
@@ -416,7 +433,7 @@ void ForwardDynamicsConstrainedNullSpace (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDot
-  );
+);
 
 /** \brief Computes forward dynamics that accounts for active contacts in ConstraintSet.
  *
@@ -488,7 +505,7 @@ void ForwardDynamicsContactsKokkevis (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDot
-  );
+);
 
 /** \brief Computes contact gain by constructing and solving the full lagrangian equation
  *
@@ -544,7 +561,7 @@ void ComputeContactImpulsesDirect (
   const Math::VectorNd &QDotMinus,
   ConstraintSet &CS,
   Math::VectorNd &QDotPlus
-  );
+);
 
 /** \brief Resolves contact gain using SolveContactSystemRangeSpaceSparse()
  */
@@ -555,7 +572,7 @@ void ComputeContactImpulsesRangeSpaceSparse (
   const Math::VectorNd &QDotMinus,
   ConstraintSet &CS,
   Math::VectorNd &QDotPlus
-  );
+);
 
 /** \brief Resolves contact gain using SolveContactSystemNullSpace()
  */
@@ -566,7 +583,7 @@ void ComputeContactImpulsesNullSpace (
   const Math::VectorNd &QDotMinus,
   ConstraintSet &CS,
   Math::VectorNd &QDotPlus
-  );
+);
 
 /** \brief Solves the full contact system directly, i.e. simultaneously for contact forces and joint accelerations.
  *
@@ -596,7 +613,7 @@ void SolveConstrainedSystemDirect (
   Math::VectorNd &b,
   Math::VectorNd &x,
   Math::LinearSolver &linear_solver
-  );
+);
 
 /** \brief Solves the contact system by first solving for the the joint accelerations and then the contact forces using a sparse matrix decomposition of the joint space inertia matrix.
  *
@@ -625,7 +642,7 @@ void SolveConstrainedSystemRangeSpaceSparse (
   Math::MatrixNd &K, 
   Math::VectorNd &a,
   Math::LinearSolver linear_solver
-  );
+);
 
 /** \brief Solves the contact system by first solving for the joint accelerations and then for the constraint forces.
  *
@@ -659,7 +676,7 @@ void SolveConstrainedSystemNullSpace (
   Math::VectorNd &qddot_y,
   Math::VectorNd &qddot_z,
   Math::LinearSolver &linear_solver
-  );
+);
 
 /** @} */
 

@@ -60,14 +60,13 @@ unsigned int ConstraintSet::AddContactConstraint (
   return n_constr - 1;
 }
 
-unsigned int AddLoopConstraint(
+unsigned int ConstraintSet::AddLoopConstraint(
   unsigned int predecessor_body_id,
   unsigned int successor_body_id,
   const Math::SpatialTransform &X_predecessor,
   const Math::SpatialTransform &X_successor,
-  const Joint &joint,
-  double *T_stab = NULL,
-  const char *constraint_name = NULL) {}
+  double T_stab,
+  const char *constraint_name) {}
 
 bool ConstraintSet::Bind (const Model &model) {
   assert (bound == false);
@@ -167,6 +166,24 @@ void ConstraintSet::clear() {
 
   d_u.setZero();
 }
+
+RBDL_DLLAPI
+void ComputeAssemblyQ(
+  const Model& model,
+  const Math::VectorNd& QInit,
+  const ConstraintSet& cs,
+  Math::VectorNd& Q,
+  const Math::VectorNd& weights
+) {}
+
+RBDL_DLLAPI
+void ComputeAssemblyQDot(
+  const Model& model,
+  const Math::VectorNd& QDotInit,
+  const ConstraintSet& cs,
+  Math::VectorNd& QDot,
+  const Math::VectorNd& weights
+) {}
 
 RBDL_DLLAPI
 void SolveConstrainedSystemDirect (
@@ -428,13 +445,14 @@ void ForwardDynamicsConstrainedDirect (
 
 RBDL_DLLAPI
 void ForwardDynamicsConstrainedRangeSpaceSparse (
-    Model &model,
-    const Math::VectorNd &Q,
-    const Math::VectorNd &QDot,
-    const Math::VectorNd &Tau,
-    ConstraintSet &CS,
-    Math::VectorNd &QDDot
-    ) {
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  const Math::VectorNd &Tau,
+  ConstraintSet &CS,
+  Math::VectorNd &QDDot
+  ) {
+
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
 
   SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
@@ -739,7 +757,7 @@ void ForwardDynamicsContactsKokkevis (
   ConstraintSet &CS,
   VectorNd &QDDot
   ) {
-  
+
   LOG << "-------- " << __func__ << " ------" << std::endl;
 
   assert (CS.f_ext_constraints.size() == model.mBodies.size());
