@@ -44,13 +44,15 @@ unsigned int ConstraintSet::AddContactConstraint (
   normal.push_back (world_normal);
 
   // These variables will not be used.
-  predecessorBody.push_back(0);
-  successorBody.push_back(0);
-  X_p.push_back(SpatialTransform());
-  X_s.push_back(SpatialTransform());
+  body_p.push_back(0);
+  body_s.push_back(0);
+  pos_p.push_back(Vector3d());
+  pos_s.push_back(Vector3d());
+  rot_p.push_back(Matrix3d());
+  rot_s.push_back(Matrix3d());
   T_stab.push_back(0.);
 
-  unsigned int n_constr = acceleration.size() + 1;
+  unsigned int n_constr = size() + 1;
 
   acceleration.conservativeResize (n_constr);
   acceleration[n_constr - 1] = normal_acceleration;
@@ -69,11 +71,14 @@ unsigned int ConstraintSet::AddContactConstraint (
   return n_constr - 1;
 }
 
-unsigned int ConstraintSet::AddLoopConstraint(
+
+
+unsigned int ConstraintSet::AddLoopPositionConstraint(
   unsigned int predecessor_body_id,
   unsigned int successor_body_id,
-  const Math::SpatialTransform &X_predecessor,
-  const Math::SpatialTransform &X_successor,
+  const Math::Vector3d &pos_predecessor,
+  const Math::Vector3d &pos_successor,
+  const Math::Vector3d &constraint_axis,
   double T_stabilization,
   const char *constraint_name) {
 
@@ -83,45 +88,151 @@ unsigned int ConstraintSet::AddLoopConstraint(
   if (constraint_name != NULL)
     name_str = constraint_name;
 
-  constraintType.push_back(LoopConstraint);
+  constraintType.push_back(LoopPositionConstraint);
   name.push_back (name_str);
 
-  // These variables will not be used.
+  // These Variables will not be used.
   body.push_back (0);
   point.push_back (Vector3d());
-  normal.push_back (Vector3d());
+  rot_p.push_back(Matrix3d());
+  rot_s.push_back(Matrix3d());
 
-  predecessorBody.push_back(predecessor_body_id);
-  successorBody.push_back(successor_body_id);
-  X_p.push_back(X_predecessor);
-  X_s.push_back(X_successor);
+  body_p.push_back(predecessor_body_id);
+  body_s.push_back(successor_body_id);
+  pos_p.push_back(pos_predecessor);
+  pos_s.push_back(pos_successor);
+  normal.push_back (constraint_axis);
   T_stab.push_back(T_stabilization);
 
-  unsigned int n_constr = acceleration.size() + 6;
+  unsigned int n_constr = size() + 1;
 
   acceleration.conservativeResize (n_constr);
-  for(unsigned int i = 6; i > 0 ; --i) {
-    acceleration[n_constr - i] = 0.;
-  }
+  acceleration[n_constr - 1] = 0.;
 
   force.conservativeResize (n_constr);
-  for(unsigned int i = 6; i > 0 ; --i) {
-    force[n_constr - i] = 0.;
-  }
+  force[n_constr - 1] = 0.;
 
   impulse.conservativeResize (n_constr);
-  for(unsigned int i = 6; i > 0 ; --i) {
-    impulse[n_constr - i] = 0.;
-  }
+  impulse[n_constr - 1] = 0.;
 
   v_plus.conservativeResize (n_constr);
-  for(unsigned int i = 6; i > 0 ; --i) {
-    v_plus[n_constr - i] = 0.;
-  }
+  v_plus[n_constr - 1] = 0.;
 
   d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
 
   return n_constr - 1;
+
+}
+
+
+
+unsigned int ConstraintSet::AddLoopOrientationConstraint(
+  unsigned int predecessor_body_id,
+  unsigned int successor_body_id,
+  const Math::Matrix3d &rot_predecessor,
+  const Math::Matrix3d &rot_successor,
+  const Math::Vector3d &constraint_axis,
+  double T_stabilization,
+  const char *constraint_name ) {
+
+  assert (bound == false);
+
+  std::string name_str;
+  if (constraint_name != NULL)
+    name_str = constraint_name;
+
+  constraintType.push_back(LoopOrientationConstraint);
+  name.push_back (name_str);
+
+  // These Variables will not be used.
+  body.push_back (0);
+  point.push_back (Vector3d());
+  pos_p.push_back(Vector3d());
+  pos_s.push_back(Vector3d());
+
+  body_p.push_back(predecessor_body_id);
+  body_s.push_back(successor_body_id);
+  rot_p.push_back(rot_predecessor);
+  rot_s.push_back(rot_successor);
+  normal.push_back (constraint_axis);
+  T_stab.push_back(T_stabilization);
+
+  unsigned int n_constr = size() + 1;
+
+  acceleration.conservativeResize (n_constr);
+  acceleration[n_constr - 1] = 0.;
+
+  force.conservativeResize (n_constr);
+  force[n_constr - 1] = 0.;
+
+  impulse.conservativeResize (n_constr);
+  impulse[n_constr - 1] = 0.;
+
+  v_plus.conservativeResize (n_constr);
+  v_plus[n_constr - 1] = 0.;
+
+  d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
+
+  return n_constr - 1;
+
+}
+
+
+
+unsigned int ConstraintSet::AddLoopConstraint(
+  unsigned int predecessor_body_id,
+  unsigned int successor_body_id,
+  const Math::SpatialTransform &X_predecessor,
+  const Math::SpatialTransform &X_successor,
+  double T_stabilization,
+  const char *constraint_name) {
+
+  // assert (bound == false);
+
+  // std::string name_str;
+  // if (constraint_name != NULL)
+  //   name_str = constraint_name;
+
+  // constraintType.push_back(LoopConstraint);
+  // name.push_back (name_str);
+
+  // // These variables will not be used.
+  // body.push_back (0);
+  // point.push_back (Vector3d());
+  // normal.push_back (Vector3d());
+
+  // predecessorBody.push_back(predecessor_body_id);
+  // successorBody.push_back(successor_body_id);
+  // X_p.push_back(X_predecessor);
+  // X_s.push_back(X_successor);
+  // T_stab.push_back(T_stabilization);
+
+  // unsigned int newConstraints = 6;
+  // unsigned int n_constr = size() + newConstraints;
+
+  // acceleration.conservativeResize (n_constr);
+  // for(unsigned int i = newConstraints; i > 0 ; --i) {
+  //   acceleration[n_constr - i] = 0.;
+  // }
+
+  // force.conservativeResize (n_constr);
+  // for(unsigned int i = newConstraints; i > 0 ; --i) {
+  //   force[n_constr - i] = 0.;
+  // }
+
+  // impulse.conservativeResize (n_constr);
+  // for(unsigned int i = newConstraints; i > 0 ; --i) {
+  //   impulse[n_constr - i] = 0.;
+  // }
+
+  // v_plus.conservativeResize (n_constr);
+  // for(unsigned int i = newConstraints; i > 0 ; --i) {
+  //   v_plus[n_constr - i] = 0.;
+  // }
+
+  // d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
+
+  // return n_constr - 1;
 
 }
 
@@ -149,6 +260,7 @@ bool ConstraintSet::Bind (const Model &model) {
   x.conservativeResize (model.dof_count + n_constr);
   x.setZero();
 
+  // HouseHolderQR crashes if matrix G has more rows than columns.
 #ifdef RBDL_USE_SIMPLE_MATH
   GT_qr = SimpleMath::HouseholderQR<Math::MatrixNd> (G.transpose());
 #else
@@ -231,7 +343,16 @@ void ComputeAssemblyQ(
   const ConstraintSet& cs,
   Math::VectorNd& Q,
   const Math::VectorNd& weights
-) {}
+) {
+
+  assert(QInit.size() == Q.size());
+
+  MatrixNd Jp = MatrixNd::Zero(6, QInit.size());
+  MatrixNd Js = Jp;
+
+
+
+}
 
 RBDL_DLLAPI
 void ComputeAssemblyQDot(
@@ -406,26 +527,35 @@ void CalcConstraintsJacobian(
   if (update_kinematics)
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
 
-  unsigned int i,j;
+  unsigned int c;       // Current constraint.
+  unsigned int i = 0;   // Current constraint row.
+  unsigned int j;       // Current constraint column.
 
   // variables to check whether we need to recompute G
   unsigned int prev_body_id = 0;
   Vector3d prev_body_point = Vector3d::Zero();
   MatrixNd Gi (3, model.dof_count);
+  MatrixNd G_pi (6, model.dof_count);
+  MatrixNd G_si = G_pi;
 
-  for (i = 0; i < CS.size(); i++) {
-    // only compute the matrix Gi if actually needed
-    if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
-      Gi.setZero();
-      CalcPointJacobian (model, Q, CS.body[i], CS.point[i], Gi, false);
-      prev_body_id = CS.body[i];
-      prev_body_point = CS.point[i];
-    }
+  for (c = 0; c < CS.constraintType.size(); c++) {
+    if(CS.constraintType[c] == ConstraintSet::ContactConstraint) {
+      // only compute the matrix Gi if actually needed
+      if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
+        Gi.setZero();
+        CalcPointJacobian (model, Q, CS.body[c], CS.point[c], Gi, false);
+        prev_body_id = CS.body[c];
+        prev_body_point = CS.point[c];
+      }
 
-    for (j = 0; j < model.dof_count; j++) {
-      Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
-      G(i,j) = gaxis.transpose() * CS.normal[i];
+      for (j = 0; j < model.dof_count; j++) {
+        Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
+        G(i,j) = gaxis.transpose() * CS.normal[i];
+      }
+
+      i = i + 1;
     }
+    
   }
 }
 
