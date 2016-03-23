@@ -179,60 +179,13 @@ unsigned int ConstraintSet::AddLoopOrientationConstraint(
 
 
 
-unsigned int ConstraintSet::AddLoopConstraint(
+unsigned int ConstraintSet::AddWeldConstraint(
   unsigned int predecessor_body_id,
   unsigned int successor_body_id,
   const Math::SpatialTransform &X_predecessor,
   const Math::SpatialTransform &X_successor,
   double T_stabilization,
   const char *constraint_name) {
-
-  // assert (bound == false);
-
-  // std::string name_str;
-  // if (constraint_name != NULL)
-  //   name_str = constraint_name;
-
-  // constraintType.push_back(LoopConstraint);
-  // name.push_back (name_str);
-
-  // // These variables will not be used.
-  // body.push_back (0);
-  // point.push_back (Vector3d());
-  // normal.push_back (Vector3d());
-
-  // predecessorBody.push_back(predecessor_body_id);
-  // successorBody.push_back(successor_body_id);
-  // X_p.push_back(X_predecessor);
-  // X_s.push_back(X_successor);
-  // T_stab.push_back(T_stabilization);
-
-  // unsigned int newConstraints = 6;
-  // unsigned int n_constr = size() + newConstraints;
-
-  // acceleration.conservativeResize (n_constr);
-  // for(unsigned int i = newConstraints; i > 0 ; --i) {
-  //   acceleration[n_constr - i] = 0.;
-  // }
-
-  // force.conservativeResize (n_constr);
-  // for(unsigned int i = newConstraints; i > 0 ; --i) {
-  //   force[n_constr - i] = 0.;
-  // }
-
-  // impulse.conservativeResize (n_constr);
-  // for(unsigned int i = newConstraints; i > 0 ; --i) {
-  //   impulse[n_constr - i] = 0.;
-  // }
-
-  // v_plus.conservativeResize (n_constr);
-  // for(unsigned int i = newConstraints; i > 0 ; --i) {
-  //   v_plus[n_constr - i] = 0.;
-  // }
-
-  // d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
-
-  // return n_constr - 1;
 
 }
 
@@ -336,27 +289,40 @@ void ConstraintSet::clear() {
   d_u.setZero();
 }
 
+
+
 RBDL_DLLAPI
 void ComputeAssemblyQ(
-  const Model& model,
-  const Math::VectorNd& QInit,
+  Model& model,
+  Math::VectorNd QInit,
   const ConstraintSet& cs,
   Math::VectorNd& Q,
   const Math::VectorNd& weights
 ) {
 
+  assert(Q.size() == model.dof_count);
   assert(QInit.size() == Q.size());
+  assert(weights.rows() == weights.cols() && weights.rows() == Q.size());
 
-  MatrixNd Jp = MatrixNd::Zero(6, QInit.size());
-  MatrixNd Js = Jp;
+  MatrixNd constraintJac(cs.size(), Q.size());
+  MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
+  VectorNd b = VectorNd::Zero(cs.size() + Q.size(), 1);
+  VectorNd x = b;
 
+  A.block(0, 0, Q.size(), Q.size()) = weights;
 
+  constraintJac.setZero();
+  CalcConstraintsJacobian(model, QInit, cs, constraintJac);
+  A.block(Q.size(), 0, cs.size(), Q.size()) = constraintJac;
+  A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
 
 }
 
+
+
 RBDL_DLLAPI
 void ComputeAssemblyQDot(
-  const Model& model,
+  Model& model,
   const Math::VectorNd& Q,
   const Math::VectorNd& QDotInit,
   const ConstraintSet& cs,
@@ -603,6 +569,94 @@ void CalcConstraintsJacobian(
       break;
     }
   }
+}
+
+
+
+RBDL_DLLAPI
+void CalcConstraintsError(
+  Model& model,
+  const Math::VectorNd &Q,
+  const ConstraintSet &CS,
+  Math::VectorNd& err,
+  bool update_kinematics
+) {
+
+  assert(err.size() == CS.size());
+
+  if (update_kinematics)
+    UpdateKinematicsCustom (model, &Q, NULL, NULL);
+
+  unsigned int c;       // Current constraint.
+  unsigned int i = 0;   // Current constraint row.
+  unsigned int j;       // Current constraint column.
+
+  // Variables used for computations.
+  Vector3d pos_p;
+  Vector3d pos_s;
+  Matrix3d rot_p;
+  Matrix3d rot_s;
+  Vector3d axis_p;
+  Vector3d axis_s;
+  unsigned int rot_idx;
+
+  for (c = 0; c < CS.constraintType.size(); c++) {
+    switch(CS.constraintType[c]) {
+
+      case ConstraintSet::ContactConstraint:
+        // No position error for this kind of constraints.
+        err[i] = 0.;
+        i = i + 1;
+      break;
+
+      case ConstraintSet::LoopPositionConstraint:
+        // Compute the position error along the constraint axis.
+
+        // Compute the position of each constraint point.
+        pos_p = CalcBaseToBodyCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
+        pos_s = CalcBaseToBodyCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
+
+        // Compute the position difference and project it on the constraint axis.
+        err[i] = (pos_s - pos_p).transpose() * CS.normal[c];
+        
+        i = i + 1;
+      break;
+
+      case ConstraintSet::LoopOrientationConstraint:
+        // Compute the error as the scalar product between the two axes not
+        // coincident with the constraint axis. This forces the two axes to
+        // be parallel in the two frames, which corresponds to not having a
+        // rotation about the constraint axis.
+
+        // Start by computing the global orientation matrices of the two loop bodies.
+        rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
+        rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false);
+
+        // Extract one column (i.e. axes) from each axis, making sure that:
+        // a. different columns are extracted from each matrix.
+        // b. the column corresponding to the constraint axis is not chosen.
+        for(rot_idx = 0; rot_idx < 3; ++rot_idx) {
+          if(CS.normal[c][rot_idx] == 0.) {
+            axis_p = rot_p.block(0, rot_idx, 3, 1);
+            break;
+          }
+        }
+        ++rot_idx;
+        for(; rot_idx < 3; ++rot_idx) {
+          if(CS.normal[c][rot_idx] == 0.) {
+            axis_s = rot_s.block(0, rot_idx, 3, 1);
+            break;
+          }
+        }
+
+        // Compute the error.
+        err[i] = axis_p.transpose() * axis_s;
+
+        i = i + 1;
+      break;
+    }
+  }
+
 }
 
 

@@ -211,7 +211,7 @@ struct RBDL_DLLAPI ConstraintSet {
 
   /** \brief Todo - add comments.
    */
-  unsigned int AddLoopConstraint(
+  unsigned int AddWeldConstraint(
     unsigned int predecessor_body_id,
     unsigned int successor_body_id,
     const Math::SpatialTransform &X_predecessor,
@@ -353,18 +353,22 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<Math::Vector3d> d_multdof3_u;
 };
 
+/** \brief Todo - add comments.
+  */
 RBDL_DLLAPI
 void ComputeAssemblyQ(
-  const Model& model,
-  const Math::VectorNd& QInit,
+  Model& model,
+  Math::VectorNd QInit,
   const ConstraintSet& cs,
   Math::VectorNd& Q,
   const Math::VectorNd& weights
 );
 
+/** \brief Todo - add comments.
+  */
 RBDL_DLLAPI
 void ComputeAssemblyQDot(
-  const Model& model,
+  Model& model,
   const Math::VectorNd& Q,
   const Math::VectorNd& QDotInit,
   const ConstraintSet& cs,
@@ -386,6 +390,17 @@ void CalcConstraintsJacobian(
   const Math::VectorNd &Q,
   const ConstraintSet &CS,
   Math::MatrixNd &G,
+  bool update_kinematics = true
+);
+
+/** \brief Todo - add comments.
+   */
+RBDL_DLLAPI
+void CalcConstraintsError(
+  Model& model,
+  const Math::VectorNd &Q,
+  const ConstraintSet &CS,
+  Math::VectorNd& err,
   bool update_kinematics = true
 );
 

@@ -99,6 +99,10 @@ struct FiveBarLinkage {
 
 TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraint) {
   
+  VectorNd err = VectorNd::Zero(cs.size());
+  CalcConstraintsError(model, q, cs, err);
+  std::cout << err.transpose() << std::endl;
+
   CHECK_EQUAL(3, cs.size());
 
   VectorNd weights(q.size());
@@ -130,6 +134,10 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraint) {
   // MatrixNd jac = MatrixNd::Zero(cs.size(), model.dof_count);
   // CalcConstraintsJacobian(model, q, cs, jac);
   // std::cout << jac << std::endl << std::endl;
+
+  err = VectorNd::Zero(cs.size());
+  CalcConstraintsError(model, q, cs, err);
+  std::cout << err.transpose() << std::endl;
 
   ComputeAssemblyQ(model, qInit, cs, q, weights);
 
