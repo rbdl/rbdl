@@ -330,7 +330,12 @@ bool ComputeAssemblyQ(
 
     // Compute the constraint errors and update b.
     CalcConstraintsError(model, QInit, cs, e);
-    b.block(0, Q.size(), cs.size(), 1) = e;
+    b.block(Q.size(), 0, cs.size(), 1) = e;
+
+    if(it == 0) {
+      std::cout << A << std::endl << std::endl;
+      std::cout << b.transpose() << std::endl;
+    }
 
     // Solve the siste A*x = b.
     switch (cs.linear_solver) {
@@ -357,17 +362,17 @@ bool ComputeAssemblyQ(
     // Extract the d = (Q - QInit) vector from x.
     // Check if d is small, if yes, update the value of Q and return true.
     d = x.block(0, 0, Q.size(), 1);
-    if(d.norm() / QInit.norm() < tolerance) {
+    if(d.norm() < tolerance) {
       Q = QInit + d;
       return true;
     }
 
-    // If not, update the value of QInit and go on with the next iteration.
     QInit += d;
 
   }
 
   // Return false if maximum number of iterations is exceeded.
+  Q = QInit;
   return false;
 
 }
@@ -382,7 +387,11 @@ void ComputeAssemblyQDot(
   const ConstraintSet& cs,
   Math::VectorNd& QDot,
   const Math::VectorNd& weights
-) {}
+) {
+
+
+
+}
 
 
 
@@ -669,8 +678,8 @@ void CalcConstraintsError(
         // Compute the position error along the constraint axis.
 
         // Compute the position of each constraint point.
-        pos_p = CalcBaseToBodyCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
-        pos_s = CalcBaseToBodyCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
+        pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
+        pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
 
         // Compute the position difference and project it on the constraint axis.
         err[i] = (pos_s - pos_p).transpose() * CS.normal[c];
@@ -684,13 +693,19 @@ void CalcConstraintsError(
         // be parallel in the two frames, which corresponds to not having a
         // rotation about the constraint axis.
 
+        // The constraint axis should be aligned with a main axis.
+        assert(CS.normal[c] == Vector3d(1,0,0) ||
+          CS.normal[c] == Vector3d(0,1,0) ||
+          CS.normal[c] == Vector3d(0,0,1));
+
         // Start by computing the global orientation matrices of the two loop bodies.
-        rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
-        rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false);
+        rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false) * CS.rot_p[c];
+        rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false) * CS.rot_s[c];
 
         // Extract one column (i.e. axes) from each axis, making sure that:
         // a. different columns are extracted from each matrix.
         // b. the column corresponding to the constraint axis is not chosen.
+        
         for(rot_idx = 0; rot_idx < 3; ++rot_idx) {
           if(CS.normal[c][rot_idx] == 0.) {
             axis_p = rot_p.block(0, rot_idx, 3, 1);
@@ -705,8 +720,17 @@ void CalcConstraintsError(
           }
         }
 
-        // Compute the error.
-        err[i] = axis_p.transpose() * axis_s;
+        // compute the angle between the two chosen axes.
+        // NOTE: the angle returned is between -pi/2 and pi/2.
+        // I should verify if this is sufficient for the error computation
+        // or if a signed angle is needed.
+        double c = axis_p.transpose() * axis_s;
+        Vector3d crossprod = VectorCrossMatrix(axis_p) * axis_s;
+        double s = crossprod.norm();
+        double angle = std::atan2(s,c);
+        // Need to subtract PI/2 because we are actually computing the angle
+        // between two axes that should be orthogonal.
+        err[i] = angle - 0.5 * M_PI;
 
         i = i + 1;
       break;
