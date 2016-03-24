@@ -43,6 +43,18 @@ Multibody dynamics is a complicated subject and in this codebase the
 preference is mathematical and algorithmic clarity over elegant software
 architecture.
 
+## Licensing
+
+RBDL is published under the very permissive zlib license that gives you a
+lot of freedom in the use of full library or parts of it. The core part
+of the library is solely using this license but addons may use different
+licenses. 
+
+There is no formal contributor license agreement for this project. Instead
+when you submit patches or create a pull request it is assumed that you
+have the rights to transfer the corresponding code to the RBDL project and
+that you are okay that the code will be published as part of RBDL.
+
 ## Data Storage
 
 RBDL tries to avoid dynamic allocations and prefers contiguous memory
@@ -91,9 +103,13 @@ of ```SpatialVector```s in the ```Model``` structure.
 ## Spacing and Line Width
 
 We use spaces to indent code and use two spaces to indent a block. Do not
-use tabs.
+use tabs. Namespaces should not be indented.
 
 Lines should not exceed 80 characters in width.
+
+Hint: in the root directory of the RBDL repository you find the file
+.editorconfig which uses the correct spacing settings automatically for
+many editors (see http://editorconfig.org/ for more details).
 
 ## Error Handling
 
@@ -186,6 +202,8 @@ official repository on bitbucket and create a pull request.
 
 ## Debugging
 
-Todo: mention logging facility
-Todo: mention SimpleMath as a fast-compiling (but slower runtime) linear
+* Todo: mention logging facility
+* Todo: mention SimpleMath as a fast-compiling (but slower runtime) linear
 algebra package.
+
+
