@@ -42,15 +42,14 @@ struct Model;
  * \param Tau   actuations of the internal joints (output)
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
-RBDL_DLLAPI
-void InverseDynamics (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &QDDot,
-		Math::VectorNd &Tau,
-		std::vector<Math::SpatialVector> *f_ext = NULL
-		);
+RBDL_DLLAPI void InverseDynamics (
+    Model &model,
+    const Math::VectorNd &Q,
+    const Math::VectorNd &QDot,
+    const Math::VectorNd &QDDot,
+    Math::VectorNd &Tau,
+    std::vector<Math::SpatialVector> *f_ext = NULL
+    );
 
 /** \brief Computes the coriolis forces
  *
@@ -63,13 +62,12 @@ void InverseDynamics (
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints (output)
  */
-RBDL_DLLAPI
-void NonlinearEffects (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		Math::VectorNd &Tau
-		);
+RBDL_DLLAPI void NonlinearEffects (
+    Model &model,
+    const Math::VectorNd &Q,
+    const Math::VectorNd &QDot,
+    Math::VectorNd &Tau
+    );
 
 /** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm
  *
@@ -86,13 +84,12 @@ void NonlinearEffects (
  * Before calling this function one has to ensure that all other values
  * have been set to zero, e.g. by calling H.setZero().
  */
-RBDL_DLLAPI
-void CompositeRigidBodyAlgorithm (
-		Model& model,
-		const Math::VectorNd &Q,
-		Math::MatrixNd &H,
-		bool update_kinematics = true
-		);
+RBDL_DLLAPI void CompositeRigidBodyAlgorithm (
+    Model& model,
+    const Math::VectorNd &Q,
+    Math::MatrixNd &H,
+    bool update_kinematics = true
+    );
 
 /** \brief Computes forward dynamics with the Articulated Body Algorithm
  *
@@ -109,15 +106,14 @@ void CompositeRigidBodyAlgorithm (
  * \param QDDot accelerations of the internal joints (output)
  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
-RBDL_DLLAPI
-void ForwardDynamics (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &Tau,
-		Math::VectorNd &QDDot,
-		std::vector<Math::SpatialVector> *f_ext = NULL
-		);
+RBDL_DLLAPI void ForwardDynamics (
+    Model &model,
+    const Math::VectorNd &Q,
+    const Math::VectorNd &QDot,
+    const Math::VectorNd &Tau,
+    Math::VectorNd &QDDot,
+    std::vector<Math::SpatialVector> *f_ext = NULL
+    );
 
 /** \brief Computes forward dynamics by building and solving the full Lagrangian equation
  *
@@ -137,18 +133,17 @@ void ForwardDynamics (
  * \param H     preallocated workspace area for the joint space inertia matrix of size dof_count x dof_count (optional, defaults to NULL and allocates temporary matrix)
  * \param C     preallocated workspace area for the right hand side vector of size dof_count x 1 (optional, defaults to NULL and allocates temporary vector)
  */
-RBDL_DLLAPI
-void ForwardDynamicsLagrangian (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &QDot,
-		const Math::VectorNd &Tau,
-		Math::VectorNd &QDDot,
-		Math::LinearSolver linear_solver = Math::LinearSolverColPivHouseholderQR,
-		std::vector<Math::SpatialVector> *f_ext = NULL,
-		Math::MatrixNd *H = NULL,
-		Math::VectorNd *C = NULL	
-		);
+RBDL_DLLAPI void ForwardDynamicsLagrangian (
+    Model &model,
+    const Math::VectorNd &Q,
+    const Math::VectorNd &QDot,
+    const Math::VectorNd &Tau,
+    Math::VectorNd &QDDot,
+    Math::LinearSolver linear_solver = Math::LinearSolverColPivHouseholderQR,
+    std::vector<Math::SpatialVector> *f_ext = NULL,
+    Math::MatrixNd *H = NULL,
+    Math::VectorNd *C = NULL	
+    );
 
 /** \brief Computes the effect of multiplying the inverse of the joint
  * space inertia matrix with a vector in linear time.
@@ -171,14 +166,13 @@ void ForwardDynamicsLagrangian (
  * to set the last parameter to false as this avoids expensive
  * recomputations of transformations and articulated body inertias.
  */
-RBDL_DLLAPI
-void CalcMInvTimesTau (
-		Model &model,
-		const Math::VectorNd &Q,
-		const Math::VectorNd &Tau,
-		Math::VectorNd &QDDot,
-		bool update_kinematics=true
-		);
+RBDL_DLLAPI void CalcMInvTimesTau (
+    Model &model,
+    const Math::VectorNd &Q,
+    const Math::VectorNd &Tau,
+    Math::VectorNd &QDDot,
+    bool update_kinematics=true
+    );
 
 /** @} */
 
