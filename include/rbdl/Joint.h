@@ -215,6 +215,7 @@ struct RBDL_DLLAPI Joint {
     mJointAxes (NULL),
     mJointType (type),
     mDoFCount (0),
+    custom_joint_index(-1),
     q_index (0) {
       if (type == JointTypeRevoluteX) {
         mDoFCount = 1;
@@ -280,7 +281,8 @@ struct RBDL_DLLAPI Joint {
   Joint (const Joint &joint) :
     mJointType (joint.mJointType),
     mDoFCount (joint.mDoFCount),
-    q_index (joint.q_index) {
+    q_index (joint.q_index),
+    custom_joint_index(joint.custom_joint_index) {
       mJointAxes = new Math::SpatialVector[mDoFCount];
 
       for (unsigned int i = 0; i < mDoFCount; i++)
@@ -294,7 +296,7 @@ struct RBDL_DLLAPI Joint {
       }
       mJointType = joint.mJointType;
       mDoFCount = joint.mDoFCount;
-
+      custom_joint_index = joint.custom_joint_index;
       mJointAxes = new Math::SpatialVector[mDoFCount];
 
       for (unsigned int i = 0; i < mDoFCount; i++)
@@ -310,6 +312,7 @@ struct RBDL_DLLAPI Joint {
       delete[] mJointAxes;
       mJointAxes = NULL;
       mDoFCount = 0;
+      custom_joint_index = -1;
     }
   }
 
@@ -645,6 +648,7 @@ struct RBDL_DLLAPI CustomJoint {
   Math::MatrixNd U;
   Math::MatrixNd Dinv;
   Math::VectorNd u;
+  Math::VectorNd d_u;
 };
 
 }

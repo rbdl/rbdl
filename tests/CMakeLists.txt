@@ -26,7 +26,8 @@ SET ( TESTS_SRCS
   ContactsTests.cc
   UtilsTests.cc
   SparseFactorizationTests.cc
-  CustomJointTests.cc
+  CustomJointSingleBodyTests.cc
+  CustomJointMultiBodyTests.cc
   )
 
 INCLUDE_DIRECTORIES ( ../src/ )
