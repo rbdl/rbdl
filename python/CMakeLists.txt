@@ -13,7 +13,7 @@ set_source_files_properties(
 # Multi-file cython modules do not appear to be working at the moment.
 cython_add_module( rbdl-python rbdl.pyx )
 
-SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES PREFIX "")
+#SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES PREFIX "")
 SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES OUTPUT_NAME "rbdl")
 
 INCLUDE_DIRECTORIES (

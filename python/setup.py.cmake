@@ -19,7 +19,7 @@ extra_params['include_dirs'] = [
     '/usr/include/eigen3/'
 ]
 
-extra_params['extra_compile_args'] = ["-O2", "-Wno-unused-variable"]
+#extra_params['extra_compile_args'] = ["-O2", "-Wno-unused-variable"]
 extra_params['extra_link_args'] = ["-Wl,-O1", "-Wl,--as-needed"]
 
 extra_params = extra_params.copy()
