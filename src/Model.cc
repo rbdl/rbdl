@@ -481,9 +481,9 @@ unsigned int Model::AddBodyCustomJoint (
     CustomJoint *custom_joint,
     const Body &body,
     std::string body_name) {
-  Joint proxy_joint (JointTypeCustom);
+  Joint proxy_joint (JointTypeCustom, custom_joint->mDoFCount);
   proxy_joint.custom_joint_index = mCustomJoints.size();
-  proxy_joint.mDoFCount = custom_joint->mDoFCount; //MM added. Otherwise
+  //proxy_joint.mDoFCount = custom_joint->mDoFCount; //MM added. Otherwise
   //model.q_size = 0, which is not good.
 
   mCustomJoints.push_back (custom_joint);

@@ -270,14 +270,38 @@ struct RBDL_DLLAPI Joint {
         mJointAxes[1] = Math::SpatialVector (0., 0., 0., 0., 1., 0.);
         mJointAxes[2] = Math::SpatialVector (0., 0., 0., 0., 0., 1.);
       } else if (type == JointTypeCustom) {
-        mJointAxes = new Math::SpatialVector[1];
-        mJointAxes[0].setZero();
+        //This constructor cannot be used for a JointTypeCustom because
+        //we have no idea what mDoFCount is.
+        std::cerr << "Error: Invalid use of Joint constructor Joint(JointType"
+                  << " type). Only allowed when type != JointTypeCustom" 
+                  << std::endl;
       } else if (type != JointTypeFixed && type != JointTypeFloatingBase) {
         std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
         assert (0);
         abort();
       }
     }
+    Joint (JointType type, int degreesOfFreedom) :
+      mJointAxes (NULL),
+      mJointType (type),
+      mDoFCount (0),
+      custom_joint_index(-1),
+      q_index (0) {
+     if (type == JointTypeCustom) {        
+        mDoFCount   = degreesOfFreedom;
+        mJointAxes  = new Math::SpatialVector[mDoFCount];
+        for(int i=0; i<mDoFCount;++i){
+          mJointAxes[i] = Math::SpatialVector (0., 0., 0., 0., 0., 0.);
+        }        
+      } else {
+        std::cerr << "Error: Invalid use of Joint constructor Joint(JointType"
+                  << " type, int degreesOfFreedom). Only allowed when "
+                  << "type  == JointTypeCustom." 
+                  << std::endl;
+        assert (0);
+        abort();
+      }
+    }  
   Joint (const Joint &joint) :
     mJointType (joint.mJointType),
     mDoFCount (joint.mDoFCount),
