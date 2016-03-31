@@ -275,6 +275,8 @@ struct RBDL_DLLAPI Joint {
         std::cerr << "Error: Invalid use of Joint constructor Joint(JointType"
                   << " type). Only allowed when type != JointTypeCustom" 
                   << std::endl;
+        assert(0);
+        abort();                  
       } else if (type != JointTypeFixed && type != JointTypeFloatingBase) {
         std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
         assert (0);
