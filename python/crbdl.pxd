@@ -1,3 +1,5 @@
+#cython: boundscheck=False
+
 from libcpp.string cimport string
 from libcpp cimport bool
 from libcpp.vector cimport vector
@@ -19,6 +21,15 @@ cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
         double& operator[](int)
         double* data()
 
+    cdef cppclass Quaternion:
+        Quaternion ()
+        int rows()
+        int cols()
+        double& operator[](int)
+        double* data()
+        Matrix3d toMatrix()
+#        Quaternion fromMatrix (Matrix3d &mat)
+
     cdef cppclass SpatialVector:
         SpatialVector ()
         int rows()
@@ -35,7 +46,7 @@ cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
 
     cdef cppclass MatrixNd:
         MatrixNd ()
-        MatrixNd (rows, cols)
+        MatrixNd (int rows, int cols)
         int rows()
         int cols()
         void resize (int,int)
@@ -57,9 +68,8 @@ cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
         double& coeff "operator()"(int,int)
         double* data()
 
-cdef extern from "<rbdl/rbdl_mathutils.h>" namespace "RigidBodyDynamics::Math":
-    cdef VectorNd VectorFromPtr (unsigned int n, double *ptr)
-    cdef MatrixNd MatrixFromPtr (unsigned int rows, unsigned int cols, double *ptr, bool row_major)
+cdef extern from "<rbdl/Quaternion.h>" namespace "RigidBodyDynamics::Math::Quaternion":
+    Quaternion fromMatrix(const Matrix3d &mat)
 
 cdef extern from "<rbdl/SpatialAlgebraOperators.h>" namespace "RigidBodyDynamics::Math":
     cdef cppclass SpatialTransform:
@@ -81,6 +91,7 @@ cdef extern from "<rbdl/SpatialAlgebraOperators.h>" namespace "RigidBodyDynamics
 cdef extern from "<rbdl/Body.h>" namespace "RigidBodyDynamics":
     cdef cppclass Body:
         Body()
+        Body(const double mass, const Vector3d &com, const Matrix3d &inertia)
         double mMass
         Vector3d mCenterOfMass
         Matrix3d mInertia
@@ -110,6 +121,7 @@ cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
         JointTypeEulerXYZ
         JointTypeEulerYXZ
         JointTypeTranslationXYZ
+        JointTypeFloatingBase
         JointTypeFixed
         JointType1DoF
         JointType2DoF
@@ -136,8 +148,21 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 const Body &body,
                 string body_name
                 )
-#        vector[unsigned int] lambda
-#        vector[unsigned int] lambda_q
+        unsigned int AppendBody (const SpatialTransform &joint_frame,
+                const Joint &joint,
+                const Body &body,
+                string body_name
+                )
+        Quaternion GetQuaternion (
+                unsigned int body_id,
+                const VectorNd &q)
+        void SetQuaternion (
+                unsigned int body_id,
+                const Quaternion &quat,
+                VectorNd &q)
+
+        vector[unsigned int] _lambda
+        vector[unsigned int] lambda_q
 #        vector[vector[unsigned int]] mu
 
         unsigned int dof_count
@@ -192,9 +217,176 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const VectorNd &qdot,
             const VectorNd &qddot)
 
-cdef extern from "<rbdl/Dynamics.h>" namespace "RigidBodyDynamics":
-    cdef void CompositeRigidBodyAlgorithm (Model& model,
+    cdef Vector3d CalcBodyToBaseCoordinates (Model& model,
             const VectorNd &q,
-            MatrixNd &H,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
             bool update_kinematics)
 
+    cdef Vector3d CalcBaseToBodyCoordinates (Model& model,
+            const VectorNd &q,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef Vector3d CalcPointVelocity (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef Vector3d CalcPointAcceleration (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const VectorNd &qddot,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef SpatialVector CalcPointVelocity6D (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef SpatialVector CalcPointAcceleration6D (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const VectorNd &qddot,
+            const unsigned int body_id,
+            const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
+    cdef void CalcCenterOfMass (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            double &mass,
+            Vector3d &com,
+            Vector3d *com_velocity,
+            Vector3d *angular_momentum,
+            bool update_kinematics)
+
+cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
+    cdef cppclass ConstraintSet:
+        ConstraintSet()
+        unsigned int AddConstraint (
+                unsigned int body_id,
+                const Vector3d &body_point,
+                const Vector3d &world_normal,
+                const char* constraint_name,
+                double normal_acceleration)
+
+        ConstraintSet Copy()
+        # void SetSolver (Math::LinearSolver solver)
+        bool Bind (const Model &model)
+
+        size_t size()
+        void clear()
+        # Math::LinearSolver
+        bool bound
+
+        vector[string] name
+        vector[unsigned int] body
+        vector[Vector3d] point
+        vector[Vector3d] normal
+
+        VectorNd acceleration
+        VectorNd force
+        VectorNd impulse
+        VectorNd v_plus
+
+        MatrixNd H
+        VectorNd C
+        VectorNd gamma
+        VectorNd G
+        
+        MatrixNd A
+        VectorNd b
+        VectorNd x
+
+        MatrixNd GT_qr_Q
+        MatrixNd Y
+        MatrixNd Z
+        VectorNd qddot_y
+        VectorNd qddot_z
+
+        MatrixNd K
+        VectorNd a
+        VectorNd QDDot_t
+        VectorNd QDDot_0
+
+        vector[SpatialVector] f_t
+        vector[SpatialVector] f_ext_constraints
+        vector[Vector3d] point_accel_0
+
+        vector[SpatialVector] d_pA
+        vector[SpatialVector] d_a
+        VectorNd d_u
+
+        vector[SpatialMatrix] d_IA
+        vector[SpatialVector] d_U
+        
+        VectorNd d_d
+        vector[Vector3d] d_multdof3_u
+
+cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
+    cdef void CalcPointJacobianPtr (Model& model,
+            const double *q_ptr,
+            unsigned int body_id,
+            const Vector3d &point_position,
+            double *G,
+            bool update_kinematics)
+
+    cdef void CalcPointJacobian6DPtr (Model &model,
+            const double *q_ptr,
+            unsigned int body_id,
+            const Vector3d &point_position,
+            double *G,
+            bool update_kinematics)
+
+    cdef void CalcBodySpatialJacobianPtr (
+            Model &model,
+            const double *q_ptr,
+            unsigned int body_id,
+            double *G,
+            bool update_kinematics)
+
+    cdef void InverseDynamicsPtr (
+            Model &model,
+            const double* q_ptr,
+            const double* qdot_ptr,
+            const double* qddot_ptr,
+            double* tau_ptr,
+            vector[SpatialVector] *f_ext
+            )
+
+    cdef void NonlinearEffectsPtr (
+            Model &model,
+            const double* q_ptr,
+            const double* qdot_ptr,
+            double* tau_ptr
+            )
+
+    cdef void CompositeRigidBodyAlgorithmPtr (Model& model,
+            const double *q,
+            double *H,
+            bool update_kinematics)
+
+    cdef void ForwardDynamicsPtr (
+            Model &model,
+            const double* q_ptr,
+            const double* qdot_ptr,
+            double* tau_ptr,
+            const double* qddot_ptr,
+            vector[SpatialVector] *f_ext
+            ) 
+
+cdef extern from "rbdl_loadmodel.cc":
+    cdef bool rbdl_loadmodel (
+            const char* filename, 
+            Model* model, 
+            bool floating_base,
+            bool verbose)
