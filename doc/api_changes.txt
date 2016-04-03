@@ -1,4 +1,9 @@
 2.4.0 -> next
+- Matthew Millard added CustomJoints which allow to create different joint
+  types completely by user code. They are implemented as proxy joints for
+  which their behaviour is specified using virtual functions.
+- Added CalcMInvTimesTau() that evaluates multiplication of the inverse of
+  the joint space inertia matrix with a vector in O(n) time.
 - Fixed CompositeRigidBodyAlgorithm when using spherical joints (thanks to
   Sébastien Barthélémy for reporting!)
 - Added JointTypeFloatingBase which uses TX,TY,TZ and a spherical joint for
@@ -7,9 +12,10 @@
   parameter to URDFReadFromFile() and URDFReadFromString()
 - Added the URDF code from Bullet3 which gets used when ROS is not found.
   Otherwise use the URDF libraries found via Catkin.
-- Added CalcPointVelocity6D, CalcPointAcceleration6D, and CalcPointJacobian6D that compute both linear and angular quantities
+- Added CalcPointVelocity6D, CalcPointAcceleration6D, and CalcPointJacobian6D
+  that compute both linear and angular quantities
 - Removed Model::SetFloatingBase (body). Use a 6-DoF joint or
-	JointTypeFloatingBase instead.
+  JointTypeFloatingBase instead.
 
 2.3.3 -> 2.4.0
 - Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()

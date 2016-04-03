@@ -21,11 +21,11 @@ class LoggingGuard;
  */
 
 #ifndef RBDL_ENABLE_LOGGING
-	#define LOG if (false) LogOutput 
-	#define SUPPRESS_LOGGING ;
+#define LOG if (false) LogOutput 
+#define SUPPRESS_LOGGING ;
 #else
-	#define LOG LogOutput
-	#define SUPPRESS_LOGGING LoggingGuard _nolog
+#define LOG LogOutput
+#define SUPPRESS_LOGGING LoggingGuard _nolog
 #endif
 
 extern RBDL_DLLAPI std::ostringstream LogOutput;
@@ -57,18 +57,18 @@ RBDL_DLLAPI void ClearLogOutput ();
  *
  */
 class RBDL_DLLAPI LoggingGuard {
-	public:
-		LoggingGuard() {
-			log_backup.str("");
-			log_backup << LogOutput.str();
-		}
-		~LoggingGuard() {
-			LogOutput.str("");
-			LogOutput << log_backup.str();
-		}
+  public:
+    LoggingGuard() {
+      log_backup.str("");
+      log_backup << LogOutput.str();
+    }
+    ~LoggingGuard() {
+      LogOutput.str("");
+      LogOutput << log_backup.str();
+    }
 
-	private:
-		std::ostringstream log_backup;
+  private:
+    std::ostringstream log_backup;
 };
 
 /* RBDL_LOGGING_H */
