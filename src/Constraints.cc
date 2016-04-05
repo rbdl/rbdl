@@ -48,8 +48,8 @@ unsigned int ConstraintSet::AddContactConstraint (
   body_s.push_back(0);
   pos_p.push_back(Vector3d());
   pos_s.push_back(Vector3d());
-  rot_p.push_back(Matrix3d());
-  rot_s.push_back(Matrix3d());
+  axis_p.push_back(0);
+  axis_s.push_back(0);
   T_stab.push_back(0.);
 
   unsigned int n_constr = size() + 1;
@@ -94,8 +94,8 @@ unsigned int ConstraintSet::AddLoopPositionConstraint(
   // These Variables will not be used.
   body.push_back (0);
   point.push_back (Vector3d());
-  rot_p.push_back(Matrix3d());
-  rot_s.push_back(Matrix3d());
+  axis_p.push_back(0);
+  axis_s.push_back(0);
 
   body_p.push_back(predecessor_body_id);
   body_s.push_back(successor_body_id);
@@ -129,13 +129,23 @@ unsigned int ConstraintSet::AddLoopPositionConstraint(
 unsigned int ConstraintSet::AddLoopOrientationConstraint(
   unsigned int predecessor_body_id,
   unsigned int successor_body_id,
-  const Math::Matrix3d &rot_predecessor,
-  const Math::Matrix3d &rot_successor,
-  const Math::Vector3d &constraint_axis,
+  unsigned int axis_p_index,
+  unsigned int axis_s_index,
   double T_stabilization,
   const char *constraint_name ) {
 
   assert (bound == false);
+
+  if(axis_p_index < 0 || axis_p_index > 2
+    || axis_s_index < 0 || axis_s_index > 2
+    || axis_p_index == axis_s_index) {
+
+    std::cerr << "Invalid index." << std::endl;
+    assert(false);
+    abort();
+    
+  }
+
 
   std::string name_str;
   if (constraint_name != NULL)
@@ -145,16 +155,16 @@ unsigned int ConstraintSet::AddLoopOrientationConstraint(
   name.push_back (name_str);
 
   // These Variables will not be used.
-  body.push_back (0);
-  point.push_back (Vector3d());
+  body.push_back(0);
+  point.push_back(Vector3d());
   pos_p.push_back(Vector3d());
   pos_s.push_back(Vector3d());
+  normal.push_back(Vector3d());
 
   body_p.push_back(predecessor_body_id);
   body_s.push_back(successor_body_id);
-  rot_p.push_back(rot_predecessor);
-  rot_s.push_back(rot_successor);
-  normal.push_back (constraint_axis);
+  axis_p.push_back(axis_p_index);
+  axis_s.push_back(axis_s_index);
   T_stab.push_back(T_stabilization);
 
   unsigned int n_constr = size() + 1;
@@ -329,7 +339,7 @@ bool ComputeAssemblyQ(
     A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
 
     // Compute the constraint errors and update b.
-    CalcConstraintsError(model, QInit, cs, e);
+    CalcConstraintsPositionError(model, QInit, cs, e);
     b.block(Q.size(), 0, cs.size(), 1) = e;
 
     if(it == 0) {
@@ -566,72 +576,80 @@ void CalcConstraintsJacobian(
   unsigned int prev_body_id = 0;
   Vector3d prev_body_point = Vector3d::Zero();
   
+  Vector3d pos_p;
+  Vector3d pos_s;
+  Matrix3d rot_p;
+  Matrix3d rot_s;
+  Vector3d axis_p;
+  Vector3d axis_s;
   MatrixNd Gpi (3, model.dof_count);
   MatrixNd Gsi = Gpi;
   MatrixNd Gi = Gpi;
   MatrixNd GSpi (6, model.dof_count);
   MatrixNd GSsi = GSpi;
-  MatrixNd GSi = GSpi;
+  MatrixNd GRpi = Gpi;
+  MatrixNd GRRsi (1, model.dof_count);
+  MatrixNd GRRpi = GRRsi;
 
   for (c = 0; c < CS.constraintType.size(); c++) {
     switch(CS.constraintType[c]) {
 
-      case ConstraintSet::ContactConstraint:
-        // only compute the matrix Gi if actually needed
-        if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
-          Gi.setZero();
-          CalcPointJacobian (model, Q, CS.body[c], CS.point[c], Gi, false);
-          prev_body_id = CS.body[c];
-          prev_body_point = CS.point[c];
-        }
+    case ConstraintSet::ContactConstraint:
+      // only compute the matrix Gi if actually needed
+      if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
+        Gi.setZero();
+        CalcPointJacobian (model, Q, CS.body[c], CS.point[c], Gi, false);
+        prev_body_id = CS.body[c];
+        prev_body_point = CS.point[c];
+      }
 
-        for (j = 0; j < model.dof_count; j++) {
-          Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
-          G(i,j) = gaxis.transpose() * CS.normal[c];
-        }
+      for (j = 0; j < model.dof_count; j++) {
+        Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
+        G(i,j) = gaxis.transpose() * CS.normal[c];
+      }
 
-        i = i + 1;
-      break;
+     ++i;
+    break;
 
-      case ConstraintSet::LoopPositionConstraint:
-        // Force recomputation. We can actually implement this optimization
-        // in the future also for loop constraints.
-        prev_body_id = 0;
-        Gpi.setZero();
-        Gsi.setZero();
-        CalcPointJacobian(model, Q, CS.body_p[c], CS.pos_p[c], Gpi, false);
-        CalcPointJacobian(model, Q, CS.body_s[c], CS.pos_s[c], Gsi, false);
-        Gi = Gsi - Gpi;
+    case ConstraintSet::LoopPositionConstraint:
+      // Force recomputation of constraints.
+      prev_body_id = 0;
 
-        // std::cout << Gpi << std::endl << std::endl;
-        // std::cout << Gsi << std::endl << std::endl;
-        // std::cout << Gi << std::endl << std::endl; 
+      Gpi.setZero();
+      Gsi.setZero();
+      GSpi.setZero();
+      CalcPointJacobian(model, Q, CS.body_p[c], CS.pos_p[c], Gpi, false);
+      CalcPointJacobian(model, Q, CS.body_s[c], CS.pos_s[c], Gsi, false);
+      CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
+      GRpi = GSpi.block(0, 0, 3, model.dof_count);
+      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
+      pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
 
-        for (j = 0; j < model.dof_count; j++) {
-          Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
-          G(i,j) = gaxis.transpose() * CS.normal[c];
-        }
-        i = i + 1;
-      break;
+      G.block(i, 0, 1, model.dof_count) 
+        = CS.normal[c].transpose() * (Gsi - Gpi)
+        - (pos_s - pos_p).transpose() * VectorCrossMatrix(CS.normal[c]) * GRpi;
 
-      case ConstraintSet::LoopOrientationConstraint:
-        prev_body_id = 0;
-        GSpi.setZero();
-        GSsi.setZero();
-        CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
-        CalcBodySpatialJacobian(model, Q, CS.body_s[c], GSsi, false);
-        GSi = GSsi - GSpi;
+      ++i;
+    break;
 
-        // std::cout << GSpi << std::endl << std::endl;
-        // std::cout << GSsi << std::endl << std::endl;
-        // std::cout << GSi << std::endl << std::endl;
+    case ConstraintSet::LoopOrientationConstraint:
+      prev_body_id = 0;
+      GSpi.setZero();
+      GSsi.setZero();
+      CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
+      CalcBodySpatialJacobian(model, Q, CS.body_s[c], GSsi, false);
+      GRRsi = GSpi.block(0, 0, 3 + CS.axis_p[c], model.dof_count);
+      GRRpi = GSsi.block(0, 0, 3 + CS.axis_s[c], model.dof_count);
+      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
+      rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false);
+      axis_p = rot_p.block<3, 1>(0, CS.axis_p[c]);
+      axis_s = rot_s.block<3, 1>(0, CS.axis_s[c]);
 
-        for (j = 0; j < model.dof_count; j++) {
-          Vector3d gaxis (GSi(0,j), GSi(1,j), GSi(2,j));
-          G(i,j) = gaxis.transpose() * CS.normal[c];
-        }
-        i = i + 1;
-      break;
+      G.block(i, 0, 1, model.dof_count)
+        = - axis_s.transpose() * GRRpi - axis_p.transpose() * GRRsi;
+
+      ++i;
+    break;
     }
   }
 }
@@ -639,7 +657,7 @@ void CalcConstraintsJacobian(
 
 
 RBDL_DLLAPI
-void CalcConstraintsError(
+void CalcConstraintsPositionError(
   Model& model,
   const Math::VectorNd &Q,
   const ConstraintSet &CS,
@@ -668,72 +686,35 @@ void CalcConstraintsError(
   for (c = 0; c < CS.constraintType.size(); c++) {
     switch(CS.constraintType[c]) {
 
-      case ConstraintSet::ContactConstraint:
-        // No position error for this kind of constraints.
-        err[i] = 0.;
-        i = i + 1;
-      break;
+    case ConstraintSet::ContactConstraint:
+      // No position error for this kind of constraints.
+      err[i] = 0.;
+      ++i;
+    break;
 
-      case ConstraintSet::LoopPositionConstraint:
-        // Compute the position error along the constraint axis.
+    case ConstraintSet::LoopPositionConstraint:
+      // Compute the position error along the constraint axis.
 
-        // Compute the position of each constraint point.
-        pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
-        pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
+      // Compute the position of each constraint point.
+      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
+      pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
 
-        // Compute the position difference and project it on the constraint axis.
-        err[i] = (pos_s - pos_p).transpose() * CS.normal[c];
+      // Compute the position difference and project it on the constraint axis.
+      err[i] = CS.normal[c].transpose() * (pos_s - pos_p);
 
-        i = i + 1;
-      break;
+      ++i;
+    break;
 
-      case ConstraintSet::LoopOrientationConstraint:
-        // Compute the error as the scalar product between the two axes not
-        // coincident with the constraint axis. This forces the two axes to
-        // be parallel in the two frames, which corresponds to not having a
-        // rotation about the constraint axis.
+    case ConstraintSet::LoopOrientationConstraint:
+      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
+      rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false);
+      axis_p = rot_p.block<3, 1>(0, CS.axis_p[c]);
+      axis_s = rot_s.block<3, 1>(0, CS.axis_s[c]);
+      err[i] = axis_p.transpose() * axis_s;
 
-        // The constraint axis should be aligned with a main axis.
-        assert(CS.normal[c] == Vector3d(1,0,0) ||
-          CS.normal[c] == Vector3d(0,1,0) ||
-          CS.normal[c] == Vector3d(0,0,1));
+      ++i;
+    break;
 
-        // Start by computing the global orientation matrices of the two loop bodies.
-        rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false) * CS.rot_p[c];
-        rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false) * CS.rot_s[c];
-
-        // Extract one column (i.e. axes) from each axis, making sure that:
-        // a. different columns are extracted from each matrix.
-        // b. the column corresponding to the constraint axis is not chosen.
-        
-        for(rot_idx = 0; rot_idx < 3; ++rot_idx) {
-          if(CS.normal[c][rot_idx] == 0.) {
-            axis_p = rot_p.block(0, rot_idx, 3, 1);
-            break;
-          }
-        }
-        ++rot_idx;
-        for(; rot_idx < 3; ++rot_idx) {
-          if(CS.normal[c][rot_idx] == 0.) {
-            axis_s = rot_s.block(0, rot_idx, 3, 1);
-            break;
-          }
-        }
-
-        // compute the angle between the two chosen axes.
-        // NOTE: the angle returned is between -pi/2 and pi/2.
-        // I should verify if this is sufficient for the error computation
-        // or if a signed angle is needed.
-        double c = axis_p.transpose() * axis_s;
-        Vector3d crossprod = VectorCrossMatrix(axis_p) * axis_s;
-        double s = crossprod.norm();
-        double angle = std::atan2(s,c);
-        // Need to subtract PI/2 because we are actually computing the angle
-        // between two axes that should be orthogonal.
-        err[i] = angle - 0.5 * M_PI;
-
-        i = i + 1;
-      break;
     }
   }
 

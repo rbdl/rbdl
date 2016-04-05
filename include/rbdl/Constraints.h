@@ -203,9 +203,8 @@ struct RBDL_DLLAPI ConstraintSet {
   unsigned int AddLoopOrientationConstraint(
     unsigned int predecessor_body_id,
     unsigned int successor_body_id,
-    const Math::Matrix3d &rot_predecessor,
-    const Math::Matrix3d &rot_successor,
-    const Math::Vector3d &constraint_axis,
+    unsigned int axis_p,
+    unsigned int axis_s,
     double T_stab,
     const char *constraint_name = NULL);
 
@@ -275,8 +274,8 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<unsigned int> body_s;
   std::vector<Math::Vector3d> pos_p;
   std::vector<Math::Vector3d> pos_s;
-  std::vector<Math::Matrix3d> rot_p;
-  std::vector<Math::Matrix3d> rot_s;
+  std::vector<unsigned int> axis_p;
+  std::vector<unsigned int> axis_s;
   std::vector<double> T_stab;
 
 
@@ -398,7 +397,7 @@ void CalcConstraintsJacobian(
 /** \brief Todo - add comments.
    */
 RBDL_DLLAPI
-void CalcConstraintsError(
+void CalcConstraintsPositionError(
   Model& model,
   const Math::VectorNd &Q,
   const ConstraintSet &CS,

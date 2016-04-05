@@ -11,22 +11,22 @@ using namespace RigidBodyDynamics::Math;
 const double TEST_PREC = 1.0e-11;
 
 
-static double adjustErrorAngle(double angle) {
+// static double adjustErrorAngle(double angle) {
 
-  while(angle >= M_PI) {
-    angle -= 2 * M_PI;
-  }
-  while(angle < -M_PI) {
-    angle += 2 * M_PI;
-  }
-  if(angle >= 0.5 * M_PI || angle < -0.5 * M_PI) {
-    double c = cos(angle);
-    double s = sin(angle);
-    angle = atan2(s,-c);
-  }
-  return angle;
+//   while(angle >= M_PI) {
+//     angle -= 2 * M_PI;
+//   }
+//   while(angle < -M_PI) {
+//     angle += 2 * M_PI;
+//   }
+//   if(angle >= 0.5 * M_PI || angle < -0.5 * M_PI) {
+//     double c = cos(angle);
+//     double s = sin(angle);
+//     angle = atan2(s,-c);
+//   }
+//   return angle;
 
-}
+// }
 
 
 struct FiveBarLinkage {
@@ -77,8 +77,7 @@ struct FiveBarLinkage {
       Vector3d(0,1,0), 0.1);
     cs.AddLoopOrientationConstraint(
       idB2, idB5,
-      X_p.E, X_s.E,
-      Vector3d(0,0,1), 0.1);
+      0, 1, 0.1);
 
     cs.Bind(model);
 
@@ -130,7 +129,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
   q[3] = 0.;
   q[4] = 0.;
 
-  CalcConstraintsError(model, q, cs, err);
+  CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK_CLOSE(0., err[0], TEST_PREC);
   CHECK_CLOSE(0., err[1], TEST_PREC);
@@ -144,6 +143,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = 0.;
+  angleErr = cos(M_PI);
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
@@ -152,11 +152,11 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
   assert(std::fabs(posErr[1]) < TEST_PREC);
   assert(std::fabs(posErr[2]) < TEST_PREC);
 
-  CalcConstraintsError(model, q, cs, err);
+  CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK_CLOSE(posErr[0], err[0], TEST_PREC);
   CHECK_CLOSE(0., err[1], TEST_PREC);
-  CHECK_CLOSE(0.5 * M_PI, err[2], TEST_PREC);
+  CHECK_CLOSE(angleErr, err[2], TEST_PREC);
 
 
 
@@ -166,13 +166,13 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
   q[2] = M_PI + 0.1;
   q[3] = 0.;
   q[4] = 0.;
-  angleErr = adjustErrorAngle(q[0] + q[1] - q[2] - q[3] - q[4]);
+  angleErr = cos(q[0] + q[1] - q[2] - q[3] - q[4] + 0.5 * M_PI);
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
   posErr = pos2 - pos1;
 
-  CalcConstraintsError(model, q, cs, err);
+  CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK_CLOSE(posErr[0], err[0], TEST_PREC);
   CHECK_CLOSE(posErr[1], err[1], TEST_PREC);
@@ -186,7 +186,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = 0.;
-  angleErr = adjustErrorAngle(q[0] + q[1] - q[2] - q[3] - q[4]);
+  angleErr = cos(q[0] + q[1] - q[2] - q[3] - q[4] + 0.5 * M_PI);
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
@@ -195,7 +195,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
   assert(std::fabs(posErr[1]) < TEST_PREC);
   assert(std::fabs(posErr[2]) < TEST_PREC);
 
-  CalcConstraintsError(model, q, cs, err);
+  CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK_CLOSE(posErr[0], err[0], TEST_PREC);
   CHECK_CLOSE(0., err[1], TEST_PREC);
