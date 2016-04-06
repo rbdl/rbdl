@@ -209,6 +209,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
   VectorNd err = MatrixNd::Zero(cs.size(), 1);
   err = G * qd;
 
+  std::cout << err.transpose() << std::endl;
+
   CHECK_CLOSE(0., err.norm(), TEST_PREC);
 
 }
@@ -231,7 +233,6 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
   qRef[2] = M_PI - qRef[0];
   qRef[3] = -qRef[1];
   qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
-
   assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
 
   VectorNd qInit = VectorNd::Zero(q.size());

@@ -27,6 +27,7 @@ void SolveLinearSystem(const MatrixNd& A, const VectorNd& b, VectorNd& x
   , LinearSolver ls);
 
 
+
 unsigned int ConstraintSet::AddContactConstraint (
   unsigned int body_id,
   const Vector3d &body_point,
@@ -150,7 +151,6 @@ unsigned int ConstraintSet::AddLoopOrientationConstraint(
     
   }
 
-
   std::string name_str;
   if (constraint_name != NULL)
     name_str = constraint_name;
@@ -202,6 +202,8 @@ unsigned int ConstraintSet::AddWeldConstraint(
   const char *constraint_name) {
 
 }
+
+
 
 bool ConstraintSet::Bind (const Model &model) {
   assert (bound == false);
@@ -265,6 +267,8 @@ bool ConstraintSet::Bind (const Model &model) {
 
   return bound;
 }
+
+
 
 void ConstraintSet::clear() {
   acceleration.setZero();
@@ -378,8 +382,6 @@ bool ComputeAssemblyQ(
       Q = QInit;
       return true;
     }
-
-    
 
   }
 
@@ -852,6 +854,8 @@ void ForwardDynamicsConstrainedDirect (
   }
 }
 
+
+
 RBDL_DLLAPI
 void ForwardDynamicsConstrainedRangeSpaceSparse (
   Model &model,
@@ -866,6 +870,8 @@ void ForwardDynamicsConstrainedRangeSpaceSparse (
 
   SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
 }
+
+
 
 RBDL_DLLAPI
 void ForwardDynamicsConstrainedNullSpace (
@@ -893,6 +899,8 @@ void ForwardDynamicsConstrainedNullSpace (
 
   SolveConstrainedSystemNullSpace (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
 }
+
+
 
 RBDL_DLLAPI
 void ComputeContactImpulsesDirect (
@@ -922,6 +930,8 @@ void ComputeContactImpulsesDirect (
   }
 }
 
+
+
 RBDL_DLLAPI
 void ComputeContactImpulsesRangeSpaceSparse (
   Model &model,
@@ -940,6 +950,8 @@ void ComputeContactImpulsesRangeSpaceSparse (
 
   SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, CS.H * QDotMinus, CS.v_plus, QDotPlus, CS.impulse, CS.K, CS.a, CS.linear_solver);
 }
+
+
 
 RBDL_DLLAPI
 void ComputeContactImpulsesNullSpace (
@@ -965,6 +977,8 @@ void ComputeContactImpulsesNullSpace (
 
   SolveConstrainedSystemNullSpace (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus, QDotPlus, CS.impulse, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
 }
+
+
 
 /** \brief Compute only the effects of external forces on the generalized accelerations
  *
@@ -1064,6 +1078,8 @@ void ForwardDynamicsApplyConstraintForces (
   LOG << "QDDot = " << QDDot.transpose() << std::endl;
 } 
 
+
+
 /** \brief Computes the effect of external forces on the generalized accelerations.
  *
  * This function is essentially similar to ForwardDynamics() except that it
@@ -1156,6 +1172,8 @@ inline void set_zero (std::vector<SpatialVector> &spatial_values) {
   for (unsigned int i = 0; i < spatial_values.size(); i++)
     spatial_values[i].setZero();
 }
+
+
 
 RBDL_DLLAPI
 void ForwardDynamicsContactsKokkevis (
@@ -1343,6 +1361,7 @@ void SolveLinearSystem(const MatrixNd& A, const VectorNd& b, VectorNd& x
     break;
   default:
     std::cerr << "Error: Invalid linear solver: " << ls << std::endl;
+    assert(false);
     abort();
     break;
   }
