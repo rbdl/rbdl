@@ -23,6 +23,10 @@ namespace RigidBodyDynamics {
 
 using namespace Math;
 
+void SolveLinearSystem(const MatrixNd& A, const VectorNd& b, VectorNd& x
+  , LinearSolver ls);
+
+
 unsigned int ConstraintSet::AddContactConstraint (
   unsigned int body_id,
   const Vector3d &body_point,
@@ -311,15 +315,28 @@ bool ComputeAssemblyQ(
   double tolerance,
   unsigned int max_iter) {
 
-  assert(Q.size() == model.dof_count);
-  assert(QInit.size() == Q.size());
-  assert(weights.size() == Q.size());
+  if(Q.size() != model.dof_count) {
+    std::cerr << "Vector Q has size different from the number of degrees of \
+      freedom of the model." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(QInit.size() != Q.size()) {
+    std::cerr << "Vectors Q and QInit have different size." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(weights.size() != Q.size()) {
+    std::cerr << "Vectors Q and weights have different size." << std::endl;
+    assert(false);
+    abort();
+  }
 
   // Initialize variables.
   MatrixNd constraintJac(cs.size(), Q.size());
   MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
   VectorNd b = VectorNd::Zero(cs.size() + Q.size());
-  VectorNd x = b;
+  VectorNd x = VectorNd::Zero(cs.size() + Q.size());
   VectorNd d = VectorNd::Zero(Q.size());
   VectorNd e = VectorNd::Zero(cs.size());
 
@@ -347,37 +364,22 @@ bool ComputeAssemblyQ(
       std::cout << b.transpose() << std::endl;
     }
 
-    // Solve the siste A*x = b.
-    switch (cs.linear_solver) {
-      case (LinearSolverPartialPivLU) :
-  #ifdef RBDL_USE_SIMPLE_MATH
-        // SimpleMath does not have a LU solver so just use its QR solver
-        x = A.householderQr().solve(b);
-  #else
-        x = A.partialPivLu().solve(b);
-  #endif
-        break;
-      case (LinearSolverColPivHouseholderQR) :
-        x = A.colPivHouseholderQr().solve(b);
-        break;
-      case (LinearSolverHouseholderQR) :
-        x = A.householderQr().solve(b);
-        break;
-      default:
-        std::cerr << "Error: Invalid linear solver: " << cs.linear_solver << std::endl;
-        abort();
-        break;
-    }
+    // Solve the sistem A*x = b.
+    SolveLinearSystem(A, b, x, cs.linear_solver);
 
     // Extract the d = (Q - QInit) vector from x.
     // Check if d is small, if yes, update the value of Q and return true.
     d = x.block(0, 0, Q.size(), 1);
+    QInit += d;
+
+    std::cout << "Iteration " << it << ": d = " << d.transpose() << ", q = " << QInit.transpose() << std::endl;
+
     if(d.norm() < tolerance) {
-      Q = QInit + d;
+      Q = QInit;
       return true;
     }
 
-    QInit += d;
+    
 
   }
 
@@ -399,7 +401,49 @@ void ComputeAssemblyQDot(
   const Math::VectorNd& weights
 ) {
 
+  if(QDot.size() != model.dof_count) {
+    std::cerr << "Vector QDot has size different from the number of degrees of \
+      freedom of the model." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(Q.size() != QDot.size()) {
+    std::cerr << "Vectors QDot and Q have different size." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(QDotInit.size() != Q.size()) {
+    std::cerr << "Vectors QDot and QDotInit have different size." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(weights.size() != Q.size()) {
+    std::cerr << "Vectors QDot and weights have different size." << std::endl;
+    assert(false);
+    abort();
+  }
 
+  // Initialize variables.
+  MatrixNd constraintJac = MatrixNd::Zero(cs.size(), Q.size());
+  MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
+  VectorNd b = VectorNd::Zero(cs.size() + Q.size());
+  VectorNd x = VectorNd::Zero(cs.size() + Q.size());
+  VectorNd d = VectorNd::Zero(Q.size());
+  VectorNd e = VectorNd::Zero(cs.size());
+
+  // The top-left block is the weight matrix and is constant.
+  for(unsigned int i = 0; i < weights.size(); ++i) {
+    A(i,i) = weights[i];
+    b[i] = weights[i] * QDotInit[i];
+  }
+  CalcConstraintsJacobian(model, Q, cs, constraintJac);
+  A.block(Q.size(), 0, cs.size(), Q.size()) = constraintJac;
+  A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
+
+  // Solve the sistem A*x = b.
+  SolveLinearSystem(A, b, x, cs.linear_solver);
+
+  QDot = x.block(0, 0, Q.size(), 1);
 
 }
 
@@ -571,8 +615,9 @@ void CalcConstraintsJacobian(
   bool update_kinematics
   ) {
 
-  if (update_kinematics)
+  if (update_kinematics) {
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
+  }
 
   unsigned int c;       // Current constraint.
   unsigned int i = 0;   // Current constraint row.
@@ -705,7 +750,6 @@ void CalcConstraintsPositionError(
     break;
 
     case ConstraintSet::LoopPositionConstraint:
-      // Compute the position error along the constraint axis.
 
       // Compute the position of each constraint point.
       pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
@@ -1269,5 +1313,41 @@ void ForwardDynamicsContactsKokkevis (
 
   LOG << "QDDot after applying f_ext: " << QDDot.transpose() << std::endl;
 }
+
+
+
+void SolveLinearSystem(const MatrixNd& A, const VectorNd& b, VectorNd& x
+  , LinearSolver ls) {
+
+  if(A.rows() != b.size() || A.cols() != x.size()) {
+    std::cerr << "Mismatching sizes." << std::endl;
+    assert(false);
+    abort();
+  }
+
+  // Solve the sistem A*x = b.
+  switch (ls) {
+  case (LinearSolverPartialPivLU) :
+    #ifdef RBDL_USE_SIMPLE_MATH
+      // SimpleMath does not have a LU solver so just use its QR solver
+      x = A.householderQr().solve(b);
+    #else
+      x = A.partialPivLu().solve(b);
+    #endif
+    break;
+  case (LinearSolverColPivHouseholderQR) :
+    x = A.colPivHouseholderQr().solve(b);
+    break;
+  case (LinearSolverHouseholderQR) :
+    x = A.householderQr().solve(b);
+    break;
+  default:
+    std::cerr << "Error: Invalid linear solver: " << ls << std::endl;
+    abort();
+    break;
+  }
+
+}
+
 
 } /* namespace RigidBodyDynamics */

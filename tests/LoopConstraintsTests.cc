@@ -188,7 +188,28 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
 TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
+  MatrixNd G = MatrixNd::Zero(cs.size(), q.size());
 
+  q[0] = M_PI * 3 / 4;
+  q[1] = -M_PI;
+  q[2] = M_PI - q[0];
+  q[3] = -q[1];
+  q[4] = q[0] + q[1] - q[2] - q[3];
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+
+  qd[0] = -1.;
+  qd[1] = -2.;
+  qd[2] = -1.;
+  qd[3] = -1.;
+  qd[4] = -1.;
+  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+
+  CalcConstraintsJacobian(model, q, cs, G);
+
+  VectorNd err = MatrixNd::Zero(cs.size(), 1);
+  err = G * qd;
+
+  CHECK_CLOSE(0., err.norm(), TEST_PREC);
 
 }
 
@@ -211,6 +232,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
   qRef[3] = -qRef[1];
   qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
 
+  assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
+
   VectorNd qInit = VectorNd::Zero(q.size());
   qInit[0] = qRef[0] + 0.01;
   qInit[1] = qRef[1] + 0.02;
@@ -218,17 +241,10 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
   qInit[3] = qRef[3] - 0.02;
   qInit[4] = qRef[4] + 0.01;
 
-  double qSum;
-
-  bool qoutput = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-4);
-
-  qSum = 0.;
-  for(unsigned int i = 0; i < q.size(); ++i) {
-    qSum += q[i];
-  }
+  bool qoutput = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
 
   CHECK(qoutput);
-  CHECK_CLOSE(0., qSum, TEST_PREC);
+  CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
 
 }
 
@@ -236,29 +252,31 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
 
 TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
 
-  // VectorNd weights(q.size());
+  VectorNd weights(q.size());
 
-  // weights[0] = 1.e5;
-  // weights[1] = 1.;
-  // weights[2] = 1.e5;
-  // weights[3] = 1.;
-  // weights[4] = 1.;
+  weights[0] = 1.e5;
+  weights[1] = 1.;
+  weights[2] = 1.e5;
+  weights[3] = 1.;
+  weights[4] = 1.;
 
-  // q[q] = M_PI * 3 / 4;
-  // q[1] = -M_PI;
-  // q[2] = M_PI - q[0];
-  // q[3] = -q[1];
-  // q[4] = q[0] + q[1] - q[2] - q[3];
+  q[0] = M_PI * 3 / 4;
+  q[1] = -M_PI;
+  q[2] = M_PI - q[0];
+  q[3] = -q[1];
+  q[4] = q[0] + q[1] - q[2] - q[3];
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
 
-  // VectorNd qdInit = VectorNd::Zero(q.size());
-  // qdInit[0] = 0.5;
-  // qdInit[3] = -0.5;
+  VectorNd qdInit = VectorNd::Zero(q.size());
+  qdInit[0] = 0.01;
+  qdInit[1] = 0.5;
+  qdInit[2] = -0.7;
+  qdInit[3] = -0.5;
+  qdInit[4] = 0.3;
 
-  // qd = qdInit;
+  ComputeAssemblyQDot(model, q, qdInit, cs, qd, weights);
 
-  // ComputeAssemblyQDot(model, q, qdInit, cs, qd, weights);
-
-  // CHECK_CLOSE(qd[0] + qd[1], qd[2] + qd[3] + qd[4], TEST_PREC);
+  CHECK_CLOSE(qd[0] + qd[1], qd[2] + qd[3] + qd[4], TEST_PREC);
 
 }
 
