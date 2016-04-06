@@ -457,6 +457,8 @@ void SolveConstrainedSystemDirect (
   LOG << "x = " << std::endl << x << std::endl;
 }
 
+
+
 RBDL_DLLAPI
 void SolveConstrainedSystemRangeSpaceSparse (
   Model &model, 
@@ -493,6 +495,8 @@ void SolveConstrainedSystemRangeSpaceSparse (
   SparseSolveLTx (model, H, qddot);
   SparseSolveLx (model, H, qddot);
 }
+
+
 
 RBDL_DLLAPI
 void SolveConstrainedSystemNullSpace (
@@ -556,6 +560,8 @@ void SolveConstrainedSystemNullSpace (
   }
 }
 
+
+
 RBDL_DLLAPI
 void CalcConstraintsJacobian(
   Model &model,
@@ -578,6 +584,7 @@ void CalcConstraintsJacobian(
   
   Vector3d pos_p;
   Vector3d pos_s;
+  Vector3d normal;
   Matrix3d rot_p;
   Matrix3d rot_s;
   Vector3d axis_p;
@@ -588,8 +595,7 @@ void CalcConstraintsJacobian(
   MatrixNd GSpi (6, model.dof_count);
   MatrixNd GSsi = GSpi;
   MatrixNd GRpi = Gpi;
-  MatrixNd GRRsi (1, model.dof_count);
-  MatrixNd GRRpi = GRRsi;
+  MatrixNd GRsi = GRpi;
 
   for (c = 0; c < CS.constraintType.size(); c++) {
     switch(CS.constraintType[c]) {
@@ -622,31 +628,37 @@ void CalcConstraintsJacobian(
       CalcPointJacobian(model, Q, CS.body_s[c], CS.pos_s[c], Gsi, false);
       CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
       GRpi = GSpi.block(0, 0, 3, model.dof_count);
+      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
+      normal = rot_p * CS.normal[c];
       pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
       pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
 
       G.block(i, 0, 1, model.dof_count) 
-        = CS.normal[c].transpose() * (Gsi - Gpi)
-        - (pos_s - pos_p).transpose() * VectorCrossMatrix(CS.normal[c]) * GRpi;
+        = normal.transpose() * (Gsi - Gpi)
+        - (pos_s - pos_p).transpose() * VectorCrossMatrix(normal) * GRpi;
 
       ++i;
     break;
 
     case ConstraintSet::LoopOrientationConstraint:
+      // Force recomputation of constraints.
       prev_body_id = 0;
+
       GSpi.setZero();
       GSsi.setZero();
       CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
       CalcBodySpatialJacobian(model, Q, CS.body_s[c], GSsi, false);
-      GRRsi = GSpi.block(0, 0, 3 + CS.axis_p[c], model.dof_count);
-      GRRpi = GSsi.block(0, 0, 3 + CS.axis_s[c], model.dof_count);
+      GRpi = GSpi.block(0, 0, 3, model.dof_count);
+      GRsi = GSsi.block(0, 0, 3, model.dof_count);
       rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
       rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false);
-      axis_p = rot_p.block<3, 1>(0, CS.axis_p[c]);
-      axis_s = rot_s.block<3, 1>(0, CS.axis_s[c]);
+      axis_p = rot_p.block(0, CS.axis_p[c], 3, 1);
+      axis_s = rot_s.block(0, CS.axis_s[c], 3, 1);
 
       G.block(i, 0, 1, model.dof_count)
-        = - axis_s.transpose() * GRRpi - axis_p.transpose() * GRRsi;
+        = -1. * (axis_s.transpose() * VectorCrossMatrix(axis_p) * GRpi
+        + axis_p.transpose() * VectorCrossMatrix(axis_s) * GRsi);
+      // Doesn't work with 'a' - instead of a '-1. *' in front of the expression
 
       ++i;
     break;
@@ -767,6 +779,8 @@ void CalcConstrainedSystemVariables (
     CS.gamma[i] = CS.acceleration[i] - CS.normal[i].dot(gamma_i);
   }
 }
+
+
 
 RBDL_DLLAPI
 void ForwardDynamicsConstrainedDirect (

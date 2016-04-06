@@ -10,25 +10,6 @@ using namespace RigidBodyDynamics::Math;
 
 const double TEST_PREC = 1.0e-11;
 
-
-// static double adjustErrorAngle(double angle) {
-
-//   while(angle >= M_PI) {
-//     angle -= 2 * M_PI;
-//   }
-//   while(angle < -M_PI) {
-//     angle += 2 * M_PI;
-//   }
-//   if(angle >= 0.5 * M_PI || angle < -0.5 * M_PI) {
-//     double c = cos(angle);
-//     double s = sin(angle);
-//     angle = atan2(s,-c);
-//   }
-//   return angle;
-
-// }
-
-
 struct FiveBarLinkage {
 
   FiveBarLinkage()
@@ -205,13 +186,55 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
 
 
-TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraint) {
-  
-  // VectorNd err = VectorNd::Zero(cs.size());
-  // CalcConstraintsError(model, q, cs, err);
-  // std::cout << err.transpose() << std::endl;
+TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
-  // CHECK_EQUAL(3, cs.size());
+
+
+}
+
+
+
+TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
+
+  VectorNd weights(q.size());
+
+  weights[0] = 1.e5;
+  weights[1] = 1.;
+  weights[2] = 1.e5;
+  weights[3] = 1.;
+  weights[4] = 1.;
+
+  VectorNd qRef = VectorNd::Zero(q.size());
+  qRef[0] = M_PI * 3 / 4;
+  qRef[1] = -M_PI;
+  qRef[2] = M_PI - qRef[0];
+  qRef[3] = -qRef[1];
+  qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
+
+  VectorNd qInit = VectorNd::Zero(q.size());
+  qInit[0] = qRef[0] + 0.01;
+  qInit[1] = qRef[1] + 0.02;
+  qInit[2] = qRef[2] - 0.03;
+  qInit[3] = qRef[3] - 0.02;
+  qInit[4] = qRef[4] + 0.01;
+
+  double qSum;
+
+  bool qoutput = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-4);
+
+  qSum = 0.;
+  for(unsigned int i = 0; i < q.size(); ++i) {
+    qSum += q[i];
+  }
+
+  CHECK(qoutput);
+  CHECK_CLOSE(0., qSum, TEST_PREC);
+
+}
+
+
+
+TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
 
   // VectorNd weights(q.size());
 
@@ -221,43 +244,33 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraint) {
   // weights[3] = 1.;
   // weights[4] = 1.;
 
-  // VectorNd qInit = VectorNd::Zero(q.size());
-  // qInit[0] = 1.;
-  // qInit[1] = -1.;
-  // qInit[2] = -1.;
-  // qInit[3] = 1;
+  // q[q] = M_PI * 3 / 4;
+  // q[1] = -M_PI;
+  // q[2] = M_PI - q[0];
+  // q[3] = -q[1];
+  // q[4] = q[0] + q[1] - q[2] - q[3];
 
   // VectorNd qdInit = VectorNd::Zero(q.size());
   // qdInit[0] = 0.5;
   // qdInit[3] = -0.5;
 
-  // tau[0] = 1.;
-  // tau[1] = -2.;
-  // tau[2] = 3.;
-  // tau[3] = -5.;
-  // tau[4] = 7.;
-
-  // q = qInit;
   // qd = qdInit;
-
-
-  // // MatrixNd jac = MatrixNd::Zero(cs.size(), model.dof_count);
-  // // CalcConstraintsJacobian(model, q, cs, jac);
-  // // std::cout << jac << std::endl << std::endl;
-
-  // err = VectorNd::Zero(cs.size());
-  // CalcConstraintsError(model, q, cs, err);
-  // std::cout << err.transpose() << std::endl;
-
-  // bool qoutput = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-4);
-
-  // CHECK(qoutput);
-  // CHECK_CLOSE(q[0] + q[1], q[2] + q[3] + q[4], TEST_PREC);
 
   // ComputeAssemblyQDot(model, q, qdInit, cs, qd, weights);
 
   // CHECK_CLOSE(qd[0] + qd[1], qd[2] + qd[3] + qd[4], TEST_PREC);
 
+}
+
+
+
+TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamics) {
+// 
+  //   tau[0] = 1.;
+  // tau[1] = -2.;
+  // tau[2] = 3.;
+  // tau[3] = -5.;
+  // tau[4] = 7.;
 
 
   // CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r).data(),
