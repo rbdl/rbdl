@@ -293,22 +293,35 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
 
   // VectorNd qRef = VectorNd::Zero(q.size());
   // qRef[0] = M_PI * 3 / 4;
-  // qRef[1] = -M_PI;
+  // qRef[1] = -0.5 * M_PI;
   // qRef[2] = M_PI - qRef[0];
   // qRef[3] = -qRef[1];
   // qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
   // assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
 
+  // bool success;
+
   // VectorNd qInit = VectorNd::Zero(q.size());
+  // qInit = qRef;
+  
+  // success = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
+
+  // CHECK(success);
+  // CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
+  //   , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
+  // CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
+
   // qInit[0] = qRef[0] + 0.01;
   // qInit[1] = qRef[1] + 0.02;
   // qInit[2] = qRef[2] - 0.03;
   // qInit[3] = qRef[3] - 0.02;
   // qInit[4] = qRef[4] + 0.01;
 
-  // bool qoutput = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
+  // success = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
 
-  // CHECK(qoutput);
+  // CHECK(success);
+  // CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
+  //   , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
   // CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
 
 }
@@ -348,6 +361,9 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
   CalcConstraintsJacobian(model, q, cs, G);
   err = G * qd;
 
+  CHECK_ARRAY_CLOSE(CalcPointVelocity(model, q, qd, idB2, X_p.r)
+    , CalcPointVelocity(model, q, qd, idB5, X_s.r), 3, TEST_PREC);
+  CHECK_CLOSE(qd[0] + qd[1], qd[2] + qd[3] + qd[4], TEST_PREC);
   CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
 
 }

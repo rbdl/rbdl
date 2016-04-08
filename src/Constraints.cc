@@ -245,11 +245,13 @@ bool ConstraintSet::Bind (const Model &model) {
   d_a = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
   d_u = VectorNd::Zero (model.mBodies.size());
 
-  d_IA = std::vector<SpatialMatrix> (model.mBodies.size(), SpatialMatrixIdentity);
+  d_IA = std::vector<SpatialMatrix> (model.mBodies.size()
+    , SpatialMatrixIdentity);
   d_U = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
   d_d = VectorNd::Zero (model.mBodies.size());
 
-  d_multdof3_u = std::vector<Math::Vector3d> (model.mBodies.size(), Math::Vector3d::Zero());
+  d_multdof3_u = std::vector<Math::Vector3d> (model.mBodies.size()
+    , Math::Vector3d::Zero());
 
   bound = true;
 
@@ -349,12 +351,7 @@ bool ComputeAssemblyQ(
 
     // Compute the constraint errors and update b.
     CalcConstraintsPositionError(model, QInit, cs, e);
-    b.block(Q.size(), 0, cs.size(), 1) = e;
-
-    if(it == 0) {
-      std::cout << A << std::endl << std::endl;
-      std::cout << b.transpose() << std::endl;
-    }
+    b.block(Q.size(), 0, cs.size(), 1) = -1. * e;
 
     // Solve the sistem A*x = b.
     SolveLinearSystem(A, b, x, cs.linear_solver);
@@ -365,6 +362,11 @@ bool ComputeAssemblyQ(
     QInit += d;
 
     std::cout << "Iteration " << it << ": d = " << d.transpose() << ", q = " << QInit.transpose() << std::endl;
+
+    if(it == 0) {
+      std::cout << "A" << std::endl << A << std::endl << std::endl;
+      std::cout << "b = " << b.transpose() << std::endl;
+    }
 
     if(d.norm() < tolerance) {
       Q = QInit;
@@ -657,19 +659,21 @@ void CalcConstraintsJacobian(
 
       Gpi.setZero();
       Gsi.setZero();
-      GSpi.setZero();
       CalcPointJacobian(model, Q, CS.body_p[c], CS.pos_p[c], Gpi, false);
       CalcPointJacobian(model, Q, CS.body_s[c], CS.pos_s[c], Gsi, false);
-      CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
-      GRpi = GSpi.block(0, 0, 3, model.dof_count);
       rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
       normal = rot_p * CS.normal[c];
-      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
-      pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
+      // GSpi.setZero();
+      // CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
+      // GRpi = GSpi.block(0, 0, 3, model.dof_count);
+      // pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
+      // pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
 
       G.block(i, 0, 1, model.dof_count) 
-        = normal.transpose() * (Gsi - Gpi)
-        - (pos_s - pos_p).transpose() * VectorCrossMatrix(normal) * GRpi;
+        = normal.transpose() * (Gsi - Gpi);
+        // - (pos_s - pos_p).transpose() * VectorCrossMatrix(normal) * GRpi;
+        // There is probably no need for the second term, if we project that
+        // term on the predecessor frame it is 0.
 
       ++i;
     break;
