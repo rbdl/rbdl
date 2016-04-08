@@ -193,18 +193,6 @@ unsigned int ConstraintSet::AddLoopOrientationConstraint(
 
 
 
-unsigned int ConstraintSet::AddWeldConstraint(
-  unsigned int predecessor_body_id,
-  unsigned int successor_body_id,
-  const Math::SpatialTransform &X_predecessor,
-  const Math::SpatialTransform &X_successor,
-  double T_stabilization,
-  const char *constraint_name) {
-
-}
-
-
-
 bool ConstraintSet::Bind (const Model &model) {
   assert (bound == false);
 
@@ -621,7 +609,6 @@ void CalcConstraintsJacobian(
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
   }
 
-  unsigned int c;       // Current constraint.
   unsigned int i = 0;   // Current constraint row.
   unsigned int j;       // Current constraint column.
 
@@ -644,7 +631,7 @@ void CalcConstraintsJacobian(
   MatrixNd GRpi = Gpi;
   MatrixNd GRsi = GRpi;
 
-  for (c = 0; c < CS.constraintType.size(); c++) {
+  for (unsigned int c = 0; c < CS.constraintType.size(); ++c) {
     switch(CS.constraintType[c]) {
 
     case ConstraintSet::ContactConstraint:
@@ -729,7 +716,6 @@ void CalcConstraintsPositionError(
   if (update_kinematics)
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
 
-  unsigned int c;       // Current constraint.
   unsigned int i = 0;   // Current constraint row.
   unsigned int j;       // Current constraint column.
 
@@ -742,7 +728,7 @@ void CalcConstraintsPositionError(
   Vector3d axis_s;
   unsigned int rot_idx;
 
-  for (c = 0; c < CS.constraintType.size(); c++) {
+  for (unsigned int c = 0; c < CS.constraintType.size(); ++c) {
     switch(CS.constraintType[c]) {
 
     case ConstraintSet::ContactConstraint:
@@ -764,10 +750,17 @@ void CalcConstraintsPositionError(
     break;
 
     case ConstraintSet::LoopOrientationConstraint:
+
+      // Compute the orientation of the two bodies.
       rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
       rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false);
+
+      // Extract the frame axes used in the constraint.
       axis_p = rot_p.block<3, 1>(0, CS.axis_p[c]);
       axis_s = rot_s.block<3, 1>(0, CS.axis_s[c]);
+
+      // Compute the error as the scalar product of the two axes (i.e. the
+      // cosine of the angle).
       err[i] = axis_p.transpose() * axis_s;
 
       ++i;
@@ -812,17 +805,46 @@ void CalcConstrainedSystemVariables (
   CS.QDDot_0.setZero();
   UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
 
-  for (unsigned int i = 0; i < CS.size(); i++) {
-    // only compute point accelerations when necessary
-    if (prev_body_id != CS.body[i] || prev_body_point != CS.point[i]) {
-      gamma_i = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, CS.body[i], CS.point[i], false);
-      prev_body_id = CS.body[i];
-      prev_body_point = CS.point[i];
+  unsigned int i = 0;
+
+  for (unsigned int c = 0; c < CS.size(); ++c) {
+
+    switch(CS.constraintType[c]) {
+
+    case ConstraintSet::ContactConstraint:
+
+      // only compute point accelerations when necessary
+      if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
+        gamma_i = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, CS.body[c]
+          , CS.point[c], false);
+        prev_body_id = CS.body[c];
+        prev_body_point = CS.point[c];
+      }
+
+      // we also substract ContactData[c].acceleration such that the contact
+      // point will have the desired acceleration
+      CS.gamma[c] = CS.acceleration[c] - CS.normal[c].dot(gamma_i);
+
+      ++i;
+      break;
+
+    case ConstraintSet::LoopPositionConstraint:
+      // Force recomputation of constraints.
+      prev_body_id = 0;
+
+      ++i;
+      break;
+
+    case ConstraintSet::LoopOrientationConstraint:
+      // Force recomputation of constraints.
+      prev_body_id = 0;
+
+      ++i;
+      break;
+
     }
 
-    // we also substract ContactData[i].acceleration such that the contact
-    // point will have the desired acceleration
-    CS.gamma[i] = CS.acceleration[i] - CS.normal[i].dot(gamma_i);
+    
   }
 }
 
@@ -842,7 +864,8 @@ void ForwardDynamicsConstrainedDirect (
 
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
 
-  SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
+  SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
+    , CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
 
   // Copy back QDDot
   for (unsigned int i = 0; i < model.dof_count; i++)
@@ -868,7 +891,9 @@ void ForwardDynamicsConstrainedRangeSpaceSparse (
 
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
 
-  SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
+  SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C
+    , CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
+
 }
 
 
@@ -897,7 +922,9 @@ void ForwardDynamicsConstrainedNullSpace (
   CS.Y = CS.GT_qr_Q.block(0,0,QDot.rows(), CS.G.rows());
   CS.Z = CS.GT_qr_Q.block(0,CS.G.rows(),QDot.rows(), QDot.rows() - CS.G.rows());
 
-  SolveConstrainedSystemNullSpace (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot, CS.force, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
+  SolveConstrainedSystemNullSpace (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
+    , CS.force, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
+
 }
 
 
@@ -918,7 +945,8 @@ void ComputeContactImpulsesDirect (
   // Compute G
   CalcConstraintsJacobian (model, Q, CS, CS.G, false);
 
-  SolveConstrainedSystemDirect (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus, QDotPlus, CS.impulse, CS.A, CS.b, CS.x, CS.linear_solver);
+  SolveConstrainedSystemDirect (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
+    , QDotPlus, CS.impulse, CS.A, CS.b, CS.x, CS.linear_solver);
 
   // Copy back QDotPlus
   for (unsigned int i = 0; i < model.dof_count; i++)
@@ -928,6 +956,7 @@ void ComputeContactImpulsesDirect (
   for (unsigned int i = 0; i < CS.size(); i++) {
     CS.impulse[i] = CS.x[model.dof_count + i];
   }
+
 }
 
 
@@ -948,7 +977,9 @@ void ComputeContactImpulsesRangeSpaceSparse (
   // Compute G
   CalcConstraintsJacobian (model, Q, CS, CS.G, false);
 
-  SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, CS.H * QDotMinus, CS.v_plus, QDotPlus, CS.impulse, CS.K, CS.a, CS.linear_solver);
+  SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, CS.H * QDotMinus
+    , CS.v_plus, QDotPlus, CS.impulse, CS.K, CS.a, CS.linear_solver);
+
 }
 
 
@@ -973,9 +1004,12 @@ void ComputeContactImpulsesNullSpace (
   CS.GT_qr_Q = CS.GT_qr.householderQ();
 
   CS.Y = CS.GT_qr_Q.block(0,0,QDotMinus.rows(), CS.G.rows());
-  CS.Z = CS.GT_qr_Q.block(0,CS.G.rows(),QDotMinus.rows(), QDotMinus.rows() - CS.G.rows());
+  CS.Z = CS.GT_qr_Q.block(0,CS.G.rows(),QDotMinus.rows(), QDotMinus.rows()
+    - CS.G.rows());
 
-  SolveConstrainedSystemNullSpace (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus, QDotPlus, CS.impulse, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
+  SolveConstrainedSystemNullSpace (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
+    , QDotPlus, CS.impulse, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z
+    , CS.linear_solver);
 }
 
 
@@ -1005,8 +1039,11 @@ void ForwardDynamicsApplyConstraintForces (
     model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
     if (CS.f_ext_constraints[i] != SpatialVectorZero) {
-      LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i] << std::endl;
-      model.pA[i] -= model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i];
+      LOG << "External force (" << i << ") = " 
+        << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i] 
+        << std::endl;
+      model.pA[i] -= model.X_base[i].toMatrixAdjoint() 
+        * CS.f_ext_constraints[i];
     }
   }
 

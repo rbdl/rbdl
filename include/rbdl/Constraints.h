@@ -208,16 +208,6 @@ struct RBDL_DLLAPI ConstraintSet {
     double T_stab,
     const char *constraint_name = NULL);
 
-  /** \brief Todo - add comments.
-   */
-  unsigned int AddWeldConstraint(
-    unsigned int predecessor_body_id,
-    unsigned int successor_body_id,
-    const Math::SpatialTransform &X_predecessor,
-    const Math::SpatialTransform &X_successor,
-    double T_stab,
-    const char *constraint_name = NULL);
-
   /** \brief Copies the constraints and resets its ConstraintSet::bound
    * flag.
    */

@@ -20,9 +20,9 @@ struct FiveBarLinkage {
     , qdd()
     , tau()
     , l1(2.)
-    , l2(3.)
+    , l2(2.)
     , m1(2.)
-    , m2(3.)
+    , m2(2.)
     , idB1(0)
     , idB2(0)
     , idB3(0)
@@ -42,11 +42,16 @@ struct FiveBarLinkage {
     Body virtualBody = Body(0., Vector3d(), Vector3d());
     Joint jointRevZ = Joint(JointTypeRevoluteZ);
 
-    idB1 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), jointRevZ, link1);
-    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)), jointRevZ, link2);
-    idB3 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), jointRevZ, link1);
-    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)), jointRevZ, link2);
-    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)), jointRevZ, virtualBody);
+    idB1 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.))
+      , jointRevZ, link1);
+    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.))
+      , jointRevZ, link2);
+    idB3 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.))
+      , jointRevZ, link1);
+    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.))
+      , jointRevZ, link2);
+    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.))
+      , jointRevZ, virtualBody);
 
     cs.AddLoopPositionConstraint(
       idB2, idB5,
@@ -189,29 +194,88 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
   MatrixNd G = MatrixNd::Zero(cs.size(), q.size());
+  VectorNd err = MatrixNd::Zero(cs.size(), 1);
 
+ 
+
+  // Zero Q configuration, both arms of the 4-bar laying on the x-axis
+  q[0] = 0.;
+  q[1] = 0.;
+  q[2] = 0.;
+  q[3] = 0.;
+  q[4] = 0.;
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
+
+  qd[0] = -1.;
+  qd[1] = -1.;
+  qd[2] = -1.;
+  qd[3] = -1.;
+  qd[4] = 0.;
+  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+    - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
+
+  CalcConstraintsJacobian(model, q, cs, G);
+
+  err = G * qd;
+
+  CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
+
+
+
+  // Both arms of the 4-bar laying on the y-axis
+  q[0] = 0.5 * M_PI;
+  q[1] = 0.;
+  q[2] = 0.5 * M_PI;
+  q[3] = 0.;
+  q[4] = 0.;
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
+
+  qd[0] = -1.;
+  qd[1] = -1.;
+  qd[2] = -1.;
+  qd[3] = -1.;
+  qd[4] = 0.;
+  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+    - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
+
+  CalcConstraintsJacobian(model, q, cs, G);
+
+  err = G * qd;
+
+  CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
+
+
+
+  // Arms symmetric wrt y axis.
   q[0] = M_PI * 3 / 4;
-  q[1] = -M_PI;
+  q[1] = -0.5 * M_PI;
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
-  qd[1] = -2.;
-  qd[2] = -1.;
-  qd[3] = -1.;
+  qd[1] = -1.;
+  qd[2] = -2.;
+  qd[3] = +1.;
   qd[4] = -1.;
   assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+    - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
-  VectorNd err = MatrixNd::Zero(cs.size(), 1);
   err = G * qd;
 
-  std::cout << err.transpose() << std::endl;
-
-  CHECK_CLOSE(0., err.norm(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
 
 }
 
@@ -219,33 +283,33 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
 TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
 
-  VectorNd weights(q.size());
+  // VectorNd weights(q.size());
 
-  weights[0] = 1.e5;
-  weights[1] = 1.;
-  weights[2] = 1.e5;
-  weights[3] = 1.;
-  weights[4] = 1.;
+  // weights[0] = 1.e5;
+  // weights[1] = 1.;
+  // weights[2] = 1.e5;
+  // weights[3] = 1.;
+  // weights[4] = 1.;
 
-  VectorNd qRef = VectorNd::Zero(q.size());
-  qRef[0] = M_PI * 3 / 4;
-  qRef[1] = -M_PI;
-  qRef[2] = M_PI - qRef[0];
-  qRef[3] = -qRef[1];
-  qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
-  assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
+  // VectorNd qRef = VectorNd::Zero(q.size());
+  // qRef[0] = M_PI * 3 / 4;
+  // qRef[1] = -M_PI;
+  // qRef[2] = M_PI - qRef[0];
+  // qRef[3] = -qRef[1];
+  // qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
+  // assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
 
-  VectorNd qInit = VectorNd::Zero(q.size());
-  qInit[0] = qRef[0] + 0.01;
-  qInit[1] = qRef[1] + 0.02;
-  qInit[2] = qRef[2] - 0.03;
-  qInit[3] = qRef[3] - 0.02;
-  qInit[4] = qRef[4] + 0.01;
+  // VectorNd qInit = VectorNd::Zero(q.size());
+  // qInit[0] = qRef[0] + 0.01;
+  // qInit[1] = qRef[1] + 0.02;
+  // qInit[2] = qRef[2] - 0.03;
+  // qInit[3] = qRef[3] - 0.02;
+  // qInit[4] = qRef[4] + 0.01;
 
-  bool qoutput = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
+  // bool qoutput = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
 
-  CHECK(qoutput);
-  CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
+  // CHECK(qoutput);
+  // CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
 
 }
 
@@ -262,7 +326,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
   weights[4] = 1.;
 
   q[0] = M_PI * 3 / 4;
-  q[1] = -M_PI;
+  q[1] = -0.5 * M_PI;
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
@@ -278,6 +342,13 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
   ComputeAssemblyQDot(model, q, qdInit, cs, qd, weights);
 
   CHECK_CLOSE(qd[0] + qd[1], qd[2] + qd[3] + qd[4], TEST_PREC);
+
+  MatrixNd G = MatrixNd::Zero(cs.size(), q.size());
+  VectorNd err = MatrixNd::Zero(cs.size(), 1);
+  CalcConstraintsJacobian(model, q, cs, G);
+  err = G * qd;
+
+  CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
 
 }
 
