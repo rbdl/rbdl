@@ -129,6 +129,7 @@ cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
         JointType4DoF
         JointType5DoF
         JointType6DoF
+        JointTypeCustom
 
 cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
     cdef cppclass Joint:
