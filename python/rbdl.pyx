@@ -239,6 +239,12 @@ cdef class Quaternion:
 
         return result
 
+    def toNumpy(self):
+        result = np.ndarray (self.thisptr.rows())
+        for i in range (0, self.thisptr.rows()):
+            result[i] = self.thisptr[0][i]
+        return result
+
     # Constructors
     @classmethod
     def fromPointer(cls, uintptr_t address):
@@ -748,6 +754,7 @@ cdef enum JointType:
     JointType4DoF
     JointType5DoF
     JointType6DoF
+    JointTypeCustom
 
 cdef class Joint:
     cdef crbdl.Joint *thisptr
@@ -773,6 +780,7 @@ cdef class Joint:
             JointType4DoF: "JointType4DoF",
             JointType5DoF: "JointType5DoF",
             JointType6DoF: "JointType6DoF",
+            JointTypeCustom: "JointTypeCustom",
             }
 
     def _joint_type_from_str (self, joint_type_str):
@@ -823,6 +831,7 @@ cdef class Joint:
         joint_type = JointType1DoF + axes_count - 1
 
         result = Joint (0, cls.joint_type_map[joint_type])
+
         for i in range (axes_count):
             result.setJointAxis(i, axes[i])
 
@@ -845,10 +854,7 @@ cdef class Joint:
 
     def getJointAxis (self, index):
         assert index >= 0 and index < self.thisptr.mDoFCount, "Invalid joint axis index!"
-        result = SpatialVector()
-        for i in range (6):
-            result[i] = self.thisptr.mJointAxes[index][i]
-        return result
+        return SpatialVectorToNumpy (self.thisptr.mJointAxes[index])
 
     def setJointAxis (self, index, value):
         assert index >= 0 and index < self.thisptr.mDoFCount, "Invalid joint axis index!"
@@ -1501,18 +1507,18 @@ cdef class Model:
             int body_id,
             np.ndarray[double, ndim=1, mode="c"] quat,
             np.ndarray[double, ndim=1, mode="c"] q):
-        q_index = self.mJoints[body_id].q_index
-        q[q_index] = quat[0]
-        q[q_index + 1] = quat[1]
-        q[q_index + 2] = quat[2]
-
-        q[self.multdof3_w_index[body_id]] = quat[3]
+        quat_wrap = Quaternion.fromPythonArray (quat)
+        q_wrap = VectorNd.fromPythonArray (q)
+        self.thisptr.SetQuaternion (body_id,
+            (<Quaternion>quat_wrap).thisptr[0],
+            (<VectorNd>q_wrap).thisptr[0])
+        for i in range(len(q)):
+            q[i] = q_wrap[i]
 
     def GetQuaternion (self,
             int body_id,
             np.ndarray[double, ndim=1, mode="c"] q):
-        q_index = self.mJoints[body_id].q_index
-        return np.asarray ([q[q_index], q[q_index+1], q[q_index+2], q[self.multdof3_w_index[body_id]]])
+        return QuaternionToNumpy (self.thisptr.GetQuaternion(body_id, NumpyToVectorNd (q)))
 
     def GetBody (self, index):
         return Body (<uintptr_t> &(self.thisptr.mBodies[index]))

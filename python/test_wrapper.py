@@ -286,10 +286,10 @@ class FloatingBaseModel (unittest.TestCase):
     def test_SetQuaternion (self):
         mat = np.asarray ([[0., 1., 0.], [-1., 0., 0.], [0., 0., 1.]])
         rbdl_quat = rbdl.Quaternion.fromPythonMatrix (mat)
-
-        self.assertEqual (4, len(rbdl_quat))
         ref_q = self.q.copy()
-        self.model.SetQuaternion (2, np.asarray (rbdl_quat), self.q)
+
+        self.model.SetQuaternion (2, rbdl_quat.toNumpy(), self.q)
+
         ref_q[3:6] = rbdl_quat[0:3]
         ref_q[-1] = rbdl_quat[3]
 
