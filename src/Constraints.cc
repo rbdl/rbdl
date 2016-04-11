@@ -51,14 +51,10 @@ unsigned int ConstraintSet::AddContactConstraint (
   // These variables will not be used.
   body_p.push_back(0);
   body_s.push_back(0);
-  pos_p.push_back(Vector3d());
-  pos_s.push_back(Vector3d());
-  axis_p.push_back(0);
-  axis_s.push_back(0);
-  T_stab.push_back(0.);
   X_p.push_back(SpatialTransform());
   X_s.push_back(SpatialTransform());
   constraintAxis.push_back(SpatialVector());
+  T_stab.push_back(0.);
 
   unsigned int n_constr = size() + 1;
 
@@ -77,127 +73,6 @@ unsigned int ConstraintSet::AddContactConstraint (
   d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
 
   return n_constr - 1;
-}
-
-
-
-unsigned int ConstraintSet::AddLoopPositionConstraint(
-  unsigned int predecessor_body_id,
-  unsigned int successor_body_id,
-  const Math::Vector3d &pos_predecessor,
-  const Math::Vector3d &pos_successor,
-  const Math::Vector3d &constraint_axis,
-  double T_stabilization,
-  const char *constraint_name) {
-
-  assert (bound == false);
-
-  std::string name_str;
-  if (constraint_name != NULL)
-    name_str = constraint_name;
-
-  constraintType.push_back(LoopPositionConstraint);
-  name.push_back (name_str);
-
-  // These Variables will not be used.
-  body.push_back (0);
-  point.push_back (Vector3d());
-  axis_p.push_back(0);
-  axis_s.push_back(0);
-  X_p.push_back(SpatialTransform());
-  X_s.push_back(SpatialTransform());
-  constraintAxis.push_back(SpatialVector());
-
-  body_p.push_back(predecessor_body_id);
-  body_s.push_back(successor_body_id);
-  pos_p.push_back(pos_predecessor);
-  pos_s.push_back(pos_successor);
-  normal.push_back (constraint_axis);
-  T_stab.push_back(T_stabilization);
-
-  unsigned int n_constr = size() + 1;
-
-  acceleration.conservativeResize (n_constr);
-  acceleration[n_constr - 1] = 0.;
-
-  force.conservativeResize (n_constr);
-  force[n_constr - 1] = 0.;
-
-  impulse.conservativeResize (n_constr);
-  impulse[n_constr - 1] = 0.;
-
-  v_plus.conservativeResize (n_constr);
-  v_plus[n_constr - 1] = 0.;
-
-  d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
-
-  return n_constr - 1;
-
-}
-
-
-
-unsigned int ConstraintSet::AddLoopOrientationConstraint(
-  unsigned int predecessor_body_id,
-  unsigned int successor_body_id,
-  unsigned int axis_p_index,
-  unsigned int axis_s_index,
-  double T_stabilization,
-  const char *constraint_name ) {
-
-  assert (bound == false);
-
-  if(axis_p_index < 0 || axis_p_index > 2
-    || axis_s_index < 0 || axis_s_index > 2
-    || axis_p_index == axis_s_index) {
-
-    std::cerr << "Invalid index." << std::endl;
-    assert(false);
-    abort();
-    
-  }
-
-  std::string name_str;
-  if (constraint_name != NULL)
-    name_str = constraint_name;
-
-  constraintType.push_back(LoopOrientationConstraint);
-  name.push_back (name_str);
-
-  // These Variables will not be used.
-  body.push_back(0);
-  point.push_back(Vector3d());
-  pos_p.push_back(Vector3d());
-  pos_s.push_back(Vector3d());
-  normal.push_back(Vector3d());
-  X_p.push_back(SpatialTransform());
-  X_s.push_back(SpatialTransform());
-  constraintAxis.push_back(SpatialVector());
-
-  body_p.push_back(predecessor_body_id);
-  body_s.push_back(successor_body_id);
-  axis_p.push_back(axis_p_index);
-  axis_s.push_back(axis_s_index);
-  T_stab.push_back(T_stabilization);
-
-  unsigned int n_constr = size() + 1;
-
-  acceleration.conservativeResize (n_constr);
-  acceleration[n_constr - 1] = 0.;
-
-  force.conservativeResize (n_constr);
-  force[n_constr - 1] = 0.;
-
-  impulse.conservativeResize (n_constr);
-  impulse[n_constr - 1] = 0.;
-
-  v_plus.conservativeResize (n_constr);
-  v_plus[n_constr - 1] = 0.;
-
-  d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
-
-  return n_constr - 1;
-
 }
 
 
@@ -221,20 +96,17 @@ unsigned int ConstraintSet::AddLoopConstraint(
   constraintType.push_back(LoopConstraint);
   name.push_back (name_str);
 
-  body.push_back(0);
-  point.push_back(Vector3d());
-  normal.push_back(Vector3d());
-  pos_p.push_back(Vector3d());
-  pos_s.push_back(Vector3d());
-  axis_p.push_back(0);
-  axis_s.push_back(0);
-
   body_p.push_back(id_predecessor);
   body_s.push_back(id_successor);
   X_p.push_back(X_predecessor);
   X_s.push_back(X_successor);
   constraintAxis.push_back(axis);
   T_stab.push_back(T_stabilization);
+
+  // These variables will not be used.
+  body.push_back(0);
+  point.push_back(Vector3d());
+  normal.push_back(Vector3d());
 
   unsigned int n_constr = size() + 1;
 
@@ -710,54 +582,6 @@ void CalcConstraintsJacobian(
      ++i;
      break;
 
-    case ConstraintSet::LoopPositionConstraint:
-      // Force recomputation of constraints.
-      prev_body_id = 0;
-
-      Gpi.setZero();
-      Gsi.setZero();
-      CalcPointJacobian(model, Q, CS.body_p[c], CS.pos_p[c], Gpi, false);
-      CalcPointJacobian(model, Q, CS.body_s[c], CS.pos_s[c], Gsi, false);
-      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
-      normal = rot_p * CS.normal[c];
-      // GSpi.setZero();
-      // CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
-      // GRpi = GSpi.block(0, 0, 3, model.dof_count);
-      // pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
-      // pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
-
-      G.block(i, 0, 1, model.dof_count) 
-        = normal.transpose() * (Gsi - Gpi);
-        // - (pos_s - pos_p).transpose() * VectorCrossMatrix(normal) * GRpi;
-        // There is probably no need for the second term, if we project that
-        // term on the predecessor frame it is 0.
-
-      ++i;
-     break;
-
-    case ConstraintSet::LoopOrientationConstraint:
-      // Force recomputation of constraints.
-      prev_body_id = 0;
-
-      GSpi.setZero();
-      GSsi.setZero();
-      CalcBodySpatialJacobian(model, Q, CS.body_p[c], GSpi, false);
-      CalcBodySpatialJacobian(model, Q, CS.body_s[c], GSsi, false);
-      GRpi = GSpi.block(0, 0, 3, model.dof_count);
-      GRsi = GSsi.block(0, 0, 3, model.dof_count);
-      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
-      rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false);
-      axis_p = rot_p.block(0, CS.axis_p[c], 3, 1);
-      axis_s = rot_s.block(0, CS.axis_s[c], 3, 1);
-
-      G.block(i, 0, 1, model.dof_count)
-        = -1. * (axis_s.transpose() * VectorCrossMatrix(axis_p) * GRpi
-        + axis_p.transpose() * VectorCrossMatrix(axis_s) * GRsi);
-      // Doesn't work with 'a' - instead of a '-1. *' in front of the expression
-
-      ++i;
-      break;
-
     case ConstraintSet::LoopConstraint:
       prev_body_id = 0;
 
@@ -824,37 +648,6 @@ void CalcConstraintsPositionError(
       err[i] = 0.;
       ++i;
      break;
-
-    case ConstraintSet::LoopPositionConstraint:
-
-      // Compute the position of each constraint point.
-      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
-      pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
-      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
-      normal = rot_p * CS.normal[c];
-
-      // Compute the position difference and project it on the constraint axis.
-      err[i] = normal.transpose() * (pos_s - pos_p);
-
-      ++i;
-     break;
-
-    case ConstraintSet::LoopOrientationConstraint:
-
-      // Compute the orientation of the two bodies.
-      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
-      rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false);
-
-      // Extract the frame axes used in the constraint.
-      axis_p = rot_p.block<3, 1>(0, CS.axis_p[c]);
-      axis_s = rot_s.block<3, 1>(0, CS.axis_s[c]);
-
-      // Compute the error as the scalar product of the two axes (i.e. the
-      // cosine of the angle).
-      err[i] = axis_p.transpose() * axis_s;
-
-      ++i;
-      break;
 
     case ConstraintSet::LoopConstraint:
 

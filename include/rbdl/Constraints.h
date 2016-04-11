@@ -165,8 +165,6 @@ struct RBDL_DLLAPI ConstraintSet {
   // Enum to describe the type of a constraint.
   enum ConstraintType {
     ContactConstraint,
-    LoopPositionConstraint,
-    LoopOrientationConstraint,
     LoopConstraint,
   };
 
@@ -187,27 +185,6 @@ struct RBDL_DLLAPI ConstraintSet {
     const Math::Vector3d &world_normal,
     const char *constraint_name = NULL,
     double normal_acceleration = 0.);
-
-  /** \brief Todo - add comments.
-   */
-  unsigned int AddLoopPositionConstraint(
-    unsigned int predecessor_body_id,
-    unsigned int successor_body_id,
-    const Math::Vector3d &pos_predecessor,
-    const Math::Vector3d &pos_successor,
-    const Math::Vector3d &constraint_axis,
-    double T_stab,
-    const char *constraint_name = NULL);
-
-  /** \brief Todo - add comments.
-   */
-  unsigned int AddLoopOrientationConstraint(
-    unsigned int predecessor_body_id,
-    unsigned int successor_body_id,
-    unsigned int axis_p,
-    unsigned int axis_s,
-    double T_stab,
-    const char *constraint_name = NULL);
 
   /** \brief Todo - add comments.
    */
@@ -275,14 +252,10 @@ struct RBDL_DLLAPI ConstraintSet {
   // Loop constraints variables.
   std::vector<unsigned int> body_p;
   std::vector<unsigned int> body_s;
-  std::vector<Math::Vector3d> pos_p;
-  std::vector<Math::Vector3d> pos_s;
-  std::vector<unsigned int> axis_p;
-  std::vector<unsigned int> axis_s;
-  std::vector<double> T_stab;
   std::vector<Math::SpatialTransform> X_p;
   std::vector<Math::SpatialTransform> X_s;
   std::vector<Math::SpatialVector> constraintAxis;
+  std::vector<double> T_stab;
 
 
   /** Enforced accelerations of the contact points along the contact

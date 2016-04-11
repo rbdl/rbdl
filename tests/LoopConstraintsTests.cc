@@ -53,18 +53,6 @@ struct FiveBarLinkage {
     idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.))
       , jointRevZ, virtualBody);
 
-    // cs.AddLoopPositionConstraint(
-    //   idB2, idB5,
-    //   X_p.r, X_s.r,
-    //   Vector3d(1,0,0), 0.1);
-    // cs.AddLoopPositionConstraint(
-    //   idB2, idB5,
-    //   X_p.r, X_s.r,
-    //   Vector3d(0,1,0), 0.1);
-    // cs.AddLoopOrientationConstraint(
-    //   idB2, idB5,
-    //   0, 1, 0.1);
-
     cs.AddLoopConstraint(
       idB2, idB5,
       X_p, X_s,
