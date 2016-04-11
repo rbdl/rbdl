@@ -167,6 +167,7 @@ struct RBDL_DLLAPI ConstraintSet {
     ContactConstraint,
     LoopPositionConstraint,
     LoopOrientationConstraint,
+    LoopConstraint,
   };
 
   /** \brief Adds a constraint to the constraint set.
@@ -207,6 +208,18 @@ struct RBDL_DLLAPI ConstraintSet {
     unsigned int axis_s,
     double T_stab,
     const char *constraint_name = NULL);
+
+  /** \brief Todo - add comments.
+   */
+  unsigned int AddLoopConstraint(
+    unsigned int id_predecessor, 
+    unsigned int id_successor,
+    const Math::SpatialTransform &X_predecessor,
+    const Math::SpatialTransform &X_successor,
+    const Math::SpatialVector& axis,
+    double T_stab,
+    const char *constraint_name = NULL
+    );
 
   /** \brief Copies the constraints and resets its ConstraintSet::bound
    * flag.
@@ -267,6 +280,9 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<unsigned int> axis_p;
   std::vector<unsigned int> axis_s;
   std::vector<double> T_stab;
+  std::vector<Math::SpatialTransform> X_p;
+  std::vector<Math::SpatialTransform> X_s;
+  std::vector<Math::SpatialVector> constraintAxis;
 
 
   /** Enforced accelerations of the contact points along the contact

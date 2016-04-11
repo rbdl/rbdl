@@ -56,6 +56,9 @@ unsigned int ConstraintSet::AddContactConstraint (
   axis_p.push_back(0);
   axis_s.push_back(0);
   T_stab.push_back(0.);
+  X_p.push_back(SpatialTransform());
+  X_s.push_back(SpatialTransform());
+  constraintAxis.push_back(SpatialVector());
 
   unsigned int n_constr = size() + 1;
 
@@ -101,6 +104,9 @@ unsigned int ConstraintSet::AddLoopPositionConstraint(
   point.push_back (Vector3d());
   axis_p.push_back(0);
   axis_s.push_back(0);
+  X_p.push_back(SpatialTransform());
+  X_s.push_back(SpatialTransform());
+  constraintAxis.push_back(SpatialVector());
 
   body_p.push_back(predecessor_body_id);
   body_s.push_back(successor_body_id);
@@ -164,11 +170,70 @@ unsigned int ConstraintSet::AddLoopOrientationConstraint(
   pos_p.push_back(Vector3d());
   pos_s.push_back(Vector3d());
   normal.push_back(Vector3d());
+  X_p.push_back(SpatialTransform());
+  X_s.push_back(SpatialTransform());
+  constraintAxis.push_back(SpatialVector());
 
   body_p.push_back(predecessor_body_id);
   body_s.push_back(successor_body_id);
   axis_p.push_back(axis_p_index);
   axis_s.push_back(axis_s_index);
+  T_stab.push_back(T_stabilization);
+
+  unsigned int n_constr = size() + 1;
+
+  acceleration.conservativeResize (n_constr);
+  acceleration[n_constr - 1] = 0.;
+
+  force.conservativeResize (n_constr);
+  force[n_constr - 1] = 0.;
+
+  impulse.conservativeResize (n_constr);
+  impulse[n_constr - 1] = 0.;
+
+  v_plus.conservativeResize (n_constr);
+  v_plus[n_constr - 1] = 0.;
+
+  d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
+
+  return n_constr - 1;
+
+}
+
+
+
+unsigned int ConstraintSet::AddLoopConstraint(
+  unsigned int id_predecessor, 
+  unsigned int id_successor,
+  const Math::SpatialTransform &X_predecessor,
+  const Math::SpatialTransform &X_successor,
+  const Math::SpatialVector& axis,
+  double T_stabilization,
+  const char *constraint_name
+  ) {
+
+  assert (bound == false);
+
+  std::string name_str;
+  if (constraint_name != NULL)
+    name_str = constraint_name;
+
+  constraintType.push_back(LoopConstraint);
+  name.push_back (name_str);
+
+  body.push_back(0);
+  point.push_back(Vector3d());
+  normal.push_back(Vector3d());
+  pos_p.push_back(Vector3d());
+  pos_s.push_back(Vector3d());
+  axis_p.push_back(0);
+  axis_s.push_back(0);
+
+  body_p.push_back(id_predecessor);
+  body_s.push_back(id_successor);
+  X_p.push_back(X_predecessor);
+  X_s.push_back(X_successor);
+  constraintAxis.push_back(axis);
   T_stab.push_back(T_stabilization);
 
   unsigned int n_constr = size() + 1;
@@ -621,6 +686,7 @@ void CalcConstraintsJacobian(
   Vector3d pos_p;
   Vector3d pos_s;
   Vector3d normal;
+  SpatialVector axis;
   Matrix3d rot_p;
   Matrix3d rot_s;
   Vector3d axis_p;
@@ -651,7 +717,7 @@ void CalcConstraintsJacobian(
       }
 
      ++i;
-    break;
+     break;
 
     case ConstraintSet::LoopPositionConstraint:
       // Force recomputation of constraints.
@@ -676,7 +742,7 @@ void CalcConstraintsJacobian(
         // term on the predecessor frame it is 0.
 
       ++i;
-    break;
+     break;
 
     case ConstraintSet::LoopOrientationConstraint:
       // Force recomputation of constraints.
@@ -699,7 +765,31 @@ void CalcConstraintsJacobian(
       // Doesn't work with 'a' - instead of a '-1. *' in front of the expression
 
       ++i;
-    break;
+      break;
+
+    case ConstraintSet::LoopConstraint:
+      prev_body_id = 0;
+
+      GSpi.setZero();
+      GSsi.setZero();
+      CalcPointJacobian6D(model, Q, CS.body_p[c], CS.X_p[c].r, GSpi, false);
+      CalcPointJacobian6D(model, Q, CS.body_s[c], CS.X_s[c].r, GSsi, false);
+      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
+        * CS.X_p[c].E;
+      axis = SpatialTransform(rot_p, Vector3d::Zero()).apply
+        (CS.constraintAxis[c]);
+
+      G.block(i, 0, 1, model.dof_count)
+        = axis.transpose() * (GSsi - GSpi);
+
+      ++i;
+      break;
+
+    default:
+      std::cerr << "Unsupported constraint type." << std::endl;
+      assert(false);
+      abort();
+      break;
     }
   }
 }
@@ -724,12 +814,15 @@ void CalcConstraintsPositionError(
   unsigned int j;       // Current constraint column.
 
   // Variables used for computations.
+  Vector3d normal;
   Vector3d pos_p;
   Vector3d pos_s;
   Matrix3d rot_p;
   Matrix3d rot_s;
+  Matrix3d rot_ps;
   Vector3d axis_p;
   Vector3d axis_s;
+  SpatialVector d;
   unsigned int rot_idx;
 
   for (unsigned int c = 0; c < CS.constraintType.size(); ++c) {
@@ -739,19 +832,21 @@ void CalcConstraintsPositionError(
       // No position error for this kind of constraints.
       err[i] = 0.;
       ++i;
-    break;
+     break;
 
     case ConstraintSet::LoopPositionConstraint:
 
       // Compute the position of each constraint point.
       pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.pos_p[c], false);
       pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.pos_s[c], false);
+      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false);
+      normal = rot_p * CS.normal[c];
 
       // Compute the position difference and project it on the constraint axis.
-      err[i] = CS.normal[c].transpose() * (pos_s - pos_p);
+      err[i] = normal.transpose() * (pos_s - pos_p);
 
       ++i;
-    break;
+     break;
 
     case ConstraintSet::LoopOrientationConstraint:
 
@@ -768,7 +863,38 @@ void CalcConstraintsPositionError(
       err[i] = axis_p.transpose() * axis_s;
 
       ++i;
-    break;
+      break;
+
+    case ConstraintSet::LoopConstraint:
+
+      // Constraints computed in the predecessor body frame.
+
+      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
+        * CS.X_p[c].E;
+      rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false)
+        * CS.X_s[c].E;
+      rot_ps = rot_s.transpose() * rot_p;
+
+      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r
+        , false);
+      pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.X_s[c].r
+        , false);
+
+      d[0] = -0.5 * (rot_ps(1,2) - rot_ps(2,1));
+      d[1] = -0.5 * (rot_ps(2,0) - rot_ps(0,2));
+      d[2] = -0.5 * (rot_ps(0,1) - rot_ps(1,0));
+      d.block<3,1>(3,0) = rot_p.transpose() * (pos_s - pos_p);
+
+      err[i] = CS.constraintAxis[c].transpose() * d;
+
+      ++i;
+      break;
+
+    default:
+      std::cerr << "Unsupported constraint type." << std::endl;
+      assert(false);
+      abort();
+      break;
 
     }
   }

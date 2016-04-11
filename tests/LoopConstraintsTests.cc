@@ -53,17 +53,33 @@ struct FiveBarLinkage {
     idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.))
       , jointRevZ, virtualBody);
 
-    cs.AddLoopPositionConstraint(
+    // cs.AddLoopPositionConstraint(
+    //   idB2, idB5,
+    //   X_p.r, X_s.r,
+    //   Vector3d(1,0,0), 0.1);
+    // cs.AddLoopPositionConstraint(
+    //   idB2, idB5,
+    //   X_p.r, X_s.r,
+    //   Vector3d(0,1,0), 0.1);
+    // cs.AddLoopOrientationConstraint(
+    //   idB2, idB5,
+    //   0, 1, 0.1);
+
+    cs.AddLoopConstraint(
       idB2, idB5,
-      X_p.r, X_s.r,
-      Vector3d(1,0,0), 0.1);
-    cs.AddLoopPositionConstraint(
+      X_p, X_s,
+      SpatialVector(0,0,0,1,0,0)
+      , 0.1);
+    cs.AddLoopConstraint(
       idB2, idB5,
-      X_p.r, X_s.r,
-      Vector3d(0,1,0), 0.1);
-    cs.AddLoopOrientationConstraint(
+      X_p, X_s,
+      SpatialVector(0,0,0,0,1,0)
+      , 0.1);
+    cs.AddLoopConstraint(
       idB2, idB5,
-      0, 1, 0.1);
+      X_p, X_s,
+      SpatialVector(0,0,1,0,0,0)
+      , 0.1);
 
     cs.Bind(model);
 
@@ -106,6 +122,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
   Vector3d pos1;
   Vector3d pos2;
   Vector3d posErr;
+  Matrix3d rot_p;
   double angleErr;
 
   // Test in zero position.
@@ -133,7 +150,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
-  posErr = pos2 - pos1;
+  rot_p = CalcBodyWorldOrientation(model, q, idB2, false) * X_p.E;
+  posErr = rot_p.transpose() * (pos2 - pos1);
 
   assert(std::fabs(posErr[1]) < TEST_PREC);
   assert(std::fabs(posErr[2]) < TEST_PREC);
@@ -156,7 +174,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
-  posErr = pos2 - pos1;
+  rot_p = CalcBodyWorldOrientation(model, q, idB2, false) * X_p.E;
+  posErr = rot_p.transpose() * (pos2 - pos1);
 
   CalcConstraintsPositionError(model, q, cs, err);
 
@@ -176,15 +195,13 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
-  posErr = pos2 - pos1;
-
-  assert(std::fabs(posErr[1]) < TEST_PREC);
-  assert(std::fabs(posErr[2]) < TEST_PREC);
+  rot_p = CalcBodyWorldOrientation(model, q, idB2, false) * X_p.E;
+  posErr = rot_p.transpose() * (pos2 - pos1);
 
   CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK_CLOSE(posErr[0], err[0], TEST_PREC);
-  CHECK_CLOSE(0., err[1], TEST_PREC);
+  CHECK_CLOSE(posErr[1], err[1], TEST_PREC);
   CHECK_CLOSE(angleErr, err[2], TEST_PREC);
 
 }
