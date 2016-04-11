@@ -300,46 +300,46 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
 TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
 
-  // VectorNd weights(q.size());
+  VectorNd weights(q.size());
 
-  // weights[0] = 1.e5;
-  // weights[1] = 1.;
-  // weights[2] = 1.e5;
-  // weights[3] = 1.;
-  // weights[4] = 1.;
+  weights[0] = 1.e5;
+  weights[1] = 1.;
+  weights[2] = 1.e5;
+  weights[3] = 1.;
+  weights[4] = 1.;
 
-  // VectorNd qRef = VectorNd::Zero(q.size());
-  // qRef[0] = M_PI * 3 / 4;
-  // qRef[1] = -0.5 * M_PI;
-  // qRef[2] = M_PI - qRef[0];
-  // qRef[3] = -qRef[1];
-  // qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
-  // assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
+  VectorNd qRef = VectorNd::Zero(q.size());
+  qRef[0] = M_PI * 3 / 4;
+  qRef[1] = -0.5 * M_PI;
+  qRef[2] = M_PI - qRef[0];
+  qRef[3] = -qRef[1];
+  qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
+  assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
 
-  // bool success;
+  bool success;
 
-  // VectorNd qInit = VectorNd::Zero(q.size());
-  // qInit = qRef;
+  VectorNd qInit = VectorNd::Zero(q.size());
+  qInit = qRef;
   
-  // success = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
+  success = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
 
-  // CHECK(success);
-  // CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-  //   , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  // CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
+  CHECK(success);
+  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
+    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
+  CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
 
-  // qInit[0] = qRef[0] + 0.01;
-  // qInit[1] = qRef[1] + 0.02;
-  // qInit[2] = qRef[2] - 0.03;
-  // qInit[3] = qRef[3] - 0.02;
-  // qInit[4] = qRef[4] + 0.01;
+  qInit[0] = qRef[0] + 0.01;
+  qInit[1] = qRef[1] + 0.02;
+  qInit[2] = qRef[2] - 0.03;
+  qInit[3] = qRef[3] - 0.02;
+  qInit[4] = qRef[4] + 0.01;
 
-  // success = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
+  success = ComputeAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
 
-  // CHECK(success);
-  // CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-  //   , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  // CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
+  CHECK(success);
+  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
+    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
+  CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
 
 }
 
@@ -361,6 +361,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   VectorNd qdInit = VectorNd::Zero(q.size());
   qdInit[0] = 0.01;
@@ -387,57 +389,126 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
 
 
 
-TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamics) {
-// 
-  //   tau[0] = 1.;
+TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
+
+  VectorNd qddDirect;
+  VectorNd qddRangeSparse;
+  VectorNd qddNullSpace;
+
+
+
+  // Configuration 1.
+
+  // assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  // assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  //   - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
+
+  // assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+  // assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+  //   - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
+
+  // tau[0] = 1.;
   // tau[1] = -2.;
   // tau[2] = 3.;
   // tau[3] = -5.;
   // tau[4] = 7.;
 
 
-  // CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r).data(),
-  //   CalcBodyToBaseCoordinates(model, q, idB5, X_s.r).data(),
-  //   3, TEST_PREC);
 
-  // CHECK_ARRAY_CLOSE(CalcBodyWorldOrientation(model, q, idB2).data(),
-  //   CalcBodyWorldOrientation(model, q, idB5).data(),
-  //   9, TEST_PREC);
-
-  // CHECK_ARRAY_CLOSE(CalcPointVelocity6D(model, q, qd, idB2, X_p.r).data(),
-  //   CalcPointVelocity6D(model, q, qd, idB5, X_s.r).data(),
-  //   6, TEST_PREC);
-
-
-
-  // VectorNd qddDirect = VectorNd::Zero(q.size());
+  // qddDirect = VectorNd::Zero(q.size());
   // ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
 
-  // CHECK_ARRAY_CLOSE(CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, constrPos_p).data(),
-  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, constrPos_s).data(),
+  // CHECK_ARRAY_CLOSE(
+  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
+  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
   //   6, TEST_PREC);
 
 
 
-  // VectorNd qddRangeSparse = VectorNd::Zero(q.size());
+  // qddRangeSparse = VectorNd::Zero(q.size());
   // ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qddRangeSparse);
 
-  // CHECK_ARRAY_CLOSE(CalcPointAcceleration6D(model, q, qd, qddRangeSparse, idB2, constrPos_p).data(),
-  //   CalcPointAcceleration6D(model, q, qd, qddRangeSparse, idB5, constrPos_s).data(),
+  // CHECK_ARRAY_CLOSE(
+  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
+  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
   //   6, TEST_PREC);
 
 
 
-  // VectorNd qddNullSpace = VectorNd::Zero(q.size());
+  // qddNullSpace = VectorNd::Zero(q.size());
   // ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
-  // CHECK_ARRAY_CLOSE(CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, constrPos_p).data(),
-  //   CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, constrPos_s).data(),
+  // CHECK_ARRAY_CLOSE(
+  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
+  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
   //   6, TEST_PREC);
 
 
 
   // CHECK_ARRAY_CLOSE(qddDirect.data(), qddRangeSparse.data(), q.size(), TEST_PREC);
   // CHECK_ARRAY_CLOSE(qddDirect.data(), qddNullSpace.data(), q.size(), TEST_PREC);
+
+
+
+  // Configuration 2.
+
+  q[0] = M_PI * 3 / 4;
+  q[1] = -0.5 * M_PI;
+  q[2] = M_PI - q[0];
+  q[3] = -q[1];
+  q[4] = q[0] + q[1] - q[2] - q[3];
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
+
+  qd[0] = -1.;
+  qd[1] = -1.;
+  qd[2] = -2.;
+  qd[3] = +1.;
+  qd[4] = -1.;
+  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+    - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
+
+  tau[0] = 1.;
+  tau[1] = -2.;
+  tau[2] = 3.;
+  tau[3] = -5.;
+  tau[4] = 7.;
+
+
+
+  qddDirect = VectorNd::Zero(q.size());
+  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
+
+  CHECK_ARRAY_CLOSE(
+    CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
+    CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
+    6, TEST_PREC);
+
+
+
+  // qddRangeSparse = VectorNd::Zero(q.size());
+  // ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qddRangeSparse);
+
+  // CHECK_ARRAY_CLOSE(
+  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
+  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
+  //   6, TEST_PREC);
+
+
+
+  qddNullSpace = VectorNd::Zero(q.size());
+  ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
+
+  CHECK_ARRAY_CLOSE(
+    CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
+    CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
+    6, TEST_PREC);
+
+
+
+  // CHECK_ARRAY_CLOSE(qddDirect.data(), qddRangeSparse.data(), q.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(qddDirect.data(), qddNullSpace.data(), q.size(), TEST_PREC);
 
 }

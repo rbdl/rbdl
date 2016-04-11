@@ -426,13 +426,6 @@ bool ComputeAssemblyQ(
     d = x.block(0, 0, Q.size(), 1);
     QInit += d;
 
-    std::cout << "Iteration " << it << ": d = " << d.transpose() << ", q = " << QInit.transpose() << std::endl;
-
-    if(it == 0) {
-      std::cout << "A" << std::endl << A << std::endl << std::endl;
-      std::cout << "b = " << b.transpose() << std::endl;
-    }
-
     if(d.norm() < tolerance) {
       Q = QInit;
       return true;
@@ -485,8 +478,6 @@ void ComputeAssemblyQDot(
   MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
   VectorNd b = VectorNd::Zero(cs.size() + Q.size());
   VectorNd x = VectorNd::Zero(cs.size() + Q.size());
-  VectorNd d = VectorNd::Zero(Q.size());
-  VectorNd e = VectorNd::Zero(cs.size());
 
   // The top-left block is the weight matrix and is constant.
   for(unsigned int i = 0; i < weights.size(); ++i) {
@@ -936,6 +927,7 @@ void CalcConstrainedSystemVariables (
   UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
 
   unsigned int i = 0;
+  double beta;
 
   for (unsigned int c = 0; c < CS.size(); ++c) {
 
@@ -944,7 +936,7 @@ void CalcConstrainedSystemVariables (
     case ConstraintSet::ContactConstraint:
 
       // only compute point accelerations when necessary
-      if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
+      if(prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
         gamma_i = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, CS.body[c]
           , CS.point[c], false);
         prev_body_id = CS.body[c];
@@ -953,29 +945,38 @@ void CalcConstrainedSystemVariables (
 
       // we also substract ContactData[c].acceleration such that the contact
       // point will have the desired acceleration
-      CS.gamma[c] = CS.acceleration[c] - CS.normal[c].dot(gamma_i);
+      CS.gamma[i] = CS.acceleration[c] - CS.normal[c].dot(gamma_i);
 
       ++i;
       break;
 
-    case ConstraintSet::LoopPositionConstraint:
-      // Force recomputation of constraints.
+    case ConstraintSet::LoopConstraint:
+
+      // Force recomputation.
       prev_body_id = 0;
 
+      beta = 1 / CS.T_stab[c];
+
+      // Is Tdot necessary? I can decide to project the dot product on the
+      // predecessor frame so that the derivative is 0.
+      CS.gamma[i] = - CS.constraintAxis[c].transpose()
+        * (model.a[CS.body_s[c]] - model.a[CS.body_p[c]]);
+        // Stabilization term
+      
       ++i;
       break;
 
-    case ConstraintSet::LoopOrientationConstraint:
-      // Force recomputation of constraints.
-      prev_body_id = 0;
-
-      ++i;
+    default:
+      std::cerr << "Unsupported constraint type." << std::endl;
+      assert(false);
+      abort();
       break;
 
     }
 
     
   }
+
 }
 
 
