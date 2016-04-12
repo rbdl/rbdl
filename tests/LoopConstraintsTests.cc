@@ -104,6 +104,39 @@ struct FiveBarLinkage {
 
 
 
+struct SliderCrank3D {
+
+  SliderCrank3D()
+    : model()
+    , cs()
+    , q()
+    , qd()
+    , id_p(0)
+    , id_s(0)
+    , X_p()
+    , X_s() {
+
+    
+
+  }
+
+  Model model;
+  ConstraintSet cs;
+
+  VectorNd q;
+  VectorNd qd;
+  VectorNd qdd;
+  VectorNd tau;
+
+  unsigned int id_p;
+  unsigned int id_s;
+  SpatialTransform X_p;
+  SpatialTransform X_s;
+
+};
+
+
+
 TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
   VectorNd err = VectorNd::Zero(cs.size());
