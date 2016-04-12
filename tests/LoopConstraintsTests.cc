@@ -201,7 +201,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
   MatrixNd G = MatrixNd::Zero(cs.size(), q.size());
   VectorNd err = MatrixNd::Zero(cs.size(), 1);
 
- 
+
 
   // Zero Q configuration, both arms of the 4-bar laying on the x-axis
   q[0] = 0.;
@@ -382,15 +382,12 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
 
 
 
-TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
+TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamics) {
 
   VectorNd qddDirect;
-  VectorNd qddRangeSparse;
   VectorNd qddNullSpace;
 
-  // cs.SetSolver(LinearSolverPartialPivLU);
-  // cs.SetSolver(LinearSolverColPivHouseholderQR);
-  cs.SetSolver(LinearSolverHouseholderQR);
+  cs.SetSolver(LinearSolverColPivHouseholderQR);
 
   // Configuration 1.
 
@@ -423,12 +420,6 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
 
-  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
-  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
-  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
-  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
-  std::cout << "qd" << std::endl << qddDirect.transpose() << std::endl << std::endl;
-
   CHECK_ARRAY_CLOSE(
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
@@ -436,30 +427,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
 
 
 
-  qddRangeSparse = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qddRangeSparse);
-
-  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
-  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
-  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
-  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
-  std::cout << "qd" << std::endl << qddRangeSparse.transpose() << std::endl << std::endl;
-
-  CHECK_ARRAY_CLOSE(
-    CalcPointAcceleration6D(model, q, qd, qddRangeSparse, idB2, X_p.r).data(),
-    CalcPointAcceleration6D(model, q, qd, qddRangeSparse, idB5, X_s.r).data(),
-    6, TEST_PREC);
-
-
-
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
-
-  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
-  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
-  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
-  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
-  std::cout << "qd" << std::endl << qddNullSpace.transpose() << std::endl << std::endl;
 
   CHECK_ARRAY_CLOSE(
     CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data(),
@@ -499,12 +468,6 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
 
-  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
-  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
-  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
-  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
-  std::cout << "qd" << std::endl << qddDirect.transpose() << std::endl << std::endl;
-
   CHECK_ARRAY_CLOSE(
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
@@ -512,34 +475,24 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
 
 
 
-  qddRangeSparse = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qddRangeSparse);
-
-  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
-  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
-  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
-  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
-  std::cout << "qd" << std::endl << qddRangeSparse.transpose() << std::endl << std::endl;
-
-  CHECK_ARRAY_CLOSE(
-    CalcPointAcceleration6D(model, q, qd, qddRangeSparse, idB2, X_p.r).data(),
-    CalcPointAcceleration6D(model, q, qd, qddRangeSparse, idB5, X_s.r).data(),
-    6, TEST_PREC);
-
-
-
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
-
-  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
-  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
-  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
-  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
-  std::cout << "qd" << std::endl << qddNullSpace.transpose() << std::endl << std::endl;
 
   CHECK_ARRAY_CLOSE(
     CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data(),
     CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r).data(),
     6, TEST_PREC);
+
+  // Note:
+  // The Range Space Sparse method can't be used because the H matrix has a 0 on
+  // the diagonal and the LTL factorization tries to divide by 0.
+
+  // Note:
+  // LinearSolverPartialPivLU does not work because the A matrix in the dynamic
+  // system is not invertible.
+
+  // Note:
+  // LinearSolverHouseholderQR sometimes does not work well when the system is
+  // in a singular configuration.
 
 }

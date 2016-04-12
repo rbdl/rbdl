@@ -717,6 +717,10 @@ void CalcConstrainedSystemVariables (
   }
   CalcConstraintsJacobian(model, Q, CS, CS.G, false);
 
+  // Compute position error for Baumgarte Stabilization.
+  VectorNd err = VectorNd::Zero(CS.size());
+  CalcConstraintsPositionError(model, Q, CS, err, false);
+
   // Compute gamma
   unsigned int prev_body_id = 0;
   Vector3d prev_body_point = Vector3d::Zero();
@@ -728,6 +732,7 @@ void CalcConstrainedSystemVariables (
   // Variables used for computations.
   Matrix3d rot_p;
   SpatialVector axis;
+  double v_J;
 
   for(unsigned int c = 0; c < CS.size(); ++c) {
 
@@ -763,9 +768,11 @@ void CalcConstrainedSystemVariables (
 
       // Compute the gamma value based on the constraint axis and the velocity
       // product acceleration.
-      CS.gamma[c] = -1. * axis.transpose()
-        * (model.a[CS.body_s[c]] - model.a[CS.body_p[c]]);
+      CS.gamma[c] = - axis.transpose()
+        * (model.a[CS.body_s[c]] - model.a[CS.body_p[c]])
         // Stabilization term
+        - 2. * CS.T_stab[c] * (CS.G.block(c, 0, 1, model.dof_count) * QDot)(0,0)
+        - CS.T_stab[c] * CS.T_stab[c] * err[c];
 
       break;
 
