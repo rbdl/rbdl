@@ -218,15 +218,14 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
   qd[2] = -1.;
   qd[3] = -1.;
   qd[4] = 0.;
-  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
-  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
-    - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
+  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+    - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
 
 
 
@@ -245,15 +244,14 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
   qd[2] = -1.;
   qd[3] = -1.;
   qd[4] = 0.;
-  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
-  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
-    - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
+  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+    - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
 
 
 
@@ -272,15 +270,14 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
   qd[2] = -2.;
   qd[3] = +1.;
   qd[4] = -1.;
-  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
-  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
-    - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
+  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+    - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
 
 }
 
@@ -290,11 +287,11 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
 
   VectorNd weights(q.size());
 
-  weights[0] = 1.e5;
-  weights[1] = 1.;
-  weights[2] = 1.e5;
-  weights[3] = 1.;
-  weights[4] = 1.;
+  weights[0] = 1.;
+  weights[1] = 0.;
+  weights[2] = 1.;
+  weights[3] = 0.;
+  weights[4] = 0.;
 
   VectorNd qRef = VectorNd::Zero(q.size());
   qRef[0] = M_PI * 3 / 4;
@@ -315,6 +312,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
   CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
   CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
+  CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
+  CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
 
   qInit[0] = qRef[0] + 0.01;
   qInit[1] = qRef[1] + 0.02;
@@ -328,6 +327,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
   CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
   CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
+  CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
+  CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
 
 }
 
@@ -337,11 +338,11 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
 
   VectorNd weights(q.size());
 
-  weights[0] = 1.e5;
-  weights[1] = 1.;
-  weights[2] = 1.e5;
-  weights[3] = 1.;
-  weights[4] = 1.;
+  weights[0] = 1.;
+  weights[1] = 0.;
+  weights[2] = 1.;
+  weights[3] = 0.;
+  weights[4] = 0.;
 
   q[0] = M_PI * 3 / 4;
   q[1] = -0.5 * M_PI;
@@ -368,10 +369,11 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
   CalcConstraintsJacobian(model, q, cs, G);
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(CalcPointVelocity(model, q, qd, idB2, X_p.r)
-    , CalcPointVelocity(model, q, qd, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(qd[0] + qd[1], qd[2] + qd[3] + qd[4], TEST_PREC);
-  CHECK_ARRAY_CLOSE(MatrixNd::Zero(cs.size(), 1), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+    , CalcPointVelocity6D(model, q, qd, idB5, X_s.r), 6, TEST_PREC);
+  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
+  CHECK_CLOSE(qdInit[0], qd[0], TEST_PREC);
+  CHECK_CLOSE(qdInit[2], qd[2], TEST_PREC);
 
 }
 
@@ -383,14 +385,26 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
   VectorNd qddRangeSparse;
   VectorNd qddNullSpace;
 
-
+  // cs.SetSolver(LinearSolverPartialPivLU);
+  // cs.SetSolver(LinearSolverColPivHouseholderQR);
+  cs.SetSolver(LinearSolverHouseholderQR);
 
   // Configuration 1.
 
+  q[0] = 0.;
+  q[1] = 0.;
+  q[2] = 0.;
+  q[3] = 0.;
+  q[4] = 0.;
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
+  qd[0] = 0.;
+  qd[1] = 0.;
+  qd[2] = 0.;
+  qd[3] = 0.;
+  qd[4] = 0.;
   assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
   assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
@@ -405,6 +419,12 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
 
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
+
+  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
+  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
+  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
+  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
+  std::cout << "qd" << std::endl << qddDirect.transpose() << std::endl << std::endl;
 
   CHECK_ARRAY_CLOSE(
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
@@ -469,6 +489,12 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
 
+  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
+  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
+  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
+  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
+  std::cout << "qd" << std::endl << qddDirect.transpose() << std::endl << std::endl;
+
   CHECK_ARRAY_CLOSE(
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
@@ -476,19 +502,31 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
 
 
 
-  // qddRangeSparse = VectorNd::Zero(q.size());
-  // ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qddRangeSparse);
+  qddRangeSparse = VectorNd::Zero(q.size());
+  ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qddRangeSparse);
 
-  // CHECK_ARRAY_CLOSE(
-  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
-  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
-  //   6, TEST_PREC);
+  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
+  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
+  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
+  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
+  std::cout << "qd" << std::endl << qddRangeSparse.transpose() << std::endl << std::endl;
+
+  CHECK_ARRAY_CLOSE(
+    CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
+    CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
+    6, TEST_PREC);
 
 
 
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
+  std::cout << "H" << std::endl << cs.H << std::endl << std::endl;
+  std::cout << "G" << std::endl << cs.G << std::endl << std::endl;
+  std::cout << "C" << std::endl << cs.C.transpose() << std::endl << std::endl;
+  std::cout << "gamma" << std::endl << cs.gamma.transpose() << std::endl << std::endl;
+  std::cout << "qd" << std::endl << qddNullSpace.transpose() << std::endl << std::endl;
+
   CHECK_ARRAY_CLOSE(
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
     CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
@@ -496,7 +534,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
 
 
 
-  // CHECK_ARRAY_CLOSE(qddDirect.data(), qddRangeSparse.data(), q.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(qddDirect.data(), qddRangeSparse.data(), q.size(), TEST_PREC);
   CHECK_ARRAY_CLOSE(qddDirect.data(), qddNullSpace.data(), q.size(), TEST_PREC);
 
 }
