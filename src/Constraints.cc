@@ -706,6 +706,7 @@ void CalcConstrainedSystemVariables (
   assert(CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
 
   // Compute H
+  CS.H.setZero();
   CompositeRigidBodyAlgorithm(model, Q, CS.H, false);
 
   // Compute G
