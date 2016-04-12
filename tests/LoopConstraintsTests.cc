@@ -387,29 +387,29 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
 
   // Configuration 1.
 
-  // assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  // assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
-  //   - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
-  // assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
-  // assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
-  //   - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
+  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+    - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
-  // tau[0] = 1.;
-  // tau[1] = -2.;
-  // tau[2] = 3.;
-  // tau[3] = -5.;
-  // tau[4] = 7.;
+  tau[0] = 1.;
+  tau[1] = -2.;
+  tau[2] = 3.;
+  tau[3] = -5.;
+  tau[4] = 7.;
 
 
 
-  // qddDirect = VectorNd::Zero(q.size());
-  // ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
+  qddDirect = VectorNd::Zero(q.size());
+  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
 
-  // CHECK_ARRAY_CLOSE(
-  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
-  //   CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
-  //   6, TEST_PREC);
+  CHECK_ARRAY_CLOSE(
+    CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
+    CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
+    6, TEST_PREC);
 
 
 

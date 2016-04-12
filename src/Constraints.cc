@@ -101,7 +101,7 @@ unsigned int ConstraintSet::AddLoopConstraint(
   X_p.push_back(X_predecessor);
   X_s.push_back(X_successor);
   constraintAxis.push_back(axis);
-  T_stab.push_back(T_stabilization);
+  T_stab.push_back(1. / T_stabilization);
 
   // These variables will not be used.
   body.push_back(0);
@@ -532,35 +532,26 @@ void CalcConstraintsJacobian(
   const Math::VectorNd &Q,
   const ConstraintSet &CS,
   Math::MatrixNd &G,
-  bool update_kinematics
-  ) {
+  bool update_kinematics) {
 
   if (update_kinematics) {
-    UpdateKinematicsCustom (model, &Q, NULL, NULL);
+    UpdateKinematicsCustom(model, &Q, NULL, NULL);
   }
 
-  unsigned int i = 0;   // Current constraint row.
-  unsigned int j;       // Current constraint column.
-
-  // variables to check whether we need to recompute G
+  // variables to check whether we need to recompute G.
   unsigned int prev_body_id = 0;
   Vector3d prev_body_point = Vector3d::Zero();
   
-  Vector3d pos_p;
-  Vector3d pos_s;
+  // Variables used for computations.
   Vector3d normal;
   SpatialVector axis;
   Matrix3d rot_p;
-  Matrix3d rot_s;
-  Vector3d axis_p;
-  Vector3d axis_s;
-  MatrixNd Gpi (3, model.dof_count);
-  MatrixNd Gsi = Gpi;
-  MatrixNd Gi = Gpi;
-  MatrixNd GSpi (6, model.dof_count);
+  MatrixNd Gi(3, model.dof_count);
+  MatrixNd GSpi(6, model.dof_count);
   MatrixNd GSsi = GSpi;
-  MatrixNd GRpi = Gpi;
-  MatrixNd GRsi = GRpi;
+
+  // Current constraint column.
+  unsigned int j;
 
   for (unsigned int c = 0; c < CS.constraintType.size(); ++c) {
     switch(CS.constraintType[c]) {
@@ -569,41 +560,46 @@ void CalcConstraintsJacobian(
       // only compute the matrix Gi if actually needed
       if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
         Gi.setZero();
-        CalcPointJacobian (model, Q, CS.body[c], CS.point[c], Gi, false);
+        CalcPointJacobian(model, Q, CS.body[c], CS.point[c], Gi, false);
         prev_body_id = CS.body[c];
         prev_body_point = CS.point[c];
       }
 
-      for (j = 0; j < model.dof_count; j++) {
+      for(j = 0; j < model.dof_count; j++) {
         Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
-        G(i,j) = gaxis.transpose() * CS.normal[c];
+        G(c,j) = gaxis.transpose() * CS.normal[c];
       }
 
-     ++i;
      break;
 
     case ConstraintSet::LoopConstraint:
+
+      // Force recomputation of Contact Constraints (can optimize here).
       prev_body_id = 0;
 
+      // Compute the 6D jacobians of the two contact points.
       GSpi.setZero();
       GSsi.setZero();
       CalcPointJacobian6D(model, Q, CS.body_p[c], CS.X_p[c].r, GSpi, false);
       CalcPointJacobian6D(model, Q, CS.body_s[c], CS.X_s[c].r, GSsi, false);
+
+      // Project the constraint axis on the base frame.
       rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
         * CS.X_p[c].E;
       axis = SpatialTransform(rot_p, Vector3d::Zero()).apply
         (CS.constraintAxis[c]);
 
-      G.block(i, 0, 1, model.dof_count)
-        = axis.transpose() * (GSsi - GSpi);
+      // Compute the constraint Jacobian row.
+      G.block(c, 0, 1, model.dof_count) = axis.transpose() * (GSsi - GSpi);
 
-      ++i;
       break;
 
     default:
+
       std::cerr << "Unsupported constraint type." << std::endl;
       assert(false);
       abort();
+
       break;
     }
   }
@@ -617,67 +613,77 @@ void CalcConstraintsPositionError(
   const Math::VectorNd &Q,
   const ConstraintSet &CS,
   Math::VectorNd& err,
-  bool update_kinematics
-) {
+  bool update_kinematics) {
 
   assert(err.size() == CS.size());
 
-  if (update_kinematics)
+  if (update_kinematics) {
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
-
-  unsigned int i = 0;   // Current constraint row.
-  unsigned int j;       // Current constraint column.
+  }
 
   // Variables used for computations.
-  Vector3d normal;
   Vector3d pos_p;
   Vector3d pos_s;
   Matrix3d rot_p;
   Matrix3d rot_s;
   Matrix3d rot_ps;
-  Vector3d axis_p;
-  Vector3d axis_s;
   SpatialVector d;
-  unsigned int rot_idx;
 
-  for (unsigned int c = 0; c < CS.constraintType.size(); ++c) {
+  for(unsigned int c = 0; c < CS.constraintType.size(); ++c) {
     switch(CS.constraintType[c]) {
 
     case ConstraintSet::ContactConstraint:
+
       // No position error for this kind of constraints.
-      err[i] = 0.;
-      ++i;
+      err[c] = 0.;
+
      break;
 
     case ConstraintSet::LoopConstraint:
 
       // Constraints computed in the predecessor body frame.
 
+      // Compute the orientation of the two constraint frames.
       rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
         * CS.X_p[c].E;
       rot_s = CalcBodyWorldOrientation(model, Q, CS.body_s[c], false)
         * CS.X_s[c].E;
+
+      // Compute the orientation from the predecessor to the successor frame.
       rot_ps = rot_s.transpose() * rot_p;
 
+      // Compute the position of the two contact points.
       pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r
         , false);
       pos_s = CalcBodyToBaseCoordinates(model, Q, CS.body_s[c], CS.X_s[c].r
         , false);
 
-      d[0] = -0.5 * (rot_ps(1,2) - rot_ps(2,1));
-      d[1] = -0.5 * (rot_ps(2,0) - rot_ps(0,2));
-      d[2] = -0.5 * (rot_ps(0,1) - rot_ps(1,0));
+      // The first three elemenets represent the rotation error.
+      // This formulation is equivalent to u * sin(theta), where u and theta are
+      // the angle-axis of rotation from the predecessor to the successor frame.
+      // These quantities are expressed in the predecessor frame.
+      d[0] = 0.5 * (rot_ps(2,1) - rot_ps(1,2));
+      d[1] = 0.5 * (rot_ps(0,2) - rot_ps(2,0));
+      d[2] = 0.5 * (rot_ps(1,0) - rot_ps(0,1));
+
+      // The last three elements represent the position error.
+      // It is equivalent to the difference in the position of the two
+      // constraint points.
+      // The distance is projected on the predecessor frame to be consistent
+      // with the rotation.
       d.block<3,1>(3,0) = rot_p.transpose() * (pos_s - pos_p);
 
-      err[i] = CS.constraintAxis[c].transpose() * d;
+      // Project the error on the constraint axis to find the actual error.
+      err[c] = CS.constraintAxis[c].transpose() * d;
 
-      ++i;
       break;
 
     default:
+
       std::cerr << "Unsupported constraint type." << std::endl;
       assert(false);
       abort();
+
       break;
 
     }
@@ -693,23 +699,22 @@ void CalcConstrainedSystemVariables (
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
-  ConstraintSet &CS
-  ) {
+  ConstraintSet &CS) {
 
   // Compute C
-  NonlinearEffects (model, Q, QDot, CS.C);
-  assert (CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
+  NonlinearEffects(model, Q, QDot, CS.C);
+  assert(CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
 
   // Compute H
-  CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+  CompositeRigidBodyAlgorithm(model, Q, CS.H, false);
 
   // Compute G
   // We have to update model.X_base as they are not automatically computed
   // by NonlinearEffects()
-  for (unsigned int i = 1; i < model.mBodies.size(); i++) {
+  for(unsigned int i = 1; i < model.mBodies.size(); i++) {
     model.X_base[i] = model.X_lambda[i] * model.X_base[model.lambda[i]];
   }
-  CalcConstraintsJacobian (model, Q, CS, CS.G, false);
+  CalcConstraintsJacobian(model, Q, CS, CS.G, false);
 
   // Compute gamma
   unsigned int prev_body_id = 0;
@@ -717,12 +722,13 @@ void CalcConstrainedSystemVariables (
   Vector3d gamma_i = Vector3d::Zero();
 
   CS.QDDot_0.setZero();
-  UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
+  UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
 
-  unsigned int i = 0;
-  double beta;
+  // Variables used for computations.
+  Matrix3d rot_p;
+  SpatialVector axis;
 
-  for (unsigned int c = 0; c < CS.size(); ++c) {
+  for(unsigned int c = 0; c < CS.size(); ++c) {
 
     switch(CS.constraintType[c]) {
 
@@ -738,9 +744,8 @@ void CalcConstrainedSystemVariables (
 
       // we also substract ContactData[c].acceleration such that the contact
       // point will have the desired acceleration
-      CS.gamma[i] = CS.acceleration[c] - CS.normal[c].dot(gamma_i);
+      CS.gamma[c] = CS.acceleration[c] - CS.normal[c].dot(gamma_i);
 
-      ++i;
       break;
 
     case ConstraintSet::LoopConstraint:
@@ -748,15 +753,19 @@ void CalcConstrainedSystemVariables (
       // Force recomputation.
       prev_body_id = 0;
 
-      beta = 1 / CS.T_stab[c];
+      // Compute rotation matrix from base to predecessor, used to express
+      // the constraint axis in the right coordinates.
+      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
+        * CS.X_p[c].E;
+      axis = SpatialTransform(rot_p, Vector3d::Zero()).apply
+        (CS.constraintAxis[c]);
 
-      // Is Tdot necessary? I can decide to project the dot product on the
-      // predecessor frame so that the derivative is 0.
-      CS.gamma[i] = - CS.constraintAxis[c].transpose()
+      // Compute the gamma value based on the constraint axis and the velocity
+      // product acceleration.
+      CS.gamma[c] = -1. * axis.transpose()
         * (model.a[CS.body_s[c]] - model.a[CS.body_p[c]]);
         // Stabilization term
-      
-      ++i;
+
       break;
 
     default:
