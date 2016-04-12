@@ -389,8 +389,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamicsDirect) {
   VectorNd qddNullSpace;
 
   // cs.SetSolver(LinearSolverPartialPivLU);
-  cs.SetSolver(LinearSolverColPivHouseholderQR);
-  // cs.SetSolver(LinearSolverHouseholderQR);
+  // cs.SetSolver(LinearSolverColPivHouseholderQR);
+  cs.SetSolver(LinearSolverHouseholderQR);
 
   // Configuration 1.
 
