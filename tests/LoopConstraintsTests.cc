@@ -31,43 +31,23 @@ struct FiveBarLinkage {
     , X_p(Xtrans(Vector3d(l2, 0., 0.)))
     , X_s(Xtrans(Vector3d(0., 0., 0.))) {
     
-    Body link1 = Body(
-      m1,
-      Vector3d(0.5 * l1, 0., 0.),
-      Vector3d(0., 0., m1 * l1 * l1 / 3.));
-    Body link2 = Body(
-      m2,
-      Vector3d(0.5 * l2, 0., 0.),
-      Vector3d(0., 0., m2 * l2 * l2 / 3.));
-    Body virtualBody = Body(0., Vector3d(), Vector3d());
-    Joint jointRevZ = Joint(JointTypeRevoluteZ);
+    Body link1 = Body(m1, Vector3d(0.5 * l1, 0., 0.)
+      , Vector3d(0., 0., m1 * l1 * l1 / 3.));
+    Body link2 = Body(m2, Vector3d(0.5 * l2, 0., 0.)
+      , Vector3d(0., 0., m2 * l2 * l2 / 3.));
+    Body virtualBody(0., Vector3d(), Vector3d());
+    Joint jointRevZ(JointTypeRevoluteZ);
 
-    idB1 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.))
-      , jointRevZ, link1);
-    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.))
-      , jointRevZ, link2);
-    idB3 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.))
-      , jointRevZ, link1);
-    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.))
-      , jointRevZ, link2);
-    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.))
-      , jointRevZ, virtualBody);
+    idB1 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), jointRevZ, link1);
+    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)), jointRevZ, link2);
+    idB3 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), jointRevZ, link1);
+    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)), jointRevZ, link2);
+    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)), jointRevZ
+      , virtualBody);
 
-    cs.AddLoopConstraint(
-      idB2, idB5,
-      X_p, X_s,
-      SpatialVector(0,0,0,1,0,0)
-      , 0.1);
-    cs.AddLoopConstraint(
-      idB2, idB5,
-      X_p, X_s,
-      SpatialVector(0,0,0,0,1,0)
-      , 0.1);
-    cs.AddLoopConstraint(
-      idB2, idB5,
-      X_p, X_s,
-      SpatialVector(0,0,1,0,0,0)
-      , 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,1,0,0,0), 0.1);
 
     cs.Bind(model);
 
@@ -116,7 +96,52 @@ struct SliderCrank3D {
     , X_p()
     , X_s() {
 
-    
+    double sliderMass = 5.;
+    double sliderHeight = 0.1;
+    double crankLink1Mass = 3.;
+    double crankLink1Length = 1.;
+    double crankLink2Mass = 1.;
+    double crankLink2Radius = 0.2;
+    double crankLink2Length = 3.;
+    double crankLink1Height = crankLink2Length - crankLink1Length;
+
+    Body slider(sliderMass, Vector3d::Zero(), Vector3d(1., 1., 1.));
+    Body crankLink1(crankLink1Mass
+      , Vector3d(0.5 * crankLink1Length, 0., 0.)
+      , Vector3d(0., 0.
+      , crankLink1Mass * crankLink1Length * crankLink1Length / 3.));
+    Body crankLink2(crankLink2Mass
+      , Vector3d(0.5 * crankLink2Length, 0., 0.)
+      , Vector3d(crankLink2Mass * crankLink2Radius * crankLink2Radius / 2.
+      , crankLink2Mass * (3. * crankLink2Radius * crankLink2Radius 
+      + crankLink2Length * crankLink2Length) / 12.
+      , crankLink2Mass * (3. * crankLink2Radius * crankLink2Radius 
+      + crankLink2Length * crankLink2Length) / 12.));
+
+    Joint jointRevZ(JointTypeRevoluteZ);
+    Joint jointSphere(JointTypeEulerZYX);
+    Joint jointPrsX(SpatialVector(0.,0.,0.,1.,0.,0.));
+
+    id_p = model.AddBody(0, Xtrans(Vector3d::Zero()), jointPrsX, slider);
+    unsigned int id_b1 = model.AddBody(0, Xroty(-0.5*M_PI) 
+     * Xtrans(Vector3d(crankLink1Height, 0., 0.)), jointRevZ, crankLink1);
+    id_s = model.AddBody(id_b1, Xroty(M_PI)
+     * Xtrans(Vector3d(-crankLink1Length, 0., 0.)), jointSphere, crankLink2);
+
+    X_p = Xtrans(Vector3d(0., 0., sliderHeight));
+    X_s = Xroty(-0.5 * M_PI) * Xtrans(Vector3d(0., 0., -crankLink2Length));
+
+    // cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
+    // cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
+    // cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,0,1), 0.1);
+    // cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,1,0,0,0), 0.1);
+
+    // cs.Bind(model);
+
+    q = VectorNd::Zero(model.dof_count);
+    qd = VectorNd::Zero(model.dof_count);
+    qdd = VectorNd::Zero(model.dof_count);
+    tau = VectorNd::Zero(model.dof_count);
 
   }
 
@@ -134,6 +159,25 @@ struct SliderCrank3D {
   SpatialTransform X_s;
 
 };
+
+
+
+// TEST(SphereJoint) {
+
+//   Model model;
+
+//   Body body(1., Vector3d::Zero(), Vector3d(0.,0.,0.));
+//   Joint jSphere(JointTypeSpherical);
+
+//   unsigned int id = model.AppendBody(Xtrans(Vector3d::Zero()), jSphere, body);
+
+//   VectorNd q(VectorNd::Zero(model.dof_count));
+
+//   std::cout << q.size() << std::endl;
+
+//   CalcBodyToBaseCoordinates(model, q, id, Vector3d::Zero());
+
+// }
 
 
 
@@ -415,7 +459,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
 
 
 
-TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamics) {
+TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageForwardDynamics) {
 
   VectorNd qddDirect;
   VectorNd qddNullSpace;
@@ -527,5 +571,68 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageDynamics) {
   // Note:
   // LinearSolverHouseholderQR sometimes does not work well when the system is
   // in a singular configuration.
+
+}
+
+
+
+TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
+
+  VectorNd err(VectorNd::Zero(cs.size()));
+  VectorNd errRef(VectorNd::Zero(cs.size()));
+  Vector3d pos_p;
+  Vector3d pos_s;
+  Matrix3d rot_p;
+  Matrix3d rot_s;
+  Matrix3d rot_ps;
+  Vector3d rotationVec;
+
+  // Test in zero position.
+
+  // CalcConstraintsPositionError(model, q, cs, err);
+
+  pos_p = CalcBodyToBaseCoordinates(model, q, id_p, X_p.r);
+  pos_s = CalcBodyToBaseCoordinates(model, q, id_s, X_s.r);
+  rot_p = CalcBodyWorldOrientation(model, q, id_p) * X_p.E;
+  rot_s = CalcBodyWorldOrientation(model, q, id_s) * X_s.E;
+  rot_ps = rot_s.transpose() * rot_p;
+  rotationVec = Vector3d(rot_ps(2,1) - rot_ps(1,2)
+    , rot_ps(0,2) - rot_ps(2,0), rot_ps(1,0) - rot_ps(0,1));
+  // errRef.block<3,1>(0,0) = pos_s - pos_p;
+  // errRef(3) = rotationVec(2);
+
+  // CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+
+}
+
+
+
+TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintJacobian) {
+
+  CHECK(false);
+
+}
+
+
+
+TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQ) {
+
+  CHECK(false);
+
+}
+
+
+
+TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssebmlyQDot) {
+
+  CHECK(false);
+
+}
+
+
+
+TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
+
+  CHECK(false);
 
 }

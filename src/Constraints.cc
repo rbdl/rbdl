@@ -617,8 +617,8 @@ void CalcConstraintsPositionError(
 
   assert(err.size() == CS.size());
 
-  if (update_kinematics) {
-    UpdateKinematicsCustom (model, &Q, NULL, NULL);
+  if(update_kinematics) {
+    UpdateKinematicsCustom(model, &Q, NULL, NULL);
   }
 
   // Variables used for computations.
