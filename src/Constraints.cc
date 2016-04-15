@@ -237,7 +237,7 @@ void ConstraintSet::clear() {
 
 
 RBDL_DLLAPI
-bool ComputeAssemblyQ(
+bool CalcAssemblyQ(
   Model& model,
   Math::VectorNd QInit,
   const ConstraintSet& cs,
@@ -298,6 +298,8 @@ bool ComputeAssemblyQ(
     d = x.block(0, 0, Q.size(), 1);
     QInit += d;
 
+    // std::cout << "Iteration " << it+1 << ", d = " << d.transpose() << std::endl;
+
     if(d.norm() < tolerance) {
       Q = QInit;
       return true;
@@ -314,7 +316,7 @@ bool ComputeAssemblyQ(
 
 
 RBDL_DLLAPI
-void ComputeAssemblyQDot(
+void CalcAssemblyQDot(
   Model& model,
   const Math::VectorNd& Q,
   const Math::VectorNd& QDotInit,
@@ -545,6 +547,7 @@ void CalcConstraintsJacobian(
   // Variables used for computations.
   Vector3d normal;
   SpatialVector axis;
+  Vector3d pos_p;
   Matrix3d rot_p;
   MatrixNd Gi(3, model.dof_count);
   MatrixNd GSpi(6, model.dof_count);
@@ -584,10 +587,11 @@ void CalcConstraintsJacobian(
       CalcPointJacobian6D(model, Q, CS.body_s[c], CS.X_s[c].r, GSsi, false);
 
       // Project the constraint axis on the base frame.
+      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r,
+        false);
       rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
         * CS.X_p[c].E;
-      axis = SpatialTransform(rot_p, Vector3d::Zero()).apply
-        (CS.constraintAxis[c]);
+      axis = SpatialTransform(rot_p, pos_p).apply(CS.constraintAxis[c]);
 
       // Compute the constraint Jacobian row.
       G.block(c, 0, 1, model.dof_count) = axis.transpose() * (GSsi - GSpi);
@@ -730,9 +734,11 @@ void CalcConstrainedSystemVariables (
   UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
 
   // Variables used for computations.
+  Vector3d pos_p;
   Matrix3d rot_p;
+  SpatialVector vel_p;
+  SpatialVector vel_s;
   SpatialVector axis;
-  double v_J;
 
   for(unsigned int c = 0; c < CS.size(); ++c) {
 
@@ -761,15 +767,24 @@ void CalcConstrainedSystemVariables (
 
       // Compute rotation matrix from base to predecessor, used to express
       // the constraint axis in the right coordinates.
+      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r
+        , false);
       rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
         * CS.X_p[c].E;
-      axis = SpatialTransform(rot_p, Vector3d::Zero()).apply
-        (CS.constraintAxis[c]);
+      axis = SpatialTransform(rot_p, pos_p).apply(CS.constraintAxis[c]);
+
+      vel_p = CalcPointVelocity6D(model, Q, QDot, CS.body_p[c], CS.X_p[c].r
+        , false);
+      vel_s = CalcPointVelocity6D(model, Q, QDot, CS.body_s[c], CS.X_s[c].r
+        , false);
+
+      CalcConstraintsPositionError(model, Q, CS, err);
 
       // Compute the gamma value based on the constraint axis and the velocity
       // product acceleration.
-      CS.gamma[c] = - axis.transpose()
-        * (model.a[CS.body_s[c]] - model.a[CS.body_p[c]])
+      CS.gamma[c] =
+        - axis.transpose() * (model.a[CS.body_s[c]] - model.a[CS.body_p[c]]
+        + crossm(vel_s, vel_p))
         // Stabilization term
         - 2. * CS.T_stab[c] * (CS.G.block(c, 0, 1, model.dof_count) * QDot)(0,0)
         - CS.T_stab[c] * CS.T_stab[c] * err[c];

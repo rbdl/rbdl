@@ -334,7 +334,7 @@ struct RBDL_DLLAPI ConstraintSet {
 /** \brief Todo - add comments.
   */
 RBDL_DLLAPI
-bool ComputeAssemblyQ(
+bool CalcAssemblyQ(
   Model& model,
   Math::VectorNd QInit,
   const ConstraintSet& cs,
@@ -347,7 +347,7 @@ bool ComputeAssemblyQ(
 /** \brief Todo - add comments.
   */
 RBDL_DLLAPI
-void ComputeAssemblyQDot(
+void CalcAssemblyQDot(
   Model& model,
   const Math::VectorNd& Q,
   const Math::VectorNd& QDotInit,
