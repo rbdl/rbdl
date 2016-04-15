@@ -237,141 +237,6 @@ void ConstraintSet::clear() {
 
 
 RBDL_DLLAPI
-bool CalcAssemblyQ(
-  Model& model,
-  Math::VectorNd QInit,
-  const ConstraintSet& cs,
-  Math::VectorNd& Q,
-  const Math::VectorNd& weights,
-  double tolerance,
-  unsigned int max_iter) {
-
-  if(Q.size() != model.dof_count) {
-    std::cerr << "Vector Q has size different from the number of degrees of \
-      freedom of the model." << std::endl;
-    assert(false);
-    abort();
-  }
-  if(QInit.size() != Q.size()) {
-    std::cerr << "Vectors Q and QInit have different size." << std::endl;
-    assert(false);
-    abort();
-  }
-  if(weights.size() != Q.size()) {
-    std::cerr << "Vectors Q and weights have different size." << std::endl;
-    assert(false);
-    abort();
-  }
-
-  // Initialize variables.
-  MatrixNd constraintJac(cs.size(), Q.size());
-  MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
-  VectorNd b = VectorNd::Zero(cs.size() + Q.size());
-  VectorNd x = VectorNd::Zero(cs.size() + Q.size());
-  VectorNd d = VectorNd::Zero(Q.size());
-  VectorNd e = VectorNd::Zero(cs.size());
-
-  // The top-left block is the weight matrix and is constant.
-  for(unsigned int i = 0; i < weights.size(); ++i) {
-    A(i,i) = weights[i];
-  }
-
-  // We solve the linearized problem iteratively.
-  // Iterations are stopped if the maximum is reached.
-  for(unsigned int it = 0; it < max_iter; ++it) {
-
-    // Compute the constraint jacobian and update A.
-    constraintJac.setZero();
-    CalcConstraintsJacobian(model, QInit, cs, constraintJac);
-    A.block(Q.size(), 0, cs.size(), Q.size()) = constraintJac;
-    A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
-
-    // Compute the constraint errors and update b.
-    CalcConstraintsPositionError(model, QInit, cs, e);
-    b.block(Q.size(), 0, cs.size(), 1) = -1. * e;
-
-    // Solve the sistem A*x = b.
-    SolveLinearSystem(A, b, x, cs.linear_solver);
-
-    // Extract the d = (Q - QInit) vector from x.
-    // Check if d is small, if yes, update the value of Q and return true.
-    d = x.block(0, 0, Q.size(), 1);
-    QInit += d;
-
-    // std::cout << "Iteration " << it+1 << ", d = " << d.transpose() << std::endl;
-
-    if(d.norm() < tolerance) {
-      Q = QInit;
-      return true;
-    }
-
-  }
-
-  // Return false if maximum number of iterations is exceeded.
-  Q = QInit;
-  return false;
-
-}
-
-
-
-RBDL_DLLAPI
-void CalcAssemblyQDot(
-  Model& model,
-  const Math::VectorNd& Q,
-  const Math::VectorNd& QDotInit,
-  const ConstraintSet& cs,
-  Math::VectorNd& QDot,
-  const Math::VectorNd& weights
-) {
-
-  if(QDot.size() != model.dof_count) {
-    std::cerr << "Vector QDot has size different from the number of degrees of \
-      freedom of the model." << std::endl;
-    assert(false);
-    abort();
-  }
-  if(Q.size() != QDot.size()) {
-    std::cerr << "Vectors QDot and Q have different size." << std::endl;
-    assert(false);
-    abort();
-  }
-  if(QDotInit.size() != Q.size()) {
-    std::cerr << "Vectors QDot and QDotInit have different size." << std::endl;
-    assert(false);
-    abort();
-  }
-  if(weights.size() != Q.size()) {
-    std::cerr << "Vectors QDot and weights have different size." << std::endl;
-    assert(false);
-    abort();
-  }
-
-  // Initialize variables.
-  MatrixNd constraintJac = MatrixNd::Zero(cs.size(), Q.size());
-  MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
-  VectorNd b = VectorNd::Zero(cs.size() + Q.size());
-  VectorNd x = VectorNd::Zero(cs.size() + Q.size());
-
-  // The top-left block is the weight matrix and is constant.
-  for(unsigned int i = 0; i < weights.size(); ++i) {
-    A(i,i) = weights[i];
-    b[i] = weights[i] * QDotInit[i];
-  }
-  CalcConstraintsJacobian(model, Q, cs, constraintJac);
-  A.block(Q.size(), 0, cs.size(), Q.size()) = constraintJac;
-  A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
-
-  // Solve the sistem A*x = b.
-  SolveLinearSystem(A, b, x, cs.linear_solver);
-
-  QDot = x.block(0, 0, Q.size(), 1);
-
-}
-
-
-
-RBDL_DLLAPI
 void SolveConstrainedSystemDirect (
   Math::MatrixNd &H, 
   const Math::MatrixNd &G, 
@@ -529,89 +394,6 @@ void SolveConstrainedSystemNullSpace (
 
 
 RBDL_DLLAPI
-void CalcConstraintsJacobian(
-  Model &model,
-  const Math::VectorNd &Q,
-  const ConstraintSet &CS,
-  Math::MatrixNd &G,
-  bool update_kinematics) {
-
-  if (update_kinematics) {
-    UpdateKinematicsCustom(model, &Q, NULL, NULL);
-  }
-
-  // variables to check whether we need to recompute G.
-  unsigned int prev_body_id = 0;
-  Vector3d prev_body_point = Vector3d::Zero();
-  
-  // Variables used for computations.
-  Vector3d normal;
-  SpatialVector axis;
-  Vector3d pos_p;
-  Matrix3d rot_p;
-  MatrixNd Gi(3, model.dof_count);
-  MatrixNd GSpi(6, model.dof_count);
-  MatrixNd GSsi = GSpi;
-
-  // Current constraint column.
-  unsigned int j;
-
-  for (unsigned int c = 0; c < CS.constraintType.size(); ++c) {
-    switch(CS.constraintType[c]) {
-
-    case ConstraintSet::ContactConstraint:
-      // only compute the matrix Gi if actually needed
-      if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
-        Gi.setZero();
-        CalcPointJacobian(model, Q, CS.body[c], CS.point[c], Gi, false);
-        prev_body_id = CS.body[c];
-        prev_body_point = CS.point[c];
-      }
-
-      for(j = 0; j < model.dof_count; j++) {
-        Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
-        G(c,j) = gaxis.transpose() * CS.normal[c];
-      }
-
-     break;
-
-    case ConstraintSet::LoopConstraint:
-
-      // Force recomputation of Contact Constraints (can optimize here).
-      prev_body_id = 0;
-
-      // Compute the 6D jacobians of the two contact points.
-      GSpi.setZero();
-      GSsi.setZero();
-      CalcPointJacobian6D(model, Q, CS.body_p[c], CS.X_p[c].r, GSpi, false);
-      CalcPointJacobian6D(model, Q, CS.body_s[c], CS.X_s[c].r, GSsi, false);
-
-      // Project the constraint axis on the base frame.
-      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r,
-        false);
-      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
-        * CS.X_p[c].E;
-      axis = SpatialTransform(rot_p, pos_p).apply(CS.constraintAxis[c]);
-
-      // Compute the constraint Jacobian row.
-      G.block(c, 0, 1, model.dof_count) = axis.transpose() * (GSsi - GSpi);
-
-      break;
-
-    default:
-
-      std::cerr << "Unsupported constraint type." << std::endl;
-      assert(false);
-      abort();
-
-      break;
-    }
-  }
-}
-
-
-
-RBDL_DLLAPI
 void CalcConstraintsPositionError(
   Model& model,
   const Math::VectorNd &Q,
@@ -698,6 +480,89 @@ void CalcConstraintsPositionError(
 
 
 RBDL_DLLAPI
+void CalcConstraintsJacobian(
+  Model &model,
+  const Math::VectorNd &Q,
+  const ConstraintSet &CS,
+  Math::MatrixNd &G,
+  bool update_kinematics) {
+
+  if (update_kinematics) {
+    UpdateKinematicsCustom(model, &Q, NULL, NULL);
+  }
+
+  // variables to check whether we need to recompute G.
+  unsigned int prev_body_id = 0;
+  Vector3d prev_body_point = Vector3d::Zero();
+  
+  // Variables used for computations.
+  Vector3d normal;
+  SpatialVector axis;
+  Vector3d pos_p;
+  Matrix3d rot_p;
+  MatrixNd Gi(3, model.dof_count);
+  MatrixNd GSpi(6, model.dof_count);
+  MatrixNd GSsi = GSpi;
+
+  // Current constraint column.
+  unsigned int j;
+
+  for (unsigned int c = 0; c < CS.constraintType.size(); ++c) {
+    switch(CS.constraintType[c]) {
+
+    case ConstraintSet::ContactConstraint:
+      // only compute the matrix Gi if actually needed
+      if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
+        Gi.setZero();
+        CalcPointJacobian(model, Q, CS.body[c], CS.point[c], Gi, false);
+        prev_body_id = CS.body[c];
+        prev_body_point = CS.point[c];
+      }
+
+      for(j = 0; j < model.dof_count; j++) {
+        Vector3d gaxis (Gi(0,j), Gi(1,j), Gi(2,j));
+        G(c,j) = gaxis.transpose() * CS.normal[c];
+      }
+
+     break;
+
+    case ConstraintSet::LoopConstraint:
+
+      // Force recomputation of Contact Constraints (can optimize here).
+      prev_body_id = 0;
+
+      // Compute the 6D jacobians of the two contact points.
+      GSpi.setZero();
+      GSsi.setZero();
+      CalcPointJacobian6D(model, Q, CS.body_p[c], CS.X_p[c].r, GSpi, false);
+      CalcPointJacobian6D(model, Q, CS.body_s[c], CS.X_s[c].r, GSsi, false);
+
+      // Express the constraint axis in the base frame.
+      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r,
+        false);
+      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
+        * CS.X_p[c].E;
+      axis = SpatialTransform(rot_p, pos_p).apply(CS.constraintAxis[c]);
+
+      // Compute the constraint Jacobian row.
+      G.block(c, 0, 1, model.dof_count) = axis.transpose() * (GSsi - GSpi);
+
+      break;
+
+    default:
+
+      std::cerr << "Unsupported constraint type." << std::endl;
+      assert(false);
+      abort();
+
+      break;
+    }
+  }
+}
+
+
+
+RBDL_DLLAPI
 void CalcConstrainedSystemVariables (
   Model &model,
   const Math::VectorNd &Q,
@@ -731,7 +596,7 @@ void CalcConstrainedSystemVariables (
   Vector3d gamma_i = Vector3d::Zero();
 
   CS.QDDot_0.setZero();
-  UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
+  UpdateKinematics(model, Q, QDot, CS.QDDot_0);
 
   // Variables used for computations.
   Vector3d pos_p;
@@ -765,27 +630,25 @@ void CalcConstrainedSystemVariables (
       // Force recomputation.
       prev_body_id = 0;
 
-      // Compute rotation matrix from base to predecessor, used to express
-      // the constraint axis in the right coordinates.
+      // Express the constraint axis in the base frame.
       pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r
         , false);
       rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false)
         * CS.X_p[c].E;
       axis = SpatialTransform(rot_p, pos_p).apply(CS.constraintAxis[c]);
 
+      // Compute the spatial velocities of the two constrained bodies.
       vel_p = CalcPointVelocity6D(model, Q, QDot, CS.body_p[c], CS.X_p[c].r
         , false);
       vel_s = CalcPointVelocity6D(model, Q, QDot, CS.body_s[c], CS.X_s[c].r
         , false);
 
-      CalcConstraintsPositionError(model, Q, CS, err);
-
-      // Compute the gamma value based on the constraint axis and the velocity
-      // product acceleration.
+      // Compute the value of gamma.
       CS.gamma[c] =
+        // Right hand side term.
         - axis.transpose() * (model.a[CS.body_s[c]] - model.a[CS.body_p[c]]
         + crossm(vel_s, vel_p))
-        // Stabilization term
+        // Baumgarte stabilization term.
         - 2. * CS.T_stab[c] * (CS.G.block(c, 0, 1, model.dof_count) * QDot)(0,0)
         - CS.T_stab[c] * CS.T_stab[c] * err[c];
 
@@ -799,8 +662,143 @@ void CalcConstrainedSystemVariables (
 
     }
 
-    
   }
+
+}
+
+
+
+
+RBDL_DLLAPI
+bool CalcAssemblyQ(
+  Model& model,
+  Math::VectorNd QInit,
+  const ConstraintSet& cs,
+  Math::VectorNd& Q,
+  const Math::VectorNd& weights,
+  double tolerance,
+  unsigned int max_iter) {
+
+  if(Q.size() != model.dof_count) {
+    std::cerr << "Vector Q has size different from the number of degrees of \
+      freedom of the model." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(QInit.size() != Q.size()) {
+    std::cerr << "Vectors Q and QInit have different size." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(weights.size() != Q.size()) {
+    std::cerr << "Vectors Q and weights have different size." << std::endl;
+    assert(false);
+    abort();
+  }
+
+  // Initialize variables.
+  MatrixNd constraintJac(cs.size(), Q.size());
+  MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
+  VectorNd b = VectorNd::Zero(cs.size() + Q.size());
+  VectorNd x = VectorNd::Zero(cs.size() + Q.size());
+  VectorNd d = VectorNd::Zero(Q.size());
+  VectorNd e = VectorNd::Zero(cs.size());
+
+  // The top-left block is the weight matrix and is constant.
+  for(unsigned int i = 0; i < weights.size(); ++i) {
+    A(i,i) = weights[i];
+  }
+
+  // We solve the linearized problem iteratively.
+  // Iterations are stopped if the maximum is reached.
+  for(unsigned int it = 0; it < max_iter; ++it) {
+
+    // Compute the constraint jacobian and update A.
+    constraintJac.setZero();
+    CalcConstraintsJacobian(model, QInit, cs, constraintJac);
+    A.block(Q.size(), 0, cs.size(), Q.size()) = constraintJac;
+    A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
+
+    // Compute the constraint errors and update b.
+    CalcConstraintsPositionError(model, QInit, cs, e);
+    b.block(Q.size(), 0, cs.size(), 1) = -1. * e;
+
+    // Solve the sistem A*x = b.
+    SolveLinearSystem(A, b, x, cs.linear_solver);
+
+    // Extract the d = (Q - QInit) vector from x.
+    // Check if d is small, if yes, update the value of Q and return true.
+    d = x.block(0, 0, Q.size(), 1);
+    QInit += d;
+
+    // std::cout << "Iteration " << it+1 << ", d = " << d.transpose() << std::endl;
+
+    if(d.norm() < tolerance) {
+      Q = QInit;
+      return true;
+    }
+
+  }
+
+  // Return false if maximum number of iterations is exceeded.
+  Q = QInit;
+  return false;
+
+}
+
+
+
+RBDL_DLLAPI
+void CalcAssemblyQDot(
+  Model& model,
+  const Math::VectorNd& Q,
+  const Math::VectorNd& QDotInit,
+  const ConstraintSet& cs,
+  Math::VectorNd& QDot,
+  const Math::VectorNd& weights
+) {
+
+  if(QDot.size() != model.dof_count) {
+    std::cerr << "Vector QDot has size different from the number of degrees of \
+      freedom of the model." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(Q.size() != QDot.size()) {
+    std::cerr << "Vectors QDot and Q have different size." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(QDotInit.size() != Q.size()) {
+    std::cerr << "Vectors QDot and QDotInit have different size." << std::endl;
+    assert(false);
+    abort();
+  }
+  if(weights.size() != Q.size()) {
+    std::cerr << "Vectors QDot and weights have different size." << std::endl;
+    assert(false);
+    abort();
+  }
+
+  // Initialize variables.
+  MatrixNd constraintJac = MatrixNd::Zero(cs.size(), Q.size());
+  MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
+  VectorNd b = VectorNd::Zero(cs.size() + Q.size());
+  VectorNd x = VectorNd::Zero(cs.size() + Q.size());
+
+  // The top-left block is the weight matrix and is constant.
+  for(unsigned int i = 0; i < weights.size(); ++i) {
+    A(i,i) = weights[i];
+    b[i] = weights[i] * QDotInit[i];
+  }
+  CalcConstraintsJacobian(model, Q, cs, constraintJac);
+  A.block(Q.size(), 0, cs.size(), Q.size()) = constraintJac;
+  A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
+
+  // Solve the sistem A*x = b.
+  SolveLinearSystem(A, b, x, cs.linear_solver);
+
+  QDot = x.block(0, 0, Q.size(), 1);
 
 }
 

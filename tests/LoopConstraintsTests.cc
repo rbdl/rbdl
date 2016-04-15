@@ -758,6 +758,44 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
 
   bool success;
 
+
+
+  // Test with zero q and qdot.
+
+  tau[0] = 0.12;
+  tau[1] = -0.3;
+  tau[2] = 0.05;
+  tau[3] = 0.7;
+  tau[4] = -0.1;
+
+  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+
+  ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+
+  ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+
+
+
+  // Compute non-zero assembly q and qdot;
+
   qWeights[0] = 1.;
   qWeights[1] = 1.;
   qWeights[2] = 1.;
@@ -782,23 +820,31 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   qdInit[3] = 0.;
   qdInit[4] = 0.1 * M_PI;
 
-  tau[0] = 0.12;
-  tau[1] = -0.3;
-  tau[2] = 0.05;
-  tau[3] = 0.7;
-  tau[4] = -0.1;
-
+  qdInit.setZero();
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
   assert(success);
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
+
+  Matrix3d rot_ps 
+    = (CalcBodyWorldOrientation(model, q, id_s) * X_s.E).transpose()
+    * CalcBodyWorldOrientation(model, q, id_p) * X_p.E;
+  assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
+    - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
+  assert(rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
+  assert((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
+    -CalcPointVelocity6D(model, q, qd, id_p, X_p.r)).norm() < TEST_PREC);
+
+
+
+  // Test with non-zero q and qdot.
 
   ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qdd);
 
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
-  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 6
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
     , TEST_PREC);
 
   ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qdd);
@@ -806,7 +852,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
-  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 6
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
     , TEST_PREC);
 
   ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qdd);
@@ -814,7 +860,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
-  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 6
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
     , TEST_PREC);
 
 }

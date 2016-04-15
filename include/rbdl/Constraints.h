@@ -332,28 +332,14 @@ struct RBDL_DLLAPI ConstraintSet {
 };
 
 /** \brief Todo - add comments.
-  */
+   */
 RBDL_DLLAPI
-bool CalcAssemblyQ(
+void CalcConstraintsPositionError(
   Model& model,
-  Math::VectorNd QInit,
-  const ConstraintSet& cs,
-  Math::VectorNd& Q,
-  const Math::VectorNd& weights,
-  double tolerance = 1e-10,
-  unsigned int max_iter = 100
-);
-
-/** \brief Todo - add comments.
-  */
-RBDL_DLLAPI
-void CalcAssemblyQDot(
-  Model& model,
-  const Math::VectorNd& Q,
-  const Math::VectorNd& QDotInit,
-  const ConstraintSet& cs,
-  Math::VectorNd& QDot,
-  const Math::VectorNd& weights
+  const Math::VectorNd &Q,
+  const ConstraintSet &CS,
+  Math::VectorNd& err,
+  bool update_kinematics = true
 );
 
 /** \brief Computes the Jacobian for the given ConstraintSet
@@ -376,15 +362,6 @@ void CalcConstraintsJacobian(
 /** \brief Todo - add comments.
    */
 RBDL_DLLAPI
-void CalcConstraintsPositionError(
-  Model& model,
-  const Math::VectorNd &Q,
-  const ConstraintSet &CS,
-  Math::VectorNd& err,
-  bool update_kinematics = true
-);
-
-RBDL_DLLAPI
 void CalcConstrainedSystemVariables (
   Model &model,
   const Math::VectorNd &Q,
@@ -392,6 +369,32 @@ void CalcConstrainedSystemVariables (
   const Math::VectorNd &Tau,
   ConstraintSet &CS
 );
+
+/** \brief Todo - add comments.
+  */
+RBDL_DLLAPI
+bool CalcAssemblyQ(
+  Model& model,
+  Math::VectorNd QInit,
+  const ConstraintSet& cs,
+  Math::VectorNd& Q,
+  const Math::VectorNd& weights,
+  double tolerance = 1e-12,
+  unsigned int max_iter = 100
+);
+
+/** \brief Todo - add comments.
+  */
+RBDL_DLLAPI
+void CalcAssemblyQDot(
+  Model& model,
+  const Math::VectorNd& Q,
+  const Math::VectorNd& QDotInit,
+  const ConstraintSet& cs,
+  Math::VectorNd& QDot,
+  const Math::VectorNd& weights
+);
+
 
 /** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
  *
