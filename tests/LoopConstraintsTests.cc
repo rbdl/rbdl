@@ -103,7 +103,8 @@ struct SliderCrank3D {
     double crankLink2Mass = 1.;
     double crankLink2Radius = 0.2;
     double crankLink2Length = 3.;
-    double crankLink1Height = crankLink2Length - crankLink1Length + sliderHeight;
+    double crankLink1Height = crankLink2Length - crankLink1Length 
+      + sliderHeight;
 
     Body slider(sliderMass, Vector3d::Zero(), Vector3d(1., 1., 1.));
     Body crankLink1(crankLink1Mass
@@ -295,9 +296,9 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
 TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
-  MatrixNd G = MatrixNd::Zero(cs.size(), q.size());
-  VectorNd err = MatrixNd::Zero(cs.size(), 1);
-
+  MatrixNd G(MatrixNd::Zero(cs.size(), q.size()));
+  VectorNd err(VectorNd::Zero(cs.size()));
+  VectorNd errRef(VectorNd::Zero(cs.size()));
 
 
   // Zero Q configuration, both arms of the 4-bar laying on the x-axis
@@ -322,7 +323,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
 
 
 
@@ -348,7 +349,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
 
 
 
@@ -374,7 +375,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
 
 }
 
@@ -409,8 +410,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
+  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r).data()
+    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r).data(), 3, TEST_PREC);
   CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
   CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
   CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
@@ -427,8 +428,8 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQAssembly) {
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-8);
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
+  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r).data()
+    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r).data(), 3, TEST_PREC);
   CHECK_CLOSE(q[0] + q[1] , q[2] + q[3] + q[4], TEST_PREC);
   CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
   CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
@@ -464,14 +465,15 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageQDotAssembly) {
   qdInit[4] = 0.3;
 
   CalcAssemblyQDot(model, q, qdInit, cs, qd, weights);
-  MatrixNd G = MatrixNd::Zero(cs.size(), q.size());
-  VectorNd err = MatrixNd::Zero(cs.size(), 1);
+  MatrixNd G(MatrixNd::Zero(cs.size(), q.size()));
+  VectorNd err(VectorNd::Zero(cs.size()));
+  VectorNd errRef(VectorNd::Zero(cs.size()));
   CalcConstraintsJacobian(model, q, cs, G);
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
-    , CalcPointVelocity6D(model, q, qd, idB5, X_s.r), 6, TEST_PREC);
-  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(CalcPointVelocity6D(model, q, qd, idB2, X_p.r).data()
+    , CalcPointVelocity6D(model, q, qd, idB5, X_s.r).data(), 6, TEST_PREC);
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
   CHECK_CLOSE(qdInit[0], qd[0], TEST_PREC);
   CHECK_CLOSE(qdInit[2], qd[2], TEST_PREC);
 
@@ -517,20 +519,20 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageForwardDynamics) {
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
 
-  CHECK_ARRAY_CLOSE(
-    CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
-    CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
-    6, TEST_PREC);
+  CHECK_ARRAY_CLOSE
+    (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data()
+    , CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data()
+    , 6, TEST_PREC);
 
 
 
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
-  CHECK_ARRAY_CLOSE(
-    CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data(),
-    CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r).data(),
-    6, TEST_PREC);
+  CHECK_ARRAY_CLOSE
+    (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data()
+    , CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r).data()
+    , 6, TEST_PREC);
 
 
 
@@ -565,20 +567,20 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageForwardDynamics) {
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
 
-  CHECK_ARRAY_CLOSE(
-    CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data(),
-    CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data(),
-    6, TEST_PREC);
+  CHECK_ARRAY_CLOSE
+    (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data()
+    , CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r).data()
+    , 6, TEST_PREC);
 
 
 
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
-  CHECK_ARRAY_CLOSE(
-    CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data(),
-    CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r).data(),
-    6, TEST_PREC);
+  CHECK_ARRAY_CLOSE
+    (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data()
+    , CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r).data()
+    , 6, TEST_PREC);
 
   // Note:
   // The Range Space Sparse method can't be used because the H matrix has a 0 on
@@ -611,7 +613,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
 
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
 
   // Test in another configurations.
 
@@ -633,7 +635,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
   errRef.block<3,1>(0,0) = pos_s - pos_p;
   errRef(3) = rotationVec(2);
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
 
 }
 
@@ -641,14 +643,17 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
 
 TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintJacobian) {
 
-  MatrixNd G = MatrixNd::Zero(cs.size(), q.size());
+  MatrixNd G(MatrixNd::Zero(cs.size(), q.size()));
 
   // Test in zero position.
 
   G.setZero();
   CalcConstraintsJacobian(model, q, cs, G);
 
-  CHECK_ARRAY_CLOSE(VectorNd::Zero(cs.size()), G * qd, cs.size(), TEST_PREC);
+  VectorNd errRef(VectorNd::Zero(cs.size()));
+  VectorNd err = G * qd;
+
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
 
 }
 

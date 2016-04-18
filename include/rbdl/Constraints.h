@@ -125,7 +125,8 @@ namespace RigidBodyDynamics {
  * constraints, constrained bodies, numerical stability, and performance
  * vary and evaluation has to be made on a case-by-case basis.
  * 
- * \subsection solving_constraints_dynamics Methods for Solving Constrained Dynamics
+ * \subsection solving_constraints_dynamics Methods for Solving Constrained 
+ * Dynamics
  * 
  * RBDL provides the following methods to compute the acceleration of a
  * constrained system:
@@ -193,7 +194,7 @@ struct RBDL_DLLAPI ConstraintSet {
     unsigned int id_successor,
     const Math::SpatialTransform &X_predecessor,
     const Math::SpatialTransform &X_successor,
-    const Math::SpatialVector& axis,
+    const Math::SpatialVector &axis,
     double T_stab,
     const char *constraint_name = NULL
     );
@@ -348,7 +349,8 @@ void CalcConstraintsPositionError(
  * \param Q     the generalized positions of the joints
  * \param CS    the constraint set for which the Jacobian should be computed
  * \param G     (output) matrix where the output will be stored in
- * \param update_kinematics whether the kinematics of the model should be * updated from Q
+ * \param update_kinematics whether the kinematics of the model should be 
+ * * updated from Q
  */
 RBDL_DLLAPI
 void CalcConstraintsJacobian(
@@ -374,11 +376,11 @@ void CalcConstrainedSystemVariables (
   */
 RBDL_DLLAPI
 bool CalcAssemblyQ(
-  Model& model,
+  Model &model,
   Math::VectorNd QInit,
-  const ConstraintSet& cs,
-  Math::VectorNd& Q,
-  const Math::VectorNd& weights,
+  const ConstraintSet &CS,
+  Math::VectorNd &Q,
+  const Math::VectorNd &weights,
   double tolerance = 1e-12,
   unsigned int max_iter = 100
 );
@@ -387,16 +389,17 @@ bool CalcAssemblyQ(
   */
 RBDL_DLLAPI
 void CalcAssemblyQDot(
-  Model& model,
-  const Math::VectorNd& Q,
-  const Math::VectorNd& QDotInit,
-  const ConstraintSet& cs,
-  Math::VectorNd& QDot,
-  const Math::VectorNd& weights
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDotInit,
+  const ConstraintSet &CS,
+  Math::VectorNd &QDot,
+  const Math::VectorNd &weights
 );
 
 
-/** \brief Computes forward dynamics with contact by constructing and solving the full lagrangian equation
+/** \brief Computes forward dynamics with contact by constructing and solving 
+ *  the full lagrangian equation
  *
  * This method builds and solves the linear system \f[
  \left(
@@ -476,7 +479,8 @@ void ForwardDynamicsConstrainedNullSpace (
   Math::VectorNd &QDDot
 );
 
-/** \brief Computes forward dynamics that accounts for active contacts in ConstraintSet.
+/** \brief Computes forward dynamics that accounts for active contacts in 
+ *  ConstraintSet.
  *
  * The method used here is the one described by Kokkevis and Metaxas in the
  * Paper "Practical Physics for Articulated Characters", Game Developers
@@ -548,7 +552,8 @@ void ForwardDynamicsContactsKokkevis (
   Math::VectorNd &QDDot
 );
 
-/** \brief Computes contact gain by constructing and solving the full lagrangian equation
+/** \brief Computes contact gain by constructing and solving the full lagrangian 
+ *  equation
  *
  * This method builds and solves the linear system \f[
  \left(
@@ -626,15 +631,18 @@ void ComputeContactImpulsesNullSpace (
   Math::VectorNd &QDotPlus
 );
 
-/** \brief Solves the full contact system directly, i.e. simultaneously for contact forces and joint accelerations.
+/** \brief Solves the full contact system directly, i.e. simultaneously for 
+ *  contact forces and joint accelerations.
  *
  * This solves a \f$ (n_\textit{dof} +
  * n_c) \times (n_\textit{dof} + n_c\f$ linear system.
  *
  * \param H the joint space inertia matrix
  * \param G the constraint jacobian
- * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of the right hand side of the system
- * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the right hand side of the system
+ * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of 
+ * the right hand side of the system
+ * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the 
+ * right hand side of the system
  * \param qddot result: joint accelerations
  * \param lambda result: constraint forces
  * \param A work-space for the matrix of the linear system 
@@ -656,20 +664,26 @@ void SolveConstrainedSystemDirect (
   Math::LinearSolver &linear_solver
 );
 
-/** \brief Solves the contact system by first solving for the the joint accelerations and then the contact forces using a sparse matrix decomposition of the joint space inertia matrix.
+/** \brief Solves the contact system by first solving for the the joint 
+ *  accelerations and then the contact forces using a sparse matrix 
+ *  decomposition of the joint space inertia matrix.
  *
  * This method exploits the branch-induced sparsity by the structure
  * preserving \f$L^TL \f$ decomposition described in RBDL, Section 6.5.
  * 
  * \param H the joint space inertia matrix
  * \param G the constraint jacobian
- * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of the right hand side of the system
- * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the right hand side of the system
+ * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of 
+ * the right hand side of the system
+ * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the 
+ * right hand side of the system
  * \param qddot result: joint accelerations
  * \param lambda result: constraint forces
  * \param K work-space for the matrix of the constraint force linear system
- * \param a work-space for the right-hand-side of the constraint force linear system
- * \param linear_solver type of solver that should be used to solve the constraint force system
+ * \param a work-space for the right-hand-side of the constraint force linear 
+ * system
+ * \param linear_solver type of solver that should be used to solve the 
+ * constraint force system
  */
 RBDL_DLLAPI
 void SolveConstrainedSystemRangeSpaceSparse (
@@ -685,7 +699,8 @@ void SolveConstrainedSystemRangeSpaceSparse (
   Math::LinearSolver linear_solver
 );
 
-/** \brief Solves the contact system by first solving for the joint accelerations and then for the constraint forces.
+/** \brief Solves the contact system by first solving for the joint 
+ *  accelerations and then for the constraint forces.
  *
  * This methods requires a \f$n_\textit{dof} \times n_\textit{dof}\f$
  * matrix of the form \f$\left[ \ Y \ | Z \ \right]\f$ with the property
@@ -694,8 +709,10 @@ void SolveConstrainedSystemRangeSpaceSparse (
  *
  * \param H the joint space inertia matrix
  * \param G the constraint jacobian
- * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of the right hand side of the system
- * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the right hand side of the system
+ * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of 
+ * the right hand side of the system
+ * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the 
+ * right hand side of the system
  * \param qddot result: joint accelerations
  * \param lambda result: constraint forces
  * \param Y basis for the range-space of the constraints

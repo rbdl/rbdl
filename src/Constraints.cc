@@ -44,6 +44,7 @@ unsigned int ConstraintSet::AddContactConstraint (
   constraintType.push_back(ContactConstraint);
   name.push_back (name_str);
 
+  // These variables will be used for this type of constraint.
   body.push_back (body_id);
   point.push_back (body_point);
   normal.push_back (world_normal);
@@ -96,6 +97,7 @@ unsigned int ConstraintSet::AddLoopConstraint(
   constraintType.push_back(LoopConstraint);
   name.push_back (name_str);
 
+  // These variables will be used for this kind of constraint.
   body_p.push_back(id_predecessor);
   body_s.push_back(id_successor);
   X_p.push_back(X_predecessor);
@@ -671,11 +673,11 @@ void CalcConstrainedSystemVariables (
 
 RBDL_DLLAPI
 bool CalcAssemblyQ(
-  Model& model,
-  Math::VectorNd QInit,
-  const ConstraintSet& cs,
-  Math::VectorNd& Q,
-  const Math::VectorNd& weights,
+  Model &model,
+  Math::VectorNd QInit, // Note: passed by value intentionally
+  const ConstraintSet &cs,
+  Math::VectorNd &Q,
+  const Math::VectorNd &weights,
   double tolerance,
   unsigned int max_iter) {
 
@@ -750,13 +752,12 @@ bool CalcAssemblyQ(
 
 RBDL_DLLAPI
 void CalcAssemblyQDot(
-  Model& model,
-  const Math::VectorNd& Q,
-  const Math::VectorNd& QDotInit,
-  const ConstraintSet& cs,
-  Math::VectorNd& QDot,
-  const Math::VectorNd& weights
-) {
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDotInit,
+  const ConstraintSet &cs,
+  Math::VectorNd &QDot,
+  const Math::VectorNd &weights) {
 
   if(QDot.size() != model.dof_count) {
     std::cerr << "Vector QDot has size different from the number of degrees of \
