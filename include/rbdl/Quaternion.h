@@ -1,3 +1,10 @@
+/*
+ * RBDL - Rigid Body Dynamics Library
+ * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ *
+ * Licensed under the zlib license. See LICENSE for more details.
+ */
+
 #ifndef RBDL_QUATERNION_H
 #define RBDL_QUATERNION_H
 
