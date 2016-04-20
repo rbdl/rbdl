@@ -23,14 +23,14 @@ Algorithm".
 Recent Changes
 ==============
   * 20 April 2016: New version 2.4.1:
-		* This is a bugfix release that maintains binary compatibility and only fixes
-		erroneous behaviour.
-		* critical: fixed termination criterion for InverseKinematics. The termination
-			criterion would be evaluated too early and thus report convergence too
-			early. This was reported independently by Kevin Stein, Yun Fei, and Davide
-			Corradi. Thanks for the reports!
-		* critical: fixed CompositeRigidBodyAlgorithm when using spherical joints
-			(thanks to Sébastien Barthélémy for reporting!)
+    * This is a bugfix release that maintains binary compatibility and only fixes
+    erroneous behaviour.
+    * critical: fixed termination criterion for InverseKinematics. The termination
+      criterion would be evaluated too early and thus report convergence too
+      early. This was reported independently by Kevin Stein, Yun Fei, and Davide
+      Corradi. Thanks for the reports!
+    * critical: fixed CompositeRigidBodyAlgorithm when using spherical joints
+      (thanks to Sébastien Barthélémy for reporting!)
   * 23 February 2015: New version 2.4.0:
     * Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
       and ComputeContactImpulsesRangeSpaceSparse() 
