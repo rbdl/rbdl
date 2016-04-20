@@ -830,6 +830,7 @@ void ForwardDynamicsConstrainedDirect (
   for (unsigned int i = 0; i < CS.size(); i++) {
     CS.force[i] = -CS.x[model.dof_count + i];
   }
+
 }
 
 
