@@ -1,4 +1,7 @@
 2.4.1 -> next
+- Matthew Millard added CustomJoints which allow to create different joint
+  types completely by user code. They are implemented as proxy joints for
+  which their behaviour is specified using virtual functions.
 - Added CalcMInvTimesTau() that evaluates multiplication of the inverse of
   the joint space inertia matrix with a vector in O(n) time.
 - Added JointTypeFloatingBase which uses TX,TY,TZ and a spherical joint for
