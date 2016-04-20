@@ -1,4 +1,7 @@
 2.4.1 -> next
+- Added an experimental Cython based Python wrapper of RBDL. The API is
+  very close to the C++ API. For a brief glimpse of the API see the file
+  python/test_wrapper.py.
 - Matthew Millard added CustomJoints which allow to create different joint
   types completely by user code. They are implemented as proxy joints for
   which their behaviour is specified using virtual functions.

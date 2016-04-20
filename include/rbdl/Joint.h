@@ -269,6 +269,11 @@ struct RBDL_DLLAPI Joint {
         mJointAxes[0] = Math::SpatialVector (0., 0., 0., 1., 0., 0.);
         mJointAxes[1] = Math::SpatialVector (0., 0., 0., 0., 1., 0.);
         mJointAxes[2] = Math::SpatialVector (0., 0., 0., 0., 0., 1.);
+      } else if (type >= JointType1DoF && type <= JointType6DoF) {
+        // create a joint and allocate memory for it.
+        // Warning: the memory does not get initialized by this function!
+        mDoFCount = type - JointType1DoF + 1;
+        mJointAxes = new Math::SpatialVector[mDoFCount];
       } else if (type == JointTypeCustom) {
         //This constructor cannot be used for a JointTypeCustom because
         //we have no idea what mDoFCount is.
