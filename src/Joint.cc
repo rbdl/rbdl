@@ -251,8 +251,11 @@ namespace RigidBodyDynamics {
 				// Set the joint axis
 				model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
 			} else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
-				model.X_lambda[joint_id] = jcalc_XJ (model, joint_id, q) * model.X_T[joint_id];
-
+				model.X_lambda[joint_id] = SpatialTransform (
+						model.GetQuaternion (joint_id, q).toMatrix(),
+						Vector3d (0., 0., 0.))
+						* model.X_T[joint_id];
+				
 				model.multdof3_S[joint_id].setZero();
 
 				model.multdof3_S[joint_id](0,0) = 1.;
