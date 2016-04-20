@@ -46,6 +46,19 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>20 March 2016: New bugfix version 2.4.1:
+ *   <ul>
+ *     <li> <b>critical</b>: fixed termination criterion for
+ *     InverseKinematics(). The termination criterion would be evaluated too
+ *     early and thus report convergence too early. This was reported
+ *     independently by Kevin Stein, Yun Fei, and Davide Corradi. Thanks
+ *     for the reports!</li>
+ *     <li> <b>critical</b>: fixed CompositeRigidBodyAlgorithm() when using
+ *     spherical joints (thanks to Sébastien Barthélémy for
+ *     reporting!)</li>
+ *     </li>
+ *   </ul>
+ * </li>
  * <li>23 February 2015: New version 2.4.0:
  *   <ul>
  *    <li>Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse() and ComputeContactImpulsesRangeSpaceSparse()</li>

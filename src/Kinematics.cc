@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -434,16 +434,16 @@ bool InverseKinematics (
 			}
 
 			LOG << J << std::endl;
-
-			// abort if we are getting "close"
-			if (e.norm() < step_tol) {
-				LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
-				return true;
-			}
 		}
 
 		LOG << "J = " << J << std::endl;
 		LOG << "e = " << e.transpose() << std::endl;
+
+		// abort if we are getting "close"
+		if (e.norm() < step_tol) {
+			LOG << "Reached target close enough after " << ik_iter << " steps" << std::endl;
+			return true;
+		}
 
 		MatrixNd JJTe_lambda2_I = J * J.transpose() + lambda*lambda * MatrixNd::Identity(e.size(), e.size());
 

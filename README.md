@@ -1,5 +1,5 @@
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
 
 Introduction
 ============
@@ -22,6 +22,15 @@ Algorithm".
 
 Recent Changes
 ==============
+  * 20 April 2016: New version 2.4.1:
+		* This is a bugfix release that maintains binary compatibility and only fixes
+		erroneous behaviour.
+		* critical: fixed termination criterion for InverseKinematics. The termination
+			criterion would be evaluated too early and thus report convergence too
+			early. This was reported independently by Kevin Stein, Yun Fei, and Davide
+			Corradi. Thanks for the reports!
+		* critical: fixed CompositeRigidBodyAlgorithm when using spherical joints
+			(thanks to Sébastien Barthélémy for reporting!)
   * 23 February 2015: New version 2.4.0:
     * Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
       and ComputeContactImpulsesRangeSpaceSparse() 
@@ -151,7 +160,7 @@ license which should allow you to use the software wherever you need.
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
-    Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+    Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages

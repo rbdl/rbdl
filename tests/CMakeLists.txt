@@ -1,5 +1,3 @@
-PROJECT (RBDL_TESTS)
-
 CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
 
 # Needed for UnitTest++
