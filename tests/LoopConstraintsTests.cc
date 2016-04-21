@@ -134,8 +134,7 @@ struct SliderCrank3D {
       , jointSphere, crankLink2);
 
     X_p = Xtrans(Vector3d(0., 0., sliderHeight));
-    X_s = Xroty(-0.5 * M_PI)
-      * Xtrans(Vector3d(crankLink2Length, 0., 0.));
+    X_s = SpatialTransform(roty(-0.5 * M_PI), Vector3d(crankLink2Length, 0, 0));
 
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0), 10);
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0), 10);
@@ -150,8 +149,8 @@ struct SliderCrank3D {
     tau = VectorNd::Zero(model.dof_count);
 
     Matrix3d rot_ps 
-      = (CalcBodyWorldOrientation(model, q, id_p) * X_p.E).transpose()
-      * CalcBodyWorldOrientation(model, q, id_s) * X_s.E;
+      = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
+      * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
     assert(rot_ps(0,0) - 1. < TEST_PREC);
     assert(rot_ps(1,1) - 1. < TEST_PREC);
     assert(rot_ps(2,2) - 1. < TEST_PREC);
@@ -183,22 +182,11 @@ struct SliderCrank3D {
 
 
 
-// TEST(SphereJoint) {
+TEST(RBDLfunctions) {
 
-//   Model model;
+  Body stick(1, Vector3d(0,0,0), Vector3d(1,1,1));
 
-//   Body body(1., Vector3d::Zero(), Vector3d(0.,0.,0.));
-//   Joint jSphere(JointTypeSpherical);
-
-//   unsigned int id = model.AppendBody(Xtrans(Vector3d::Zero()), jSphere, body);
-
-//   VectorNd q(VectorNd::Zero(model.dof_count));
-
-//   std::cout << q.size() << std::endl;
-
-//   CalcBodyToBaseCoordinates(model, q, id, Vector3d::Zero());
-
-// }
+}
 
 
 
@@ -236,7 +224,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
-  rot_p = CalcBodyWorldOrientation(model, q, idB2, false) * X_p.E;
+  rot_p = CalcBodyWorldOrientation(model, q, idB2).transpose() * X_p.E;
   posErr = rot_p.transpose() * (pos2 - pos1);
 
   assert(std::fabs(posErr[1]) < TEST_PREC);
@@ -260,7 +248,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
-  rot_p = CalcBodyWorldOrientation(model, q, idB2, false) * X_p.E;
+  rot_p = CalcBodyWorldOrientation(model, q, idB2).transpose() * X_p.E;
   posErr = rot_p.transpose() * (pos2 - pos1);
 
   CalcConstraintsPositionError(model, q, cs, err);
@@ -281,7 +269,7 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintErrors) {
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
-  rot_p = CalcBodyWorldOrientation(model, q, idB2, false) * X_p.E;
+  rot_p = CalcBodyWorldOrientation(model, q, idB2).transpose() * X_p.E;
   posErr = rot_p.transpose() * (pos2 - pos1);
 
   CalcConstraintsPositionError(model, q, cs, err);
@@ -376,6 +364,52 @@ TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintJacobian) {
   err = G * qd;
 
   CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
+
+}
+
+
+
+TEST_FIXTURE(FiveBarLinkage, TestFiveBarLinkageConstraintsVelocityErrors) {
+
+  VectorNd errd(VectorNd::Zero(cs.size()));
+  VectorNd errdRef(VectorNd::Zero(cs.size()));
+  SpatialVector vj;
+
+  // Arms symmetric wrt y axis.
+  q[0] = M_PI * 3 / 4;
+  q[1] = -0.5 * M_PI;
+  q[2] = M_PI - q[0];
+  q[3] = -q[1];
+  q[4] = q[0] + q[1] - q[2] - q[3];
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
+
+  qd[0] = -1.;
+  qd[1] = -1.;
+  qd[2] = -2.;
+  qd[3] = +1.;
+  qd[4] = -1.;
+
+  CalcConstraintsVelocityError(model, q, qd, cs, errd);
+
+  CHECK_ARRAY_CLOSE(errdRef.data(), errd.data(), cs.size(), TEST_PREC);
+
+  // Invalid velocities.
+  qd[0] = -1.;
+  qd[1] = -1.;
+  qd[2] = 0.;
+  qd[3] = 0.;
+  qd[4] = 0.;
+
+  CalcConstraintsVelocityError(model, q, qd, cs, errd);
+
+  vj = CalcPointVelocity6D(model, q, qd, idB5, X_s.r) 
+    - CalcPointVelocity6D(model, q, qd, idB2, X_p.r);
+  errdRef[0] = vj[3];
+  errdRef[1] = vj[4];
+  errdRef[2] = vj[2];
+  CHECK_ARRAY_CLOSE(errdRef.data(), errd.data(), cs.size(), TEST_PREC);
 
 }
 
@@ -627,8 +661,8 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
 
   pos_p = CalcBodyToBaseCoordinates(model, q, id_p, X_p.r);
   pos_s = CalcBodyToBaseCoordinates(model, q, id_s, X_s.r);
-  rot_p = CalcBodyWorldOrientation(model, q, id_p) * X_p.E;
-  rot_s = CalcBodyWorldOrientation(model, q, id_s) * X_s.E;
+  rot_p = CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E;
+  rot_s = CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
   rot_ps = rot_s.transpose() * rot_p;
   rotationVec = 0.5 * Vector3d(rot_ps(2,1) - rot_ps(1,2)
     , rot_ps(0,2) - rot_ps(2,0), rot_ps(1,0) - rot_ps(0,1));
@@ -687,8 +721,8 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQ) {
   success = CalcAssemblyQ(model, qInit, cs, q, weights, TEST_PREC);
   pos_p = CalcBodyToBaseCoordinates(model, q, id_p, X_p.r);
   pos_s = CalcBodyToBaseCoordinates(model, q, id_s, X_s.r);
-  rot_p = CalcBodyWorldOrientation(model, q, id_p) * X_p.E;
-  rot_s = CalcBodyWorldOrientation(model, q, id_s) * X_s.E;
+  rot_p = CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E;
+  rot_s = CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
   rot_ps = rot_s.transpose() * rot_p;
 
   CHECK(success);
@@ -699,7 +733,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQ) {
 
 
 
-TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssebmlyQDot) {
+TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQDot) {
 
   VectorNd qWeights(q.size());
   VectorNd qdWeights(q.size());
@@ -832,8 +866,8 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
   Matrix3d rot_ps 
-    = (CalcBodyWorldOrientation(model, q, id_s) * X_s.E).transpose()
-    * CalcBodyWorldOrientation(model, q, id_p) * X_p.E;
+    = (CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E).transpose()
+    * CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E;
   assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
   assert(rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);

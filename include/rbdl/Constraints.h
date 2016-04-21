@@ -364,6 +364,18 @@ void CalcConstraintsJacobian(
 /** \brief Todo - add comments.
    */
 RBDL_DLLAPI
+void CalcConstraintsVelocityError(
+  Model& model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  ConstraintSet &CS,
+  Math::VectorNd& err,
+  bool update_kinematics = true
+);
+
+/** \brief Todo - add comments.
+   */
+RBDL_DLLAPI
 void CalcConstrainedSystemVariables (
   Model &model,
   const Math::VectorNd &Q,
