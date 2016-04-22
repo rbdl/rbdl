@@ -494,17 +494,23 @@ void CalcConstraintsJacobian(
   }
 
   // variables to check whether we need to recompute G.
-  unsigned int prev_body_id = 0;
-  Vector3d prev_body_point = Vector3d::Zero();
+  ConstraintSet::ConstraintType prev_constraint_type 
+    = ConstraintSet::ConstraintTypeNumber;
+  unsigned int prev_body_id_1 = 0;
+  unsigned int prev_body_id_2 = 0;
+  SpatialTransform prev_body_X_1;
+  SpatialTransform prev_body_X_2;
   
   // Variables used for computations.
   Vector3d normal;
   SpatialVector axis;
   Vector3d pos_p;
   Matrix3d rot_p;
+  SpatialTransform X_0p;
   MatrixNd Gi(3, model.dof_count);
   MatrixNd GSpi(6, model.dof_count);
   MatrixNd GSsi = GSpi;
+  MatrixNd GSJ = GSpi;
 
   // Current constraint column.
   unsigned int j;
@@ -514,11 +520,19 @@ void CalcConstraintsJacobian(
 
     case ConstraintSet::ContactConstraint:
       // only compute the matrix Gi if actually needed
-      if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
+      if(prev_constraint_type != CS.constraintType[c]
+        || prev_body_id_1 != CS.body[c] 
+        || prev_body_X_1.r != CS.point[c]) {
+
+        // Compute the jacobian for the point.
         Gi.setZero();
         CalcPointJacobian(model, Q, CS.body[c], CS.point[c], Gi, false);
-        prev_body_id = CS.body[c];
-        prev_body_point = CS.point[c];
+        prev_constraint_type = ConstraintSet::ContactConstraint;
+
+        // Update variables for optimization check.
+        prev_body_id_1 = CS.body[c];
+        prev_body_X_1 = Xtrans(CS.point[c]);
+
       }
 
       for(j = 0; j < model.dof_count; j++) {
@@ -530,24 +544,43 @@ void CalcConstraintsJacobian(
 
     case ConstraintSet::LoopConstraint:
 
-      // Force recomputation of Contact Constraints (can optimize here).
-      prev_body_id = 0;
+      // Only recompute variables if necessary.
+      if(prev_constraint_type != CS.constraintType[c]
+        || prev_body_id_1 != CS.body_p[c]
+        || prev_body_id_2 != CS.body_s[c]
+        || prev_body_X_1.r != CS.X_p[c].r
+        || prev_body_X_2.r != CS.X_s[c].r
+        || prev_body_X_1.E != CS.X_p[c].E
+        || prev_body_X_2.E != CS.X_s[c].E) {
 
-      // Compute the 6D jacobians of the two contact points.
-      GSpi.setZero();
-      GSsi.setZero();
-      CalcPointJacobian6D(model, Q, CS.body_p[c], CS.X_p[c].r, GSpi, false);
-      CalcPointJacobian6D(model, Q, CS.body_s[c], CS.X_s[c].r, GSsi, false);
+        // Compute the 6D jacobians of the two contact points.
+        GSpi.setZero();
+        GSsi.setZero();
+        CalcPointJacobian6D(model, Q, CS.body_p[c], CS.X_p[c].r, GSpi, false);
+        CalcPointJacobian6D(model, Q, CS.body_s[c], CS.X_s[c].r, GSsi, false);
+        GSJ = GSsi - GSpi;
+
+        // Compute position and rotation matrix from predecessor body to base.
+        pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r
+          , false);
+        rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c]
+          , false).transpose()* CS.X_p[c].E;
+        X_0p = SpatialTransform(rot_p, pos_p);
+
+        // Update variables for optimization check.
+        prev_constraint_type = ConstraintSet::LoopConstraint;
+        prev_body_id_1 = CS.body_p[c];
+        prev_body_id_2 = CS.body_s[c];
+        prev_body_X_1 = CS.X_p[c];
+        prev_body_X_2 = CS.X_s[c];
+
+      }
 
       // Express the constraint axis in the base frame.
-      pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r,
-        false);
-      rot_p = CalcBodyWorldOrientation(model, Q, CS.body_p[c], false).transpose()
-        * CS.X_p[c].E;
-      axis = SpatialTransform(rot_p, pos_p).apply(CS.constraintAxis[c]);
+      axis = X_0p.apply(CS.constraintAxis[c]);
 
       // Compute the constraint Jacobian row.
-      G.block(c, 0, 1, model.dof_count) = axis.transpose() * (GSsi - GSpi);
+      G.block(c, 0, 1, model.dof_count) = axis.transpose() * GSJ;
 
       break;
 

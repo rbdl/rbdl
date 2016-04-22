@@ -247,6 +247,7 @@ struct RBDL_DLLAPI ConstraintSet {
   enum ConstraintType {
     ContactConstraint,
     LoopConstraint,
+    ConstraintTypeNumber,
   };
 
   /** \brief Adds a contact constraint to the constraint set.
