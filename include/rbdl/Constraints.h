@@ -13,26 +13,26 @@
 
 namespace RigidBodyDynamics {
 
-/** \page contacts_page External Contacts
+/** \page contacts_page External Constraints
  *
  * All functions related to contacts are specified in the \ref
- * contacts_group "Contacts Module".
+ * constraints_group "Constraints Module".
 
- * \defgroup contacts_group Contacts
+ * \defgroup constraints_group Constraints
  *
- * External contacts are handled by specification of a \link
+ * Constraints are handled by specification of a \link
  * RigidBodyDynamics::ConstraintSet
  * ConstraintSet \endlink which contains all informations about the
- * current contacts and workspace memory.
+ * current constraints and workspace memory.
  *
- * Separate contacts can be specified by calling
- * ConstraintSet::AddConstraint(). After all constraints have been
- * specified, this \link
+ * Separate constraints can be specified by calling
+ * ConstraintSet::AddContactConstraint() and ConstraintSet::AddLoopConstraint().
+ * After all constraints have been specified, this \link
  * RigidBodyDynamics::ConstraintSet
  * ConstraintSet \endlink has to be bound to the model via
  * ConstraintSet::Bind(). This initializes workspace memory that is
  * later used when calling one of the contact functions, such as
- * ForwardDynamicsContacts() or ForwardDynamicsContactsLagrangian().
+ * ForwardDynamicsContactsDirects().
  *
  * The values in the vectors ConstraintSet::force and
  * ConstraintSet::impulse contain the computed force or
@@ -43,7 +43,7 @@ namespace RigidBodyDynamics {
  *
  * \subsection constraint_system Linear System of the Constrained Dynamics
  *
- * External contacts are constraints that act on the model. To compute the
+ * In the presence of constraints, to compute the
  * acceleration one has to solve a linear system of the form: \f[
  \left(
    \begin{array}{cc}
@@ -65,10 +65,10 @@ namespace RigidBodyDynamics {
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
- * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
- * contact points, \f$C\f$ the bias force (sometimes called "non-linear
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ is the constraint jacobian,
+ * \f$C\f$ the bias force (sometimes called "non-linear
  * effects"), and \f$\gamma\f$ the generalized acceleration independent
- * part of the contact point accelerations.
+ * part of the constraints.
  *
  * \subsection collision_system Linear System of the Contact Collision
  *
@@ -144,6 +144,86 @@ namespace RigidBodyDynamics {
  * - ComputeContactImpulsesRangeSpaceSparse()
  * - ComputeContactImpulsesNullSpace()
  *
+ * \subsection assembly_q_qdot Computing generalized joint positions and velocities satisfying the constraint equations
+ *
+ * When considering a model subject position level constraints expressed by the
+ * equation \f$\phi (q) = 0\f$, it is often necessary to comput generalized joint
+ * position and velocities which satisfy the constraints.
+ *
+ * In order to compute a vector of generalized joint positions that satisfy
+ * the constraints it is necessary to solve the following optimization problem:
+ * \f{eqnarray*}{
+ * \text{minimize} && \sum_{i = 0}^{n} (q - q_{0})^T W (q - q_{0}) \\
+ * \text{over} && q \\
+ * \text{subject to} && \phi (q) = 0
+ * \f}
+ * 
+ * In order to compute a vector of generalized joint velocities that satisfy
+ * the constraints it is necessary to solve the following optimization problem:
+ * \f{eqnarray*}{
+ * \text{minimize} && \sum_{i = 0}^{n} (\dot{q} - \dot{q}_{0})^T W (\dot{q} - \dot{q}_{0}) \\
+ * \text{over} && \dot{q} \\
+ * \text{subject to} && \dot{\phi} (q) = \phi _{q}(q) \dot{q} + \phi _{t}(q) = 0
+ * \f}
+ *
+ * \f$q_{0}\f$ and \f$\dot{q}_{0}\f$ are initial guesses, \f$\phi _{q}\f$ is the
+ * constraints jacobian (partial derivative of \f$\phi\f$ with respect to \f$q\f$),
+ * and \f$\phi _{t}(q)\f$ is the partial derivative of \f$\phi\f$ with respect
+ * to time. \f$W\f$ is a diagonal weighting matrix, which can be exploited
+ * to prioritize changes in the position/ velocity of specific joints.
+ * With a solver capable of handling singular matrices, it is possible to set to
+ * 1 the weight of the joint positions/ velocities that should not be changed
+ * from the initial guesses, and to 0 those corresponding to the values that
+ * can be changed.
+ *
+ * These problems are solved using the Lagrange multipliers method. For the
+ * velocity problem the solution is exact. For the position problem the
+ * constraints are linearized in the form 
+ * \f$ \phi (q_{0}) + \phi _{t}(q0) + \phi _{q_0}(q) (q - q_{0}) \f$
+ * and the linearized problem is solved iteratively until the constraint position
+ * errors are smaller than a given threshold.
+ *
+ * RBDL provides two functions to compute feasible joint position and velocities:
+ * - CalcAssemblyQ()
+ * - CalcAssemblyQDot()
+ *
+ * \subsection baumgarte_stabilization Baumgarte stabilization
+ *
+ * The constrained dynamic equations are correct in theory, but are not stable
+ * during numeric integration. RBDL implements Baumgarte stabilization to avoid
+ * the accumulation of position and velocity errors.
+ *
+ * The dynamic equations are changed to the following form: \f[
+ \left(
+   \begin{array}{cc}
+     H & G^T \\
+     G & 0
+   \end{array}
+ \right)
+ \left(
+   \begin{array}{c}
+     \ddot{q} \\
+     - \lambda
+   \end{array}
+ \right)
+ =
+ \left(
+   \begin{array}{c}
+     -C + \tau \\
+     \gamma + \gamma _{stab}
+   \end{array}
+ \right)
+ * \f] A term \f$\gamma _{stab}\f$ is added to the right hand side of the
+ * equation, defined in the following way: \f[
+   \gamma _{stab} = 
+   - \frac{2}{T_{stab}} \dot{\phi} (q)
+   - \left(\frac{1}{T_{stab}} \right)^2 \phi (q)
+ * \f] where \f$\phi (q)\f$ are the position level constraint errors and 
+ * \f$T_{stab}\f$ is a tuning coefficient. The value of \f$T_{stab}\f$ must
+ * be chosen carefully. If it is too large the stabilization will not be able
+ * to compensate the errors and the position and velocity errors will increase.
+ * If it is too small, the system of equations will become unnecessarily stiff.
+ *
  * @{
  */
 
@@ -169,7 +249,11 @@ struct RBDL_DLLAPI ConstraintSet {
     LoopConstraint,
   };
 
-  /** \brief Adds a constraint to the constraint set.
+  /** \brief Adds a contact constraint to the constraint set.
+   *
+   * This type of constraints ensures that the velocity and acceleration of a specified
+   * body point along a specified axis are null. This constraint does not act
+   * at the position level.
    *
    * \param body_id the body which is affected directly by the constraint
    * \param body_point the point that is constrained relative to the
@@ -187,7 +271,25 @@ struct RBDL_DLLAPI ConstraintSet {
     const char *constraint_name = NULL,
     double normal_acceleration = 0.);
 
-  /** \brief Todo - add comments.
+  /** \brief Adds a loop constraint to the constraint set.
+   *
+   * This type of constraints ensures that the relative orientation and position,
+   * spatial velocity, and spatial acceleration between two frames in two bodies
+   * are null along a specified spatial constraint axis.
+   *
+   * \param id_predecessor the identifier of the predecessor body
+   * \param id_successor the identifier of the successor body
+   * \param X_predecessor a spatial transform localizing the constrained
+   * frames on the predecessor body, expressed with respect to the predecessor
+   * body frame
+   * \param id_successor a spatial transform localizing the constrained
+   * frames on the successor body, expressed with respect to the predecessor
+   * body frame
+   * \param axis a spatial vector indicating the axis along which the constraint
+   * acts
+   * \param T_stab coefficient for Baumgarte stabilization.
+   * \param constraint_name a human readable name (optional, default: NULL)
+   *
    */
   unsigned int AddLoopConstraint(
     unsigned int id_predecessor, 
@@ -225,6 +327,7 @@ struct RBDL_DLLAPI ConstraintSet {
    *
    * The values of ConstraintSet::acceleration may still be
    * modified after the set is bound to the model.
+   *
    */
   bool Bind (const Model &model);
 
@@ -332,8 +435,17 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<Math::Vector3d> d_multdof3_u;
 };
 
-/** \brief Todo - add comments.
-   */
+/** \brief Computes the position errors for the given ConstraintSet.
+  *
+  * \param model the model
+  * \param Q the generalized positions of the joints
+  * \param CS the constraint set for which the error should be computed
+  * \param err (output) vector where the error will be stored in (should have
+  * the size of CS).
+  * \param update_kinematics whether the kinematics of the model should be
+  * updated from Q.
+  *
+  */
 RBDL_DLLAPI
 void CalcConstraintsPositionError(
   Model& model,
@@ -350,7 +462,8 @@ void CalcConstraintsPositionError(
  * \param CS    the constraint set for which the Jacobian should be computed
  * \param G     (output) matrix where the output will be stored in
  * \param update_kinematics whether the kinematics of the model should be 
- * * updated from Q
+ * updated from Q
+ *
  */
 RBDL_DLLAPI
 void CalcConstraintsJacobian(
@@ -361,20 +474,46 @@ void CalcConstraintsJacobian(
   bool update_kinematics = true
 );
 
-/** \brief Todo - add comments.
-   */
+/** \brief Computes the velocity errors for the given ConstraintSet.
+  *
+  *
+  * \param model the model
+  * \param Q the generalized positions of the joints
+  * \param QDot the generalized velocities of the joints
+  * \param CS the constraint set for which the error should be computed
+  * \param err (output) vector where the error will be stored in (should have
+  * the size of CS).
+  * \param update_kinematics whether the kinematics of the model should be
+  * updated from Q.
+  *
+  * \note this is equivalent to multiplying the constraint jacobian by the 
+  * generalized velocities of the joints.
+  *
+  */
 RBDL_DLLAPI
 void CalcConstraintsVelocityError(
   Model& model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
-  ConstraintSet &CS,
+  const ConstraintSet &CS,
   Math::VectorNd& err,
   bool update_kinematics = true
 );
 
-/** \brief Todo - add comments.
-   */
+/** \brief Computes the terms \f$H\f$, \f$G\f$, and \f$\gamma\f$ of the 
+  * constrained dynamic problem and stores them in the ConstraintSet.
+  *
+  *
+  * \param model the model
+  * \param Q the generalized positions of the joints
+  * \param QDot the generalized velocities of the joints
+  * \param Tau the generalized forces of the joints
+  * \param CS the constraint set for which the error should be computed
+  *
+  * \note This function is normally called automatically in the various
+  * constrained dynamics functions, the user normally does not have to call it.
+  *
+  */
 RBDL_DLLAPI
 void CalcConstrainedSystemVariables (
   Model &model,
@@ -384,7 +523,21 @@ void CalcConstrainedSystemVariables (
   ConstraintSet &CS
 );
 
-/** \brief Todo - add comments.
+/** \brief Computes a feasible initial value of the generalized joint positions.
+  * 
+  * \param model the model
+  * \param QInit initial guess for the generalized positions of the joints
+  * \param CS the constraint set for which the error should be computed
+  * \param Q (output) vector of the generalized joint positions.
+  * \param weights weighting coefficients for the different joint positions.
+  * \param tolerance the function will return successfully if the constraint
+  * position error norm is lower than this value.
+  * \param max_iter the funciton will return unsuccessfully after performing
+  * this number of iterations.
+  * 
+  * \return true if the generalized joint positions were computed successfully,
+  * false otherwise.
+  *
   */
 RBDL_DLLAPI
 bool CalcAssemblyQ(
@@ -397,7 +550,16 @@ bool CalcAssemblyQ(
   unsigned int max_iter = 100
 );
 
-/** \brief Todo - add comments.
+/** \brief Computes a feasible initial value of the generalized joint velocities.
+  * 
+  * \param model the model
+  * \param Q the generalized joint position of the joints. It is assumed that
+  * this vector satisfies the position level assemblt constraints.
+  * \param QDotInit initial guess for the generalized velocities of the joints
+  * \param CS the constraint set for which the error should be computed
+  * \param QDot (output) vector of the generalized joint velocities.
+  * \param weights weighting coefficients for the different joint positions.
+  *
   */
 RBDL_DLLAPI
 void CalcAssemblyQDot(
@@ -551,6 +713,8 @@ void ForwardDynamicsConstrainedNullSpace (
  * \note During execution of this function values such as
  * ConstraintSet::force get modified and will contain the value
  * of the force acting along the normal.
+ *
+ * \note This function supports only contact constraints.
  *
  * \todo Allow for external forces
  */

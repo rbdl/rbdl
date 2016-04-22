@@ -386,45 +386,41 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
 
 TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintsVelocityErrors) {
 
-  // VectorNd errd(VectorNd::Zero(cs.size()));
-  // VectorNd errdRef(VectorNd::Zero(cs.size()));
-  // SpatialVector vj;
+  VectorNd errd(VectorNd::Zero(cs.size()));
+  VectorNd errdRef(VectorNd::Zero(cs.size()));
+  MatrixNd G(cs.size(), model.dof_count);
 
-  // // Arms symmetric wrt y axis.
-  // q[0] = M_PI * 3 / 4;
-  // q[1] = -0.5 * M_PI;
-  // q[2] = M_PI - q[0];
-  // q[3] = -q[1];
-  // q[4] = q[0] + q[1] - q[2] - q[3];
-  // assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  // assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
-  //   - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
+  // Arms symmetric wrt y axis.
+  q[0] = M_PI * 3 / 4;
+  q[1] = -0.5 * M_PI;
+  q[2] = M_PI - q[0];
+  q[3] = -q[1];
+  q[4] = q[0] + q[1] - q[2] - q[3];
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
-  // qd[0] = -1.;
-  // qd[1] = -1.;
-  // qd[2] = -2.;
-  // qd[3] = +1.;
-  // qd[4] = -1.;
+  qd[0] = -1.;
+  qd[1] = -1.;
+  qd[2] = -2.;
+  qd[3] = +1.;
+  qd[4] = -1.;
 
-  // CalcConstraintsVelocityError(model, q, qd, cs, errd);
+  CalcConstraintsVelocityError(model, q, qd, cs, errd);
 
-  // CHECK_ARRAY_CLOSE(errdRef.data(), errd.data(), cs.size(), TEST_PREC);
+  CHECK_ARRAY_CLOSE(errdRef.data(), errd.data(), cs.size(), TEST_PREC);
 
-  // // Invalid velocities.
-  // qd[0] = -1.;
-  // qd[1] = -1.;
-  // qd[2] = 0.;
-  // qd[3] = 0.;
-  // qd[4] = 0.;
+  // Invalid velocities.
+  qd[0] = -1.;
+  qd[1] = -1.;
+  qd[2] = 0.;
+  qd[3] = 0.;
+  qd[4] = 0.;
 
-  // CalcConstraintsVelocityError(model, q, qd, cs, errd);
-
-  // vj = CalcPointVelocity6D(model, q, qd, idB5, X_s.r) 
-  //   - CalcPointVelocity6D(model, q, qd, idB2, X_p.r);
-  // errdRef[0] = vj[3];
-  // errdRef[1] = vj[4];
-  // errdRef[2] = vj[2];
-  // CHECK_ARRAY_CLOSE(errdRef.data(), errd.data(), cs.size(), TEST_PREC);
+  CalcConstraintsVelocityError(model, q, qd, cs, errd);
+  CalcConstraintsJacobian(model, q, cs, G);
+  errdRef = G * qd;
+  CHECK_ARRAY_CLOSE(errdRef.data(), errd.data(), cs.size(), TEST_PREC);
 
 }
 
@@ -749,6 +745,48 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintJacobian) {
   VectorNd err = G * qd;
 
   CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
+
+}
+
+
+
+TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintsVelocityErrors) {
+
+  VectorNd errd(VectorNd::Zero(cs.size()));
+  VectorNd errdRef(VectorNd::Zero(cs.size()));
+  MatrixNd G(cs.size(), model.dof_count);
+  VectorNd qWeights(q.size());
+  VectorNd qInit(q.size());
+  bool success;
+
+  // Compute assembled configuration.
+  qWeights[0] = 1.;
+  qWeights[1] = 1.;
+  qWeights[2] = 1.;
+  qWeights[3] = 1.;
+  qWeights[4] = 1.;
+
+  qInit[0] = 0.4;
+  qInit[1] = 0.25 * M_PI;
+  qInit[2] = -0.25 * M_PI;
+  qInit[3] = 0.1;
+  qInit[4] = 0.1;
+
+  success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
+  assert(success);
+
+  // Some random velocity.
+  qd[0] = -0.2;
+  qd[1] = 0.1 * M_PI;
+  qd[2] = -0.1 * M_PI;
+  qd[3] = 0.;
+  qd[4] = 0.1 * M_PI;
+
+  CalcConstraintsVelocityError(model, q, qd, cs, errd);
+  CalcConstraintsJacobian(model, q, cs, G);
+  errdRef = G * qd;
+
+  CHECK_ARRAY_CLOSE(errdRef.data(), errd.data(), cs.size(), TEST_PREC);
 
 }
 
