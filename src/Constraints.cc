@@ -438,7 +438,7 @@ void CalcConstraintsPositionError(
         * CS.X_s[c].E;
 
       // Compute the orientation from the predecessor to the successor frame.
-      rot_ps = rot_s.transpose() * rot_p;
+      rot_ps = rot_p.transpose() * rot_s;
 
       // Compute the position of the two contact points.
       pos_p = CalcBodyToBaseCoordinates(model, Q, CS.body_p[c], CS.X_p[c].r
