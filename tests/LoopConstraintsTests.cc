@@ -235,7 +235,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = 0.;
-  angleErr = sin(0.5 * M_PI);
+  angleErr = sin(-0.5 * M_PI);
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
@@ -259,7 +259,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   q[2] = M_PI + 0.1;
   q[3] = 0.;
   q[4] = 0.;
-  angleErr = sin(q[0] + q[1] - q[2] - q[3] - q[4]);
+  angleErr = sin(-q[0] - q[1] + q[2] + q[3] + q[4]);
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
@@ -280,7 +280,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = 0.;
-  angleErr = sin(q[0] + q[1] - q[2] - q[3] - q[4]);
+  angleErr = sin(-q[0] - q[1] + q[2] + q[3] + q[4]);
 
   pos1 = CalcBodyToBaseCoordinates(model, q, idB2, X_p.r);
   pos2 = CalcBodyToBaseCoordinates(model, q, idB5, X_s.r);
@@ -450,41 +450,9 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
   assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
 
-  bool success;
+  bool success;  
 
-  std::cout << std::endl;
-  qd[0] = 2.;
-  qd[1] = 3.;
-  
 
-  std::cout << "Rotations: " << std::endl;
-  Matrix3d Ep;
-  Matrix3d Es;
-  std::cout << CalcBodyWorldOrientation(model, qRef, idB1) << std::endl;
-  std::cout << cos(qRef[0]) << ", " << sin(qRef[0]) << std::endl;
-  std::cout << CalcBodyWorldOrientation(model, qRef, idB2) << std::endl;
-  std::cout << cos(qRef[0] + qRef[1]) << ", " << sin(qRef[0] + qRef[1]) << std::endl;
-  Ep = CalcBodyWorldOrientation(model, qRef, idB2).transpose() * X_p.E;
-  Es = CalcBodyWorldOrientation(model, qRef, idB5).transpose() * X_s.E;
-  std::cout << std::endl << Ep << std::endl << std::endl;
-  std::cout << std::endl << Es << std::endl << std::endl;
-  std::cout << std::endl << Ep.transpose() * Es << std::endl << std::endl;
-
-  std::cout << "Positions: " << std::endl;
-  std::cout << CalcBodyToBaseCoordinates(model, qRef, idB1, Vector3d::Zero()).transpose() << std::endl;
-  std::cout << CalcBodyToBaseCoordinates(model, qRef, idB2, Vector3d::Zero()).transpose() << std::endl;
-  std::cout << CalcBodyToBaseCoordinates(model, qRef, idB2, X_p.r).transpose() << std::endl;
-
-  std::cout << "Velocities: " << std::endl;
-  MatrixNd G1(MatrixNd::Zero(6, model.dof_count));
-  MatrixNd G2(MatrixNd::Zero(6, model.dof_count));
-  CalcPointJacobian6D(model, q, idB1, Vector3d::Zero(), G1);
-  CalcPointJacobian6D(model, q, idB2, Vector3d::Zero(), G2);
-  std::cout << CalcPointVelocity6D(model, q, qd, idB1, Vector3d::Zero()).transpose() << std::endl;
-  std::cout << (G1 * qd).transpose() << std::endl;
-  std::cout << CalcPointVelocity6D(model, q, qd, idB2, Vector3d::Zero()).transpose() << std::endl;
-  std::cout << (G2 * qd).transpose() << std::endl;;
-  std::cout << std::endl;
 
   // Feasible initial guess.
   VectorNd qInit = VectorNd::Zero(q.size());
@@ -493,6 +461,26 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-12);
   CalcConstraintsPositionError(model, q, cs, err);
 
+  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r).data()
+    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r).data(), 3, TEST_PREC);
+  CHECK_CLOSE(inRange(q[0] + q[1]), inRange(q[2] + q[3] + q[4]), TEST_PREC);
+  CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
+  CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
+
+
+
+  // Perturbed initial guess.
+  qInit[0] = qRef[0];
+  qInit[1] = qRef[1];
+  qInit[2] = qRef[2];
+  qInit[3] = qRef[3];
+  qInit[4] = qRef[4] + 0.05;
+
+  success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-12);
+  CalcConstraintsPositionError(model, q, cs, err);
+
+  CHECK(success);
   CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r).data()
     , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r).data(), 3, TEST_PREC);
   CHECK_CLOSE(inRange(q[0] + q[1]), inRange(q[2] + q[3] + q[4]), TEST_PREC);
@@ -512,17 +500,6 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-12);
   CalcConstraintsPositionError(model, q, cs, err);
 
-  std::cout << qRef.transpose() << std::endl;
-  std::cout << qInit.transpose() << std::endl;
-  std::cout << q.transpose() << std::endl;
-  std::cout << err.transpose() << std::endl;
-  Ep = CalcBodyWorldOrientation(model, q, idB2).transpose() * X_p.E;
-  Es = CalcBodyWorldOrientation(model, q, idB5).transpose() * X_s.E;
-  std::cout << std::endl << Ep << std::endl << std::endl;
-  std::cout << std::endl << Es << std::endl << std::endl;
-  std::cout << std::endl << Ep.transpose() * Es << std::endl << std::endl;
-
-
   CHECK(success);
   CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r).data()
     , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r).data(), 3, TEST_PREC);
@@ -541,11 +518,6 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
 
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-12);
   CalcConstraintsPositionError(model, q, cs, err);
-
-  std::cout << qRef.transpose() << std::endl;
-  std::cout << qInit.transpose() << std::endl;
-  std::cout << q.transpose() << std::endl;
-  std::cout << err.transpose() << std::endl;
 
   CHECK(success);
   CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r).data()

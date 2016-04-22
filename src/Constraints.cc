@@ -450,9 +450,9 @@ void CalcConstraintsPositionError(
       // This formulation is equivalent to u * sin(theta), where u and theta are
       // the angle-axis of rotation from the predecessor to the successor frame.
       // These quantities are expressed in the predecessor frame.
-      d[0] = 0.5 * (rot_ps(1,2) - rot_ps(2,1));
-      d[1] = 0.5 * (rot_ps(2,0) - rot_ps(0,2));
-      d[2] = 0.5 * (rot_ps(0,1) - rot_ps(1,0));
+      d[0] = -0.5 * (rot_ps(1,2) - rot_ps(2,1));
+      d[1] = -0.5 * (rot_ps(2,0) - rot_ps(0,2));
+      d[2] = -0.5 * (rot_ps(0,1) - rot_ps(1,0));
 
       // The last three elements represent the position error.
       // It is equivalent to the difference in the position of the two
@@ -569,12 +569,13 @@ void CalcConstraintsVelocityError(
   Model& model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
-  ConstraintSet &CS,
+  const ConstraintSet &CS,
   Math::VectorNd& err,
   bool update_kinematics) {
 
-  CalcConstraintsJacobian(model, Q, CS, CS.G, update_kinematics);
-  err = CS.G * QDot;
+  MatrixNd G(MatrixNd::Zero(CS.size(), model.dof_count));
+  CalcConstraintsJacobian(model, Q, CS, G, update_kinematics);
+  err = G * QDot;
 
 }
 
@@ -738,22 +739,23 @@ bool CalcAssemblyQ(
     A.block(0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
 
     // Compute the constraint errors and update b.
-    // If the error is lower than the tolerance return.
     CalcConstraintsPositionError(model, QInit, cs, e);
-    if(e.norm() < tolerance) {
-      Q = QInit;
-      return true;
-    }
-    b.block(Q.size(), 0, cs.size(), 1) = -1. * e;
+    b.block(Q.size(), 0, cs.size(), 1) = -e;
 
     // Solve the sistem A*x = b.
     SolveLinearSystem(A, b, x, cs.linear_solver);
 
     // Extract the d = (Q - QInit) vector from x.
+    // Check if d is small, if yes, update the value of Q and return true.
     d = x.block(0, 0, Q.size(), 1);
     QInit += d;
 
-    // std::cout << "Iteration " << it+1 << ", d = " << d.transpose() << ", e = " << e.transpose() << std::endl;
+    // std::cout << "Iteration " << it+1 << ", d = " << d.transpose() << std::endl;
+
+    if(d.norm() < tolerance) {
+      Q = QInit;
+      return true;
+    }
 
   }
 
