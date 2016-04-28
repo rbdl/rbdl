@@ -8,7 +8,17 @@
 #ifndef RBDL_EIGENMATH_H
 #define RBDL_EIGENMATH_H
 
-class RBDL_DLLAPI Vector3_t : public Eigen::Vector3d
+/* Exporting templated symbols is tricky when using MSVC. The following lines
+ * causes the classes in this file not to be explicitly exported. Instead
+ * they are already implicitly exported.
+ */
+#if defined(WIN32) && defined(rbdl_EXPORTS)
+#define RBDL_TEMPLATE_DLLAPI
+#else
+#define RBDL_TEMPLATE_DLLAPI RBDL_DLLAPI
+#endif
+
+class RBDL_TEMPLATE_DLLAPI Vector3_t : public Eigen::Vector3d
 {
   public:
     typedef Eigen::Vector3d Base;
@@ -45,7 +55,7 @@ class RBDL_DLLAPI Vector3_t : public Eigen::Vector3d
     }
 };
 
-class RBDL_DLLAPI Matrix3_t : public Eigen::Matrix3d
+class RBDL_TEMPLATE_DLLAPI Matrix3_t : public Eigen::Matrix3d
 {
   public:
     typedef Eigen::Matrix3d Base;
@@ -81,7 +91,7 @@ class RBDL_DLLAPI Matrix3_t : public Eigen::Matrix3d
     }
 };
 
-class RBDL_DLLAPI Vector4_t : public Eigen::Vector4d
+class RBDL_TEMPLATE_DLLAPI Vector4_t : public Eigen::Vector4d
 {
   public:
     typedef Eigen::Vector4d Base;
@@ -118,7 +128,7 @@ class RBDL_DLLAPI Vector4_t : public Eigen::Vector4d
     }
 };
 
-class RBDL_DLLAPI SpatialVector_t : public Eigen::Matrix<double, 6, 1>
+class RBDL_TEMPLATE_DLLAPI SpatialVector_t : public Eigen::Matrix<double, 6, 1>
 {
   public:
     typedef Eigen::Matrix<double, 6, 1> Base;
@@ -159,7 +169,7 @@ class RBDL_DLLAPI SpatialVector_t : public Eigen::Matrix<double, 6, 1>
     }
 };
 
-class RBDL_DLLAPI SpatialMatrix_t : public Eigen::Matrix<double, 6, 6>
+class RBDL_TEMPLATE_DLLAPI SpatialMatrix_t : public Eigen::Matrix<double, 6, 6>
 {
   public:
     typedef Eigen::Matrix<double, 6, 6> Base;
