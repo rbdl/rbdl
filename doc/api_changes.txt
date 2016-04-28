@@ -1,11 +1,12 @@
-2.4.0 -> next
+2.4.1 -> next
+- Added an experimental Cython based Python wrapper of RBDL. The API is
+  very close to the C++ API. For a brief glimpse of the API see the file
+  python/test_wrapper.py.
 - Matthew Millard added CustomJoints which allow to create different joint
   types completely by user code. They are implemented as proxy joints for
   which their behaviour is specified using virtual functions.
 - Added CalcMInvTimesTau() that evaluates multiplication of the inverse of
   the joint space inertia matrix with a vector in O(n) time.
-- Fixed CompositeRigidBodyAlgorithm when using spherical joints (thanks to
-  Sébastien Barthélémy for reporting!)
 - Added JointTypeFloatingBase which uses TX,TY,TZ and a spherical joint for
   the floating base joint.
 - Loading of floating base URDF models must now be specified as a third
@@ -16,6 +17,16 @@
   that compute both linear and angular quantities
 - Removed Model::SetFloatingBase (body). Use a 6-DoF joint or
   JointTypeFloatingBase instead.
+
+2.4.0 -> 2.4.1
+This is a bugfix release that maintains binary compatibility and only fixes
+erroneous behaviour.
+- critical: fixed termination criterion for InverseKinematics. The termination
+  criterion would be evaluated too early and thus report convergence too
+  early. This was reported independently by Kevin Stein, Yun Fei, and Davide
+  Corradi. Thanks for the reports!
+- critical: fixed CompositeRigidBodyAlgorithm when using spherical joints
+  (thanks to Sébastien Barthélémy for reporting!)
 
 2.3.3 -> 2.4.0
 - Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
