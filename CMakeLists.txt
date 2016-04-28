@@ -3,7 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 PROJECT (RBDL)
 
 SET ( RBDL_VERSION_MAJOR 2 )
-SET ( RBDL_VERSION_MINOR 4 )
+SET ( RBDL_VERSION_MINOR 5 )
 SET ( RBDL_VERSION_PATCH 0 )
 SET ( RBDL_VERSION 
 	${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}
@@ -56,6 +56,7 @@ OPTION (RBDL_STORE_VERSION "Enable storing of version information in the library
 OPTION (RBDL_BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" OFF)
 OPTION (RBDL_BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
 OPTION (RBDL_BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
+OPTION (RBDL_BUILD_PYTHON_WRAPPER "Build experimental python wrapper" OFF)
 
 # Addons
 IF (RBDL_BUILD_ADDON_URDFREADER)
@@ -86,13 +87,6 @@ SET ( RBDL_SOURCES
 	src/Model.cc
 	src/Kinematics.cc
 	)
-
-# If compiler support symbol visibility, enable it.
-INCLUDE (CheckCCompilerFlag)
-CHECK_C_COMPILER_FLAG(-fvisibility=hidden HAS_VISIBILITY)
-IF (HAS_VISIBILITY)
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-ENDIF ()
 
 # Static / dynamic builds
 IF (RBDL_BUILD_STATIC)
@@ -140,6 +134,12 @@ CONFIGURE_FILE (
 	"${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/rbdl_config.h.cmake" 
 	"${CMAKE_CURRENT_BINARY_DIR}/include/rbdl/rbdl_config.h"
 	)
+
+# Python wrapper
+IF (RBDL_BUILD_PYTHON_WRAPPER)
+	add_subdirectory ( python )
+
+ENDIF (RBDL_BUILD_PYTHON_WRAPPER)
 
 # Installation
 FILE ( GLOB headers 

@@ -9,7 +9,6 @@
 
 RBDL_DLLAPI std::ostringstream LogOutput;
 
-RBDL_DLLAPI
-void ClearLogOutput() {
-	LogOutput.str("");
+RBDL_DLLAPI void ClearLogOutput() {
+  LogOutput.str("");
 }

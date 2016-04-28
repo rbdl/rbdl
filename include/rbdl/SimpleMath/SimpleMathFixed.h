@@ -692,7 +692,6 @@ class Matrix {
 			return result;
 		}
 
-
 		void operator*=(const Matrix &matrix) {
 			matrix_type temp (*this);
 			*this = temp * matrix;

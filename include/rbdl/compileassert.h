@@ -23,16 +23,16 @@
 
 namespace custom_static_assert
 {
-    template <bool> struct STATIC_ASSERT_FAILURE;
-    template <> struct STATIC_ASSERT_FAILURE<true> { enum { value = 1 }; };
+template <bool> struct STATIC_ASSERT_FAILURE;
+template <> struct STATIC_ASSERT_FAILURE<true> { enum { value = 1 }; };
 
-    template<int x> struct custom_static_assert_test{};
+template<int x> struct custom_static_assert_test{};
 }
 
 #define COMPILE_ASSERT(x) \
-    typedef ::custom_static_assert::custom_static_assert_test<\
-        sizeof(::custom_static_assert::STATIC_ASSERT_FAILURE< (bool)( x ) >)>\
-            JOIN(_custom_static_assert_typedef, __LINE__)
+  typedef ::custom_static_assert::custom_static_assert_test<\
+sizeof(::custom_static_assert::STATIC_ASSERT_FAILURE< (bool)( x ) >)>\
+JOIN(_custom_static_assert_typedef, __LINE__)
 
 #else // __cplusplus
 

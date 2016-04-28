@@ -8,6 +8,7 @@
 using namespace std;
 
 bool verbose = false;
+bool floatbase = false;
 string filename = "";
 
 void usage (const char* argv_0) {
@@ -37,6 +38,8 @@ int main (int argc, char *argv[]) {
 			dof_overview = true;
 		else if (string(argv[i]) == "-m" || string (argv[i]) == "--model-hierarchy")
 			model_hierarchy = true;
+		else if (string(argv[i]) == "-f" || string (argv[i]) == "--floatbase")
+			floatbase = true;
 		else if (string(argv[i]) == "-h" || string (argv[i]) == "--help")
 			usage(argv[0]);
 		else
@@ -45,7 +48,7 @@ int main (int argc, char *argv[]) {
 
 	RigidBodyDynamics::Model model;
 
-	if (!RigidBodyDynamics::Addons::URDFReadFromFile(filename.c_str(), &model, verbose)) {
+	if (!RigidBodyDynamics::Addons::URDFReadFromFile(filename.c_str(), &model, floatbase, verbose)) {
 		cerr << "Loading of urdf model failed!" << endl;
 		return -1;
 	}

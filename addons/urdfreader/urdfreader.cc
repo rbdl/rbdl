@@ -8,8 +8,26 @@
 #include <map>
 #include <stack>
 
+#ifdef RBDL_USE_ROS_URDF_LIBRARY
 #include <urdf_model/model.h>
 #include <urdf_parser/urdf_parser.h>
+#include "ros/ros.h"
+
+typedef boost::shared_ptr<urdf::Link> LinkPtr;
+typedef const boost::shared_ptr<const urdf::Link> ConstLinkPtr;
+typedef boost::shared_ptr<urdf::Joint> JointPtr;
+typedef boost::shared_ptr<urdf::ModelInterface> ModelPtr;
+
+#else
+#include <urdf/urdfdom_headers/urdf_model/include/urdf_model/model.h>
+#include <urdf/urdfdom/urdf_parser/include/urdf_parser/urdf_parser.h>
+
+typedef my_shared_ptr<urdf::Link> LinkPtr;
+typedef const my_shared_ptr<const urdf::Link> ConstLinkPtr;
+typedef my_shared_ptr<urdf::Joint> JointPtr;
+typedef my_shared_ptr<urdf::ModelInterface> ModelPtr;
+
+#endif
 
 using namespace std;
 
@@ -19,17 +37,13 @@ namespace Addons {
 
 using namespace Math;
 
-typedef boost::shared_ptr<urdf::Link> LinkPtr;
-typedef boost::shared_ptr<urdf::Joint> JointPtr;
-typedef boost::shared_ptr<urdf::ModelInterface> ModelPtr;
-
 typedef vector<LinkPtr> URDFLinkVector;
 typedef vector<JointPtr> URDFJointVector;
 typedef map<string, LinkPtr > URDFLinkMap;
 typedef map<string, JointPtr > URDFJointMap;
 
-bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
-	boost::shared_ptr<urdf::Link> urdf_root_link;
+bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base, bool verbose) {
+	LinkPtr urdf_root_link;
 
 	URDFLinkMap link_map;
 	link_map = urdf_model->links_;
@@ -46,7 +60,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 	link_stack.push (link_map[(urdf_model->getRoot()->name)]);
 
 	// add the root body
-	const boost::shared_ptr<const urdf::Link>& root = urdf_model->getRoot ();
+	ConstLinkPtr& root = urdf_model->getRoot ();
 	Vector3d root_inertial_rpy;
 	Vector3d root_inertial_position;
 	Matrix3d root_inertial_inertia;
@@ -77,22 +91,21 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 		Body root_link = Body (root_inertial_mass,
 				root_inertial_position,
 				root_inertial_inertia);
-		Joint root_joint = Joint (
-				SpatialVector (0., 0., 0., 1., 0., 0.),
-				SpatialVector (0., 0., 0., 0., 1., 0.),
-				SpatialVector (0., 0., 0., 0., 0., 1.),
-				SpatialVector (1., 0., 0., 0., 0., 0.),
-				SpatialVector (0., 1., 0., 0., 0., 0.),
-				SpatialVector (0., 0., 1., 0., 0., 0.));
+
+		Joint root_joint (JointTypeFixed);
+		if (floating_base) {
+			root_joint = JointTypeFloatingBase;
+		}
 
 		SpatialTransform root_joint_frame = SpatialTransform ();
 
 		if (verbose) {
 			cout << "+ Adding Root Body " << endl;
 			cout << "  joint frame: " << root_joint_frame << endl;
-			cout << "  joint dofs : " << root_joint.mDoFCount << endl;
-			for (unsigned int j = 0; j < root_joint.mDoFCount; j++) {
-				cout << "    " << j << ": " << root_joint.mJointAxes[j].transpose() << endl;
+			if (floating_base) {
+				cout << "  joint type : floating" << endl;
+			} else {
+				cout << "  joint type : fixed" << endl;
 			}
 			cout << "  body inertia: " << endl << root_link.mInertia << endl;
 			cout << "  body mass   : " << root_link.mMass << endl;
@@ -247,7 +260,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 			cout << "  body name   : " << urdf_child->name << endl;
 		}
 
-		if (0 && urdf_joint->type == urdf::Joint::FLOATING) {
+		if (urdf_joint->type == urdf::Joint::FLOATING) {
 			Matrix3d zero_matrix = Matrix3d::Zero();
 			Body null_body (0., Vector3d::Zero(3), zero_matrix);
 			Joint joint_txtytz(JointTypeTranslationXYZ);
@@ -264,7 +277,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool verbose) {
 	return true;
 }
 
-RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verbose) {
+RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool floating_base, bool verbose) {
 	ifstream model_file (filename);
 	if (!model_file) {
 		cerr << "Error opening file '" << filename << "'." << endl;
@@ -280,15 +293,15 @@ RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool verb
 
 	model_file.close();
 
-	return URDFReadFromString (model_xml_string.c_str(), model, verbose);
+	return URDFReadFromString (model_xml_string.c_str(), model, floating_base, verbose);
 }
 
-RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string, Model* model, bool verbose) {
+RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string, Model* model, bool floating_base, bool verbose) {
 	assert (model);
 
-	boost::shared_ptr<urdf::ModelInterface> urdf_model = urdf::parseURDF (model_xml_string);
+	ModelPtr urdf_model = urdf::parseURDF (model_xml_string);
  
-	if (!construct_model (model, urdf_model, verbose)) {
+	if (!construct_model (model, urdf_model, floating_base, verbose)) {
 		cerr << "Error constructing model from urdf file." << endl;
 		return false;
 	}

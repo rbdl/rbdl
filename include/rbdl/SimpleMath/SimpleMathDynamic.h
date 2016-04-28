@@ -387,6 +387,17 @@ class Matrix {
 				return Block<matrix_type, val_type>(*this, row_start, col_start, row_count, col_count);
 			}
 
+		Block<matrix_type, val_type>
+			block (unsigned int row_start, unsigned int col_start, unsigned int row_count, unsigned int col_count) const {
+				return Block<matrix_type, val_type>(*this, row_start, col_start, row_count, col_count);
+			}
+
+		template <unsigned int row_count, unsigned int col_count>
+		Block<matrix_type, val_type>
+			block (unsigned int row_start, unsigned int col_start) const {
+				return Block<matrix_type, val_type>(*this, row_start, col_start, row_count, col_count);
+			}
+
 		// Operators with scalars
 		void operator*=(const val_type &scalar) {
 			for (unsigned int i = 0; i < nrows * ncols; i++)
@@ -435,6 +446,45 @@ class Matrix {
 			assert (ncols == other_matrix.nrows);
 
 			Matrix<val_type> result(nrows, other_matrix.ncols);
+			
+			result.setZero();
+
+			unsigned int i,j, k;
+			for (i = 0; i < nrows; i++) {
+				for (j = 0; j < other_matrix.cols(); j++) {
+					for (k = 0; k < other_matrix.rows(); k++) {
+						result(i,j) += mData[i * ncols + k] * other_matrix(k,j);
+					}
+				}
+			}
+			
+			return result;
+		}
+
+		template <unsigned int _nrows, unsigned int _ncols>
+		Matrix<val_type> operator*(const Fixed::Matrix<val_type, _nrows, _ncols> &other_matrix) const {
+			assert (ncols == other_matrix.rows());
+
+			Matrix<val_type> result(nrows, other_matrix.cols());
+			
+			result.setZero();
+
+			unsigned int i,j, k;
+			for (i = 0; i < nrows; i++) {
+				for (j = 0; j < other_matrix.cols(); j++) {
+					for (k = 0; k < other_matrix.rows(); k++) {
+						result(i,j) += mData[i * ncols + k] * other_matrix(k,j);
+					}
+				}
+			}
+			
+			return result;
+		}
+
+		Matrix<val_type> operator*(const Block<matrix_type, val_type> &other_matrix) const {
+			assert (ncols == other_matrix.rows());
+
+			Matrix<val_type> result(nrows, other_matrix.cols());
 			
 			result.setZero();
 
