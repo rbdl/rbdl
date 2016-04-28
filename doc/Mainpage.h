@@ -141,6 +141,9 @@
  *
  * Another example that uses the \ref addon_luamodel_page "LuaModel Addon" can be found \ref
  * LuaModelExample "here".
+ *
+ * An example of the Python wrapper can be found at \ref python_example
+ * "Python Example".
  * 
  * \section ModuleOverview API reference separated by functional modules
  * 
