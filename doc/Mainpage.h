@@ -46,6 +46,29 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>28 April 2016: New release 2.5.0:
+ *   <ul>
+ *     <li> Added an experimental Cython based Python wrapper of RBDL. The API is
+ *       very close to the C++ API. For a brief glimpse of the API see 
+ *       \ref PythonExample "Python Example"</li>
+ *     <li> Matthew Millard added CustomJoints which allow to create different joint
+ *       types completely by user code. They are implemented as proxy joints for
+ *       which their behaviour is specified using virtual functions.</li>
+ *     <li> Added CalcMInvTimesTau() that evaluates multiplication of the inverse of
+ *       the joint space inertia matrix with a vector in O(n) time.</li>
+ *     <li> Added JointTypeFloatingBase which uses TX,TY,TZ and a spherical joint for
+ *       the floating base joint.</li>
+ *     <li> Loading of floating base URDF models must now be specified as a third
+ *       parameter to URDFReadFromFile() and URDFReadFromString()</li>
+ *     <li> Added the URDF code from Bullet3 which gets used when ROS is not found.
+ *       Otherwise use the URDF libraries found via Catkin.</li>
+ *     <li> Added CalcPointVelocity6D, CalcPointAcceleration6D, and CalcPointJacobian6D
+ *       that compute both linear and angular quantities</li>
+ *     <li> Removed Model::SetFloatingBase (body). Use a 6-DoF joint or
+ *       JointTypeFloatingBase instead.</li>
+ *     <li> Fixed building issues when building DLL with MSVC++.</li>
+ *   </ul>
+ * </li>
  * <li>20 March 2016: New bugfix version 2.4.1:
  *   <ul>
  *     <li> <b>critical</b>: fixed termination criterion for
@@ -79,60 +102,9 @@
  *    <li>Various performance improvements</li>
  *  </ul>
  * </li>
- * <li>21 October 2014: New version 2.3.3:
- *   <ul>
- *     <li><b>critical</b>: fixed ForwardDynamicsContacts with constraints on a body that is attached with a fixed joint. Previous versions simply crashed.  Thanks to Yue Hu for reporting!</li>
- *     <li>rbdl_print_version() now properly prints whether URDFReader was enabled at build time</li>
- *     <li>build system: fixed roblems especially building of the URDFreader</li>
- *     <li>build system: all CMake variables for RBDL are now prefixed with RBDL_ </li>
- *     <li>FindRBDL.cmake now can use components to search for the LuaModel or URDFReader addon</li>
- *   </ul>
- * </li>
- * <li>29 August 2014: New version 2.3.2:
- *   <ul>
- *     <li><b>critical</b>: fixed ForwardDynamicsLagrangian which used uninitialized values for the joint space inertia matrix (thanks to Benjamin Michaud)</li>
- *     <li><b>critical</b>: fixed ForwardDynamicsContacts when using 3-dof joints</li>
- *     <li><b>critical</b>: fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)</li>
- *     <li><b>critical</b>: fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)</li>
- *   </ul>
- * </li>
- * <li>13 July 2014: New version: 2.3.1:
- *   <ul>
- *     <li><b>critical</b>: fixed angular momentum computation. Version 2.3.0 produced wrong
- *       results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!)</li>
- *     <li><b>critical</b>: fixed JointTypeEulerZYX. Previous versions produce wrong results!
- *     <li>fixed library version number for the LuaModel addon.</li>
- *   </ul>
- * </li>
- * <li>17 March 2014: New version: 2.3.0:
- *   <ul>
- *     <li>Joint Space Inertia Matrix does \b not get cleared anymore when
- *     calling \ref RigidBodyDynamics::CompositeRigidBodyAlgorithm "CompositeRigidBodyAlgorithm"</li>
- *     <li>using the default <a href="http://eigen.tuxfamily.org/dox-devel/group__TopicStorageOrders.html">column-major</a> ordering when using Eigen3</li>
- *     <li>added experimental joint type \ref RigidBodyDynamics::JointTypeEulerZYX "JointTypeEulerZYX"</li>
- *     <li> added energy computations
- *     \ref RigidBodyDynamics::Utils::CalcCenterOfMass "Utils::CalcCenterOfMass",
- *     \ref RigidBodyDynamics::Utils::CalcPotentialEnergy "Utils::CalcPotentialEnergy",
- *     \ref RigidBodyDynamics::Utils::CalcKineticEnergy "Utils::CalcKineticEnergy", and
- *     \ref RigidBodyDynamics::Utils::CalcAngularMomentum "Utils::CalcAngularMomentum".</li>
- *     <li> Updated URDF loader for ROS Groovy/Hydro (thanks to Benjamin Chrétien!)
- *   </ul>
- * <li>06 November 2013: New version 2.2.2: adjusted Body default constructor (inertia matrix now 3x3 identity instead of zero matrix)</li>
- * <li> 4 November 2013: New version 2.2.1: fixed exported library version</li>
- * <li> 28 October 2013: New version 2.2.0: added support for spherical joints that do not suffer from \ref joint_singularities</li>
- * <li> 29 September 2013: New version 2.1.0: adjusted build settings and symbol export to be debian compatible. Removed vendor code such as Lua 5.2 and UnitTest++. Must be pre-installed if tests or LuaModel Addon is enabled.</li>
- * <li>05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.</li>
- * <li> 18. July 2013: new API version 2.0.0 for details see (\ref api_version_checking_page) </li>
- * <li> 20. February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)</li>
- * <li> 29. January 2013: added code for \ref api_version_checking_page. Current is 1.0.0.</li>
- * <li> 18. June 2012: added support of \ref luamodel_introduction</li>
- * <li> 01. June 2012: added support of \ref joint_models_fixed</li>
- * <li> 14. May 2012: fixed Body constructor as reported by Maxime Reis</li>
- * <li> 04. April 2012: added benchmark tool for CRBA</li>
- * <li> 01. March 2012: added multi degree of freedom \ref joint_description</li>
- * <li> 06. Februry 2012: restructured constraint handling using \ref RigidBodyDynamics::ConstraintSet</li>
- * <li> 24. January 2012: implemented compact and fast representation of \ref RigidBodyDynamics::Math::SpatialTransform </li>
  * </ul>
+ *
+ * See \subpage api_version_checking_page for a complete version history.
  *
  * \section Example Examples
  *
@@ -142,7 +114,7 @@
  * Another example that uses the \ref addon_luamodel_page "LuaModel Addon" can be found \ref
  * LuaModelExample "here".
  *
- * An example of the Python wrapper can be found at \ref python_example
+ * An example of the Python wrapper can be found at \ref PythonExample
  * "Python Example".
  * 
  * \section ModuleOverview API reference separated by functional modules

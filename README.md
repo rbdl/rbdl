@@ -22,6 +22,26 @@ Algorithm".
 
 Recent Changes
 ==============
+  * 28 April 2016: Nev version 2.5.0:
+    * Added an experimental Cython based Python wrapper of RBDL. The API is
+      very close to the C++ API. For a brief glimpse of the API see the file
+      python/test_wrapper.py.
+    * Matthew Millard added CustomJoints which allow to create different joint
+      types completely by user code. They are implemented as proxy joints for
+      which their behaviour is specified using virtual functions.
+    * Added CalcMInvTimesTau() that evaluates multiplication of the inverse of
+      the joint space inertia matrix with a vector in O(n) time.
+    * Added JointTypeFloatingBase which uses TX,TY,TZ and a spherical joint for
+      the floating base joint.
+    * Loading of floating base URDF models must now be specified as a third
+      parameter to URDFReadFromFile() and URDFReadFromString()
+    * Added the URDF code from Bullet3 which gets used when ROS is not found.
+      Otherwise use the URDF libraries found via Catkin.
+    * Added CalcPointVelocity6D, CalcPointAcceleration6D, and CalcPointJacobian6D
+      that compute both linear and angular quantities
+    * Removed Model::SetFloatingBase (body). Use a 6-DoF joint or
+      JointTypeFloatingBase instead.
+    * Fixed building issues when building DLL with MSVC++.
   * 20 April 2016: New version 2.4.1:
     * This is a bugfix release that maintains binary compatibility and only fixes
     erroneous behaviour.
@@ -58,48 +78,8 @@ Recent Changes
     * URDFReader: Fixed various issues and using faster joints for floating
       base models
     * Various performance improvements
-  * 21 October 2014: New version 2.3.3:
-    * critical: fixed ForwardDynamicsContacts with constraints on a body
-      that is attached with a fixed joint. Previous versions simply crashed.
-      Thanks to Yue Hu for reporting!
-    * rbdl_print_version() now properly prints whether URDFReader was enabled
-      at build time
-    * build system: fixed roblems especially building of the URDFreader
-    * build system: all CMake variables for RBDL are now prefixed with RBDL_ 
-    * FindRBDL.cmake now can use components to search for the LuaModel or
-      URDFReader addon
-  * 29 August 2014: New version 2.3.2:
-     * critical: fixed ForwardDynamicsLagrangian which used uninitialized values for the joint space inertia matrix (thanks to Benjamin Michaud!)
-     * critical: fixed ForwardDynamicsContacts when using 3-dof joints
-     * critical: fixed CalcBodyWorldOrientation for fixed joints (thanks to Hilaro Tome!)
-     * critical: fixed CompositeRigidBodyDynamics when using 3-dof joints (thanks to Henning Koch!)
-   * 13 July 2014: New version 2.3.1:
-     * critical: fixed angular momentum computation. Version 2.3.0 produced wrong
-       results. (Thanks to Hilario Tome and Benjamin Michaud for reporting!)
-     * critical: fixed JointTypeEulerZYX. Previous versions produce wrong results!
-     * fixed library version number for the LuaModel addon.
-   * 14 March 2014: New version 2.3.0:
-     * Joint Space Inertia Matrix does not get cleared anymore when calling CompositeRigidBodyAlgorithm
-     * using the default column-major ordering when using Eigen3
-     * added experimental joint type JointTypeEulerZYX
-     * added energy computations Utils::CalcCenterOfMass, Utils::CalcPotentialEnergy, Utils::CalcKineticEnergy, and Utils::CalcAngularMomentum.
-     * Updated URDF loader for ROS Groovy/Hydro (thanks to Benjamin Chrétien!)
-   * 06 November 2013: New version 2.2.2: adjusted Body default constructor (inertia matrix now 3x3 identity instead of zero matrix)
-   * 04 November 2013: New version 2.2.1: fixed exported library version
-   * 28 October 2013: New version 2.2.0: added support for spherical joints that do not suffer from joint singularities
-   * 29 September 2013: New version 2.1.0: adjusted build settings and symbol export to be debian compatible. Removed vendor code such as Lua 5.2 and UnitTest++. Must be pre-installed if tests or LuaModel Addon is enabled.
-   * 05 September 2013: New version 2.0.1: fixed some errors on older compilers and CMake configuration of examples. No changes required when migrating from 2.0.0.
-   * 18 July 2013: API version 2.0.0: removed Eigen3 sources, removed Model::Init(), inverted sign of contact forces/impulses
-   * 20 February 2013: removed too specialized RigidBodyDynamics::Body constructor (API version 1.1.0)
-   * 29 January 2013: added code for api_version_checking. Current API version is 1.0.0.
-   * 11 January 2013: removed Eigen3 sources and relying on an already installed Eigen3 library. Optionally RBDL can be used with the included but slower SimpleMath library.
-   * 18 June 2012: added support of luamodel_introduction
-   * 01 June 2012: added support of joint_models_fixed
-   * 14 May 2012: fixed Body constructor as reported by Maxime Reis
-   * 04 April 2012: added benchmark tool for CRBA
-   * 01 March 2012: added multi degree of freedom joint_models
-   * 06 Februry 2012: restructured constraint handling using RigidBodyDynamics::ConstraintSet
-   * 24 January 2012: implemented compact and fast representation of RigidBodyDynamics::Math::SpatialTransform 
+
+For a complete history see doc/api_changes.txt.
 
 Documentation
 =============

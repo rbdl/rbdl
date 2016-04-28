@@ -2,7 +2,7 @@
  * \page PythonExample Python API example
  *
  * Here is a simple example of the Python API that showcases a subset of
- * the wrapped function.
+ * the wrapped functions and how to access them from python:
  *
  * \include example.py
  * 
