@@ -642,6 +642,10 @@ void CalcConstrainedSystemVariables (
   VectorNd err = VectorNd::Zero(CS.size());
   CalcConstraintsPositionError(model, Q, CS, err, false);
 
+  // Compute velocity error for Baugarte stabilization.
+  VectorNd errd = VectorNd::Zero(CS.size());
+  errd = CS.G * QDot;
+
   // Compute gamma
   unsigned int prev_body_id = 0;
   Vector3d prev_body_point = Vector3d::Zero();
@@ -656,6 +660,8 @@ void CalcConstrainedSystemVariables (
   SpatialVector vel_p;
   SpatialVector vel_s;
   SpatialVector axis;
+  unsigned int id_p;
+  unsigned int id_s;
 
   for(unsigned int c = 0; c < CS.size(); ++c) {
 
@@ -695,13 +701,27 @@ void CalcConstrainedSystemVariables (
       vel_s = CalcPointVelocity6D(model, Q, QDot, CS.body_s[c], CS.X_s[c].r
         , false);
 
+      // Check if the bodies involved in the constraint are fixed. If yes, find
+      // their movable parent to access the right value in the a vector.
+      id_p = CS.body_p[c];
+      if(model.IsFixedBodyId(id_p)) {
+        id_p = model.mFixedBodies[id_p - model.fixed_body_discriminator]
+          .mMovableParent;
+      }
+      id_s = CS.body_s[c];
+      if(model.IsFixedBodyId(id_s)) {
+        id_s = model.mFixedBodies[id_s - model.fixed_body_discriminator]
+          .mMovableParent;
+      }
+
+      // Problem here if one of the bodies is fixed...
       // Compute the value of gamma.
-      CS.gamma[c] =
+      CS.gamma[c]
         // Right hand side term.
-        - axis.transpose() * (model.a[CS.body_s[c]] - model.a[CS.body_p[c]]
+        = - axis.transpose() * (model.a[id_s] - model.a[id_p]
         + crossm(vel_s, vel_p))
         // Baumgarte stabilization term.
-        - 2. * CS.T_stab[c] * (CS.G.block(c, 0, 1, model.dof_count) * QDot)(0,0)
+        - 2. * CS.T_stab[c] * errd[c]
         - CS.T_stab[c] * CS.T_stab[c] * err[c];
 
       break;
