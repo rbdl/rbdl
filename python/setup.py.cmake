@@ -23,14 +23,19 @@ extra_params['include_dirs'] = [
     '/usr/include/eigen3/'
 ]
 
-extra_params['extra_compile_args'] = ["-O3", "-Wno-unused-variable", "-std=c++11"]
-extra_params['extra_link_args'] = ["-Wl,-O1", "-Wl,--as-needed"]
-
-extra_params = extra_params.copy()
-extra_params['libraries'] = []
-
-extra_params['library_dirs'] = ['/usr/lib', BASEDIR]
 extra_params['language'] = 'c++'
+extra_params['extra_compile_args'] = ["-O3", "-Wno-unused-variable", "-std=c++11"]
+extra_params['libraries'] = ['rbdl']
+extra_params['library_dirs'] = [
+  '${CMAKE_CURRENT_BINARY_DIR}/../',
+  '${CMAKE_INSTALL_PREFIX}/lib/',
+  '/usr/lib',
+  BASEDIR
+  ]
+extra_params['extra_link_args'] = [
+  "-Wl,-O1",
+  "-Wl,--as-needed", 
+  ]
 
 if os.name == 'posix':
     extra_params['runtime_library_dirs'] = extra_params['library_dirs']

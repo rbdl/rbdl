@@ -661,6 +661,7 @@ INPUT                  = ./src \
                          include/rbdl \
                          doc/api_changes.txt \
                          doc/example.h \
+                         doc/python_example.h \
                          doc/Mainpage.h \
                          addons/luamodel/luamodel.h \
                          addons/urdfreader/rbdl_urdfreader.h \
@@ -758,7 +759,9 @@ EXCLUDE_SYMBOLS        =
 
 EXAMPLE_PATH           = doc \
                          examples/luamodel \
-                         examples/simple
+                         examples/simple \
+                         examples/python
+
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
