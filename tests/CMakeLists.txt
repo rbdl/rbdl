@@ -28,6 +28,7 @@ SET ( TESTS_SRCS
   SparseFactorizationTests.cc
   CustomJointSingleBodyTests.cc
   CustomJointMultiBodyTests.cc
+  InverseKinematicsTests.cc
   )
 
 INCLUDE_DIRECTORIES ( ../src/ )

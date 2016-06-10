@@ -58,6 +58,46 @@ struct Human36 {
     BodyNameLast
   };
 
+  enum DofNames {
+    PelvisTX,
+    PelvisTY,
+    PelvisTZ,
+    PelvisRY,
+    PelvisRX,
+    PelvisRZ,
+    HipRightRY,
+    HipRightRX,
+    HipRightRZ,
+    KneeRightRY,
+    AnkleRightRY,
+    AnkleRightRZ,
+    HipLeftRY,
+    HipLeftRX,
+    HipLeftRZ,
+    KneeLeftRY,
+    AnkleLeftRY,
+    AnkleLeftRZ,
+    LumbarRY,
+    LumbarRX,
+    LumbarRZ,
+    ShoulderRightRY,
+    ShoulderRightRX,
+    ShoulderRightRZ,
+    ElbowRightRY,
+    WristRightRY,
+    WristRightRZ,
+    ShoulderLeftRY,
+    ShoulderLeftRX,
+    ShoulderLeftRZ,
+    ElbowLeftRY,
+    WristLeftRY,
+    WristLeftRZ,
+    NeckRY,
+    NeckRX,
+    NeckRZ,
+    DofNameCount
+  };
+
   double SegmentLengths[SegmentNameLast];
   double SegmentMass[SegmentNameLast];
   double SegmentCOM[SegmentNameLast][3];
