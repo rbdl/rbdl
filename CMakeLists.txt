@@ -48,7 +48,12 @@ IF (EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
 ENDIF (EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
 
 # Options
-OPTION (RBDL_BUILD_STATIC "Build statically linked library (otherwise dynamiclly linked)" OFF)
+SET (RBDL_BUILD_STATIC_DEFAULT OFF)
+IF (MSVC)
+  SET (RBDL_BUILD_STATIC_DEFAULT ON)
+ENDIF (MSVC)
+
+OPTION (RBDL_BUILD_STATIC "Build statically linked library (otherwise dynamiclly linked)" ${RBDL_BUILD_STATIC_DEFAULT})
 OPTION (RBDL_BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
 OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
@@ -88,6 +93,10 @@ SET ( RBDL_SOURCES
 	src/Kinematics.cc
 	)
 
+IF (MSVC AND NOT RBDL_BUILD_STATIC)	
+  MESSAGE (FATAL_ERROR, "Compiling RBDL as a DLL currently not supported. Please enable RBDL_BUILD_STATIC.")
+ENDIF (MSVC AND NOT RBDL_BUILD_STATIC)	
+	
 # Static / dynamic builds
 IF (RBDL_BUILD_STATIC)
   ADD_LIBRARY ( rbdl-static STATIC ${RBDL_SOURCES} )
