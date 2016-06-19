@@ -60,7 +60,7 @@ Model::Model() {
 
   // Dynamic variables
   c.push_back(zero_spatial);
-  IA.push_back(SpatialMatrixIdentity);
+  IA.push_back(SpatialMatrix::Identity());
   pA.push_back(zero_spatial);
   U.push_back(zero_spatial);
 

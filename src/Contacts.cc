@@ -102,16 +102,16 @@ bool ConstraintSet::Bind (const Model &model) {
   QDDot_t.setZero();
   QDDot_0.conservativeResize (model.dof_count);
   QDDot_0.setZero();
-  f_t.resize (n_constr, SpatialVectorZero);
-  f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
+  f_t.resize (n_constr, SpatialVector::Zero());
+  f_ext_constraints.resize (model.mBodies.size(), SpatialVector::Zero());
   point_accel_0.resize (n_constr, Vector3d::Zero());
 
-  d_pA = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
-  d_a = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
+  d_pA = std::vector<SpatialVector> (model.mBodies.size(), SpatialVector::Zero());
+  d_a = std::vector<SpatialVector> (model.mBodies.size(), SpatialVector::Zero());
   d_u = VectorNd::Zero (model.mBodies.size());
 
-  d_IA = std::vector<SpatialMatrix> (model.mBodies.size(), SpatialMatrixIdentity);
-  d_U = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
+  d_IA = std::vector<SpatialMatrix> (model.mBodies.size(), SpatialMatrix::Identity());
+  d_U = std::vector<SpatialVector> (model.mBodies.size(), SpatialVector::Zero());
   d_d = VectorNd::Zero (model.mBodies.size());
 
   d_multdof3_u = std::vector<Math::Vector3d> (model.mBodies.size(), Math::Vector3d::Zero());
@@ -542,7 +542,7 @@ void ForwardDynamicsApplyConstraintForces (
     model.IA[i] = model.I[i].toMatrix();;
     model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
-    if (CS.f_ext_constraints[i] != SpatialVectorZero) {
+    if (CS.f_ext_constraints[i] != SpatialVector::Zero()) {
       LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i] << std::endl;
       model.pA[i] -= model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i];
     }

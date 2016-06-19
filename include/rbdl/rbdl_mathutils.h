@@ -37,10 +37,6 @@ extern RBDL_DLLAPI Vector3d Vector3dZero;
 extern RBDL_DLLAPI Matrix3d Matrix3dIdentity;
 extern RBDL_DLLAPI Matrix3d Matrix3dZero;
 
-extern RBDL_DLLAPI SpatialVector SpatialVectorZero;
-extern RBDL_DLLAPI SpatialMatrix SpatialMatrixIdentity;
-extern RBDL_DLLAPI SpatialMatrix SpatialMatrixZero;
-
 RBDL_DLLAPI inline VectorNd VectorFromPtr (unsigned int n, double *ptr) {
   // TODO: use memory mapping operators for Eigen
   VectorNd result (n);

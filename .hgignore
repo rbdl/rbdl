@@ -26,3 +26,8 @@ examples/simple/librbdl.so
 examples/luamodel/example_luamodel
 examples/luamodel/CMakeCache.txt
 
+*.vcxproj
+*.vcxproj.filters
+*.suo
+*.db
+*.sln

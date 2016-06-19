@@ -354,7 +354,7 @@ RBDL_DLLAPI void ForwardDynamics (
 
     model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
-    if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
+    if (f_ext != NULL && (*f_ext)[i] != SpatialVector::Zero()) {
       LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * (*f_ext)[i] << std::endl;
       model.pA[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
     }
