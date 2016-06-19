@@ -22,7 +22,9 @@ ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
 
 IF (RBDL_BUILD_STATIC)
   ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
-  SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES PREFIX "lib")
+  IF (NOT WIN32)
+    SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES PREFIX "lib")
+  ENDIF (NOT WIN32)
   SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES OUTPUT_NAME "rbdl_luamodel")
 
   TARGET_LINK_LIBRARIES (rbdl_luamodel-static

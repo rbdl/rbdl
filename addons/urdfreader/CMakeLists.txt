@@ -65,7 +65,9 @@ ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
 IF (RBDL_BUILD_STATIC)
 	ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${URDFREADER_SOURCES} )
 
-	SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES PREFIX "lib")
+	IF (NOT WIN32)
+		SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES PREFIX "lib")
+	ENDIF (NOT WIN32)
 	SET_TARGET_PROPERTIES ( rbdl_urdfreader-static PROPERTIES OUTPUT_NAME "rbdl_urdfreader")
 
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader-static
