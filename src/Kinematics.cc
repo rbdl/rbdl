@@ -712,7 +712,7 @@ RBDL_DLLAPI
 Vector3d CalcAngularVelocityfromMatrix (
     const Matrix3d &RotMat
     ) {
-  float tol = 1e-12;
+  double tol = 1e-12;
 
   Vector3d l = Vector3d (RotMat(2,1) - RotMat(1,2), RotMat(0,2) - RotMat(2,0), RotMat(1,0) - RotMat(0,1));
   if(l.norm() > tol){
