@@ -90,7 +90,7 @@ struct CustomJointTypeRevoluteX : public CustomJoint
   CustomJointTypeRevoluteX(){
     mDoFCount = 1;
     S = MatrixNd::Zero(6,1);
-    S(0,0)=1.0;
+    S[0] = 1.0;
     d_u = MatrixNd::Zero(mDoFCount,1);
   }
 

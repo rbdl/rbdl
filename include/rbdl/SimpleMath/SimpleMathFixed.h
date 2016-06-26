@@ -520,6 +520,17 @@ class Matrix {
 			return result;
 		}
 
+		val_type trace() const {
+			COMPILE_ASSERT(nrows == ncols);
+			val_type result = 0.;
+
+			for (unsigned int i = 0; i < rows(); i++) {
+				result += operator()(i,i);
+			}
+
+			return result;
+		}
+
 		static matrix_type Zero() {
 			matrix_type result;
 			result.setZero();
