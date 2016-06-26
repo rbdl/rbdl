@@ -718,7 +718,7 @@ RBDL_DLLAPI void CalcMInvTimesTau ( Model &model,
             * model.mCustomJoints[kI]->U
             ).inverse().eval();
 #else
-        model.mCustomJoints[kI]->Dinv[i]=(model.mCustomJoints[kI]->S.transpose()
+        model.mCustomJoints[kI]->Dinv=(model.mCustomJoints[kI]->S.transpose()
             * model.mCustomJoints[kI]->U
             ).inverse();
 #endif
