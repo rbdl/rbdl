@@ -1,3 +1,10 @@
+2.5.0 -> next
+- New inverse kinematics algorithm and API. It now uses the IK method
+  described by Sugihara which is faster and more robust than the
+  previously implemented damped Levenberg-Marquardt method. The new API
+  allows to specify both point and orientation (and mixed) constraints.
+  Thanks to Kevin Stein for implementing it!
+
 2.4.1 -> 2.5.0 
 - Added an experimental Cython based Python wrapper of RBDL. The API is
   very close to the C++ API. For a brief glimpse of the API see the file
