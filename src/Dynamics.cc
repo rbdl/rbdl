@@ -411,9 +411,7 @@ RBDL_DLLAPI void ForwardDynamics (
       model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose()
           * model.multdof3_U[i]).inverse();
 #endif
-      Vector3d tau_temp (Tau[q_index],
-          Tau[q_index + 1],
-          Tau[q_index + 2]);
+      VectorNd tau_temp(Tau.block(q_index,0,3,1));
       model.multdof3_u[i] = tau_temp 
         - model.multdof3_S[i].transpose() * model.pA[i];
 
@@ -466,10 +464,7 @@ RBDL_DLLAPI void ForwardDynamics (
         = (model.mCustomJoints[kI]->S.transpose()
             * model.mCustomJoints[kI]->U).inverse();
 #endif
-      VectorNd tau_temp(dofI);
-      for(int z=0;z<dofI;++z){
-        tau_temp(z) = Tau[q_index+z];
-      }
+      VectorNd tau_temp(Tau.block(q_index,0,dofI,1));
       model.mCustomJoints[kI]->u = tau_temp
         - model.mCustomJoints[kI]->S.transpose() * model.pA[i];
 
@@ -795,11 +790,8 @@ RBDL_DLLAPI void CalcMInvTimesTau ( Model &model,
     } else if (model.mJoints[i].mJointType == JointTypeCustom) {
       unsigned int kI     = model.mJoints[i].custom_joint_index;
       unsigned int dofI   = model.mCustomJoints[kI]->mDoFCount;
-      VectorNd tau_temp   = VectorNd::Zero(dofI);
+      VectorNd tau_temp(Tau.block(q_index,0,dofI,1));
 
-      for(int z=0; z<dofI;++z){
-        tau_temp(z) = Tau[q_index+z];
-      }
       model.mCustomJoints[kI]->u = 
         tau_temp - ( model.mCustomJoints[kI]->S.transpose()* model.pA[i]);
       //      LOG << "mCustomJoints[kI]->u"
