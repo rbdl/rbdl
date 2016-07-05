@@ -419,7 +419,6 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<Math::SpatialVector> f_ext_constraints;
   /// Workspace for the default point accelerations.
   std::vector<Math::Vector3d> point_accel_0;
-  std::vector<Math::SpatialVector> spatial_accel_0;
 
   /// Workspace for the bias force due to the test force
   std::vector<Math::SpatialVector> d_pA;

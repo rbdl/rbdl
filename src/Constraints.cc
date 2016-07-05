@@ -184,7 +184,6 @@ bool ConstraintSet::Bind (const Model &model) {
   f_t.resize (n_constr, SpatialVectorZero);
   f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
   point_accel_0.resize (n_constr, Vector3d::Zero());
-  spatial_accel_0.resize (n_constr, SpatialVector::Zero());
 
   d_pA = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
   d_a = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
@@ -232,9 +231,6 @@ void ConstraintSet::clear() {
 
   for (i = 0; i < point_accel_0.size(); i++)
     point_accel_0[i].setZero();
-
-  for (i = 0; i < spatial_accel_0.size(); i++)
-    spatial_accel_0[i].setZero();
 
   for (i = 0; i < d_pA.size(); i++)
     d_pA[i].setZero();
@@ -1264,7 +1260,6 @@ void ForwardDynamicsContactsKokkevis (
   assert (CS.QDDot_t.size() == model.dof_count);
   assert (CS.f_t.size() == CS.size());
   assert (CS.point_accel_0.size() == CS.size());
-  assert (CS.spatial_accel_0.size() == CS.size());
   assert (CS.K.rows() == CS.size());
   assert (CS.K.cols() == CS.size());
   assert (CS.force.size() == CS.size());
