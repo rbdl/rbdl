@@ -28,6 +28,11 @@ void SolveLinearSystem(const MatrixNd& A, const VectorNd& b, VectorNd& x
 
 
 
+unsigned int GetMovableBodyId(Model& model, unsigned int id);
+
+
+
+
 unsigned int ConstraintSet::AddContactConstraint (
   unsigned int body_id,
   const Vector3d &body_point,
@@ -179,6 +184,7 @@ bool ConstraintSet::Bind (const Model &model) {
   f_t.resize (n_constr, SpatialVectorZero);
   f_ext_constraints.resize (model.mBodies.size(), SpatialVectorZero);
   point_accel_0.resize (n_constr, Vector3d::Zero());
+  spatial_accel_0.resize (n_constr, SpatialVector::Zero());
 
   d_pA = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
   d_a = std::vector<SpatialVector> (model.mBodies.size(), SpatialVectorZero);
@@ -226,6 +232,9 @@ void ConstraintSet::clear() {
 
   for (i = 0; i < point_accel_0.size(); i++)
     point_accel_0[i].setZero();
+
+  for (i = 0; i < spatial_accel_0.size(); i++)
+    spatial_accel_0[i].setZero();
 
   for (i = 0; i < d_pA.size(); i++)
     d_pA[i].setZero();
@@ -1255,6 +1264,7 @@ void ForwardDynamicsContactsKokkevis (
   assert (CS.QDDot_t.size() == model.dof_count);
   assert (CS.f_t.size() == CS.size());
   assert (CS.point_accel_0.size() == CS.size());
+  assert (CS.spatial_accel_0.size() == CS.size());
   assert (CS.K.rows() == CS.size());
   assert (CS.K.cols() == CS.size());
   assert (CS.force.size() == CS.size());
@@ -1267,85 +1277,131 @@ void ForwardDynamicsContactsKokkevis (
   // The default acceleration only needs to be computed once
   {
     SUPPRESS_LOGGING;
-    ForwardDynamics (model, Q, QDot, Tau, CS.QDDot_0);
+    ForwardDynamics(model, Q, QDot, Tau, CS.QDDot_0);
   }
 
   LOG << "=== Initial Loop Start ===" << std::endl;
   // we have to compute the standard accelerations first as we use them to
   // compute the effects of each test force
-  for (ci = 0; ci < CS.size(); ci++) {
-    unsigned int body_id = CS.body[ci];
-    Vector3d point = CS.point[ci];
-    Vector3d normal = CS.normal[ci];
-    double acceleration = CS.acceleration[ci];
+  for(ci = 0; ci < CS.size(); ci++) {
 
-    LOG << "body_id = " << body_id << std::endl;
-    LOG << "point = " << point << std::endl;
-    LOG << "normal = " << normal << std::endl;
-    LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
     {
       SUPPRESS_LOGGING;
-      UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_0);
-      CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, body_id, point, false);
-
-      CS.a[ci] = - acceleration + normal.dot(CS.point_accel_0[ci]);
+      UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
     }
-    LOG << "point_accel_0 = " << CS.point_accel_0[ci].transpose();
+
+    switch(CS.constraintType[ci]) {
+
+      case ConstraintSet::ContactConstraint:
+
+        LOG << "body_id = " << CS.body[ci] << std::endl;
+        LOG << "point = " << CS.point[ci] << std::endl;
+        LOG << "normal = " << CS.normal[ci] << std::endl;
+        LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
+        {
+          SUPPRESS_LOGGING;
+          CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot
+            , CS.QDDot_0, CS.body[ci], CS.point[ci], false);
+          CS.a[ci] = - CS.acceleration[ci] 
+            + CS.normal[ci].dot(CS.point_accel_0[ci]);
+        }
+        LOG << "point_accel_0 = " << CS.point_accel_0[ci].transpose();
+
+      break;
+
+      default:
+
+        std::cerr << "Forward Dynamic Contact Kokkevis: unsupported constraint \
+          type." << std::endl;
+        assert(false);
+        abort();
+
+      break;
+
+    }
+
   }
 
   // Now we can compute and apply the test forces and use their net effect
   // to compute the inverse articlated inertia to fill K.
   for (ci = 0; ci < CS.size(); ci++) {
+
     LOG << "=== Testforce Loop Start ===" << std::endl;
-    unsigned int body_id = CS.body[ci];
-    Vector3d point = CS.point[ci];
-    Vector3d normal = CS.normal[ci];
 
-    unsigned int movable_body_id = body_id;
-    if (model.IsFixedBodyId(body_id)) {
-      unsigned int fbody_id = body_id - model.fixed_body_discriminator;
-      movable_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+    unsigned int movable_body_id = 0;
+    Vector3d point_global;
+
+    switch(CS.constraintType[ci]) {
+
+      case ConstraintSet::ContactConstraint:
+
+        movable_body_id = GetMovableBodyId(model, CS.body[ci]);
+
+        // assemble the test force
+        LOG << "normal = " << CS.normal[ci].transpose() << std::endl;
+
+        point_global = CalcBodyToBaseCoordinates(model, Q, CS.body[ci]
+          , CS.point[ci], false);
+        
+        LOG << "point_global = " << point_global.transpose() << std::endl;
+
+        CS.f_t[ci] = SpatialTransform(Matrix3d::Identity(), -point_global)
+          .applyAdjoint(SpatialVector (0., 0., 0.
+          , -CS.normal[ci][0], -CS.normal[ci][1], -CS.normal[ci][2]));
+        CS.f_ext_constraints[movable_body_id] = CS.f_t[ci];
+
+        LOG << "f_t[" << movable_body_id << "] = " << CS.f_t[ci].transpose() 
+          << std::endl;
+
+        {
+          ForwardDynamicsAccelerationDeltas(model, CS, CS.QDDot_t
+            , movable_body_id, CS.f_ext_constraints);
+
+          LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
+          LOG << "QDDot_t = " << (CS.QDDot_t + CS.QDDot_0).transpose() 
+            << std::endl;
+          LOG << "QDDot_t - QDDot_0 = " << (CS.QDDot_t).transpose() << std::endl;
+        }
+
+        CS.f_ext_constraints[movable_body_id].setZero();
+
+        CS.QDDot_t += CS.QDDot_0;
+
+        // compute the resulting acceleration
+        {
+          SUPPRESS_LOGGING;
+          UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_t);
+        }
+
+        for(unsigned int cj = 0; cj < CS.size(); cj++) {
+          {
+            SUPPRESS_LOGGING;
+
+            point_accel_t = CalcPointAcceleration(model, Q, QDot, CS.QDDot_t
+              , CS.body[cj], CS.point[cj], false);
+          }
+      
+          LOG << "point_accel_0  = " << CS.point_accel_0[ci].transpose() 
+            << std::endl;
+          LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
+
+          CS.K(ci,cj) = CS.normal[cj].dot(point_accel_t - CS.point_accel_0[cj]);
+          
+        }
+
+      break;
+
+      default:
+
+        std::cerr << "Forward Dynamic Contact Kokkevis: unsupported constraint \
+          type." << std::endl;
+        assert(false);
+        abort();
+
+      break;
+
     }
 
-    // assemble the test force
-    LOG << "normal = " << normal.transpose() << std::endl;
-
-    Vector3d point_global = CalcBodyToBaseCoordinates (model, Q, body_id, point, false);
-    LOG << "point_global = " << point_global.transpose() << std::endl;
-
-    CS.f_t[ci] = SpatialTransform (Matrix3d::Identity(), -point_global).applyAdjoint (SpatialVector (0., 0., 0., -normal[0], -normal[1], -normal[2]));
-    CS.f_ext_constraints[movable_body_id] = CS.f_t[ci];
-    LOG << "f_t[" << movable_body_id << "] = " << CS.f_t[ci].transpose() << std::endl;
-
-    {
-//      SUPPRESS_LOGGING;
-      ForwardDynamicsAccelerationDeltas (model, CS, CS.QDDot_t, movable_body_id, CS.f_ext_constraints);
-      LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
-      LOG << "QDDot_t = " << (CS.QDDot_t + CS.QDDot_0).transpose() << std::endl;
-      LOG << "QDDot_t - QDDot_0= " << (CS.QDDot_t).transpose() << std::endl;
-    }
-
-    CS.f_ext_constraints[movable_body_id].setZero();
-
-    CS.QDDot_t += CS.QDDot_0;
-
-    // compute the resulting acceleration
-    {
-      SUPPRESS_LOGGING;
-      UpdateKinematicsCustom (model, NULL, NULL, &CS.QDDot_t);
-    }
-
-    for (unsigned int cj = 0; cj < CS.size(); cj++) {
-      {
-        SUPPRESS_LOGGING;
-
-        point_accel_t = CalcPointAcceleration (model, Q, QDot, CS.QDDot_t, CS.body[cj], CS.point[cj], false);
-      }
-  
-      LOG << "point_accel_0  = " << CS.point_accel_0[ci].transpose() << std::endl;
-      CS.K(ci,cj) = CS.normal[cj].dot(point_accel_t - CS.point_accel_0[cj]);
-      LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
-    }
   }
 
   LOG << "K = " << std::endl << CS.K << std::endl;
@@ -1430,6 +1486,21 @@ void SolveLinearSystem(const MatrixNd& A, const VectorNd& b, VectorNd& x
   }
 
 }
+
+
+
+unsigned int GetMovableBodyId(Model& model, unsigned int id) {
+
+  if(model.IsFixedBodyId(id)) {
+    unsigned int fbody_id = id - model.fixed_body_discriminator;
+    return model.mFixedBodies[fbody_id].mMovableParent;
+  }
+  else {
+    return id;
+  }
+
+}
+
 
 
 } /* namespace RigidBodyDynamics */
