@@ -708,16 +708,9 @@ void CalcConstrainedSystemVariables (
 
       // Check if the bodies involved in the constraint are fixed. If yes, find
       // their movable parent to access the right value in the a vector.
-      id_p = CS.body_p[c];
-      if(model.IsFixedBodyId(id_p)) {
-        id_p = model.mFixedBodies[id_p - model.fixed_body_discriminator]
-          .mMovableParent;
-      }
-      id_s = CS.body_s[c];
-      if(model.IsFixedBodyId(id_s)) {
-        id_s = model.mFixedBodies[id_s - model.fixed_body_discriminator]
-          .mMovableParent;
-      }
+      // This is needed because we access the model.a vector directly later.
+      id_p = GetMovableBodyId(model, CS.body_p[c]);
+      id_s = GetMovableBodyId(model, CS.body_s[c]);
 
       // Problem here if one of the bodies is fixed...
       // Compute the value of gamma.
@@ -892,17 +885,17 @@ void ForwardDynamicsConstrainedDirect (
 
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
+  CalcConstrainedSystemVariables(model, Q, QDot, Tau, CS);
 
-  SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
+  SolveConstrainedSystemDirect(CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
     , CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
 
   // Copy back QDDot
-  for (unsigned int i = 0; i < model.dof_count; i++)
+  for(unsigned int i = 0; i < model.dof_count; i++)
     QDDot[i] = CS.x[i];
 
   // Copy back contact forces
-  for (unsigned int i = 0; i < CS.size(); i++) {
+  for(unsigned int i = 0; i < CS.size(); i++) {
     CS.force[i] = -CS.x[model.dof_count + i];
   }
 
@@ -920,9 +913,9 @@ void ForwardDynamicsConstrainedRangeSpaceSparse (
   Math::VectorNd &QDDot
   ) {
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
+  CalcConstrainedSystemVariables(model, Q, QDot, Tau, CS);
 
-  SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C
+  SolveConstrainedSystemRangeSpaceSparse(model, CS.H, CS.G, Tau - CS.C
     , CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
 
 }
@@ -941,19 +934,19 @@ void ForwardDynamicsConstrainedNullSpace (
 
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
+  CalcConstrainedSystemVariables(model, Q, QDot, Tau, CS);
 
-  CS.GT_qr.compute (CS.G.transpose());
+  CS.GT_qr.compute(CS.G.transpose());
 #ifdef RBDL_USE_SIMPLE_MATH
   CS.GT_qr_Q = CS.GT_qr.householderQ();
 #else
-  CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
+  CS.GT_qr.householderQ().evalTo(CS.GT_qr_Q);
 #endif
 
   CS.Y = CS.GT_qr_Q.block(0,0,QDot.rows(), CS.G.rows());
   CS.Z = CS.GT_qr_Q.block(0,CS.G.rows(),QDot.rows(), QDot.rows() - CS.G.rows());
 
-  SolveConstrainedSystemNullSpace (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
+  SolveConstrainedSystemNullSpace(CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
     , CS.force, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
 
 }
@@ -961,7 +954,7 @@ void ForwardDynamicsConstrainedNullSpace (
 
 
 RBDL_DLLAPI
-void ComputeContactImpulsesDirect (
+void ComputeConstraintImpulsesDirect (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDotMinus,
@@ -970,21 +963,21 @@ void ComputeContactImpulsesDirect (
   ) {
 
   // Compute H
-  UpdateKinematicsCustom (model, &Q, NULL, NULL);
-  CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+  UpdateKinematicsCustom(model, &Q, NULL, NULL);
+  CompositeRigidBodyAlgorithm(model, Q, CS.H, false);
 
   // Compute G
-  CalcConstraintsJacobian (model, Q, CS, CS.G, false);
+  CalcConstraintsJacobian(model, Q, CS, CS.G, false);
 
-  SolveConstrainedSystemDirect (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
+  SolveConstrainedSystemDirect(CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
     , QDotPlus, CS.impulse, CS.A, CS.b, CS.x, CS.linear_solver);
 
   // Copy back QDotPlus
-  for (unsigned int i = 0; i < model.dof_count; i++)
+  for(unsigned int i = 0; i < model.dof_count; i++)
     QDotPlus[i] = CS.x[i];
 
   // Copy back constraint impulses 
-  for (unsigned int i = 0; i < CS.size(); i++) {
+  for(unsigned int i = 0; i < CS.size(); i++) {
     CS.impulse[i] = CS.x[model.dof_count + i];
   }
 
@@ -993,7 +986,7 @@ void ComputeContactImpulsesDirect (
 
 
 RBDL_DLLAPI
-void ComputeContactImpulsesRangeSpaceSparse (
+void ComputeConstraintImpulsesRangeSpaceSparse (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDotMinus,
@@ -1002,13 +995,13 @@ void ComputeContactImpulsesRangeSpaceSparse (
   ) {
 
   // Compute H
-  UpdateKinematicsCustom (model, &Q, NULL, NULL);
-  CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+  UpdateKinematicsCustom(model, &Q, NULL, NULL);
+  CompositeRigidBodyAlgorithm(model, Q, CS.H, false);
 
   // Compute G
-  CalcConstraintsJacobian (model, Q, CS, CS.G, false);
+  CalcConstraintsJacobian(model, Q, CS, CS.G, false);
 
-  SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, CS.H * QDotMinus
+  SolveConstrainedSystemRangeSpaceSparse(model, CS.H, CS.G, CS.H * QDotMinus
     , CS.v_plus, QDotPlus, CS.impulse, CS.K, CS.a, CS.linear_solver);
 
 }
@@ -1016,7 +1009,7 @@ void ComputeContactImpulsesRangeSpaceSparse (
 
 
 RBDL_DLLAPI
-void ComputeContactImpulsesNullSpace (
+void ComputeConstraintImpulsesNullSpace (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDotMinus,
@@ -1025,20 +1018,20 @@ void ComputeContactImpulsesNullSpace (
   ) {
 
   // Compute H
-  UpdateKinematicsCustom (model, &Q, NULL, NULL);
-  CompositeRigidBodyAlgorithm (model, Q, CS.H, false);
+  UpdateKinematicsCustom(model, &Q, NULL, NULL);
+  CompositeRigidBodyAlgorithm(model, Q, CS.H, false);
 
   // Compute G
-  CalcConstraintsJacobian (model, Q, CS, CS.G, false);
+  CalcConstraintsJacobian(model, Q, CS, CS.G, false);
 
-  CS.GT_qr.compute (CS.G.transpose());
+  CS.GT_qr.compute(CS.G.transpose());
   CS.GT_qr_Q = CS.GT_qr.householderQ();
 
   CS.Y = CS.GT_qr_Q.block(0,0,QDotMinus.rows(), CS.G.rows());
   CS.Z = CS.GT_qr_Q.block(0,CS.G.rows(),QDotMinus.rows(), QDotMinus.rows()
     - CS.G.rows());
 
-  SolveConstrainedSystemNullSpace (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
+  SolveConstrainedSystemNullSpace(CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
     , QDotPlus, CS.impulse, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z
     , CS.linear_solver);
 }

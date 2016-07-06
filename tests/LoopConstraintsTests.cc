@@ -1002,3 +1002,128 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
     , TEST_PREC);
 
 }
+
+
+
+TEST_FIXTURE(FourBarLinkage, FourBarLinkageImpulse) {
+
+  VectorNd qdPlusDirect(qd.size());
+  VectorNd qdPlusRangeSpaceSparse(qd.size());
+  VectorNd qdPlusNullSpace(qd.size());
+  VectorNd errd(cs.size());
+
+  q[0] = M_PI * 3 / 4;
+  q[1] = -0.5 * M_PI;
+  q[2] = M_PI - q[0];
+  q[3] = -q[1];
+  q[4] = q[0] + q[1] - q[2] - q[3];
+  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+    - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
+
+
+
+  cs.v_plus[0] = 1.;
+  cs.v_plus[1] = 2.;
+  cs.v_plus[2] = 3.;
+
+  ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
+  CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd);
+
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errd.data(), cs.size(), TEST_PREC);
+
+
+
+  cs.v_plus[0] = 0.;
+  cs.v_plus[1] = 0.;
+  cs.v_plus[2] = 0.;
+
+  qd[0] = 1.;
+  qd[1] = 2.;
+  qd[2] = 3.;
+
+  ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
+  CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd);
+
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errd.data(), cs.size(), TEST_PREC);
+
+}
+
+
+
+TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
+
+  VectorNd qdPlusDirect(qd.size());
+  VectorNd qdPlusRangeSpaceSparse(qd.size());
+  VectorNd qdPlusNullSpace(qd.size());
+  VectorNd errdDirect(cs.size());
+  VectorNd errdSpaceSparse(cs.size());
+  VectorNd errdNullSpace(cs.size());
+  
+  VectorNd qWeights(q.size());
+  qWeights[0] = 1.;
+  qWeights[1] = 1.;
+  qWeights[2] = 1.;
+  qWeights[3] = 1.;
+  qWeights[4] = 1.;
+
+  VectorNd qInit(q.size());
+  qInit[0] = 0.4;
+  qInit[1] = 0.25 * M_PI;
+  qInit[2] = -0.25 * M_PI;
+  qInit[3] = 0.1;
+  qInit[4] = 0.1;
+
+  bool success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
+  assert(success);
+
+
+
+  cs.v_plus[0] = 1.;
+  cs.v_plus[1] = 2.;
+  cs.v_plus[2] = 3.;
+  cs.v_plus[3] = 4.;
+  
+
+  ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
+  CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
+  
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdDirect.data(), cs.size(), TEST_PREC);
+
+  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs, qdPlusRangeSpaceSparse);
+  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs, errdSpaceSparse);
+  
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdSpaceSparse.data(), cs.size(), TEST_PREC);
+
+  ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
+  CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
+
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdNullSpace.data(), cs.size(), TEST_PREC);
+
+
+
+  cs.v_plus[0] = 0.;
+  cs.v_plus[1] = 0.;
+  cs.v_plus[2] = 0.;
+  cs.v_plus[3] = 0.;
+
+  qd[0] = 1.;
+  qd[1] = 2.;
+  qd[2] = 3.;
+
+  ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
+  CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
+  
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdDirect.data(), cs.size(), TEST_PREC);
+
+  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs, qdPlusRangeSpaceSparse);
+  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs, errdSpaceSparse);
+  
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdSpaceSparse.data(), cs.size(), TEST_PREC);
+
+  ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
+  CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
+
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdNullSpace.data(), cs.size(), TEST_PREC);
+
+}

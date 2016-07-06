@@ -131,18 +131,18 @@ namespace RigidBodyDynamics {
  * RBDL provides the following methods to compute the acceleration of a
  * constrained system:
  *
- * - ForwardDynamicsContactsDirect()
- * - ForwardDynamicsContactsRangeSpaceSparse()
- * - ForwardDynamicsContactsNullSpace()
+ * - ForwardDynamicsConstrainedDirect()
+ * - ForwardDynamicsConstrainedRangeSpaceSparse()
+ * - ForwardDynamicsConstrainedNullSpace()
  *
  * \subsection solving_constraints_collisions Methods for Computing Collisions
  *
  * RBDL provides the following methods to compute the collision response on
  * new contact gains:
  *
- * - ComputeContactImpulsesDirect()
- * - ComputeContactImpulsesRangeSpaceSparse()
- * - ComputeContactImpulsesNullSpace()
+ * - ComputeConstraintImpulsesDirect()
+ * - ComputeConstraintImpulsesRangeSpaceSparse()
+ * - ComputeConstraintImpulsesNullSpace()
  *
  * \subsection assembly_q_qdot Computing generalized joint positions and velocities satisfying the constraint equations
  *
@@ -370,8 +370,7 @@ struct RBDL_DLLAPI ConstraintSet {
   Math::VectorNd force;
   /** Actual constraint impulses along the contact normals. */
   Math::VectorNd impulse;
-  /** The velocities we want to have along the contact normals after
-   * calling ComputeContactImpulsesLagrangian */
+  /** The velocities we want to have along the contact normals */
   Math::VectorNd v_plus;
 
   // Variables used by the Lagrangian methods
@@ -778,7 +777,7 @@ void ForwardDynamicsContactsKokkevis (
  * \param QDotPlus velocities of the internals joints after the impact (output)
  */
 RBDL_DLLAPI
-void ComputeContactImpulsesDirect (
+void ComputeConstraintImpulsesDirect (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDotMinus,
@@ -789,7 +788,7 @@ void ComputeContactImpulsesDirect (
 /** \brief Resolves contact gain using SolveContactSystemRangeSpaceSparse()
  */
 RBDL_DLLAPI
-void ComputeContactImpulsesRangeSpaceSparse (
+void ComputeConstraintImpulsesRangeSpaceSparse (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDotMinus,
@@ -800,7 +799,7 @@ void ComputeContactImpulsesRangeSpaceSparse (
 /** \brief Resolves contact gain using SolveContactSystemNullSpace()
  */
 RBDL_DLLAPI
-void ComputeContactImpulsesNullSpace (
+void ComputeConstraintImpulsesNullSpace (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDotMinus,

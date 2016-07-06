@@ -719,7 +719,7 @@ TEST_FIXTURE (Human36, ForwardDynamicsContactsImpulses) {
 
 	VectorNd qdotplus (VectorNd::Zero (qdot.size()));
 
-	ComputeContactImpulsesDirect (*model_3dof, q, qdot, constraint_upper_trunk, qdotplus);  
+	ComputeConstraintImpulsesDirect (*model_3dof, q, qdot, constraint_upper_trunk, qdotplus);  
 
 	Vector3d heel_left_velocity = CalcPointVelocity (*model_3dof, q, qdotplus, body_id_3dof[BodyFootLeft], heel_point);
 	Vector3d heel_right_velocity = CalcPointVelocity (*model_3dof, q, qdotplus, body_id_3dof[BodyFootRight], heel_point);

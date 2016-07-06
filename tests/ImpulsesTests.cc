@@ -99,7 +99,7 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
 	// cout << "Point Velocity = " << point_velocity << endl;
 
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post);
+	ComputeConstraintImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post);
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
 
@@ -142,7 +142,7 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
 
 	// cout << "Point Velocity = " << point_velocity << endl;
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post);
+	ComputeConstraintImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post);
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
 
@@ -186,7 +186,7 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
 	// cout << "Point Velocity = " << point_velocity << endl;
 
 	VectorNd qdot_post (QDot.size());
-	ComputeContactImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post);
+	ComputeConstraintImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post);
 
 	// cout << LogOutput.str() << endl;
 	// cout << "QdotPost = " << qdot_post << endl;
@@ -227,10 +227,10 @@ Q[0] = 0.2;
 	constraint_set_rangespace.Bind (*model);
 
 	VectorNd qdot_post_direct (QDot.size());
-	ComputeContactImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post_direct);
+	ComputeConstraintImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post_direct);
 
 	VectorNd qdot_post_rangespace (QDot.size());
-	ComputeContactImpulsesRangeSpaceSparse (*model, Q, QDot, constraint_set_rangespace, qdot_post_rangespace);
+	ComputeConstraintImpulsesRangeSpaceSparse (*model, Q, QDot, constraint_set_rangespace, qdot_post_rangespace);
 
 	Vector3d point_velocity_direct = CalcPointVelocity (*model, Q, qdot_post_direct, contact_body_id, contact_point, true);
 	Vector3d point_velocity_rangespace = CalcPointVelocity (*model, Q, qdot_post_rangespace, contact_body_id, contact_point, true);
@@ -266,10 +266,10 @@ Q[0] = 0.2;
 	constraint_set_nullspace.Bind (*model);
 
 	VectorNd qdot_post_direct (QDot.size());
-	ComputeContactImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post_direct);
+	ComputeConstraintImpulsesDirect (*model, Q, QDot, constraint_set, qdot_post_direct);
 
 	VectorNd qdot_post_nullspace (QDot.size());
-	ComputeContactImpulsesNullSpace (*model, Q, QDot, constraint_set, qdot_post_nullspace);
+	ComputeConstraintImpulsesNullSpace (*model, Q, QDot, constraint_set, qdot_post_nullspace);
 
 	Vector3d point_velocity_direct = CalcPointVelocity (*model, Q, qdot_post_direct, contact_body_id, contact_point, true);
 	Vector3d point_velocity_nullspace = CalcPointVelocity (*model, Q, qdot_post_nullspace, contact_body_id, contact_point, true);
