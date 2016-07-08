@@ -445,6 +445,8 @@ struct RBDL_DLLAPI ConstraintSet {
   * \param update_kinematics whether the kinematics of the model should be
   * updated from Q.
   *
+  * \note the position error is always 0 for contact constraints.
+  *
   */
 RBDL_DLLAPI
 void CalcConstraintsPositionError(
