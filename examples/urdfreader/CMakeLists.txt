@@ -1,5 +1,7 @@
 PROJECT (RBDLEXAMPLE CXX)
 
+CMAKE_POLICY(SET CMP0048 NEW)
+
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
 # We need to add the project source path to the CMake module path so that

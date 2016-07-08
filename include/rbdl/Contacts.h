@@ -154,8 +154,8 @@ struct Model;
  * are needed when computing constraint forces.
  *
  * The ConstraintSet has to be bound to a model using ConstraintSet::Bind()
- * before it can be used in \link RigidBodyDynamics::ForwardDynamicsContacts
- * ForwardDynamicsContacts \endlink.
+ * before it can be used in \link RigidBodyDynamics::ForwardDynamicsContactsDirect
+ * ForwardDynamicsContactsDirect \endlink.
  */
 struct RBDL_DLLAPI ConstraintSet {
   ConstraintSet() :
@@ -562,7 +562,7 @@ RBDL_DLLAPI void ComputeContactImpulsesNullSpace (
  * \param A work-space for the matrix of the linear system 
  * \param b work-space for the right-hand-side of the linear system
  * \param x work-space for the solution of the linear system
- * \param type of solver that should be used to solve the system
+ * \param linear_solver type of solver that should be used to solve the system
  */
 RBDL_DLLAPI void SolveContactSystemDirect (
     Math::MatrixNd &H, 
@@ -582,6 +582,7 @@ RBDL_DLLAPI void SolveContactSystemDirect (
  * This method exploits the branch-induced sparsity by the structure
  * preserving \f$L^TL \f$ decomposition described in RBDL, Section 6.5.
  * 
+ * \param model the rbdl model 
  * \param H the joint space inertia matrix
  * \param G the constraint jacobian
  * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of the right hand side of the system

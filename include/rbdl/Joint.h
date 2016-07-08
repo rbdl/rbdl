@@ -631,9 +631,6 @@ struct RBDL_DLLAPI Joint {
  *
  * \param model    the rigid body model
  * \param joint_id the id of the joint we are interested in. This will be used to determine the type of joint and also the entries of \f[ q, \dot{q} \f].
- * \param XJ       the joint transformation (output)
- * \param v_J      joint velocity (output)
- * \param c_J      joint acceleration for rhenomic joints (output)
  * \param q        joint state variables
  * \param qdot     joint velocity variables
  */
