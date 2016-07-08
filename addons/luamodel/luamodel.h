@@ -4,12 +4,13 @@
 #include <rbdl/rbdl_config.h>
 
 extern "C" {
-	struct lua_State;
+  struct lua_State;
 };
 
 namespace RigidBodyDynamics {
 
 struct Model;
+struct ConstraintSet;
 
 namespace Addons {
   
@@ -161,11 +162,16 @@ namespace Addons {
    * \include samplemodel.lua
    */
 
-	RBDL_DLLAPI bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose = false);
+  RBDL_DLLAPI bool LuaModelReadFromFile (const char* filename, Model* model
+    , bool verbose = false);
 
-	RBDL_DLLAPI bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose = false);
+   RBDL_DLLAPI bool LuaModelReadFromFileWithConstraints (const char* filename
+    , Model* model, ConstraintSet* cs, bool verbose = false);
 
-	/** @} */
+  RBDL_DLLAPI bool LuaModelReadFromLuaState (lua_State* L, Model* model
+    , bool verbose = false);
+
+  /** @} */
 }
 
 }

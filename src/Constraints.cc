@@ -40,26 +40,27 @@ unsigned int ConstraintSet::AddContactConstraint (
   const char *constraint_name,
   double normal_acceleration) {
 
-  assert (bound == false);
+  assert(bound == false);
 
   std::string name_str;
-  if (constraint_name != NULL)
+  if(constraint_name != NULL) {
     name_str = constraint_name;
+  }
 
   constraintType.push_back(ContactConstraint);
-  name.push_back (name_str);
+  name.push_back(name_str);
 
   // These variables will be used for this type of constraint.
-  body.push_back (body_id);
-  point.push_back (body_point);
-  normal.push_back (world_normal);
+  body.push_back(body_id);
+  point.push_back(body_point);
+  normal.push_back(world_normal);
 
   // These variables will not be used.
   body_p.push_back(0);
   body_s.push_back(0);
   X_p.push_back(SpatialTransform());
   X_s.push_back(SpatialTransform());
-  constraintAxis.push_back(SpatialVector());
+  constraintAxis.push_back(SpatialVector::Zero());
   T_stab.push_back(0.);
 
   unsigned int n_constr = size() + 1;
@@ -67,16 +68,16 @@ unsigned int ConstraintSet::AddContactConstraint (
   acceleration.conservativeResize (n_constr);
   acceleration[n_constr - 1] = normal_acceleration;
 
-  force.conservativeResize (n_constr);
+  force.conservativeResize(n_constr);
   force[n_constr - 1] = 0.;
 
-  impulse.conservativeResize (n_constr);
+  impulse.conservativeResize(n_constr);
   impulse[n_constr - 1] = 0.;
 
-  v_plus.conservativeResize (n_constr);
+  v_plus.conservativeResize(n_constr);
   v_plus[n_constr - 1] = 0.;
 
-  d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
+  d_multdof3_u = std::vector<Math::Vector3d>(n_constr, Math::Vector3d::Zero());
 
   return n_constr - 1;
 }
@@ -93,11 +94,12 @@ unsigned int ConstraintSet::AddLoopConstraint(
   const char *constraint_name
   ) {
 
-  assert (bound == false);
+  assert(bound == false);
 
   std::string name_str;
-  if (constraint_name != NULL)
+  if(constraint_name != NULL) {
     name_str = constraint_name;
+  }
 
   constraintType.push_back(LoopConstraint);
   name.push_back (name_str);
@@ -112,24 +114,24 @@ unsigned int ConstraintSet::AddLoopConstraint(
 
   // These variables will not be used.
   body.push_back(0);
-  point.push_back(Vector3d());
-  normal.push_back(Vector3d());
+  point.push_back(Vector3d::Zero());
+  normal.push_back(Vector3d::Zero());
 
   unsigned int n_constr = size() + 1;
 
   acceleration.conservativeResize (n_constr);
   acceleration[n_constr - 1] = 0.;
 
-  force.conservativeResize (n_constr);
+  force.conservativeResize(n_constr);
   force[n_constr - 1] = 0.;
 
-  impulse.conservativeResize (n_constr);
+  impulse.conservativeResize(n_constr);
   impulse[n_constr - 1] = 0.;
 
-  v_plus.conservativeResize (n_constr);
+  v_plus.conservativeResize(n_constr);
   v_plus[n_constr - 1] = 0.;
 
-  d_multdof3_u = std::vector<Math::Vector3d> (n_constr, Math::Vector3d::Zero());
+  d_multdof3_u = std::vector<Math::Vector3d>(n_constr, Math::Vector3d::Zero());
 
   return n_constr - 1;
 

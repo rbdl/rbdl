@@ -18,280 +18,362 @@ using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
 template<> Vector3d LuaTableNode::getDefault<Vector3d>(const Vector3d &default_value) { 
-	Vector3d result = default_value;
+  Vector3d result = default_value;
 
-	if (stackQueryValue()) {
-		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+  if (stackQueryValue()) {
+    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
-		if (vector_table.length() != 3) {
-			cerr << "LuaModel Error: invalid 3d vector!" << endl;
-			abort();
-		}
-		
-		result[0] = vector_table[1];
-		result[1] = vector_table[2];
-		result[2] = vector_table[3];
-	}
+    if (vector_table.length() != 3) {
+      cerr << "LuaModel Error: invalid 3d vector!" << endl;
+      abort();
+    }
+    
+    result[0] = vector_table[1];
+    result[1] = vector_table[2];
+    result[2] = vector_table[3];
+  }
 
-	stackRestore();
+  stackRestore();
 
-	return result;
+  return result;
 }
 
 template<> SpatialVector LuaTableNode::getDefault<SpatialVector>(const SpatialVector &default_value) {
-	SpatialVector result = default_value;
+  SpatialVector result = default_value;
 
-	if (stackQueryValue()) {
-		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-		
-		if (vector_table.length() != 6) {
-			cerr << "LuaModel Error: invalid 6d vector!" << endl;
-			abort();
-		}
-		result[0] = vector_table[1];
-		result[1] = vector_table[2];
-		result[2] = vector_table[3];
-		result[3] = vector_table[4];
-		result[4] = vector_table[5];
-		result[5] = vector_table[6];
-	}
+  if (stackQueryValue()) {
+    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+    
+    if (vector_table.length() != 6) {
+      cerr << "LuaModel Error: invalid 6d vector!" << endl;
+      abort();
+    }
+    result[0] = vector_table[1];
+    result[1] = vector_table[2];
+    result[2] = vector_table[3];
+    result[3] = vector_table[4];
+    result[4] = vector_table[5];
+    result[5] = vector_table[6];
+  }
 
-	stackRestore();
+  stackRestore();
 
-	return result;
+  return result;
 }
 
 template<> Matrix3d LuaTableNode::getDefault<Matrix3d>(const Matrix3d &default_value) {
-	Matrix3d result = default_value;
+  Matrix3d result = default_value;
 
-	if (stackQueryValue()) {
-		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-		
-		if (vector_table.length() != 3) {
-			cerr << "LuaModel Error: invalid 3d matrix!" << endl;
-			abort();
-		}
+  if (stackQueryValue()) {
+    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+    
+    if (vector_table.length() != 3) {
+      cerr << "LuaModel Error: invalid 3d matrix!" << endl;
+      abort();
+    }
 
-		if (vector_table[1].length() != 3
-				|| vector_table[2].length() != 3
-				|| vector_table[3].length() != 3) {
-			cerr << "LuaModel Error: invalid 3d matrix!" << endl;
-			abort();
-		}
+    if (vector_table[1].length() != 3
+        || vector_table[2].length() != 3
+        || vector_table[3].length() != 3) {
+      cerr << "LuaModel Error: invalid 3d matrix!" << endl;
+      abort();
+    }
 
-		result(0,0) = vector_table[1][1];
-		result(0,1) = vector_table[1][2];
-		result(0,2) = vector_table[1][3];
+    result(0,0) = vector_table[1][1];
+    result(0,1) = vector_table[1][2];
+    result(0,2) = vector_table[1][3];
 
-		result(1,0) = vector_table[2][1];
-		result(1,1) = vector_table[2][2];
-		result(1,2) = vector_table[2][3];
+    result(1,0) = vector_table[2][1];
+    result(1,1) = vector_table[2][2];
+    result(1,2) = vector_table[2][3];
 
-		result(2,0) = vector_table[3][1];
-		result(2,1) = vector_table[3][2];
-		result(2,2) = vector_table[3][3];
-	}
+    result(2,0) = vector_table[3][1];
+    result(2,1) = vector_table[3][2];
+    result(2,2) = vector_table[3][3];
+  }
 
-	stackRestore();
+  stackRestore();
 
-	return result;
+  return result;
 }
 
 template<> SpatialTransform LuaTableNode::getDefault<SpatialTransform>(const SpatialTransform &default_value) {
-	SpatialTransform result = default_value;
+  SpatialTransform result = default_value;
 
-	if (stackQueryValue()) {
-		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-	
-		result.r = vector_table["r"].getDefault<Vector3d>(Vector3d::Zero(3));
-		result.E = vector_table["E"].getDefault<Matrix3d>(Matrix3d::Identity (3,3));
-	}
+  if (stackQueryValue()) {
+    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+  
+    result.r = vector_table["r"].getDefault<Vector3d>(Vector3d::Zero(3));
+    result.E = vector_table["E"].getDefault<Matrix3d>(Matrix3d::Identity (3,3));
+  }
 
-	stackRestore();
+  stackRestore();
 
-	return result;
+  return result;
 }
 
 template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
-	Joint result = default_value;
-	
-	if (stackQueryValue()) {
-		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+  Joint result = default_value;
+  
+  if (stackQueryValue()) {
+    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
-		int joint_dofs = vector_table.length();
+    int joint_dofs = vector_table.length();
 
-		if (joint_dofs == 1) {
-			string dof_string = vector_table[1].getDefault<std::string>("");
-			if (dof_string == "JointTypeSpherical") {
-				stackRestore();
-				return Joint(JointTypeSpherical);
-			} else if (dof_string == "JointTypeEulerZYX") {
-				stackRestore();
-				return Joint(JointTypeEulerZYX);
-			}
-			if (dof_string == "JointTypeEulerXYZ") {
-				stackRestore();
-				return Joint(JointTypeEulerXYZ);
-			}
-			if (dof_string == "JointTypeEulerYXZ") {
-				stackRestore();
-				return Joint(JointTypeEulerYXZ);
-			}
-			if (dof_string == "JointTypeTranslationXYZ") {
-				stackRestore();
-				return Joint(JointTypeTranslationXYZ);
-			}
-		}
+    if (joint_dofs == 1) {
+      string dof_string = vector_table[1].getDefault<std::string>("");
+      if (dof_string == "JointTypeSpherical") {
+        stackRestore();
+        return Joint(JointTypeSpherical);
+      } else if (dof_string == "JointTypeEulerZYX") {
+        stackRestore();
+        return Joint(JointTypeEulerZYX);
+      }
+      if (dof_string == "JointTypeEulerXYZ") {
+        stackRestore();
+        return Joint(JointTypeEulerXYZ);
+      }
+      if (dof_string == "JointTypeEulerYXZ") {
+        stackRestore();
+        return Joint(JointTypeEulerYXZ);
+      }
+      if (dof_string == "JointTypeTranslationXYZ") {
+        stackRestore();
+        return Joint(JointTypeTranslationXYZ);
+      }
+    }
 
-		if (joint_dofs > 0) {
-			if (vector_table[1].length() != 6) {
-				cerr << "LuaModel Error: invalid joint motion subspace description at " << this->keyStackToString() << endl;
-				abort();
-			}
-		}
+    if (joint_dofs > 0) {
+      if (vector_table[1].length() != 6) {
+        cerr << "LuaModel Error: invalid joint motion subspace description at " << this->keyStackToString() << endl;
+        abort();
+      }
+    }
 
-		switch (joint_dofs) {
-			case 0: result = Joint(JointTypeFixed);
-							break;
-			case 1: result = Joint (vector_table[1].get<SpatialVector>());
-							break;
-			case 2: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>()
-									);
-							break;
-			case 3: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>(),
-									vector_table[3].get<SpatialVector>()
-									);
-							break;
-			case 4: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>(),
-									vector_table[3].get<SpatialVector>(),
-									vector_table[4].get<SpatialVector>()
-									);
-							break;
-			case 5: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>(),
-									vector_table[3].get<SpatialVector>(),
-									vector_table[4].get<SpatialVector>(),
-									vector_table[5].get<SpatialVector>()
-									);
-							break;
-			case 6: result = Joint(
-									vector_table[1].get<SpatialVector>(),
-									vector_table[2].get<SpatialVector>(),
-									vector_table[3].get<SpatialVector>(),
-									vector_table[4].get<SpatialVector>(),
-									vector_table[5].get<SpatialVector>(),
-									vector_table[6].get<SpatialVector>()
-									);
-							break;
-			default:
-							cerr << "Invalid number of DOFs for joint." << endl;
-							abort();
-		}
-	}
+    switch (joint_dofs) {
+      case 0: result = Joint(JointTypeFixed);
+              break;
+      case 1: result = Joint (vector_table[1].get<SpatialVector>());
+              break;
+      case 2: result = Joint(
+                  vector_table[1].get<SpatialVector>(),
+                  vector_table[2].get<SpatialVector>()
+                  );
+              break;
+      case 3: result = Joint(
+                  vector_table[1].get<SpatialVector>(),
+                  vector_table[2].get<SpatialVector>(),
+                  vector_table[3].get<SpatialVector>()
+                  );
+              break;
+      case 4: result = Joint(
+                  vector_table[1].get<SpatialVector>(),
+                  vector_table[2].get<SpatialVector>(),
+                  vector_table[3].get<SpatialVector>(),
+                  vector_table[4].get<SpatialVector>()
+                  );
+              break;
+      case 5: result = Joint(
+                  vector_table[1].get<SpatialVector>(),
+                  vector_table[2].get<SpatialVector>(),
+                  vector_table[3].get<SpatialVector>(),
+                  vector_table[4].get<SpatialVector>(),
+                  vector_table[5].get<SpatialVector>()
+                  );
+              break;
+      case 6: result = Joint(
+                  vector_table[1].get<SpatialVector>(),
+                  vector_table[2].get<SpatialVector>(),
+                  vector_table[3].get<SpatialVector>(),
+                  vector_table[4].get<SpatialVector>(),
+                  vector_table[5].get<SpatialVector>(),
+                  vector_table[6].get<SpatialVector>()
+                  );
+              break;
+      default:
+              cerr << "Invalid number of DOFs for joint." << endl;
+              abort();
+    }
+  }
 
-	stackRestore();
+  stackRestore();
 
-	return result;
+  return result;
 }
 
 template<> Body LuaTableNode::getDefault<Body>(const Body &default_value) {
-	Body result = default_value;
+  Body result = default_value;
 
-	if (stackQueryValue()) {
-		LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+  if (stackQueryValue()) {
+    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
-		double mass = 0.;
-		Vector3d com (Vector3d::Zero(3));
-		Matrix3d inertia (Matrix3d::Identity(3,3));
+    double mass = 0.;
+    Vector3d com (Vector3d::Zero(3));
+    Matrix3d inertia (Matrix3d::Identity(3,3));
 
-		mass = vector_table["mass"];
-		com = vector_table["com"].getDefault<Vector3d>(com);
-		inertia = vector_table["inertia"].getDefault<Matrix3d>(inertia);
+    mass = vector_table["mass"];
+    com = vector_table["com"].getDefault<Vector3d>(com);
+    inertia = vector_table["inertia"].getDefault<Matrix3d>(inertia);
 
-		result = Body (mass, com, inertia);
-	}
+    result = Body (mass, com, inertia);
+  }
 
-	stackRestore();
+  stackRestore();
 
-	return result;
+  return result;
 }
 
 namespace RigidBodyDynamics {
 
 namespace Addons {
 
-bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose);
+bool LuaModelReadFromTable (LuaTable &model_table, Model *model, bool verbose);
+bool LuaModelReadConstraintsFromTable (LuaTable &model_table, Model *model
+  , ConstraintSet* cs, bool verbose);
 
 typedef map<string, unsigned int> StringIntMap;
 StringIntMap body_table_id_map;
 
 RBDL_DLLAPI bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose) {
-	assert (model);
+  assert (model);
 
-	LuaTable model_table = LuaTable::fromLuaState (L);
+  LuaTable model_table = LuaTable::fromLuaState (L);
 
-	return LuaModelReadFromTable (model_table, model, verbose);
+  return LuaModelReadFromTable (model_table, model, verbose);
 }
 
 RBDL_DLLAPI
 bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
-	assert (model);
+  assert (model);
 
-	LuaTable model_table = LuaTable::fromFile (filename);
+  LuaTable model_table = LuaTable::fromFile (filename);
 
-	return LuaModelReadFromTable (model_table, model, verbose);
+  return LuaModelReadFromTable (model_table, model, verbose);
 }
 
+
+RBDL_DLLAPI
+bool LuaModelReadFromFileWithConstraints (const char* filename, Model* model
+  , ConstraintSet* cs, bool verbose) {
+
+  assert(model);
+  assert(cs);
+
+  LuaTable model_table = LuaTable::fromFile (filename);
+
+  bool modelLoaded = LuaModelReadFromTable (model_table, model, verbose);
+
+  bool constraintsLoaded = LuaModelReadConstraintsFromTable (model_table, model
+    , cs, verbose);
+
+  cs->Bind(*model);
+
+  return modelLoaded && constraintsLoaded;
+
+}
+
+
 bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose) {
-	if (model_table["gravity"].exists()) {
-		model->gravity = model_table["gravity"].get<Vector3d>();
+  if (model_table["gravity"].exists()) {
+    model->gravity = model_table["gravity"].get<Vector3d>();
 
-		if (verbose)
-			cout << "gravity = " << model->gravity.transpose() << endl;
-	}
+    if (verbose)
+      cout << "gravity = " << model->gravity.transpose() << endl;
+  }
 
-	int frame_count = model_table["frames"].length();
+  int frame_count = model_table["frames"].length();
 
-	body_table_id_map["ROOT"] = 0;
+  body_table_id_map["ROOT"] = 0;
 
-	for (int i = 1; i <= frame_count; i++) {
-		if (!model_table["frames"][i]["parent"].exists()) {
-			cerr << "Parent not defined for frame " << i << "." << endl;
-			abort();
-		}
+  for (int i = 1; i <= frame_count; i++) {
+    if (!model_table["frames"][i]["parent"].exists()) {
+      cerr << "Parent not defined for frame " << i << "." << endl;
+      abort();
+    }
 
-		string body_name = model_table["frames"][i]["name"].getDefault<string>("");
-		string parent_name = model_table["frames"][i]["parent"].get<string>();
-		unsigned int parent_id = body_table_id_map[parent_name];
+    string body_name = model_table["frames"][i]["name"].getDefault<string>("");
+    string parent_name = model_table["frames"][i]["parent"].get<string>();
+    unsigned int parent_id = body_table_id_map[parent_name];
 
-		SpatialTransform joint_frame = model_table["frames"][i]["joint_frame"].getDefault(SpatialTransform());
-		Joint joint = model_table["frames"][i]["joint"].getDefault(Joint(JointTypeFixed));
-		Body body = model_table["frames"][i]["body"].getDefault<Body>(Body());
+    SpatialTransform joint_frame = model_table["frames"][i]["joint_frame"].getDefault(SpatialTransform());
+    Joint joint = model_table["frames"][i]["joint"].getDefault(Joint(JointTypeFixed));
+    Body body = model_table["frames"][i]["body"].getDefault<Body>(Body());
 
-		unsigned int body_id = model->AddBody (parent_id, joint_frame, joint, body, body_name);
-		body_table_id_map[body_name] = body_id;
+    unsigned int body_id = model->AddBody (parent_id, joint_frame, joint, body, body_name);
+    body_table_id_map[body_name] = body_id;
 
-		if (verbose) {
-			cout << "==== Added Body ====" << endl;
-			cout << "  body_name  : " << body_name << endl;
-			cout << "  body id    : " << body_id << endl;
-			cout << "  parent_id  : " << parent_id << endl;
-			cout << "  joint dofs : " << joint.mDoFCount << endl;
-			for (unsigned int j = 0; j < joint.mDoFCount; j++) {
-				cout << "    " << j << ": " << joint.mJointAxes[j].transpose() << endl;
-			}
-			cout << "  joint_frame: " << joint_frame << endl;
-		}
-	}
+    if (verbose) {
+      cout << "==== Added Body ====" << endl;
+      cout << "  body_name  : " << body_name << endl;
+      cout << "  body id    : " << body_id << endl;
+      cout << "  parent_id  : " << parent_id << endl;
+      cout << "  joint dofs : " << joint.mDoFCount << endl;
+      for (unsigned int j = 0; j < joint.mDoFCount; j++) {
+        cout << "    " << j << ": " << joint.mJointAxes[j].transpose() << endl;
+      }
+      cout << "  joint_frame: " << joint_frame << endl;
+    }
+  }
 
-	return true;
+  return true;
+}
+
+
+bool LuaModelReadConstraintsFromTable (LuaTable &model_table
+  , Model* model, ConstraintSet* cs, bool verbose) {
+
+  size_t nConstraints = model_table["constraints"].length();
+
+  for(size_t ci = 0; ci < nConstraints; ++ci) {
+    string constraintType = model_table["constraints"][ci + 1]["constraintType"].getDefault<string>("");
+    std::cout << "constraintType = " << constraintType << endl;
+    if(constraintType == "contact") {
+      cs->AddContactConstraint
+        (model->GetBodyId(model_table["constraints"][ci + 1]["body"].getDefault<string>("").c_str())
+        , model_table["constraints"][ci + 1]["point"].getDefault<Vector3d>(Vector3d::Zero())
+        , model_table["constraints"][ci + 1]["normal"].getDefault<Vector3d>(Vector3d::Zero())
+        , model_table["constraints"][ci + 1]["name"].getDefault<string>("").c_str()
+        , model_table["constraints"][ci + 1]["normalAcceleration"].getDefault<double>(0.));
+      if(verbose) {
+        cout << "==== Added Constraint ====" << endl;
+        cout << "  type = contact" << endl;
+        cout << "  body = " << model_table["constraints"][ci + 1]["body"].getDefault<string>("") << endl;
+        cout << "  body point = " << model_table["constraints"][ci + 1]["point"].getDefault<Vector3d>(Vector3d::Zero()).transpose() << endl;
+        cout << "  world normal = " << model_table["constraints"][ci + 1]["normal"].getDefault<Vector3d>(Vector3d::Zero()).transpose() << endl;
+        cout << "  constraint name = " << model_table["constraints"][ci + 1]["name"].getDefault<string>("") << endl;
+        cout << "  normal acceleration = " << model_table["constraints"][ci + 1]["normalAcceleration"].getDefault<double>(0.) << endl;
+      }
+    }
+    else if(constraintType == "loop") {
+      cs->AddLoopConstraint(model->GetBodyId
+        (model_table["constraints"][ci + 1]["predecessorBody"].getDefault<string>("").c_str())
+        , model->GetBodyId(model_table["constraints"][ci + 1]["successorBody"].getDefault<string>("").c_str())
+        , model_table["constraints"][ci + 1]["predecessorTransform"].getDefault<SpatialTransform>(SpatialTransform())
+        , model_table["constraints"][ci + 1]["successorTransform"].getDefault<SpatialTransform>(SpatialTransform())
+        , model_table["constraints"][ci + 1]["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
+        , model_table["constraints"][ci + 1]["stabilizationCoefficient"].getDefault<double>(1.)
+        , model_table["constraints"][ci + 1]["name"].getDefault<string>("").c_str());
+      if(verbose) {
+        cout << "==== Added Constraint ====" << endl;
+        cout << "  type = loop" << endl;
+        cout << "  predecessor body = " << model_table["constraints"][ci + 1]["predecessorBody"].getDefault<string>("") << endl;
+        cout << "  successor body = " << model_table["constraints"][ci + 1]["successorBody"].getDefault<string>("") << endl;
+        cout << "  predecessor body transform = " << endl << model_table["constraints"][ci + 1]["predecessorTransform"].getDefault<SpatialTransform>(SpatialTransform()) << endl;
+        cout << "  successor body transform = " << endl << model_table["constraints"][ci + 1]["successorTransform"].getDefault<SpatialTransform>(SpatialTransform()) << endl;
+        cout << "  constraint axis (in predecessor frame) = " << model_table["constraints"][ci + 1]["axis"].getDefault<SpatialVector>(SpatialVector::Zero()).transpose() << endl;
+        cout << "  stabilization coefficient = " << model_table["constraints"][ci + 1]["stabilizationCoefficient"].getDefault<double>(1.) << endl;
+        cout << "  constraint name = " << model_table["constraints"][ci + 1]["name"].getDefault<string>("").c_str() << endl;
+      }
+    }
+    else {
+      cerr << "Invalid constraint type: " << constraintType << endl;
+      assert(false);
+      abort();
+    }
+  }
+
+  return true;
+
 }
 
 }
