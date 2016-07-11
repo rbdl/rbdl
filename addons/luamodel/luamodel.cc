@@ -269,7 +269,6 @@ bool LuaModelReadFromFileWithConstraints (const char* filename, Model* model
   cs->Bind(*model);
 
   return modelLoaded && constraintsLoaded;
-
 }
 
 
@@ -319,9 +318,7 @@ bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose) {
 }
 
 
-bool LuaModelReadConstraintsFromTable (LuaTable &model_table
-  , Model* model, ConstraintSet* cs, bool verbose) {
-
+bool LuaModelReadConstraintsFromTable (LuaTable &model_table, Model* model, ConstraintSet* cs, bool verbose) {
   size_t nConstraints = model_table["constraints"].length();
 
   for(size_t ci = 0; ci < nConstraints; ++ci) {
@@ -373,7 +370,6 @@ bool LuaModelReadConstraintsFromTable (LuaTable &model_table
   }
 
   return true;
-
 }
 
 }

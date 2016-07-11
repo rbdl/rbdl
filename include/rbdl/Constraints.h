@@ -540,6 +540,8 @@ void CalcConstrainedSystemVariables (
   * \return true if the generalized joint positions were computed successfully,
   * false otherwise.
   *
+  * \note this method only works if the size of q is equal to the size of qdot.
+  *
   */
 RBDL_DLLAPI
 bool CalcAssemblyQ(
@@ -572,7 +574,6 @@ void CalcAssemblyQDot(
   Math::VectorNd &QDot,
   const Math::VectorNd &weights
 );
-
 
 /** \brief Computes forward dynamics with contact by constructing and solving 
  *  the full lagrangian equation

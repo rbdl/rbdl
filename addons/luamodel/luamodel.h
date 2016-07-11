@@ -165,7 +165,7 @@ namespace Addons {
   RBDL_DLLAPI bool LuaModelReadFromFile (const char* filename, Model* model
     , bool verbose = false);
 
-   RBDL_DLLAPI bool LuaModelReadFromFileWithConstraints (const char* filename
+  RBDL_DLLAPI bool LuaModelReadFromFileWithConstraints (const char* filename
     , Model* model, ConstraintSet* cs, bool verbose = false);
 
   RBDL_DLLAPI bool LuaModelReadFromLuaState (lua_State* L, Model* model
