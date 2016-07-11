@@ -707,29 +707,33 @@ bool CalcAssemblyQ (
 
   // Initialize variables.
   MatrixNd constraintJac (cs.size(), Q.size());
-  MatrixNd A = MatrixNd::Zero(cs.size() + Q.size(), cs.size() + Q.size());
-  VectorNd b = VectorNd::Zero(cs.size() + Q.size());
-  VectorNd x = VectorNd::Zero(cs.size() + Q.size());
-  VectorNd d = VectorNd::Zero(Q.size());
-  VectorNd e = VectorNd::Zero(cs.size());
+  MatrixNd A = MatrixNd::Zero (cs.size() + Q.size(), cs.size() + Q.size());
+  VectorNd b = VectorNd::Zero (cs.size() + Q.size());
+  VectorNd x = VectorNd::Zero (cs.size() + Q.size());
+  VectorNd d = VectorNd::Zero (Q.size());
+  VectorNd e = VectorNd::Zero (cs.size());
 
   // The top-left block is the weight matrix and is constant.
   for(unsigned int i = 0; i < weights.size(); ++i) {
     A(i,i) = weights[i];
   }
 
+  // Check if the error is small enough already. If so, just return the initial
+  // guess as the solution.
+  CalcConstraintsPositionError (model, QInit, cs, e);
+  if (e.norm() < tolerance) {
+    Q = QInit;
+    return true;
+  }
+
   // We solve the linearized problem iteratively.
   // Iterations are stopped if the maximum is reached.
   for(unsigned int it = 0; it < max_iter; ++it) {
-
-    // Compute the constraint jacobian and update A.
+    // Compute the constraint jacobian and build A and b.
     constraintJac.setZero();
     CalcConstraintsJacobian (model, QInit, cs, constraintJac);
     A.block (Q.size(), 0, cs.size(), Q.size()) = constraintJac;
     A.block (0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
-
-    // Compute the constraint errors and update b.
-    CalcConstraintsPositionError (model, QInit, cs, e);
     b.block (Q.size(), 0, cs.size(), 1) = -e;
 
     // Solve the sistem A*x = b.
@@ -740,13 +744,14 @@ bool CalcAssemblyQ (
     d = x.block (0, 0, Q.size(), 1);
     QInit += d;
 
-    // std::cout << "Iteration " << it+1 << ", d = " << d.transpose() << std::endl;
+    // Update the errors.
+    CalcConstraintsPositionError (model, QInit, cs, e);
 
-    if(d.norm() < tolerance) {
+    // Check if the error and the step are small enough to end.
+    if (e.norm() < tolerance && d.norm() < tolerance){
       Q = QInit;
       return true;
     }
-
   }
 
   // Return false if maximum number of iterations is exceeded.
