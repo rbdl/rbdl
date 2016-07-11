@@ -29,6 +29,7 @@ SET ( TESTS_SRCS
   CustomJointSingleBodyTests.cc
   CustomJointMultiBodyTests.cc
   InverseKinematicsTests.cc
+  LoopConstraintsTests.cc
   )
 
 INCLUDE_DIRECTORIES ( ../src/ )

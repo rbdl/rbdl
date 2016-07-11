@@ -44,7 +44,7 @@ TEST_FIXTURE (FloatingBase12DoF, TestSparseSolveLx) {
 
   MatrixNd L (H);
   SparseFactorizeLTL (*model, L);
-  VectorNd x = L * Q;	
+  VectorNd x = L * Q; 
 
   SparseSolveLx (*model, L, x);
 
@@ -62,7 +62,7 @@ TEST_FIXTURE (FloatingBase12DoF, TestSparseSolveLTx) {
 
   MatrixNd L (H);
   SparseFactorizeLTL (*model, L);
-  VectorNd x = L.transpose() * Q;	
+  VectorNd x = L.transpose() * Q; 
 
   SparseSolveLTx (*model, L, x);
 
@@ -72,10 +72,10 @@ TEST_FIXTURE (FloatingBase12DoF, TestSparseSolveLTx) {
 TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsSparse) {
   ConstraintSet constraint_set_var1;
 
-  constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (1., 0., 0.));
-  constraint_set.AddConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.));
-  constraint_set.AddConstraint (child_2_id, contact_point, Vector3d (0., 1., 0.));
-
+  constraint_set.AddContactConstraint (contact_body_id, contact_point, Vector3d (1., 0., 0.));
+  constraint_set.AddContactConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.));
+  constraint_set.AddContactConstraint (child_2_id, contact_point, Vector3d (0., 1., 0.));
+  
   constraint_set_var1 = constraint_set.Copy();
   constraint_set_var1.Bind (*model);
   constraint_set.Bind (*model);
@@ -104,9 +104,9 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsSparse) {
 
   ClearLogOutput();
   ForwardDynamicsContactsKokkevis (*model, Q, QDot, Tau, constraint_set, QDDot);
-
+  
   ClearLogOutput();
-  ForwardDynamicsContactsRangeSpaceSparse (*model, Q, QDot, Tau, constraint_set_var1, QDDot_var1);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model, Q, QDot, Tau, constraint_set_var1, QDDot_var1);
 
   CHECK_ARRAY_CLOSE (QDDot.data(), QDDot_var1.data(), QDDot.size(), TEST_PREC);
 }
@@ -174,16 +174,16 @@ TEST ( TestSparseFactorizationMultiDof) {
   CHECK_ARRAY_CLOSE (H_emulated.data(), H_3dof.data(), q.size() * q.size(), TEST_PREC);
 
   x_emulated = b;
-  SparseSolveLx (model_emulated, H_emulated, x_emulated);	
+  SparseSolveLx (model_emulated, H_emulated, x_emulated); 
   x_3dof = b;
-  SparseSolveLx (model_3dof, H_3dof, x_3dof);	
+  SparseSolveLx (model_3dof, H_3dof, x_3dof); 
 
   CHECK_ARRAY_CLOSE (x_emulated.data(), x_3dof.data(), x_emulated.size(), 1.0e-9);
 
   x_emulated = b;
-  SparseSolveLTx (model_emulated, H_emulated, x_emulated);	
+  SparseSolveLTx (model_emulated, H_emulated, x_emulated);  
   x_3dof = b;
-  SparseSolveLTx (model_3dof, H_3dof, x_3dof);	
+  SparseSolveLTx (model_3dof, H_3dof, x_3dof);  
 
   CHECK_ARRAY_CLOSE (x_emulated.data(), x_3dof.data(), x_emulated.size(), 1.0e-9);
 }
@@ -253,16 +253,16 @@ TEST ( TestSparseFactorizationMultiDofAndFixed) {
   CHECK_ARRAY_CLOSE (H_emulated.data(), H_3dof.data(), q.size() * q.size(), TEST_PREC);
 
   x_emulated = b;
-  SparseSolveLx (model_emulated, H_emulated, x_emulated);	
+  SparseSolveLx (model_emulated, H_emulated, x_emulated); 
   x_3dof = b;
-  SparseSolveLx (model_3dof, H_3dof, x_3dof);	
+  SparseSolveLx (model_3dof, H_3dof, x_3dof); 
 
   CHECK_ARRAY_CLOSE (x_emulated.data(), x_3dof.data(), x_emulated.size(), 1.0e-9);
 
   x_emulated = b;
-  SparseSolveLTx (model_emulated, H_emulated, x_emulated);	
+  SparseSolveLTx (model_emulated, H_emulated, x_emulated);  
   x_3dof = b;
-  SparseSolveLTx (model_3dof, H_3dof, x_3dof);	
+  SparseSolveLTx (model_3dof, H_3dof, x_3dof);  
 
   CHECK_ARRAY_CLOSE (x_emulated.data(), x_3dof.data(), x_emulated.size(), 1.0e-9);
 }

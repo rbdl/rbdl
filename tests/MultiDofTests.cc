@@ -10,7 +10,7 @@
 #include "rbdl/Model.h"
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
-#include "rbdl/Contacts.h"
+#include "rbdl/Constraints.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -391,7 +391,7 @@ TEST_FIXTURE(SphericalJoint, TestCRBA ) {
     // compute ID (model, q, qdot, zero)
     VectorNd id_zero = VectorNd::Zero (multdof3_model.qdot_size);
     InverseDynamics (multdof3_model, sphQ, sphQDot, QDDot_zero, id_zero);
-
+  
     H_col = id_delta - id_zero;
     H_id.block(0, i, multdof3_model.qdot_size, 1) = H_col;
   }
@@ -432,23 +432,23 @@ TEST_FIXTURE(SphericalJoint, TestForwardDynamicsLagrangianVsABA ) {
 TEST_FIXTURE(SphericalJoint, TestContactsLagrangian) {
   ConstraintSet constraint_set_emu;
 
-  constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
-  constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
-  constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
+  constraint_set_emu.AddContactConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
+  constraint_set_emu.AddContactConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
+  constraint_set_emu.AddContactConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
 
   constraint_set_emu.Bind(emulated_model);
 
   ConstraintSet constraint_set_sph;
 
-  constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
-  constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
-  constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
+  constraint_set_sph.AddContactConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
+  constraint_set_sph.AddContactConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
+  constraint_set_sph.AddContactConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
 
   constraint_set_sph.Bind(multdof3_model);
-
-  ForwardDynamicsContactsDirect (emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
+  
+  ForwardDynamicsConstrainedDirect (emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
   VectorNd emu_force_lagrangian = constraint_set_emu.force;
-  ForwardDynamicsContactsDirect (multdof3_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
+  ForwardDynamicsConstrainedDirect (multdof3_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
   VectorNd sph_force_lagrangian = constraint_set_sph.force;
 
   CHECK_ARRAY_CLOSE (emu_force_lagrangian.data(), sph_force_lagrangian.data(), 3, TEST_PREC);
@@ -457,20 +457,20 @@ TEST_FIXTURE(SphericalJoint, TestContactsLagrangian) {
 TEST_FIXTURE(SphericalJoint, TestContacts) {
   ConstraintSet constraint_set_emu;
 
-  constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
-  constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
-  constraint_set_emu.AddConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
+  constraint_set_emu.AddContactConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
+  constraint_set_emu.AddContactConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
+  constraint_set_emu.AddContactConstraint (emu_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
 
   constraint_set_emu.Bind(emulated_model);
 
   ConstraintSet constraint_set_sph;
 
-  constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
-  constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
-  constraint_set_sph.AddConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
+  constraint_set_sph.AddContactConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (1., 0., 0.));
+  constraint_set_sph.AddContactConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 1., 0.));
+  constraint_set_sph.AddContactConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
 
   constraint_set_sph.Bind(multdof3_model);
-
+  
   ForwardDynamicsContactsKokkevis (emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
   VectorNd emu_force_kokkevis = constraint_set_emu.force;
   ForwardDynamicsContactsKokkevis (multdof3_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
@@ -558,19 +558,19 @@ TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedContacts ) {
   VectorNd QDDot_eulerzyx = VectorNd::Zero (eulerzyx_model.qdot_size);
 
   ConstraintSet CS_euler;
-  CS_euler.AddConstraint (eulerzyx_child_id, Vector3d (1., 1., 1.), Vector3d (1., 0., 0.));
-  CS_euler.AddConstraint (eulerzyx_child_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.));
-  CS_euler.AddConstraint (eulerzyx_child_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.));
+  CS_euler.AddContactConstraint (eulerzyx_child_id, Vector3d (1., 1., 1.), Vector3d (1., 0., 0.));
+  CS_euler.AddContactConstraint (eulerzyx_child_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.));
+  CS_euler.AddContactConstraint (eulerzyx_child_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.));
   CS_euler.Bind (eulerzyx_model);
 
   ConstraintSet CS_emulated;
-  CS_emulated.AddConstraint (emu_child_id, Vector3d (1., 1., 1.), Vector3d (1., 0., 0.));
-  CS_emulated.AddConstraint (emu_child_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.));
-  CS_emulated.AddConstraint (emu_child_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.));
+  CS_emulated.AddContactConstraint (emu_child_id, Vector3d (1., 1., 1.), Vector3d (1., 0., 0.));
+  CS_emulated.AddContactConstraint (emu_child_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.));
+  CS_emulated.AddContactConstraint (emu_child_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.));
   CS_emulated.Bind (emulated_model);
 
-  ForwardDynamicsContactsDirect (emulated_model, emuQ, emuQDot, emuTau, CS_emulated, QDDot_emu);
-  ForwardDynamicsContactsDirect (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
+  ForwardDynamicsConstrainedDirect (emulated_model, emuQ, emuQDot, emuTau, CS_emulated, QDDot_emu);
+  ForwardDynamicsConstrainedDirect (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
 
   CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC);
 
@@ -582,7 +582,7 @@ TEST_FIXTURE(SphericalJoint, TestEulerZYXvsEmulatedContacts ) {
   CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC * QDDot_emu.norm());
 
   ForwardDynamicsContactsKokkevis (emulated_model, emuQ, emuQDot, emuTau, CS_emulated, QDDot_emu);
-  ForwardDynamicsContactsDirect (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
+  ForwardDynamicsConstrainedDirect (eulerzyx_model, emuQ, emuQDot, emuTau, CS_euler, QDDot_eulerzyx);
 
   CHECK_ARRAY_CLOSE (QDDot_emu.data(), QDDot_eulerzyx.data(), emulated_model.qdot_size, TEST_PREC * QDDot_emu.norm());
 }
@@ -823,15 +823,15 @@ TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianKokkevis) {
   VectorNd qddot_lagrangian (qddot_emulated);
   VectorNd qddot_kokkevis (qddot_emulated);
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_lagrangian);
   ForwardDynamicsContactsKokkevis (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_kokkevis);
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_kokkevis.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_lagrangian);
   ForwardDynamicsContactsKokkevis (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_kokkevis);
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_kokkevis.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_lagrangian);
   ForwardDynamicsContactsKokkevis (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_kokkevis);
 
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_kokkevis.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
@@ -847,16 +847,16 @@ TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianSparse) {
   VectorNd qddot_lagrangian (qddot_emulated);
   VectorNd qddot_sparse (qddot_emulated);
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_lagrangian);
-  ForwardDynamicsContactsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_sparse);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_sparse);
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_sparse.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_lagrangian);
-  ForwardDynamicsContactsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_sparse);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_sparse);
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_sparse.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_lagrangian);
-  ForwardDynamicsContactsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_sparse);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_sparse);
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_sparse.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 }
 
@@ -870,16 +870,16 @@ TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianNullSpace) {
   VectorNd qddot_lagrangian (qddot_emulated);
   VectorNd qddot_nullspace (qddot_emulated);
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_lagrangian);
-  ForwardDynamicsContactsNullSpace (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_nullspace);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedNullSpace (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_nullspace);
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_nullspace.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_lagrangian);
-  ForwardDynamicsContactsNullSpace (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_nullspace);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedNullSpace (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_nullspace);
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_nullspace.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_lagrangian);
-  ForwardDynamicsContactsNullSpace (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_nullspace);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_lagrangian);
+  ForwardDynamicsConstrainedNullSpace (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_nullspace);
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_nullspace.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 }
 
@@ -891,16 +891,16 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofLagrangian) {
     tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
-  ForwardDynamicsContactsDirect (*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_3dof);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
+  ForwardDynamicsConstrainedDirect (*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_3dof);
   CHECK_ARRAY_CLOSE (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size(), TEST_PREC * qddot_emulated.norm());
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_emulated);
-  ForwardDynamicsContactsDirect (*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_3dof);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_emulated);
+  ForwardDynamicsConstrainedDirect (*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_3dof);
   CHECK_ARRAY_CLOSE (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size(), TEST_PREC * qddot_emulated.norm());
 
-  ForwardDynamicsContactsDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_emulated);
-  ForwardDynamicsContactsDirect (*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_3dof);
+  ForwardDynamicsConstrainedDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_emulated);
+  ForwardDynamicsConstrainedDirect (*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_3dof);
   CHECK_ARRAY_CLOSE (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size(), TEST_PREC * qddot_emulated.norm());
 }
 
@@ -911,21 +911,21 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofSparse) {
     tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
-  ForwardDynamicsContactsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
 
   for (unsigned int i = 0; i < q.size(); i++) {
     CHECK_EQUAL (model_emulated->lambda_q[i], model_3dof->lambda_q[i]);
   }
 
-  ForwardDynamicsContactsRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_3dof);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_3dof);
   CHECK_ARRAY_CLOSE (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size(), TEST_PREC * qddot_emulated.norm());
 
-  ForwardDynamicsContactsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_emulated);
-  ForwardDynamicsContactsRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_3dof);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_emulated);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_3dof);
   CHECK_ARRAY_CLOSE (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size(), TEST_PREC * qddot_emulated.norm());
 
-  ForwardDynamicsContactsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_emulated);
-  ForwardDynamicsContactsRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_3dof);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_emulated);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_3dof);
   CHECK_ARRAY_CLOSE (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size(), TEST_PREC * qddot_emulated.norm());
 }
 
@@ -936,7 +936,7 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofKokkevisSparse) {
     tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
-  ForwardDynamicsContactsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
 
   for (unsigned int i = 0; i < q.size(); i++) {
     CHECK_EQUAL (model_emulated->lambda_q[i], model_3dof->lambda_q[i]);
@@ -945,15 +945,15 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofKokkevisSparse) {
   VectorNd qddot_sparse (qddot_emulated);
   VectorNd qddot_kokkevis (qddot_emulated);
 
-  ForwardDynamicsContactsRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_sparse);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_sparse);
   ForwardDynamicsContactsKokkevis (*model_3dof, q, qdot, tau, constraints_1B1C_3dof, qddot_kokkevis);
   CHECK_ARRAY_CLOSE (qddot_sparse.data(), qddot_kokkevis.data(), qddot_sparse.size(), TEST_PREC * qddot_sparse.norm());
 
-  ForwardDynamicsContactsRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_sparse);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_sparse);
   ForwardDynamicsContactsKokkevis (*model_3dof, q, qdot, tau, constraints_1B4C_3dof, qddot_kokkevis);
   CHECK_ARRAY_CLOSE (qddot_sparse.data(), qddot_kokkevis.data(), qddot_sparse.size(), TEST_PREC * qddot_sparse.norm());
 
-  ForwardDynamicsContactsRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_sparse);
+  ForwardDynamicsConstrainedRangeSpaceSparse (*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_sparse);
   ForwardDynamicsContactsKokkevis (*model_3dof, q, qdot, tau, constraints_4B4C_3dof, qddot_kokkevis);
   CHECK_ARRAY_CLOSE (qddot_sparse.data(), qddot_kokkevis.data(), qddot_sparse.size(), TEST_PREC * qddot_sparse.norm());
 }

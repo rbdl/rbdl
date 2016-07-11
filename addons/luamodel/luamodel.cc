@@ -27,7 +27,7 @@ template<> Vector3d LuaTableNode::getDefault<Vector3d>(const Vector3d &default_v
       cerr << "LuaModel Error: invalid 3d vector!" << endl;
       abort();
     }
-
+    
     result[0] = vector_table[1];
     result[1] = vector_table[2];
     result[2] = vector_table[3];
@@ -43,7 +43,7 @@ template<> SpatialVector LuaTableNode::getDefault<SpatialVector>(const SpatialVe
 
   if (stackQueryValue()) {
     LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
+    
     if (vector_table.length() != 6) {
       cerr << "LuaModel Error: invalid 6d vector!" << endl;
       abort();
@@ -66,7 +66,7 @@ template<> Matrix3d LuaTableNode::getDefault<Matrix3d>(const Matrix3d &default_v
 
   if (stackQueryValue()) {
     LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
+    
     if (vector_table.length() != 3) {
       cerr << "LuaModel Error: invalid 3d matrix!" << endl;
       abort();
@@ -102,7 +102,7 @@ template<> SpatialTransform LuaTableNode::getDefault<SpatialTransform>(const Spa
 
   if (stackQueryValue()) {
     LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
+  
     result.r = vector_table["r"].getDefault<Vector3d>(Vector3d::Zero(3));
     result.E = vector_table["E"].getDefault<Matrix3d>(Matrix3d::Identity (3,3));
   }
@@ -114,7 +114,7 @@ template<> SpatialTransform LuaTableNode::getDefault<SpatialTransform>(const Spa
 
 template<> Joint LuaTableNode::getDefault<Joint>(const Joint &default_value) {
   Joint result = default_value;
-
+  
   if (stackQueryValue()) {
     LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
@@ -227,7 +227,9 @@ namespace RigidBodyDynamics {
 
 namespace Addons {
 
-bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose);
+bool LuaModelReadFromTable (LuaTable &model_table, Model *model, bool verbose);
+bool LuaModelReadConstraintsFromTable (LuaTable &model_table, Model *model
+  , ConstraintSet* cs, bool verbose);
 
 typedef map<string, unsigned int> StringIntMap;
 StringIntMap body_table_id_map;
@@ -248,6 +250,27 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
 
   return LuaModelReadFromTable (model_table, model, verbose);
 }
+
+
+RBDL_DLLAPI
+bool LuaModelReadFromFileWithConstraints (const char* filename, Model* model
+  , ConstraintSet* cs, bool verbose) {
+
+  assert(model);
+  assert(cs);
+
+  LuaTable model_table = LuaTable::fromFile (filename);
+
+  bool modelLoaded = LuaModelReadFromTable (model_table, model, verbose);
+
+  bool constraintsLoaded = LuaModelReadConstraintsFromTable (model_table, model
+    , cs, verbose);
+
+  cs->Bind(*model);
+
+  return modelLoaded && constraintsLoaded;
+}
+
 
 bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose) {
   if (model_table["gravity"].exists()) {
@@ -288,6 +311,61 @@ bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose) {
         cout << "    " << j << ": " << joint.mJointAxes[j].transpose() << endl;
       }
       cout << "  joint_frame: " << joint_frame << endl;
+    }
+  }
+
+  return true;
+}
+
+
+bool LuaModelReadConstraintsFromTable (LuaTable &model_table, Model* model, ConstraintSet* cs, bool verbose) {
+  size_t nConstraints = model_table["constraints"].length();
+
+  for(size_t ci = 0; ci < nConstraints; ++ci) {
+    string constraintType = model_table["constraints"][ci + 1]["constraintType"].getDefault<string>("");
+    std::cout << "constraintType = " << constraintType << endl;
+    if(constraintType == "contact") {
+      cs->AddContactConstraint
+        (model->GetBodyId(model_table["constraints"][ci + 1]["body"].getDefault<string>("").c_str())
+        , model_table["constraints"][ci + 1]["point"].getDefault<Vector3d>(Vector3d::Zero())
+        , model_table["constraints"][ci + 1]["normal"].getDefault<Vector3d>(Vector3d::Zero())
+        , model_table["constraints"][ci + 1]["name"].getDefault<string>("").c_str()
+        , model_table["constraints"][ci + 1]["normalAcceleration"].getDefault<double>(0.));
+      if(verbose) {
+        cout << "==== Added Constraint ====" << endl;
+        cout << "  type = contact" << endl;
+        cout << "  body = " << model_table["constraints"][ci + 1]["body"].getDefault<string>("") << endl;
+        cout << "  body point = " << model_table["constraints"][ci + 1]["point"].getDefault<Vector3d>(Vector3d::Zero()).transpose() << endl;
+        cout << "  world normal = " << model_table["constraints"][ci + 1]["normal"].getDefault<Vector3d>(Vector3d::Zero()).transpose() << endl;
+        cout << "  constraint name = " << model_table["constraints"][ci + 1]["name"].getDefault<string>("") << endl;
+        cout << "  normal acceleration = " << model_table["constraints"][ci + 1]["normalAcceleration"].getDefault<double>(0.) << endl;
+      }
+    }
+    else if(constraintType == "loop") {
+      cs->AddLoopConstraint(model->GetBodyId
+        (model_table["constraints"][ci + 1]["predecessorBody"].getDefault<string>("").c_str())
+        , model->GetBodyId(model_table["constraints"][ci + 1]["successorBody"].getDefault<string>("").c_str())
+        , model_table["constraints"][ci + 1]["predecessorTransform"].getDefault<SpatialTransform>(SpatialTransform())
+        , model_table["constraints"][ci + 1]["successorTransform"].getDefault<SpatialTransform>(SpatialTransform())
+        , model_table["constraints"][ci + 1]["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
+        , model_table["constraints"][ci + 1]["stabilizationCoefficient"].getDefault<double>(1.)
+        , model_table["constraints"][ci + 1]["name"].getDefault<string>("").c_str());
+      if(verbose) {
+        cout << "==== Added Constraint ====" << endl;
+        cout << "  type = loop" << endl;
+        cout << "  predecessor body = " << model_table["constraints"][ci + 1]["predecessorBody"].getDefault<string>("") << endl;
+        cout << "  successor body = " << model_table["constraints"][ci + 1]["successorBody"].getDefault<string>("") << endl;
+        cout << "  predecessor body transform = " << endl << model_table["constraints"][ci + 1]["predecessorTransform"].getDefault<SpatialTransform>(SpatialTransform()) << endl;
+        cout << "  successor body transform = " << endl << model_table["constraints"][ci + 1]["successorTransform"].getDefault<SpatialTransform>(SpatialTransform()) << endl;
+        cout << "  constraint axis (in predecessor frame) = " << model_table["constraints"][ci + 1]["axis"].getDefault<SpatialVector>(SpatialVector::Zero()).transpose() << endl;
+        cout << "  stabilization coefficient = " << model_table["constraints"][ci + 1]["stabilizationCoefficient"].getDefault<double>(1.) << endl;
+        cout << "  constraint name = " << model_table["constraints"][ci + 1]["name"].getDefault<string>("").c_str() << endl;
+      }
+    }
+    else {
+      cerr << "Invalid constraint type: " << constraintType << endl;
+      assert(false);
+      abort();
     }
   }
 
