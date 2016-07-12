@@ -131,9 +131,9 @@ namespace RigidBodyDynamics {
  * RBDL provides the following methods to compute the acceleration of a
  * constrained system:
  *
- * - ForwardDynamicsConstrainedDirect()
- * - ForwardDynamicsConstrainedRangeSpaceSparse()
- * - ForwardDynamicsConstrainedNullSpace()
+ * - ForwardDynamicsConstraintsDirect()
+ * - ForwardDynamicsConstraintsRangeSpaceSparse()
+ * - ForwardDynamicsConstraintsNullSpace()
  *
  * \subsection solving_constraints_collisions Methods for Computing Collisions
  *
@@ -247,7 +247,7 @@ struct RBDL_DLLAPI ConstraintSet {
   enum ConstraintType {
     ContactConstraint,
     LoopConstraint,
-    ConstraintTypeNumber,
+    ConstraintTypeLast,
   };
 
   /** \brief Adds a contact constraint to the constraint set.
@@ -288,7 +288,7 @@ struct RBDL_DLLAPI ConstraintSet {
    * body frame
    * \param axis a spatial vector indicating the axis along which the constraint
    * acts
-   * \param T_stab coefficient for Baumgarte stabilization.
+   * \param T_stab_inv coefficient for Baumgarte stabilization.
    * \param constraint_name a human readable name (optional, default: NULL)
    *
    */
@@ -298,7 +298,7 @@ struct RBDL_DLLAPI ConstraintSet {
     const Math::SpatialTransform &X_predecessor,
     const Math::SpatialTransform &X_successor,
     const Math::SpatialVector &axis,
-    double T_stab,
+    double T_stab_inv,
     const char *constraint_name = NULL
     );
 
@@ -360,7 +360,7 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<Math::SpatialTransform> X_p;
   std::vector<Math::SpatialTransform> X_s;
   std::vector<Math::SpatialVector> constraintAxis;
-  std::vector<double> T_stab;
+  std::vector<double> T_stab_inv;
 
 
   /** Enforced accelerations of the contact points along the contact
@@ -627,7 +627,7 @@ void CalcAssemblyQDot(
  *
  */
 RBDL_DLLAPI
-void ForwardDynamicsConstrainedDirect (
+void ForwardDynamicsConstraintsDirect (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
@@ -637,7 +637,7 @@ void ForwardDynamicsConstrainedDirect (
 );
 
 RBDL_DLLAPI
-void ForwardDynamicsConstrainedRangeSpaceSparse (
+void ForwardDynamicsConstraintsRangeSpaceSparse (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
@@ -647,7 +647,7 @@ void ForwardDynamicsConstrainedRangeSpaceSparse (
 );
 
 RBDL_DLLAPI
-void ForwardDynamicsConstrainedNullSpace (
+void ForwardDynamicsConstraintsNullSpace (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,

@@ -106,7 +106,7 @@ TEST_FIXTURE (FixedBase6DoF12DoFFloatingBase, ForwardDynamicsContactsSparse) {
   ForwardDynamicsContactsKokkevis (*model, Q, QDot, Tau, constraint_set, QDDot);
   
   ClearLogOutput();
-  ForwardDynamicsConstrainedRangeSpaceSparse (*model, Q, QDot, Tau, constraint_set_var1, QDDot_var1);
+  ForwardDynamicsConstraintsRangeSpaceSparse (*model, Q, QDot, Tau, constraint_set_var1, QDDot_var1);
 
   CHECK_ARRAY_CLOSE (QDDot.data(), QDDot_var1.data(), QDDot.size(), TEST_PREC);
 }

@@ -134,80 +134,132 @@ model = {
   },
 
   constraints = {
-
-    {
-      constraintType = 'contact',
-      body = 'base',
-      point = {0, 0, 0},
-      normal = {1, 0, 0},
-      name = 'baseTX',
-      normalAcceleration = 0,
-    },
-
-    {
-      constraintType = 'contact',
-      body = 'base',
-      normal = {0, 1, 0},
-      name = 'baseTY',
-    },
-
-    {
-      constraintType = 'contact',
-      body = 'base',
-      normal = {0, 0, 1},
-      name = 'baseTZ',
-    },
-
-    {
-      constraintType = 'loop',
-      predecessorBody = 'l12',
-      successorBody = 'l22',
-      predecessorTransform = {
-        E = {
-          {1, 0, 0},
-          {0, 1, 0},
-          {0, 0, 1},
+    loop_constraints = {
+      {
+        constraint_type = 'loop',
+        predecessor_body = 'l12',
+        successor_body = 'l22',
+        predecessor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {l2, 0, 0},
         },
-        r = {l2, 0, 0},
-      },
-      successorTransform = {
-        E = {
-          {1, 0, 0},
-          {0, 1, 0},
-          {0, 0, 1},
+        successor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {0, 0, 0},
         },
-        r = {0, 0, 0},
+        axis = {0, 0, 0, 1, 0, 0},
+        stabilization_coefficient = 0.1,
+        name = 'linkTX',
       },
-      axis = {0, 0, 0, 1, 0, 0},
-      stabilizationCoefficient = 0.1,
-      name = 'linkTX',
+
+      {
+        constraint_type = 'loop',
+        predecessor_body = 'l12',
+        successor_body = 'l22',
+        predecessor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {l2, 0, 0},
+        },
+        successor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {0, 0, 0},
+        },
+        axis = {0, 0, 0, 0, 1, 0},
+        stabilization_coefficient = 0.1,
+        name = 'linkTY',
+      },
     },
 
-    {
-      constraintType = 'loop',
-      predecessorBody = 'l12',
-      successorBody = 'l22',
-      predecessorTransform = {
-        E = {
-          {1, 0, 0},
-          {0, 1, 0},
-          {0, 0, 1},
-        },
-        r = {l2, 0, 0},
+    all_constraints = {
+      {
+        constraint_type = 'contact',
+        body = 'base',
+        point = {0, 0, 0},
+        normal = {1, 0, 0},
+        name = 'baseTX',
+        normal_acceleration = 0,
       },
-      successorTransform = {
-        E = {
-          {1, 0, 0},
-          {0, 1, 0},
-          {0, 0, 1},
-        },
-        r = {0, 0, 0},
-      },
-      axis = {0, 0, 0, 0, 1, 0},
-      stabilizationCoefficient = 0.1,
-      name = 'linkTY',
-    },
 
+      {
+        constraint_type = 'contact',
+        body = 'base',
+        normal = {0, 1, 0},
+        name = 'baseTY',
+      },
+
+      {
+        constraint_type = 'contact',
+        body = 'base',
+        normal = {0, 0, 1},
+        name = 'baseTZ',
+      },
+
+      {
+        constraint_type = 'loop',
+        predecessor_body = 'l12',
+        successor_body = 'l22',
+        predecessor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {l2, 0, 0},
+        },
+        successor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {0, 0, 0},
+        },
+        axis = {0, 0, 0, 1, 0, 0},
+        stabilization_coefficient = 0.1,
+        name = 'linkTX',
+      },
+
+      {
+        constraint_type = 'loop',
+        predecessor_body = 'l12',
+        successor_body = 'l22',
+        predecessor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {l2, 0, 0},
+        },
+        successor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {0, 0, 0},
+        },
+        axis = {0, 0, 0, 0, 1, 0},
+        stabilization_coefficient = 0.1,
+        name = 'linkTY',
+      },
+    },
   },
 
 }

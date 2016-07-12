@@ -629,7 +629,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   tau[4] = 7.;
 
   qddDirect = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
+  ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qddDirect);
 
   CHECK_ARRAY_CLOSE
     (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data()
@@ -637,7 +637,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
     , 6, TEST_PREC);
 
   qddNullSpace = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
+  ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
   CHECK_ARRAY_CLOSE
     (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data()
@@ -671,7 +671,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   tau[4] = 7.;
 
   qddDirect = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
+  ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qddDirect);
 
   CHECK_ARRAY_CLOSE
     (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data()
@@ -679,7 +679,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
     , 6, TEST_PREC);
 
   qddNullSpace = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
+  ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
   CHECK_ARRAY_CLOSE
     (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data()
@@ -933,7 +933,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   tau[3] = 0.7;
   tau[4] = -0.1;
 
-  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qdd);
+  ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qdd);
 
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
@@ -941,7 +941,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
     , TEST_PREC);
 
-  ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qdd);
+  ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qdd);
 
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
@@ -949,7 +949,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
     , TEST_PREC);
 
-  ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qdd);
+  ForwardDynamicsConstraintsRangeSpaceSparse(model, q, qd, tau, cs, qdd);
 
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
@@ -1000,7 +1000,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
 
   // Test with non-zero q and qdot.
 
-  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qdd);
+  ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qdd);
 
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
@@ -1008,7 +1008,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
     , TEST_PREC);
 
-  ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qdd);
+  ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qdd);
 
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
@@ -1016,7 +1016,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
     , TEST_PREC);
 
-  ForwardDynamicsConstrainedRangeSpaceSparse(model, q, qd, tau, cs, qdd);
+  ForwardDynamicsConstraintsRangeSpaceSparse(model, q, qd, tau, cs, qdd);
 
   acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
@@ -1531,7 +1531,7 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageForwardDynamics) 
   tau[7] = 7.;
 
   qddDirect = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
+  ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qddDirect);
 
   CHECK_ARRAY_CLOSE
     (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data()
@@ -1539,7 +1539,7 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageForwardDynamics) 
     , 6, TEST_PREC);
 
   qddNullSpace = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
+  ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
   CHECK_ARRAY_CLOSE
     (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data()
@@ -1582,7 +1582,7 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageForwardDynamics) 
   tau[7] = 7.;
 
   qddDirect = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedDirect(model, q, qd, tau, cs, qddDirect);
+  ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qddDirect);
 
   CHECK_ARRAY_CLOSE
     (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r).data()
@@ -1590,7 +1590,7 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageForwardDynamics) 
     , 6, TEST_PREC);
 
   qddNullSpace = VectorNd::Zero(q.size());
-  ForwardDynamicsConstrainedNullSpace(model, q, qd, tau, cs, qddNullSpace);
+  ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
   CHECK_ARRAY_CLOSE
     (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r).data()

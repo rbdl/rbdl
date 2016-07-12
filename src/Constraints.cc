@@ -60,7 +60,7 @@ unsigned int ConstraintSet::AddContactConstraint (
   X_p.push_back (SpatialTransform());
   X_s.push_back (SpatialTransform());
   constraintAxis.push_back (SpatialVector::Zero());
-  T_stab.push_back (0.);
+  T_stab_inv.push_back (0.);
 
   unsigned int n_constr = size() + 1;
 
@@ -106,7 +106,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
   X_p.push_back (X_predecessor);
   X_s.push_back (X_successor);
   constraintAxis.push_back (axis);
-  T_stab.push_back (1. / T_stabilization);
+  T_stab_inv.push_back (1. / T_stabilization);
 
   // These variables will not be used.
   body.push_back (0);
@@ -469,7 +469,7 @@ void CalcConstraintsJacobian (
 
   // variables to check whether we need to recompute G.
   ConstraintSet::ConstraintType prev_constraint_type 
-    = ConstraintSet::ConstraintTypeNumber;
+    = ConstraintSet::ConstraintTypeLast;
   unsigned int prev_body_id_1 = 0;
   unsigned int prev_body_id_2 = 0;
   SpatialTransform prev_body_X_1;
@@ -666,8 +666,8 @@ void CalcConstrainedSystemVariables (
         = - axis.transpose() * (model.a[id_s] - model.a[id_p]
         + crossm(vel_s, vel_p))
         // Baumgarte stabilization term.
-        - 2. * CS.T_stab[c] * errd[c]
-        - CS.T_stab[c] * CS.T_stab[c] * err[c];
+        - 2. * CS.T_stab_inv[c] * errd[c]
+        - CS.T_stab_inv[c] * CS.T_stab_inv[c] * err[c];
     }
     else {
       std::cerr << "Unsupported constraint type." << std::endl;
@@ -689,28 +689,36 @@ bool CalcAssemblyQ (
   ) {
   // Note: the size of q must be the same as the size of qdot to use this
   // method of computing the assembly Q.
-  if(Q.size() != model.dof_count) {
+  if(model.q_size != model.dof_count) {
+    std::cerr << "Size of the generalized positions vector Q is required to be \
+      the same as the size of the generalized velocities vector QDot." 
+      << std::endl;
+    assert(false);
+    abort();
+  }
+  if(Q.size() != model.q_size) {
     std::cerr << "Incorrect Q vector size." << std::endl;
     assert(false);
     abort();
   }
-  if(QInit.size() != Q.size()) {
+  if(QInit.size() != model.q_size) {
     std::cerr << "Incorrect QInit vector size." << std::endl;
     assert(false);
     abort();
   }
-  if(weights.size() != Q.size()) {
+  if(weights.size() != model.q_size) {
     std::cerr << "Incorrect weights vector size." << std::endl;
     assert(false);
     abort();
   }
 
   // Initialize variables.
-  MatrixNd constraintJac (cs.size(), Q.size());
-  MatrixNd A = MatrixNd::Zero (cs.size() + Q.size(), cs.size() + Q.size());
-  VectorNd b = VectorNd::Zero (cs.size() + Q.size());
-  VectorNd x = VectorNd::Zero (cs.size() + Q.size());
-  VectorNd d = VectorNd::Zero (Q.size());
+  MatrixNd constraintJac (cs.size(), model.dof_count);
+  MatrixNd A = MatrixNd::Zero (cs.size() + model.dof_count, cs.size() 
+    + model.dof_count);
+  VectorNd b = VectorNd::Zero (cs.size() + model.dof_count);
+  VectorNd x = VectorNd::Zero (cs.size() + model.dof_count);
+  VectorNd d = VectorNd::Zero (model.dof_count);
   VectorNd e = VectorNd::Zero (cs.size());
 
   // The top-left block is the weight matrix and is constant.
@@ -732,16 +740,17 @@ bool CalcAssemblyQ (
     // Compute the constraint jacobian and build A and b.
     constraintJac.setZero();
     CalcConstraintsJacobian (model, QInit, cs, constraintJac);
-    A.block (Q.size(), 0, cs.size(), Q.size()) = constraintJac;
-    A.block (0, Q.size(), Q.size(), cs.size()) = constraintJac.transpose();
-    b.block (Q.size(), 0, cs.size(), 1) = -e;
+    A.block (model.dof_count, 0, cs.size(), model.dof_count) = constraintJac;
+    A.block (0, model.dof_count, model.dof_count, cs.size()) 
+      = constraintJac.transpose();
+    b.block (model.dof_count, 0, cs.size(), 1) = -e;
 
     // Solve the sistem A*x = b.
     SolveLinearSystem (A, b, x, cs.linear_solver);
 
     // Extract the d = (Q - QInit) vector from x.
     // Check if d is small, if yes, update the value of Q and return true.
-    d = x.block (0, 0, Q.size(), 1);
+    d = x.block (0, 0, model.dof_count, 1);
     QInit += d;
 
     // Update the errors.
@@ -814,7 +823,7 @@ void CalcAssemblyQDot (
 }
 
 RBDL_DLLAPI
-void ForwardDynamicsConstrainedDirect (
+void ForwardDynamicsConstraintsDirect (
   Model &model,
   const VectorNd &Q,
   const VectorNd &QDot,
@@ -841,7 +850,7 @@ void ForwardDynamicsConstrainedDirect (
 }
 
 RBDL_DLLAPI
-void ForwardDynamicsConstrainedRangeSpaceSparse (
+void ForwardDynamicsConstraintsRangeSpaceSparse (
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
@@ -856,7 +865,7 @@ void ForwardDynamicsConstrainedRangeSpaceSparse (
 }
 
 RBDL_DLLAPI
-void ForwardDynamicsConstrainedNullSpace (
+void ForwardDynamicsConstraintsNullSpace (
   Model &model,
   const VectorNd &Q,
   const VectorNd &QDot,

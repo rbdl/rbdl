@@ -272,7 +272,7 @@ void copy_values (T *dest, const T *src, size_t count) {
   memcpy (dest, src, count * sizeof (T));
 }
 
-TEST ( TestForwardDynamicsConstrainedDirectFootmodel ) {
+TEST ( TestForwardDynamicsConstraintsDirectFootmodel ) {
   Model* model = new Model;
 
   init_model(model);
@@ -326,7 +326,7 @@ TEST ( TestForwardDynamicsConstrainedDirectFootmodel ) {
 
   ClearLogOutput();
 
-  ForwardDynamicsConstrainedDirect (*model, Q, QDot, Tau, constraint_set_left, QDDot);
+  ForwardDynamicsConstraintsDirect (*model, Q, QDot, Tau, constraint_set_left, QDDot);
 
   //	cout << "C0: " << contact_data_left[0].body_id << ", " << contact_data_left[0].point.transpose() << endl;
   //	cout << "C1: " << contact_data_left[1].body_id << ", " << contact_data_left[1].point.transpose() << endl;
@@ -395,7 +395,7 @@ TEST ( TestClearContactsInertiaMatrix ) {
 
   constraint_set_right.Bind (*model);
 
-  ForwardDynamicsConstrainedDirect (*model, Q, QDot, Tau, constraint_set_right, QDDot_lag);
+  ForwardDynamicsConstraintsDirect (*model, Q, QDot, Tau, constraint_set_right, QDDot_lag);
   ForwardDynamicsContactsKokkevis (*model, Q, QDot, Tau, constraint_set_right, QDDot_aba);
 
   CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), QDDot.size(), TEST_PREC * QDDot_lag.norm());
