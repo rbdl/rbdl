@@ -283,8 +283,8 @@ struct RBDL_DLLAPI ConstraintSet {
    * \param X_predecessor a spatial transform localizing the constrained
    * frames on the predecessor body, expressed with respect to the predecessor
    * body frame
-   * \param id_successor a spatial transform localizing the constrained
-   * frames on the successor body, expressed with respect to the predecessor
+   * \param X_successor a spatial transform localizing the constrained
+   * frames on the successor body, expressed with respect to the successor
    * body frame
    * \param axis a spatial vector indicating the axis along which the constraint
    * acts

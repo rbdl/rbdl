@@ -75,6 +75,27 @@ namespace Addons {
 * }
 * \endcode
 * 
+* Finally, several constraint sets can be defined for the model.
+*
+* Example:
+* \code
+* model = {
+*   constraint_sets = {
+*     constraint_set_1_name = {
+*       {
+*         ...
+*       },
+*       {
+*         ...
+*       },
+*     },
+*     constraint_set_2_name = {
+*       ...
+*     },
+*   },  
+* }
+* \endcode
+*
 * \note The table frames must contain all Frame Information Tables as a list
 * and individual tables must *not* be specified with a key, i.e.
 * \code
@@ -159,23 +180,126 @@ namespace Addons {
 * \par
 *    for which r is the translation and E the rotation of the joint frame
 *    
+* \section luamodel_constraint_table Constraint Information Table
+* The Constraint Information Table is searched for values needed to call
+* ConstraintSet::AddContactConstraint() or ConstraintSet::AddLoopConstraint().
+* The employed fields are defined as follows.. Please note that different fields
+* may be used for different constraint types.
+*
+* \par constraint_type (required, type: string)
+*     Specifies the type of constraints, either 'contact' or 'loop', other
+*     values will cause a failure while reading the file.
+* 
+* \par name (optional, type: string)
+*     Specifies a name for the constraint.
+*
+* The following fields are used exclusively for contact constraints:
+*
+* \par body (required, type: string)
+*     The name of the body involved in the constraint.
+*
+* \par point(optional, type: table)
+*     The position of the contact point in body coordinates. Defaults to
+*     (0, 0, 0).
+*
+* \par normal(optional, type: table)
+*     The normal along which the constraint acts in world coordinates.
+*     Defaults to (0, 0, 0).
+*
+* \par normal_acceleration(optional, type: number)
+*     The normal acceleration along the constraint axis. Defaults to 0.
+*
+* The following fields are used exclusively for loop constraints:
+*
+* \par predecessor_body (required, type: string)
+*     The name of the predecessor body involved in the constraint.
+*
+* \par successor_body (required, type: string)
+*     The name of the successor body involved in the constraint.
+*
+* \par predecessor_transform (optional, type: table)
+*     The transform of the predecessor constrained frame with respect to 
+*     the predecessor body frame. Defaults to the identity transform.
+*
+* \par sucessor_transform (optional, type: table)
+*     The transform of the sucessor constrained frame with respect to 
+*     the sucessor body frame. Defaults to the identity transform.
+*
+* \par axis (optional, type: table)
+*     The 6d spatial axis along which the constraint acts, in coordinates
+*     relative to the predecessor constrained frame. Defaults to (0,0,0,0,0,0).
+*
+* \par stabilization_coefficient(optional, type: number)
+*     The stabilization coefficient for Baumgarte stabilization. Defaults to 1.
+*
 * \section luamodel_example Example
 * Here is an example of a model:
 * \include samplemodel.lua
+*
+* \section luamodel_example_constraints Example with constraints
+* Here is an example of a model including constraints:
+* \include sampleconstrainedmodel.lua
+*
 */
 
-RBDL_DLLAPI bool LuaModelReadFromFile (const char* filename, Model* model
- , bool verbose = false);
+/** \brief Reads a model from a Lua file.
+ *
+ * \param filename the name of the Lua file.
+ * \param model a pointer to the output Model structure.
+ * \param verbose specifies wether information on the model should be printed
+ * (default: true).
+ *
+ * \returns true if the model was read successfully.
+ *
+ * \note See \ref luamodel_introduction for information on how to define the
+ * Lua model.
+ */
+RBDL_DLLAPI
+bool LuaModelReadFromFile (
+  const char* filename,
+  Model* model,
+  bool verbose = false);
 
-RBDL_DLLAPI bool LuaModelReadFromFileWithConstraints (
+/** \brief Reads a model and constraint sets from a Lua file.
+ *
+ * \param filename the name of the Lua file.
+ * \param model a pointer to the output Model structure.
+ * \param constraint_sets reference to a std::vector of ConstraintSet structures
+ * in which to save the information read from the file.
+ * \param constraint_set_names reference to a std::vector of std::string
+ * specifying the names of the constraint sets to be read from the Lua file.
+ * \param verbose specifies wether information on the model should be printed
+ * (default: true).
+ *
+ * \returns true if the model and constraint sets were read successfully.
+ *
+ * \note constraint_sets and constraint_set_names are required to have the same
+ * size. See \ref luamodel_introduction for information on how to define the
+ * Lua model.
+ *
+ */
+RBDL_DLLAPI
+bool LuaModelReadFromFileWithConstraints (
   const char* filename,
   Model* model,
   std::vector<ConstraintSet>& constraint_sets,
-  std::vector<std::string>& constraint_set_names,
+  const std::vector<std::string>& constraint_set_names,
   bool verbose = false);
 
-RBDL_DLLAPI bool LuaModelReadFromLuaState (lua_State* L, Model* model
- , bool verbose = false);
+/** \brief Reads a model from a lua_State.
+ *
+ * \param L a pointer to the lua_State.
+ * \param model a pointer to the output Model structure.
+ * \param verbose specifies wether information on the model should be printed
+ * (default: true).
+ *
+ * \returns true if the model was read successfully.
+ */
+RBDL_DLLAPI
+bool LuaModelReadFromLuaState (
+  lua_State* L,
+  Model* model,
+  bool verbose = false);
 
 /** @} */
 }

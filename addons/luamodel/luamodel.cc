@@ -251,7 +251,7 @@ bool LuaModelReadConstraintsFromTable (
   LuaTable &model_table,
   Model *model,
   std::vector<ConstraintSet>& constraint_sets,
-  std::vector<std::string>& constraint_set_names,
+  const std::vector<std::string>& constraint_set_names,
   bool verbose
 );
 
@@ -282,7 +282,7 @@ bool LuaModelReadFromFileWithConstraints (
   const char* filename,
   Model* model,
   std::vector<ConstraintSet>& constraint_sets,
-  std::vector<std::string>& constraint_set_names,
+  const std::vector<std::string>& constraint_set_names,
   bool verbose
 ) {
   assert(model);
@@ -360,99 +360,99 @@ bool LuaModelReadConstraintsFromTable (
   LuaTable &model_table,
   Model *model,
   std::vector<ConstraintSet>& constraint_sets,
-  std::vector<std::string>& constraint_set_names,
+  const std::vector<std::string>& constraint_set_names,
   bool verbose
 ) { 
   for(size_t i = 0; i < constraint_set_names.size(); ++i) {
 
-    size_t nConstraints = model_table["constraints"]
+    size_t nConstraints = model_table["constraint_sets"]
       [constraint_set_names[i].c_str()]
       .length();
 
     for(size_t ci = 0; ci < nConstraints; ++ci) {
-      string constraintType = model_table["constraints"]
+      string constraintType = model_table["constraint_sets"]
         [constraint_set_names[i].c_str()][ci + 1]["constraint_type"]
         .getDefault<string>("");
       if(constraintType == "contact") {
         constraint_sets[i].AddContactConstraint
-          (model->GetBodyId(model_table["constraints"]
+          (model->GetBodyId(model_table["constraint_sets"]
             [constraint_set_names[i].c_str()][ci + 1]["body"]
             .getDefault<string>("").c_str())
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["point"].getDefault<Vector3d>(Vector3d::Zero())
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["normal"].getDefault<Vector3d>(Vector3d::Zero())
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["name"].getDefault<string>("").c_str()
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["normal_acceleration"].getDefault<double>(0.));
         if(verbose) {
           cout << "==== Added Constraint from '" << constraint_set_names[i] 
             << "' ====" << endl;
           cout << "  type = contact" << endl;
           cout << "  body = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["body"].getDefault<string>("") << endl;
           cout << "  body point = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["point"].getDefault<Vector3d>(Vector3d::Zero()).transpose() 
             << endl;
           cout << "  world normal = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["normal"].getDefault<Vector3d>(Vector3d::Zero()).transpose() 
             << endl;
           cout << "  constraint name = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["name"].getDefault<string>("") << endl;
           cout << "  normal acceleration = "
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["normal_acceleration"].getDefault<double>(0.) << endl;
         }
       }
       else if(constraintType == "loop") {
         constraint_sets[i].AddLoopConstraint(model->GetBodyId
-          (model_table["constraints"][constraint_set_names[i].c_str()]
+          (model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["predecessor_body"].getDefault<string>("").c_str())
-          , model->GetBodyId(model_table["constraints"]
+          , model->GetBodyId(model_table["constraint_sets"]
             [constraint_set_names[i].c_str()][ci + 1]["successor_body"]
             .getDefault<string>("").c_str())
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["predecessor_transform"].getDefault<SpatialTransform>(SpatialTransform())
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["successor_transform"].getDefault<SpatialTransform>(SpatialTransform())
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["stabilization_coefficient"].getDefault<double>(1.)
-          , model_table["constraints"][constraint_set_names[i].c_str()][ci + 1]
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["name"].getDefault<string>("").c_str());
         if(verbose) {
           cout << "==== Added Constraint from '" << constraint_set_names[i] 
             << "' ====" << endl;
           cout << "  type = loop" << endl;
           cout << "  predecessor body = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["predecessor_body"].getDefault<string>("") << endl;
           cout << "  successor body = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["successor_body"].getDefault<string>("") << endl;
           cout << "  predecessor body transform = " << endl 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["predecessor_transform"]
             .getDefault<SpatialTransform>(SpatialTransform()) << endl;
           cout << "  successor body transform = " << endl 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["successor_transform"]
             .getDefault<SpatialTransform>(SpatialTransform()) << endl;
           cout << "  constraint axis (in predecessor frame) = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
             .transpose() << endl;
           cout << "  stabilization coefficient = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["stabilization_coefficient"].getDefault<double>(1.) << endl;
           cout << "  constraint name = " 
-            << model_table["constraints"][constraint_set_names[i].c_str()]
+            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["name"].getDefault<string>("").c_str() << endl;
         }
       }

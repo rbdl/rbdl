@@ -1,7 +1,8 @@
--- 5b3d.lua
--- Copyright (c) 2016 Davide Corradi <davide.corradi@iwr.uni-heidelberg.de>
+--[[
+--  This is an example model for the RBDL addon luamodel. You need to
+--  enable RBDL_BUILD_ADDON_LUAMODEL to be able to use this file.
+--]]
 
--- Parameters
 
 m1 = 2
 l1 = 2
@@ -61,23 +62,6 @@ joints = {
 
 }
 
-meshes = {
-  link1 = {
-    name = 'link1',
-    dimensions = {l1, r1, r1},
-    color = {1, 0, 0},
-    src = 'unit_cylinder_medres_z.obj',
-    mesh_center = {l1/2, 0, 0},
-  },
-  link2 = {
-    name = 'link2',
-    dimensions = {l2, r2, r2},
-    color = {0, 1, 0},
-    src = 'unit_cylinder_medres_z.obj',
-    mesh_center = {l2/2, 0, 0},
-  },
-}
-
 model = {
 
   gravity = {0, 0, 0},
@@ -101,7 +85,6 @@ model = {
       parent = 'base',
       body = bodies.link1,
       joint = joints.revZ,
-      visuals = { meshes.link1 },
     },
     {
       name = 'l12',
@@ -111,14 +94,12 @@ model = {
       joint_frame = {
         r = {l1, 0, 0},
       },
-      visuals = { meshes.link2 },
     },
     {
       name = 'l21',
       parent = 'base',
       body = bodies.link1,
       joint = joints.revZ,
-      visuals = { meshes.link1 },
     },
     {
       name = 'l22',
@@ -128,7 +109,6 @@ model = {
       joint_frame = {
         r = {l1, 0, 0},
       },
-      visuals = { meshes.link2 },
     },
 
   },
