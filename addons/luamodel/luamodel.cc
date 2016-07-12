@@ -269,7 +269,11 @@ bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose) {
 
 RBDL_DLLAPI
 bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose) {
-  assert (model);
+  if(!model) {
+    std::cerr << "Model not provided." << std::endl;
+    assert(false);
+    abort();
+  }
 
   LuaTable model_table = LuaTable::fromFile (filename);
 
@@ -285,15 +289,16 @@ bool LuaModelReadFromFileWithConstraints (
   const std::vector<std::string>& constraint_set_names,
   bool verbose
 ) {
-  assert(model);
   if(!model) {
     std::cerr << "Model not provided." << std::endl;
-    return false;
+    assert(false);
+    abort();
   }
   if(constraint_sets.size() != constraint_set_names.size()) {
     std::cerr << "Number of constraint sets different from the number of \
       constraint set names." << std::endl;
-    return false;
+    assert(false);
+    abort();
   }
 
   LuaTable model_table = LuaTable::fromFile (filename);
@@ -365,15 +370,35 @@ bool LuaModelReadConstraintsFromTable (
 ) { 
   for(size_t i = 0; i < constraint_set_names.size(); ++i) {
 
+    if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
+      .exists()) {
+      cerr << "Constraint set not existing: " << constraint_set_names[i] << "." 
+        << endl;
+      assert(false);
+      abort();
+    }
+
     size_t nConstraints = model_table["constraint_sets"]
       [constraint_set_names[i].c_str()]
       .length();
 
     for(size_t ci = 0; ci < nConstraints; ++ci) {
+      if(!model_table["constraint_sets"]
+        [constraint_set_names[i].c_str()][ci + 1]["constraint_type"].exists()) {
+        cerr << "constraint_type not specified." << endl;
+        assert(false);
+        abort();
+      }
       string constraintType = model_table["constraint_sets"]
         [constraint_set_names[i].c_str()][ci + 1]["constraint_type"]
         .getDefault<string>("");
       if(constraintType == "contact") {
+        if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
+          [ci + 1]["body"].exists()) {
+          cerr << "body not specified." << endl;
+          assert(false);
+          abort();
+        }
         constraint_sets[i].AddContactConstraint
           (model->GetBodyId(model_table["constraint_sets"]
             [constraint_set_names[i].c_str()][ci + 1]["body"]
@@ -410,6 +435,18 @@ bool LuaModelReadConstraintsFromTable (
         }
       }
       else if(constraintType == "loop") {
+        if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
+          [ci + 1]["predecessor_body"].exists()) {
+          cerr << "predecessor_body not specified." << endl;
+          assert(false);
+          abort();
+        }
+        if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
+          [ci + 1]["successor_body"].exists()) {
+          cerr << "successor_body not specified." << endl;
+          assert(false);
+          abort();
+        }
         constraint_sets[i].AddLoopConstraint(model->GetBodyId
           (model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["predecessor_body"].getDefault<string>("").c_str())
@@ -458,7 +495,7 @@ bool LuaModelReadConstraintsFromTable (
       }
       else {
         cerr << "Invalid constraint type: " << constraintType << endl;
-        return false;
+        abort();
       }
     }
   }

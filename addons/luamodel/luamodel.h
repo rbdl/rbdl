@@ -276,7 +276,6 @@ bool LuaModelReadFromFile (
  * \note constraint_sets and constraint_set_names are required to have the same
  * size. See \ref luamodel_introduction for information on how to define the
  * Lua model.
- *
  */
 RBDL_DLLAPI
 bool LuaModelReadFromFileWithConstraints (
