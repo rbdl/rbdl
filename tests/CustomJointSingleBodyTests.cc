@@ -17,7 +17,7 @@
 #include "rbdl/Model.h"
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
-#include "rbdl/Contacts.h"
+#include "rbdl/Constraints.h"
 #include <vector>
 
 using namespace std;
@@ -90,7 +90,7 @@ struct CustomJointTypeRevoluteX : public CustomJoint
   CustomJointTypeRevoluteX(){
     mDoFCount = 1;
     S = MatrixNd::Zero(6,1);
-    S[0] = 1.0;
+    S(0, 0) = 1.0;
     d_u = MatrixNd::Zero(mDoFCount,1);
   }
 
@@ -797,12 +797,12 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamicsContactsKokkevis){
       ConstraintSet constraint_set_cus;
 
       //Reference
-      constraint_set_ref.AddConstraint( reference_body_id.at(idx),
+      constraint_set_ref.AddContactConstraint( reference_body_id.at(idx),
                                         contact_point,
                                         Vector3d (1., 0., 0.),
                                         "ground_x");
 
-      constraint_set_ref.AddConstraint( reference_body_id.at(idx),
+      constraint_set_ref.AddContactConstraint( reference_body_id.at(idx),
                                         contact_point,
                                         Vector3d (0., 1., 0.),
                                         "ground_y");
@@ -810,19 +810,19 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamicsContactsKokkevis){
       constraint_set_ref.Bind (reference_model.at(idx));
 
       //Custom
-      constraint_set_cus.AddConstraint( custom_body_id.at(idx),
+      constraint_set_cus.AddContactConstraint( custom_body_id.at(idx),
                                         contact_point,
                                         Vector3d (1., 0., 0.),
                                         "ground_x");
 
-      constraint_set_cus.AddConstraint( custom_body_id.at(idx),
+      constraint_set_cus.AddContactConstraint( custom_body_id.at(idx),
                                         contact_point,
                                         Vector3d (0., 1., 0.),
                                         "ground_y");
 
       constraint_set_cus.Bind (custom_model.at(idx));
 
-      ComputeContactImpulsesDirect(reference_model.at(idx),
+      ComputeConstraintImpulsesDirect(reference_model.at(idx),
                                    q.at(idx),
                                    qdot.at(idx),
                                    constraint_set_ref,
@@ -835,7 +835,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamicsContactsKokkevis){
                                        constraint_set_ref,
                                        qddot_ref);
 
-      ComputeContactImpulsesDirect(custom_model.at(idx),
+      ComputeConstraintImpulsesDirect(custom_model.at(idx),
                                    q.at(idx),
                                    qdot.at(idx),
                                    constraint_set_cus,

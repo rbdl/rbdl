@@ -8,7 +8,7 @@
 #include "rbdl/Model.h"
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
-#include "rbdl/Contacts.h"
+#include "rbdl/Constraints.h"
 
 #include "Fixtures.h"
 
@@ -102,7 +102,7 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain) {
   VectorNd QDDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
   VectorNd Tau = VectorNd::Constant ((size_t) model->dof_count, 0.);
 
-  //	cout << "--- Double Chain ---" << endl;
+//  cout << "--- Double Chain ---" << endl;
 
   ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
@@ -115,8 +115,8 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain) {
     LOG << "a[" << i << "]     = " << model->a[i] << endl;
   }
 
-  //	cout << LogOutput.str() << endl;
-
+  //  cout << LogOutput.str() << endl;
+  
   CHECK_CLOSE (-5.88600000000000E+00, QDDot[0], TEST_PREC);
   CHECK_CLOSE ( 3.92400000000000E+00, QDDot[1], TEST_PREC);
 }
@@ -272,7 +272,7 @@ TEST (TestForwardDynamicsLagrangian) {
   VectorNd Q = VectorNd::Zero (model.dof_count);
   VectorNd QDot = VectorNd::Zero (model.dof_count);
   VectorNd Tau = VectorNd::Zero (model.dof_count);
-
+  
   VectorNd QDDot_aba = VectorNd::Zero (model.dof_count);
   VectorNd QDDot_lagrangian = VectorNd::Zero (model.dof_count);
 
@@ -334,7 +334,7 @@ TEST (TestForwardDynamics3DoFModel) {
   VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
-
+  
   VectorNd QDDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd QDDot_ref = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
@@ -344,10 +344,10 @@ TEST (TestForwardDynamics3DoFModel) {
 
   ForwardDynamics (model, Q, QDot, Tau, QDDot);
 
-  //	cout << LogOutput.str() << endl;
+//  cout << LogOutput.str() << endl;
 
   QDDot_ref[0] = 3.301932144386186;
-
+  
   CHECK_ARRAY_CLOSE (QDDot_ref.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
@@ -382,7 +382,7 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
   VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
-
+  
   VectorNd QDDot_ab = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd QDDot_lagrangian = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
@@ -399,8 +399,8 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
   ForwardDynamicsLagrangian (model, Q, QDot, Tau, QDDot_lagrangian);
   ForwardDynamics (model, Q, QDot, Tau, QDDot_ab);
 
-  //	cout << QDDot_lagrangian << endl;
-  //	cout << LogOutput.str() << endl;
+//  cout << QDDot_lagrangian << endl;
+//  cout << LogOutput.str() << endl;
 
   CHECK_ARRAY_CLOSE (QDDot_ab.data(), QDDot_lagrangian.data(), QDDot_ab.size(), TEST_PREC);
 }
@@ -502,22 +502,22 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
   foot_left_id = temp_id;
 
   LOG << "--- model created (" << model->dof_count << " DOF) ---" << endl;
-
+  
   // contact data
-  CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
-  CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
-  CS_right.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
+  CS_right.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
+  CS_right.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
+  CS_right.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
 
-  CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
-  CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
-  CS_left.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
-
-  CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
-  CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
-  CS_both.AddConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
-  CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
-  CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
-  CS_both.AddConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
+  CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
+  CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
+  CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
+  
+  CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
+  CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
+  CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");
+  CS_both.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
+  CS_both.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
+  CS_both.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
 
   CS_right.Bind(*model);
   CS_left.Bind(*model);
@@ -566,7 +566,7 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
   ClearLogOutput();
   ForwardDynamicsLagrangian (*model, Q, QDot, Tau, QDDot);
 
-  //	cout << LogOutput.str() << endl;
+//  cout << LogOutput.str() << endl;
 
   // run it again to make sure the calculations give the same results and
   // no invalid state information lingering in the model structure is being used

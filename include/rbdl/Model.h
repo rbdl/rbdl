@@ -92,8 +92,9 @@ namespace RigidBodyDynamics {
  *
  * \section modeling_lua Using LuaModels
  *
- * For this see the documentation of \ref luamodel_introduction and \link
- * RigidBodyDynamics::Addons::LuaModelReadFromFile \endlink.
+ * For this see the documentation of \ref luamodel_introduction,\link
+ * RigidBodyDynamics::Addons::LuaModelReadFromFile \endlink, and \link
+ * RigidBodyDynamics::Addons::LuaModelReadFromFileWithConstraints \endlink.
 
  * \section modeling_urdf Using URDF
  *
@@ -365,8 +366,8 @@ struct RBDL_DLLAPI Model {
    * \note Instead of querying this function repeatedly, it might be
    * advisable to query it once and reuse the returned id.
    *
-   * \returns the id of the body or \c std::numeric_limits<unsigned 
-   *          int>::max() if the id was not found.
+   * \returns the id of the body or \c std::numeric_limits\<unsigned 
+   *          int\>::max() if the id was not found.
    */
   unsigned int GetBodyId (const char *body_name) const {
     if (mBodyNameMap.count(body_name) == 0) {

@@ -10,7 +10,7 @@
 #include "rbdl/Model.h"
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
-#include "rbdl/Contacts.h"
+#include "rbdl/Constraints.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -25,10 +25,10 @@ struct CustomEulerZYXJoint : public CustomJoint {
   };
 
   virtual void jcalc (Model &model,
-      unsigned int joint_id,
-      const Math::VectorNd &q,
-      const Math::VectorNd &qdot
-      ) {
+    unsigned int joint_id,
+    const Math::VectorNd &q,
+    const Math::VectorNd &qdot
+    ) {
     double q0 = q[model.mJoints[joint_id].q_index];
     double q1 = q[model.mJoints[joint_id].q_index + 1];
     double q2 = q[model.mJoints[joint_id].q_index + 2];
@@ -69,9 +69,9 @@ struct CustomEulerZYXJoint : public CustomJoint {
         );
   }
   virtual void jcalc_X_lambda_S (Model &model,
-      unsigned int joint_id,
-      const Math::VectorNd &q
-      ) {
+    unsigned int joint_id,
+    const Math::VectorNd &q
+    ) {
     // TODO
     assert (false && "Not yet implemented!");
   }
@@ -86,10 +86,10 @@ struct CustomJointFixture {
     reference_body_id = reference_model.AddBody (0,SpatialTransform(), Joint(JointTypeEulerZYX), body);
     custom_body_id = custom_model.AddBodyCustomJoint (0, SpatialTransform(), custom_joint, body);
 
-    q = VectorNd::Zero (reference_model.q_size);		
-    qdot = VectorNd::Zero (reference_model.qdot_size);		
-    qddot = VectorNd::Zero (reference_model.qdot_size);		
-    tau = VectorNd::Zero (reference_model.qdot_size);		
+    q = VectorNd::Zero (reference_model.q_size);    
+    qdot = VectorNd::Zero (reference_model.qdot_size);    
+    qddot = VectorNd::Zero (reference_model.qdot_size);   
+    tau = VectorNd::Zero (reference_model.qdot_size);   
   }
 
   ~CustomJointFixture () {
