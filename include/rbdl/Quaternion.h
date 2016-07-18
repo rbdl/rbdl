@@ -184,6 +184,15 @@ class Quaternion : public Vector4d {
       return Vector3d (res_quat[0], res_quat[1], res_quat[2]);
     }
 
+    /** \brief Converts a 3d angular velocity vector into a 4d derivative of the
+    * components of the quaternion.
+    * 
+    * \param omega the angular velocity.
+    *
+    * \return a 4d vector containing the derivatives of the 4 components of the
+    * quaternion corresponding to omega.
+    *
+    */
     Vector4d omegaToQDot(const Vector3d& omega) const {
       Eigen::Matrix<double, 4, 3> m;
       m(0, 0) =  (*this)[3];   m(0, 1) = -(*this)[2];   m(0, 2) =  (*this)[1];

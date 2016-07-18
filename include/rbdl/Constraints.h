@@ -540,8 +540,6 @@ void CalcConstrainedSystemVariables (
   * \return true if the generalized joint positions were computed successfully,
   * false otherwise.
   *
-  * \note this method only works if the size of q is equal to the size of qdot.
-  *
   */
 RBDL_DLLAPI
 bool CalcAssemblyQ(

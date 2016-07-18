@@ -750,58 +750,12 @@ bool CalcAssemblyQ (
       if (model.mJoints[i].mJointType == JointTypeSpherical) {
         Quaternion quat = model.GetQuaternion(i, QInit);
         Vector3d omega = d.block<3,1>(model.mJoints[i].q_index,0);
+        // Convert the 3d representation of the displacement to 4d and sum it
+        // to the components of the quaternion.
         quat += quat.omegaToQDot(omega);
+        // The quaternion needs to be normalized after the previous sum.
         quat /= quat.norm();
         model.SetQuaternion(i, quat, QInit);
-
-        // Quaternion quat = model.GetQuaternion(i, QInit);
-        // Vector3d zyx = d.block<3,1>(model.mJoints[i].q_index,0);
-        // Quaternion dQuat = Quaternion::fromZYXAngles(zyx);
-        // quat *= dQuat;
-        // model.SetQuaternion(i, quat, QInit);
-
-        // Quaternion quat = model.GetQuaternion(i, QInit);
-        // Vector3d yxz = d.block<3,1>(model.mJoints[i].q_index,0);
-        // Quaternion dQuat = Quaternion::fromYXZAngles(yxz);
-        // quat *= dQuat;
-        // model.SetQuaternion(i, quat, QInit);
-
-        // Quaternion quat = model.GetQuaternion(i, QInit);
-        // Vector3d xyz = d.block<3,1>(model.mJoints[i].q_index,0);
-        // Quaternion dQuat = Quaternion::fromXYZAngles(xyz);
-        // quat *= dQuat;
-        // model.SetQuaternion(i, quat, QInit);
-
-        // Quaternion quat = model.GetQuaternion(i, QInit);
-        // Vector3d omega = d.block<3,1>(model.mJoints[i].q_index,0);
-        // quat = quat.timeStep(omega, 1.);
-        // model.SetQuaternion(i, quat, QInit);
-
-        // Quaternion quat = model.GetQuaternion(i, QInit);
-        // Vector3d omega = d.block<3,1>(model.mJoints[i].q_index,0);
-        // double norm = omega.norm();
-        // Quaternion dquat = Quaternion::fromAxisAngle(omega/norm, norm);
-        // quat *= dquat;
-        // model.SetQuaternion(i, quat, QInit);
-
-        // Quaternion quat = model.GetQuaternion(i, QInit);
-        // Vector3d axis = d.block<3,1>(model.mJoints[i].q_index,0);
-        // double sinTheta = axis.norm();
-        // double cosTheta = std::cos(std::asin(sinTheta));
-        // quat.block<3,1>(0,0) += axis;
-        // quat[3] += cosTheta;
-
-        // Quaternion quat = model.GetQuaternion(i, QInit);
-        // Matrix3d rotMat = quat.toMatrix();
-        // Vector3d rotVec;
-        // rotVec[0] = -0.5 * (rotMat(1,2) - rotMat(2,1));
-        // rotVec[1] = -0.5 * (rotMat(2,0) - rotMat(0,2));
-        // rotVec[2] = -0.5 * (rotMat(0,1) - rotMat(1,0));
-        // rotVec += d.block<3,1>(model.mJoints[i].q_index,0);
-        // double norm = rotVec.norm();
-        // Quaternion newQuat = Quaternion::fromAxisAngle(rotVec / norm, norm);
-        // model.SetQuaternion(i, newQuat, QInit);
-
       }
       // If the current joint is not spherical, simply add the corresponding
       // components of d to QInit.
