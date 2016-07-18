@@ -1,6 +1,4 @@
 #include <UnitTest++.h>
-
-#include <iostream>
 #include "rbdl/rbdl.h"
 #include <cassert>
 
@@ -233,6 +231,102 @@ struct SliderCrank3D {
     cs.Bind(model);
 
     q = VectorNd::Zero(model.dof_count);
+    qd = VectorNd::Zero(model.dof_count);
+    qdd = VectorNd::Zero(model.dof_count);
+    tau = VectorNd::Zero(model.dof_count);
+
+    Matrix3d rot_ps 
+      = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
+      * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
+    assert(rot_ps(0,0) - 1. < TEST_PREC);
+    assert(rot_ps(1,1) - 1. < TEST_PREC);
+    assert(rot_ps(2,2) - 1. < TEST_PREC);
+    assert(rot_ps(0,1) < TEST_PREC);
+    assert(rot_ps(0,2) < TEST_PREC);
+    assert(rot_ps(1,0) < TEST_PREC);
+    assert(rot_ps(1,2) < TEST_PREC);
+    assert(rot_ps(2,0) < TEST_PREC);
+    assert(rot_ps(2,1) < TEST_PREC);
+    assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
+      - CalcBodyToBaseCoordinates(model, q, id_s, X_s.r)).norm() < TEST_PREC);
+
+  }
+
+  Model model;
+  ConstraintSet cs;
+
+  VectorNd q;
+  VectorNd qd;
+  VectorNd qdd;
+  VectorNd tau;
+
+  unsigned int id_p;
+  unsigned int id_s;
+  SpatialTransform X_p;
+  SpatialTransform X_s;
+
+};
+
+struct SliderCrank3DSphericalJoint {
+
+  SliderCrank3DSphericalJoint()
+    : model()
+    , cs()
+    , q()
+    , qd()
+    , id_p(0)
+    , id_s(0)
+    , X_p()
+    , X_s() {
+
+    double sliderMass = 5.;
+    double sliderHeight = 0.1;
+    double crankLink1Mass = 3.;
+    double crankLink1Length = 1.;
+    double crankLink2Mass = 1.;
+    double crankLink2Radius = 0.2;
+    double crankLink2Length = 3.;
+    double crankLink1Height = crankLink2Length - crankLink1Length 
+      + sliderHeight;
+
+    Body slider(sliderMass, Vector3d::Zero(), Vector3d(1., 1., 1.));
+    Body crankLink1(crankLink1Mass
+      , Vector3d(0.5 * crankLink1Length, 0., 0.)
+      , Vector3d(0., 0.
+      , crankLink1Mass * crankLink1Length * crankLink1Length / 3.));
+    Body crankLink2(crankLink2Mass
+      , Vector3d(0.5 * crankLink2Length, 0., 0.)
+      , Vector3d(crankLink2Mass * crankLink2Radius * crankLink2Radius / 2.
+      , crankLink2Mass * (3. * crankLink2Radius * crankLink2Radius 
+      + crankLink2Length * crankLink2Length) / 12.
+      , crankLink2Mass * (3. * crankLink2Radius * crankLink2Radius 
+      + crankLink2Length * crankLink2Length) / 12.));
+
+    Joint jointRevZ(JointTypeRevoluteZ);
+    Joint jointSphere(JointTypeSpherical);
+    Joint jointPrsX(SpatialVector(0.,0.,0.,1.,0.,0.));
+
+    id_p = model.AddBody(0
+      , SpatialTransform()
+      , jointPrsX, slider);
+    unsigned int id_b1 = model.AddBody(0
+      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crankLink1Height)) 
+      , jointRevZ, crankLink1);
+    id_s = model.AddBody(id_b1
+      , Xroty(M_PI) * Xtrans(Vector3d(crankLink1Length, 0., 0.))
+      , jointSphere, crankLink2);
+
+    X_p = Xtrans(Vector3d(0., 0., sliderHeight));
+    X_s = SpatialTransform(roty(-0.5 * M_PI), Vector3d(crankLink2Length, 0, 0));
+
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,0,1), 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,1,0,0,0), 0.1);
+
+    cs.Bind(model);
+
+    q = VectorNd::Zero(model.q_size);
     qd = VectorNd::Zero(model.dof_count);
     qdd = VectorNd::Zero(model.dof_count);
     tau = VectorNd::Zero(model.dof_count);
@@ -768,7 +862,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
   rot_p = CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E;
   rot_s = CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
   rot_ps = rot_p.transpose() * rot_s;
-  rotationVec = 0.5 * Vector3d
+  rotationVec = - 0.5 * Vector3d
     ( rot_ps(1,2) - rot_ps(2,1)
     , rot_ps(2,0) - rot_ps(0,2)
     , rot_ps(0,1) - rot_ps(1,0));
@@ -1644,4 +1738,358 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageImpulse) {
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd);
 
   CHECK_ARRAY_CLOSE(cs.v_plus.data(), errd.data(), cs.size(), TEST_PREC);
+}
+
+TEST_FIXTURE(SliderCrank3DSphericalJoint
+  , TestSliderCrank3DSphericalJointConstraintErrors) {
+  VectorNd err(VectorNd::Zero(cs.size()));
+  VectorNd errRef(VectorNd::Zero(cs.size()));
+  Vector3d pos_p;
+  Vector3d pos_s;
+  Matrix3d rot_p;
+  Matrix3d rot_s;
+  Matrix3d rot_ps;
+  Vector3d rotationVec;
+
+  // Test in zero position.
+  CalcConstraintsPositionError(model, q, cs, err);
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
+
+  // Test in another configuration.
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.01, 0.01));
+  q[0] = 0.4;
+  q[1] = 0.25 * M_PI;
+  model.SetQuaternion(id_s, quat, q);
+
+  CalcConstraintsPositionError(model, q, cs, err);
+
+  pos_p = CalcBodyToBaseCoordinates(model, q, id_p, X_p.r);
+  pos_s = CalcBodyToBaseCoordinates(model, q, id_s, X_s.r);
+  rot_p = CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E;
+  rot_s = CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
+  rot_ps = rot_p.transpose() * rot_s;
+  rotationVec = - 0.5 * Vector3d
+    ( rot_ps(1,2) - rot_ps(2,1)
+    , rot_ps(2,0) - rot_ps(0,2)
+    , rot_ps(0,1) - rot_ps(1,0));
+  errRef.block<3,1>(0,0) = pos_s - pos_p;
+  errRef(3) = rotationVec(2);
+
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
+}
+
+TEST_FIXTURE(SliderCrank3DSphericalJoint
+  , TestSliderCrank3DSphericalJointConstraintJacobian) {
+  MatrixNd G(MatrixNd::Zero(cs.size(), model.dof_count));
+
+  // Test in zero position.
+
+  G.setZero();
+  CalcConstraintsJacobian(model, q, cs, G);
+
+  VectorNd errRef(VectorNd::Zero(cs.size()));
+  VectorNd err = G * qd;
+
+  CHECK_ARRAY_CLOSE(errRef.data(), err.data(), cs.size(), TEST_PREC);
+}
+
+TEST_FIXTURE(SliderCrank3DSphericalJoint
+  , TestSliderCrank3DSphericalJointConstraintsVelocityErrors) {
+  VectorNd errd(VectorNd::Zero(cs.size()));
+  VectorNd errdRef(VectorNd::Zero(cs.size()));
+  MatrixNd G(cs.size(), model.dof_count);
+  VectorNd qWeights(model.dof_count);
+  VectorNd qInit(model.q_size);
+  bool success;
+
+  // Compute assembled configuration.
+  qWeights[0] = 1.;
+  qWeights[1] = 1.;
+  qWeights[2] = 1.;
+  qWeights[3] = 1.;
+  qWeights[4] = 1.;
+
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  qInit[0] = 0.4;
+  qInit[1] = 0.25 * M_PI;
+  model.SetQuaternion(id_s, quat, qInit);
+
+  success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
+  assert(success);
+
+  // Some random velocity.
+  qd[0] = -0.2;
+  qd[1] = 0.1 * M_PI;
+  qd[2] = -0.1 * M_PI;
+  qd[3] = 0.;
+  qd[4] = 0.1 * M_PI;
+
+  CalcConstraintsVelocityError(model, q, qd, cs, errd);
+  CalcConstraintsJacobian(model, q, cs, G);
+  errdRef = G * qd;
+
+  CHECK_ARRAY_CLOSE(errdRef.data(), errd.data(), cs.size(), TEST_PREC);
+}
+
+TEST_FIXTURE(SliderCrank3DSphericalJoint
+  , TestSliderCrank3DSphericalJointAssemblyQ) {
+  VectorNd weights(model.dof_count);
+  VectorNd qInit(model.q_size);
+
+  Vector3d pos_p;
+  Vector3d pos_s;
+  Matrix3d rot_p;
+  Matrix3d rot_s;
+  Matrix3d rot_ps;
+
+  bool success;
+
+  weights[0] = 1.;
+  weights[1] = 1.;
+  weights[2] = 1.;
+  weights[3] = 1.;
+  weights[4] = 1.;
+
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  qInit[0] = 0.4;
+  qInit[1] = 0.25 * M_PI;
+  model.SetQuaternion(id_s, quat, qInit);
+
+  success = CalcAssemblyQ(model, qInit, cs, q, weights, 1e-14, 800);
+  pos_p = CalcBodyToBaseCoordinates(model, q, id_p, X_p.r);
+  pos_s = CalcBodyToBaseCoordinates(model, q, id_s, X_s.r);
+  rot_p = CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E;
+  rot_s = CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
+  rot_ps = rot_p.transpose() * rot_s;
+
+  CHECK(success);
+  CHECK_ARRAY_CLOSE(pos_p.data(), pos_s.data(), 3, TEST_PREC);
+  CHECK_CLOSE(0., rot_ps(0,1) - rot_ps(1,0), TEST_PREC);
+}
+
+TEST_FIXTURE(SliderCrank3DSphericalJoint
+  , TestSliderCrank3DSphericalJointAssemblyQDot) {
+  VectorNd qWeights(model.dof_count);
+  VectorNd qdWeights(model.dof_count);
+  VectorNd qInit(model.q_size);
+  VectorNd qdInit(model.dof_count);
+
+  SpatialVector vel_p;
+  SpatialVector vel_s;
+
+  bool success;
+
+  qWeights[0] = 1.;
+  qWeights[1] = 1.;
+  qWeights[2] = 1.;
+  qWeights[3] = 1.;
+  qWeights[4] = 1.;
+
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  qInit[0] = 0.4;
+  qInit[1] = 0.25 * M_PI;
+  model.SetQuaternion(id_s, quat, qInit);
+
+  qdWeights[0] = 1.;
+  qdWeights[1] = 0.;
+  qdWeights[2] = 0.;
+  qdWeights[3] = 0.;
+  qdWeights[4] = 0.;
+
+  qdInit[0] = -0.2;
+  qdInit[1] = 0.1 * M_PI;
+  qdInit[2] = -0.1 * M_PI;
+  qdInit[3] = 0.;
+  qdInit[4] = 0.1 * M_PI;
+
+  success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
+  assert(success);
+
+  CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
+
+  vel_p = CalcPointVelocity6D(model, q, qd, id_p, X_p.r);
+  vel_s = CalcPointVelocity6D(model, q, qd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(vel_p.block(2,0,4,1).data(), vel_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+  CHECK_CLOSE(qdInit[0], qd[0], TEST_PREC);
+}
+
+TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointForwardDynamics) {
+  VectorNd qWeights(model.dof_count);
+  VectorNd qdWeights(model.dof_count);
+  VectorNd qInit(model.q_size);
+  VectorNd qdInit(model.dof_count);
+
+  SpatialVector acc_p;
+  SpatialVector acc_s;
+
+  bool success;
+
+  // Test with zero q and qdot.
+
+  tau[0] = 0.12;
+  tau[1] = -0.3;
+  tau[2] = 0.05;
+  tau[3] = 0.7;
+  tau[4] = -0.1;
+
+  ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+
+  ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+
+  ForwardDynamicsConstraintsRangeSpaceSparse(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+
+  // Compute non-zero assembly q and qdot;
+
+  qWeights[0] = 1.;
+  qWeights[1] = 1.;
+  qWeights[2] = 1.;
+  qWeights[3] = 1.;
+  qWeights[4] = 1.;
+
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  qInit[0] = 0.4;
+  qInit[1] = 0.25 * M_PI;
+  model.SetQuaternion(id_s, quat, qInit);
+
+  qdWeights[0] = 1.;
+  qdWeights[1] = 0.;
+  qdWeights[2] = 0.;
+  qdWeights[3] = 0.;
+  qdWeights[4] = 0.;
+
+  qdInit[0] = -0.2;
+  qdInit[1] = 0.1 * M_PI;
+  qdInit[2] = -0.1 * M_PI;
+  qdInit[3] = 0.;
+  qdInit[4] = 0.1 * M_PI;
+
+  qdInit.setZero();
+
+  success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
+  assert(success);
+  CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
+
+  Matrix3d rot_ps 
+    = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
+    * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
+  assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
+    - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
+  assert(rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
+  assert((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
+    -CalcPointVelocity6D(model, q, qd, id_p, X_p.r)).norm() < TEST_PREC);
+
+  // Test with non-zero q and qdot.
+
+  ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+
+  ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+
+  ForwardDynamicsConstraintsRangeSpaceSparse(model, q, qd, tau, cs, qdd);
+
+  acc_p = CalcPointAcceleration6D(model, q, qd, qdd, id_p, X_p.r);
+  acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
+
+  CHECK_ARRAY_CLOSE(acc_p.block(2,0,4,1).data(), acc_s.block(2,0,4,1).data(), 4
+    , TEST_PREC);
+}
+
+TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointImpulse) {
+  VectorNd qdPlusDirect(model.dof_count);
+  VectorNd qdPlusRangeSpaceSparse(model.dof_count);
+  VectorNd qdPlusNullSpace(model.dof_count);
+  VectorNd errdDirect(cs.size());
+  VectorNd errdSpaceSparse(cs.size());
+  VectorNd errdNullSpace(cs.size());
+  VectorNd qWeights(model.dof_count);
+  VectorNd qInit(model.q_size);
+
+  qWeights[0] = 1.;
+  qWeights[1] = 1.;
+  qWeights[2] = 1.;
+  qWeights[3] = 1.;
+  qWeights[4] = 1.;
+
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  qInit[0] = 0.4;
+  qInit[1] = 0.25 * M_PI;
+  model.SetQuaternion(id_s, quat, qInit);
+
+  bool success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
+  assert(success);
+
+  cs.v_plus[0] = 1.;
+  cs.v_plus[1] = 2.;
+  cs.v_plus[2] = 3.;
+  cs.v_plus[3] = 4.;
+  
+  ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
+  CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
+  
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdDirect.data(), cs.size(), TEST_PREC);
+
+  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs, qdPlusRangeSpaceSparse);
+  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs, errdSpaceSparse);
+  
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdSpaceSparse.data(), cs.size(), TEST_PREC);
+
+  ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
+  CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
+
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdNullSpace.data(), cs.size(), TEST_PREC);
+
+  cs.v_plus[0] = 0.;
+  cs.v_plus[1] = 0.;
+  cs.v_plus[2] = 0.;
+  cs.v_plus[3] = 0.;
+
+  qd[0] = 1.;
+  qd[1] = 2.;
+  qd[2] = 3.;
+
+  ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
+  CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
+  
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdDirect.data(), cs.size(), TEST_PREC);
+
+  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs, qdPlusRangeSpaceSparse);
+  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs, errdSpaceSparse);
+  
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdSpaceSparse.data(), cs.size(), TEST_PREC);
+
+  ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
+  CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
+
+  CHECK_ARRAY_CLOSE(cs.v_plus.data(), errdNullSpace.data(), cs.size(), TEST_PREC);
 }

@@ -115,6 +115,18 @@ class Quaternion : public Vector4d {
         * Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), zyx_angles[0]);
     }
 
+    static Quaternion fromYXZAngles (const Vector3d &yxz_angles) {
+      return Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), yxz_angles[2]) 
+        * Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), yxz_angles[1])
+        * Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), yxz_angles[0]);
+    }
+
+    static Quaternion fromXYZAngles (const Vector3d &xyz_angles) {
+      return Quaternion::fromAxisAngle (Vector3d (0., 0., 01.), xyz_angles[2]) 
+        * Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), xyz_angles[1])
+        * Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), xyz_angles[0]);
+    }
+
     Matrix3d toMatrix() const {
       double x = (*this)[0];
       double y = (*this)[1];
@@ -170,6 +182,15 @@ class Quaternion : public Vector4d {
       res_quat = conjugate() * res_quat;
 
       return Vector3d (res_quat[0], res_quat[1], res_quat[2]);
+    }
+
+    Vector4d omegaToQDot(const Vector3d& omega) const {
+      Eigen::Matrix<double, 4, 3> m;
+      m(0, 0) =  (*this)[3];   m(0, 1) = -(*this)[2];   m(0, 2) =  (*this)[1];
+      m(1, 0) =  (*this)[2];   m(1, 1) =  (*this)[3];   m(1, 2) = -(*this)[0];
+      m(2, 0) = -(*this)[1];   m(2, 1) =  (*this)[0];   m(2, 2) =  (*this)[3];
+      m(3, 0) = -(*this)[0];   m(3, 1) = -(*this)[1];   m(3, 2) = -(*this)[2];
+      return Quaternion(0.5 * m * omega);
     }
 };
 

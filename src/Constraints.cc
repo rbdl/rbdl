@@ -687,15 +687,7 @@ bool CalcAssemblyQ (
   double tolerance,
   unsigned int max_iter
   ) {
-  // Note: the size of q must be the same as the size of qdot to use this
-  // method of computing the assembly Q.
-  if(model.q_size != model.dof_count) {
-    std::cerr << "Size of the generalized positions vector Q is required to be \
-      the same as the size of the generalized velocities vector QDot." 
-      << std::endl;
-    assert(false);
-    abort();
-  }
+
   if(Q.size() != model.q_size) {
     std::cerr << "Incorrect Q vector size." << std::endl;
     assert(false);
@@ -706,7 +698,7 @@ bool CalcAssemblyQ (
     assert(false);
     abort();
   }
-  if(weights.size() != model.q_size) {
+  if(weights.size() != model.dof_count) {
     std::cerr << "Incorrect weights vector size." << std::endl;
     assert(false);
     abort();
@@ -749,9 +741,76 @@ bool CalcAssemblyQ (
     SolveLinearSystem (A, b, x, cs.linear_solver);
 
     // Extract the d = (Q - QInit) vector from x.
-    // Check if d is small, if yes, update the value of Q and return true.
     d = x.block (0, 0, model.dof_count, 1);
-    QInit += d;
+
+    // Update solution.
+    for (size_t i = 0; i < model.mJoints.size(); ++i) {
+      // If the joint is spherical, translate the corresponding components
+      // of d into a modification in the joint quaternion.
+      if (model.mJoints[i].mJointType == JointTypeSpherical) {
+        Quaternion quat = model.GetQuaternion(i, QInit);
+        Vector3d omega = d.block<3,1>(model.mJoints[i].q_index,0);
+        quat += quat.omegaToQDot(omega);
+        quat /= quat.norm();
+        model.SetQuaternion(i, quat, QInit);
+
+        // Quaternion quat = model.GetQuaternion(i, QInit);
+        // Vector3d zyx = d.block<3,1>(model.mJoints[i].q_index,0);
+        // Quaternion dQuat = Quaternion::fromZYXAngles(zyx);
+        // quat *= dQuat;
+        // model.SetQuaternion(i, quat, QInit);
+
+        // Quaternion quat = model.GetQuaternion(i, QInit);
+        // Vector3d yxz = d.block<3,1>(model.mJoints[i].q_index,0);
+        // Quaternion dQuat = Quaternion::fromYXZAngles(yxz);
+        // quat *= dQuat;
+        // model.SetQuaternion(i, quat, QInit);
+
+        // Quaternion quat = model.GetQuaternion(i, QInit);
+        // Vector3d xyz = d.block<3,1>(model.mJoints[i].q_index,0);
+        // Quaternion dQuat = Quaternion::fromXYZAngles(xyz);
+        // quat *= dQuat;
+        // model.SetQuaternion(i, quat, QInit);
+
+        // Quaternion quat = model.GetQuaternion(i, QInit);
+        // Vector3d omega = d.block<3,1>(model.mJoints[i].q_index,0);
+        // quat = quat.timeStep(omega, 1.);
+        // model.SetQuaternion(i, quat, QInit);
+
+        // Quaternion quat = model.GetQuaternion(i, QInit);
+        // Vector3d omega = d.block<3,1>(model.mJoints[i].q_index,0);
+        // double norm = omega.norm();
+        // Quaternion dquat = Quaternion::fromAxisAngle(omega/norm, norm);
+        // quat *= dquat;
+        // model.SetQuaternion(i, quat, QInit);
+
+        // Quaternion quat = model.GetQuaternion(i, QInit);
+        // Vector3d axis = d.block<3,1>(model.mJoints[i].q_index,0);
+        // double sinTheta = axis.norm();
+        // double cosTheta = std::cos(std::asin(sinTheta));
+        // quat.block<3,1>(0,0) += axis;
+        // quat[3] += cosTheta;
+
+        // Quaternion quat = model.GetQuaternion(i, QInit);
+        // Matrix3d rotMat = quat.toMatrix();
+        // Vector3d rotVec;
+        // rotVec[0] = -0.5 * (rotMat(1,2) - rotMat(2,1));
+        // rotVec[1] = -0.5 * (rotMat(2,0) - rotMat(0,2));
+        // rotVec[2] = -0.5 * (rotMat(0,1) - rotMat(1,0));
+        // rotVec += d.block<3,1>(model.mJoints[i].q_index,0);
+        // double norm = rotVec.norm();
+        // Quaternion newQuat = Quaternion::fromAxisAngle(rotVec / norm, norm);
+        // model.SetQuaternion(i, newQuat, QInit);
+
+      }
+      // If the current joint is not spherical, simply add the corresponding
+      // components of d to QInit.
+      else {
+        unsigned int qIdx = model.mJoints[i].q_index;
+        QInit.block(qIdx, 0, model.mJoints[i].mDoFCount, 1)
+          += d.block(model.mJoints[i].q_index, 0, model.mJoints[i].mDoFCount, 1);
+      }
+    }
 
     // Update the errors.
     CalcConstraintsPositionError (model, QInit, cs, e);
