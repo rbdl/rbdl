@@ -696,6 +696,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
 
   cs.SetSolver(LinearSolverColPivHouseholderQR);
 
+#ifndef RBDL_USE_SIMPLE_MATH
+  // SimpleMath has no solver that can solve the system in this configuration.
   // Configuration 1.
 
   q[0] = 0.;
@@ -737,6 +739,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
     (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r)
     , CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r)
     , 6, TEST_PREC);
+#endif
 
   // Configuration 2.
 
@@ -1020,6 +1023,9 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
 
   bool success;
 
+#ifndef RBDL_USE_SIMPLE_MATH
+  // The SimpleMath solver cannot solve the system close to a singular
+  // configuration.
   // Test with zero q and qdot.
 
   tau[0] = 0.12;
@@ -1054,6 +1060,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   for(size_t i = 2; i < 6; ++i) {
     CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
   }
+#endif
 
   // Compute non-zero assembly q and qdot;
 
@@ -1597,6 +1604,9 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageForwardDynamics) 
 
   cs.SetSolver(LinearSolverColPivHouseholderQR);
 
+#ifndef RBDL_USE_SIMPLE_MATH
+  // The SimpleMath solver cannot solve the system close to a singular
+  // configuration.
   // Configuration 1.
   q[0] = 0.;
   q[1] = 0.;
@@ -1646,6 +1656,7 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageForwardDynamics) 
     (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r)
     , CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r)
     , 6, TEST_PREC);
+#endif
 
   // Configuration 2.
   q[0] = 1.;
@@ -1934,6 +1945,9 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointForward
 
   bool success;
 
+#ifndef RBDL_USE_SIMPLE_MATH
+  // The SimpleMath solver cannot solve the system close to a singular
+  // configuration.
   // Test with zero q and qdot.
 
   tau[0] = 0.12;
@@ -1968,6 +1982,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointForward
   for(size_t i = 2; i < 6; ++i) {
     CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
   }
+#endif
 
   // Compute non-zero assembly q and qdot;
 
