@@ -218,7 +218,7 @@ double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constrain
   timer_start (&tinfo);
 
   for (int i = 0; i < sample_count; i++) {
-    ForwardDynamicsContactsDirect (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
+    ForwardDynamicsConstraintsDirect (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
   }
 
   double duration = timer_stop (&tinfo);
@@ -234,7 +234,7 @@ double run_contacts_lagrangian_sparse_benchmark (Model *model, ConstraintSet *co
   timer_start (&tinfo);
 
   for (int i = 0; i < sample_count; i++) {
-    ForwardDynamicsContactsRangeSpaceSparse (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
+    ForwardDynamicsConstraintsRangeSpaceSparse (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
   }
 
   double duration = timer_stop (&tinfo);
@@ -250,7 +250,7 @@ double run_contacts_null_space (Model *model, ConstraintSet *constraint_set, int
   timer_start (&tinfo);
 
   for (int i = 0; i < sample_count; i++) {
-    ForwardDynamicsContactsNullSpace (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
+    ForwardDynamicsConstraintsNullSpace (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
   }
 
   double duration = timer_stop (&tinfo);
@@ -266,7 +266,7 @@ double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_
   timer_start (&tinfo);
 
   for (int i = 0; i < sample_count; i++) {
-    ForwardDynamicsContactsKokkevis (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
+    ForwardDynamicsContactsKokkevis(*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
   }
 
   double duration = timer_stop (&tinfo);
@@ -303,61 +303,61 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
   four_bodies_four_constraints.linear_solver = linear_solver;
 
   // one_body_one
-  one_body_one_constraint.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  one_body_one_constraint.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
   one_body_one_constraint.Bind (*model);
 
   // two_bodies_one
-  two_bodies_one_constraint.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  two_bodies_one_constraint.AddConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  two_bodies_one_constraint.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  two_bodies_one_constraint.AddContactConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
   two_bodies_one_constraint.Bind (*model);
 
   // four_bodies_one
-  four_bodies_one_constraint.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  four_bodies_one_constraint.AddConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  four_bodies_one_constraint.AddConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  four_bodies_one_constraint.AddConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_one_constraint.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_one_constraint.AddContactConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_one_constraint.AddContactConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_one_constraint.AddContactConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
   four_bodies_one_constraint.Bind (*model);
 
   // one_body_four
-  one_body_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  one_body_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-  one_body_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-  one_body_four_constraints.AddConstraint (foot_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  one_body_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  one_body_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+  one_body_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+  one_body_four_constraints.AddContactConstraint (foot_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
   one_body_four_constraints.Bind (*model);	
 
   // two_bodies_four
-  two_bodies_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  two_bodies_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-  two_bodies_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-  two_bodies_four_constraints.AddConstraint (foot_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  two_bodies_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  two_bodies_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+  two_bodies_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+  two_bodies_four_constraints.AddContactConstraint (foot_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-  two_bodies_four_constraints.AddConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  two_bodies_four_constraints.AddConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-  two_bodies_four_constraints.AddConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-  two_bodies_four_constraints.AddConstraint (foot_l, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  two_bodies_four_constraints.AddContactConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  two_bodies_four_constraints.AddContactConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+  two_bodies_four_constraints.AddContactConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+  two_bodies_four_constraints.AddContactConstraint (foot_l, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
   two_bodies_four_constraints.Bind (*model);
 
   // four_bodies_four
-  four_bodies_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  four_bodies_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-  four_bodies_four_constraints.AddConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-  four_bodies_four_constraints.AddConstraint (foot_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+  four_bodies_four_constraints.AddContactConstraint (foot_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+  four_bodies_four_constraints.AddContactConstraint (foot_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-  four_bodies_four_constraints.AddConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  four_bodies_four_constraints.AddConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-  four_bodies_four_constraints.AddConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-  four_bodies_four_constraints.AddConstraint (foot_l, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_four_constraints.AddContactConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_four_constraints.AddContactConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+  four_bodies_four_constraints.AddContactConstraint (foot_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+  four_bodies_four_constraints.AddContactConstraint (foot_l, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-  four_bodies_four_constraints.AddConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  four_bodies_four_constraints.AddConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-  four_bodies_four_constraints.AddConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-  four_bodies_four_constraints.AddConstraint (hand_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_four_constraints.AddContactConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_four_constraints.AddContactConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+  four_bodies_four_constraints.AddContactConstraint (hand_r, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+  four_bodies_four_constraints.AddContactConstraint (hand_r, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
-  four_bodies_four_constraints.AddConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
-  four_bodies_four_constraints.AddConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
-  four_bodies_four_constraints.AddConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
-  four_bodies_four_constraints.AddConstraint (hand_l, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_four_constraints.AddContactConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
+  four_bodies_four_constraints.AddContactConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));
+  four_bodies_four_constraints.AddContactConstraint (hand_l, Vector3d (0.1, 0., -0.05), Vector3d (0., 0., 1.));
+  four_bodies_four_constraints.AddContactConstraint (hand_l, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
 
   four_bodies_four_constraints.Bind (*model);
 
@@ -856,13 +856,13 @@ int main (int argc, char *argv[]) {
   }
 
   if (benchmark_run_contacts) {
-    cout << "= Contacts: ForwardDynamicsContactsLagrangian" << endl;
+    cout << "= Contacts: ForwardDynamicsConstraintsLagrangian" << endl;
     contacts_benchmark (benchmark_sample_count, ContactsMethodLagrangian);
 
-    cout << "= Contacts: ForwardDynamicsContactsRangeSpaceSparse" << endl;
+    cout << "= Contacts: ForwardDynamicsConstraintsRangeSpaceSparse" << endl;
     contacts_benchmark (benchmark_sample_count, ContactsMethodRangeSpaceSparse);
 
-    cout << "= Contacts: ForwardDynamicsContactsNullSpace" << endl;
+    cout << "= Contacts: ForwardDynamicsConstraintsNullSpace" << endl;
     contacts_benchmark (benchmark_sample_count, ContactsMethodNullSpace);
 
     cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
