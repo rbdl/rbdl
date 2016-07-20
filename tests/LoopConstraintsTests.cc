@@ -44,15 +44,16 @@ struct FourBarLinkage {
       , Vector3d(0., 0., m1 * l1 * l1 / 3.));
     Body link2 = Body(m2, Vector3d(0.5 * l2, 0., 0.)
       , Vector3d(0., 0., m2 * l2 * l2 / 3.));
-    Body virtualBody(0., Vector3d(), Vector3d());
-    Joint jointRevZ(JointTypeRevoluteZ);
+    Vector3d vector3d_zero = Vector3d::Zero();
+    Body virtual_body(0., vector3d_zero, vector3d_zero);
+    Joint joint_rev_z(JointTypeRevoluteZ);
 
-    idB1 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), jointRevZ, link1);
-    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)), jointRevZ, link2);
-    idB3 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), jointRevZ, link1);
-    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)), jointRevZ, link2);
-    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)), jointRevZ
-      , virtualBody);
+    idB1 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_rev_z, link1);
+    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)), joint_rev_z, link2);
+    idB3 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_rev_z, link1);
+    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)), joint_rev_z, link2);
+    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)), joint_rev_z
+      , virtual_body);
 
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
@@ -117,18 +118,19 @@ struct FloatingFourBarLinkage {
       , Vector3d(0., 0., m1 * l1 * l1 / 3.));
     Body link2 = Body(m2, Vector3d(0.5 * l2, 0., 0.)
       , Vector3d(0., 0., m2 * l2 * l2 / 3.));
-    Body virtualBody(0., Vector3d(), Vector3d());
-    Joint jointTrans(JointTypeTranslationXYZ);
-    Joint jointRevZ(JointTypeRevoluteZ);
+    Vector3d vector3d_zero = Vector3d::Zero();
+    Body virtual_body(0., vector3d_zero, vector3d_zero);
+    Joint joint_trans(JointTypeTranslationXYZ);
+    Joint joint_rev_z(JointTypeRevoluteZ);
 
-    idB0 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), jointTrans
-      , virtualBody);
-    idB1 = model.AddBody(idB0, Xtrans(Vector3d(0., 0., 0.)), jointRevZ, link1);
-    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)), jointRevZ, link2);
-    idB3 = model.AddBody(idB0, Xtrans(Vector3d(0., 0., 0.)), jointRevZ, link1);
-    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)), jointRevZ, link2);
-    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)), jointRevZ
-      , virtualBody);
+    idB0 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_trans
+      , virtual_body);
+    idB1 = model.AddBody(idB0, Xtrans(Vector3d(0., 0., 0.)), joint_rev_z, link1);
+    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)), joint_rev_z, link2);
+    idB3 = model.AddBody(idB0, Xtrans(Vector3d(0., 0., 0.)), joint_rev_z, link1);
+    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)), joint_rev_z, link2);
+    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)), joint_rev_z
+      , virtual_body);
 
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1,0,0));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0,1,0));
@@ -183,45 +185,45 @@ struct SliderCrank3D {
     , X_p()
     , X_s() {
 
-    double sliderMass = 5.;
-    double sliderHeight = 0.1;
-    double crankLink1Mass = 3.;
-    double crankLink1Length = 1.;
-    double crankLink2Mass = 1.;
-    double crankLink2Radius = 0.2;
-    double crankLink2Length = 3.;
-    double crankLink1Height = crankLink2Length - crankLink1Length 
-      + sliderHeight;
+    double slider_mass = 5.;
+    double slider_height = 0.1;
+    double crank_link1_mass = 3.;
+    double crank_link1_length = 1.;
+    double crank_link2_mass = 1.;
+    double crank_link2_radius = 0.2;
+    double crank_link2_length = 3.;
+    double crank_link1_height = crank_link2_length - crank_link1_length 
+      + slider_height;
 
-    Body slider(sliderMass, Vector3d::Zero(), Vector3d(1., 1., 1.));
-    Body crankLink1(crankLink1Mass
-      , Vector3d(0.5 * crankLink1Length, 0., 0.)
+    Body slider(slider_mass, Vector3d::Zero(), Vector3d(1., 1., 1.));
+    Body crankLink1(crank_link1_mass
+      , Vector3d(0.5 * crank_link1_length, 0., 0.)
       , Vector3d(0., 0.
-      , crankLink1Mass * crankLink1Length * crankLink1Length / 3.));
-    Body crankLink2(crankLink2Mass
-      , Vector3d(0.5 * crankLink2Length, 0., 0.)
-      , Vector3d(crankLink2Mass * crankLink2Radius * crankLink2Radius / 2.
-      , crankLink2Mass * (3. * crankLink2Radius * crankLink2Radius 
-      + crankLink2Length * crankLink2Length) / 12.
-      , crankLink2Mass * (3. * crankLink2Radius * crankLink2Radius 
-      + crankLink2Length * crankLink2Length) / 12.));
+      , crank_link1_mass * crank_link1_length * crank_link1_length / 3.));
+    Body crankLink2(crank_link2_mass
+      , Vector3d(0.5 * crank_link2_length, 0., 0.)
+      , Vector3d(crank_link2_mass * crank_link2_radius * crank_link2_radius / 2.
+      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
+      + crank_link2_length * crank_link2_length) / 12.
+      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
+      + crank_link2_length * crank_link2_length) / 12.));
 
-    Joint jointRevZ(JointTypeRevoluteZ);
-    Joint jointSphere(JointTypeEulerZYX);
-    Joint jointPrsX(SpatialVector(0.,0.,0.,1.,0.,0.));
+    Joint joint_rev_z(JointTypeRevoluteZ);
+    Joint joint_sphere(JointTypeEulerZYX);
+    Joint joint_prs_x(SpatialVector(0.,0.,0.,1.,0.,0.));
 
     id_p = model.AddBody(0
       , SpatialTransform()
-      , jointPrsX, slider);
+      , joint_prs_x, slider);
     unsigned int id_b1 = model.AddBody(0
-      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crankLink1Height)) 
-      , jointRevZ, crankLink1);
+      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crank_link1_height)) 
+      , joint_rev_z, crankLink1);
     id_s = model.AddBody(id_b1
-      , Xroty(M_PI) * Xtrans(Vector3d(crankLink1Length, 0., 0.))
-      , jointSphere, crankLink2);
+      , Xroty(M_PI) * Xtrans(Vector3d(crank_link1_length, 0., 0.))
+      , joint_sphere, crankLink2);
 
-    X_p = Xtrans(Vector3d(0., 0., sliderHeight));
-    X_s = SpatialTransform(roty(-0.5 * M_PI), Vector3d(crankLink2Length, 0, 0));
+    X_p = Xtrans(Vector3d(0., 0., slider_height));
+    X_s = SpatialTransform(roty(-0.5 * M_PI), Vector3d(crank_link2_length, 0, 0));
 
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
@@ -279,45 +281,45 @@ struct SliderCrank3DSphericalJoint {
     , X_p()
     , X_s() {
 
-    double sliderMass = 5.;
-    double sliderHeight = 0.1;
-    double crankLink1Mass = 3.;
-    double crankLink1Length = 1.;
-    double crankLink2Mass = 1.;
-    double crankLink2Radius = 0.2;
-    double crankLink2Length = 3.;
-    double crankLink1Height = crankLink2Length - crankLink1Length 
-      + sliderHeight;
+    double slider_mass = 5.;
+    double slider_height = 0.1;
+    double crank_link1_mass = 3.;
+    double crank_link1_length = 1.;
+    double crank_link2_mass = 1.;
+    double crank_link2_radius = 0.2;
+    double crank_link2_length = 3.;
+    double crank_link1_height = crank_link2_length - crank_link1_length 
+      + slider_height;
 
-    Body slider(sliderMass, Vector3d::Zero(), Vector3d(1., 1., 1.));
-    Body crankLink1(crankLink1Mass
-      , Vector3d(0.5 * crankLink1Length, 0., 0.)
+    Body slider(slider_mass, Vector3d::Zero(), Vector3d(1., 1., 1.));
+    Body crankLink1(crank_link1_mass
+      , Vector3d(0.5 * crank_link1_length, 0., 0.)
       , Vector3d(0., 0.
-      , crankLink1Mass * crankLink1Length * crankLink1Length / 3.));
-    Body crankLink2(crankLink2Mass
-      , Vector3d(0.5 * crankLink2Length, 0., 0.)
-      , Vector3d(crankLink2Mass * crankLink2Radius * crankLink2Radius / 2.
-      , crankLink2Mass * (3. * crankLink2Radius * crankLink2Radius 
-      + crankLink2Length * crankLink2Length) / 12.
-      , crankLink2Mass * (3. * crankLink2Radius * crankLink2Radius 
-      + crankLink2Length * crankLink2Length) / 12.));
+      , crank_link1_mass * crank_link1_length * crank_link1_length / 3.));
+    Body crankLink2(crank_link2_mass
+      , Vector3d(0.5 * crank_link2_length, 0., 0.)
+      , Vector3d(crank_link2_mass * crank_link2_radius * crank_link2_radius / 2.
+      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
+      + crank_link2_length * crank_link2_length) / 12.
+      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
+      + crank_link2_length * crank_link2_length) / 12.));
 
-    Joint jointRevZ(JointTypeRevoluteZ);
-    Joint jointSphere(JointTypeSpherical);
-    Joint jointPrsX(SpatialVector(0.,0.,0.,1.,0.,0.));
+    Joint joint_rev_z(JointTypeRevoluteZ);
+    Joint joint_sphere(JointTypeSpherical);
+    Joint joint_prs_x(SpatialVector(0.,0.,0.,1.,0.,0.));
 
     id_p = model.AddBody(0
       , SpatialTransform()
-      , jointPrsX, slider);
+      , joint_prs_x, slider);
     unsigned int id_b1 = model.AddBody(0
-      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crankLink1Height)) 
-      , jointRevZ, crankLink1);
+      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crank_link1_height)) 
+      , joint_rev_z, crankLink1);
     id_s = model.AddBody(id_b1
-      , Xroty(M_PI) * Xtrans(Vector3d(crankLink1Length, 0., 0.))
-      , jointSphere, crankLink2);
+      , Xroty(M_PI) * Xtrans(Vector3d(crank_link1_length, 0., 0.))
+      , joint_sphere, crankLink2);
 
-    X_p = Xtrans(Vector3d(0., 0., sliderHeight));
-    X_s = SpatialTransform(roty(-0.5 * M_PI), Vector3d(crankLink2Length, 0, 0));
+    X_p = Xtrans(Vector3d(0., 0., slider_height));
+    X_s = SpatialTransform(roty(-0.5 * M_PI), Vector3d(crank_link2_length, 0, 0));
 
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
@@ -1168,8 +1170,10 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
   
   CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
 
-  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs, qdPlusRangeSpaceSparse);
-  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs, errdSpaceSparse);
+  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
+    , qdPlusRangeSpaceSparse);
+  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
+    , errdSpaceSparse);
   
   CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
 
@@ -1192,8 +1196,10 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
   
   CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
 
-  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs, qdPlusRangeSpaceSparse);
-  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs, errdSpaceSparse);
+  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
+    , qdPlusRangeSpaceSparse);
+  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
+    , errdSpaceSparse);
   
   CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
 
@@ -1203,7 +1209,9 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
   CHECK_ARRAY_CLOSE(cs.v_plus, errdNullSpace, cs.size(), TEST_PREC);
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageConstraintErrors) {
+TEST_FIXTURE(FloatingFourBarLinkage
+  , TestFloatingFourBarLinkageConstraintErrors) {
+
   VectorNd err = VectorNd::Zero(cs.size());
   Vector3d pos0;
   Vector3d pos1;
@@ -1307,7 +1315,9 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageConstraintErrors)
   CHECK_CLOSE(angleErr, err[5], TEST_PREC);
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageConstraintJacobian) {
+TEST_FIXTURE(FloatingFourBarLinkage
+  , TestFloatingFourBarLinkageConstraintJacobian) {
+
   MatrixNd G(MatrixNd::Zero(cs.size(), q.size()));
   VectorNd err(VectorNd::Zero(cs.size()));
   VectorNd errRef(VectorNd::Zero(cs.size()));
@@ -1403,7 +1413,9 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageConstraintJacobia
   CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageConstraintsVelocityErrors) {
+TEST_FIXTURE(FloatingFourBarLinkage
+  , TestFloatingFourBarLinkageConstraintsVelocityErrors) {
+
   VectorNd errd(VectorNd::Zero(cs.size()));
   VectorNd errdRef(VectorNd::Zero(cs.size()));
   MatrixNd G(cs.size(), model.dof_count);
@@ -1598,7 +1610,9 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQDotAssembly) {
   CHECK_CLOSE(qdInit[5], qd[5], TEST_PREC);
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageForwardDynamics) {
+TEST_FIXTURE(FloatingFourBarLinkage
+  , TestFloatingFourBarLinkageForwardDynamics) {
+
   VectorNd qddDirect;
   VectorNd qddNullSpace;
 
@@ -1934,7 +1948,9 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   CHECK_CLOSE(qdInit[0], qd[0], TEST_PREC);
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointForwardDynamics) {
+TEST_FIXTURE(SliderCrank3DSphericalJoint
+  , TestSliderCrank3DSphericalJointForwardDynamics) {
+
   VectorNd qWeights(model.dof_count);
   VectorNd qdWeights(model.dof_count);
   VectorNd qInit(model.q_size);
@@ -2054,7 +2070,9 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointForward
   }
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointImpulse) {
+TEST_FIXTURE(SliderCrank3DSphericalJoint
+  , TestSliderCrank3DSphericalJointImpulse) {
+
   VectorNd qdPlusDirect(model.dof_count);
   VectorNd qdPlusRangeSpaceSparse(model.dof_count);
   VectorNd qdPlusNullSpace(model.dof_count);
@@ -2088,8 +2106,10 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointImpulse
   
   CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
 
-  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs, qdPlusRangeSpaceSparse);
-  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs, errdSpaceSparse);
+  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
+    , qdPlusRangeSpaceSparse);
+  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
+    , errdSpaceSparse);
   
   CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
 
@@ -2112,8 +2132,10 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint, TestSliderCrank3DSphericalJointImpulse
   
   CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
 
-  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs, qdPlusRangeSpaceSparse);
-  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs, errdSpaceSparse);
+  ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
+    , qdPlusRangeSpaceSparse);
+  CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
+    , errdSpaceSparse);
   
   CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
 
