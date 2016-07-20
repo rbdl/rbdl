@@ -270,15 +270,24 @@ cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
             Vector3d *angular_momentum,
             bool update_kinematics)
 
-cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
+cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
     cdef cppclass ConstraintSet:
         ConstraintSet()
-        unsigned int AddConstraint (
+        unsigned int AddContactConstraint (
                 unsigned int body_id,
                 const Vector3d &body_point,
                 const Vector3d &world_normal,
                 const char* constraint_name,
                 double normal_acceleration)
+
+        unsigned int AddLoopConstraint (
+                unsigned int id_predecessor, 
+                unsigned int id_successor,
+                const SpatialTransform &X_predecessor,
+                const SpatialTransform &X_successor,
+                const SpatialVector &axis,
+                double T_stab_inv,
+                const char *constraint_name)
 
         ConstraintSet Copy()
         # void SetSolver (Math::LinearSolver solver)

@@ -1027,7 +1027,7 @@ cdef class ConstraintSet:
     def __repr__(self):
         return "rbdl.ConstraintSet (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
 
-    def AddConstraint (self, 
+    def AddContactConstraint (self, 
             body_id not None,
             body_point not None,
             world_normal not None,
@@ -1040,7 +1040,7 @@ cdef class ConstraintSet:
             c_body_point[i] = body_point[i]
             c_world_normal[i] = world_normal[i]
 
-        return self.thisptr.AddConstraint (
+        return self.thisptr.AddContactConstraint (
                 body_id,
                 c_body_point,
                 c_world_normal,
