@@ -69,7 +69,7 @@ namespace RigidBodyDynamics {
  * \link RigidBodyDynamics::Body Bodies \endlink are created by calling one
  * of its constructors. Usually they are created by specifying the mass,
  * center of mass and the inertia at the center of mass. 
- * \link RigidJointDynamics::Joint Joints \endlink are similarly created and is
+ * \link RigidBodyDynamics::Joint Joints \endlink are similarly created and is
  * described in detail in \ref joint_description.
  *
  * Adding bodies to the model is done by specifying the
@@ -455,8 +455,8 @@ struct RBDL_DLLAPI Model {
       return X_T[id];	
   }
 
-  /** Sets the joint frame transformtion, i.e. the second argument to Model
-    ::AddBody().
+  /** Sets the joint frame transformtion, i.e. the second argument to 
+  Model::AddBody().
     */
   void SetJointFrame (unsigned int id, 
       const Math::SpatialTransform &transform) {
