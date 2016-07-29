@@ -629,6 +629,27 @@ class Matrix {
 				return Block<matrix_type, val_type>(*this, row_start, col_start, block_row_count, block_col_count);
 			}
 
+		// row and col accessors
+		Block<matrix_type, val_type>
+		col(unsigned int index) const {
+			return Block<matrix_type, val_type>(*this, 0, index, rows(), 1);
+		}
+
+		Block<matrix_type, val_type>
+		col(unsigned int index) {
+			return Block<matrix_type, val_type>(*this, 0, index, rows(), 1);
+		}
+
+		Block<matrix_type, val_type>
+		row(unsigned int index) const {
+			return Block<matrix_type, val_type>(*this, index, 0, 1, cols());
+		}
+
+		Block<matrix_type, val_type>
+		row(unsigned int index) {
+			return Block<matrix_type, val_type>(*this, index, 0, 1, cols());
+		}
+
 		// Operators with scalars
 		void operator*=(const val_type &scalar) {
 			for (unsigned int i = 0; i < nrows * ncols; i++)
