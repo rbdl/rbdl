@@ -23,6 +23,8 @@ INCLUDE_DIRECTORIES (${UNITTEST++_INCLUDE_DIR})
 
 SET ( GEOMETRY_TESTS_SRCS
 	testSmoothSegmentedFunction.cc
+	numericalTestFunctions.cc
+	numericalTestFunctions.h
 	../geometry.h
 	../SegmentedQuinticBezierToolkit.h
 	../SmoothSegmentedFunction.h
