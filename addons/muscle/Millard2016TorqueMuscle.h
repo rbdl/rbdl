@@ -608,154 +608,76 @@ namespace RigidBodyDynamics {
                 */
                 Millard2016TorqueMuscle();
 
+
                 /**
-                    This constructor builds an Millard2016TorqueMucle
-                    given the specific coefficients from the paper. This 
-                    constructor should only be used when
+                This constructor  allows you to easily access the large 
+                table of built-in torque muscle coefficients to create 
+                a torque muscle that best represents the joint of interest.
 
-                    - You have coefficients for the Anderson torque model 
-                    - And these coefficients are not in the built-in data sets
+                <b> Note: directions </b> 
+                This constructs a single joint-torque muscle: 
+                it can only generate torque in one direction. If you want 
+                to generate a torque in two directions, you need 2 torque 
+                muscles.
 
-                    <b> Note: directions </b> 
-                    This constructs a single joint-torque muscle: 
-                    it can only generate torque in one direction. If you want 
-                    to generate a torque in two directions, you need 2 torque 
-                    muscles.
+                <b> Note: signs and offsets </b> 
 
+                All of the angles in these models are defined anatomically.
+                You will need to set a series of variables to correctly
+                map from your model's joint coordinates and sign conventions
+                to that of the models:
+                jointAngleOffsetRelativeToDoxygenFigures,
+                signOfJointAngleRelativeToDoxygenFigures,
+                signOfJointTorqueToDoxygenFigures. Also note that due to 
+                the anatomical angle definitions some left and right handed
+                joints will require different signs. This will be true 
+                for internal/external rotation at the shoulder,
+                horizontal adduction/abduction at the shoulder, ulnar/radial
+                deviation at the wrist, pronation/supination of the wrist,
+                and others as the list of directions grows.
+              
 
-          
-                    @param c1c2c3c4c5c6
-                            A 6-element VectorNd that contains the parameters
-                            c1,...,c6 in order. These parameters are described
-                            in detail in the Anderson paper listed in the 
-                            class description.
+                @param dataSet
+                       The desired source of joint torque
+                       coefficients. Use the DataSet structure to choose
+                       the desired data set (e.g. DataSet::Anderson2007,
+                       or DataSet::Gymnast)
 
-                    @param b1k1b2k2
-                            A 4-element VectorNd that contains the parameters
-                            b1,k1,b2,k2 in order. These parameters are described 
-                            in detail in the Anderson paper listed in the 
-                            class description.
-                    
-                    @param subjectHeightInMeters
-                            This parameter is used to scale from the normalized
-                            curves reported by Anderson et al. 
-                            See the class description for details.
+                @param subjectInfo
+                        A struct that contains metadata about the subject
+                        which is used to scale the maximum torque of the 
+                        torque muscle.
 
-                    @param subjectMassInKg
-                            This parameter is used to scale from the normalized
-                            curves reported by Anderson et al. 
-                            See the class description for details.
+                @param jointTorque
+                       Select the joint and torque direction of interest.
+                       Use the struct for each data set to choose a 
+                       joint-torque-direction that is in the set (e.g.
+                       Anderson2007::HipExtension, or 
+                       Gymnast::ShoulderHorizontalAdduction)
+        
+                @param jointAngleOffsetRelativeToDoxygenFigures
+                        Offset angle between your model's joints and the
+                        reference figures in class description. 
 
-                    @param jointAngleOffsetRelativeToAnderson2007
-                            Offset angle between your model's joints and the
-                            reference system defined by Anderson et al. 
-                            See the class description for details.
+                @param signOfJointAngleRelativeToDoxygenFigures
+                        The sign convention that converts your model's joint
+                        angles to the angles used in the reference figures.
 
-                    @param signOfJointAngleRelativeToAnderson2007
-                            The sign convention that converts your model's joint
-                            angles to the angles used in Anderson's model.
-                            See the class description for details.
+                @param signOfJointTorqueToDoxygenFigures
+                        The sign that maps fiberTorque from Anderson's model
+                        (which is always positive) to the correctly signed
+                        joint torque for your model.
 
-                    @param signOfJointTorque 
-                            The sign that maps fiberTorque from Anderson's model
-                            (which is always positive) to the correctly signed
-                            joint torque which is always positive.
-
-                    @param name
-                            The name of the muscle. This is needed to do useful
-                            things like provide error messages that are human
-                            readable.
-                    
-                    @throws std::invalid_argument when
-                        -# c1c2c3c4c5c6 is not 6 elements long
-                        -# b1k1b2k2 is not 4 elements long
-                        -# subjectHeightInMeters <= 0
-                        -# subjectMassInKg <= 0
-                        -# abs(signOfJointTorque)-1 > epsilon
-
-                */
-                Millard2016TorqueMuscle(                  
-                    const RigidBodyDynamics::Math::VectorNd& c1c2c3c4c5c6,
-                    const RigidBodyDynamics::Math::VectorNd& b1k1b2k2,
-                    double subjectHeightInMeters,
-                    double subjectMassInKg,
-                    double jointAngleOffsetRelativeToAnderson2007,
-                    double signOfJointAngleRelativeToAnderson2007,
-                    double signOfJointTorque,
-                    const std::string& name
-                    );
-
-
-                    /**
-
-                    This is the most general and easy-to-use constructor for
-                    this class as it allows you to easily access the large 
-                    table of built-in torque muscle coefficients
-
-                    <b> Note: directions </b> 
-                    This constructs a single joint-torque muscle: 
-                    it can only generate torque in one direction. If you want 
-                    to generate a torque in two directions, you need 2 torque 
-                    muscles.
-
-                    <b> Note: signs and offsets </b> 
-
-                    All of the angles in these models are defined anatomically.
-                    You will need to set a series of variables to correctly
-                    map from your model's joint coordinates and sign conventions
-                    to that of the models:
-                    jointAngleOffsetRelativeToDoxygenFigures,
-                    signOfJointAngleRelativeToDoxygenFigures,
-                    signOfJointTorqueToDoxygenFigures. Also note that due to 
-                    the anatomical angle definitions some left and right handed
-                    joints will require different signs. This will be true 
-                    for internal/external rotation at the shoulder,
-                    horizontal adduction/abduction at the shoulder, ulnar/radial
-                    deviation at the wrist, pronation/supination of the wrist,
-                    and others as the list of directions grows.
-                  
-
-                    @param dataSet
-                           The desired source of joint torque
-                           coefficients. Use the DataSet structure to choose
-                           the desired data set (e.g. DataSet::Anderson2007,
-                           or DataSet::Gymnast)
-
-                    @param subjectInfo
-                            A struct that contains metadata about the subject
-                            which is used to scale the maximum torque of the 
-                            torque muscle.
-
-                    @param jointTorque
-                           Select the joint and torque direction of interest.
-                           Use the struct for each data set to choose a 
-                           joint-torque-direction that is in the set (e.g.
-                           Anderson2007::HipExtension, or 
-                           Gymnast::ShoulderHorizontalAdduction)
-            
-                    @param jointAngleOffsetRelativeToDoxygenFigures
-                            Offset angle between your model's joints and the
-                            reference figures in class description. 
- 
-                    @param signOfJointAngleRelativeToDoxygenFigures
-                            The sign convention that converts your model's joint
-                            angles to the angles used in the reference figures.
-
-                    @param signOfJointTorqueToDoxygenFigures
-                            The sign that maps fiberTorque from Anderson's model
-                            (which is always positive) to the correctly signed
-                            joint torque for your model.
-
-                    @param name
-                            The name of the muscle. This is needed to do useful
-                            things like provide error messages that are human
-                            readable.
-                    
-                    @throws abort() when
-                        -# The combination of dataSet, gender, joint, and jointDirection does not correspond to a valid entry
-                        -# subjectHeightInMeters <= 0
-                        -# subjectMassInKg <= 0
-                        -# abs(signOfJointTorque)-1 > epsilon
+                @param name
+                        The name of the muscle. This is needed to do useful
+                        things like provide error messages that are human
+                        readable.
+                
+                @throws abort() when
+                    -# The combination of dataSet, gender, joint, and jointDirection does not correspond to a valid entry
+                    -# subjectHeightInMeters <= 0
+                    -# subjectMassInKg <= 0
+                    -# abs(signOfJointTorque)-1 > epsilon
 
                 */
                 Millard2016TorqueMuscle(

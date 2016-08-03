@@ -48,21 +48,7 @@ TEST(ConstructorRegularCallCheck)
     //Check that the 3 constructors when called properly
     //do not abort
     Millard2016TorqueMuscle test0 = Millard2016TorqueMuscle();
-
-    RigidBodyDynamics::Math::VectorNd c1c2c3c4c5c6(6);
-    c1c2c3c4c5c6 << 0.161, 0.958,0.932,1.578,3.19,0.242;
-    RigidBodyDynamics::Math::VectorNd b1k1b2k2(4);
-    b1k1b2k2 << -1.21, -6.351, 0.476, 5.91;
-
-    Millard2016TorqueMuscle test1 =
-            Millard2016TorqueMuscle(c1c2c3c4c5c6,
-                                     b1k1b2k2,
-                                     1.75,
-                                     75.0,
-                                     0.0,
-                                     1.0,
-                                     1.0,
-                                     "test_detailedConstructor");
+    
 
     SubjectInformation subjectInfo;
       subjectInfo.gender          = GenderSet::Male;
