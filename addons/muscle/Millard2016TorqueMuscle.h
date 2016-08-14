@@ -381,7 +381,7 @@ namespace RigidBodyDynamics {
               actual curves are described in units of radians
              -# See Anderson et al. for further details.
 
-           \image html fig_Anderson2007AllPostiveSigns.png "Characteristic from Anderson et al. 2007 [1]"
+           \image html fig_MuscleAddon_Anderson2007AllPostiveSigns.png "Characteristic from Anderson et al. 2007 [1]"
 
 
             <b>Data Set: Gymnast</b>
@@ -441,10 +441,11 @@ namespace RigidBodyDynamics {
             
 
 
-           \image html fig_Gymnast_HipKneeAnkle.png " Hip/Knee/Ankle "
-           \image html fig_Gymnast_Shoulder3Dof.png " Shoulder 3 DoF torques "
-           \image html fig_Gymnast_ElbowForearm.png " Elbow flexion/extension and wrist pronation/supination"
-           \image html fig_Gymnast_Wrist3Dof.png " Wrist ext/flex and ulnar/radial deviation"
+           \image html fig_MuscleAddon_Gymnast_HipKneeAnkle.png " Hip/Knee/Ankle "
+           \image html fig_MuscleAddon_Gymnast_Lumbar.png " Lumbar Extension/Flexion "
+           \image html fig_MuscleAddon_Gymnast_Shoulder3Dof.png " Shoulder 3 DoF torques "
+           \image html fig_MuscleAddon_Gymnast_ElbowForearm.png " Elbow flexion/extension and wrist pronation/supination"
+           \image html fig_MuscleAddon_Gymnast_Wrist3Dof.png " Wrist ext/flex and ulnar/radial deviation"
 
 
             <b>Differences from Anderson et al. Parameterized Curves</b>

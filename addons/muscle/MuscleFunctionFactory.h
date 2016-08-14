@@ -113,7 +113,7 @@ useful to know that both the slope and the curviness parameter may need to be
 altered to achieve the desired shape.
 
 
-\image html fig_MuscleFunctionFactory_quinticCornerSections.png
+\image html fig_MuscleAddon_MuscleFunctionFactory_quinticCornerSections.png
 
 
 
@@ -224,7 +224,7 @@ class MuscleFunctionFactory
   -0 <= curviness <= 1
 
 
-  \image html fig_MuscleFunctionFactory_falCurve.png
+  \image html fig_MuscleAddon_MuscleFunctionFactory_falCurve.png
 
    
   <B>Conditions:</B>
@@ -360,7 +360,7 @@ class MuscleFunctionFactory
   -0 <= eccCurviness <= 0
   
   
-  \image html fig_MuscleFunctionFactory_fvCurve.png
+  \image html fig_MuscleAddon_MuscleFunctionFactory_fvCurve.png
 
 
 
@@ -416,7 +416,7 @@ class MuscleFunctionFactory
   (e.g. "bicep_fiberForceVelocityInverseCurve")
   
 
-  \image html fig_MuscleFunctionFactory_fvInvCurve.png
+  \image html fig_MuscleAddon_MuscleFunctionFactory_fvInvCurve.png
 
   */
   static void createFiberForceVelocityInverseCurve(
@@ -477,7 +477,7 @@ class MuscleFunctionFactory
   -0 <= curviness <= 1
 
 
-  \image html fig_MuscleFunctionFactory_fcphiCurve.png
+  \image html fig_MuscleAddon_MuscleFunctionFactory_fcphiCurve.png
 
   <B>Computational Costs</B>
   \verbatim 
@@ -553,7 +553,7 @@ class MuscleFunctionFactory
   -kiso > 1/(cosPhi0)
   -0 <= curviness <= 1
   
-  \image html fig_MuscleFunctionFactory_fcCosPhiCurve.png
+  \image html fig_MuscleAddon_MuscleFunctionFactory_fcCosPhiCurve.png
 
   <B>Computational Costs</B>
   \verbatim 
@@ -629,7 +629,7 @@ class MuscleFunctionFactory
   -0 <= curviness <= 1
 
 
-  \image html fig_MuscleFunctionFactory_fpeCurve.png
+  \image html fig_MuscleAddon_MuscleFunctionFactory_fpeCurve.png
 
 
   <B>Computational Costs</B>
@@ -707,7 +707,7 @@ class MuscleFunctionFactory
   -0 < kLow < kIso
   -0 <= curviness <= 1
 
-  \image html fig_MuscleFunctionFactory_fcLengthCurve.png
+  \image html fig_MuscleAddon_MuscleFunctionFactory_fcLengthCurve.png
 
 
   <B>Computational Costs</B>
@@ -788,7 +788,7 @@ class MuscleFunctionFactory
   -0 <= curviness <= 1
 
 
-  \image html fig_MuscleFunctionFactory_fseCurve.png
+  \image html fig_MuscleAddon_MuscleFunctionFactory_fseCurve.png
 
 
   <B>Computational Costs</B>

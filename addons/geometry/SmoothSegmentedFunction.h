@@ -200,6 +200,28 @@ namespace RigidBodyDynamics {
       double dydx0, double dydx1,
       const std::string& name);
 
+     /**
+      This function will shift the entire SmoothSegmentedFunction by xShift
+      and yShift. Setting xShift = yShift = 0.0 will leave the curve unchanged.
+
+      @param xShift - the amount to shift the curve in the x-direction. 
+      @param yShift - the amount to shift the curve in the y-direction
+     */
+     void shift(double xShift, double yShift);
+
+     /**
+      This function will scale the curve in the x and y directions. Setting 
+      xScale=yScale=1.0 will leave the curve unchanged.
+
+      \b aborts \b
+    -If abs(xScale) < sqrt(eps) 
+
+      @param xScale: the amount to scale the curve in the x direction
+      @param yScale: the amount to scale the curve in the y direction
+     */
+     void scale(double xScale, double yScale);
+
+
 
      /**Calculates the value of the curve this object represents.
 
@@ -554,6 +576,7 @@ namespace RigidBodyDynamics {
      returning*/
      /*virtual*/ 
      int getMaxDerivativeOrder() const;
+
      
   };
 
