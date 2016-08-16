@@ -1523,6 +1523,21 @@ cdef class Model:
     def GetBody (self, index):
         return Body (address=<uintptr_t> &(self.thisptr.mBodies[index]))
 
+    def GetParentBodyId (self, index):
+        return self.thisptr.GetParentBodyId(index)
+
+    def GetBodyId (self, name):
+        return self.thisptr.GetBodyId(name)
+
+    def GetBodyName (self, index):
+        return self.thisptr.GetBodyName(index)
+
+    def IsBodyId (self, index):
+        return self.thisptr.IsBodyId(index)
+
+    def IsFixedBodyId (self, index):
+        return self.thisptr.IsFixedBodyId(index)
+
     property dof_count:
         def __get__ (self):
             return self.thisptr.dof_count
@@ -1541,10 +1556,10 @@ cdef class Model:
 
     property gravity:
         def __get__ (self):
-            return np.ndarray ([
+            return np.array ([
                 self.thisptr.gravity[0],
                 self.thisptr.gravity[1],
-                self.thisptr.gravity[2],
+                self.thisptr.gravity[2]
                 ]
                 )
         def __set__ (self, values):

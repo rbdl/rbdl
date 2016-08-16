@@ -154,6 +154,16 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 const Body &body,
                 string body_name
                 )
+        unsigned int GetParentBodyId(
+                unsigned int body_id)
+        unsigned int GetBodyId(
+                const char *body_name)
+        string GetBodyName (
+                unsigned int body_id)
+        bool IsBodyId (
+                unsigned int body_id)
+        bool IsFixedBodyId (
+                unsigned int body_id)
         Quaternion GetQuaternion (
                 unsigned int body_id,
                 const VectorNd &q)
@@ -178,8 +188,8 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
         vector[Joint] mJoints
         vector[SpatialVector] S
         vector[SpatialTransform] X_J
-        vector[SpatialVector] v_J 
-        vector[SpatialVector] c_J 
+        vector[SpatialVector] v_J
+        vector[SpatialVector] c_J
 
         vector[unsigned int] mJointUpdateOrder
 
@@ -195,14 +205,14 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
 
         vector[SpatialVector] c
         vector[SpatialMatrix] IA
-        vector[SpatialVector] pA 
-        vector[SpatialVector] U 
+        vector[SpatialVector] pA
+        vector[SpatialVector] U
         VectorNd d
         VectorNd u
-        vector[SpatialVector] f 
+        vector[SpatialVector] f
         vector[SpatialRigidBodyInertia] I
         vector[SpatialRigidBodyInertia] Ic
-        vector[SpatialVector] hc 
+        vector[SpatialVector] hc
 
         vector[SpatialTransform] X_lambda
         vector[SpatialTransform] X_base
@@ -312,7 +322,7 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
         VectorNd C
         VectorNd gamma
         VectorNd G
-        
+
         MatrixNd A
         VectorNd b
         VectorNd x
@@ -338,7 +348,7 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
 
         vector[SpatialMatrix] d_IA
         vector[SpatialVector] d_U
-        
+
         VectorNd d_d
         vector[Vector3d] d_multdof3_u
 
@@ -392,11 +402,11 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             double* tau_ptr,
             const double* qddot_ptr,
             vector[SpatialVector] *f_ext
-            ) 
+            )
 
 cdef extern from "rbdl_loadmodel.cc":
     cdef bool rbdl_loadmodel (
-            const char* filename, 
-            Model* model, 
+            const char* filename,
+            Model* model,
             bool floating_base,
             bool verbose)
