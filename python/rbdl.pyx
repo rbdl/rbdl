@@ -262,10 +262,14 @@ cdef class SpatialVector:
     cdef crbdl.SpatialVector *thisptr
     cdef free_on_dealloc
 
-    def __cinit__(self, uintptr_t address=0):
+    def __cinit__(self, uintptr_t address=0, pyvalues=None):
         if address == 0:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.SpatialVector()
+
+            if pyvalues != None:
+                for i in range (6):
+                    self.thisptr.data()[i] = pyvalues[i]
         else:
             self.free_on_dealloc = False
             self.thisptr = <crbdl.SpatialVector*>address
@@ -303,6 +307,10 @@ cdef class SpatialVector:
     @classmethod
     def fromPointer(cls, uintptr_t address):
         return SpatialVector (address)
+
+    @classmethod
+    def fromPythonArray (cls, python_values):
+        return SpatialVector (0, python_values)
 
 cdef class SpatialMatrix:
     cdef crbdl.SpatialMatrix *thisptr
@@ -1761,7 +1769,7 @@ cdef class ConstraintSet:
     def __repr__(self):
         return "rbdl.ConstraintSet (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
 
-    def AddConstraint (self,
+    def AddContactConstraint (self,
             body_id not None,
             body_point not None,
             world_normal not None,
@@ -1769,18 +1777,48 @@ cdef class ConstraintSet:
             normal_acceleration = 0.):
         cdef crbdl.Vector3d c_body_point
         cdef crbdl.Vector3d c_world_normal
+        cdef char* constraint_name_ptr
 
         for i in range (3):
             c_body_point[i] = body_point[i]
             c_world_normal[i] = world_normal[i]
 
-        return self.thisptr.AddConstraint (
+        if constraint_name == None:
+            constraint_name_ptr = NULL
+        else:
+            constraint_name_ptr = constraint_name
+
+        return self.thisptr.AddContactConstraint (
                 body_id,
                 c_body_point,
                 c_world_normal,
-                constraint_name,
+                constraint_name_ptr,
                 normal_acceleration
                 )
+
+    def AddLoopConstraint (self,
+            id_predecessor not None,
+            id_successor not None,
+            SpatialTransform X_predecessor not None,
+            SpatialTransform X_successor not None,
+            SpatialVector axis not None,
+            double T_stab_inv,
+            constraint_name = None):
+        cdef char* constraint_name_ptr
+
+        if constraint_name == None:
+            constraint_name_ptr = NULL
+        else:
+            constraint_name_ptr = constraint_name
+
+        return self.thisptr.AddLoopConstraint (
+            id_predecessor,
+            id_successor,
+            X_predecessor.thisptr[0],
+            X_successor.thisptr[0],
+            axis.thisptr[0],
+            T_stab_inv,
+            constraint_name_ptr)
 
     def Bind (self, model):
         return self.thisptr.Bind ((<Model>model).thisptr[0])
