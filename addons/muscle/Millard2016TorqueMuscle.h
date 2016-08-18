@@ -837,7 +837,14 @@ namespace RigidBodyDynamics {
                             active-torque-angle curve peaks at its
                             maximum value of 1.0. Angle is in radians
                  */
-                double getJointAngleAtMaximumIsometricTorque() const;
+                double getJointAngleAtMaximumActiveIsometricTorque() const;
+
+                /**
+                    @return the joint angle at which the normalized
+                            passive-torque-angle curve reaches a value
+                            of 1.0. Angle is in radians
+                 */
+                double getJointAngleAtOneNormalizedPassiveIsometricTorque() const;
 
                 /**
                   @return the maximum concentric joint angular velocity

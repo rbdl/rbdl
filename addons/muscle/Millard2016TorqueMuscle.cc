@@ -23,6 +23,7 @@
 #include <ostream>
 
 static double EPSILON = std::numeric_limits<double>::epsilon();
+static double SQRTEPSILON = sqrt(EPSILON);
 
 using namespace RigidBodyDynamics::Math;
 using namespace RigidBodyDynamics::Addons::Muscle;
@@ -367,7 +368,7 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
     int joint           = -1;
     int jointDirection  = -1;
 
-    for(int i=0; i < 20; ++i){
+    for(int i=0; i < JointTorqueSet::Last; ++i){
       if(JointTorqueMap[i][0] == jointTorque){
         joint           = JointTorqueMap[i][1];
         jointDirection  = JointTorqueMap[i][2];
@@ -445,19 +446,12 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
     int genderIdx   = 2;
     int ageIdx      = 3;
 
-    //int jointHip0Knee1Ankle2,
-    //int directionExtension0Flexion1,
-    //int genderMale0Female1,
-    //int ageYoung0Mid1Senior2,
-
-    //Anderson et al. coefficients.
-    c1c2c3c4c5c6Anderson2007.resize(6);
-    b1k1b2k2Anderson2007.resize(4);
-    gymnastParams.resize(8);
-
     switch(dataSet){
       case DataSet::Anderson2007:
       {
+        c1c2c3c4c5c6Anderson2007.resize(6);
+        b1k1b2k2Anderson2007.resize(4);
+
         for(int i=0; i<36;++i){
 
             if( abs(Anderson2007Table3Mean[i][jointIdx]
@@ -485,8 +479,8 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
 
     case DataSet::Gymnast:
       {
-
-        for(int i=0; i<20;++i){
+        gymnastParams.resize(8);
+        for(int i=0; i<JointTorqueSet::Last;++i){
 
             if( abs(GymnastWholeBody[i][jointIdx]
                       -(double)joint) < EPSILON
@@ -538,8 +532,9 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
 
 
     muscleCurvesAreDirty = true;
-    updateTorqueMuscleCurves();
     passiveTorqueScale = 1.0;
+    updateTorqueMuscleCurves();
+
 
 }
 
@@ -701,11 +696,16 @@ void Millard2016TorqueMuscle::
 
 
 double Millard2016TorqueMuscle::
-    getJointAngleAtMaximumIsometricTorque() const
+    getJointAngleAtMaximumActiveIsometricTorque() const
 {
    return calcJointAngle(angleAtOneNormActiveTorque);
 }
 
+double Millard2016TorqueMuscle::
+    getJointAngleAtOneNormalizedPassiveIsometricTorque() const
+{
+   return calcJointAngle(angleAtOneNormPassiveTorque);
+}
 
 
 double Millard2016TorqueMuscle::
@@ -717,7 +717,7 @@ double Millard2016TorqueMuscle::
 void Millard2016TorqueMuscle::
     setPassiveTorqueScale(double passiveTorqueScaling)
 {
-    //This does not affect the curves.
+    muscleCurvesAreDirty = true;
     passiveTorqueScale = passiveTorqueScaling;
 }
 
@@ -828,7 +828,6 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
 
       angleAtOneNormActiveTorque = c1c2c3c4c5c6Anderson2007[2];
 
-      angleAtOneNormActiveTorque = c1c2c3c4c5c6Anderson2007[1];
       TorqueMuscleFunctionFactory::
         createAnderson2007ActiveTorqueAngleCurve(
             c1c2c3c4c5c6Anderson2007[1],
@@ -875,9 +874,9 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
         k = b1k1b2k2Anderson2007[3];
       }
 
-      if(abs(b) > 0 && passiveTorqueScale > SQRTEPS){
+      if(abs(b) > 0 && passiveTorqueScale > SQRTEPSILON){
           angleAtOneNormPassiveTorque =
-              (1/k)*log(abs(maxActiveIsometricTorque/b1));
+              (1/k)*log(abs(maxActiveIsometricTorque/b));
       }else{
           angleAtOneNormPassiveTorque =
               std::numeric_limits<double>::signaling_NaN();
@@ -941,7 +940,38 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
   //If the passiveScale is < 1 and > 0, then we must iterate to
   //find the true value of angleAtOneNormPassiveTorque;
 
-  abort();
+  if(isfinite(angleAtOneNormPassiveTorque)
+     && (passiveTorqueScale > 0 && passiveTorqueScale != 1.0) ){
+    int iter = 1;
+    int iterMax =100;
+    double err = 10*SQRTEPSILON;
+    double derr = 0;
+    double delta = 0;
+
+    while(abs(err) > SQRTEPSILON && iter < iterMax){
+
+      err = passiveTorqueScale*tpCurve.calcValue(angleAtOneNormPassiveTorque)
+            - 1.0;
+      derr = passiveTorqueScale
+              *tpCurve.calcDerivative(angleAtOneNormPassiveTorque,1);
+
+      delta = -err/derr;
+      angleAtOneNormPassiveTorque += delta;
+      ++iterMax;
+    }
+
+    if(abs(err) > SQRTEPSILON){
+      cerr << "Millard2016TorqueMuscle::"
+             << "Millard2016TorqueMuscle:"
+             << muscleName
+             << "Internal Error: failed to solve for "
+             <<"angleAtOneNormPassiveTorque. Consult the maintainer of this "
+             <<"addon";
+      assert(0);
+      abort();
+    }
+
+  }
 
 
 

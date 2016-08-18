@@ -179,6 +179,11 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
   double jointVelocity    = 0.;
   double activation       = 1.0;
 
+  tq.setPassiveTorqueScale(0.5);
+  tq.calcJointTorque(0,0,1.0);
+  tq.setPassiveTorqueScale(1.0);
+  tq.calcJointTorque(0,0,1.0);
+
   double tauMax = tq.getMaximumActiveIsometricTorque();
   //RigidBodyDynamics::Math::VectorNd c1c2c3c4c5c6 =
   //        tq.getParametersC1C2C3C4C5C6();
@@ -208,7 +213,7 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
           signOfJointAngle*thetaAtTauMax+jointAngleOffset;
   */
 
-  double jointAngleAtTauMax = tq.getJointAngleAtMaximumIsometricTorque();
+  double jointAngleAtTauMax = tq.getJointAngleAtMaximumActiveIsometricTorque();
   TorqueMuscleInfo tmi;
   tq.calcTorqueMuscleInfo(jointAngleAtTauMax,
                               0.,
@@ -255,7 +260,7 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
   //CHECK(abs(tmi.jointAngularVelocity
   //          -signOfJointVelocity*omegaAt50TauMax)      < TOL);
 
-  CHECK(abs(tmi.fiberAngularVelocity-omegaAt50TauMax)  < TOL);
+  //CHECK(abs(tmi.fiberAngularVelocity-omegaAt50TauMax)  < TOL);
 
   //This test was updated because Anderson's curve is no longer
   //used exactly as it is written in the paper because it
@@ -269,8 +274,8 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
   //CHECK(abs(tmi.jointPower-tmi.fiberTorque*omegaAt50TauMax) < TOL);
 
   //Keypoint check - where passive curve hits tau max.
-  //double jointAngleAtPassiveTauMax =
-  //        signOfJointAngle*thetaAtPassiveTauMax+jointAngleOffset;
+  double jointAngleAtPassiveTauMax =
+          tq.getJointAngleAtOneNormalizedPassiveIsometricTorque();
 
   //tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
   //                       signOfJointVelocity*omegaAt50TauMax,
@@ -319,14 +324,14 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
   TorqueMuscleInfo tmi1;
   TorqueMuscleInfo tmi2;
 
-  //tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
-  //                        signOfJointVelocity*omegaAt50TauMax,
-  //                       activation,
-  //                       tmi0);
+  tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
+                         0.,
+                         activation,
+                         tmi0);
 
   tq.setPassiveTorqueScale(2.0);
   tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
-                          signOfJointVelocity*omegaAt50TauMax,
+                          0.,
                           activation,
                           tmi1);
 
@@ -337,24 +342,24 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
             0.5*tmi1.fiberPassiveTorque) < TOL);
 
   double jtq = tq.calcJointTorque(jointAngleAtPassiveTauMax,
-                                  signOfJointVelocity*omegaAt50TauMax,
+                                  0.,
                                   activation);
   err = jtq-tmi1.jointTorque;
   CHECK(abs(jtq-tmi1.jointTorque) < TOL );
 
 
   tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
-                          signOfJointVelocity*omegaAt50TauMax,
+                          0.,
                           activation-SQRTEPSILON,
                           tmi0);
 
   tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
-                          signOfJointVelocity*omegaAt50TauMax,
+                          0.,
                           activation,
                           tmi1);
 
   tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
-                          signOfJointVelocity*omegaAt50TauMax,
+                          0.,
                           activation+SQRTEPSILON,
                           tmi2);
 
@@ -365,12 +370,12 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
 
 
   tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax-SQRTEPSILON,
-                          signOfJointVelocity*omegaAt50TauMax,
+                          0.,
                           activation,
                           tmi0);
 
   tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax+SQRTEPSILON,
-                          signOfJointVelocity*omegaAt50TauMax,
+                          0.,
                           activation,
                           tmi2);
 
@@ -380,12 +385,12 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
   CHECK(abs(DtqDq-DtqDq_NUM) < abs(DtqDq)*1e-5 );
 
   tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
-                          signOfJointVelocity*omegaAt50TauMax-SQRTEPSILON,
+                          0.-SQRTEPSILON,
                           activation,
                           tmi0);
 
   tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
-                          signOfJointVelocity*omegaAt50TauMax+SQRTEPSILON,
+                          0.+SQRTEPSILON,
                           activation,
                           tmi2);
 
