@@ -694,6 +694,7 @@ void parse_args (int argc, char* argv[]) {
     } else if (arg == "--only-contacts" || arg == "-C") {
       disable_all_benchmarks();
       benchmark_run_contacts = true;
+      benchmark_run_ik = false;
 #if defined (RBDL_BUILD_ADDON_LUAMODEL) || defined (RBDL_BUILD_ADDON_URDFREADER)
     } else if (model_file == "") {
       model_file = arg;

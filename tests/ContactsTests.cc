@@ -677,12 +677,7 @@ TEST_FIXTURE (Human36, ForwardDynamicsContactsFixedBody) {
   VectorNd qddot_lagrangian (VectorNd::Zero(qddot.size()));
   VectorNd qddot_sparse (VectorNd::Zero(qddot.size()));
 
-  for (int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qddot_3dof[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-  }
+  randomizeStates();
 
   ConstraintSet constraint_upper_trunk;
   constraint_upper_trunk.AddContactConstraint (body_id_3dof[BodyUpperTrunk], Vector3d (1.1, 2.2, 3.3), Vector3d (1., 0., 0.));
