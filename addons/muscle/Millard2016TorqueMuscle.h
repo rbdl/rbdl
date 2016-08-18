@@ -94,7 +94,9 @@ namespace RigidBodyDynamics {
             WristRadialDeviation          = 17,
             WristPronation                = 18,
             WristSupination               = 19,
-            Last                          = 20
+            LumbarExtension               = 20,
+            LumbarFlexion                 = 21,
+            Last                          = 22
           };
           const static char* names[];
           JointTorqueSet(){}
@@ -152,6 +154,19 @@ namespace RigidBodyDynamics {
               Young18To25   = AgeGroupSet::Young18To25,
               LastAgeGroup
           };
+
+          enum TableIndex {
+            TauMax = 0,
+            OmegaMax,
+            ActiveAngleAtOneNormTorque,
+            ActiveAngularStandardDeviation,
+            TvAtMaxEccentricVelocity,
+            TvAtHalfMaxConcentricVelocity,
+            PassiveAngleAtZeroTorque,
+            PassiveAngleAtOneNormTorque,
+            LastTableIndex
+          };
+
           enum JointTorque {
             HipExtension                = JointTorqueSet::HipExtension       ,
             HipFlexion                  = JointTorqueSet::HipFlexion         ,
@@ -177,6 +192,8 @@ namespace RigidBodyDynamics {
             WristRadialDeviation        = JointTorqueSet::WristRadialDeviation,
             WristPronation              = JointTorqueSet::WristPronation      ,
             WristSupination             = JointTorqueSet::WristSupination     ,
+            LumbarExtension             = JointTorqueSet::LumbarExtension,
+            LumbarFlexion               = JointTorqueSet::LumbarFlexion,
             LastJointTorque
           };
           const static char* GenderNames[];
@@ -184,6 +201,8 @@ namespace RigidBodyDynamics {
           const static char* JointTorqueNames[];
           Gymnast(){}
         } Gymnast;
+
+
 
         /**
           This is a struct that contains subject-specific information that
@@ -351,15 +370,36 @@ namespace RigidBodyDynamics {
         };
 
         /**
-            This class implements a rigid-tendon torque muscle that has
-            its characteristic curves fitted to the ones described in
-            Anderson et al. Please refer to Anderson et al. and Millard 
-            et al. if you are new to muscle modeling. There is a lot of
-            standard language used in the description of this model that
-            will not make sense to you without the basic background these
-            two papers provide.
+            This class implements a rigid-tendon torque muscle for a growing 
+            list of joints and torque-directions. This rigid-tendon torque muscle model provides modeling support for
+            3 phenomena
+            -torque-angle curve (\f$\mathbf{t}_A(\theta)\f$): the variation of active isometric torque in one direction as a function of joint angle
+            -torque-velocity curve (\f$\mathbf{t}_V(\dot{\theta})\f$): the variation of torque as a function of angular velocity
+            -passive-torque-angle curve (\f$\mathbf{t}_P(\theta)\f$): the variation of passive torque as a function of joint angle
+            each of which are represented as smooth normalized curves that 
+            vary between 0 and 1. These three phenomena are used to compute the torque developed 
+            \f$\tau\f$ given the angle of the joint \f$\theta\f$, the angular-
+            velocity of the joint \f$\dot{\theta}\f$, and the activation of the 
+            muscle \f$\mathbf{a}\f$ (a 0-1 quantity that defines how much the muscle
+            is turned-on, or activated), and the maximum-isometric torque \f$\tau_{ISO}\f$
+            \f[
+              \tau (\mathbf{a}, \theta,\dot{\theta}) = \tau_{ISO} ( \mathbf{a} \, \mathbf{t}_A(\theta) \mathbf{t}_V(\dot{\theta}) +  \mathbf{t}_P(\theta) \, )
+            \f]                      
+            This model does not yet provide support for the following phenomena 
+            but will in the future.
+            -activation dynamics: this is to be decided by the modeler. 
+            -tendon-elasticity
+            -muscle short-range-stiffness
 
-
+            All of these characteristic curves are represented using \f$C_2\f$ 
+            continuous \f$5^{th}\f$ order Bezier curves that have been fitted to 
+            the data from data in the literature. In many cases these 
+            curves have been carefully edited so that they fit the curves of 
+            the original papers, but have more desireable numerical properties
+            for optimal control work. The characterisic curves provided by this 
+            class have been fitted to a growing list of data sets:
+            -Anderson Data Set: from Anderson et al. 2007
+            -Whole-body Gymnast Data Set: from Jackson, Kentel et al., Anderson et al., Dolan et al. and Raschke et al.
 
              <b>Data Set: Anderson2007</b>
 
@@ -381,7 +421,7 @@ namespace RigidBodyDynamics {
               actual curves are described in units of radians
              -# See Anderson et al. for further details.
 
-           \image html fig_MuscleAddon_Anderson2007AllPostiveSigns.png "Characteristic from Anderson et al. 2007 [1]"
+           \image html fig_MuscleAddon_Anderson2007AllPositiveSigns.png "Characteristic from Anderson et al. 2007 [1]"
 
 
             <b>Data Set: Gymnast</b>
@@ -389,15 +429,18 @@ namespace RigidBodyDynamics {
             This data set is an attempt at making enough torque muscles for a
             whole body. Since no single source in the literature comes close to
             measuring the characteristics of all of the joints, data from
-            Jackson et al., Kentel et al., and Anderson et al.
+            Jackson et al., Kentel et al., Anderson et al., Dolan et al, and 
+            Raschke et al. 
             have been combined. Since the subjects used in these various studies
             are wildly different (Jackson et al. measured an elite male gymnast;
             Kentel et al. measured an elite tennis player; Anderson et al. measured,
             in the category of young male, a selection of active undergraduate
-            students) scaling has been used to make the strength of the subject
+            students, Dolan et al from 126 women and 23 men, and Raschke from 5
+            male subjects) scaling has been used to make the strength of the subject
             consistent. Scaling coefficients for the lower body, shoulders and
             elbow, and forearm/wrist using measurements that overlapped between
-            datasets. Presently this data set includes curves for 10 joints:
+            datasets. Presently this data set includes curves for 22 joint and
+            direction specific torque muscles.
 
             - Number of subjects: 1 elite gymnast (69.6 kg, 1.732 m)
             - Gender: male
@@ -406,6 +449,8 @@ namespace RigidBodyDynamics {
               -# Ankle: flexion/extension (scaled from Anderson)
               -# Knee: flexion/extension (from Jackson)
               -# Hip: flexion/extension (from Jackson)
+              -# Lumbar: active extension curves (\f$\mathbf{t}_A\f$ and \f$\mathbf{t}_P\f$) from Raschke et al. passive extension from Dolan et al.
+              -# Lumbar: active flexion \f$\tau_{ISO}\f$ from Beimborn et al.  
               -# Shoulder: flexion/extension (from Jackson)
               -# Shoulder: horizontal adduction/abduction (from Kentel, scaled to Jackson's subject)
               -# Shoulder: internal rotation/external rotation (from Kentel, scaled to Jackson's subject)
@@ -426,9 +471,8 @@ namespace RigidBodyDynamics {
                 -# Scapular adduction/abduction
                 -# Scapular upward/downward rotation
 
-              In all cases the curves have been fitted to Bezier curves that closesly
-              follow the parametric curves described by Anderson et al. See 'Differences
-              from Anderson et al.' for further details on these curves.
+            In all cases the curves have been fitted to Bezier curves that 
+            are constructed using functions in TorqueMuscleFunctionFactory.
 
             <b>Notes</b>
             -# Angles are plotted using units of degrees for readability. The actual curves are described in units of radians
@@ -436,27 +480,26 @@ namespace RigidBodyDynamics {
             -# Shoulder horizontal adduction/abduction and internal/external rotation is a scaled version of the Kentel. Strength was scaled using the Jackson-to-Kentel shoulder flex/ext ratios.
             -# Elbow extension/flexion and forearm pronation/supination. Elbow strength scaled from Kentel using the ratio of maximum isometric shoulder ext/flextion between Kentel and Jackson. Forearm pronation/supination scaled using the maximum torque strength ratio of wrist extension/flextion between Kentel and Jackson
             -# Wrist ext/flexion directly from Jackson, while the curves for ulnar and radial deviation have been scaled (using the maximum isometric torque ratios of wrist extension and flexion from both models) from Kentel et al.
-            -# All of these curves have been translated from their original form into the parameterization that Anderson et al. used in their paper.
+            -# Lumbar-extension active-torque-angle-curve, and torque-velocity-curve in extension comes from Raschke et al.
+            -# Lumbar-flexion \f$\tau_{ISO}\f$ comes from Beimborn et al.'s observation that the strength ratio of back extensors to flextors at a flextion angle of zero is most often repored as 1.3:1. The torque velocity curve is a guess (slower than back extesors due to the larger moment arm).
+            -# Any passive curve that is not accompanied by a curve from the literature (see the plots for details) is an educated guess.
             
-            
+
+           \image html fig_MuscleAddon_Gymnast_HipKneeAnkle.png " Hip/Knee/Ankle: from Jackson and Anderson et al. "
+           \image html fig_MuscleAddon_Gymnast_Lumbar.png " Lumbar Extension/Flexion: from Dolan et al.,Raschke et al., and Beimborn et al."
+           \image html fig_MuscleAddon_Gymnast_Shoulder3Dof.png " Shoulder 3 DoF torques: from Jackson and Kentel et al. "
+           \image html fig_MuscleAddon_Gymnast_ElbowForearm.png " Elbow flexion/extension: from Kentel et al."
+           \image html fig_MuscleAddon_Gymnast_Wrist3Dof.png " Wrist 3 DoF torques: from Jackson and Kentel et al."
 
 
-           \image html fig_MuscleAddon_Gymnast_HipKneeAnkle.png " Hip/Knee/Ankle "
-           \image html fig_MuscleAddon_Gymnast_Lumbar.png " Lumbar Extension/Flexion "
-           \image html fig_MuscleAddon_Gymnast_Shoulder3Dof.png " Shoulder 3 DoF torques "
-           \image html fig_MuscleAddon_Gymnast_ElbowForearm.png " Elbow flexion/extension and wrist pronation/supination"
-           \image html fig_MuscleAddon_Gymnast_Wrist3Dof.png " Wrist ext/flex and ulnar/radial deviation"
-
-
-            <b>Differences from Anderson et al. Parameterized Curves</b>
+            <b>Parameterized Curves used here vs. Literature</b>
 
             The curves used in this implementation are 2nd order 2-dimensional 
-            Bezier curves. The curves described in Anderson et al. were not 
-            directly used because they are not continuous to the second
-            derivative (a requirement for most gradient based optimization 
-            routines). In general the fitted Bezier curves closely follow Anderson
-            et al.'s. However there are some important locations where 
-            the two curve sets deviate:
+            Bezier curves. The curves described in Anderson et al., Jackson, 
+            Kentel were not directly used because they are not continuous to the 
+            second derivative (a requirement for most gradient based optimization 
+            routines).  There are some other detailed differences that might be 
+            of interest:
 
             -# Anderson et al.'s torque-velocity curve tends to large
             negative values for fast eccentric contractions. This is 
@@ -466,16 +509,31 @@ namespace RigidBodyDynamics {
             -# Anderson et al.'s torque-velcity curve for ankle extension
             did not cross the x-axis on the concentric side of the curve.
             This would endow the plantar flexors with super-human abilities.
-            This error has been fixed by ensuring that the torque-velocity
-            curve has a value of 0 for high-velocity concentric contractions.
-            However, since there were not any actual measurments at these
-            high velocities, we cannot be certain where the zero crossing is.
+            This error has been corrected by fitting a Bezier curve to a 
+            Hill-type curve that passes through the point where 
+            \f$\dot{\theta}= \frac{1}{2} \dot{\theta}_{MAX}\f$
+            -# Anderson et al.'s, Jackson, and Kentel et al. had discintinuities 
+             in the first derivative of the force velocity curve at 
+             \f$\dot{\theta}=0\f$. While this follows Huxley's famous observations
+             that the slope does discontinuously change at at \f$\dot{\theta}=0\f$.
+             This is not a phenomena that is not compatible with most optimal
+             control formulations and thus this discontinuity is not present in
+             the force velocity curves used in this model.
+            -# Anderson et al. and Kentel et al.'s active-torque-angle curves 
+            can achieve negative values - this is obviously undesirable as it
+            will allow a muscle to push.
+            -# Kentel et al.'s activation inhibiition function does not always
+            cross 1.0 for \f$\dot{\theta}=0\f$, which means that \f$\tau_{ISO}\f$
+            is not reached. This makes for a confusing model to use.
+
 
              <b>Coordinate Mapping</b>
 
-            Anderson et al. chose a particular convention for measuring
-            the angles of the hip, knee, and ankle joint --- see the figure
-            for details. You will need to use the constructors appropriately
+            Every author chose a particular convention for measuring
+            the angles of the hip, knee, ankle joint, shoulder, elbow, wrist and 
+            lumbar --- see the figure for details. These conventions have all
+            been mapped to the one used in the illustrations. You will need to 
+            use the figure, your model, and the constructors appropriately
             so that
 
             -# the joint angle of your model is correctly mapped to the 
@@ -484,7 +542,7 @@ namespace RigidBodyDynamics {
                sign associated with your model.
 
             To map from your model's joint coordinates to the joint coordines
-            used in Anderson et al.'s model (see the figure in the description)
+            used in this model (see the figure in the description)
             the followinq equation is used at the torque level
 
             \f$ jointTorque = signOfJointTorque*fiberTorque \f$
@@ -501,7 +559,8 @@ namespace RigidBodyDynamics {
 
             <b>Strength Scaling</b>
 
-            The strength predicted by Anderson et al.'s curves should be taken
+            The leg strength (here we mean \f$\tau_{ISO}\f$) 
+            predicted by Anderson et al.'s curves should be taken
             as a good first approximation. While Anderson et al.'s data set is 
             the most comprehensive in the literature, they only measured torques 
             from active people: they did not include people at the extremes 
@@ -512,6 +571,19 @@ namespace RigidBodyDynamics {
             quantites, and so the strength predicted by Anderson et al.'s curves
             might not fit your subject even if they are represented in Anderson 
             et al.'s data set.
+
+            The strength used in the Gymnast data set is fitted to an elite
+            male gymnast. It goes without saying that an elite gymnast has
+            strength proportions, and an absolute strength that are not typical.
+            In the future it would be nice to have a function that could provide
+            an educated guess about how to map Gymnast's strengths to that of
+            another subject. For the moment I have no idea how to do this, nor
+            am I aware of any works in the literature that can provide insight
+            of how to do this. For now the whole-body Gymnast model should be 
+            viewed as being a representation of what is possible for a human,
+            but not a typical human. At the present time the default strength
+            settings of the Gymnast are not scaled by subject height, nor
+            weight.
 
             If you happen to know the maximum-isometric-active-torque (note this
             does not include the passive component) that your subject can produce,
@@ -542,10 +614,11 @@ namespace RigidBodyDynamics {
             -# Muscles that cross 2 joints (e.g. the hamstrings) produce coupled
             torques at both of those joints. In this model there is no coupling
             between joints. Furthermore, because of the lack of coupling the 
-            curves used here are only valid for the posture that Anderson et al. 
+            curves used here are only valid for the posture that Anderson et al.,
+            Jackson, and Kentel et al. 
             used when they made their data collection. If you are interested 
             in simulating postures that are very different from those described
-            in Anderson et al., then the results produced by this model should
+            in by these authors then the results produced by this model should
             be treated as very rough. 
             -# Because this is a joint-torque muscle, none of the joint contact
             forces predicted will come close to matching what is produced by
@@ -553,9 +626,8 @@ namespace RigidBodyDynamics {
             cannot use this model.
 
             This simple model is a fast approximate means to constrain the joint
-            torque developed in the lower limb to something that is physiologically
-            possible at the hip, knee, and ankle (in the sagittal plane) for
-            the subset of people tested. That is it.
+            torque developed in the body to something that is physiologically
+            possible. That is it.
 
             <b>Units</b>
             Although the figure in this description has angles in units
@@ -578,6 +650,15 @@ namespace RigidBodyDynamics {
             and angular velocity: model development and application to 
             the lower limb. Journal of biomechanics, 40(14), 3105-3113.
 
+            -# Beimborn, D. S., & Morrissey, M. C. (1988). A review of the 
+            literature related to trunk muscle performance. Spine, 13(6), 655-660.
+
+
+            -# Dolan, P., A. F. Mannion, and M. A. Adams. Passive tissues help 
+            the back muscles to generate extensor moments during lifting. 
+            Journal of Biomechanics 27, no. 8 (1994): 1077-1085.
+
+
             -# Jackson, M.I. (2010). The mechanics of the Table Contact
             Phase of Gymnastics Vaulting. Doctoral Thesis, Loughborough
             University.
@@ -592,10 +673,16 @@ namespace RigidBodyDynamics {
             musculotendon dynamics. Journal of biomechanical engineering, 
             135(2), 021005.
 
+            -# Raschke, U., & Chaffin, D. B. (1996). Support for a linear 
+            length-tension relation of the torso extensor muscles: an 
+            investigation of the length and velocity EMG-force relationships. 
+            Journal of biomechanics, 29(12), 1597-1604.
+
             -# Rassier, D. E., Herzog, W., Wakeling, J., & Syme, D. A. (2003).
             Stretch-induced, steady-state force enhancement in single
             skeletal muscle fibers exceeds the isometric force at optimum
             fiber length. Journal of biomechanics, 36(9), 1309-1316.
+
 
             
         */
@@ -746,6 +833,19 @@ namespace RigidBodyDynamics {
                 double  getMaximumActiveIsometricTorque() const; 
 
                 /**
+                    @return the joint angle at which the normalized
+                            active-torque-angle curve peaks at its
+                            maximum value of 1.0. Angle is in radians
+                 */
+                double getJointAngleAtMaximumIsometricTorque() const;
+
+                /**
+                  @return the maximum concentric joint angular velocity
+                          in radians.
+                */
+                double getMaximumJointAngularVelocity() const;
+
+                /**
                     @return the passive-torque-scale that is applied to the
                             passive-torque-curve.
                 */
@@ -772,37 +872,25 @@ namespace RigidBodyDynamics {
                             double maxIsometricTorque);    
 
                 /**
-                    @return the parameters c1,...,c6 that desribe the active-torque-angle
-                            and torque-velocity curves of this
-                            torque muscle model. See the Anderson et al. paper metioned
-                            in the class description for detail.
-                */
-                const RigidBodyDynamics::Math::VectorNd& getParametersC1C2C3C4C5C6();
-
-                /**
-                    @return the parameters b1,k1,b2,k2 that desribe the passive-torque-angle
-                            curves of this model. See the Anderson et al. paper metioned
-                            in the class description for detail.
-                */
-                const RigidBodyDynamics::Math::VectorNd& getParametersB1K1B2K2();
-
-                /**
                     @return the SmoothSegmentedFunction the has been fitted to Anderson et al.'s
                             passive torque angle curve.
                 */
-                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction& getActiveTorqueAngleCurve() const;
+                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+                getActiveTorqueAngleCurve() const;
                 
                 /**
                     @return the SmoothSegmentedFunction the has been fitted to Anderson et al.'s
                             active torque angle curve.
                 */
-                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction& getPassiveTorqueAngleCurve() const;
+                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+                getPassiveTorqueAngleCurve() const;
                 
                 /**
                     @return the SmoothSegmentedFunction the has been fitted to Anderson et al.'s
                             torque velocity curve.
                 */
-                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction& getTorqueAngularVelocityCurve() const;
+                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+                getTorqueAngularVelocityCurve() const;
 
                 /**
                   Prints 2 csv files:
@@ -832,6 +920,21 @@ namespace RigidBodyDynamics {
                 void setName(std::string& name);
 
             private:
+                /**
+                    @return the parameters c1,...,c6 that desribe the active-torque-angle
+                            and torque-velocity curves of this
+                            torque muscle model. See the Anderson et al. paper metioned
+                            in the class description for detail.
+                */
+                //const RigidBodyDynamics::Math::VectorNd& getParametersC1C2C3C4C5C6();
+
+                /**
+                    @return the parameters b1,k1,b2,k2 that desribe the passive-torque-angle
+                            curves of this model. See the Anderson et al. paper metioned
+                            in the class description for detail.
+                */
+                //const RigidBodyDynamics::Math::VectorNd& getParametersB1K1B2K2();
+
                 bool muscleCurvesAreDirty;
                 void updateTorqueMuscleCurves();
                 TorqueMuscleInfo tmInfo;
@@ -840,12 +943,21 @@ namespace RigidBodyDynamics {
                 RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction tpCurve;
                 RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction tvCurve;
 
-                RigidBodyDynamics::Math::VectorNd c1c2c3c4c5c6;
-                RigidBodyDynamics::Math::VectorNd b1k1b2k2;
-                
-                double strengthScaleFactor;
+                RigidBodyDynamics::Math::VectorNd c1c2c3c4c5c6Anderson2007;
+                RigidBodyDynamics::Math::VectorNd b1k1b2k2Anderson2007;
+                RigidBodyDynamics::Math::VectorNd gymnastParams;
+
+                DataSet::item dataSet;
+
                 double maxActiveIsometricTorque;
+                double angleAtOneNormActiveTorque;
+                double omegaMax;
+                double angleAtOneNormPassiveTorque;
                 double passiveTorqueScale;
+
+                double subjectHeightInMeters;
+                double subjectMassInKg;
+                double scaleFactorAnderson2007;
 
                 double signOfJointAngle;
                 double signOfConcentricAnglularVelocity;
@@ -854,6 +966,7 @@ namespace RigidBodyDynamics {
 
                 std::string muscleName;
 
+                double calcJointAngle(double fiberAngle) const;
                 double calcFiberAngle(double jointAngle) const;
                 double calcFiberAngularVelocity(double jointAngularVelocity) const;
 
@@ -862,7 +975,7 @@ namespace RigidBodyDynamics {
                 //const static RigidBodyDynamics::Math::MatrixNd& getAnderson2007ParameterMatrix();
                 static double const Anderson2007Table3Mean[36][14];
                 static double const Anderson2007Table3Std[36][14];
-                static double const GymnastWholeBody[20][14];
+                static double const GymnastWholeBody[22][12];
 
     };
 

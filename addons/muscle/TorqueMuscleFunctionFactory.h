@@ -1,11 +1,36 @@
 #ifndef TORQUEMUSCLEFUNCTIONFACTORY_H_
 #define TORQUEMUSCLEFUNCTIONFACTORY_H_
-/*
- * Muscle addon for RBDL
- * Copyright (c) 2016 Matthew Millard <matthew.millard@iwr.uni-heidelberg.de>
- *
- * Licensed under the zlib license. See LICENSE for more details.
- */
+/*-------------------------------------------------------------------------
+                OpenSim:  SmoothSegmentedFunctionFactory.cpp
+ --------------------------------------------------------------------------
+ The OpenSim API is a toolkit for musculoskeletal modeling and simulation.
+ See http:%opensim.stanford.edu and the NOTICE file for more information.
+ OpenSim is developed at Stanford University and supported by the US
+ National Institutes of Health (U54 GM072970, R24 HD065690) and by DARPA
+ through the Warrior Web program.
+
+ Copyright (c) 2005-2012 Stanford University and the Authors
+ Author(s): Matthew Millard
+
+ Licensed under the Apache License, Version 2.0 (the 'License'); you may
+ not use this file except in compliance with the License. You may obtain a
+ copy of the License at http:%www.apache.org/licenses/LICENSE-2.0.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an 'AS IS' BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ --------------------------------------------------------------------------
+
+ Derivative work
+ Date      : September 2016
+ Authors(s): Millard
+ Updates   : Made active torque-angle, passive-torque-angle, torque-velocity
+             and tendon-torque-angle curves based on the equivalent line-type
+             curves in OpenSim.
+*/
+
 #include "../geometry/SmoothSegmentedFunction.h"
 #include "../geometry/SegmentedQuinticBezierToolkit.h"
 
@@ -198,6 +223,438 @@ static void createAnderson2007ActiveTorqueAngleCurve(
       const std::string& curveName,
       RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
         smoothSegmentedFunctionToUpdate);
+
+
+  /**
+    This function creates a normalized torque-velocity curve. The concentric
+    side of the curve is fitted to Hill's hyperbola that passes through
+    the value of tv-at-half-of-the-maximum-concentric-velocity (a parameter
+    supplied by the user). The eccentric side of the curve rapidly, but smoothly
+    approaches a terminal value of 
+    tv-at-the-maximum-eccentric-contraction-velocity. Outside of the normalized
+    velocities of -1 to 1 the curve takes the values of 0, and 
+    tvAtEccentricOmegaMax respectively with a slope of 0.
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_TorqueVelocityCurveSimple.png
+
+    @param tvAtEccentricOmegaMax
+       The value of the torque-velocity-multiplier at the maximum 
+       eccentric contraction velocity. This value must be 
+
+    @param tvAtHalfConcentricOmegaMax
+       The value of the torque-velocity-
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve. 
+
+    <b>aborts</b>
+    -tvAtEccentricOmegaMax < 1.05
+    -tvAtHalfOmegaMax >= 0.45    
+    -tvAtHalfOmegaMax <= 0.05
+
+    <b>References</b>
+    Hill, A. V. (1938). The heat of shortening and the dynamic constants of 
+    muscle. Proceedings of the Royal Society of London B: Biological Sciences, 
+    126(843), 136-195.
+
+  */
+  
+  static void createTorqueVelocityCurve(
+      double tvAtEccentricOmegaMax,
+      double tvAtHalfConcentricOmegaMax,
+      const std::string& curveName,
+      RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate );
+
+  /**
+    This function creates a normalized torque-velocity curve. The concentric
+    side of the curve is fitted to Hill's hyperbola that passes through
+    the value of tv-at-half-of-the-maximum-concentric-velocity (a parameter
+    supplied by the user). The eccentric side of the curve rapidly, but smoothly
+    approaches a terminal value of 
+    tv-at-the-maximum-eccentric-contraction-velocity. Shape of the eccentric
+    side of the curve can be changed using the slopeNearEccentricOmegaMax 
+    and curviness variables. Outside of the normalized
+    velocities of -1 to 1 the curve takes the values of 
+    slopeAtConcentricOmegaMax and slopeAtEccentricOmegaMax respectively.
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_TorqueVelocityCurve.png
+
+    @param tvAtEccentricOmegaMax
+       The value of the torque-velocity-multiplier at the maximum 
+       eccentric contraction velocity. This value must be 
+
+    @param tvAtHalfConcentricOmegaMax
+       The value of the torque-velocity-
+
+    @param slopeAtConcentricOmegaMax
+      The slope of the curve at a normalized angular velocity of -1. This slope
+      is used to extrapolate \f$\mathbf{t}_V\f$ for normalized angular velocities
+      of less than -1.
+
+    @param slopeNearEccentricOmegaMax
+      The slope of the eccentric side of the curve as the normalized angular
+      velocity approaches 1.
+
+    @param slopeAtEccentricOmegaMax
+      The slope of the curve at a normalized angular velocity of 1. This slope
+      is used to extrapolate \f$\mathbf{t}_V\f$ for normalized angular velocities
+      of greater than 1.
+
+    @param eccentricCurviness
+      This parameter controls the shape of the curve between the normalized
+      angular velocities of 0 and 1. An eccentricCurviness of 0 will flatten
+      the elbow so that the curve closely follows a line that begins at (0,1)
+      and ends at (1,tvAtEccentricOmegaMax). An eccentricCurviness of 1 will
+      give the curve a strong elbow so that it quickly approaches the line that
+      passes through the point (1,tvAtEccentricOmegaMax) and has a slope of 
+      slopeNearEccentricOmegaMax.
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve. 
+
+    <b>aborts</b>
+    -tvAtEccentricOmegaMax < 1.05
+    -tvAtHalfOmegaMax > 0.45  or tvAtHalfOmegaMax < 0.05
+    -slopeAtConcentricOmegaMax < 0
+    -slopeNearEccentricOmegaMax < 0
+    -slopeAtEccentricOmegaMax < 0
+    -eccentricCurviness < 0 or eccentricCurviness > 1
+
+    <b>References</b>
+    Hill, A. V. (1938). The heat of shortening and the dynamic constants of 
+    muscle. Proceedings of the Royal Society of London B: Biological Sciences, 
+    126(843), 136-195.
+
+  */
+  static void createTorqueVelocityCurve(
+      double tvAtEccentricOmegaMax,
+      double tvAtHalfConcentricOmegaMax,
+      double slopeAtConcentricOmegaMax,
+      double slopeNearEccentricOmegaMax,
+      double slopeAtEccentricOmegaMax,
+      double eccentricCurviness,
+      const std::string& curveName,
+      RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate );
+
+  /**
+    This function creates a Bezier spline that closely follows the 
+    exponential curves that are typically used to model the passive-torque-angle
+    characteristic of muscles. This curve has a value and a slope of zero
+    for angles that are less than abs(angleAtZeroTorque). For angles that
+    have an absolute magnitude larger than abs(angleAtOneNormTorque) the curve
+    is simply linearly extrapolated.
+
+    Note that curves can be represented that increase left-to-right, or 
+    decrease left-to-right by setting the variables angleAtOneNormTorque and
+    angleAtZeroTorque correctly. For example using (0,1) for 
+    angleAtOneNormTorque and angleAtZeroTorque produces a curve that increases
+    left-to-right while using (-1,0) produces a curve that decreases left to 
+    right.
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_PassiveTorqueAngleCurveSimple.png
+
+    @param angleAtZeroTorque is the angle at which the curve transitions from
+    a flat line and begins curving upwards. (radians)
+
+    @param angleAtOneNormTorque is the angle at which this curve achieves a 
+    value of 1.0. (radians)
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve. 
+
+    <b>aborts</b>
+    - abs(angleAtOneNormTorque-angleAtZeroTorque) < sqrt(eps)        
+  */
+  static void createPassiveTorqueAngleCurve(
+      double angleAtZeroTorque,    
+      double angleAtOneNormTorque,
+      const std::string& curveName,
+      RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate );
+
+
+/**
+    This function creates a Bezier spline that closely follows the 
+    exponential curves that are typically used to model the passive-torque-angle
+    characteristic of muscles. This curve has a value and a slope of zero
+    for angles that are less than abs(angleAtZeroTorque). For angles that
+    have an absolute magnitude larger than abs(angleAtOneNormTorque) the curve
+    is simply linearly extrapolated.
+
+    Note that curves can be represented that increase left-to-right, or 
+    decrease left-to-right by setting the variables angleAtOneNormTorque and
+    angleAtZeroTorque correctly. For example using (0,1) for 
+    angleAtOneNormTorque and angleAtZeroTorque produces a curve that increases
+    left-to-right while using (-1,0) produces a curve that decreases left to 
+    right.
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_PassiveTorqueAngleCurve.png
+
+    @param angleAtZeroTorque is the angle at which the curve transitions from
+    a flat line and begins curving upwards. (radians)
+
+    @param angleAtOneNormTorque is the angle at which this curve achieves a 
+    value of 1.0. (radians)
+
+    @param stiffnessAtLowTorque
+      The normalized stiffness (or slope) of the curve achieves as it begins
+      to increase. This is usually chosen to be a small, but non-zero fraction 
+      of stiffnessAtOneNormTorque 
+      (stiffnessAtLowTorque = 0.025 stiffnessAtOneNormTorque is typical).
+      The sign of stiffnessAtLowTorque must be positive if 
+      angleAtOneNormTorque > angleAtZeroPassiveTorque. The sign 
+      of stiffnessAtLowTorque must be negative if 
+      angleAtOneNormTorque < angleAtZeroPassiveTorque.
+      (Norm.Torque/radians)  
+
+    @param stiffnessAtOneNormTorque
+      The normalized stiffness (or slope) of the fiber curve 
+      when the fiber is stretched by  
+      angleAtOneNormTorque - angleAtZeroPassiveTorque. The sign 
+      of stiffnessAtOneNormTorque must agree with stiffnessAtLowTorque.
+      (Norm.Torque/radians)
+
+    @param curviness
+      The dimensionless 'curviness' parameter that 
+       can vary between 0 (a line) to 1 (a smooth, but 
+      sharply bent elbow). A value of 0.5 is typical as it produces a 
+       graceful curve.
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve. 
+
+    <b>aborts</b>
+    - abs(angleAtOneNormTorque-angleAtZeroTorque) < sqrt(eps)   
+    - sign(stiffnessAtLowTorque) != sign(angleAtOneNormTorque-angleAtLowTorque)     
+    - sign(stiffnessAtOneNormTorque) != sign(stiffnessAtLowTorque)
+    - abs(stiffnessAtLowTorque) > 0.9/abs(angleAtOneNormTorque-angleAtZeroTorque)
+    - abs(stiffnessAtOneTorque) <= 1.1/abs(angleAtOneNormTorque-angleAtZeroTorque)
+    - curviness < 0 or curviness > 1
+
+  */
+  static void createPassiveTorqueAngleCurve(
+      double angleAtZeroTorque,
+      double angleAtOneNormTorque,
+      double stiffnessAtLowTorque,      
+      double stiffnessAtOneNormTorque,
+      double curviness,
+      const std::string& curveName,
+      RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate );
+
+
+  /**
+    This function produces a Bezier curve fitted to a Gaussian function. As the
+    tails of the Gaussian curve become small this curve is simply extrapolated
+    as a line with a y-value of zero and a slope of zero. 
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_GaussianActiveTorqueAngleCurveSimple.png
+
+    @param angleAtOneNormTorque The angle at which the Gaussian curve develops
+      a value of 1. 
+
+    @param angularStandardDeviation The angular deviation from 
+      the mean at which the Gaussian curve reaches a value of \f$e^{-1/2}\f$.
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve. 
+
+    <b>aborts</b>
+    - angularWidthOfOneStandardDeviation < sqrt(eps)  
+  */
+  static void createGaussianShapedActiveTorqueAngleCurve(
+      double angleAtOneNormTorque,
+      double angularStandardDeviation,
+      const std::string& curveName,
+      RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate 
+    );
+
+
+/**
+    This function produces a C2 continuous Bezier curve fitted to a Gaussian 
+    function. As the tails of the Gaussian curve become less than 
+    minValueAtShoulders, the curve is linearly extrapolated at a sloe of 
+    minSlopeOfShoulders.
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_GaussianActiveTorqueAngleCurve.png
+
+    @param angleAtOneNormTorque The angle at which the Gaussian curve develops
+      a value of 1. 
+
+    @param angularStandardDeviation The angular deviation from 
+      the mean at which the Gaussian curve reaches a value of \f$e^{-1/2}\f$.
+
+    @param minSlopeAtShoulders The y-value at which the Bezier curve transitions
+    from having a shape like a Gaussian curve to being linearly extrapolated.
+
+    @param minValueAtShoulders The slope of the linear extrapolation of the 
+      Bezier curve for y-values that are less than minSlopeAtShoulders. The 
+      sign of minValueAtShoulders is automatically set so that it matches the 
+      curve near it (see the figure).
+
+    @param curviness
+      The dimensionless 'curviness' parameter that 
+       can vary between 0 (a line) to 1 (a smooth, but 
+      sharply bent elbow). A value of 0.5 is typical as it produces a 
+       graceful curve.
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve. 
+
+    <b>aborts</b>
+    - angularWidthOfOneStandardDeviation < sqrt(eps)  
+    - minSlopeAtShoulders < 0
+    - minValueAtShoulders < 0
+    - curviness > 1 or curviness < 0
+
+  */
+  static void createGaussianShapedActiveTorqueAngleCurve(
+      double angleAtOneNormTorque,
+      double angularStandardDeviation,
+      double minSlopeAtShoulders,
+      double minValueAtShoulders,
+      double curviness,
+      const std::string& curveName,
+      RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate 
+    );
+
+
+  /**
+    This function produces a normalized tendon-torque-angle curve with a 
+    toe region that is in the range of \f$\mathbf{t}_V\f$ [0,1./3,] after which
+    the curve is linearly extrapolated.
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_TendonTorqueAngleCurveSimple.png
+
+    @param angularStretchAtOneNormTorque The amount of angular stretch of the 
+      joint as the tendon goes from developing zero torque at its slack length
+      to developing one maximum isometric torque. (radians)
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve. 
+
+    <b>aborts</b>
+    - angularWidthOfOneStandardDeviation < sqrt(eps) 
+
+  */
+  static void createTendonTorqueAngleCurve(
+      double angularStretchAtOneNormTorque,
+      const std::string& curveName,
+      RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate 
+    );  
+
+  /**
+    This function produces a normalized tendon-torque-angle curve with a 
+    toe region, final stiffness, and shape that can be controlled.
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_TendonTorqueAngleCurve.png
+
+    @param angularStretchAtOneNormTorque The amount of angular stretch of the 
+      joint as the tendon goes from developing zero torque at its slack length
+      to developing one maximum isometric torque. (radians)
+
+    @param stiffnessAtOneNormTorque The linear stiffness value of the tendon
+      that is used for all y-values greater than the toe region. 
+      (Norm. Torque/rad)
+
+    @param normTorqueAtToeEnd The normalized torque value which defines the
+      end of the nonlinear-stiffness region of the tendon and the beginning of
+      the linear stiffness region of the tendon.
+
+    @param curviness
+      The dimensionless 'curviness' parameter that 
+       can vary between 0 (a line) to 1 (a smooth, but 
+      sharply bent elbow). A value of 0.5 is typical as it produces a 
+       graceful curve.
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve. 
+
+    <b>aborts</b>
+    - angularStretchAtOneNormTorque < sqrt(eps) 
+    - stiffnessAtOneNormTorque < 1.1/angularStretchAtOneNormTorque
+    - normTorqueAtToeEnd < sqrt(eps) or normTorqueAtToeEnd > 0.99
+    - curviness < 0 or curviness > 1
+
+  */
+  static void createTendonTorqueAngleCurve(
+      double angularStretchAtOneNormTorque,
+      double stiffnessAtOneNormTorque,
+      double normTorqueAtToeEnd,
+      double curviness,
+      const std::string& curveName,
+      RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate 
+    );  
 
 };
 }

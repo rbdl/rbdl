@@ -113,7 +113,7 @@ useful to know that both the slope and the curviness parameter may need to be
 altered to achieve the desired shape.
 
 
-\image html fig_MuscleAddon_MuscleFunctionFactory_quinticCornerSections.png
+\image html fig_GeometryAddon_quinticCornerSections.png
 
 
 

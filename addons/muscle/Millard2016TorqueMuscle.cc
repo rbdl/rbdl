@@ -64,7 +64,9 @@ const char* JointTorqueSet::names[] = { "HipExtension"               ,
                                         "WristUlnarDeviation"        ,
                                         "WristRadialDeviation"       ,
                                         "WristPronation"             ,
-                                        "WristSupination"            };
+                                        "WristSupination"            ,
+                                        "LumbarExtension"            ,
+                                        "LumbarFlexion" };
 
 const char* Anderson2007::GenderNames[] = {"Male","Female"};
 
@@ -101,7 +103,9 @@ const char* Gymnast::JointTorqueNames[] =
                                         "WristUlnarDeviation"        ,
                                         "WristRadialDeviation"       ,
                                         "WristPronation"             ,
-                                        "WristSupination"            };
+                                        "WristSupination"            ,
+                                        "LumbarExtension"            ,
+                                        "LumbarFlexion"};
 
 /*************************************************************
  Coefficient Tables
@@ -222,27 +226,45 @@ double const Millard2016TorqueMuscle::Anderson2007Table3Std[36][14] = {
 {2,1,0,2,0.002,0.195,0.056,0.188,0.521,0.29,3.164e-05,1.786,0.258,0.902  },             
 {2,1,1,2,0.003,0.297,0.109,0.089,0.213,0.427,2.535e-05,10.885,0.247,2.186}};               
 
-double const Millard2016TorqueMuscle::GymnastWholeBody[20][14] =
-{ {0,0,0,0,0.14798,0.84726,1.0647,0.55326,1.4785,0.5058,0,0,0,0               }, 
-  {0,1,0,0,0.13244,0.73574,0.73304,0.91804,2.2951,0.49808,0.60283,-10.8,0,0   }, 
-  {1,0,0,0,0.24049,1.7613,0.94248,0.80006,2.2157,0.50718,0,0,0,0              }, 
-  {1,1,0,0,0.083153,0.80863,1.0297,1.2608,3.2844,0.50349,0,0,0,0              }, 
-  {2,0,0,0,0.1074,1.391,0.408,0.987,3.558,0.295,-0.0005781,-5.819,0.967,6.09  }, 
-  {2,1,0,0,0.037309,1.51,-0.187,0.699,1.94,0.828,0.0005781,-5.819,-0.967,6.09 }, 
-  {3,0,0,0,0.10727,0.49026,2.1468,1.6259,4.0644,0.50288,2.219e-08,6.315,0,0   }, 
-  {3,1,0,0,0.076738,0.69592,0.89012,1.9045,4.7626,0.49695,0,0,0,0             }, 
-  {5,0,0,0,0.013106,0.64609,1.5533,1.5224,4.216,0.4774,0,0,0,0                }, 
-  {5,1,0,0,0.033027,0.52478,0.66323,1.5173,4.2014,0.49657,0.0021712,-6.547,0,0}, 
-  {3,2,0,0,0.10819,0.76953,0.8392,1.5532,3.9754,0.30515,0,0,0,0               }, 
-  {3,3,0,0,0.079723,0.41559,-0.27761,1.646,4.1745,0.28031,0,0,0,0             }, 
-  {3,5,0,0,0.042539,0.35124,-1.1876,2.701,6.343,0.20675,0,0,0,0               }, 
-  {3,4,0,0,0.036697,0.49673,-0.6708,1.5889,4.0515,0.33687,0,0,0,0             }, 
-  {4,1,0,0,0.085364,0.27207,0.33,1.3059,3.4237,0.39774,0,0,0,0                }, 
-  {4,0,0,0,0.058832,0.75333,1.6432,1.3456,3.5229,0.36698,0,0,0,0              }, 
-  {5,6,0,0,0.011397,0.73677,-0.2092,3.6803,9.1426,0.16296,0,0,0,0             }, 
-  {5,7,0,0,0.010926,0.99346,-0.21239,2.2211,5.7475,0.28206,0,0,0,0            }, 
-  {5,9,0,0,0.026457,0.66643,0.43,1.3635,3.5528,0.37518,0,0,0,0                }, 
-  {5,8,0,0,0.020068,0.38476,-1.1432,1.7767,4.5821,0.29678,0,0,0,0            }};
+/*
+  This table contains parameters for the newly made torque muscle curves:
+
+ 1. maxIsometricTorque              Nm
+ 2. maxAngularVelocity              rad/s
+ 3. angleAtOneActiveNormTorque      rad
+ 4. angularWidthActiveTorque        rad
+ 5. tvAtMaxEccentricVelocity        Nm/Nm
+ 6. tvAtHalfMaxConcentricVelocity   Nm/Nm
+ 7. angleAtZeroPassiveTorque        rad
+ 8. angleAtOneNormPassiveTorque     rad
+
+*/
+
+
+
+double const Millard2016TorqueMuscle::GymnastWholeBody[22][12] =
+{ {0,0,0,0,175.746, 9.02335,  1.06465,  1.05941,  1.1,     0.163849,  0.79158,   1.5708   },
+  {0,1,0,0,157.293, 9.18043,  0.733038, 1.21999,  1.11905, 0.25,     -0.0888019,-0.515207 },
+  {1,0,0,0,285.619, 19.2161,  0.942478, 0.509636, 1.13292, 0.115304,  2.00713,   2.70526  },
+  {1,1,0,0,98.7579, 16.633,   1.02974,  1.11003,  1.12,    0.19746,   0,        -0.174533 },
+  {2,0,0,0,127.561, 11.7646,  0.408,    0.660752, 1.159,   0.410591,  0.0292126, 0.785398 },
+  {2,1,0,0,44.3106, 17.2746, -0.187,    0.60868,  1.2656,  0.112303, -0.523599, -1.0472   },
+  {3,0,0,0,127.401, 16.249,   2.14675,  1.83085,  1.1,     0.250134,  2.8291,    3.55835  },
+  {3,1,0,0,91.1388, 19.0764,  0.890118, 1.2898,   1.23011, 0.249656, -0.523599, -1.0472   },
+  {5,0,0,0,15.5653, 36.5472,  1.55334,  1.38928,  1.16875, 0.115356,  1.0472,    1.5708   },
+  {5,1,0,0,39.2252, 36.3901,  0.663225, 1.71042,  1.14,    0.115456, -0.793739, -1.49714  },
+  {3,2,0,0,128.496, 18.05,    0.839204, 1.28041,  1.25856, 0.214179,  1.5708,    2.26893  },
+  {3,3,0,0,94.6839, 18    ,  -0.277611, 2.37086,  1.23042, 0.224227, -0.523599, -1.0472   },
+  {3,5,0,0,50.522 , 19.47,   -1.18761,  2.80524,  1.27634, 0.285399,  1.39626,   1.91986  },
+  {3,4,0,0,43.5837, 18,      -0.670796, 1.98361,  1.35664, 0.229104, -1.0472,   -1.5708   },
+  {4,1,0,0,101.384, 18.1,     0.33,     3.62155,  1.37223, 0.189909,  0,        -0.174533 },
+  {4,0,0,0,69.8728, 18.45,    1.64319,  1.30795,  1.31709, 0.189676,  2.0944,    2.61799  },
+  {5,6,0,0,13.5361, 35.45,   -0.209204, 1.33735,  1.23945, 0.250544, -0.785398, -1.5708   },
+  {5,7,0,0,12.976 , 27.88,   -0.212389, 0.991803, 1.3877,  0.207506,  0.785398,  1.5708   },
+  {5,9,0,0,31.4217, 18.02,    0.43,     1.47849,  1.34817, 0.196913,  0,         -0.523599},
+  {5,8,0,0,23.8345, 21.77,   -1.14319,  2.56082,  1.31466, 0.2092,    0.349066,  0.872665 },
+  {6,0,0,0,687.864, 1.0472,   1.5506,   1.14543,  1.1,     0.45,      0.306223,  1.35342  },
+  {6,1,0,0,211.65 , 0.523599, 0,        6.28319,  1.1,     0.45,      0,        -0.785398 }};
 
 /*************************************************************
  Map that goes from a single joint-torque-direction index to
@@ -256,6 +278,7 @@ const static struct JointSet{
               Shoulder,
               Elbow,
               Wrist,
+              Lumbar,
               Last};
   JointSet(){}
 } JointSet;
@@ -279,7 +302,7 @@ struct DirectionSet{
 } DirectionSet;
 
 
-const static int JointTorqueMap[20][3] = {
+const static int JointTorqueMap[22][3] = {
   {(int)JointTorqueSet::HipExtension                , (int)JointSet::Hip      , (int)DirectionSet::Extension          },
   {(int)JointTorqueSet::HipFlexion                  , (int)JointSet::Hip      , (int)DirectionSet::Flexion            },
   {(int)JointTorqueSet::KneeExtension               , (int)JointSet::Knee     , (int)DirectionSet::Extension          },
@@ -299,8 +322,9 @@ const static int JointTorqueMap[20][3] = {
   {(int)JointTorqueSet::WristUlnarDeviation         , (int)JointSet::Wrist    , (int)DirectionSet::UlnarDeviation     },
   {(int)JointTorqueSet::WristRadialDeviation        , (int)JointSet::Wrist    , (int)DirectionSet::RadialDeviation    },
   {(int)JointTorqueSet::WristPronation              , (int)JointSet::Wrist    , (int)DirectionSet::Pronation          },
-  {(int)JointTorqueSet::WristSupination             , (int)JointSet::Wrist    , (int)DirectionSet::Supination         }
-  };
+  {(int)JointTorqueSet::WristSupination             , (int)JointSet::Wrist    , (int)DirectionSet::Supination         },
+  {(int)JointTorqueSet::LumbarExtension             , (int)JointSet::Lumbar   , (int)DirectionSet::Extension          },
+  {(int)JointTorqueSet::LumbarFlexion               , (int)JointSet::Lumbar   , (int)DirectionSet::Flexion            }};
 
 
 /*************************************************************
@@ -330,11 +354,13 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
   signOfJointAngle(signOfJointAngleRelativeToDoxygenFigures),
   signOfJointTorque(signOfJointTorque),
   signOfConcentricAnglularVelocity(signOfJointTorque),
-  muscleName(name)
+  muscleName(name),
+  dataSet(dataSet)
 {
 
-    double subjectHeightInMeters  = subjectInfo.heightInMeters;
-    double subjectMassInKg        = subjectInfo.massInKg;
+    subjectHeightInMeters  = subjectInfo.heightInMeters;
+    subjectMassInKg        = subjectInfo.massInKg;
+
     int gender                    = (int) subjectInfo.gender;
     int ageGroup                  = (int) subjectInfo.ageGroup;
 
@@ -424,10 +450,10 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
     //int genderMale0Female1,
     //int ageYoung0Mid1Senior2,
 
-    //Go and find the coefficients the user wants
-    c1c2c3c4c5c6.resize(6);
-    b1k1b2k2.resize(4);
-
+    //Anderson et al. coefficients.
+    c1c2c3c4c5c6Anderson2007.resize(6);
+    b1k1b2k2Anderson2007.resize(4);
+    gymnastParams.resize(8);
 
     switch(dataSet){
       case DataSet::Anderson2007:
@@ -448,10 +474,10 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
 
         if(idx != -1){
           for(int i=0; i<6; ++i){
-              c1c2c3c4c5c6[i] = Anderson2007Table3Mean[idx][i+4];
+              c1c2c3c4c5c6Anderson2007[i] = Anderson2007Table3Mean[idx][i+4];
           }
           for(int i=0; i<4; ++i){
-              b1k1b2k2[i] = Anderson2007Table3Mean[idx][i+10];
+              b1k1b2k2Anderson2007[i] = Anderson2007Table3Mean[idx][i+10];
           }
         }
 
@@ -475,14 +501,10 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
         }
 
         if(idx != -1){
-          for(int i=0; i<6; ++i){
-              c1c2c3c4c5c6[i] = GymnastWholeBody[idx][i+4];
-          }
-          for(int i=0; i<4; ++i){
-              b1k1b2k2[i] = GymnastWholeBody[idx][i+10];
+          for(int i=0; i<8; ++i){
+              gymnastParams[i] = GymnastWholeBody[idx][i+4];
           }
         }
-
       } break;
 
       default:
@@ -513,9 +535,7 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
         abort();
     }
 
-    strengthScaleFactor      = subjectHeightInMeters*subjectMassInKg
-                               *gravity;
-    maxActiveIsometricTorque = strengthScaleFactor*c1c2c3c4c5c6[0];
+
 
     muscleCurvesAreDirty = true;
     updateTorqueMuscleCurves();
@@ -545,7 +565,7 @@ double Millard2016TorqueMuscle::
     double fiberVelocity = calcFiberAngularVelocity(jointAngularVelocity);
     double ta = taCurve.calcValue(fiberAngle);
     double tp = tpCurve.calcValue(fiberAngle);
-    double tv = tvCurve.calcValue(fiberVelocity);
+    double tv = tvCurve.calcValue(fiberVelocity/omegaMax);
     
     double jointTorque = signOfJointTorque
                         * maxActiveIsometricTorque*(
@@ -572,11 +592,15 @@ void Millard2016TorqueMuscle::
     double fiberAngularVelocity = calcFiberAngularVelocity(jointAngularVelocity);
     double ta = taCurve.calcValue(fiberAngle);
     double tp = passiveTorqueScale*tpCurve.calcValue(fiberAngle);
-    double tv = tvCurve.calcValue(fiberAngularVelocity);
+
+    double omegaNorm  = fiberAngularVelocity/omegaMax;
+    double D_wn_w     = 1.0/omegaMax;
+    double tv         = tvCurve.calcValue(omegaNorm);
 
     double D_ta_DfiberAngle = taCurve.calcDerivative(fiberAngle,1);
     double D_tp_DfiberAngle = passiveTorqueScale*tpCurve.calcDerivative(fiberAngle,1);
-    double D_tv_DfiberAngularVelocity = tvCurve.calcDerivative(fiberAngularVelocity,1);
+    double D_tv_DfiberAngularVelocity
+        = tvCurve.calcDerivative(omegaNorm,1)*D_wn_w;
 
     double D_fiberAngle_D_jointAngle = signOfJointAngle;
     double D_tv_DfiberAngularVelocity_D_jointAngularVelocity = 
@@ -662,12 +686,25 @@ double Millard2016TorqueMuscle::
     return maxActiveIsometricTorque;
 }
 
+double Millard2016TorqueMuscle::
+    getMaximumJointAngularVelocity() const
+{
+  return calcFiberAngularVelocity(omegaMax);
+}
+
 void Millard2016TorqueMuscle::
     setMaximumActiveIsometricTorque(double maxIsoTorque)
 {
     muscleCurvesAreDirty = true;
     maxActiveIsometricTorque = maxIsoTorque;
 }    
+
+
+double Millard2016TorqueMuscle::
+    getJointAngleAtMaximumIsometricTorque() const
+{
+   return calcJointAngle(angleAtOneNormActiveTorque);
+}
 
 
 
@@ -684,18 +721,19 @@ void Millard2016TorqueMuscle::
     passiveTorqueScale = passiveTorqueScaling;
 }
 
+/*
 const RigidBodyDynamics::Math::VectorNd&
-    Millard2016TorqueMuscle::getParametersC1C2C3C4C5C6()
+    Millard2016TorqueMuscle::getParametersc1c2c3c4c5c6()
 {
-    return c1c2c3c4c5c6;
+    return c1c2c3c4c5c6Anderson2007;
 }
 
 const RigidBodyDynamics::Math::VectorNd&
-    Millard2016TorqueMuscle::getParametersB1K1B2K2()
+    Millard2016TorqueMuscle::getParametersb1k1b2k2()
 {
-    return b1k1b2k2;
+    return b1k1b2k2Anderson2007;
 }
-
+*/
 
 const SmoothSegmentedFunction& Millard2016TorqueMuscle::
     getActiveTorqueAngleCurve() const
@@ -759,6 +797,13 @@ double Millard2016TorqueMuscle::
 }
 
 double Millard2016TorqueMuscle::
+    calcJointAngle(double fiberAngle) const
+{
+    return fiberAngle*signOfJointAngle + angleOffset;
+}
+
+
+double Millard2016TorqueMuscle::
     calcFiberAngularVelocity(double jointAngularVelocity) const
 {
     return signOfConcentricAnglularVelocity*jointAngularVelocity;
@@ -768,40 +813,138 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
 {
   std::string tempName = muscleName;
 
-  TorqueMuscleFunctionFactory::
-    createAnderson2007ActiveTorqueAngleCurve(
-        c1c2c3c4c5c6[1],
-        c1c2c3c4c5c6[2],
-        tempName.append("_taCurve"),
-        taCurve);
+  switch(dataSet){
+    case DataSet::Anderson2007:
+    {
+      double c4 = c1c2c3c4c5c6Anderson2007[3];
+      double c5 = c1c2c3c4c5c6Anderson2007[4];
+      omegaMax = abs( 2.0*c4*c5/(c5-3.0*c4) );
 
-  tempName = muscleName;
+      scaleFactorAnderson2007  = subjectHeightInMeters
+                                  *subjectMassInKg
+                                  *gravity;
+      maxActiveIsometricTorque = scaleFactorAnderson2007
+                            *c1c2c3c4c5c6Anderson2007[0];
 
-  TorqueMuscleFunctionFactory::
-    createAnderson2007ActiveTorqueVelocityCurve(
-      c1c2c3c4c5c6[3],
-      c1c2c3c4c5c6[4],
-      c1c2c3c4c5c6[5],
-      1.1,
-      1.4,
-      tempName.append("_tvCurve"),
-      tvCurve);
+      angleAtOneNormActiveTorque = c1c2c3c4c5c6Anderson2007[2];
 
-  tempName = muscleName;
+      angleAtOneNormActiveTorque = c1c2c3c4c5c6Anderson2007[1];
+      TorqueMuscleFunctionFactory::
+        createAnderson2007ActiveTorqueAngleCurve(
+            c1c2c3c4c5c6Anderson2007[1],
+            c1c2c3c4c5c6Anderson2007[2],
+            tempName.append("_taCurve"),
+            taCurve);
 
-  double normMaxActiveIsometricTorque = maxActiveIsometricTorque
-                                        /strengthScaleFactor;
+      tempName = muscleName;
 
-  TorqueMuscleFunctionFactory::
-    createAnderson2007PassiveTorqueAngleCurve(
-      strengthScaleFactor,
-      normMaxActiveIsometricTorque,
-      b1k1b2k2[0],
-      b1k1b2k2[1],
-      b1k1b2k2[2],
-      b1k1b2k2[3],
-      tempName.append("_tpCurve"),
-      tpCurve);
+      TorqueMuscleFunctionFactory::
+        createAnderson2007ActiveTorqueVelocityCurve(
+          c1c2c3c4c5c6Anderson2007[3],
+          c1c2c3c4c5c6Anderson2007[4],
+          c1c2c3c4c5c6Anderson2007[5],
+          1.1,
+          1.4,
+          tempName.append("_tvCurve"),
+          tvCurve);
+
+      tempName = muscleName;
+
+      double normMaxActiveIsometricTorque = maxActiveIsometricTorque
+                                            /scaleFactorAnderson2007;
+
+      TorqueMuscleFunctionFactory::
+        createAnderson2007PassiveTorqueAngleCurve(
+          scaleFactorAnderson2007,
+          normMaxActiveIsometricTorque,
+          b1k1b2k2Anderson2007[0],
+          b1k1b2k2Anderson2007[1],
+          b1k1b2k2Anderson2007[2],
+          b1k1b2k2Anderson2007[3],
+          tempName.append("_tpCurve"),
+          tpCurve);
+
+      double k = 0;
+      double b = 0;
+
+      if(b1k1b2k2Anderson2007[0] > 0){
+        b = b1k1b2k2Anderson2007[0];
+        k = b1k1b2k2Anderson2007[1];
+      }else if(b1k1b2k2Anderson2007[2] > 0){
+        b = b1k1b2k2Anderson2007[2];
+        k = b1k1b2k2Anderson2007[3];
+      }
+
+      if(abs(b) > 0 && passiveTorqueScale > SQRTEPS){
+          angleAtOneNormPassiveTorque =
+              (1/k)*log(abs(maxActiveIsometricTorque/b1));
+      }else{
+          angleAtOneNormPassiveTorque =
+              std::numeric_limits<double>::signaling_NaN();
+      }
+
+
+      //angleAtOneNormPassiveTorque
+      //gymnastParams[Gymnast::PassiveAngleAtOneNormTorque]
+
+
+    } break;
+    case DataSet::Gymnast:
+      {
+        omegaMax                  = gymnastParams[
+                                      Gymnast::OmegaMax];
+        maxActiveIsometricTorque  = gymnastParams[
+                                      Gymnast::TauMax];
+        angleAtOneNormActiveTorque = gymnastParams[
+                                      Gymnast::ActiveAngleAtOneNormTorque];
+
+        TorqueMuscleFunctionFactory::
+            createGaussianShapedActiveTorqueAngleCurve(
+              gymnastParams[Gymnast::ActiveAngleAtOneNormTorque],
+              gymnastParams[Gymnast::ActiveAngularStandardDeviation],
+              tempName.append("_taCurve"),
+              taCurve);
+
+        TorqueMuscleFunctionFactory::createPassiveTorqueAngleCurve(
+              gymnastParams[Gymnast::PassiveAngleAtZeroTorque],
+              gymnastParams[Gymnast::PassiveAngleAtOneNormTorque],
+              tempName.append("_tpCurve"),
+              tpCurve);
+
+        TorqueMuscleFunctionFactory::createTorqueVelocityCurve(
+              gymnastParams[Gymnast::TvAtMaxEccentricVelocity],
+              gymnastParams[Gymnast::TvAtHalfMaxConcentricVelocity],
+              tempName.append("_tvCurve"),
+              tvCurve);
+
+        if(passiveTorqueScale > 0){
+          angleAtOneNormPassiveTorque =
+            gymnastParams[Gymnast::PassiveAngleAtOneNormTorque];
+        }else{
+          angleAtOneNormPassiveTorque =
+                  std::numeric_limits<double>::signaling_NaN();
+        }
+
+      } break;
+    default:
+    {
+      cerr << "Millard2016TorqueMuscle::"
+             << "Millard2016TorqueMuscle:"
+             << muscleName
+             << "dataSet has a value of " << dataSet
+             << " which is not a valid choice";
+      assert(0);
+      abort();
+    }
+  };
+
+  //If the passiveScale is < 1 and > 0, then we must iterate to
+  //find the true value of angleAtOneNormPassiveTorque;
+
+  abort();
+
+
+
 
   muscleCurvesAreDirty = false;
 }
@@ -859,7 +1002,7 @@ void Millard2016TorqueMuscle::printJointTorqueProfileToFile(
     velMax = velMax+0.1*velRange;
     double velDelta = (velMax-velMin)/((double)numberOfSamplePoints-1.0);
 
-    double angleAtMaxIsoTorque = c1c2c3c4c5c6[2];
+    double angleAtMaxIsoTorque = c1c2c3c4c5c6Anderson2007[2];
 
     std::vector< std::vector < double > > matrix;
     std::vector < double > row(21);

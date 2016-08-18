@@ -156,7 +156,7 @@ TEST(Anderson2007ActiveTorqueAngleCurve)
 
 }   
 
-TEST(Millard2016PassiveTorqueAngleCurve)
+TEST(Anderson2007PassiveTorqueAngleCurve)
 {
     double subjectWeight    = 75.0*9.81;
     double subjectHeight    = 1.75;
@@ -280,7 +280,7 @@ TEST(Millard2016PassiveTorqueAngleCurve)
 
 }
 
-TEST(Millard2016ActiveTorqueVelocityCurve)
+TEST(Anderson2007ActiveTorqueVelocityCurve)
 {
     double subjectWeight    = 75.0*9.81;
     double subjectHeight    = 1.75;
@@ -330,16 +330,21 @@ TEST(Millard2016ActiveTorqueVelocityCurve)
     //cout << "   Keypoint Testing" << endl;
 
     CHECK(abs(andersonTvCurve.calcValue(0) - 1.0)        < TOL_SMALL);
-    CHECK(abs(andersonTvCurve.calcValue(c4) - 0.75)    < TOL_BIG);
-    CHECK(abs(andersonTvCurve.calcValue(c5) - 0.5)     < TOL_BIG);
-    CHECK(abs(andersonTvCurve.calcValue(angularVelocityMax))   < TOL_BIG);
+    //CHECK(abs(andersonTvCurve.calcValue(c4) - 0.75)    < TOL_BIG);
+    //CHECK(abs(andersonTvCurve.calcValue(c5) - 0.5)     < TOL_BIG);
+    double val = abs(andersonTvCurve.calcValue(
+                     angularVelocityMax/angularVelocityMax));
+    CHECK(val   < TOL_BIG);
 
-    double maxTv = andersonTvCurve.calcValue(angularVelocityMin);
+    double maxTv = andersonTvCurve.calcValue(
+          angularVelocityMin/angularVelocityMax);
     CHECK(maxTv >= minEccentricMultiplier);
     CHECK(maxTv <= maxEccentricMultiplier);
 
-    CHECK(abs(andersonTvCurve.calcDerivative(angularVelocityMin,1))<TOL_SMALL);
-    CHECK(abs(andersonTvCurve.calcDerivative(angularVelocityMax,1))<TOL_SMALL);
+    CHECK(abs(andersonTvCurve.calcDerivative
+              (angularVelocityMax/angularVelocityMax,1))<TOL_SMALL);
+    CHECK(abs(andersonTvCurve.calcDerivative
+              (angularVelocityMin/angularVelocityMax,1))<TOL_SMALL);
 
     //cout << "   passed " << endl;
     //cout << "    Continuity and Smoothness Testing" << endl;
@@ -370,5 +375,405 @@ TEST(Millard2016ActiveTorqueVelocityCurve)
     }
 
 }
+//==============================================================================
+TEST(TorqueAngularVelocityCurve)
+{
+    SmoothSegmentedFunction tv = SmoothSegmentedFunction();
+    SmoothSegmentedFunction tvX = SmoothSegmentedFunction();
+    double tvAtEccentricOmegaMax       =  1.3;
+    double tvAtHalfConcentricOmegaMax  = 0.3;
+    std::string curveName0("tvTest0");
+    std::string curveName1("tvTest1");
+
+    TorqueMuscleFunctionFactory::createTorqueVelocityCurve(
+                                    tvAtEccentricOmegaMax,
+                                    tvAtHalfConcentricOmegaMax,
+                                    curveName0,
+                                    tv);
+    double slopeAtConcentricOmegaMax = -0.1;
+    double slopeAtEccentricOmegaMax = -0.1;
+    double slopeNearEccentricOmegaMax = -0.01;
+    double eccentricCurviness = 0.75;
+    TorqueMuscleFunctionFactory::createTorqueVelocityCurve(
+                                    tvAtEccentricOmegaMax,
+                                    tvAtHalfConcentricOmegaMax,
+                                    slopeAtConcentricOmegaMax,
+                                    slopeNearEccentricOmegaMax,
+                                    slopeAtEccentricOmegaMax,
+                                    eccentricCurviness,
+                                    curveName1,
+                                    tvX);
+
+    double wmin = -1.1;
+    double wmax =  1.1;
+    int    npts =  100;
+    double delta = (wmax-wmin)/((double)npts-1.0);
 
 
+    //Get the parameters for the Hill type curve
+    double wmaxC =  1.0;
+    double wmaxE = -1.0;
+    double fiso  = 1.0;
+    double w     = 0.5*wmaxC;
+    double a = -tvAtHalfConcentricOmegaMax*w*fiso
+                / (wmaxC*tvAtHalfConcentricOmegaMax
+                   - fiso*wmaxC + fiso*w);
+    double b =  a*wmaxC/fiso;
+    double tvHill = 0;
+    double errHill = 0;
+    for(int i=0; i<npts; ++i){
+      w = wmin + i*delta;
+      if(w > wmaxC){
+        CHECK( abs( tv.calcValue(w) ) < TOL_SMALL);
+        CHECK( abs( tv.calcDerivative(w,1) ) < TOL_SMALL);
+        CHECK( abs(tvX.calcDerivative(w,1)
+                   - slopeAtConcentricOmegaMax ) < TOL_BIG);
+      }else if(w > 0 && w <= wmaxC){
+        tvHill = (b*fiso-a*w)/(b+w);
+        errHill = abs(tv.calcValue(w)-tvHill);
+        //printf("%i. Err %f, ",i,errHill);
+        CHECK( errHill < 0.02);
+        errHill = abs(tvX.calcValue(w)-tvHill);
+        //printf(" Err %f\n",errHill);
+        CHECK( errHill < 0.02);
+      }else if(w < 0 & w > wmaxE){
+        CHECK(tv.calcValue(w) > 1.0);
+      }else if(w < wmaxE){
+        CHECK(abs( tv.calcValue(w)        - tvAtEccentricOmegaMax ) < TOL_SMALL);
+        CHECK(abs( tv.calcDerivative(w,1) - 0.0 ) <  TOL_SMALL);
+        //CHECK(abs( tvX.calcValue(w) - tvAtEccentricOmegaMax ) );
+        CHECK(abs( tvX.calcDerivative(w,1)
+                   - slopeAtEccentricOmegaMax ) < TOL_SMALL );
+      }
+    }
+
+    RigidBodyDynamics::Math::VectorNd curveDomain = tv.getCurveDomain();
+
+    double angularVelocityMin = curveDomain[0];
+    double angularVelocityMax = curveDomain[1];
+
+
+    RigidBodyDynamics::Math::MatrixNd tvCurveSample
+        = tv.calcSampledCurve( 6,
+              angularVelocityMin-0.1,
+              angularVelocityMax+0.1);
+
+    bool areCurveDerivativesGood =
+     areCurveDerivativesCloseToNumericDerivatives(
+      tv,
+      tvCurveSample,
+      TOL_DX);
+
+    CHECK(areCurveDerivativesGood);
+
+    bool curveIsContinuous = isCurveC2Continuous( tv,
+                                                  tvCurveSample,
+                                                  TOL_BIG);
+    CHECK(curveIsContinuous);
+
+    bool curveIsMonotonic = isCurveMontonic(tvCurveSample);
+    CHECK(curveIsMonotonic);
+
+    if(FLAG_PLOT_CURVES){
+        tv.printCurveToCSVFile(
+        FILE_PATH,
+        "millard2016TorqueVelocityCurve",
+        -1.1,
+         1.1);
+    }
+    tv.printCurveToCSVFile(
+    "",
+    "millard2016TorqueVelocityCurve",
+    -1.1,
+     1.1);
+
+}
+
+//==============================================================================
+TEST(PassiveTorqueAngleCurve)
+{
+  SmoothSegmentedFunction tp     = SmoothSegmentedFunction();
+  SmoothSegmentedFunction tpX    = SmoothSegmentedFunction();
+  double angleAtZeroTorque0      = 0;
+  double angleAtOneNormTorque0   = -M_PI;
+
+  double angleAtZeroTorque1       = 0;
+  double angleAtOneNormTorque1    = M_PI;
+
+  double stiffnessAtOneNormTorque1 =
+        5.6/(angleAtOneNormTorque1-angleAtZeroTorque1);
+  double stiffnessAtLowTorque1     =
+        0.05*stiffnessAtOneNormTorque1;
+  double curviness1 = 0.75;
+
+  std::string curveName0("tpTest0");
+  std::string curveName1("tpTest1");
+
+
+  TorqueMuscleFunctionFactory::createPassiveTorqueAngleCurve(
+                                  angleAtZeroTorque0,
+                                  angleAtOneNormTorque0,
+                                  curveName0,
+                                  tp);
+
+  TorqueMuscleFunctionFactory::createPassiveTorqueAngleCurve(
+                                angleAtZeroTorque1,
+                                angleAtOneNormTorque1,
+                                stiffnessAtLowTorque1,
+                                stiffnessAtOneNormTorque1,
+                                curviness1,
+                                curveName1,
+                                tpX);
+
+  CHECK( abs(tp.calcValue(angleAtZeroTorque0))        < TOL_SMALL);
+  CHECK( abs(tp.calcValue(angleAtOneNormTorque0)-1.0) < TOL_SMALL);
+
+  CHECK( abs(tpX.calcValue(angleAtZeroTorque1))          < TOL_SMALL);
+  CHECK( abs(tpX.calcValue(angleAtOneNormTorque1) - 1.0) < TOL_SMALL);
+  CHECK( abs(tpX.calcDerivative(angleAtZeroTorque1,1)) < TOL_SMALL);
+  CHECK( abs(tpX.calcDerivative(angleAtOneNormTorque1,1)
+             -stiffnessAtOneNormTorque1) < TOL_SMALL);
+
+  RigidBodyDynamics::Math::VectorNd curveDomain0 = tp.getCurveDomain();
+  RigidBodyDynamics::Math::VectorNd curveDomain1 = tpX.getCurveDomain();
+
+  RigidBodyDynamics::Math::MatrixNd tpSample0
+      = tp.calcSampledCurve( 6,
+            curveDomain0[0]-0.1,
+            curveDomain0[1]+0.1);
+
+  RigidBodyDynamics::Math::MatrixNd tpSample1
+      = tpX.calcSampledCurve( 6,
+            curveDomain1[0]-0.1,
+            curveDomain1[1]+0.1);
+
+  bool areCurveDerivativesGood =
+   areCurveDerivativesCloseToNumericDerivatives(
+    tp,
+    tpSample0,
+    TOL_DX);
+
+  CHECK(areCurveDerivativesGood);
+
+  areCurveDerivativesGood =
+     areCurveDerivativesCloseToNumericDerivatives(
+      tpX,
+      tpSample1,
+      TOL_DX);
+
+  CHECK(areCurveDerivativesGood);
+  bool curveIsContinuous = isCurveC2Continuous( tp,
+                                                tpSample0,
+                                                TOL_BIG);
+  CHECK(curveIsContinuous);
+  curveIsContinuous = isCurveC2Continuous(tpX,
+                                          tpSample1,
+                                          TOL_BIG);
+  CHECK(curveIsContinuous);
+
+  bool curveIsMonotonic = isCurveMontonic(tpSample0);
+  CHECK(curveIsMonotonic);
+
+  curveIsMonotonic = isCurveMontonic(tpSample1);
+  CHECK(curveIsMonotonic);
+
+
+  if(FLAG_PLOT_CURVES){
+      tp.printCurveToCSVFile(
+      FILE_PATH,
+      "millard2016PassiveTorqueAngleCurve",
+      curveDomain0[0]-0.1,
+      curveDomain0[1]+0.1);
+  }
+}
+
+//==============================================================================
+TEST(ActiveTorqueAngleCurve)
+{
+  SmoothSegmentedFunction ta     = SmoothSegmentedFunction();
+  SmoothSegmentedFunction taX    = SmoothSegmentedFunction();
+  double angleAtOneNormTorque   = 1.5;
+  double angularStandardDeviation = 1.0;
+  double angularStandardDeviationSq =
+      angularStandardDeviation*angularStandardDeviation;
+
+  double minSlopeAtShoulders = 0.2;
+  double minValueAtShoulders = 0.1;
+  double xTrans = sqrt(-log(minValueAtShoulders)*2*angularStandardDeviationSq);
+  double delta = abs(xTrans+angleAtOneNormTorque);
+  double curviness = 0.75;
+
+  std::string curveName0("tpTest0");
+  std::string curveName1("tpTest1");
+
+
+  TorqueMuscleFunctionFactory::createGaussianShapedActiveTorqueAngleCurve(
+                                  angleAtOneNormTorque,
+                                  angularStandardDeviation,
+                                  curveName0,
+                                  ta);
+
+  TorqueMuscleFunctionFactory::createGaussianShapedActiveTorqueAngleCurve(
+                                angleAtOneNormTorque,
+                                angularStandardDeviation,
+                                minSlopeAtShoulders,
+                                minValueAtShoulders,
+                                curviness,
+                                curveName1,
+                                taX);
+
+  CHECK(abs(ta.calcValue(angleAtOneNormTorque)-1.0) < TOL_SMALL);
+
+  CHECK(abs(ta.calcValue(angleAtOneNormTorque
+                         +10.0*angularStandardDeviation)) < TOL_SMALL);
+  CHECK(abs(ta.calcValue(angleAtOneNormTorque
+                         -10.0*angularStandardDeviation)) < TOL_SMALL);
+
+  CHECK(abs(taX.calcValue(angleAtOneNormTorque)-1.0) < TOL_SMALL);
+
+  double err = abs(taX.calcDerivative(angleAtOneNormTorque + delta,1)
+                   + minSlopeAtShoulders);
+  CHECK(err < TOL_SMALL);
+  err = abs(taX.calcDerivative(angleAtOneNormTorque - delta,1)
+            - minSlopeAtShoulders);
+  CHECK(err < TOL_SMALL);
+
+
+  RigidBodyDynamics::Math::VectorNd curveDomain0 = ta.getCurveDomain();
+  RigidBodyDynamics::Math::VectorNd curveDomain1 = taX.getCurveDomain();
+
+  RigidBodyDynamics::Math::MatrixNd taSample0
+      = ta.calcSampledCurve( 6,
+            curveDomain0[0]-0.1,
+            curveDomain0[1]+0.1);
+
+  RigidBodyDynamics::Math::MatrixNd taSample1
+      = taX.calcSampledCurve( 6,
+            curveDomain1[0]-0.1,
+            curveDomain1[1]+0.1);
+
+  bool areCurveDerivativesGood =
+   areCurveDerivativesCloseToNumericDerivatives(
+      ta,
+      taSample0,
+      TOL_DX);
+
+
+  CHECK(areCurveDerivativesGood);
+
+  areCurveDerivativesGood =
+     areCurveDerivativesCloseToNumericDerivatives(
+      taX,
+      taSample1,
+      TOL_DX);
+
+  CHECK(areCurveDerivativesGood);
+  bool curveIsContinuous = isCurveC2Continuous( ta,
+                                                taSample0,
+                                                TOL_BIG);
+  CHECK(curveIsContinuous);
+  curveIsContinuous = isCurveC2Continuous(taX,
+                                          taSample1,
+                                          TOL_BIG);
+  CHECK(curveIsContinuous);
+
+  if(FLAG_PLOT_CURVES){
+      ta.printCurveToCSVFile(
+      FILE_PATH,
+      "millard2016ActiveTorqueAngleCurve",
+      curveDomain0[0]-0.1,
+      curveDomain0[1]+0.1);
+  }
+
+}
+
+//==============================================================================
+TEST(TendonTorqueAngleCurve)
+{
+  SmoothSegmentedFunction tt     = SmoothSegmentedFunction();
+  SmoothSegmentedFunction ttX    = SmoothSegmentedFunction();
+
+  double angularStretchAtOneNormTorque = M_PI/2.0;
+  double stiffnessAtOneNormTorque = 2.5/angularStretchAtOneNormTorque;
+  double normTorqueAtToeEnd = 2.0/3.0;
+  double curviness = 0.5;
+
+  std::string curveName0("ttTest0");
+  std::string curveName1("ttTest1");
+
+
+  TorqueMuscleFunctionFactory::createTendonTorqueAngleCurve(
+                                  angularStretchAtOneNormTorque,
+                                  curveName0,
+                                  tt);
+
+  TorqueMuscleFunctionFactory::createTendonTorqueAngleCurve(
+                                  angularStretchAtOneNormTorque,
+                                  stiffnessAtOneNormTorque,
+                                  normTorqueAtToeEnd,
+                                  curviness,
+                                  curveName1,
+                                  ttX);
+
+  CHECK(abs(tt.calcValue(0)) < TOL_SMALL);
+  CHECK(abs(ttX.calcValue(0)) < TOL_SMALL);
+
+  CHECK(abs(tt.calcValue(angularStretchAtOneNormTorque)-1.0) < TOL_SMALL);
+  CHECK(abs(ttX.calcValue(angularStretchAtOneNormTorque)-1.0) < TOL_SMALL);
+
+  CHECK(abs(ttX.calcDerivative(angularStretchAtOneNormTorque,1)
+               - stiffnessAtOneNormTorque) < TOL_SMALL);
+
+  RigidBodyDynamics::Math::VectorNd curveDomain0 = tt.getCurveDomain();
+  RigidBodyDynamics::Math::VectorNd curveDomain1 = ttX.getCurveDomain();
+
+  RigidBodyDynamics::Math::MatrixNd ttSample0
+      = tt.calcSampledCurve( 6,
+            curveDomain0[0]-0.1,
+            curveDomain0[1]+0.1);
+
+  RigidBodyDynamics::Math::MatrixNd ttSample1
+      = ttX.calcSampledCurve( 6,
+            curveDomain1[0]-0.1,
+            curveDomain1[1]+0.1);
+
+  bool areCurveDerivativesGood =
+   areCurveDerivativesCloseToNumericDerivatives(
+    tt,
+    ttSample0,
+    TOL_DX);
+
+  CHECK(areCurveDerivativesGood);
+
+  areCurveDerivativesGood =
+     areCurveDerivativesCloseToNumericDerivatives(
+      ttX,
+      ttSample1,
+      TOL_DX);
+
+  CHECK(areCurveDerivativesGood);
+  bool curveIsContinuous = isCurveC2Continuous( tt,
+                                                ttSample0,
+                                                TOL_BIG);
+  CHECK(curveIsContinuous);
+  curveIsContinuous = isCurveC2Continuous(ttX,
+                                          ttSample1,
+                                          TOL_BIG);
+  CHECK(curveIsContinuous);
+
+  bool curveIsMonotonic = isCurveMontonic(ttSample0);
+  CHECK(curveIsMonotonic);
+
+  curveIsMonotonic = isCurveMontonic(ttSample1);
+  CHECK(curveIsMonotonic);
+
+
+  if(FLAG_PLOT_CURVES){
+      tt.printCurveToCSVFile(
+      FILE_PATH,
+      "millard2016ActiveTorqueAngleCurve",
+      curveDomain0[0]-0.1,
+      angularStretchAtOneNormTorque);
+  }
+
+}
