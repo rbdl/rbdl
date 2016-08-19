@@ -371,22 +371,26 @@ namespace RigidBodyDynamics {
 
         /**
             This class implements a rigid-tendon torque muscle for a growing 
-            list of joints and torque-directions. This rigid-tendon torque muscle model provides modeling support for
-            3 phenomena
+            list of joints and torque-directions. This rigid-tendon torque 
+            muscle model provides modeling support for3 phenomena
+
             -torque-angle curve (\f$\mathbf{t}_A(\theta)\f$): the variation of active isometric torque in one direction as a function of joint angle
             -torque-velocity curve (\f$\mathbf{t}_V(\dot{\theta})\f$): the variation of torque as a function of angular velocity
-            -passive-torque-angle curve (\f$\mathbf{t}_P(\theta)\f$): the variation of passive torque as a function of joint angle
+            -passive-torque-angle curve (\f$s_P\mathbf{t}_P(\theta-\theta_S)\f$): the variation of passive torque as a function of joint angle. Here \f$s_P\f$ and \f$\theta_S\f$ are user-defined scaling and shift parameters. 
+            
             each of which are represented as smooth normalized curves that 
-            vary between 0 and 1. These three phenomena are used to compute the torque developed 
-            \f$\tau\f$ given the angle of the joint \f$\theta\f$, the angular-
-            velocity of the joint \f$\dot{\theta}\f$, and the activation of the 
-            muscle \f$\mathbf{a}\f$ (a 0-1 quantity that defines how much the muscle
-            is turned-on, or activated), and the maximum-isometric torque \f$\tau_{ISO}\f$
+            vary between 0 and 1. These three phenomena are used to compute the 
+            torque developed \f$\tau\f$ given the angle of the joint 
+            \f$\theta\f$, the angular-velocity of the joint \f$\dot{\theta}\f$, 
+            and the activation of the muscle \f$\mathbf{a}\f$ (a 0-1 quantity 
+            that defines how much the muscle is turned-on, or activated), and 
+            the maximum-isometric torque \f$\tau_{ISO}\f$
             \f[
-              \tau (\mathbf{a}, \theta,\dot{\theta}) = \tau_{ISO} ( \mathbf{a} \, \mathbf{t}_A(\theta) \mathbf{t}_V(\dot{\theta}) +  \mathbf{t}_P(\theta) \, )
+              \tau (\mathbf{a}, \theta,\dot{\theta}) = \tau_{ISO} ( \mathbf{a} \, \mathbf{t}_A(\theta) \mathbf{t}_V(\dot{\theta}) +  s_P \mathbf{t}_P(\theta-\theta_S) \, )
             \f]                      
             This model does not yet provide support for the following phenomena 
             but will in the future.
+
             -activation dynamics: this is to be decided by the modeler. 
             -tendon-elasticity
             -muscle short-range-stiffness
@@ -586,9 +590,10 @@ namespace RigidBodyDynamics {
             weight.
 
             If you happen to know the maximum-isometric-active-torque (note this
-            does not include the passive component) that your subject can produce,
-            you can update the strength of the torque-muscle using the functions
-            getMaximumActiveIsometricTorque(), and setMaximumActiveIsometricTorque().
+            does not include the passive component) that your subject can 
+            produce,you can update the strength of the torque-muscle using the 
+            functions getMaximumActiveIsometricTorque(), and 
+            setMaximumActiveIsometricTorque().
 
             <b>Limitations</b>
 
@@ -859,70 +864,86 @@ namespace RigidBodyDynamics {
                 double getMaximumJointAngularVelocity() const;
 
                 /**
-                    @return the passive-torque-scale that is applied to the
-                            passive-torque-curve.
+                    @return the passive-torque-scale \f$s_P\f$ that is applied 
+                    to the passive-torque-curve.
                 */
                 double  getPassiveTorqueScale() const;
 
                 /**
-                    Sets the scaling of the passive-joint-torques. By default this scale
+                  @return the angle \f$\theta_S\f$ that the passive curve has 
+                  been shifted (radians).
+                */
+                double getPassiveCurveAngleOffset() const;
+
+                /**
+                    Sets the scaling of the passive-joint-torques. By default 
+                    this scale
                     is one.
 
                     @param passiveTorqueScale
-                            The scale applied to the passive-joint-torque curve (unitless)
+                            The scale \f$s_P\f$ applied to the 
+                            passive-joint-torque curve (unitless)
                 */
                 void  setPassiveTorqueScale(double passiveTorqueScale);
 
+                /**
+                  @param passiveCurveAngleOffsetVal the angle \f$\theta_S\f$ 
+                  that the passive curve should be shifted. Angles in radians
+                */
+                void setPassiveCurveAngleOffset(
+                  double passiveCurveAngleOffsetVal);
 
                 /**
                     Sets the strength of the muscle to match a desired value.
 
                     @param maxIsometricTorque
-                            The desired maximum-active-isometric torque of the muscle (Nm)
+                            The desired maximum-active-isometric torque of the 
+                            muscle (Nm)
                             
                 */
                 void    setMaximumActiveIsometricTorque(
                             double maxIsometricTorque);    
 
                 /**
-                    @return the SmoothSegmentedFunction the has been fitted to Anderson et al.'s
-                            passive torque angle curve.
+                    @return the SmoothSegmentedFunction the has been fitted to 
+                    Anderson et al.'s passive torque angle curve.
                 */
-                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
-                getActiveTorqueAngleCurve() const;
+                const RigidBodyDynamics::Addons::Geometry::
+                SmoothSegmentedFunction& getActiveTorqueAngleCurve() const;
                 
                 /**
-                    @return the SmoothSegmentedFunction the has been fitted to Anderson et al.'s
-                            active torque angle curve.
+                    @return the SmoothSegmentedFunction the has been fitted to 
+                    Anderson et al.'s active torque angle curve.
                 */
-                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
-                getPassiveTorqueAngleCurve() const;
+                const RigidBodyDynamics::Addons::Geometry::
+                SmoothSegmentedFunction& getPassiveTorqueAngleCurve() const;
                 
                 /**
-                    @return the SmoothSegmentedFunction the has been fitted to Anderson et al.'s
-                            torque velocity curve.
+                    @return the SmoothSegmentedFunction the has been fitted to 
+                    Anderson et al.'s torque velocity curve.
                 */
-                const RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
-                getTorqueAngularVelocityCurve() const;
+                const RigidBodyDynamics::Addons::Geometry::
+                SmoothSegmentedFunction& getTorqueAngularVelocityCurve() const;
+
 
                 /**
-                  Prints 2 csv files:
-                    -# 'fileName' + '_variableLengthfixedVelocity': All of the fields
-                       in TorqueMuscleInfo are recorded to file as the jointAngle varies
-                       but the jointAngularVelocity is zero.                        
-                    -#'fileName' + '_fixedLengthVariableVelocity': All of the fields
-                       in TorqueMuscleInfo are recorded to file as the jointAngle is fixed
-                       but the jointAngularVelocity varies.
+                Prints 2 csv files:
+                -# 'fileName' + '_variableLengthfixedVelocity': All of the 
+                fields in TorqueMuscleInfo are recorded to file as the 
+                jointAngle varies but the jointAngularVelocity is zero.                        
+                -#'fileName' + '_fixedLengthVariableVelocity': All of the fields
+                   in TorqueMuscleInfo are recorded to file as the jointAngle is 
+                   fixed but the jointAngularVelocity varies.
 
-                        Each column has a header, so that you can tell what each piece of
-                        data means.
+                    Each column has a header, so that you can tell what each 
+                    piece of data means.
 
-                       @param path: the path to the destination folder. Don't put an '\' on
-                                    the end.
-                       @param fileNameWithoutExtension: the name of the file, but without 
-                                an extension.                                    
-                       @param numberOfSamplePoints: the number of sample points to use in 
-                                the files.                                
+                   @param path: the path to the destination folder. Don't put 
+                   an '\' on the end.
+                   @param fileNameWithoutExtension: the name of the file, but 
+                   without an extension.                                    
+                   @param numberOfSamplePoints: the number of sample points to 
+                   use in the files.                                
                 */
                 void printJointTorqueProfileToFile(
                         const std::string& path,
@@ -933,62 +954,70 @@ namespace RigidBodyDynamics {
                 void setName(std::string& name);
 
             private:
-                /**
-                    @return the parameters c1,...,c6 that desribe the active-torque-angle
-                            and torque-velocity curves of this
-                            torque muscle model. See the Anderson et al. paper metioned
-                            in the class description for detail.
-                */
-                //const RigidBodyDynamics::Math::VectorNd& getParametersC1C2C3C4C5C6();
+              /**
+              @return the parameters c1,...,c6 that desribe the 
+              active-torque-angle and torque-velocity curves of this
+              torque muscle model. See the Anderson et al. paper metioned
+              in the class description for detail.
+              */
+              //const RigidBodyDynamics::Math::VectorNd& 
+              //getParametersC1C2C3C4C5C6();
 
-                /**
-                    @return the parameters b1,k1,b2,k2 that desribe the passive-torque-angle
-                            curves of this model. See the Anderson et al. paper metioned
-                            in the class description for detail.
-                */
-                //const RigidBodyDynamics::Math::VectorNd& getParametersB1K1B2K2();
+              /**
+                  @return the parameters b1,k1,b2,k2 that desribe the 
+                  passive-torque-angle curves of this model. See the Anderson 
+                  et al. paper metioned in the class description for detail.
+              */
+              //const RigidBodyDynamics::Math::VectorNd& 
+              //getParametersB1K1B2K2();
 
-                bool muscleCurvesAreDirty;
-                void updateTorqueMuscleCurves();
-                TorqueMuscleInfo tmInfo;
+              bool muscleCurvesAreDirty;
+              void updateTorqueMuscleCurves();
+              TorqueMuscleInfo tmInfo;
 
-                RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction taCurve;
-                RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction tpCurve;
-                RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction tvCurve;
+              RigidBodyDynamics::Addons::Geometry::
+                SmoothSegmentedFunction taCurve;
+              RigidBodyDynamics::Addons::Geometry::
+                SmoothSegmentedFunction tpCurve;
+              RigidBodyDynamics::Addons::Geometry::
+                SmoothSegmentedFunction tvCurve;
 
-                RigidBodyDynamics::Math::VectorNd c1c2c3c4c5c6Anderson2007;
-                RigidBodyDynamics::Math::VectorNd b1k1b2k2Anderson2007;
-                RigidBodyDynamics::Math::VectorNd gymnastParams;
+              RigidBodyDynamics::Math::VectorNd c1c2c3c4c5c6Anderson2007;
+              RigidBodyDynamics::Math::VectorNd b1k1b2k2Anderson2007;
+              RigidBodyDynamics::Math::VectorNd gymnastParams;
 
-                DataSet::item dataSet;
+              DataSet::item dataSet;
 
-                double maxActiveIsometricTorque;
-                double angleAtOneNormActiveTorque;
-                double omegaMax;
-                double angleAtOneNormPassiveTorque;
-                double passiveTorqueScale;
+              double maxActiveIsometricTorque;
+              double angleAtOneNormActiveTorque;
+              double omegaMax;
+              double angleAtOneNormPassiveTorque;
+              double passiveTorqueScale;
+              double passiveCurveAngleOffset;
 
-                double subjectHeightInMeters;
-                double subjectMassInKg;
-                double scaleFactorAnderson2007;
+              double subjectHeightInMeters;
+              double subjectMassInKg;
+              double scaleFactorAnderson2007;
 
-                double signOfJointAngle;
-                double signOfConcentricAnglularVelocity;
-                double signOfJointTorque;
-                double angleOffset;
+              double signOfJointAngle;
+              double signOfConcentricAnglularVelocity;
+              double signOfJointTorque;
+              double angleOffset;
 
-                std::string muscleName;
+              std::string muscleName;
 
-                double calcJointAngle(double fiberAngle) const;
-                double calcFiberAngle(double jointAngle) const;
-                double calcFiberAngularVelocity(double jointAngularVelocity) const;
+              double calcJointAngle(double fiberAngle) const;
+              double calcFiberAngle(double jointAngle) const;
+              double calcFiberAngularVelocity(
+                double jointAngularVelocity) const;
 
 
 
-                //const static RigidBodyDynamics::Math::MatrixNd& getAnderson2007ParameterMatrix();
-                static double const Anderson2007Table3Mean[36][14];
-                static double const Anderson2007Table3Std[36][14];
-                static double const GymnastWholeBody[22][12];
+              //const static RigidBodyDynamics::Math::MatrixNd& 
+              //getAnderson2007ParameterMatrix();
+              static double const Anderson2007Table3Mean[36][14];
+              static double const Anderson2007Table3Std[36][14];
+              static double const GymnastWholeBody[22][12];
 
     };
 

@@ -361,6 +361,7 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
 
     subjectHeightInMeters  = subjectInfo.heightInMeters;
     subjectMassInKg        = subjectInfo.massInKg;
+    passiveCurveAngleOffset = 0.;
 
     int gender                    = (int) subjectInfo.gender;
     int ageGroup                  = (int) subjectInfo.ageGroup;
@@ -704,6 +705,11 @@ double Millard2016TorqueMuscle::
 double Millard2016TorqueMuscle::
     getJointAngleAtOneNormalizedPassiveIsometricTorque() const
 {
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
    return calcJointAngle(angleAtOneNormPassiveTorque);
 }
 
@@ -719,6 +725,20 @@ void Millard2016TorqueMuscle::
 {
     muscleCurvesAreDirty = true;
     passiveTorqueScale = passiveTorqueScaling;
+}
+
+
+double Millard2016TorqueMuscle::
+    getPassiveCurveAngleOffset() const
+{
+    return passiveCurveAngleOffset;
+}
+
+void Millard2016TorqueMuscle::
+    setPassiveCurveAngleOffset(double passiveCurveAngleOffsetVal)
+{
+    muscleCurvesAreDirty = true;
+    passiveCurveAngleOffset = passiveCurveAngleOffsetVal;
 }
 
 /*
@@ -863,6 +883,8 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
           tempName.append("_tpCurve"),
           tpCurve);
 
+      tpCurve.shift(passiveCurveAngleOffset,0);
+
       double k = 0;
       double b = 0;
 
@@ -876,7 +898,8 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
 
       if(abs(b) > 0 && passiveTorqueScale > SQRTEPSILON){
           angleAtOneNormPassiveTorque =
-              (1/k)*log(abs(maxActiveIsometricTorque/b));
+              (1/k)*log(abs(maxActiveIsometricTorque/b))
+              + passiveCurveAngleOffset;
       }else{
           angleAtOneNormPassiveTorque =
               std::numeric_limits<double>::signaling_NaN();
@@ -910,6 +933,8 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
               tempName.append("_tpCurve"),
               tpCurve);
 
+        tpCurve.shift(passiveCurveAngleOffset,0);
+
         TorqueMuscleFunctionFactory::createTorqueVelocityCurve(
               gymnastParams[Gymnast::TvAtMaxEccentricVelocity],
               gymnastParams[Gymnast::TvAtHalfMaxConcentricVelocity],
@@ -918,7 +943,8 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
 
         if(passiveTorqueScale > 0){
           angleAtOneNormPassiveTorque =
-            gymnastParams[Gymnast::PassiveAngleAtOneNormTorque];
+            gymnastParams[Gymnast::PassiveAngleAtOneNormTorque]
+            + passiveCurveAngleOffset;
         }else{
           angleAtOneNormPassiveTorque =
                   std::numeric_limits<double>::signaling_NaN();
@@ -936,6 +962,8 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
       abort();
     }
   };
+
+
 
   //If the passiveScale is < 1 and > 0, then we must iterate to
   //find the true value of angleAtOneNormPassiveTorque;

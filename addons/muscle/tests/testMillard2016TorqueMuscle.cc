@@ -399,6 +399,31 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
   err = abs(DtqDqdot-DtqDqdot_NUM);
   CHECK(abs(DtqDqdot-DtqDqdot_NUM) < abs(DtqDqdot)*1e-5 );
 
+
+  tq.setPassiveTorqueScale(1.0);
+  tq.setPassiveCurveAngleOffset(0.0);
+  jointAngleAtPassiveTauMax = tq.getJointAngleAtOneNormalizedPassiveIsometricTorque();
+
+  tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax,
+                          0.-SQRTEPSILON,
+                          activation,
+                          tmi0);
+
+  tq.setPassiveCurveAngleOffset(M_PI/3.0);
+  double updJointAngleAtPassiveTauMax = 
+    tq.getJointAngleAtOneNormalizedPassiveIsometricTorque() ;
+
+  CHECK( abs(updJointAngleAtPassiveTauMax-jointAngleAtPassiveTauMax-M_PI/3.0)
+        < SQRTEPSILON);
+
+  tq.calcTorqueMuscleInfo(jointAngleAtPassiveTauMax+M_PI/3.0,
+                          0.-SQRTEPSILON,
+                          activation,
+                          tmi1);
+
+  CHECK( abs(tmi0.fiberPassiveTorqueAngleMultiplier
+            -tmi1.fiberPassiveTorqueAngleMultiplier) < SQRTEPSILON);
+  
 }
 
 TEST(exampleUsage){
