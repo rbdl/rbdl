@@ -842,7 +842,13 @@ namespace RigidBodyDynamics {
                 /**
                     @return the joint angle at which the normalized
                             passive-torque-angle curve reaches a value
-                            of 1.0. Angle is in radians
+                            of 1.0. If this curve never reaches a value
+                            of 1.0 (because it is flat, or the
+                            passiveTorqueScale has been set to 0) a value
+                            of std::numeric_limits<double>::signaling_NaN()
+                            is returned. Use the std function isfinite to
+                            test if a signaling_NaN has been returned.
+                            Angle is in radians
                  */
                 double getJointAngleAtOneNormalizedPassiveIsometricTorque() const;
 

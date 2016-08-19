@@ -404,7 +404,7 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
 TEST(exampleUsage){
 
 
-  bool printCurves = false;
+  bool printCurves = true;
   bool printAllCurves = false;
 
   //int dataSet = DataSetAnderson2007;

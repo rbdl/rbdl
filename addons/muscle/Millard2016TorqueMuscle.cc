@@ -34,7 +34,7 @@ using namespace std;
  Table Access Structure Names
 *************************************************************/
 const double gravity = 9.81; //Needed for the strength scaling used
-                      //by Anderson et al.
+                             //by Anderson et al.
 
 const char* DataSet::names[] = {  "Anderson2007",
                                   "Gymnast"};
@@ -1019,8 +1019,8 @@ void Millard2016TorqueMuscle::printJointTorqueProfileToFile(
     double jointDelta = (jointMax-jointMin)
                         /((double)numberOfSamplePoints-1.);
 
-    double velMin = signOfConcentricAnglularVelocity*velocityDomain[0];
-    double velMax = signOfConcentricAnglularVelocity*velocityDomain[1];
+    double velMin = omegaMax*signOfConcentricAnglularVelocity*velocityDomain[0];
+    double velMax = omegaMax*signOfConcentricAnglularVelocity*velocityDomain[1];
 
     if(velMin > velMax){
         double tmp = velMin;
@@ -1032,7 +1032,7 @@ void Millard2016TorqueMuscle::printJointTorqueProfileToFile(
     velMax = velMax+0.1*velRange;
     double velDelta = (velMax-velMin)/((double)numberOfSamplePoints-1.0);
 
-    double angleAtMaxIsoTorque = c1c2c3c4c5c6Anderson2007[2];
+    double angleAtMaxIsoTorque = angleAtOneNormActiveTorque;
 
     std::vector< std::vector < double > > matrix;
     std::vector < double > row(21);
