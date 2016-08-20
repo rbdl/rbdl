@@ -12,7 +12,7 @@
  */
 
 #include <rbdl/rbdl_math.h>
-#include <rbdl/Dynamics.h> 
+#include <rbdl/Dynamics.h>
 
 namespace RigidBodyDynamics {
 
@@ -76,7 +76,7 @@ void UpdateKinematicsCustomPtr (Model &model,
 		const double *qddot_ptr
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	
+
 	using namespace RigidBodyDynamics::Math;
 
 	unsigned int i;
@@ -163,8 +163,8 @@ void CalcPointJacobianPtr (
 		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
 	}
 
-	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
-	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 3, model.q_size);
+	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 3, model.qdot_size);
 
 	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
 
@@ -212,8 +212,8 @@ void CalcPointJacobian6DPtr (
 		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
 	}
 
-	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
-	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.q_size);
+	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.qdot_size);
 
 	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
 
@@ -284,7 +284,7 @@ void CalcBodySpatialJacobianPtr (
 		} else {
 			G.block(0,q_index,6,1) = base_to_body.apply(model.X_base[j].inverse().apply(model.S[j]));
 		}
-	
+
 		j = model.lambda[j];
 	}
 }
@@ -299,7 +299,7 @@ void InverseDynamicsPtr (
 		std::vector<Math::SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	
+
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
@@ -330,7 +330,7 @@ void InverseDynamicsPtr (
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
 		} else {
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
-		}	
+		}
 
 		if (!model.mBodies[i].mIsVirtual) {
 			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
@@ -363,7 +363,7 @@ void NonlinearEffectsPtr (
 		const double *tau_ptr
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	
+
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
@@ -501,7 +501,7 @@ void ForwardDynamicsPtr (
 		std::vector<Math::SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	
+
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef&& Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
