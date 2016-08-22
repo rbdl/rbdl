@@ -362,6 +362,7 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
     subjectHeightInMeters  = subjectInfo.heightInMeters;
     subjectMassInKg        = subjectInfo.massInKg;
     passiveCurveAngleOffset = 0.;
+    beta = 0.1;
 
     int gender                    = (int) subjectInfo.gender;
     int ageGroup                  = (int) subjectInfo.ageGroup;
@@ -561,13 +562,19 @@ double Millard2016TorqueMuscle::
     double fiberVelocity = calcFiberAngularVelocity(jointAngularVelocity);
     double ta = taCurve.calcValue(fiberAngle);
     double tp = tpCurve.calcValue(fiberAngle);
-    double tv = tvCurve.calcValue(fiberVelocity/omegaMax);
-    
-    double jointTorque = signOfJointTorque
-                        * maxActiveIsometricTorque*(
+    double fiberVelocityNorm = fiberVelocity/omegaMax;
+    double tv = tvCurve.calcValue(fiberVelocityNorm);
+
+
+    double jointTorque =  maxActiveIsometricTorque*(
                               activation*ta*tv
-                            + passiveTorqueScale*tp );
-    return jointTorque;
+                            + passiveTorqueScale*tp
+                            - beta*fiberVelocityNorm);
+    if(jointTorque < 0){
+      jointTorque = 0;
+    }
+
+    return jointTorque*signOfJointTorque;
 }
 
 
@@ -593,10 +600,22 @@ void Millard2016TorqueMuscle::
     double D_wn_w     = 1.0/omegaMax;
     double tv         = tvCurve.calcValue(omegaNorm);
 
+    double betaUpd    = beta;
+    double tb         = -betaUpd*omegaNorm;
+
+    //The jointTorque is not allowed to go below 0, as this corresponds
+    //to the muscle pushing. If the joint torque is going negative, we update
+    //beta so that it will perfectly zero the joint torque.
+    if(activation*ta*tv + passiveTorqueScale*tp + tb < 0){
+      betaUpd = (activation*ta*tv + passiveTorqueScale*tp)/omegaNorm;
+      tb         = -betaUpd*omegaNorm;
+    }
+
     double D_ta_DfiberAngle = taCurve.calcDerivative(fiberAngle,1);
     double D_tp_DfiberAngle = passiveTorqueScale*tpCurve.calcDerivative(fiberAngle,1);
     double D_tv_DfiberAngularVelocity
         = tvCurve.calcDerivative(omegaNorm,1)*D_wn_w;
+    double D_tb_DfiberAngularVelocity = -betaUpd*D_wn_w;
 
     double D_fiberAngle_D_jointAngle = signOfJointAngle;
     double D_tv_DfiberAngularVelocity_D_jointAngularVelocity = 
@@ -617,7 +636,9 @@ void Millard2016TorqueMuscle::
 
     tmi.activation           = activation;
     tmi.fiberActiveTorque    = maxActiveIsometricTorque*(activation*ta*tv);
-    tmi.fiberPassiveTorque   = maxActiveIsometricTorque*(tp);
+    tmi.fiberPassiveTorque   = maxActiveIsometricTorque*(tb+tp);
+    tmi.fiberDampingTorque   = maxActiveIsometricTorque*(tb);
+    tmi.fiberNormDampingTorque = tb;
     tmi.fiberTorque          =   tmi.fiberActiveTorque
                                   + tmi.fiberPassiveTorque;
     //tmi.tendonTorque         =   tmi.fiberActiveTorque
@@ -658,7 +679,8 @@ void Millard2016TorqueMuscle::
         * ( activation
             * ta
             * D_tv_DfiberAngularVelocity
-            * D_tv_DfiberAngularVelocity_D_jointAngularVelocity);
+            * D_tv_DfiberAngularVelocity_D_jointAngularVelocity
+            + D_tb_DfiberAngularVelocity);
 
     tmi.DjointTorqueDjointAngle           =
         signOfJointTorque
@@ -675,6 +697,33 @@ void Millard2016TorqueMuscle::
 /*************************************************************
  Get / Set Functions
 *************************************************************/
+
+double Millard2016TorqueMuscle::
+    getNormalizedDampingCoefficient() const
+{
+    return beta;
+}
+
+void Millard2016TorqueMuscle::
+    setNormalizedDampingCoefficient(double betaUpd)
+{
+  if(betaUpd < 0){
+      cerr << "Millard2016TorqueMuscle::"
+             << "setNormalizedDampingCoefficient:"
+             << muscleName
+             << "beta is " << betaUpd
+             << " but beta must be > 0 "
+             << endl;
+      assert(0);
+      abort();
+  }
+
+
+  beta = betaUpd;
+}
+
+
+
 
 double Millard2016TorqueMuscle::
     getMaximumActiveIsometricTorque() const 
@@ -739,6 +788,185 @@ void Millard2016TorqueMuscle::
 {
     muscleCurvesAreDirty = true;
     passiveCurveAngleOffset = passiveCurveAngleOffsetVal;
+}
+
+
+void Millard2016TorqueMuscle::
+    fitPassiveCurveAngleOffset(double jointAngleTarget,
+                               double passiveTorqueTarget)
+{
+    muscleCurvesAreDirty = true;
+    setPassiveCurveAngleOffset(0.0);
+
+    if(passiveTorqueTarget < SQRTEPSILON){
+      cerr   << "Millard2016TorqueMuscle::"
+             << "fitPassiveTorqueScale:"
+             << muscleName
+             << ": passiveTorque " << passiveTorqueTarget
+             << " but it should be greater than sqrt(eps)"
+             << endl;
+      assert(0);
+      abort();
+    }
+
+    //Solve for the fiber angle at which the curve develops
+    //the desired passiveTorque
+    double normPassiveTorque = passiveTorqueTarget
+                              /maxActiveIsometricTorque;
+    //Ge a good initial guess
+
+    VectorNd curveDomain = tpCurve.getCurveDomain();
+    double angleRange = abs( curveDomain[1]-curveDomain[0]);
+    double fiberAngle = 0.5*(curveDomain[0]+curveDomain[1]);
+    double jointAngleCurr = calcJointAngle(fiberAngle);
+
+    TorqueMuscleInfo tqInfo = TorqueMuscleInfo();
+
+    calcTorqueMuscleInfo(jointAngleCurr,0.,0.,tqInfo);
+    double err = tqInfo.fiberPassiveTorqueAngleMultiplier-normPassiveTorque;
+    double jointAngleLeft   = 0;
+    double jointAngleRight  = 0;
+    double errLeft          = 0;
+    double errRight         = 0;
+
+    double h = 0.25*angleRange;
+
+    //Get a good initial guess - necessary because these curves
+    //can be *very* nonlinear.
+    int iter    = 0;
+    int iterMax = 10;
+    int tol = sqrt(SQRTEPSILON);
+
+    while(iter < iterMax && abs(err) > tol){
+      jointAngleLeft  = jointAngleCurr-h;
+      jointAngleRight = jointAngleCurr+h;
+
+      calcTorqueMuscleInfo(jointAngleLeft,0.,0.,tqInfo);
+      errLeft  = tqInfo.fiberPassiveTorqueAngleMultiplier
+          - normPassiveTorque;
+
+      calcTorqueMuscleInfo(jointAngleRight,0.,0.,tqInfo);
+      errRight = tqInfo.fiberPassiveTorqueAngleMultiplier
+          - normPassiveTorque;
+
+      if(abs(errLeft)<abs(err) && abs(errLeft)<abs(errRight)){
+        err = errLeft;
+        jointAngleCurr = jointAngleLeft;
+      }
+      if(abs(errRight)<abs(err) && abs(errRight)<abs(errLeft)){
+        err = errRight;
+        jointAngleCurr = jointAngleRight;
+      }
+      h = h/2.0;
+      ++iter;
+    }
+
+
+    //Use Newton's method to polish up this initial guess.
+    iter = 0;
+    err  = SQRTEPSILON*2;
+    double derr = 0;
+    double delta= 0;
+
+    while(abs(err) > SQRTEPSILON && iter < iterMax){
+      calcTorqueMuscleInfo(jointAngleCurr,0.,0.,tqInfo);
+      err  = tqInfo.fiberPassiveTorqueAngleMultiplier
+             -normPassiveTorque;
+      derr =  signOfJointTorque*tqInfo.DjointTorqueDjointAngle
+              / maxActiveIsometricTorque ;
+      delta = -err/derr;
+      jointAngleCurr += delta;
+      ++iter;
+    }
+
+    if(abs(err)>SQRTEPSILON){
+      cerr   << "Millard2016TorqueMuscle::"
+             << "fitPassiveCurveAngleOffset:"
+             << muscleName
+             << ": failed to fit the passive curve offset "
+             << " such that the curve develops the desired "
+             << " passive torque at the given joint angle. This"
+             << " should not be possible - contact the maintainer "
+             << " of this addon."
+             << endl;
+      assert(0);
+      abort();
+    }
+    double jointAngleOffset = jointAngleTarget-jointAngleCurr;
+
+    setPassiveCurveAngleOffset(jointAngleOffset);
+
+}
+
+void Millard2016TorqueMuscle::
+    fitPassiveTorqueScale(double jointAngleTarget,
+                          double passiveTorqueTarget)
+{
+    muscleCurvesAreDirty = true;
+    setPassiveTorqueScale(1.0);
+
+    VectorNd curveDomain = tpCurve.getCurveDomain();
+    double fiberAngle = calcFiberAngle(jointAngleTarget);
+
+    if(fiberAngle < curveDomain[0] || fiberAngle > curveDomain[1]){
+      cerr   << "Millard2016TorqueMuscle::"
+             << "fitPassiveTorqueScale:"
+             << muscleName
+             << ": joint angle is " << jointAngleTarget
+             << " but it should be between "
+             << calcJointAngle(curveDomain[0]) << " and "
+             << calcJointAngle(curveDomain[1])
+             << endl;
+      assert(0);
+      abort();
+    }
+
+    if(passiveTorqueTarget < SQRTEPSILON){
+      cerr   << "Millard2016TorqueMuscle::"
+             << "fitPassiveTorqueScale:"
+             << muscleName
+             << ": passiveTorque " << passiveTorqueTarget
+             << " but it should be greater than sqrt(eps)"
+             << endl;
+      assert(0);
+      abort();
+    }
+
+    double normPassiveTorque = passiveTorqueTarget/maxActiveIsometricTorque;
+    int iter    = 0;
+    int iterMax = 10;
+    double err  = SQRTEPSILON*2;
+    double derr = 0;
+    double delta= 0;
+    double scale = 1.0;
+    setPassiveTorqueScale(scale);
+    TorqueMuscleInfo tqInfo = TorqueMuscleInfo();
+
+    while(abs(err) > SQRTEPSILON && iter < iterMax){
+      setPassiveTorqueScale(scale);
+      calcTorqueMuscleInfo(fiberAngle,0,0,tqInfo);
+      err = tqInfo.fiberPassiveTorqueAngleMultiplier - normPassiveTorque;
+      derr= tqInfo.fiberPassiveTorqueAngleMultiplier/scale;
+      delta = -err/derr;
+      scale += delta;
+
+      if(scale < SQRTEPSILON){
+        scale = SQRTEPSILON;
+      }
+      iter++;
+    }
+
+    if(abs(err) > SQRTEPSILON){
+      cerr   << "Millard2016TorqueMuscle::"
+             << "fitPassiveTorqueScale:"
+             << muscleName
+             << ": passiveTorqueScale could not be fit to"
+             << " the data given. See the maintainer of this"
+             << " addon for help."
+             << endl;
+      assert(0);
+      abort();
+    }
 }
 
 /*
