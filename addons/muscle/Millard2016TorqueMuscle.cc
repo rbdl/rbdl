@@ -699,6 +699,25 @@ void Millard2016TorqueMuscle::
 *************************************************************/
 
 double Millard2016TorqueMuscle::
+    getJointTorqueSign() const
+{
+    return signOfJointTorque;
+}
+
+double Millard2016TorqueMuscle::
+    getJointAngleSign() const
+{
+    return signOfJointAngle;
+}
+
+double Millard2016TorqueMuscle::
+    getJointAngleOffset() const
+{
+    return angleOffset;
+}
+
+
+double Millard2016TorqueMuscle::
     getNormalizedDampingCoefficient() const
 {
     return beta;
@@ -892,9 +911,10 @@ void Millard2016TorqueMuscle::
       assert(0);
       abort();
     }
-    double jointAngleOffset = jointAngleTarget-jointAngleCurr;
+    double fiberAngleOffset = calcFiberAngle(jointAngleTarget)
+                            - calcFiberAngle(jointAngleCurr);
 
-    setPassiveCurveAngleOffset(jointAngleOffset);
+    setPassiveCurveAngleOffset(fiberAngleOffset);
 
 }
 
@@ -906,9 +926,13 @@ void Millard2016TorqueMuscle::
     setPassiveTorqueScale(1.0);
 
     VectorNd curveDomain = tpCurve.getCurveDomain();
+    VectorNd curveRange = VectorNd(2);
+    curveRange[0] = tpCurve.calcValue(curveDomain[0]);
+    curveRange[1] = tpCurve.calcValue(curveDomain[1]);
     double fiberAngle = calcFiberAngle(jointAngleTarget);
 
-    if(fiberAngle < curveDomain[0] || fiberAngle > curveDomain[1]){
+    if(  (fiberAngle < curveDomain[0] && (curveRange[0] < curveRange[1])) 
+      || (fiberAngle > curveDomain[1] && (curveRange[1] < curveRange[0])) ){
       cerr   << "Millard2016TorqueMuscle::"
              << "fitPassiveTorqueScale:"
              << muscleName
@@ -944,7 +968,7 @@ void Millard2016TorqueMuscle::
 
     while(abs(err) > SQRTEPSILON && iter < iterMax){
       setPassiveTorqueScale(scale);
-      calcTorqueMuscleInfo(fiberAngle,0,0,tqInfo);
+      calcTorqueMuscleInfo(jointAngleTarget,0,0,tqInfo);
       err = tqInfo.fiberPassiveTorqueAngleMultiplier - normPassiveTorque;
       derr= tqInfo.fiberPassiveTorqueAngleMultiplier/scale;
       delta = -err/derr;

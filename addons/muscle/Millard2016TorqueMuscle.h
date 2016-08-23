@@ -844,6 +844,24 @@ namespace RigidBodyDynamics {
                         TorqueMuscleInfo& torqueMuscleInfoStruct) const;
 
                 /**
+                    @return the sign of the joint torque (+/- 1)
+                */
+                double getJointTorqueSign() const;
+
+                /**
+                    @return the sign of the angle sign relative to the
+                            figures in the class description (+/- 1)
+                */
+                double getJointAngleSign() const;
+
+                /**
+                    @return the offset angle between the model's joint
+                            and the figures in the class description (rad)
+                */
+                double getJointAngleOffset() const;
+
+
+                /**
                     @return the maximum-active-isometric torque that this muscle 
                             can produce in Nm.
                 */
