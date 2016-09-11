@@ -360,8 +360,12 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<Math::SpatialTransform> X_p;
   std::vector<Math::SpatialTransform> X_s;
   std::vector<Math::SpatialVector> constraintAxis;
+  /** Baumgarte stabilization parameter */
   std::vector<double> T_stab_inv;
-
+  /** Position error for the Baumgarte stabilization */
+  Math::VectorNd err;
+  /** Velocity error for the Baumgarte stabilization */
+  Math::VectorNd errd;
 
   /** Enforced accelerations of the contact points along the contact
    * normal. */

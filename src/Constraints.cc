@@ -41,6 +41,8 @@ unsigned int ConstraintSet::AddContactConstraint (
   ) {
   assert (bound == false);
 
+  unsigned int n_constr = size() + 1;
+
   std::string name_str;
   if (constraint_name != NULL) {
     name_str = constraint_name;
@@ -61,8 +63,10 @@ unsigned int ConstraintSet::AddContactConstraint (
   X_s.push_back (SpatialTransform());
   constraintAxis.push_back (SpatialVector::Zero());
   T_stab_inv.push_back (0.);
-
-  unsigned int n_constr = size() + 1;
+  err.conservativeResize(n_constr);
+  err[n_constr - 1] = 0.;
+  errd.conservativeResize(n_constr);
+  errd[n_constr - 1] = 0.;
 
   acceleration.conservativeResize (n_constr);
   acceleration[n_constr - 1] = normal_acceleration;
@@ -92,6 +96,8 @@ unsigned int ConstraintSet::AddLoopConstraint (
   ) {
   assert (bound == false);
 
+  unsigned int n_constr = size() + 1;
+
   std::string name_str;
   if (constraint_name != NULL) {
     name_str = constraint_name;
@@ -107,13 +113,15 @@ unsigned int ConstraintSet::AddLoopConstraint (
   X_s.push_back (X_successor);
   constraintAxis.push_back (axis);
   T_stab_inv.push_back (1. / T_stabilization);
+  err.conservativeResize(n_constr);
+  err[n_constr - 1] = 0.;
+  errd.conservativeResize(n_constr);
+  errd[n_constr - 1] = 0.;
 
   // These variables will not be used.
   body.push_back (0);
   point.push_back (Vector3d::Zero());
   normal.push_back (Vector3d::Zero());
-
-  unsigned int n_constr = size() + 1;
 
   acceleration.conservativeResize (n_constr);
   acceleration[n_constr - 1] = 0.;
@@ -391,27 +399,29 @@ void CalcConstraintsPositionError (
   Math::VectorNd& err,
   bool update_kinematics
   ) {
+  if (err.size() != CS.size()) {
+    std::cerr << "err: " << err.size() << ", CS.size() " << CS.size() << std::endl;
+  }
   assert(err.size() == CS.size());
 
   if(update_kinematics) {
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
   }
 
-  // Variables used for computations.
-  Vector3d pos_p;
-  Vector3d pos_s;
-  Matrix3d rot_p;
-  Matrix3d rot_s;
-  Matrix3d rot_ps;
-  SpatialVector d;
-
   for(unsigned int c = 0; c < CS.constraintType.size(); ++c) {
     if (CS.constraintType[c] == ConstraintSet::ContactConstraint) {
       // No position error for this kind of constraints.
       err[c] = 0.;
     }
-    else if(CS.constraintType[c] == ConstraintSet::LoopConstraint)
-    {
+    else if(CS.constraintType[c] == ConstraintSet::LoopConstraint) {
+      // Variables used for computations.
+      Vector3d pos_p;
+      Vector3d pos_s;
+      Matrix3d rot_p;
+      Matrix3d rot_s;
+      Matrix3d rot_ps;
+      SpatialVector d;
+
       // Constraints computed in the predecessor body frame.
 
       // Compute the orientation of the two constraint frames.
@@ -446,8 +456,7 @@ void CalcConstraintsPositionError (
 
       // Project the error on the constraint axis to find the actual error.
       err[c] = CS.constraintAxis[c].transpose() * d;
-    }
-    else {
+    } else {
       std::cerr << "Unsupported constraint type." << std::endl;
       assert(false);
       abort();
@@ -597,12 +606,10 @@ void CalcConstrainedSystemVariables (
   CalcConstraintsJacobian (model, Q, CS, CS.G, false);
 
   // Compute position error for Baumgarte Stabilization.
-  VectorNd err = VectorNd::Zero(CS.size());
-  CalcConstraintsPositionError (model, Q, CS, err, false);
+  CalcConstraintsPositionError (model, Q, CS, CS.err, false);
 
   // Compute velocity error for Baugarte stabilization.
-  VectorNd errd = VectorNd::Zero(CS.size());
-  errd = CS.G * QDot;
+  CS.errd = CS.G * QDot;
 
   // Compute gamma
   unsigned int prev_body_id = 0;
@@ -610,19 +617,9 @@ void CalcConstrainedSystemVariables (
   Vector3d gamma_i = Vector3d::Zero();
 
   CS.QDDot_0.setZero();
-  UpdateKinematics(model, Q, QDot, CS.QDDot_0);
-
-  // Variables used for computations.
-  Vector3d pos_p;
-  Matrix3d rot_p;
-  SpatialVector vel_p;
-  SpatialVector vel_s;
-  SpatialVector axis;
-  unsigned int id_p;
-  unsigned int id_s;
+  UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
 
   for (unsigned int c = 0; c < CS.size(); ++c) {
-
     if (CS.constraintType[c] == ConstraintSet::ContactConstraint) {
       // only compute point accelerations when necessary
       if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
@@ -635,8 +632,16 @@ void CalcConstrainedSystemVariables (
       // we also substract ContactData[c].acceleration such that the contact
       // point will have the desired acceleration
       CS.gamma[c] = CS.acceleration[c] - CS.normal[c].dot(gamma_i);
-    }
-    else if (CS.constraintType[c] == ConstraintSet::LoopConstraint) {
+    } else if (CS.constraintType[c] == ConstraintSet::LoopConstraint) {
+      // Variables used for computations.
+      Vector3d pos_p;
+      Matrix3d rot_p;
+      SpatialVector vel_p;
+      SpatialVector vel_s;
+      SpatialVector axis;
+      unsigned int id_p;
+      unsigned int id_s;
+
       // Force recomputation.
       prev_body_id = 0;
 
@@ -666,10 +671,9 @@ void CalcConstrainedSystemVariables (
         = - axis.transpose() * (model.a[id_s] - model.a[id_p]
         + crossm(vel_s, vel_p))
         // Baumgarte stabilization term.
-        - 2. * CS.T_stab_inv[c] * errd[c]
-        - CS.T_stab_inv[c] * CS.T_stab_inv[c] * err[c];
-    }
-    else {
+        - 2. * CS.T_stab_inv[c] * CS.errd[c]
+        - CS.T_stab_inv[c] * CS.T_stab_inv[c] * CS.err[c];
+    } else {
       std::cerr << "Unsupported constraint type." << std::endl;
       assert(false);
       abort();
