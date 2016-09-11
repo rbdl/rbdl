@@ -348,6 +348,8 @@ struct RBDL_DLLAPI ConstraintSet {
   // Common constraints variables.
   std::vector<ConstraintType> constraintType;
   std::vector<std::string> name;
+  std::vector<unsigned int> contactConstraintIndices;
+  std::vector<unsigned int> loopConstraintIndices;
 
   // Contact constraints variables.
   std::vector<unsigned int> body;
@@ -392,6 +394,15 @@ struct RBDL_DLLAPI ConstraintSet {
   Math::VectorNd b;
   /// Workspace for the Lagrangian solution.
   Math::VectorNd x;
+
+  /// Workspace when evaluating contact Jacobians
+  Math::MatrixNd Gi;
+  /// Workspace when evaluating loop Jacobians
+  Math::MatrixNd GSpi;
+  /// Workspace when evaluating loop Jacobians
+  Math::MatrixNd GSsi;
+  /// Workspace when evaluating loop Jacobians
+  Math::MatrixNd GSJ;
 
   /// Workspace for the QR decomposition of the null-space method
 #ifdef RBDL_USE_SIMPLE_MATH
@@ -456,7 +467,7 @@ RBDL_DLLAPI
 void CalcConstraintsPositionError(
   Model& model,
   const Math::VectorNd &Q,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::VectorNd& err,
   bool update_kinematics = true
 );
@@ -475,7 +486,7 @@ RBDL_DLLAPI
 void CalcConstraintsJacobian(
   Model &model,
   const Math::VectorNd &Q,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::MatrixNd &G,
   bool update_kinematics = true
 );
@@ -501,7 +512,7 @@ void CalcConstraintsVelocityError(
   Model& model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::VectorNd& err,
   bool update_kinematics = true
 );
@@ -549,7 +560,7 @@ RBDL_DLLAPI
 bool CalcAssemblyQ(
   Model &model,
   Math::VectorNd QInit,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::VectorNd &Q,
   const Math::VectorNd &weights,
   double tolerance = 1e-12,
@@ -572,7 +583,7 @@ void CalcAssemblyQDot(
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDotInit,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::VectorNd &QDot,
   const Math::VectorNd &weights
 );
