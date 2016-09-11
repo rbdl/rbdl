@@ -858,16 +858,16 @@ int main (int argc, char *argv[]) {
 
   if (benchmark_run_contacts) {
     cout << "= Contacts: ForwardDynamicsConstraintsLagrangian" << endl;
-//    contacts_benchmark (benchmark_sample_count, ContactsMethodLagrangian);
+    contacts_benchmark (benchmark_sample_count, ContactsMethodLagrangian);
 
     cout << "= Contacts: ForwardDynamicsConstraintsRangeSpaceSparse" << endl;
     contacts_benchmark (benchmark_sample_count, ContactsMethodRangeSpaceSparse);
 
     cout << "= Contacts: ForwardDynamicsConstraintsNullSpace" << endl;
-//    contacts_benchmark (benchmark_sample_count, ContactsMethodNullSpace);
+    contacts_benchmark (benchmark_sample_count, ContactsMethodNullSpace);
 
     cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
-//    contacts_benchmark (benchmark_sample_count, ContactsMethodKokkevis);
+    contacts_benchmark (benchmark_sample_count, ContactsMethodKokkevis);
   }
 
   if (benchmark_run_ik) {
