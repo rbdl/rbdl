@@ -527,7 +527,12 @@ class SegmentedQuinticBezierToolkit
   
   /**
   Calculates the location of quintic Bezier curve control points to 
-  create a C shaped curve.
+  create a C shaped curve like that shown in the figure. Using a series 
+  of these simple and predictably shaped Bezier curves it is easy to build
+  quite complex curves.
+
+  \image html fig_GeometryAddon_quinticCornerSections.png
+
 
   @param x0   First intercept x location
   @param y0   First intercept y location

@@ -51,6 +51,7 @@ using namespace RigidBodyDynamics::Addons::Geometry;
 static bool     DEBUG     = false;
 static double   UTOL      = std::numeric_limits<double>::epsilon()*1e6;
 static double   INTTOL    = std::numeric_limits<double>::epsilon()*1e2;
+static double   SQRTEPS   = std::sqrt(numeric_limits<double>::epsilon());
 static int      MAXITER   = 20;
 static int      NUM_SAMPLE_PTS  = 100;
 //=============================================================================
@@ -126,7 +127,20 @@ SmoothSegmentedFunction::
   }
 }
 
+//==============================================================================
+ SmoothSegmentedFunction::SmoothSegmentedFunction():
+    _x0(NAN),_x1(NAN),
+    _y0(NAN),_y1(NAN),
+    _dydx0(NAN),_dydx1(NAN),_name("NOT_YET_SET")
+ {
+    //_arraySplineUX.resize(0);    
+    _mXVec.resize(0);
+    _mYVec.resize(0);
+    //_splineYintX = SimTK::Spline();
+    _numBezierSections = (int)NAN;     
+ }
 
+//==============================================================================
 void SmoothSegmentedFunction::
   updSmoothSegmentedFunction(
     const RigidBodyDynamics::Math::MatrixNd& mX, 
@@ -167,19 +181,56 @@ void SmoothSegmentedFunction::
 
   _name = name;
 }
+//==============================================================================
+void SmoothSegmentedFunction::shift(double xShift, double yShift)
+{
+  _x0 += xShift;
+  _x1 += xShift;
+  _y0 += yShift;
+  _y1 += yShift;
+
+  for(int i=0; i<_mXVec.size();++i){
+    for(int j=0; j<_mXVec.at(i).rows();++j){
+      _mXVec.at(i)[j] += xShift;
+      _mYVec.at(i)[j] += yShift;
+    }
+  }
+
+}
+
+void SmoothSegmentedFunction::scale(double xScale, double yScale)
+{
+
+  if( abs( xScale ) <= SQRTEPS){
+    cerr<<"SmoothSegmentedFunction::scale "
+         << _name.c_str()
+        <<": xScale must be greater than sqrt(eps). Setting xScale to such"
+        <<" a small value will cause the slope of the curve to approach "
+        <<" infinity, or become undefined."
+        << endl;
+    assert(0);
+    abort();
+  }
+
+  _x0 *= xScale;
+  _x1 *= xScale;
+  _y0 *= yScale;
+  _y1 *= yScale;
+  _dydx0 *= yScale/xScale;
+  _dydx1 *= yScale/xScale;
+
+  for(int i=0; i<_mXVec.size();++i){
+    for(int j=0; j<_mXVec.at(i).rows();++j){
+      _mXVec.at(i)[j] *= xScale;
+      _mYVec.at(i)[j] *= yScale;
+    }
+  }
+  
+}
 
 
- SmoothSegmentedFunction::SmoothSegmentedFunction():
-    _x0(NAN),_x1(NAN),
-    _y0(NAN),_y1(NAN),
-    _dydx0(NAN),_dydx1(NAN),_name("NOT_YET_SET")
- {
-    //_arraySplineUX.resize(0);    
-    _mXVec.resize(0);
-    _mYVec.resize(0);
-    //_splineYintX = SimTK::Spline();
-    _numBezierSections = (int)NAN;     
- }
+//==============================================================================
+
 
  /*Detailed Computational Costs
  ________________________________________________________________________

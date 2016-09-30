@@ -390,6 +390,93 @@ TEST(SmoothSegmentedFunctionProperties)
 
 }
 
+TEST(ShiftScale)
+{
+  //1. Make a curve
+  RigidBodyDynamics::Math::VectorNd xV(5);
+  RigidBodyDynamics::Math::VectorNd yV(5);
+  RigidBodyDynamics::Math::VectorNd dydxV(5);
+  for(int i=0; i<xV.size();++i){
+    xV[i]      = i*0.5*M_PI/(xV.size()-1);
+    yV[i]      = sin(xV[i]) + xV[i];
+    dydxV[i]   = cos(xV[i]) + 1.0;
+  }
+  double c = 0.5;
+  
+  RigidBodyDynamics::Math::MatrixNd mX(6,4), mY(6,4);
+  RigidBodyDynamics::Math::MatrixNd p0(6,2);
+
+  for(int i=0; i < 4; ++i){
+    p0 = SegmentedQuinticBezierToolkit::
+          calcQuinticBezierCornerControlPoints(  xV[i],  yV[i],  dydxV[i],
+                                               xV[i+1],yV[i+1],dydxV[i+1],c);
+    mX.col(i)  = p0.col(0);
+    mY.col(i)  = p0.col(1);
+  }
+  SmoothSegmentedFunction curve = SmoothSegmentedFunction();
+  curve.updSmoothSegmentedFunction(       mX,     mY, 
+                                        xV[0],   xV[4],
+                                        yV[0],   yV[4],
+                                     dydxV[0],dydxV[4],
+                                     "testCurve"); 
+  SmoothSegmentedFunction shiftedCurve = SmoothSegmentedFunction();
+  shiftedCurve = curve;
+  double xShift = 1.0/3.0;
+  double yShift = 2.0/3.0;
+
+  shiftedCurve.shift(xShift,yShift);
+
+  //Test shift
+  double x ,y, dydx, d2ydx2;
+  double xS ,yS, dydxS, d2ydx2S;
+
+  double xmin = -0.1;
+  double xmax = 0.5*M_PI+0.1;
+
+  for(int i=0; i<xV.size();++i){
+    x      = xmin + i*(xmax-xmin)/(xV.size()-1);
+    y      = curve.calcValue(x);    
+    dydx   = curve.calcDerivative(x,1);
+    d2ydx2 = curve.calcDerivative(x,2);
+
+    xS      = x + xShift;  
+    yS      = shiftedCurve.calcValue(xS) - yShift;
+    dydxS   = shiftedCurve.calcDerivative(xS,1);
+    d2ydx2S = shiftedCurve.calcDerivative(xS,2);
+
+    CHECK(      abs(y-yS)       < TOL_SMALL );
+    CHECK( abs(  dydx-dydxS)    < TOL_SMALL );
+    CHECK( abs(d2ydx2-d2ydx2S)  < TOL_SMALL );
+
+  }
+
+  //Test scale
+  SmoothSegmentedFunction scaledCurve  = SmoothSegmentedFunction();
+  scaledCurve = curve;
+  double xScale = 1.0/2.0;
+  double yScale = 5.0/3.0;
+  double dydxScale = yScale/xScale;
+
+  scaledCurve.scale(xScale,yScale);
+
+  for(int i=0; i<xV.size();++i){
+    x      = xmin + i*(xmax-xmin)/(xV.size()-1);
+    y      = curve.calcValue(x);
+    dydx   = curve.calcDerivative(x,1);
+    d2ydx2 = curve.calcDerivative(x,2);
+
+    xS      = x*xScale;  
+    yS      = scaledCurve.calcValue(xS)/yScale;
+    dydxS   = scaledCurve.calcDerivative(xS,1)/dydxScale ;
+    d2ydx2S = scaledCurve.calcDerivative(xS,2)*xScale/(dydxScale);
+
+    CHECK(      abs(y-yS)       < TOL_SMALL );
+    CHECK( abs(  dydx-dydxS)    < TOL_SMALL );
+    CHECK( abs(d2ydx2-d2ydx2S)  < TOL_SMALL );
+
+  }
+
+}
 int main (int argc, char *argv[])
 {
     return UnitTest::RunAllTests ();
