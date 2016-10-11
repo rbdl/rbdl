@@ -1,5 +1,5 @@
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
 
 Introduction
 ============
@@ -12,7 +12,7 @@ computation of the joint space inertia matrix. It further contains code for
 Jacobians, forward and inverse kinematics, and handling of external
 constraints such as contacts and collisions.
 
-The code is developed by Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+The code is developed by Martin Felis <martin@fysx.org>
 at the research group [Optimization in Robotics and Biomechanics
 (ORB)](http://orb.iwr.uni-heidelberg.de) of the [Interdisciplinary Center
 for Scientific Computing (IWR)](http://www.iwr.uni-heidelberg.de) at
@@ -140,7 +140,7 @@ license which should allow you to use the software wherever you need.
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
-    Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+    Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -164,8 +164,8 @@ This is the full license text (zlib license):
 Acknowledgements
 ================
 
-Work on this library was funded by the [Heidelberg Graduate School of
-Mathematical and Computational Methods for the Sciences
+Work on this library was originally funded by the [Heidelberg Graduate
+School of Mathematical and Computational Methods for the Sciences
 (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the European
 FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and
 [Koroibot](http://koroibot.eu) (grant number 611909).

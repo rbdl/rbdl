@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # 
 # RBDL - Rigid Body Dynamics Library
-# Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+# Copyright (c) 2011-2015 Martin Felis <martin@fysx.org>
 # 
 # Licensed under the zlib license. See LICENSE for more details.
 

@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  * Copyright (c) 2016 Matthew Millard <matthew.millard@iwr.uni-heidelberg.de>
  */
 

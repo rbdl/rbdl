@@ -16,8 +16,8 @@
  * or URDF files.
  * 
  * The code is developed by <a
- * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
- * <martin.felis@iwr.uni-heidelberg.de></a> at the research group <a
+ * href="mailto:martin@fysx.org">Martin Felis
+ * <martin@fysx.org></a> at the research group <a
  * href="http://orb.iwr.uni-heidelberg.de/">Optimization in Robotics and
  * Biomechanics (ORB)</a> of the <a
  * href="http://www.iwr.uni-heidelberg.de"> Interdisciplinary Center for
@@ -136,7 +136,7 @@
  * Here is the full license text:
  * \verbatim
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2014 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2014 Martin Felis <martin@fysx.org>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
