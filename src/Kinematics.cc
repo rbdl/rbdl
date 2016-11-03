@@ -37,12 +37,9 @@ RBDL_DLLAPI void UpdateKinematics(
       model.gravity[2]);
 
   model.a[0].setZero();
-  //model.a[0] = spatial_gravity;
 
   for (i = 1; i < model.mBodies.size(); i++) {
     unsigned int q_index = model.mJoints[i].q_index;
-
-    Joint joint = model.mJoints[i];
     unsigned int lambda = model.lambda[i];
 
     jcalc (model, i, Q, QDot);
