@@ -560,7 +560,7 @@ class SegmentedQuinticBezierToolkit
 
   Calculates the location of quintic Bezier curve control points to 
   create a C shaped curve that intersects points 0 (x0, y0) and point 1
-  (x1, y1) with slopes dydx0 and dydx1 respectively, and a second 
+  (x1, y1) with slopes dydx0 and dydx1 respectively, and a second
   derivative of 0. The curve that results can approximate a line 
   (curviness = 0), or in a smooth C shaped curve (curviniess = 1)
 
@@ -590,10 +590,10 @@ class SegmentedQuinticBezierToolkit
 
   */
   static RigidBodyDynamics::Math::MatrixNd 
-  calcQuinticBezierCornerControlPoints(   double x0, double y0, 
-            double dydx0, 
-            double x1, double y1, 
-            double dydx1, 
+  calcQuinticBezierCornerControlPoints(   double x0, double y0,
+            double dydx0,
+            double x1, double y1,
+            double dydx1,
             double curviness);
 
   /*

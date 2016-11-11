@@ -97,6 +97,42 @@ TEST(calcJointTorqueCorrectnessTests){
                                      signOfJointAngle,
                                      signOfJointTorque,
                                      name);
+
+    bool flagMakeTestVector = false;
+    if(flagMakeTestVector){
+      Millard2016TorqueMuscle tqG =
+              Millard2016TorqueMuscle(DataSet::Gymnast,
+                                       subjectInfo,
+                                       Gymnast::HipExtension,
+                                       jointAngleOffset,
+                                       signOfJointAngle,
+                                       signOfJointTorque,
+                                       name);
+      TorqueMuscleInfo tmiG;
+      tqG.calcTorqueMuscleInfo(M_PI/3.0,0.1,0.77,tmiG);
+
+      printf("%f\n",tmiG.fiberAngle);
+      printf("%f\n",tmiG.fiberAngularVelocity);
+      printf("%f\n",tmiG.activation);
+      printf("%f\n",tmiG.fiberTorque);
+      printf("%f\n",tmiG.fiberStiffness);
+      printf("%f\n",tmiG.fiberPassiveTorqueAngleMultiplier);
+      printf("%f\n",tmiG.fiberActiveTorqueAngleMultiplier);
+      printf("%f\n",tmiG.fiberActiveTorqueAngularVelocityMultiplier);
+      printf("%f\n",tmiG.fiberPassiveTorque);
+      printf("%f\n",tmiG.fiberActiveTorque);
+      printf("%f\n",tmiG.fiberDampingTorque);
+      printf("%f\n",tmiG.fiberNormDampingTorque);
+      printf("%f\n",tmiG.fiberActivePower);
+      printf("%f\n",tmiG.fiberPassivePower);
+      printf("%f\n",tmiG.fiberPower);
+      printf("%f\n",tmiG.DjointTorqueDjointAngle);
+      printf("%f\n",tmiG.DjointTorqueDjointAngularVelocity);
+      printf("%f\n",tmiG.DjointTorqueDactivation);
+
+    }
+
+
     //Zero out the passive forces so that calcMuscleTorque reports
     //just the active force - this allows us to test its correctness.
     tq.setPassiveTorqueScale(0.0);
@@ -516,7 +552,7 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
 TEST(exampleUsage){
 
 
-  bool printCurves = false;
+  bool printCurves = true;
   bool printAllCurves = false;
 
   //int dataSet = DataSetAnderson2007;

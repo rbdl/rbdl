@@ -262,6 +262,19 @@ MatrixNd SegmentedQuinticBezierToolkit::
 
   }
 
+  /*
+  Value of the 2nd derivative at the end points.
+  This is not exposed to the user for now, as rarely is possible
+  or even easy to know what these values should be. Internally
+  I'm using this here because we get curves with nicer 1st
+  derivatives than if we take the easy option to get a second
+  derivative of zero (by setting the middle control points equal
+  to their neighbors.
+  */
+
+  double d2ydx20 = 0;
+  double d2ydx21 = 0;
+
   //Start point
   xyPts(0,0) = x0;
   xyPts(0,1) = y0;
@@ -269,40 +282,47 @@ MatrixNd SegmentedQuinticBezierToolkit::
   xyPts(5,0) = x1;
   xyPts(5,1) = y1;
 
+
   /*
-  //New mid point control code, which spreads the curve out more gradually  
-  double deltaX   = (xC-xyPts(0,0));  
-  double deltaY   = (yC-xyPts(0,1));
-  double sinCPi   = sin(curviness*SimTK::Pi);
-
-  //First two midpoints
-  xyPts(1,0) = x0 + (curviness - 0.25*sinCPi)*deltaX;
-  xyPts(1,1) = y0 + (curviness - 0.25*sinCPi)*deltaY;
-  xyPts(2,0) = x0 + (curviness + 0.25*sinCPi)*deltaX;
-  xyPts(2,1) = y0 + (curviness + 0.25*sinCPi)*deltaY;
-
-  //Second two midpoints
-  deltaX   = (xC-xyPts(5,0));  
-  deltaY   = (yC-xyPts(5,1));
-
-  xyPts(3,0) = xyPts(5,0) + (curviness - 0.25*sinCPi)*deltaX;
-  xyPts(3,1) = xyPts(5,1) + (curviness - 0.25*sinCPi)*deltaY;
-  xyPts(4,0) = xyPts(5,0) + (curviness + 0.25*sinCPi)*deltaX;
-  xyPts(4,1) = xyPts(5,1) + (curviness + 0.25*sinCPi)*deltaY;
-  */
-  
   //Original code - leads to 2 localized corners
   xyPts(1,0) = x0 + curviness*(xC-xyPts(0,0));
   xyPts(1,1) = y0 + curviness*(yC-xyPts(0,1));
-  xyPts(2,0) = xyPts(1,0);
-  xyPts(2,1) = xyPts(1,1);
+  //xyPts(2,0) = xyPts(1,0);
+  //xyPts(2,1) = xyPts(1,1);
 
   //Second two midpoints
   xyPts(3,0) = xyPts(5,0) + curviness*(xC-xyPts(5,0));
   xyPts(3,1) = xyPts(5,1) + curviness*(yC-xyPts(5,1));
   xyPts(4,0) = xyPts(3,0);
   xyPts(4,1) = xyPts(3,1);
-  
+  */
+
+  //Set the 1st and 4th control points (nearest to the end points)
+  //to get the correct first derivative
+  xyPts(1,0) = x0 + curviness*(xC-xyPts(0,0));
+  xyPts(1,1) = y0 + curviness*(yC-xyPts(0,1));
+
+  xyPts(4,0) = xyPts(5,0) + curviness*(xC-xyPts(5,0));
+  xyPts(4,1) = xyPts(5,1) + curviness*(yC-xyPts(5,1));
+
+  //Now go and update the middle points to get the desired 2nd
+  //derivative at the ends. Note that even if d2ydx2 = 0 the
+  //resulting curve using this method has a much smoother 1st
+  //derivative than if the middle control points are set to be
+  //equal to the 1st and 4th control points.
+
+  double dxdu0   = 5.0*(xyPts(1,0)  - xyPts(0,0));
+  xyPts(2,0)     = xyPts(1,0)     + 0.5*(xC-xyPts(1,0))           ;
+  double d2xdu20 = 20.0*(xyPts(2,0) - 2.0*xyPts(1,0) + xyPts(0,0));
+  double d2ydu20 = (dxdu0*dxdu0*(d2ydx20) + d2xdu20*(dydx0))  ;
+  xyPts(2,1)     = d2ydu20*(1.0/20.0) + 2.0*xyPts(1,1) - xyPts(0,1) ;
+
+  double dxdu1   = 5.0*(xyPts(5,0)  - xyPts(4,0));
+  xyPts(3,0)     = xyPts(4,0)     + 0.5*(xC-xyPts(4,0));
+  double d2xdu21 = 20.0*(xyPts(3,0) - 2.0*xyPts(4,0) + xyPts(5,0) );
+  double d2ydu21 = (dxdu1*dxdu1*(d2ydx21) + d2xdu21*(dydx1));
+  xyPts(3,1)     = d2ydu21*(1.0/20.0) + 2.0*xyPts(4,1) - xyPts(5,1);
+
   return xyPts;
 }
 

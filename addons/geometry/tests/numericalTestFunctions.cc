@@ -381,7 +381,7 @@ bool isCurveC2Continuous(SmoothSegmentedFunction& mcf,
 
     int multC0 = 5;
     int multC1 = 50;
-    int multC2 = 100;
+    int multC2 = 200;
 
     RigidBodyDynamics::Math::VectorNd fcnSample = 
      RigidBodyDynamics::Math::VectorNd::Zero(mcfSample.rows());
