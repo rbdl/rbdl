@@ -40,18 +40,18 @@ class Quaternion : public Vector4d {
     /** This function is equivalent to multiplicate their corresponding rotation matrices */
     Quaternion operator* (const Quaternion &q) const {
       return Quaternion (
-          q[3] * (*this)[0] + q[0] * (*this)[3] + q[1] * (*this)[2] - q[2] * (*this)[1],
-          q[3] * (*this)[1] + q[1] * (*this)[3] + q[2] * (*this)[0] - q[0] * (*this)[2],
-          q[3] * (*this)[2] + q[2] * (*this)[3] + q[0] * (*this)[1] - q[1] * (*this)[0],
-          q[3] * (*this)[3] - q[0] * (*this)[0] - q[1] * (*this)[1] - q[2] * (*this)[2]
+          (*this)[3] * q[0] + (*this)[0] * q[3] + (*this)[1] * q[2] - (*this)[2] * q[1],
+          (*this)[3] * q[1] + (*this)[1] * q[3] + (*this)[2] * q[0] - (*this)[0] * q[2],
+          (*this)[3] * q[2] + (*this)[2] * q[3] + (*this)[0] * q[1] - (*this)[1] * q[0],
+          (*this)[3] * q[3] - (*this)[0] * q[0] - (*this)[1] * q[1] - (*this)[2] * q[2]
           );
     }
     Quaternion& operator*=(const Quaternion &q) {
       set (
-          q[3] * (*this)[0] + q[0] * (*this)[3] + q[1] * (*this)[2] - q[2] * (*this)[1],
-          q[3] * (*this)[1] + q[1] * (*this)[3] + q[2] * (*this)[0] - q[0] * (*this)[2],
-          q[3] * (*this)[2] + q[2] * (*this)[3] + q[0] * (*this)[1] - q[1] * (*this)[0],
-          q[3] * (*this)[3] - q[0] * (*this)[0] - q[1] * (*this)[1] - q[2] * (*this)[2]
+          (*this)[3] * q[0] + (*this)[0] * q[3] + (*this)[1] * q[2] - (*this)[2] * q[1],
+          (*this)[3] * q[1] + (*this)[1] * q[3] + (*this)[2] * q[0] - (*this)[0] * q[2],
+          (*this)[3] * q[2] + (*this)[2] * q[3] + (*this)[0] * q[1] - (*this)[1] * q[0],
+          (*this)[3] * q[3] - (*this)[0] * q[0] - (*this)[1] * q[1] - (*this)[2] * q[2]
           );
       return *this;
     }
@@ -110,15 +110,15 @@ class Quaternion : public Vector4d {
     }
 
     static Quaternion fromZYXAngles (const Vector3d &zyx_angles) {
-      return Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), zyx_angles[2]) 
+      return Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), zyx_angles[0])
         * Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), zyx_angles[1])
-        * Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), zyx_angles[0]);
+        * Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), zyx_angles[2]); 
     }
 
     static Quaternion fromYXZAngles (const Vector3d &yxz_angles) {
-      return Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), yxz_angles[2]) 
+      return Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), yxz_angles[0])
         * Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), yxz_angles[1])
-        * Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), yxz_angles[0]);
+        * Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), yxz_angles[2]);
     }
 
     static Quaternion fromXYZAngles (const Vector3d &xyz_angles) {
@@ -171,7 +171,7 @@ class Quaternion : public Vector4d {
 
     Quaternion timeStep (const Vector3d &omega, double dt) {
       double omega_norm = omega.norm();
-      return (*this) * Quaternion::fromAxisAngle (omega / omega_norm, dt * omega_norm);
+      return Quaternion::fromAxisAngle (omega / omega_norm, dt * omega_norm) * (*this);
     }
 
     Vector3d rotate (const Vector3d &vec) const {

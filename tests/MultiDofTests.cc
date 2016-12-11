@@ -225,9 +225,9 @@ TEST_FIXTURE(SphericalJoint, TestOrientation) {
     sphQ[i] = emuQ[i];
   }
 
-  Quaternion quat =  Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), emuQ[2]) 
+  Quaternion quat = Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), emuQ[0])
     * Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), emuQ[1])
-    * Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), emuQ[0]);
+    * Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), emuQ[2]);
   multdof3_model.SetQuaternion (2, quat, sphQ);
 
   Matrix3d emu_orientation = CalcBodyWorldOrientation (emulated_model, emuQ, emu_child_id);

@@ -8,6 +8,9 @@
   previously implemented damped Levenberg-Marquardt method. The new API
   allows to specify both point and orientation (and mixed) constraints.
   Thanks to Kevin Stein for implementing it!
+- Changed Quaternion multiplication behaviour for a more standard
+  convention: multiplying q1 (1,0,0,0) with q2 (0,1,0,0) results now in
+  (0,0,1,0) instead of the previous (0,0,-1,0).
 
 2.4.1 -> 2.5.0 
 - Added an experimental Cython based Python wrapper of RBDL. The API is
