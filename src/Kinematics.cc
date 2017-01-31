@@ -126,6 +126,7 @@ RBDL_DLLAPI void UpdateKinematicsCustom(
     }
   }
 
+  // FIXME?: Changing QDot can alter body accelerations via c[] - update to QDot but not QDDot can result in incorrect a[]
   if (QDDot) {
     for (i = 1; i < model.mBodies.size(); i++) {
       unsigned int q_index = model.mJoints[i].q_index;
