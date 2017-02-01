@@ -112,10 +112,4 @@ TEST_FIXTURE ( ScrewJoint1DofFixedBase, Jacobians ) {
   Gexpected(2,0) = 0;
   
   CHECK_ARRAY_EQUAL (Gexpected.data(), GrefPt.data(), 3);
-  
 }
-
-
-
-
-
