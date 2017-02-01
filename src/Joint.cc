@@ -286,7 +286,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
   } else if (model.mJoints[joint_id].mDoFCount == 1
       && model.mJoints[joint_id].mJointType != JointTypeCustom){
-    SpatialTransform XJ = jcalc_XJ (model, joint_id, q) * model.X_T[joint_id];
+    SpatialTransform XJ = jcalc_XJ (model, joint_id, q);
     model.X_lambda[joint_id] = XJ * model.X_T[joint_id];
     // Set the joint axis
     Vector3d trans = XJ.E * model.mJoints[joint_id].mJointAxes[0].block(3,0,3,1);
