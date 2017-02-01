@@ -11,6 +11,8 @@
 - Changed Quaternion multiplication behaviour for a more standard
   convention: multiplying q1 (1,0,0,0) with q2 (0,1,0,0) results now in
   (0,0,1,0) instead of the previous (0,0,-1,0).
+- New joint type JointTypeHelical that can be used for screwing motions
+  (translations and simultaneous rotations), contributed by Stuart Anderson.
 
 2.4.1 -> 2.5.0 
 - Added an experimental Cython based Python wrapper of RBDL. The API is

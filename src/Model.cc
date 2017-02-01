@@ -280,7 +280,7 @@ unsigned int Model::AddBody(
       && joint.mJointType != JointTypeRevoluteX
       && joint.mJointType != JointTypeRevoluteY
       && joint.mJointType != JointTypeRevoluteZ
-      && joint.mJointType != JointTypeMixed1DoF
+      && joint.mJointType != JointTypeHelical
       ) {
     previously_added_body_id = AddBodyMultiDofJoint (*this, 
         parent_id, 

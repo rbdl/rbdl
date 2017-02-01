@@ -190,7 +190,7 @@ struct Model;
     JointTypeTranslationXYZ,
     JointTypeFloatingBase, ///< A 6-DoF joint for floating-base (or freeflyer) systems.
     JointTypeFixed, ///< Fixed joint which causes the inertial properties to be merged with the parent body.
-    JointTypeMixed1DoF, //1 DoF joint with both rotational and translational motion
+    JointTypeHelical, //1 DoF joint with both rotational and translational motion
     JointType1DoF,
     JointType2DoF, ///< Emulated 2 DoF joint.
     JointType3DoF, ///< Emulated 3 DoF joint.
@@ -275,7 +275,7 @@ struct RBDL_DLLAPI Joint {
         // Warning: the memory does not get initialized by this function!
         mDoFCount = type - JointType1DoF + 1;
         mJointAxes = new Math::SpatialVector[mDoFCount];
-	std::cerr << "Warning: uninitalized vector" << std::endl;
+  std::cerr << "Warning: uninitalized vector" << std::endl;
       } else if (type == JointTypeCustom) {
         //This constructor cannot be used for a JointTypeCustom because
         //we have no idea what mDoFCount is.
@@ -413,11 +413,11 @@ struct RBDL_DLLAPI Joint {
     } else if (axis_0 == Math::SpatialVector(0., 0., 1., 0., 0., 0.)) {
       mJointType = JointTypeRevoluteZ;
     } else if (axis_0[0] == 0 &&
-	       axis_0[1] == 0 &&
-	       axis_0[2] == 0) {
+         axis_0[1] == 0 &&
+         axis_0[2] == 0) {
       mJointType = JointTypePrismatic;
     } else {
-      mJointType = JointTypeMixed1DoF;
+      mJointType = JointTypeHelical;
     }
     validate_spatial_axis (mJointAxes[0]);
   }
@@ -635,8 +635,8 @@ struct RBDL_DLLAPI Joint {
 
 /** \brief Computes all variables for a joint model
  *
- *	By appropriate modification of this function all types of joints can be
- *	modeled. See RBDA Section 4.4 for details.
+ *  By appropriate modification of this function all types of joints can be
+ *  modeled. See RBDA Section 4.4 for details.
  *
  * \param model    the rigid body model
  * \param joint_id the id of the joint we are interested in. This will be used to determine the type of joint and also the entries of \f[ q, \dot{q} \f].

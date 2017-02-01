@@ -735,6 +735,28 @@ class Matrix {
 			return result;
 		}
 
+    // Multiplication with a block
+		template <typename other_matrix_type>
+		Dynamic::Matrix<val_type> operator*(const Block<other_matrix_type, val_type> &block) {
+			assert (ncols == block.rows());
+
+			Dynamic::Matrix<val_type> result(nrows, block.cols());
+			
+			result.setZero();
+
+			unsigned int i,j, k;
+			for (i = 0; i < nrows; i++) {
+				for (j = 0; j < block.cols(); j++) {
+					for (k = 0; k < block.rows(); k++) {
+						result(i,j) += mData[i * ncols + k] * static_cast<val_type>(block(k,j));
+					}
+				}
+			}
+			
+			return result;
+		}
+
+
 		void operator*=(const Matrix &matrix) {
 			matrix_type temp (*this);
 			*this = temp * matrix;
