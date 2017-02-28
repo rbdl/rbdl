@@ -22,7 +22,7 @@ cdef class Vector3d:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.Vector3d()
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (3):
                     self.thisptr.data()[i] = pyvalues[i]
         else:
@@ -75,7 +75,7 @@ cdef class Matrix3d:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.Matrix3d()
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (3):
                     for j in range (3):
                         (&(self.thisptr.coeff(i,j)))[0] = pyvalues[i,j]
@@ -126,7 +126,7 @@ cdef class VectorNd:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.VectorNd(ndim)
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (ndim):
                     self.thisptr.data()[i] = pyvalues[i]
         else:
@@ -182,10 +182,10 @@ cdef class Quaternion:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.Quaternion()
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (4):
                     self.thisptr.data()[i] = pyvalues[i]
-            elif pymatvalues != None:
+            elif pymatvalues is not None:
                 mat = Matrix3d()
                 for i in range (3):
                     for j in range (3):
@@ -262,7 +262,7 @@ cdef class SpatialVector:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.SpatialVector()
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (6):
                     self.thisptr.data()[i] = pyvalues[i]
         else:
@@ -602,7 +602,7 @@ cdef class Body:
 
         if address == 0:
             self.free_on_dealloc = True
-            if (mass != None) and (com != None) and (inertia != None):
+            if (mass is not None) and (com is not None) and (inertia is not None):
                 c_mass = mass
 
                 for i in range (3):
@@ -751,6 +751,7 @@ cdef enum JointType:
     JointTypeTranslationXYZ
     JointTypeFloatingBase
     JointTypeFixed
+    JointTypeHelical
     JointType1DoF
     JointType2DoF
     JointType3DoF
@@ -777,6 +778,7 @@ cdef class Joint:
             JointTypeTranslationXYZ: "JointTypeTranslationXYZ",
             JointTypeFloatingBase: "JointTypeFloatingBase",
             JointTypeFixed: "JointTypeFixed",
+            JointTypeHelical: "JointTypeHelical",
             JointType1DoF: "JointType1DoF",
             JointType2DoF: "JointType2DoF",
             JointType3DoF: "JointType3DoF",
@@ -1064,7 +1066,7 @@ cdef class ConstraintSet:
             c_body_point[i] = body_point[i]
             c_world_normal[i] = world_normal[i]
 
-        if constraint_name == None:
+        if constraint_name is None:
             constraint_name_ptr = NULL
         else:
             constraint_name_ptr = constraint_name
@@ -1087,7 +1089,7 @@ cdef class ConstraintSet:
             constraint_name = None):
         cdef char* constraint_name_ptr
 
-        if constraint_name == None:
+        if constraint_name is None:
             constraint_name_ptr = NULL
         else:
             constraint_name_ptr = constraint_name
@@ -1287,10 +1289,10 @@ def CalcCenterOfMass (Model model,
     c_com_vel_ptr = <crbdl.Vector3d*> NULL
     c_ang_momentum_ptr = <crbdl.Vector3d*> NULL
 
-    if com_velocity != None:
+    if com_velocity is not None:
         c_com_vel_ptr = new crbdl.Vector3d()
 
-    if angular_momentum != None:
+    if angular_momentum is not None:
         c_ang_momentum_ptr = new crbdl.Vector3d()
 
     cmass = 0.0
@@ -1308,13 +1310,13 @@ def CalcCenterOfMass (Model model,
     com[1] = c_com[1]
     com[2] = c_com[2]
 
-    if com_velocity != None:
+    if com_velocity is not None:
         com_velocity[0] = c_com_vel_ptr.data()[0]
         com_velocity[1] = c_com_vel_ptr.data()[1]
         com_velocity[2] = c_com_vel_ptr.data()[2]
         del c_com_vel_ptr
 
-    if angular_momentum != None:
+    if angular_momentum is not None:
         angular_momentum[0] = c_ang_momentum_ptr.data()[0]
         angular_momentum[1] = c_ang_momentum_ptr.data()[1]
         angular_momentum[2] = c_ang_momentum_ptr.data()[2]
