@@ -42,7 +42,7 @@ bool benchmark_run_crba = true;
 bool benchmark_run_nle = true;
 bool benchmark_run_calc_minv_times_tau = true;
 bool benchmark_run_contacts = false;
-bool benchmark_run_ik = true;
+bool benchmark_run_ik = false;
 
 string model_file = "";
 
@@ -626,6 +626,7 @@ void print_usage () {
   cout << "  --no-nle                    : disables benchmark for the nonlinear effects." << endl;
   cout << "  --no-calc-minv              : disables benchmark M^-1 * tau benchmark." << endl;
   cout << "  --only-contacts | -C        : only runs contact model benchmarks." << endl;
+  cout << "  --only-ik                   : only runs inverse kinematics benchmarks." << endl;
   cout << "  --help | -h                 : prints this help." << endl;
 }
 
@@ -694,7 +695,9 @@ void parse_args (int argc, char* argv[]) {
     } else if (arg == "--only-contacts" || arg == "-C") {
       disable_all_benchmarks();
       benchmark_run_contacts = true;
-      benchmark_run_ik = false;
+    } else if (arg == "--only-ik") {
+      disable_all_benchmarks();
+      benchmark_run_ik = true;
 #if defined (RBDL_BUILD_ADDON_LUAMODEL) || defined (RBDL_BUILD_ADDON_URDFREADER)
     } else if (model_file == "") {
       model_file = arg;
