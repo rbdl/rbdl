@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -302,6 +302,39 @@ struct RBDL_DLLAPI ConstraintSet {
     const char *constraint_name = NULL
     );
 
+	/** \brief Adds a loop constraint to the constraint set.
+	 *
+	 * This type of constraints ensures that the relative orientation and position,
+	 * spatial velocity, and spatial acceleration between two frames in two bodies
+	 * are null along a specified spatial constraint axis.
+	 *
+	 * \param id_predecessor the identifier of the predecessor body
+	 * \param id_successor the identifier of the successor body
+	 * \param X_predecessor a spatial transform localizing the constrained
+	 * frames on the predecessor body, expressed with respect to the predecessor
+	 * body frame
+	 * \param X_successor a spatial transform localizing the constrained
+	 * frames on the successor body, expressed with respect to the successor
+	 * body frame
+	 * \param axis a spatial vector indicating the axis along which the constraint
+	 * acts
+	 * \param enable_baumgarte indicates if baumgarte is used or not
+	 * \param T_stab_inv coefficient for Baumgarte stabilization, meaningless
+	 * if enable_baumgarte is false
+	 * \param constraint_name a human readable name (optional, default: NULL)
+	 *
+	 */
+	unsigned int AddLoopConstraint(unsigned int id_predecessor,
+		unsigned int id_successor,
+		const Math::SpatialTransform &X_predecessor,
+		const Math::SpatialTransform &X_successor,
+		const Math::SpatialVector &axis,
+		bool baumgarte_enabled,
+		double T_stab_inv,
+		const char *constraint_name = NULL
+		);
+
+
   /** \brief Copies the constraints and resets its ConstraintSet::bound
    * flag.
    */
@@ -348,6 +381,8 @@ struct RBDL_DLLAPI ConstraintSet {
   // Common constraints variables.
   std::vector<ConstraintType> constraintType;
   std::vector<std::string> name;
+  std::vector<unsigned int> contactConstraintIndices;
+  std::vector<unsigned int> loopConstraintIndices;
 
   // Contact constraints variables.
   std::vector<unsigned int> body;
@@ -360,8 +395,12 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<Math::SpatialTransform> X_p;
   std::vector<Math::SpatialTransform> X_s;
   std::vector<Math::SpatialVector> constraintAxis;
+  /** Baumgarte stabilization parameter */
   std::vector<double> T_stab_inv;
-
+  /** Position error for the Baumgarte stabilization */
+  Math::VectorNd err;
+  /** Velocity error for the Baumgarte stabilization */
+  Math::VectorNd errd;
 
   /** Enforced accelerations of the contact points along the contact
    * normal. */
@@ -388,6 +427,15 @@ struct RBDL_DLLAPI ConstraintSet {
   Math::VectorNd b;
   /// Workspace for the Lagrangian solution.
   Math::VectorNd x;
+
+  /// Workspace when evaluating contact Jacobians
+  Math::MatrixNd Gi;
+  /// Workspace when evaluating loop Jacobians
+  Math::MatrixNd GSpi;
+  /// Workspace when evaluating loop Jacobians
+  Math::MatrixNd GSsi;
+  /// Workspace when evaluating loop Jacobians
+  Math::MatrixNd GSJ;
 
   /// Workspace for the QR decomposition of the null-space method
 #ifdef RBDL_USE_SIMPLE_MATH
@@ -452,7 +500,7 @@ RBDL_DLLAPI
 void CalcConstraintsPositionError(
   Model& model,
   const Math::VectorNd &Q,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::VectorNd& err,
   bool update_kinematics = true
 );
@@ -471,7 +519,7 @@ RBDL_DLLAPI
 void CalcConstraintsJacobian(
   Model &model,
   const Math::VectorNd &Q,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::MatrixNd &G,
   bool update_kinematics = true
 );
@@ -497,7 +545,7 @@ void CalcConstraintsVelocityError(
   Model& model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::VectorNd& err,
   bool update_kinematics = true
 );
@@ -545,7 +593,7 @@ RBDL_DLLAPI
 bool CalcAssemblyQ(
   Model &model,
   Math::VectorNd QInit,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::VectorNd &Q,
   const Math::VectorNd &weights,
   double tolerance = 1e-12,
@@ -568,7 +616,7 @@ void CalcAssemblyQDot(
   Model &model,
   const Math::VectorNd &Q,
   const Math::VectorNd &QDotInit,
-  const ConstraintSet &CS,
+  ConstraintSet &CS,
   Math::VectorNd &QDot,
   const Math::VectorNd &weights
 );
