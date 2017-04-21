@@ -122,6 +122,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
 								 "stabilization parameter to be INF which is forbidden."
 							<< std::endl;
 		abort();
+    return std::numeric_limits<unsigned int>::max();
 	}
 
   assert (bound == false);
