@@ -87,23 +87,23 @@ unsigned int ConstraintSet::AddContactConstraint (
 }
 
 unsigned int ConstraintSet::AddLoopConstraint (
-	unsigned int id_predecessor,
-	unsigned int id_successor,
-	const Math::SpatialTransform &X_predecessor,
-	const Math::SpatialTransform &X_successor,
-	const Math::SpatialVector& axis,
-	double T_stabilization,
-	const char *constraint_name
-	) {
-	return AddLoopConstraint (
-			id_predecessor,
-			id_successor,
-			X_predecessor,
-			X_successor,
-			axis,
-			true,
-			T_stabilization,
-			constraint_name);
+  unsigned int id_predecessor,
+  unsigned int id_successor,
+  const Math::SpatialTransform &X_predecessor,
+  const Math::SpatialTransform &X_successor,
+  const Math::SpatialVector& axis,
+  double T_stabilization,
+  const char *constraint_name
+  ) {
+  return AddLoopConstraint (
+      id_predecessor,
+      id_successor,
+      X_predecessor,
+      X_successor,
+      axis,
+      true,
+      T_stabilization,
+      constraint_name);
 }
 
 unsigned int ConstraintSet::AddLoopConstraint (
@@ -112,17 +112,17 @@ unsigned int ConstraintSet::AddLoopConstraint (
   const Math::SpatialTransform &X_predecessor,
   const Math::SpatialTransform &X_successor,
   const Math::SpatialVector& axis,
-	bool baumgarte_enabled,
+  bool baumgarte_enabled,
   double T_stabilization,
   const char *constraint_name
   ) {
 
-	if (baumgarte_enabled && T_stabilization == 0.) {
-		std::cerr << "Error: Given T_stab_inv is 0, but this would cause the "
-								 "stabilization parameter to be INF which is forbidden."
-							<< std::endl;
-		abort();
-	}
+  if (baumgarte_enabled && T_stabilization == 0.) {
+    std::cerr << "Error: Given T_stab_inv is 0, but this would cause the "
+                 "stabilization parameter to be INF which is forbidden."
+              << std::endl;
+    abort();
+  }
 
   assert (bound == false);
 
@@ -142,12 +142,12 @@ unsigned int ConstraintSet::AddLoopConstraint (
   body_s.push_back (id_successor);
   X_p.push_back (X_predecessor);
   X_s.push_back (X_successor);
-	constraintAxis.push_back (axis);
-	if (baumgarte_enabled) {
-		T_stab_inv.push_back (1. / T_stabilization);
-	} else {
-		T_stab_inv.push_back (0.);
-	}
+  constraintAxis.push_back (axis);
+  if (baumgarte_enabled) {
+    T_stab_inv.push_back (1. / T_stabilization);
+  } else {
+    T_stab_inv.push_back (0.);
+  }
   err.conservativeResize(n_constr);
   err[n_constr - 1] = 0.;
   errd.conservativeResize(n_constr);
