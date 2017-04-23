@@ -19,6 +19,175 @@ static double inRange(double angle) {
   return angle;
 }
 
+struct DoublePendulumJointCoordinates {
+  DoublePendulumJointCoordinates()
+    : model()
+    , q()
+    , qd()
+    , qdd()
+    , tau()
+    , l1(1.)
+    , l2(1.)
+    , m1(1.)
+    , m2(1.)
+    , idB1(0)
+    , idB2(0){
+
+    model.gravity = Vector3d(0.,-9.81,0.);
+    //Planar pendulum is at 0 when it is hanging down.
+    //  x: points to the right
+    //  y: points up
+    //  z: out of the page
+    Body link1 = Body(m1, Vector3d( 0., -l1*0.5,          0.),
+                          Vector3d( 0., 0., m1*l1*l1/3.));
+
+    Body link2 = Body(m2, Vector3d( 0., -l2*0.5,          0.),
+                          Vector3d( 0., 0., m2*l2*l2/3.));
+    Joint joint_rev_z = Joint(SpatialVector(0.,0.,1.,0.,0.,0.));
+
+    idB1 = model.AddBody(   0, Xtrans(Vector3d(0., 0, 0. )),
+                            joint_rev_z, link1);
+    idB2 = model.AddBody(idB1, Xtrans(Vector3d(0.,-l1, 0.)),
+                         joint_rev_z, link2);
+
+    q   = VectorNd::Zero(model.dof_count);
+    qd  = VectorNd::Zero(model.dof_count);
+    qdd = VectorNd::Zero(model.dof_count);
+    tau = VectorNd::Zero(model.dof_count);
+
+
+  }
+
+    Model model;
+
+    VectorNd q;
+    VectorNd qd;
+    VectorNd qdd;
+    VectorNd tau;
+
+    double l1;
+    double l2;
+    double m1;
+    double m2;
+
+    unsigned int idB1;
+    unsigned int idB2;
+
+};
+
+struct DoublePendulumAbsoluteCoordinates {
+  DoublePendulumAbsoluteCoordinates()
+    : model()
+    , cs()
+    , q()
+    , qd()
+    , qdd()
+    , tau()
+    , l1(1.)
+    , l2(1.)
+    , m1(1.)
+    , m2(1.)
+    , idB1(0)
+    , idB2(0)
+    , X_p1(Xtrans(Vector3d(0., 0., 0.)))
+    , X_s1(Xtrans(Vector3d(0., 0., 0.)))
+    , X_p2(Xtrans(Vector3d(0.,-l1, 0.)))
+    , X_s2(Xtrans(Vector3d(0., 0., 0.))){
+
+    model.gravity = Vector3d(0.,-9.81,0.);
+    //Planar pendulum is at 0 when it is hanging down.
+    //  x: points to the right
+    //  y: points up
+    //  z: out of the page
+    Body body01 = Body(0, Vector3d( 0.,0.,0.),
+                          Vector3d( 0.,0.,0.));
+
+    Body body02 = Body(0, Vector3d( 0.,0.,0.),
+                          Vector3d( 0.,0.,0.));
+
+    Body link1 = Body(m1, Vector3d( 0., -l1*0.5,          0.),
+                          Vector3d( 0.,      0., m1*l1*l1/3.));
+
+    Body link2 = Body(m2, Vector3d( 0., -l2*0.5,          0.),
+                          Vector3d( 0.,      0., m2*l2*l2/3.));
+    //Joint joint_free(JointTypeFloatingBase);
+    Joint joint_eulerXYZ(JointTypeEulerXYZ);
+    Joint joint_transXYZ(JointTypeTranslationXYZ);
+    Joint joint_rot_z = Joint(SpatialVector(0.,0.,1.,0.,0.,0.));
+
+    idB01 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
+                          joint_transXYZ, body01);
+    idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
+                         joint_eulerXYZ, link1);
+
+    //idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
+    //                      joint_rot_z, link1);
+
+    idB02 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
+                          joint_transXYZ, body02);
+    idB2  = model.AddBody(idB02, Xtrans(Vector3d(0., 0., 0.)),
+                         joint_eulerXYZ, link2);
+
+    //Make the revolute joints about the y axis using 5 constraints
+    //between the end points
+
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(0,0,0,1,0,0), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(0,0,0,0,1,0), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(0,0,0,0,0,1), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(1,0,0,0,0,0), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(0,1,0,0,0,0), false, 0.1);
+
+
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(0,0,0,1,0,0), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(0,0,0,0,1,0), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(0,0,0,0,0,1), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(1,0,0,0,0,0), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(0,1,0,0,0,0), false, 0.1);
+
+    cs.Bind(model);
+
+    q   = VectorNd::Zero(model.dof_count);
+    qd  = VectorNd::Zero(model.dof_count);
+    qdd = VectorNd::Zero(model.dof_count);
+    tau = VectorNd::Zero(model.dof_count);
+
+  }
+
+    Model model;
+    ConstraintSet cs;
+
+    VectorNd q;
+    VectorNd qd;
+    VectorNd qdd;
+    VectorNd tau;
+
+    double l1;
+    double l2;
+    double m1;
+    double m2;
+
+    unsigned int idB1;
+    unsigned int idB2;
+    unsigned int idB01;
+    unsigned int idB02;
+
+    SpatialTransform X_p1;
+    SpatialTransform X_s1;
+    SpatialTransform X_p2;
+    SpatialTransform X_s2;
+
+};
+
 struct FourBarLinkage {
 
   FourBarLinkage()
@@ -48,16 +217,24 @@ struct FourBarLinkage {
     Body virtual_body(0., vector3d_zero, vector3d_zero);
     Joint joint_rev_z(JointTypeRevoluteZ);
 
-    idB1 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_rev_z, link1);
-    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)), joint_rev_z, link2);
-    idB3 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_rev_z, link1);
-    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)), joint_rev_z, link2);
-    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)), joint_rev_z
+    idB1 = model.AddBody(0   , Xtrans(Vector3d(0., 0., 0.)),
+                         joint_rev_z, link1);
+    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)),
+                         joint_rev_z, link2);
+    idB3 = model.AddBody(0   , Xtrans(Vector3d(0., 0., 0.)),
+                         joint_rev_z, link1);
+    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)),
+                         joint_rev_z, link2);
+    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)),
+                         joint_rev_z
       , virtual_body);
 
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,1,0,0,0), 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
+                         SpatialVector(0,0,0,1,0,0), 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
+                         SpatialVector(0,0,0,0,1,0), 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
+                         SpatialVector(0,0,1,0,0,0), 0.1);
 
     cs.Bind(model);
 
@@ -125,19 +302,27 @@ struct FloatingFourBarLinkage {
 
     idB0 = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint_trans
       , virtual_body);
-    idB1 = model.AddBody(idB0, Xtrans(Vector3d(0., 0., 0.)), joint_rev_z, link1);
-    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)), joint_rev_z, link2);
-    idB3 = model.AddBody(idB0, Xtrans(Vector3d(0., 0., 0.)), joint_rev_z, link1);
-    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)), joint_rev_z, link2);
-    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)), joint_rev_z
+    idB1 = model.AddBody(idB0, Xtrans(Vector3d(0., 0., 0.)),
+                         joint_rev_z, link1);
+    idB2 = model.AddBody(idB1, Xtrans(Vector3d(l1, 0., 0.)),
+                         joint_rev_z, link2);
+    idB3 = model.AddBody(idB0, Xtrans(Vector3d(0., 0., 0.)),
+                         joint_rev_z, link1);
+    idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)),
+                         joint_rev_z, link2);
+    idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)),
+                         joint_rev_z
       , virtual_body);
 
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1,0,0));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0,1,0));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0,0,1));
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0,0,1,0,0,0), 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
+                         SpatialVector(0,0,0,1,0,0), 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
+                         SpatialVector(0,0,0,0,1,0), 0.1);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
+                         SpatialVector(0,0,1,0,0,0), 0.1);
 
     cs.Bind(model);
 
@@ -202,7 +387,7 @@ struct SliderCrank3D {
       , crank_link1_mass * crank_link1_length * crank_link1_length / 3.));
     Body crankLink2(crank_link2_mass
       , Vector3d(0.5 * crank_link2_length, 0., 0.)
-      , Vector3d(crank_link2_mass * crank_link2_radius * crank_link2_radius / 2.
+      , Vector3d(crank_link2_mass * crank_link2_radius * crank_link2_radius/2.
       , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
       + crank_link2_length * crank_link2_length) / 12.
       , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
@@ -223,12 +408,17 @@ struct SliderCrank3D {
       , joint_sphere, crankLink2);
 
     X_p = Xtrans(Vector3d(0., 0., slider_height));
-    X_s = SpatialTransform(roty(-0.5 * M_PI), Vector3d(crank_link2_length, 0, 0));
+    X_s = SpatialTransform(roty(-0.5 * M_PI),
+                           Vector3d(crank_link2_length, 0, 0));
 
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,0,1), 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,1,0,0,0), 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
+                         SpatialVector(0,0,0,1,0,0), 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
+                         SpatialVector(0,0,0,0,1,0), 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
+                         SpatialVector(0,0,0,0,0,1), 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
+                         SpatialVector(0,0,1,0,0,0), 0.1);
 
     cs.Bind(model);
 
@@ -238,8 +428,8 @@ struct SliderCrank3D {
     tau = VectorNd::Zero(model.dof_count);
 
     Matrix3d rot_ps 
-      = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
-      * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
+      = (CalcBodyWorldOrientation(model,q,id_p).transpose()*X_p.E).transpose()
+      *  CalcBodyWorldOrientation(model,q,id_s).transpose()*X_s.E;
     assert(rot_ps(0,0) - 1. < TEST_PREC);
     assert(rot_ps(1,1) - 1. < TEST_PREC);
     assert(rot_ps(2,2) - 1. < TEST_PREC);
@@ -298,7 +488,7 @@ struct SliderCrank3DSphericalJoint {
       , crank_link1_mass * crank_link1_length * crank_link1_length / 3.));
     Body crankLink2(crank_link2_mass
       , Vector3d(0.5 * crank_link2_length, 0., 0.)
-      , Vector3d(crank_link2_mass * crank_link2_radius * crank_link2_radius / 2.
+      , Vector3d(crank_link2_mass * crank_link2_radius * crank_link2_radius/2.
       , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
       + crank_link2_length * crank_link2_length) / 12.
       , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
@@ -319,12 +509,12 @@ struct SliderCrank3DSphericalJoint {
       , joint_sphere, crankLink2);
 
     X_p = Xtrans(Vector3d(0., 0., slider_height));
-    X_s = SpatialTransform(roty(-0.5 * M_PI), Vector3d(crank_link2_length, 0, 0));
+    X_s = SpatialTransform(roty(-0.5 * M_PI),Vector3d(crank_link2_length,0,0));
 
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0), 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0), 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,0,1), 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,1,0,0,0), 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0),0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0),0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,0,1),0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,1,0,0,0),0.1);
 
     cs.Bind(model);
 
@@ -334,8 +524,8 @@ struct SliderCrank3DSphericalJoint {
     tau = VectorNd::Zero(model.dof_count);
 
     Matrix3d rot_ps 
-      = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
-      * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
+      = (CalcBodyWorldOrientation(model,q,id_p).transpose()*X_p.E).transpose()
+       * CalcBodyWorldOrientation(model,q,id_s).transpose()*X_s.E;
     assert(rot_ps(0,0) - 1. < TEST_PREC);
     assert(rot_ps(1,1) - 1. < TEST_PREC);
     assert(rot_ps(2,2) - 1. < TEST_PREC);
@@ -786,8 +976,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
     , 6, TEST_PREC);
 
   // Note:
-  // The Range Space Sparse method can't be used because the H matrix has a 0 on
-  // the diagonal and the LTL factorization tries to divide by 0.
+  // The Range Space Sparse method can't be used because the H matrix has a 0
+  // on the diagonal and the LTL factorization tries to divide by 0.
 
   // Note:
   // LinearSolverPartialPivLU does not work because the A matrix in the dynamic
@@ -1097,7 +1287,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
   Matrix3d rot_ps 
-    = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
+    = (CalcBodyWorldOrientation(model, q, id_p).transpose()*X_p.E).transpose()
     * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
   assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
@@ -1788,7 +1978,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
 
   // Test in another configuration.
-  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.01, 0.01));
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25*M_PI,0.01,0.01));
   q[0] = 0.4;
   q[1] = 0.25 * M_PI;
   model.SetQuaternion(id_s, quat, q);
@@ -1841,7 +2031,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   qWeights[3] = 1.;
   qWeights[4] = 1.;
 
-  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1,0.1));
   qInit[0] = 0.4;
   qInit[1] = 0.25 * M_PI;
   model.SetQuaternion(id_s, quat, qInit);
@@ -1882,7 +2072,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   weights[3] = 1.;
   weights[4] = 1.;
 
-  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1,0.1));
   qInit[0] = 0.4;
   qInit[1] = 0.25 * M_PI;
   model.SetQuaternion(id_s, quat, qInit);
@@ -1917,7 +2107,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   qWeights[3] = 1.;
   qWeights[4] = 1.;
 
-  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1,0.1));
   qInit[0] = 0.4;
   qInit[1] = 0.25 * M_PI;
   model.SetQuaternion(id_s, quat, qInit);
@@ -2008,7 +2198,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   qWeights[3] = 1.;
   qWeights[4] = 1.;
 
-  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1,0.1));
   qInit[0] = 0.4;
   qInit[1] = 0.25 * M_PI;
   model.SetQuaternion(id_s, quat, qInit);
@@ -2088,7 +2278,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   qWeights[3] = 1.;
   qWeights[4] = 1.;
 
-  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1, 0.1));
+  Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25 * M_PI, 0.1,0.1));
   qInit[0] = 0.4;
   qInit[1] = 0.25 * M_PI;
   model.SetQuaternion(id_s, quat, qInit);
@@ -2143,4 +2333,139 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
 
   CHECK_ARRAY_CLOSE(cs.v_plus, errdNullSpace, cs.size(), TEST_PREC);
+}
+
+TEST(ConstraintCorrectnessTest) {
+  DoublePendulumAbsoluteCoordinates dba = DoublePendulumAbsoluteCoordinates();
+  DoublePendulumJointCoordinates dbj = DoublePendulumJointCoordinates();
+
+
+  //1. Set the pendulum modeled using joint coordinates to a specific
+  //    state and then compute the spatial acceleration of the body.
+  dbj.q[0]  = M_PI/3.0;
+  dbj.q[1]  = 0;//M_PI/3.0;
+  dbj.qd[0] = M_PI;
+  dbj.qd[1] = 0;
+  dbj.tau[0]= 0.;
+  dbj.tau[1]= 0.;
+
+  ForwardDynamics(dbj.model,dbj.q,dbj.qd,dbj.tau,dbj.qdd);
+
+  Vector3d r010 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB1,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d r020 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d r030 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(0.,-dbj.l2,0.),true);
+
+  Vector3d v010 = CalcPointVelocity(
+                    dbj.model,dbj.q,dbj.qd,dbj.idB1,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d v020 = CalcPointVelocity(
+                    dbj.model,dbj.q,dbj.qd,dbj.idB2,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d v030 = CalcPointVelocity(
+                    dbj.model,dbj.q,dbj.qd,dbj.idB2,
+                    Vector3d(0.,-dbj.l2,0.),true);
+
+  SpatialVector a010 = CalcPointAcceleration6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.qdd,
+                        dbj.idB1,Vector3d(0.,0.,0.),true);
+  SpatialVector a020 = CalcPointAcceleration6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.qdd,
+                        dbj.idB2,Vector3d(0.,0.,0.),true);
+  SpatialVector a030 = CalcPointAcceleration6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.qdd,
+                        dbj.idB2,Vector3d(0.,-dbj.l2,0.),true);
+
+  //2. Set the pendulum modelled using absolute coordinates to the
+  //   equivalent state as the pendulum modelled using joint
+  //   coordinates. Next
+
+  /*
+  dba.q[0]  = dbj.q[0];
+  dba.q[1]  = r020[0];
+  dba.q[2]  = r020[1];
+  dba.q[3]  = r020[2];
+  dba.q[4]  = 0;
+  dba.q[5]  = 0;
+  dba.q[6]  = dbj.q[0]+dbj.q[1];
+
+  dba.qd[0]  = dbj.qd[0];
+  dba.qd[1]  = v020[0];
+  dba.qd[2]  = v020[1];
+  dba.qd[3]  = v020[2];
+  dba.qd[4]  = 0;
+  dba.qd[5]  = 0;
+  dba.qd[6]  = dbj.qd[0]+dbj.qd[1];
+  */
+
+
+  dba.q[0]  = r010[0];
+  dba.q[1]  = r010[1];
+  dba.q[2]  = r010[2];
+  dba.q[3]  = 0;
+  dba.q[4]  = 0;
+  dba.q[5]  = dbj.q[0];
+  dba.q[6]  = r020[0];
+  dba.q[7]  = r020[1];
+  dba.q[8]  = r020[2];
+  dba.q[9]  = 0;
+  dba.q[10] = 0;
+  dba.q[11] = dbj.q[0]+dbj.q[1];
+
+  dba.qd[0]  = v010[0];
+  dba.qd[1]  = v010[1];
+  dba.qd[2]  = v010[2];
+  dba.qd[3]  = 0;
+  dba.qd[4]  = 0;
+  dba.qd[5]  = dbj.qd[0];
+  dba.qd[6]  = v020[0];
+  dba.qd[7]  = v020[1];
+  dba.qd[8]  = v020[2];
+  dba.qd[9]  = 0;
+  dba.qd[10] = 0;
+  dba.qd[11] = dbj.qd[0]+dbj.qd[1];
+
+  VectorNd err(dba.cs.size());
+  VectorNd errd(dba.cs.size());
+
+  CalcConstraintsPositionError(dba.model,dba.q,dba.cs,err,true);
+  CalcConstraintsVelocityError(dba.model,dba.q,dba.qd,dba.cs,errd,true);
+
+  //The constraint errors at the position and velocity level
+  //must be zero before the accelerations can be tested.
+  for(unsigned int i=0; i<err.rows();++i){
+    CHECK_CLOSE(0,err[i],TEST_PREC);
+  }
+  for(unsigned int i=0; i<errd.rows();++i){
+    CHECK_CLOSE(0,errd[i],TEST_PREC);
+  }
+
+  //Evaluate the accelerations of the constrained pendulum and
+  //compare those to the joint-coordinate pendulum
+  for(unsigned int i=0; i<dba.tau.rows();++i){
+    dba.tau[i] = 0.;
+  }
+  ForwardDynamicsConstraintsDirect(dba.model,dba.q,dba.qd,
+                                   dba.tau,dba.cs,dba.qdd);
+  SpatialVector a010c =
+      CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB1,Vector3d(0.,0.,0.),true);
+  SpatialVector a020c =
+      CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB2,Vector3d(0.,0.,0.),true);
+  SpatialVector a030c =
+      CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB2,Vector3d(0.,-dba.l2,0.),true);
+
+  for(unsigned int i=0; i<6;++i){
+    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
+    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
+    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+  }
+
 }

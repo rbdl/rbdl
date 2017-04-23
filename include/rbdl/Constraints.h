@@ -302,6 +302,39 @@ struct RBDL_DLLAPI ConstraintSet {
     const char *constraint_name = NULL
     );
 
+	/** \brief Adds a loop constraint to the constraint set.
+	 *
+	 * This type of constraints ensures that the relative orientation and position,
+	 * spatial velocity, and spatial acceleration between two frames in two bodies
+	 * are null along a specified spatial constraint axis.
+	 *
+	 * \param id_predecessor the identifier of the predecessor body
+	 * \param id_successor the identifier of the successor body
+	 * \param X_predecessor a spatial transform localizing the constrained
+	 * frames on the predecessor body, expressed with respect to the predecessor
+	 * body frame
+	 * \param X_successor a spatial transform localizing the constrained
+	 * frames on the successor body, expressed with respect to the successor
+	 * body frame
+	 * \param axis a spatial vector indicating the axis along which the constraint
+	 * acts
+	 * \param enable_baumgarte indicates if baumgarte is used or not
+	 * \param T_stab_inv coefficient for Baumgarte stabilization, meaningless
+	 * if enable_baumgarte is false
+	 * \param constraint_name a human readable name (optional, default: NULL)
+	 *
+	 */
+	unsigned int AddLoopConstraint(unsigned int id_predecessor,
+		unsigned int id_successor,
+		const Math::SpatialTransform &X_predecessor,
+		const Math::SpatialTransform &X_successor,
+		const Math::SpatialVector &axis,
+		bool baumgarte_enabled,
+		double T_stab_inv,
+		const char *constraint_name = NULL
+		);
+
+
   /** \brief Copies the constraints and resets its ConstraintSet::bound
    * flag.
    */

@@ -87,7 +87,7 @@ unsigned int ConstraintSet::AddContactConstraint (
 }
 
 unsigned int ConstraintSet::AddLoopConstraint (
-  unsigned int id_predecessor, 
+  unsigned int id_predecessor,
   unsigned int id_successor,
   const Math::SpatialTransform &X_predecessor,
   const Math::SpatialTransform &X_successor,
@@ -95,6 +95,35 @@ unsigned int ConstraintSet::AddLoopConstraint (
   double T_stabilization,
   const char *constraint_name
   ) {
+  return AddLoopConstraint (
+      id_predecessor,
+      id_successor,
+      X_predecessor,
+      X_successor,
+      axis,
+      true,
+      T_stabilization,
+      constraint_name);
+}
+
+unsigned int ConstraintSet::AddLoopConstraint (
+  unsigned int id_predecessor, 
+  unsigned int id_successor,
+  const Math::SpatialTransform &X_predecessor,
+  const Math::SpatialTransform &X_successor,
+  const Math::SpatialVector& axis,
+  bool baumgarte_enabled,
+  double T_stabilization,
+  const char *constraint_name
+  ) {
+
+  if (baumgarte_enabled && T_stabilization == 0.) {
+    std::cerr << "Error: Given T_stab_inv is 0, but this would cause the "
+                 "stabilization parameter to be INF which is forbidden."
+              << std::endl;
+    abort();
+  }
+
   assert (bound == false);
 
   unsigned int n_constr = size() + 1;
@@ -114,13 +143,18 @@ unsigned int ConstraintSet::AddLoopConstraint (
   X_p.push_back (X_predecessor);
   X_s.push_back (X_successor);
   constraintAxis.push_back (axis);
-  T_stab_inv.push_back (1. / T_stabilization);
+  if (baumgarte_enabled) {
+    T_stab_inv.push_back (1. / T_stabilization);
+  } else {
+    T_stab_inv.push_back (0.);
+  }
   err.conservativeResize(n_constr);
   err[n_constr - 1] = 0.;
   errd.conservativeResize(n_constr);
   errd[n_constr - 1] = 0.;
 
-  // These variables will not be used.
+  // These variables will not be used by loop constraints but are necessary
+  // for point constraints.
   body.push_back (0);
   point.push_back (Vector3d::Zero());
   normal.push_back (Vector3d::Zero());
@@ -445,7 +479,7 @@ void CalcConstraintsPositionError (
     pos_s = CalcBodyToBaseCoordinates (model, Q, CS.body_s[lci], CS.X_s[lci].r
       , false);
 
-    // The first three elemenets represent the rotation error.
+    // The first three elements represent the rotation error.
     // This formulation is equivalent to u * sin(theta), where u and theta are
     // the angle-axis of rotation from the predecessor to the successor frame.
     // These quantities are expressed in the predecessor frame.
@@ -478,8 +512,6 @@ void CalcConstraintsJacobian (
   }
 
   // variables to check whether we need to recompute G.
-  ConstraintSet::ConstraintType prev_constraint_type 
-    = ConstraintSet::ConstraintTypeLast;
   unsigned int prev_body_id_1 = 0;
   unsigned int prev_body_id_2 = 0;
   SpatialTransform prev_body_X_1;
@@ -489,14 +521,12 @@ void CalcConstraintsJacobian (
     const unsigned int c = CS.contactConstraintIndices[i];
 
     // only compute the matrix Gi if actually needed
-    if (prev_constraint_type != CS.constraintType[c]
-        || prev_body_id_1 != CS.body[c] 
+    if (prev_body_id_1 != CS.body[c] 
         || prev_body_X_1.r != CS.point[c]) {
 
       // Compute the jacobian for the point.
       CS.Gi.setZero();
       CalcPointJacobian (model, Q, CS.body[c], CS.point[c], CS.Gi, false);
-      prev_constraint_type = ConstraintSet::ContactConstraint;
 
       // Update variables for optimization check.
       prev_body_id_1 = CS.body[c];
@@ -542,7 +572,6 @@ void CalcConstraintsJacobian (
       X_0p = SpatialTransform (rot_p, pos_p);
 
       // Update variables for optimization check.
-      prev_constraint_type = ConstraintSet::LoopConstraint;
       prev_body_id_1 = CS.body_p[c];
       prev_body_id_2 = CS.body_s[c];
       prev_body_X_1 = CS.X_p[c];
@@ -637,34 +666,36 @@ void CalcConstrainedSystemVariables (
     unsigned int id_p;
     unsigned int id_s;
 
-    // Force recomputation.
-    prev_body_id = 0;
 
     // Express the constraint axis in the base frame.
-    pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[c], CS.X_p[c].r
-        , false);
-    rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[c], false).transpose()
-      * CS.X_p[c].E;
-    axis = SpatialTransform (rot_p, pos_p).apply(CS.constraintAxis[c]);
+    Vector3d pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[c]
+      , CS.X_p[c].r, false);
+    Matrix3d rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[c], false)
+      .transpose() * CS.X_p[c].E;
+    SpatialVector axis = SpatialTransform (rot_p, pos_p)
+      .apply(CS.constraintAxis[c]);
 
     // Compute the spatial velocities of the two constrained bodies.
-    vel_p = CalcPointVelocity6D (model, Q, QDot, CS.body_p[c], CS.X_p[c].r
-        , false);
-    vel_s = CalcPointVelocity6D (model, Q, QDot, CS.body_s[c], CS.X_s[c].r
-        , false);
+    SpatialVector vel_p = CalcPointVelocity6D (model, Q, QDot, CS.body_p[c]
+      , CS.X_p[c].r, false);
+    SpatialVector vel_s = CalcPointVelocity6D (model, Q, QDot, CS.body_s[c]
+      , CS.X_s[c].r, false);
 
-    // Check if the bodies involved in the constraint are fixed. If yes, find
-    // their movable parent to access the right value in the a vector.
-    // This is needed because we access the model.a vector directly later.
-    id_p = GetMovableBodyId (model, CS.body_p[c]);
-    id_s = GetMovableBodyId (model, CS.body_s[c]);
+    // Compute the derivative of the axis wrt the base frame.
+    SpatialVector axis_dot = crossm(vel_s, CS.constraintAxis[c]);
+
+    // Compute the velocity product accelerations. These correspond to the
+    // accelerations that the bodies would have if q ddot were 0.
+    SpatialVector acc_p = CalcPointAcceleration6D (model, Q, QDot
+      , VectorNd::Zero(model.dof_count), CS.body_p[c], CS.X_p[c].r, false);
+    SpatialVector acc_s = CalcPointAcceleration6D (model, Q, QDot
+      , VectorNd::Zero(model.dof_count), CS.body_s[c], CS.X_s[c].r, false);
 
     // Problem here if one of the bodies is fixed...
     // Compute the value of gamma.
     CS.gamma[c]
       // Right hand side term.
-      = - axis.transpose() * (model.a[id_s] - model.a[id_p]
-          + crossm(vel_s, vel_p))
+      = - axis.dot(acc_s - acc_p) - axis_dot.dot(vel_s - vel_p)
       // Baumgarte stabilization term.
       - 2. * CS.T_stab_inv[c] * CS.errd[c]
       - CS.T_stab_inv[c] * CS.T_stab_inv[c] * CS.err[c];
