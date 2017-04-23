@@ -512,8 +512,6 @@ void CalcConstraintsJacobian (
   }
 
   // variables to check whether we need to recompute G.
-  ConstraintSet::ConstraintType prev_constraint_type 
-    = ConstraintSet::ConstraintTypeLast;
   unsigned int prev_body_id_1 = 0;
   unsigned int prev_body_id_2 = 0;
   SpatialTransform prev_body_X_1;
@@ -523,14 +521,12 @@ void CalcConstraintsJacobian (
     const unsigned int c = CS.contactConstraintIndices[i];
 
     // only compute the matrix Gi if actually needed
-    if (prev_constraint_type != CS.constraintType[c]
-        || prev_body_id_1 != CS.body[c] 
+    if (prev_body_id_1 != CS.body[c] 
         || prev_body_X_1.r != CS.point[c]) {
 
       // Compute the jacobian for the point.
       CS.Gi.setZero();
       CalcPointJacobian (model, Q, CS.body[c], CS.point[c], CS.Gi, false);
-      prev_constraint_type = ConstraintSet::ContactConstraint;
 
       // Update variables for optimization check.
       prev_body_id_1 = CS.body[c];
@@ -576,7 +572,6 @@ void CalcConstraintsJacobian (
       X_0p = SpatialTransform (rot_p, pos_p);
 
       // Update variables for optimization check.
-      prev_constraint_type = ConstraintSet::LoopConstraint;
       prev_body_id_1 = CS.body_p[c];
       prev_body_id_2 = CS.body_s[c];
       prev_body_X_1 = CS.X_p[c];
@@ -661,9 +656,6 @@ void CalcConstrainedSystemVariables (
 
   for (unsigned int i = 0; i < CS.loopConstraintIndices.size(); i++) {
     const unsigned int c = CS.loopConstraintIndices[i];
-
-    // Force recomputation.
-    prev_body_id = 0;
 
     // Express the constraint axis in the base frame.
     Vector3d pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[c]
