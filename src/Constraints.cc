@@ -153,7 +153,8 @@ unsigned int ConstraintSet::AddLoopConstraint (
   errd.conservativeResize(n_constr);
   errd[n_constr - 1] = 0.;
 
-  // These variables will not be used.
+  // These variables will not be used by loop constraints but are necessary
+  // for point constraints.
   body.push_back (0);
   point.push_back (Vector3d::Zero());
   normal.push_back (Vector3d::Zero());
@@ -478,7 +479,7 @@ void CalcConstraintsPositionError (
     pos_s = CalcBodyToBaseCoordinates (model, Q, CS.body_s[lci], CS.X_s[lci].r
       , false);
 
-    // The first three elemenets represent the rotation error.
+    // The first three elements represent the rotation error.
     // This formulation is equivalent to u * sin(theta), where u and theta are
     // the angle-axis of rotation from the predecessor to the successor frame.
     // These quantities are expressed in the predecessor frame.
