@@ -95,7 +95,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
 	double T_stabilization,
 	const char *constraint_name
 	) {
-	AddLoopConstraint (
+	return AddLoopConstraint (
 			id_predecessor,
 			id_successor,
 			X_predecessor,
@@ -122,7 +122,6 @@ unsigned int ConstraintSet::AddLoopConstraint (
 								 "stabilization parameter to be INF which is forbidden."
 							<< std::endl;
 		abort();
-    return std::numeric_limits<unsigned int>::max();
 	}
 
   assert (bound == false);
