@@ -668,18 +668,17 @@ void CalcConstrainedSystemVariables (
 
 
     // Express the constraint axis in the base frame.
-    Vector3d pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[c]
-      , CS.X_p[c].r, false);
-    Matrix3d rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[c], false)
-      .transpose() * CS.X_p[c].E;
-    SpatialVector axis = SpatialTransform (rot_p, pos_p)
-      .apply(CS.constraintAxis[c]);
+    pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[c], 
+                                      CS.X_p[c].r,false);
+    rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[c], false
+                                        ).transpose() * CS.X_p[c].E;
+    axis = SpatialTransform (rot_p, pos_p).apply(CS.constraintAxis[c]);
 
     // Compute the spatial velocities of the two constrained bodies.
-    SpatialVector vel_p = CalcPointVelocity6D (model, Q, QDot, CS.body_p[c]
-      , CS.X_p[c].r, false);
-    SpatialVector vel_s = CalcPointVelocity6D (model, Q, QDot, CS.body_s[c]
-      , CS.X_s[c].r, false);
+    vel_p = CalcPointVelocity6D (model, Q, QDot, CS.body_p[c],
+                                  CS.X_p[c].r, false);
+    vel_s = CalcPointVelocity6D (model, Q, QDot, CS.body_s[c],
+                                  CS.X_s[c].r, false);
 
     // Compute the derivative of the axis wrt the base frame.
     SpatialVector axis_dot = crossm(vel_s, CS.constraintAxis[c]);
