@@ -375,6 +375,14 @@ cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx):
 
     return result
 
+cdef np.ndarray Matrix3dToNumpy (crbdl.Matrix3d cM):
+    result = np.ndarray ([3, 3])
+    for i in range (3):
+        for j in range (3):
+            result[i,j] = cM.coeff(i,j)
+
+    return result
+
 # VectorNd
 cdef crbdl.VectorNd NumpyToVectorNd (np.ndarray[double, ndim=1, mode="c"] x):
     cdef crbdl.VectorNd cx = crbdl.VectorNd(x.shape[0])
@@ -1882,6 +1890,17 @@ def CalcBaseToBodyCoordinates (Model model,
             NumpyToVectorNd (q),
             body_id,
             NumpyToVector3d (body_point_position),
+            update_kinematics
+            ))
+
+def CalcBodyWorldOrientation (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        int body_id,
+        update_kinematics=True):
+    return Matrix3dToNumpy (crbdl.CalcBodyWorldOrientation (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            body_id,
             update_kinematics
             ))
 

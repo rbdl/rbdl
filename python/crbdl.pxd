@@ -240,6 +240,11 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const Vector3d &body_point_coordinates,
             bool update_kinematics)
 
+    cdef Matrix3d CalcBodyWorldOrientation (Model& model,
+            const VectorNd &q,
+            const unsigned int body_id,
+            bool update_kinematics)
+
     cdef Vector3d CalcPointVelocity (Model& model,
             const VectorNd &q,
             const VectorNd &qdot,
