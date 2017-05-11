@@ -481,11 +481,6 @@ TEST(TorqueAngularVelocityCurve)
         -1.1,
          1.1);
     }
-    tv.printCurveToCSVFile(
-    "",
-    "millard2016TorqueVelocityCurve",
-    -1.1,
-     1.1);
 
 }
 
@@ -774,6 +769,89 @@ TEST(TendonTorqueAngleCurve)
       "millard2016ActiveTorqueAngleCurve",
       curveDomain0[0]-0.1,
       angularStretchAtOneNormTorque);
+  }
+
+}
+
+//==============================================================================
+TEST(DampingBlendingCurve)
+{
+  SmoothSegmentedFunction negOne     = SmoothSegmentedFunction();
+  SmoothSegmentedFunction posOne     = SmoothSegmentedFunction();
+
+  std::string curveName0("neg1");
+  std::string curveName1("pos1");
+
+
+  TorqueMuscleFunctionFactory::createDampingBlendingCurve(
+                                -1.0,curveName0,negOne);
+
+  TorqueMuscleFunctionFactory::createDampingBlendingCurve(
+                                 1.0,curveName0,posOne);
+
+
+  CHECK(abs(negOne.calcValue(0)) < TOL_SMALL);
+  CHECK(abs(posOne.calcValue(0)) < TOL_SMALL);
+
+  CHECK(abs(negOne.calcValue(-1.0)-1.0) < TOL_SMALL);
+  CHECK(abs(posOne.calcValue(1.0)-1.0) < TOL_SMALL);
+
+  CHECK(abs(negOne.calcDerivative( 0,1)) < TOL_SMALL);
+  CHECK(abs(negOne.calcDerivative(-1,1)) < TOL_SMALL);
+
+  CHECK(abs(posOne.calcDerivative( 0,1)) < TOL_SMALL);
+  CHECK(abs(posOne.calcDerivative( 1,1)) < TOL_SMALL);
+
+  RigidBodyDynamics::Math::VectorNd curveDomainNegOne =  negOne.getCurveDomain();
+  RigidBodyDynamics::Math::VectorNd curveDomainPosOne = posOne.getCurveDomain();
+
+  RigidBodyDynamics::Math::MatrixNd sampleNegOne
+      = negOne.calcSampledCurve( 6,
+            curveDomainNegOne[0]-0.1,
+            curveDomainNegOne[1]+0.1);
+
+  RigidBodyDynamics::Math::MatrixNd samplePosOne
+      = posOne.calcSampledCurve( 6,
+            curveDomainPosOne[0]-0.1,
+            curveDomainPosOne[1]+0.1);
+
+  bool areCurveDerivativesGood =
+   areCurveDerivativesCloseToNumericDerivatives(
+    negOne,
+    sampleNegOne,
+    TOL_DX);
+
+  CHECK(areCurveDerivativesGood);
+
+  areCurveDerivativesGood =
+     areCurveDerivativesCloseToNumericDerivatives(
+      posOne,
+      samplePosOne,
+      TOL_DX);
+
+  CHECK(areCurveDerivativesGood);
+  bool curveIsContinuous = isCurveC2Continuous( negOne,
+                                                sampleNegOne,
+                                                TOL_BIG);
+  CHECK(curveIsContinuous);
+  curveIsContinuous = isCurveC2Continuous(posOne,
+                                          samplePosOne,
+                                          TOL_BIG);
+  CHECK(curveIsContinuous);
+
+  bool curveIsMonotonic = isCurveMontonic(sampleNegOne);
+  CHECK(curveIsMonotonic);
+
+  curveIsMonotonic = isCurveMontonic(samplePosOne);
+  CHECK(curveIsMonotonic);
+
+
+  if(FLAG_PLOT_CURVES){
+      negOne.printCurveToCSVFile(
+      FILE_PATH,
+      "millard2016DampingBlendingCurve",
+      curveDomainNegOne[0]-0.1,
+      curveDomainNegOne[1]+0.1);
   }
 
 }

@@ -264,8 +264,15 @@ double const Millard2016TorqueMuscle::GymnastWholeBody[22][12] =
   {5,7,0,0,12.976 , 27.88,   -0.212389, 0.991803, 1.3877,  0.207506,  0.785398,  1.5708   },
   {5,9,0,0,31.4217, 18.02,    0.43,     1.47849,  1.34817, 0.196913,  0,         -0.523599},
   {5,8,0,0,23.8345, 21.77,   -1.14319,  2.56082,  1.31466, 0.2092,    0.349066,  0.872665 },
+  {6,0,0,0,687.864, 7.98695,  1.5506,   1.14543,  1.1,     0.150907,  0.306223,  1.35342  },
+  {6,1,0,0,211.65 , 19.2310,       0,   6.28319,  1.1,     0.150907,  0,        -0.785398 }};
+
+
+/*
+ Original lumbar parameters
   {6,0,0,0,687.864, 1.0472,   1.5506,   1.14543,  1.1,     0.45,      0.306223,  1.35342  },
   {6,1,0,0,211.65 , 0.523599, 0,        6.28319,  1.1,     0.45,      0,        -0.785398 }};
+*/
 
 /*************************************************************
  Map that goes from a single joint-torque-direction index to
@@ -341,6 +348,10 @@ Millard2016TorqueMuscle::
         muscleName("empty")
 {
   muscleCurvesAreDirty = true;
+  useTabularMaxActiveIsometricTorque = true;
+  useTabularOmegaMax = true;
+  passiveTorqueScale = 1.0;
+
 }
 
 Millard2016TorqueMuscle::Millard2016TorqueMuscle(
@@ -359,10 +370,11 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
   dataSet(dataSet)
 {
 
-    subjectHeightInMeters  = subjectInfo.heightInMeters;
-    subjectMassInKg        = subjectInfo.massInKg;
+    subjectHeightInMeters   = subjectInfo.heightInMeters;
+    subjectMassInKg         = subjectInfo.massInKg;
     passiveCurveAngleOffset = 0.;
-    beta = 0.1;
+    passiveTorqueScale      = 1.0;
+    betaMax = 0.1;
 
     int gender                    = (int) subjectInfo.gender;
     int ageGroup                  = (int) subjectInfo.ageGroup;
@@ -534,7 +546,8 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
 
 
     muscleCurvesAreDirty = true;
-    passiveTorqueScale = 1.0;
+    useTabularMaxActiveIsometricTorque = true;
+    useTabularOmegaMax = true;    
     updateTorqueMuscleCurves();
 
 
@@ -558,25 +571,118 @@ double Millard2016TorqueMuscle::
     mutableThis->updateTorqueMuscleCurves();
   }
 
+
     double fiberAngle    = calcFiberAngle(jointAngle);
-    double fiberVelocity = calcFiberAngularVelocity(jointAngularVelocity);
+    double fiberVelocity = calcFiberAngularVelocity(
+                            jointAngularVelocity);
     double ta = taCurve.calcValue(fiberAngle);
     double tp = tpCurve.calcValue(fiberAngle);
     double fiberVelocityNorm = fiberVelocity/omegaMax;
     double tv = tvCurve.calcValue(fiberVelocityNorm);
-
+    //double beta = betaMax*betaCurve.calcValue(fiberVelocityNorm);
 
     double jointTorque =  maxActiveIsometricTorque*(
                               activation*ta*tv
-                            + passiveTorqueScale*tp
-                            - beta*fiberVelocityNorm);
-    if(jointTorque < 0){
-      jointTorque = 0;
-    }
+                            + tp*(1 - betaMax*fiberVelocityNorm));
 
     return jointTorque*signOfJointTorque;
 }
 
+void Millard2016TorqueMuscle::
+    calcActivation(double jointAngle,
+                   double jointAngularVelocity,
+                   double jointTorque,
+                   TorqueMuscleSummary &tms) const
+{
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+
+  double activation = 0.;
+
+  tms.activation = activation;
+  tms.fiberActiveTorqueAngleMultiplier = 0.;
+  tms.fiberActiveTorqueAngularVelocityMultiplier = 0.;
+  tms.fiberNormalizedDampingTorque = 0.;
+  tms.fiberPassiveTorqueAngleMultiplier = 0.;
+  tms.fiberTorque = 0.;
+  tms.jointTorque = 0.;
+
+  if(jointTorque*signOfJointTorque > SQRTEPSILON){
+    double fiberAngle    = calcFiberAngle(jointAngle);
+    double fiberVelocity = calcFiberAngularVelocity(
+                            jointAngularVelocity);
+    double ta = taCurve.calcValue(fiberAngle);
+    double tp = tpCurve.calcValue(fiberAngle);
+    double fiberVelocityNorm = fiberVelocity/omegaMax;
+    double tv = tvCurve.calcValue(fiberVelocityNorm);
+    //double beta = betaMax*betaCurve.calcValue(fiberVelocityNorm);
+
+    double fiberTorque = jointTorque*signOfJointTorque;
+
+    /*
+    double jointTorque =  maxActiveIsometricTorque*(
+                              activation*ta*tv
+                            + tp
+                            - beta*fiberVelocityNorm);
+    */
+    activation = ((fiberTorque/maxActiveIsometricTorque)
+                - tp*(1-betaMax*fiberVelocityNorm))
+                 /(ta*tv);
+
+    tms.activation = activation;
+    tms.fiberActiveTorqueAngleMultiplier = ta;
+    tms.fiberActiveTorqueAngularVelocityMultiplier = tv;
+    tms.fiberNormalizedDampingTorque = -tp*betaMax*fiberVelocityNorm;
+    tms.fiberPassiveTorqueAngleMultiplier = tp;
+    tms.fiberTorque = fiberTorque;
+    tms.jointTorque = jointTorque;
+
+  }
+
+
+}
+
+double Millard2016TorqueMuscle::
+    calcMaximumActiveIsometricTorqueScalingFactor(
+          double jointAngle,
+          double jointAngularVelocity,
+          double activation,
+          double jointTorque) const
+{
+
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+
+  double scaleFactor = 0.;
+
+  if(jointTorque*signOfJointTorque > SQRTEPSILON){
+    double fiberAngle    = calcFiberAngle(jointAngle);
+    double fiberVelocity = calcFiberAngularVelocity(
+                            jointAngularVelocity);
+    double ta = taCurve.calcValue(fiberAngle);
+    double tp = tpCurve.calcValue(fiberAngle);
+    double fiberVelocityNorm = fiberVelocity/omegaMax;
+    double tv = tvCurve.calcValue(fiberVelocityNorm);
+    //double beta = betaMax*betaCurve.calcValue(fiberVelocityNorm);
+
+    double fiberTorqueUpd = jointTorque*signOfJointTorque;
+
+    double maxActiveIsometricTorqueUpd =
+           fiberTorqueUpd/( activation*ta*tv
+                          + tp*(1-betaMax*fiberVelocityNorm));
+
+
+    scaleFactor = maxActiveIsometricTorqueUpd
+                        /maxActiveIsometricTorque;
+  }
+  return scaleFactor;
+}
 
 
 void Millard2016TorqueMuscle::
@@ -585,6 +691,8 @@ void Millard2016TorqueMuscle::
                         double activation,
                         TorqueMuscleInfo& tmi) const
 {
+
+
   if(muscleCurvesAreDirty){
     Millard2016TorqueMuscle* mutableThis =
         const_cast<Millard2016TorqueMuscle* >(this);
@@ -594,28 +702,24 @@ void Millard2016TorqueMuscle::
     double fiberAngle    = calcFiberAngle(jointAngle);
     double fiberAngularVelocity = calcFiberAngularVelocity(jointAngularVelocity);
     double ta = taCurve.calcValue(fiberAngle);
-    double tp = passiveTorqueScale*tpCurve.calcValue(fiberAngle);
+    double tp = tpCurve.calcValue(fiberAngle);
 
     double omegaNorm  = fiberAngularVelocity/omegaMax;
     double D_wn_w     = 1.0/omegaMax;
     double tv         = tvCurve.calcValue(omegaNorm);
 
-    double betaUpd    = beta;
-    double tb         = -betaUpd*omegaNorm;
+    double beta        = betaMax;//betaMax*betaCurve.calcValue(omegaNorm);
+    double D_beta_D_wn = 0;
 
-    //The jointTorque is not allowed to go below 0, as this corresponds
-    //to the muscle pushing. If the joint torque is going negative, we update
-    //beta so that it will perfectly zero the joint torque.
-    if(activation*ta*tv + passiveTorqueScale*tp + tb < 0){
-      betaUpd = (activation*ta*tv + passiveTorqueScale*tp)/omegaNorm;
-      tb         = -betaUpd*omegaNorm;
-    }
+    double tb         = -tp*beta*omegaNorm;
+    double D_tb_Dwn   = -tp*beta;//-beta - D_beta_D_wn*omegaNorm;
 
     double D_ta_DfiberAngle = taCurve.calcDerivative(fiberAngle,1);
-    double D_tp_DfiberAngle = passiveTorqueScale*tpCurve.calcDerivative(fiberAngle,1);
+    double D_tp_DfiberAngle = tpCurve.calcDerivative(fiberAngle,1);
     double D_tv_DfiberAngularVelocity
         = tvCurve.calcDerivative(omegaNorm,1)*D_wn_w;
-    double D_tb_DfiberAngularVelocity = -betaUpd*D_wn_w;
+    double D_tb_DfiberAngularVelocity = D_tb_Dwn*D_wn_w;
+    double D_tb_DfiberAngle = -D_tp_DfiberAngle*beta*omegaNorm;
 
     double D_fiberAngle_D_jointAngle = signOfJointAngle;
     double D_tv_DfiberAngularVelocity_D_jointAngularVelocity = 
@@ -689,6 +793,7 @@ void Millard2016TorqueMuscle::
             *D_ta_DfiberAngle
             * tv
             + D_tp_DfiberAngle
+            + D_tb_DfiberAngle
          )* D_fiberAngle_D_jointAngle;
 
 }
@@ -701,26 +806,46 @@ void Millard2016TorqueMuscle::
 double Millard2016TorqueMuscle::
     getJointTorqueSign() const
 {
-    return signOfJointTorque;
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return signOfJointTorque;
 }
 
 double Millard2016TorqueMuscle::
     getJointAngleSign() const
 {
-    return signOfJointAngle;
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return signOfJointAngle;
 }
 
 double Millard2016TorqueMuscle::
     getJointAngleOffset() const
 {
-    return angleOffset;
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return angleOffset;
 }
 
 
 double Millard2016TorqueMuscle::
     getNormalizedDampingCoefficient() const
 {
-    return beta;
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return betaMax;
 }
 
 void Millard2016TorqueMuscle::
@@ -730,15 +855,14 @@ void Millard2016TorqueMuscle::
       cerr << "Millard2016TorqueMuscle::"
              << "setNormalizedDampingCoefficient:"
              << muscleName
-             << "beta is " << betaUpd
-             << " but beta must be > 0 "
+             << "betaMax is " << betaUpd
+             << " but betaMax must be > 0 "
              << endl;
       assert(0);
       abort();
   }
 
-
-  beta = betaUpd;
+  betaMax = betaUpd;
 }
 
 
@@ -747,27 +871,60 @@ void Millard2016TorqueMuscle::
 double Millard2016TorqueMuscle::
     getMaximumActiveIsometricTorque() const 
 {  
-    return maxActiveIsometricTorque;
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return maxActiveIsometricTorque;
 }
 
 double Millard2016TorqueMuscle::
-    getMaximumJointAngularVelocity() const
+    getMaximumConcentricJointAngularVelocity() const
 {
-  return calcFiberAngularVelocity(omegaMax);
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return calcJointAngularVelocity( omegaMax );
 }
 
 void Millard2016TorqueMuscle::
     setMaximumActiveIsometricTorque(double maxIsoTorque)
 {
-    muscleCurvesAreDirty = true;
-    maxActiveIsometricTorque = maxIsoTorque;
+    muscleCurvesAreDirty               = true;
+    useTabularMaxActiveIsometricTorque = false;
+    maxActiveIsometricTorque           = maxIsoTorque;
 }    
 
+void Millard2016TorqueMuscle::
+    setMaximumConcentricJointAngularVelocity(double maxAngularVelocity){
+  if(fabs(maxAngularVelocity) < SQRTEPSILON){
+    cerr << "Millard2016TorqueMuscle::"
+         << "setMaximumJointAngularVelocity:"
+         << muscleName
+         << " The value of maxJointAngularVelocity needs to be greater "
+            " than sqrt(epsilon), but it is "
+         << maxAngularVelocity;
+    assert(0);
+    abort();
+  }
+
+    muscleCurvesAreDirty = true;
+    useTabularOmegaMax   = false;
+    omegaMax             = fabs(maxAngularVelocity);
+}
 
 double Millard2016TorqueMuscle::
     getJointAngleAtMaximumActiveIsometricTorque() const
 {
-   return calcJointAngle(angleAtOneNormActiveTorque);
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return calcJointAngle(angleAtOneNormActiveTorque);
 }
 
 double Millard2016TorqueMuscle::
@@ -785,7 +942,12 @@ double Millard2016TorqueMuscle::
 double Millard2016TorqueMuscle::
     getPassiveTorqueScale() const
 {
-    return passiveTorqueScale;
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return passiveTorqueScale;
 }
 
 void Millard2016TorqueMuscle::
@@ -799,7 +961,12 @@ void Millard2016TorqueMuscle::
 double Millard2016TorqueMuscle::
     getPassiveCurveAngleOffset() const
 {
-    return passiveCurveAngleOffset;
+  if(muscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  return passiveCurveAngleOffset;
 }
 
 void Millard2016TorqueMuscle::
@@ -991,6 +1158,8 @@ void Millard2016TorqueMuscle::
       assert(0);
       abort();
     }
+
+
 }
 
 /*
@@ -1081,6 +1250,12 @@ double Millard2016TorqueMuscle::
     return signOfConcentricAnglularVelocity*jointAngularVelocity;
 }
 
+double Millard2016TorqueMuscle::
+    calcJointAngularVelocity(double fiberAngularVelocity) const
+{
+    return signOfConcentricAnglularVelocity*fiberAngularVelocity;
+}
+
 void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
 {
   std::string tempName = muscleName;
@@ -1090,13 +1265,19 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
     {
       double c4 = c1c2c3c4c5c6Anderson2007[3];
       double c5 = c1c2c3c4c5c6Anderson2007[4];
-      omegaMax = abs( 2.0*c4*c5/(c5-3.0*c4) );
+
+      if(useTabularOmegaMax){
+        omegaMax = abs( 2.0*c4*c5/(c5-3.0*c4) );
+      }
 
       scaleFactorAnderson2007  = subjectHeightInMeters
                                   *subjectMassInKg
                                   *gravity;
-      maxActiveIsometricTorque = scaleFactorAnderson2007
-                            *c1c2c3c4c5c6Anderson2007[0];
+
+      if(useTabularMaxActiveIsometricTorque){
+        maxActiveIsometricTorque = scaleFactorAnderson2007
+                              *c1c2c3c4c5c6Anderson2007[0];
+      }
 
       angleAtOneNormActiveTorque = c1c2c3c4c5c6Anderson2007[2];
 
@@ -1136,6 +1317,7 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
           tpCurve);
 
       tpCurve.shift(passiveCurveAngleOffset,0);
+      tpCurve.scale(1.0,passiveTorqueScale);
 
       double k = 0;
       double b = 0;
@@ -1165,10 +1347,14 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
     } break;
     case DataSet::Gymnast:
       {
-        omegaMax                  = gymnastParams[
-                                      Gymnast::OmegaMax];
-        maxActiveIsometricTorque  = gymnastParams[
-                                      Gymnast::TauMax];
+        if(useTabularOmegaMax){
+          omegaMax                  = gymnastParams[
+                                        Gymnast::OmegaMax];
+        }
+        if(useTabularMaxActiveIsometricTorque){
+          maxActiveIsometricTorque  = gymnastParams[
+                                        Gymnast::TauMax];
+        }
         angleAtOneNormActiveTorque = gymnastParams[
                                       Gymnast::ActiveAngleAtOneNormTorque];
 
@@ -1186,6 +1372,7 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
               tpCurve);
 
         tpCurve.shift(passiveCurveAngleOffset,0);
+        tpCurve.scale(1.0,passiveTorqueScale);
 
         TorqueMuscleFunctionFactory::createTorqueVelocityCurve(
               gymnastParams[Gymnast::TvAtMaxEccentricVelocity],
@@ -1230,10 +1417,9 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
 
     while(abs(err) > SQRTEPSILON && iter < iterMax){
 
-      err = passiveTorqueScale*tpCurve.calcValue(angleAtOneNormPassiveTorque)
+      err = tpCurve.calcValue(angleAtOneNormPassiveTorque)
             - 1.0;
-      derr = passiveTorqueScale
-              *tpCurve.calcDerivative(angleAtOneNormPassiveTorque,1);
+      derr = tpCurve.calcDerivative(angleAtOneNormPassiveTorque,1);
 
       delta = -err/derr;
       angleAtOneNormPassiveTorque += delta;
@@ -1253,8 +1439,12 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
 
   }
 
-
-
+  //Update the damping curve.
+  tempName = muscleName;
+  TorqueMuscleFunctionFactory::createDampingBlendingCurve(
+                -1.0,
+                tempName.append("_dampingCurve"),
+                betaCurve);
 
   muscleCurvesAreDirty = false;
 }

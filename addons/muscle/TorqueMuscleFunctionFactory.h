@@ -256,6 +256,7 @@ static void createAnderson2007ActiveTorqueAngleCurve(
         the coefficients that are defined by this curve. 
 
     <b>aborts</b>
+
     -tvAtEccentricOmegaMax < 1.05
     -tvAtHalfOmegaMax >= 0.45    
     -tvAtHalfOmegaMax <= 0.05
@@ -330,6 +331,7 @@ static void createAnderson2007ActiveTorqueAngleCurve(
         the coefficients that are defined by this curve. 
 
     <b>aborts</b>
+
     -tvAtEccentricOmegaMax < 1.05
     -tvAtHalfOmegaMax > 0.45  or tvAtHalfOmegaMax < 0.05
     -slopeAtConcentricOmegaMax < 0
@@ -389,6 +391,7 @@ static void createAnderson2007ActiveTorqueAngleCurve(
         the coefficients that are defined by this curve. 
 
     <b>aborts</b>
+
     - abs(angleAtOneNormTorque-angleAtZeroTorque) < sqrt(eps)        
   */
   static void createPassiveTorqueAngleCurve(
@@ -458,6 +461,7 @@ static void createAnderson2007ActiveTorqueAngleCurve(
         the coefficients that are defined by this curve. 
 
     <b>aborts</b>
+
     - abs(angleAtOneNormTorque-angleAtZeroTorque) < sqrt(eps)   
     - sign(stiffnessAtLowTorque) != sign(angleAtOneNormTorque-angleAtLowTorque)     
     - sign(stiffnessAtOneNormTorque) != sign(stiffnessAtLowTorque)
@@ -502,6 +506,7 @@ static void createAnderson2007ActiveTorqueAngleCurve(
         the coefficients that are defined by this curve. 
 
     <b>aborts</b>
+
     - angularWidthOfOneStandardDeviation < sqrt(eps)  
   */
   static void createGaussianShapedActiveTorqueAngleCurve(
@@ -553,6 +558,7 @@ static void createAnderson2007ActiveTorqueAngleCurve(
         the coefficients that are defined by this curve. 
 
     <b>aborts</b>
+
     - angularWidthOfOneStandardDeviation < sqrt(eps)  
     - minSlopeAtShoulders < 0
     - minValueAtShoulders < 0
@@ -594,6 +600,7 @@ static void createAnderson2007ActiveTorqueAngleCurve(
         the coefficients that are defined by this curve. 
 
     <b>aborts</b>
+
     - angularWidthOfOneStandardDeviation < sqrt(eps) 
 
   */
@@ -640,6 +647,7 @@ static void createAnderson2007ActiveTorqueAngleCurve(
         the coefficients that are defined by this curve. 
 
     <b>aborts</b>
+    
     - angularStretchAtOneNormTorque < sqrt(eps) 
     - stiffnessAtOneNormTorque < 1.1/angularStretchAtOneNormTorque
     - normTorqueAtToeEnd < sqrt(eps) or normTorqueAtToeEnd > 0.99
@@ -655,6 +663,39 @@ static void createAnderson2007ActiveTorqueAngleCurve(
       RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
         smoothSegmentedFunctionToUpdate 
     );  
+
+  /**
+    This function creates a C2 sigmoid function that varies
+    from 0 to 1 and is used to ramp up the muscle's passive
+    damping. The
+    blending variable starts to go from 0 at an angular
+    velocity of 0. It reaches a value of 1 at the
+    normAngularVelocityAtMaximumDamping
+
+    \image html fig_MuscleAddon_TorqueMuscleFunctionFactory_DampingBlendingCurve.png
+
+    @param  normAngularVelocityAtMaximumDamping the normalized
+    angular velocity at which the blending function reaches
+    a value of 1. This parameter must have an absolute magnitude
+    greater than 0.
+
+    @param curveName The name of the joint torque this curve applies to. This
+       curve name should have the name of the joint and the
+       direction (e.g. hipExtensionTorqueMuscle) so that if
+       this curve ever causes an exception, a user friendly
+       error message can be displayed to the end user to help
+       them debug their model.
+
+    @param smoothSegmentedFunctionToUpdate
+        A SmoothSegmentedFunction object that will be erased and filled with 
+        the coefficients that are defined by this curve.    
+  */
+  static void createDampingBlendingCurve(
+        double normAngularVelocityAtMaximumDamping,
+        const std::string& curveName,
+        RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+        smoothSegmentedFunctionToUpdate
+      );
 
 };
 }

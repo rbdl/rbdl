@@ -1432,3 +1432,72 @@ void TorqueMuscleFunctionFactory::createTendonTorqueAngleCurve(
                                                              curveName);
 
 }
+
+
+//=============================================================================
+// damping blending curve
+//=============================================================================
+
+void TorqueMuscleFunctionFactory::createDampingBlendingCurve(
+     double normAngularVelocityAtMaximumDamping,
+     const std::string& curveName,
+     RigidBodyDynamics::Addons::Geometry::SmoothSegmentedFunction&
+     smoothSegmentedFunctionToUpdate)
+{
+  if( abs(normAngularVelocityAtMaximumDamping) < SQRTEPS){
+    cerr  << "TorqueMuscleFunctionFactory::"
+          << "createDampingBlendingCurve "
+          << curveName
+          << ": |normAngularVelocityAtMaximumDamping| < SQRTEPS"
+          << endl;
+    assert(0);
+    abort();
+  }
+
+  double x0,x1,x2,y0,y1,y2,dydx0,dydx1,dydx2;
+
+  if(normAngularVelocityAtMaximumDamping > 0){
+    x0 = 0.;
+    x2 = normAngularVelocityAtMaximumDamping;
+    y0 = 0.;
+    y2 = 1.;
+  }else{
+    x0 = normAngularVelocityAtMaximumDamping;
+    x2 = 0.;
+    y0 = 1.0;
+    y2 = 0.0;
+  }
+  x1 = 0.5*(x0+x2);
+  y1 = 0.5*(y0+y2);
+
+  dydx0 = 0.;
+  dydx2 = 0.;
+  dydx1 = 2.0*(y2-y0)/(x2-x0);
+
+  double c = SegmentedQuinticBezierToolkit::scaleCurviness(0.5);
+
+  MatrixNd xM(6,2);
+  MatrixNd yM(6,2);
+  MatrixNd pts(6,2);
+
+  //Compute the Quintic Bezier control points
+  pts = SegmentedQuinticBezierToolkit::
+      calcQuinticBezierCornerControlPoints(x0,      y0,     dydx0,
+                                           x1,      y1,     dydx1, c);
+  xM.col(0) = pts.col(0);
+  yM.col(0) = pts.col(1);
+
+  pts = SegmentedQuinticBezierToolkit::
+      calcQuinticBezierCornerControlPoints(x1,      y1,     dydx1,
+                                           x2,      y2,     dydx2, c);
+  xM.col(1) = pts.col(0);
+  yM.col(1) = pts.col(1);
+
+  smoothSegmentedFunctionToUpdate.updSmoothSegmentedFunction(xM,yM,
+                                                             x0,x2,
+                                                             y0,y2,
+                                                             dydx0,dydx2,
+                                                             curveName);
+
+}
+
