@@ -26,7 +26,8 @@ namespace RigidBodyDynamics {
  * current constraints and workspace memory.
  *
  * Separate constraints can be specified by calling
- * ConstraintSet::AddContactConstraint() and ConstraintSet::AddLoopConstraint().
+ * ConstraintSet::AddContactConstraint(), ConstraintSet::AddLoopConstraint(),
+ * and ConstraintSet::AddCustomConstraint().
  * After all constraints have been specified, this \link
  * RigidBodyDynamics::ConstraintSet
  * ConstraintSet \endlink has to be bound to the model via
@@ -112,7 +113,7 @@ namespace RigidBodyDynamics {
  *  \f$\ddot{q}\f$.
  * -# \b Null-Space: solve furst for \f$\ddot{q}\f$ and then for
  *  \f$\lambda\f$
- * The methods are the same for the contact gaints just with different
+ * The methods are the same for the contact gains just with different
  * variables on the right-hand-side.
  *
  * RBDL provides methods for all approaches. The implementation for the
@@ -144,11 +145,15 @@ namespace RigidBodyDynamics {
  * - ComputeConstraintImpulsesRangeSpaceSparse()
  * - ComputeConstraintImpulsesNullSpace()
  *
- * \subsection assembly_q_qdot Computing generalized joint positions and velocities satisfying the constraint equations
+ * \subsection assembly_q_qdot Computing generalized joint positions and velocities
+ * satisfying the constraint equations.
  *
  * When considering a model subject position level constraints expressed by the
- * equation \f$\phi (q) = 0\f$, it is often necessary to comput generalized joint
- * position and velocities which satisfy the constraints.
+ * equation \f$\phi (q) = 0\f$, it is often necessary to compute generalized joint
+ * position and velocities which satisfy the constraints. Even velocity-level
+ * constraints may have position-level assembly constraints:  a rolling-without-slipping
+ * constraint is a velocity-level constraint, but during assembly it might be desireable
+ * to put the rolling surfaces in contact with eachother.
  *
  * In order to compute a vector of generalized joint positions that satisfy
  * the constraints it is necessary to solve the following optimization problem:
@@ -169,7 +174,7 @@ namespace RigidBodyDynamics {
  * \f$q_{0}\f$ and \f$\dot{q}_{0}\f$ are initial guesses, \f$\phi _{q}\f$ is the
  * constraints jacobian (partial derivative of \f$\phi\f$ with respect to \f$q\f$),
  * and \f$\phi _{t}(q)\f$ is the partial derivative of \f$\phi\f$ with respect
- * to time. \f$W\f$ is a diagonal weighting matrix, which can be exploited
+ * to time.  \f$W\f$ is a diagonal weighting matrix, which can be exploited
  * to prioritize changes in the position/ velocity of specific joints.
  * With a solver capable of handling singular matrices, it is possible to set to
  * 1 the weight of the joint positions/ velocities that should not be changed
@@ -223,11 +228,13 @@ namespace RigidBodyDynamics {
  * be chosen carefully. If it is too large the stabilization will not be able
  * to compensate the errors and the position and velocity errors will increase.
  * If it is too small, the system of equations will become unnecessarily stiff.
- *
  * @{
  */
 
 struct Model;
+
+struct CustomConstraint;
+
 
 /** \brief Structure that contains both constraint information and workspace memory.
  *
@@ -247,6 +254,7 @@ struct RBDL_DLLAPI ConstraintSet {
   enum ConstraintType {
     ContactConstraint,
     LoopConstraint,
+    ConstraintTypeCustom,
     ConstraintTypeLast,
   };
 
@@ -334,6 +342,17 @@ struct RBDL_DLLAPI ConstraintSet {
 		const char *constraint_name = NULL
 		);
 
+  unsigned int AddCustomConstraint(
+    CustomConstraint* customConstraint,
+    unsigned int id_predecessor,
+    unsigned int id_successor,
+    const Math::SpatialTransform &X_predecessor,
+    const Math::SpatialTransform &X_successor,
+    bool baumgarte_enabled,
+    double T_stabilization,
+    const char *constraint_name = NULL
+    );
+
 
   /** \brief Copies the constraints and resets its ConstraintSet::bound
    * flag.
@@ -383,6 +402,8 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<std::string> name;
   std::vector<unsigned int> contactConstraintIndices;
   std::vector<unsigned int> loopConstraintIndices;
+  std::vector<unsigned int> customConstraintIndices;
+  std::vector< CustomConstraint* > mCustomConstraints;
 
   // Contact constraints variables.
   std::vector<unsigned int> body;
@@ -481,6 +502,10 @@ struct RBDL_DLLAPI ConstraintSet {
   Math::VectorNd d_d;
 
   std::vector<Math::Vector3d> d_multdof3_u;
+
+  //CustomConstraint variables.
+
+  
 };
 
 /** \brief Computes the position errors for the given ConstraintSet.
@@ -960,6 +985,121 @@ void SolveConstrainedSystemNullSpace (
   Math::VectorNd &qddot_z,
   Math::LinearSolver &linear_solver
 );
+
+
+/**
+* The CustomConstraint interface is a general-purpose interface that is rich
+* enough to define time-varying constraints at the position-level \f$\phi_p(q,t)=0\f$,
+* the velocity-level \f$\phi_v(\dot{q},t)=0\f$, or the acceleration-level
+* \f$\phi_a(\ddot{q},t)=0\f$. These constraints all end up being applied at the
+* acceleration-level by taking successive derivatives until we are left with
+* \f$\Phi(\ddot{q},\dot{q},q,t)=0\f$
+* The interface requires that the user populate
+*
+*   - G: \f$ \dfrac{ \partial \Phi(\ddot{q},\dot{q},q,t)}{ \partial \ddot{q}}\f$
+*   - gamma: \f$ \gamma = - ( \Phi(\ddot{q},\dot{q},q,t) - G \ddot{q})\f$
+*   - errPos: The vector of \f$\phi_p(\dot{q},t)\f$. If the constraint is a velocity-level
+*             constraint or higher this should be set to zero.
+*   - errVel: The vector of \f$\phi_v(\dot{q},t)\f$. If the constraint is an acceleration-level
+*             constraint this should be set to zero.
+*
+* The matrix G and the vector gamma are required to compute accelerations that satisfy
+* the desired constraints. The vectors errPos and errVel are required to apply Baumgarte
+* stabilization (a constraint stabilization method) to stabilize the constraint. The
+* interface provides (optional) interfaces for the functions
+*
+*   - CalcAssemblyPositionError
+*   - CalcAssemblyPositionErrorJacobian
+*   - CalcAssemblyVelocityError
+*   - CalcAssemblyVelocityErrorJacobian
+*
+* These optional functions are used only during system assembly. This permits a velocity-level
+* constraint (e.g. such as a rolling-without-slipping constraint) to define a position-level
+* constraint to assemble the system (e.g. bring the rolling surfaces into contact with
+* eachother). If you are defining a position-level constraint that these optional functions
+* should simply return errPos, G, errVel, and G respectively.
+*
+* It must be stated that this is an advanced feature of RBDL: you must have an in-depth
+* knowledge of multibody-dynamics in order to write a custom constraint, and to write
+* the corresponding test code to validate that the constraint is working. As a hint the
+* test code should contain a forward simulation of a simple system using the constraint
+* and then check to see that system energy is conserved with only a small error and the
+* constraint is also satisfied with only a small error. The observed error should drop
+* as the integrator tolerances are lowered.
+*/
+struct RBDL_DLLAPI CustomConstraint {
+    CustomConstraint(){}
+        //mAssemblyConstraintCount(0) {};
+
+    virtual ~CustomConstraint(){};    
+
+    virtual void CalcConstraintsJacobian( Model &model,
+                                          unsigned int custom_constraint_id,
+                                          const Math::VectorNd &Q,
+                                          ConstraintSet &CS,
+                                          Math::MatrixNd &Gblock)=0;
+
+    virtual void CalcGamma( Model &model,
+                            unsigned int custom_constraint_id,
+                            const Math::VectorNd &Q,
+                            const Math::VectorNd &QDot,
+                            ConstraintSet &CS,
+                            const Math::MatrixNd &Gblock,
+                            Math::VectorNd &gammaBlock)=0;
+
+
+    virtual void CalcPositionError( Model &model,
+                                    unsigned int custom_constraint_id,
+                                    const Math::VectorNd &Q,
+                                    ConstraintSet &CS,
+                                    Math::VectorNd &errPosBlock) = 0;
+
+    virtual void CalcVelocityError( Model &model,
+                                    unsigned int custom_constraint_id,
+                                    const Math::VectorNd &Q,
+                                    const Math::VectorNd &QDot,
+                                    ConstraintSet &CS,
+                                    const Math::MatrixNd &Gblock,
+                                    Math::VectorNd &errVelBlock) = 0;
+
+    /*
+    virtual void CalcAssemblyPositionError( Model &model,
+                                            unsigned int custom_constraint_id,
+                                            const Math::VectorNd &Q,
+                                            ConstraintSet &CS,
+                                            Math::VectorNd &err,
+                                            unsigned int i);
+
+    virtual void CalcAssemblyPositionErrorJacobian( Model &model,
+                                                    unsigned int custom_constraint_id,
+                                                    const Math::VectorNd &Q,
+                                                    ConstraintSet &CS,
+                                                    Math::MatrixNd &Gasm,
+                                                    unsigned int i,
+                                                    unsigned int j);
+
+    virtual void CalcAssemblyVelocityError( Model &model,
+                                            unsigned int custom_constraint_id,
+                                            const Math::VectorNd &Q,
+                                            const Math::VectorNd &QDot,
+                                            ConstraintSet &CS,
+                                            Math::VectorNd &err,
+                                            unsigned int i);
+
+    virtual void CalcAssemblyVelocityErrorJacobian( Model &model,
+                                                    unsigned int custom_constraint_id,
+                                                    const Math::VectorNd &Q,
+                                                    const Math::VectorNd &QDot,
+                                                    ConstraintSet &CS,
+                                                    unsigned int i,
+                                                    unsigned int j);
+    */
+    unsigned int mConstraintCount;
+    //unsigned int mAssemblyConstraintCount;
+
+};
+
+
 
 /** @} */
 

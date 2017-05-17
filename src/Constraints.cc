@@ -176,6 +176,83 @@ unsigned int ConstraintSet::AddLoopConstraint (
   return n_constr - 1;
 }
 
+unsigned int ConstraintSet::AddCustomConstraint(
+        CustomConstraint* customConstraint,
+        unsigned int id_predecessor,
+        unsigned int id_successor,
+        const Math::SpatialTransform &X_predecessor,
+        const Math::SpatialTransform &X_successor,
+        bool baumgarte_enabled,
+        double T_stabilization,
+        const char *constraint_name)
+{
+
+
+  if (baumgarte_enabled && T_stabilization == 0.) {
+    std::cerr << "Error: Given T_stab_inv is 0, but this would cause the "
+                 "stabilization parameter to be INF which is forbidden."
+              << std::endl;
+    abort();
+  }
+
+  assert (bound == false);
+
+  unsigned int n_constr_start = size();
+  unsigned int n_constr_end   = n_constr_start 
+                              + customConstraint->mConstraintCount;
+
+  std::string name_str;
+  if (constraint_name != NULL) {
+    name_str = constraint_name;
+  }
+
+  SpatialVector axis = SpatialVector::Zero();
+
+  for(unsigned int i = 0; i < customConstraint->mConstraintCount; ++i ){
+      constraintType.push_back( ConstraintTypeCustom );
+      name.push_back (name_str);
+      customConstraintIndices.push_back(n_constr_start+i);
+
+      // These variables will be used for this kind of constraint.
+      body_p.push_back (id_predecessor);
+      body_s.push_back (id_successor);
+      X_p.push_back (X_predecessor);
+      X_s.push_back (X_successor);
+      constraintAxis.push_back (axis);
+      if (baumgarte_enabled) {
+        T_stab_inv.push_back (1. / T_stabilization);
+      } else {
+        T_stab_inv.push_back (0.);
+      }
+      // These variables will not be used by custom constraints but are necessary
+      // for point constraints.
+      body.push_back (0);
+      point.push_back (Vector3d::Zero());
+      normal.push_back (Vector3d::Zero());
+
+  }
+  err.conservativeResize( n_constr_end);
+  errd.conservativeResize(n_constr_end);
+
+  acceleration.conservativeResize ( n_constr_end);
+  force.conservativeResize (        n_constr_end);
+  impulse.conservativeResize (      n_constr_end);
+  v_plus.conservativeResize (       n_constr_end);
+  d_multdof3_u = std::vector<Math::Vector3d>(
+                  n_constr_end, Math::Vector3d::Zero());
+
+  for(unsigned int i = n_constr_start; i < n_constr_end; i++){
+      err[i]          = 0.;
+      errd[i]         = 0.;
+      acceleration[i] = 0.;
+      force[i]        = 0.;
+      impulse[i]      = 0.;
+      v_plus[i]       = 0.;
+  }
+
+  return n_constr_end - 1;
+}
+
 bool ConstraintSet::Bind (const Model &model) {
   assert (bound == false);
 
@@ -595,9 +672,15 @@ void CalcConstraintsVelocityError (
   Math::VectorNd& err,
   bool update_kinematics
   ) {
+  
+  //This works for the contact and loop constraints because they are
+  //time invariant. But this does NOT work for the general case.
   MatrixNd G(MatrixNd::Zero(CS.size(), model.dof_count));
   CalcConstraintsJacobian (model, Q, CS, G, update_kinematics);
   err = G * QDot;
+  
+
+
 }
 
 RBDL_DLLAPI
@@ -681,7 +764,7 @@ void CalcConstrainedSystemVariables (
                                   CS.X_s[c].r, false);
 
     // Compute the derivative of the axis wrt the base frame.
-    SpatialVector axis_dot = crossm(vel_s, CS.constraintAxis[c]);
+    SpatialVector axis_dot = crossm(vel_p, axis);
 
     // Compute the velocity product accelerations. These correspond to the
     // accelerations that the bodies would have if q ddot were 0.
