@@ -681,7 +681,7 @@ void CalcConstrainedSystemVariables (
                                   CS.X_s[c].r, false);
 
     // Compute the derivative of the axis wrt the base frame.
-    SpatialVector axis_dot = crossm(vel_s, CS.constraintAxis[c]);
+    SpatialVector axis_dot = crossm(vel_p, axis);
 
     // Compute the velocity product accelerations. These correspond to the
     // accelerations that the bodies would have if q ddot were 0.
