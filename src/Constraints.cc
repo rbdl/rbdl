@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include <limits>
 #include <assert.h>
 
@@ -176,8 +177,9 @@ unsigned int ConstraintSet::AddLoopConstraint (
   return n_constr - 1;
 }
 
+
 unsigned int ConstraintSet::AddCustomConstraint(
-        CustomConstraint* customConstraint,
+        CustomConstraint *customConstraint,
         unsigned int id_predecessor,
         unsigned int id_successor,
         const Math::SpatialTransform &X_predecessor,
@@ -186,8 +188,6 @@ unsigned int ConstraintSet::AddCustomConstraint(
         double T_stabilization,
         const char *constraint_name)
 {
-
-
   if (baumgarte_enabled && T_stabilization == 0.) {
     std::cerr << "Error: Given T_stab_inv is 0, but this would cause the "
                  "stabilization parameter to be INF which is forbidden."
@@ -197,9 +197,8 @@ unsigned int ConstraintSet::AddCustomConstraint(
 
   assert (bound == false);
 
-  unsigned int n_constr_start = size();
-  unsigned int n_constr_end   = n_constr_start 
-                              + customConstraint->mConstraintCount;
+  unsigned int n_constr_start_idx = size();
+  unsigned int n_constr_size      = size() + customConstraint->mConstraintCount;
 
   std::string name_str;
   if (constraint_name != NULL) {
@@ -207,13 +206,19 @@ unsigned int ConstraintSet::AddCustomConstraint(
   }
 
   SpatialVector axis = SpatialVector::Zero();
+  std::string nameConstraintIndex;
+  std::stringstream indexString;
 
   for(unsigned int i = 0; i < customConstraint->mConstraintCount; ++i ){
       constraintType.push_back( ConstraintTypeCustom );
-      name.push_back (name_str);
-      customConstraintIndices.push_back(n_constr_start+i);
-
-      // These variables will be used for this kind of constraint.
+      indexString << i;
+      nameConstraintIndex = name_str+"_"+indexString.str();
+      indexString.clear();
+      name.push_back (nameConstraintIndex);
+      if(i==0){
+        customConstraintIndices.push_back(n_constr_start_idx);
+      }
+      // These variables will be used for each CustomConstraint
       body_p.push_back (id_predecessor);
       body_s.push_back (id_successor);
       X_p.push_back (X_predecessor);
@@ -224,24 +229,25 @@ unsigned int ConstraintSet::AddCustomConstraint(
       } else {
         T_stab_inv.push_back (0.);
       }
-      // These variables will not be used by custom constraints but are necessary
-      // for point constraints.
+      // These variables will not be used in CustomConstraints but are kept
+      // so that the indexing across all of the ConstraintSet variables
+      // remains preserved.
       body.push_back (0);
       point.push_back (Vector3d::Zero());
       normal.push_back (Vector3d::Zero());
-
   }
-  err.conservativeResize( n_constr_end);
-  errd.conservativeResize(n_constr_end);
 
-  acceleration.conservativeResize ( n_constr_end);
-  force.conservativeResize (        n_constr_end);
-  impulse.conservativeResize (      n_constr_end);
-  v_plus.conservativeResize (       n_constr_end);
+  err.conservativeResize( n_constr_size);
+  errd.conservativeResize(n_constr_size);
+
+  acceleration.conservativeResize ( n_constr_size);
+  force.conservativeResize (        n_constr_size);
+  impulse.conservativeResize (      n_constr_size);
+  v_plus.conservativeResize (       n_constr_size);
   d_multdof3_u = std::vector<Math::Vector3d>(
-                  n_constr_end, Math::Vector3d::Zero());
+                  n_constr_size, Math::Vector3d::Zero());
 
-  for(unsigned int i = n_constr_start; i < n_constr_end; i++){
+  for(unsigned int i = n_constr_start_idx; i < n_constr_size; i++){
       err[i]          = 0.;
       errd[i]         = 0.;
       acceleration[i] = 0.;
@@ -250,7 +256,9 @@ unsigned int ConstraintSet::AddCustomConstraint(
       v_plus[i]       = 0.;
   }
 
-  return n_constr_end - 1;
+   mCustomConstraints.push_back(customConstraint);
+
+  return n_constr_size - 1;
 }
 
 bool ConstraintSet::Bind (const Model &model) {
@@ -306,13 +314,13 @@ bool ConstraintSet::Bind (const Model &model) {
   f_ext_constraints.resize (model.mBodies.size(), SpatialVector::Zero());
   point_accel_0.resize (n_constr, Vector3d::Zero());
 
-  d_pA = std::vector<SpatialVector> (model.mBodies.size(), SpatialVector::Zero());
-  d_a = std::vector<SpatialVector> (model.mBodies.size(), SpatialVector::Zero());
+  d_pA =std::vector<SpatialVector> (model.mBodies.size(),SpatialVector::Zero());
+  d_a = std::vector<SpatialVector> (model.mBodies.size(),SpatialVector::Zero());
   d_u = VectorNd::Zero (model.mBodies.size());
 
   d_IA = std::vector<SpatialMatrix> (model.mBodies.size()
     , SpatialMatrix::Identity());
-  d_U = std::vector<SpatialVector> (model.mBodies.size(), SpatialVector::Zero());
+  d_U = std::vector<SpatialVector> (model.mBodies.size(),SpatialVector::Zero());
   d_d = VectorNd::Zero (model.mBodies.size());
 
   d_multdof3_u = std::vector<Math::Vector3d> (model.mBodies.size()
@@ -574,6 +582,11 @@ void CalcConstraintsPositionError (
     // Project the error on the constraint axis to find the actual error.
     err[lci] = CS.constraintAxis[lci].transpose() * d;
   } 
+
+  for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
+    const unsigned int cci = CS.loopConstraintIndices[i];
+    CS.mCustomConstraints[i]->CalcPositionError(model,cci,Q,CS,err, cci);
+  }
 }
 
 RBDL_DLLAPI
@@ -661,6 +674,15 @@ void CalcConstraintsJacobian (
     // Compute the constraint Jacobian row.
     G.block(c, 0, 1, model.dof_count) = axis.transpose() * CS.GSJ;
   }
+
+  // Go and get the CustomConstraint Jacobians
+  for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
+    const unsigned int cci = CS.loopConstraintIndices[i];
+    const unsigned int rows= CS.mCustomConstraints[i]->mConstraintCount;
+    const unsigned int cols= CS.G.cols();
+    CS.mCustomConstraints[i]->CalcConstraintsJacobian(model,cci,Q,CS,
+                               CS.G, cci,0);
+  }
 }
 
 RBDL_DLLAPI
@@ -674,11 +696,20 @@ void CalcConstraintsVelocityError (
   ) {
   
   //This works for the contact and loop constraints because they are
-  //time invariant. But this does NOT work for the general case.
+  //time invariant. But this does not necessarily work for the CustomConstraints
+  //which can be time-varying. And thus the parts of err associated with the
+  //custom constraints must be updated.
   MatrixNd G(MatrixNd::Zero(CS.size(), model.dof_count));
   CalcConstraintsJacobian (model, Q, CS, G, update_kinematics);
   err = G * QDot;
   
+  for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
+    const unsigned int cci = CS.loopConstraintIndices[i];
+    const unsigned int rows= CS.mCustomConstraints[i]->mConstraintCount;
+    const unsigned int cols= CS.G.cols();
+    CS.mCustomConstraints[i]->CalcVelocityError(model,cci,Q,QDot,CS,
+                               CS.G.block(cci,0,rows,cols),err, cci);
+  }
 
 
 }

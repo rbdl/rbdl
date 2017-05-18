@@ -57,10 +57,12 @@ const double TEST_PREC = 1.0e-11;
         0 : to frame 0
 
 */
-struct CustomXAxisPinJointConstraint : public RigidBodyDynamics::CustomConstraint
+struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
 {
 
-  CustomXAxisPinJointConstraint(){
+
+
+  PinJointCustomConstraint(unsigned int x0y1z2){
     mConstraintCount = 5;
     TuP.resize(mConstraintCount);
     for(unsigned int i=0; i<TuP.size(); ++i){
@@ -77,8 +79,25 @@ struct CustomXAxisPinJointConstraint : public RigidBodyDynamics::CustomConstrain
      3: [ 0   0   0   0   1   0 ]
      4: [ 0   0   0   0   0   1 ]
     */
-    TuP[0](1) = 1;
-    TuP[1](2) = 1;
+    switch(x0y1z2){
+      case 0:
+      {
+        TuP[0](1) = 1;
+        TuP[1](2) = 1;
+      }break;
+      case 1:{
+        TuP[0](0) = 1;
+        TuP[1](2) = 1;
+      }break;
+      case 2:{
+        TuP[0](0) = 1;
+        TuP[1](1) = 1;
+      }break;
+      default: {
+        cerr << "Invalid AxisOfRotation argument" << endl;
+      }
+    };
+
     TuP[2](3) = 1;
     TuP[3](4) = 1;
     TuP[4](5) = 1;
@@ -91,7 +110,9 @@ struct CustomXAxisPinJointConstraint : public RigidBodyDynamics::CustomConstrain
                   unsigned int ccid,
                   const Math::VectorNd &Q,
                   ConstraintSet &CS,
-                  Math::MatrixNd &Gblock)
+                  Math::MatrixNd &G,
+                  unsigned int GrowStart,
+                  unsigned int GcolStart)
   {
 
 
@@ -113,7 +134,8 @@ struct CustomXAxisPinJointConstraint : public RigidBodyDynamics::CustomConstrain
       for(unsigned int i=0; i<TuP.size(); ++i){
         eT0 = xP0.apply(TuP[i]);
         CS.constraintAxis[ccid] = TuP[i]; //To keep it up to date.
-        Gblock.block(i,0,1,model.dof_count) = eT0.transpose()*CS.GSJ;
+        G.block(GrowStart+i,GcolStart,1,model.dof_count)
+            = eT0.transpose()*CS.GSJ;
       }
   }
 
@@ -204,7 +226,8 @@ struct CustomXAxisPinJointConstraint : public RigidBodyDynamics::CustomConstrain
                                   unsigned int ccid,
                                   const Math::VectorNd &Q,
                                   ConstraintSet &CS,
-                                  Math::VectorNd &errPosBlock)
+                                  Math::VectorNd &err,
+                                  unsigned int errStartIndex)
   {
     r0P0 = CalcBodyToBaseCoordinates (model, Q, CS.body_p[ccid],
                                                 CS.X_p[ccid].r, false);
@@ -224,7 +247,7 @@ struct CustomXAxisPinJointConstraint : public RigidBodyDynamics::CustomConstrain
     err.block<3,1>(3,0) = rmP0.transpose() * (r0S0 - r0P0);
 
     for(unsigned int i=0; i < TuP.size(); ++i){
-      errPosBlock(i) = TuP[i].transpose()*err;
+      err(i+errStartIndex) = TuP[i].transpose()*err;
     }
 
   }
@@ -235,11 +258,15 @@ struct CustomXAxisPinJointConstraint : public RigidBodyDynamics::CustomConstrain
                                   const Math::VectorNd &QDot,
                                   ConstraintSet &CS,
                                   const Math::MatrixNd &Gblock,
-                                  Math::VectorNd &errVelBlock)
+                                  Math::VectorNd &err,
+                                  unsigned int errStartIndex)
   {
     //Since this is a time-invariant constraint the expression for
     //the velocity error is quite straight forward:
-    errVelBlock = Gblock*QDot;
+    VectorNd errVelBlock = Gblock*QDot;
+    for(unsigned int i=0; i < errVelBlock.rows();++i){
+      err(errStartIndex+i) = errVelBlock(i);
+    }
   }
 
   std::vector < SpatialVector > TuP; //Constraint direction vectors resolved in
@@ -258,8 +285,10 @@ struct CustomXAxisPinJointConstraint : public RigidBodyDynamics::CustomConstrain
 
 };
 
-struct DoublePendulumAbsoluteCoordinatesLoopConstraint {
-  DoublePendulumAbsoluteCoordinatesLoopConstraint()
+
+
+struct DoublePerpendicularPendulumCustomConstraint {
+  DoublePerpendicularPendulumCustomConstraint()
     : model()
     , cs()
     , q()
@@ -288,20 +317,21 @@ struct DoublePendulumAbsoluteCoordinatesLoopConstraint {
     Body body02 = Body(0, Vector3d( 0.,0.,0.),
                           Vector3d( 0.,0.,0.));
 
-    Body link1 = Body(m1, Vector3d( 0., -l1*0.5,          0.),
-                          Vector3d( 0.,      0., m1*l1*l1/3.));
+    Body link1 = Body(m1, Vector3d(          0., -l1*0.5,          0.),
+                          Vector3d( m1*l1*l1/3.,      0., m1*l1*l1/3.));
 
-    Body link2 = Body(m2, Vector3d( 0., -l2*0.5,          0.),
-                          Vector3d( 0.,      0., m2*l2*l2/3.));
+    Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
+                          Vector3d(     0., m2*l2*l2/3., m2*l2*l2/3.));
+
     //Joint joint_free(JointTypeFloatingBase);
-    Joint joint_eulerXYZ(JointTypeEulerXYZ);
+    Joint joint_eulerZYX(JointTypeEulerZYX);
     Joint joint_transXYZ(JointTypeTranslationXYZ);
     Joint joint_rot_z = Joint(SpatialVector(0.,0.,1.,0.,0.,0.));
 
     idB01 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
                           joint_transXYZ, body01);
     idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
-                         joint_eulerXYZ, link1);
+                         joint_eulerZYX, link1);
 
     //idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
     //                      joint_rot_z, link1);
@@ -309,33 +339,17 @@ struct DoublePendulumAbsoluteCoordinatesLoopConstraint {
     idB02 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
                           joint_transXYZ, body02);
     idB2  = model.AddBody(idB02, Xtrans(Vector3d(0., 0., 0.)),
-                         joint_eulerXYZ, link2);
+                         joint_eulerZYX, link2);
 
     //Make the revolute joints about the y axis using 5 constraints
     //between the end points
 
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,1,0,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,0,1,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,0,0,1), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(1,0,0,0,0,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,1,0,0,0,0), false, 0.1);
+    PinJointCustomConstraint ccPJZaxis = PinJointCustomConstraint(2);
+    PinJointCustomConstraint ccPJYaxis = PinJointCustomConstraint(1);
 
+    cs.AddCustomConstraint(&ccPJZaxis,   0,idB1, X_p1, X_s1, false, 0.1);
+    cs.AddCustomConstraint(&ccPJYaxis,idB1,idB2, X_p2, X_s2, false, 0.1);
 
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,1,0,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,0,1,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,0,0,1), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(1,0,0,0,0,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,1,0,0,0,0), false, 0.1);
 
     cs.Bind(model);
 
@@ -371,11 +385,199 @@ struct DoublePendulumAbsoluteCoordinatesLoopConstraint {
 
 };
 
+struct DoublePerpendicularPendulumJointCoordinates {
+  DoublePerpendicularPendulumJointCoordinates()
+    : model()
+    , q()
+    , qd()
+    , qdd()
+    , tau()
+    , l1(1.)
+    , l2(1.)
+    , m1(1.)
+    , m2(1.)
+    , idB1(0)
+    , idB2(0){
+
+    model.gravity = Vector3d(0.,-9.81,0.);
+    /*
+      The perpendicular pendulum pictured with joint angles of 0,0.
+      The first joint rotates about the x axis, while the second
+      joint rotates about the local y axis of link 1
+
+         y
+         |
+         |___ x
+      z / |
+        | |
+      / | | link1
+        | |
+    /   | |
+axis1:z0| |__________
+       (_____________) link 2
+        | |
+         |
+
+         |
+
+         | axis2:y1
+    */
+
+    Body link1 = Body(m1, Vector3d(          0., -l1*0.5,          0.),
+                          Vector3d( m1*l1*l1/3.,      0., m1*l1*l1/3.));
+
+    Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
+                          Vector3d(     0., m2*l2*l2/3., m2*l2*l2/3.));
+    Joint joint_rev_z = Joint(SpatialVector(0.,0.,1.,0.,0.,0.));
+    Joint joint_rev_y = Joint(SpatialVector(0.,1.,0.,0.,0.,0.));
+
+    idB1 = model.AddBody(   0, Xtrans(Vector3d(0., 0, 0. )),
+                            joint_rev_z, link1);
+    idB2 = model.AddBody(idB1, Xtrans(Vector3d(0.,-l1, 0.)),
+                         joint_rev_y, link2);
+
+    q   = VectorNd::Zero(model.dof_count);
+    qd  = VectorNd::Zero(model.dof_count);
+    qdd = VectorNd::Zero(model.dof_count);
+    tau = VectorNd::Zero(model.dof_count);
+
+
+  }
+
+    Model model;
+
+    VectorNd q;
+    VectorNd qd;
+    VectorNd qdd;
+    VectorNd tau;
+
+    double l1;
+    double l2;
+    double m1;
+    double m2;
+
+    unsigned int idB1;
+    unsigned int idB2;
+
+};
+
+
 TEST(CustomConstraintCorrectnessTest) {
-  DoublePendulumAbsoluteCoordinatesLoopConstraint dba 
-    = DoublePendulumAbsoluteCoordinatesLoopConstraint();
 
-  CHECK_CLOSE(1.0,1.0,TEST_PREC);
+  DoublePerpendicularPendulumCustomConstraint dbcc
+    = DoublePerpendicularPendulumCustomConstraint();
+  DoublePerpendicularPendulumJointCoordinates dbj
+    = DoublePerpendicularPendulumJointCoordinates();
+
+  //1. Set the pendulum modeled using joint coordinates to a specific
+  //    state and then compute the spatial acceleration of the body.
+  dbj.q[0]  = M_PI/3.0;       //About z0
+  dbj.q[1]  = M_PI/6.0;       //About y1
+  dbj.qd[0] = M_PI;           //About z0
+  dbj.qd[1] = M_PI/2.0;       //About y1
+  dbj.tau[0]= 0.;
+  dbj.tau[1]= 0.;
+
+  ForwardDynamics(dbj.model,dbj.q,dbj.qd,dbj.tau,dbj.qdd);
+
+  Vector3d r010 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB1,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d r020 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d r030 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(dbj.l2,0.,0.),true);
+
+  SpatialVector v010 = CalcPointVelocity6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.idB1,
+                        Vector3d(0.,0.,0.),true);
+  SpatialVector v020 = CalcPointVelocity6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.idB2,
+                        Vector3d(0.,0.,0.),true);
+  SpatialVector v030 = CalcPointVelocity6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.idB2,
+                        Vector3d(dbj.l2,0.,0.),true);
+
+  SpatialVector a010 = CalcPointAcceleration6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.qdd,
+                        dbj.idB1,Vector3d(0.,0.,0.),true);
+  SpatialVector a020 = CalcPointAcceleration6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.qdd,
+                        dbj.idB2,Vector3d(0.,0.,0.),true);
+  SpatialVector a030 = CalcPointAcceleration6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.qdd,
+                        dbj.idB2,Vector3d(dbj.l2,0.,0.),true);
+
+  //2. Set the pendulum modelled using absolute coordinates to the
+  //   equivalent state as the pendulum modelled using joint
+  //   coordinates. Next
 
 
+
+  dbcc.q[0]  = r010[0];
+  dbcc.q[1]  = r010[1];
+  dbcc.q[2]  = r010[2];
+  dbcc.q[3]  = dbj.q[0];
+  dbcc.q[4]  = 0;
+  dbcc.q[5]  = 0;
+  dbcc.q[6]  = r020[0];
+  dbcc.q[7]  = r020[1];
+  dbcc.q[8]  = r020[2];
+  dbcc.q[9]  = dbj.q[0];
+  dbcc.q[10] = dbj.q[1];
+  dbcc.q[11] = 0;
+
+  dbcc.qd[0]  = v010[3];
+  dbcc.qd[1]  = v010[4];
+  dbcc.qd[2]  = v010[5];
+  dbcc.qd[3]  = dbj.qd[0];
+  dbcc.qd[4]  = 0;
+  dbcc.qd[5]  = 0;
+  dbcc.qd[6]  = v020[3];
+  dbcc.qd[7]  = v020[4];
+  dbcc.qd[8]  = v020[5];
+  dbcc.qd[9]  = dbj.qd[0];
+  dbcc.qd[10] = dbj.qd[1];
+  dbcc.qd[11] = 0;
+
+  VectorNd err(dbcc.cs.size());
+  VectorNd errd(dbcc.cs.size());
+
+  CalcConstraintsPositionError(dbcc.model,dbcc.q,dbcc.cs,err,true);
+  CalcConstraintsVelocityError(dbcc.model,dbcc.q,dbcc.qd,dbcc.cs,errd,true);
+ /*
+  //The constraint errors at the position and velocity level
+  //must be zero before the accelerations can be tested.
+  for(unsigned int i=0; i<err.rows();++i){
+    CHECK_CLOSE(0,err[i],TEST_PREC);
+  }
+  for(unsigned int i=0; i<errd.rows();++i){
+    CHECK_CLOSE(0,errd[i],TEST_PREC);
+  }
+
+  //Evaluate the accelerations of the constrained pendulum and
+  //compare those to the joint-coordinate pendulum
+  for(unsigned int i=0; i<dbcc.tau.rows();++i){
+    dbcc.tau[i] = 0.;
+  }
+  ForwardDynamicsConstraintsDirect(dbcc.model,dbcc.q,dbcc.qd,
+                                   dbcc.tau,dbcc.cs,dbcc.qdd);
+  SpatialVector a010c =
+      CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,
+                          dbcc.idB1,Vector3d(0.,0.,0.),true);
+  SpatialVector a020c =
+      CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,
+                          dbcc.idB2,Vector3d(0.,0.,0.),true);
+  SpatialVector a030c =
+      CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,
+                          dbcc.idB2,Vector3d(dbcc.l2,0.,0.),true);
+
+  for(unsigned int i=0; i<6;++i){
+    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
+    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
+    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+  }
+*/
 }

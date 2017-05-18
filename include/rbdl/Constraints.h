@@ -451,11 +451,11 @@ struct RBDL_DLLAPI ConstraintSet {
 
   /// Workspace when evaluating contact Jacobians
   Math::MatrixNd Gi;
-  /// Workspace when evaluating loop Jacobians
+  /// Workspace when evaluating loop/CustomConstraint Jacobians
   Math::MatrixNd GSpi;
-  /// Workspace when evaluating loop Jacobians
+  /// Workspace when evaluating loop/CustomConstraint Jacobians
   Math::MatrixNd GSsi;
-  /// Workspace when evaluating loop Jacobians
+  /// Workspace when evaluating loop/CustomConstraint Jacobians
   Math::MatrixNd GSJ;
 
   /// Workspace for the QR decomposition of the null-space method
@@ -1037,7 +1037,9 @@ struct RBDL_DLLAPI CustomConstraint {
                                           unsigned int custom_constraint_id,
                                           const Math::VectorNd &Q,
                                           ConstraintSet &CS,
-                                          Math::MatrixNd &Gblock)=0;
+                                          Math::MatrixNd &G,
+                                          unsigned int GrowStart,
+                                          unsigned int GcolStart)=0;
 
     virtual void CalcGamma( Model &model,
                             unsigned int custom_constraint_id,
@@ -1052,7 +1054,8 @@ struct RBDL_DLLAPI CustomConstraint {
                                     unsigned int custom_constraint_id,
                                     const Math::VectorNd &Q,
                                     ConstraintSet &CS,
-                                    Math::VectorNd &errPosBlock) = 0;
+                                    Math::VectorNd &err,
+                                    unsigned int errStartIdx) = 0;
 
     virtual void CalcVelocityError( Model &model,
                                     unsigned int custom_constraint_id,
@@ -1060,7 +1063,8 @@ struct RBDL_DLLAPI CustomConstraint {
                                     const Math::VectorNd &QDot,
                                     ConstraintSet &CS,
                                     const Math::MatrixNd &Gblock,
-                                    Math::VectorNd &errVelBlock) = 0;
+                                    Math::VectorNd &err,
+                                    unsigned int errStartIndex) = 0;
 
     /*
     virtual void CalcAssemblyPositionError( Model &model,
