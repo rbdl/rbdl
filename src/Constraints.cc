@@ -206,15 +206,13 @@ unsigned int ConstraintSet::AddCustomConstraint(
   }
 
   SpatialVector axis = SpatialVector::Zero();
-  std::string nameConstraintIndex;
-  std::stringstream indexString;
+  std::stringstream nameConstraintIndex;
 
   for(unsigned int i = 0; i < customConstraint->mConstraintCount; ++i ){
       constraintType.push_back( ConstraintTypeCustom );
-      indexString << i;
-      nameConstraintIndex = name_str+"_"+indexString.str();
-      indexString.clear();
-      name.push_back (nameConstraintIndex);
+      nameConstraintIndex << name_str << "_" << i;
+      name.push_back (nameConstraintIndex.str());
+      nameConstraintIndex.str(std::string());
       if(i==0){
         customConstraintIndices.push_back(n_constr_start_idx);
       }
@@ -584,7 +582,7 @@ void CalcConstraintsPositionError (
   } 
 
   for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
-    const unsigned int cci = CS.loopConstraintIndices[i];
+    const unsigned int cci = CS.customConstraintIndices[i];
     CS.mCustomConstraints[i]->CalcPositionError(model,cci,Q,CS,err, cci);
   }
 }
@@ -677,7 +675,7 @@ void CalcConstraintsJacobian (
 
   // Go and get the CustomConstraint Jacobians
   for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
-    const unsigned int cci = CS.loopConstraintIndices[i];
+    const unsigned int cci = CS.customConstraintIndices[i];
     const unsigned int rows= CS.mCustomConstraints[i]->mConstraintCount;
     const unsigned int cols= CS.G.cols();
     CS.mCustomConstraints[i]->CalcConstraintsJacobian(model,cci,Q,CS,
@@ -699,14 +697,15 @@ void CalcConstraintsVelocityError (
   //time invariant. But this does not necessarily work for the CustomConstraints
   //which can be time-varying. And thus the parts of err associated with the
   //custom constraints must be updated.
-  MatrixNd G(MatrixNd::Zero(CS.size(), model.dof_count));
-  CalcConstraintsJacobian (model, Q, CS, G, update_kinematics);
-  err = G * QDot;
+  //MatrixNd G(MatrixNd::Zero(CS.size(), model.dof_count));
+  CalcConstraintsJacobian (model, Q, CS, CS.G, update_kinematics);
+  err = CS.G * QDot;
   
+  unsigned int cci, rows, cols;
   for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
-    const unsigned int cci = CS.loopConstraintIndices[i];
-    const unsigned int rows= CS.mCustomConstraints[i]->mConstraintCount;
-    const unsigned int cols= CS.G.cols();
+    cci = CS.customConstraintIndices[i];
+    rows= CS.mCustomConstraints[i]->mConstraintCount;
+    cols= CS.G.cols();
     CS.mCustomConstraints[i]->CalcVelocityError(model,cci,Q,QDot,CS,
                                CS.G.block(cci,0,rows,cols),err, cci);
   }
@@ -768,6 +767,8 @@ void CalcConstrainedSystemVariables (
     CS.gamma[c] = CS.acceleration[c] - CS.normal[c].dot(gamma_i);
   }
 
+
+
   for (unsigned int i = 0; i < CS.loopConstraintIndices.size(); i++) {
     const unsigned int c = CS.loopConstraintIndices[i];
 
@@ -813,6 +814,23 @@ void CalcConstrainedSystemVariables (
       - 2. * CS.T_stab_inv[c] * CS.errd[c]
       - CS.T_stab_inv[c] * CS.T_stab_inv[c] * CS.err[c];
   }
+
+  unsigned int ccid,rows,cols,z;
+  for(unsigned int i=0; i< CS.customConstraintIndices.size(); i++){
+    ccid  = CS.customConstraintIndices[i];
+    rows  = CS.mCustomConstraints[i]->mConstraintCount;
+    cols  = CS.G.cols();
+    CS.mCustomConstraints[i]->CalcGamma(model,ccid,Q,QDot,CS,
+                                        CS.G.block(ccid,0,rows,cols),
+                                        CS.gamma,ccid);
+    for(unsigned int j=0; j<CS.mCustomConstraints[i]->mConstraintCount;j++){
+      z = ccid+j;
+      CS.gamma(z) += (- 2. * CS.T_stab_inv[z] * CS.errd[z]
+                      - CS.T_stab_inv[z] * CS.T_stab_inv[z] * CS.err[z]);
+    }
+
+  }
+
 }
 
 RBDL_DLLAPI

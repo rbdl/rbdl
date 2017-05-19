@@ -10,57 +10,126 @@ using namespace RigidBodyDynamics::Math;
 const double TEST_PREC = 1.0e-11;
 
 
-//struct DoublePendulumAbsoluteCoordinatesCustomConstraint {
+struct DoublePerpendicularPendulumAbsoluteCoordinates {
+  DoublePerpendicularPendulumAbsoluteCoordinates()
+    : model()
+    , cs()
+    , q()
+    , qd()
+    , qdd()
+    , tau()
+    , l1(1.)
+    , l2(1.)
+    , m1(1.)
+    , m2(1.)
+    , idB1(0)
+    , idB2(0)
+    , X_p1(Xtrans(Vector3d(0., 0., 0.)))
+    , X_s1(Xtrans(Vector3d(0., 0., 0.)))
+    , X_p2(Xtrans(Vector3d(0.,-l1, 0.)))
+    , X_s2(Xtrans(Vector3d(0., 0., 0.))){
 
-//}
+    model.gravity = Vector3d(0.,-9.81,0.);
+    //Planar pendulum is at 0 when it is hanging down.
+    //  x: points to the right
+    //  y: points up
+    //  z: out of the page
+    Body body01 = Body(0, Vector3d( 0.,0.,0.),
+                          Vector3d( 0.,0.,0.));
 
-/*
- A pin joint has 5 constraints between points p and
- q on bodies 1 and 2:
+    Body body02 = Body(0, Vector3d( 0.,0.,0.),
+                          Vector3d( 0.,0.,0.));
 
- r0P-r0Q = 0   : the points p and q are coincident.
- e1x'e2y   = 0 : the x axis of frame 1 is perp. to y axis of frame 2
- e1x'e2z   = 0 : the x axis of frame 1 is perp. to y axis of frame 2
+    Body link1 = Body(m1, Vector3d(          0., -l1*0.5,          0.),
+                          Vector3d( m1*l1*l1/3.,      0., m1*l1*l1/3.));
 
- Taking the first time derivative of this position-level time invariant
- constraint yields (when expressed in the root frame)
+    Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
+                          Vector3d(     0., m2*l2*l2/3., m2*l2*l2/3.));
 
-     [J_r0P0_q             - J_r0Q0_q] dq = 0
-     [J_e1x0_q'*e2y0 + e1x1'*J_e2y0_q] dq = 0
-     [J_e1x0_q'*e2z0   e1x1'*J_e2z0_q] dq = 0
+    //Joint joint_free(JointTypeFloatingBase);
+    Joint joint_eulerZYX(JointTypeEulerZYX);
+    Joint joint_transXYZ(JointTypeTranslationXYZ);
+    Joint joint_rot_z = Joint(SpatialVector(0.,0.,1.,0.,0.,0.));
+
+    idB01 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
+                          joint_transXYZ, body01);
+    idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
+                         joint_eulerZYX, link1);
+
+    //idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
+    //                      joint_rot_z, link1);
+
+    idB02 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
+                          joint_transXYZ, body02);
+    idB2  = model.AddBody(idB02, Xtrans(Vector3d(0., 0., 0.)),
+                         joint_eulerZYX, link2);
+
+    //Make the revolute joints about the y axis using 5 constraints
+    //between the end points
+
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(0,0,0,1,0,0), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(0,0,0,0,1,0), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(0,0,0,0,0,1), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(1,0,0,0,0,0), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
+                         SpatialVector(0,1,0,0,0,0), false, 0.1);
 
 
- Where the terms in the square brackets define the 5 x n Jacobian matrix
- for this constraint. The Jacobian matrix can be decomposed into
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(0,0,0,1,0,0), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(0,0,0,0,1,0), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(0,0,0,0,0,1), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(1,0,0,0,0,0), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
+                         SpatialVector(0,0,1,0,0,0), false, 0.1);
 
-      G = Tu'*[X_JP - X_JQ]
+    cs.Bind(model);
 
- Where
-  G     : constraint Jacobian
-  Tu    : 6D directions of the constraints vectors in the root frame
-          Note: Tu = X_P0*TuP
-  X_JP  : Jacobian of the 6D vector (from the root frame to P) w.r.t. q
-  X_JQ  : Jacobian of the 6D vector (from the root frame to Q) w.r.t. q
+    q   = VectorNd::Zero(model.dof_count);
+    qd  = VectorNd::Zero(model.dof_count);
+    qdd = VectorNd::Zero(model.dof_count);
+    tau = VectorNd::Zero(model.dof_count);
 
- Notation Conventions for 3d quantities
-   r0P0 r: vector
-        0: from frame 0 (root frame)
-        P: to point 1
-        0: in the coordinates of the root frame
+  }
 
-   e1x0 e: direction unit vector
-        1: from the 1 frame
-        x: along the x-axis (of the 1 frame)
-        0: resolved in the coordinates of frame 0.
-   rmP0 rm: rotation matrix
-        P : from frame P
-        0 : to frame 0
+    Model model;
+    ConstraintSet cs;
 
-*/
+    VectorNd q;
+    VectorNd qd;
+    VectorNd qdd;
+    VectorNd tau;
+
+    double l1;
+    double l2;
+    double m1;
+    double m2;
+
+    unsigned int idB1;
+    unsigned int idB2;
+    unsigned int idB01;
+    unsigned int idB02;
+
+    SpatialTransform X_p1;
+    SpatialTransform X_s1;
+    SpatialTransform X_p2;
+    SpatialTransform X_s2;
+
+};
+
 struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
 {
 
-
+  PinJointCustomConstraint(){
+    mConstraintCount = 0;
+  }
 
   PinJointCustomConstraint(unsigned int x0y1z2){
     mConstraintCount = 5;
@@ -82,25 +151,25 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
     switch(x0y1z2){
       case 0:
       {
-        TuP[0](1) = 1;
-        TuP[1](2) = 1;
+        TuP[3](1) = 1;
+        TuP[4](2) = 1;
       }break;
       case 1:{
-        TuP[0](0) = 1;
-        TuP[1](2) = 1;
+        TuP[3](0) = 1;
+        TuP[4](2) = 1;
       }break;
       case 2:{
-        TuP[0](0) = 1;
-        TuP[1](1) = 1;
+        TuP[3](0) = 1;
+        TuP[4](1) = 1;
       }break;
       default: {
         cerr << "Invalid AxisOfRotation argument" << endl;
       }
     };
 
-    TuP[2](3) = 1;
-    TuP[3](4) = 1;
-    TuP[4](5) = 1;
+    TuP[0](3) = 1;
+    TuP[1](4) = 1;
+    TuP[2](5) = 1;
 
   }
 
@@ -133,7 +202,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
 
       for(unsigned int i=0; i<TuP.size(); ++i){
         eT0 = xP0.apply(TuP[i]);
-        CS.constraintAxis[ccid] = TuP[i]; //To keep it up to date.
+        CS.constraintAxis[ccid+i] = TuP[i]; //To keep it up to date.
         G.block(GrowStart+i,GcolStart,1,model.dof_count)
             = eT0.transpose()*CS.GSJ;
       }
@@ -145,7 +214,8 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
                           const Math::VectorNd &QDot,
                           ConstraintSet &CS,
                           const MatrixNd &Gblock,
-                          Math::VectorNd &gammaBlock)
+                          Math::VectorNd &gamma,
+                          unsigned int gammaStartIndex)
   {
   /*
     Position-level
@@ -216,8 +286,8 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
     for(unsigned int i=0; i<TuP.size(); ++i){
       eT0    = xP0.apply(TuP[i]);
       eT0Dot = crossm(v0P0,eT0);
-      gammaBlock(i) = -eT0.dot(dv0P0nl-dv0S0nl)
-                      -eT0Dot.dot(v0P0-v0S0);
+      gamma(i+gammaStartIndex) = -eT0.dot(dv0S0nl-dv0P0nl)
+                                 -eT0Dot.dot(v0S0-v0P0);
     }
 
   }
@@ -226,7 +296,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
                                   unsigned int ccid,
                                   const Math::VectorNd &Q,
                                   ConstraintSet &CS,
-                                  Math::VectorNd &err,
+                                  Math::VectorNd &errPos,
                                   unsigned int errStartIndex)
   {
     r0P0 = CalcBodyToBaseCoordinates (model, Q, CS.body_p[ccid],
@@ -247,7 +317,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
     err.block<3,1>(3,0) = rmP0.transpose() * (r0S0 - r0P0);
 
     for(unsigned int i=0; i < TuP.size(); ++i){
-      err(i+errStartIndex) = TuP[i].transpose()*err;
+      errPos(i+errStartIndex) = TuP[i].transpose()*err;
     }
 
   }
@@ -258,30 +328,25 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
                                   const Math::VectorNd &QDot,
                                   ConstraintSet &CS,
                                   const Math::MatrixNd &Gblock,
-                                  Math::VectorNd &err,
+                                  Math::VectorNd &errVel,
                                   unsigned int errStartIndex)
   {
     //Since this is a time-invariant constraint the expression for
     //the velocity error is quite straight forward:
-    VectorNd errVelBlock = Gblock*QDot;
+    errVelBlock = Gblock*QDot;
     for(unsigned int i=0; i < errVelBlock.rows();++i){
-      err(errStartIndex+i) = errVelBlock(i);
+      errVel(errStartIndex+i) = errVelBlock(i);
     }
   }
 
   std::vector < SpatialVector > TuP; //Constraint direction vectors resolved in
                                      //the frame that P is on.
-  SpatialVector eT0,eT0Dot;
-  SpatialVector err;
-
-  Vector3d r0P0;
-  Matrix3d rmP0;
-  Vector3d r0S0;
-  Matrix3d rmS0;
-  Matrix3d rmPS;
+  SpatialVector err, eT0, eT0Dot, v0P0,  v0S0, dv0P0nl ,dv0S0nl;
+  Vector3d r0P0, r0S0;
+  Matrix3d rmP0, rmS0, rmPS;
   SpatialTransform xP0;
 
-  SpatialVector v0P0,v0S0,dv0P0nl,dv0S0nl;
+  VectorNd errVelBlock;
 
 };
 
@@ -344,8 +409,8 @@ struct DoublePerpendicularPendulumCustomConstraint {
     //Make the revolute joints about the y axis using 5 constraints
     //between the end points
 
-    PinJointCustomConstraint ccPJZaxis = PinJointCustomConstraint(2);
-    PinJointCustomConstraint ccPJYaxis = PinJointCustomConstraint(1);
+    ccPJZaxis = PinJointCustomConstraint(2);
+    ccPJYaxis = PinJointCustomConstraint(1);
 
     cs.AddCustomConstraint(&ccPJZaxis,   0,idB1, X_p1, X_s1, false, 0.1);
     cs.AddCustomConstraint(&ccPJYaxis,idB1,idB2, X_p2, X_s2, false, 0.1);
@@ -383,6 +448,8 @@ struct DoublePerpendicularPendulumCustomConstraint {
     SpatialTransform X_p2;
     SpatialTransform X_s2;
 
+    PinJointCustomConstraint ccPJZaxis;
+    PinJointCustomConstraint ccPJYaxis;
 };
 
 struct DoublePerpendicularPendulumJointCoordinates {
@@ -464,8 +531,12 @@ axis1:z0| |__________
 
 TEST(CustomConstraintCorrectnessTest) {
 
+  //Test to add:
+  //  Jacobian vs. num Jacobian
   DoublePerpendicularPendulumCustomConstraint dbcc
     = DoublePerpendicularPendulumCustomConstraint();
+  DoublePerpendicularPendulumAbsoluteCoordinates dba
+    = DoublePerpendicularPendulumAbsoluteCoordinates();
   DoublePerpendicularPendulumJointCoordinates dbj
     = DoublePerpendicularPendulumJointCoordinates();
 
@@ -542,12 +613,15 @@ TEST(CustomConstraintCorrectnessTest) {
   dbcc.qd[10] = dbj.qd[1];
   dbcc.qd[11] = 0;
 
+  dba.q = dbcc.q;
+  dba.qd= dbcc.qd;
+
   VectorNd err(dbcc.cs.size());
   VectorNd errd(dbcc.cs.size());
 
   CalcConstraintsPositionError(dbcc.model,dbcc.q,dbcc.cs,err,true);
   CalcConstraintsVelocityError(dbcc.model,dbcc.q,dbcc.qd,dbcc.cs,errd,true);
- /*
+
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
   for(unsigned int i=0; i<err.rows();++i){
@@ -557,6 +631,8 @@ TEST(CustomConstraintCorrectnessTest) {
     CHECK_CLOSE(0,errd[i],TEST_PREC);
   }
 
+
+
   //Evaluate the accelerations of the constrained pendulum and
   //compare those to the joint-coordinate pendulum
   for(unsigned int i=0; i<dbcc.tau.rows();++i){
@@ -564,6 +640,13 @@ TEST(CustomConstraintCorrectnessTest) {
   }
   ForwardDynamicsConstraintsDirect(dbcc.model,dbcc.q,dbcc.qd,
                                    dbcc.tau,dbcc.cs,dbcc.qdd);
+
+  ForwardDynamicsConstraintsDirect(dba.model, dba.q,  dba.qd,
+                                   dba.tau,   dba.cs, dba.qdd);
+
+  MatrixNd Gerr     = dba.cs.G-dbcc.cs.G;
+  VectorNd gammaErr = dba.cs.gamma-dbcc.cs.gamma;
+
   SpatialVector a010c =
       CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,
                           dbcc.idB1,Vector3d(0.,0.,0.),true);
@@ -579,5 +662,5 @@ TEST(CustomConstraintCorrectnessTest) {
     CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
     CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
   }
-*/
+
 }

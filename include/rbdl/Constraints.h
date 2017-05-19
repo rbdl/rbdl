@@ -1047,7 +1047,8 @@ struct RBDL_DLLAPI CustomConstraint {
                             const Math::VectorNd &QDot,
                             ConstraintSet &CS,
                             const Math::MatrixNd &Gblock,
-                            Math::VectorNd &gammaBlock)=0;
+                            Math::VectorNd &gamma,
+                            unsigned int gammaStartIndex)=0;
 
 
     virtual void CalcPositionError( Model &model,
