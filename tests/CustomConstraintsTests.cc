@@ -127,12 +127,10 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
 struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
 {
 
-  PinJointCustomConstraint(){
-    mConstraintCount = 0;
+  PinJointCustomConstraint():RigidBodyDynamics::CustomConstraint(5){
   }
 
-  PinJointCustomConstraint(unsigned int x0y1z2){
-    mConstraintCount = 5;
+  PinJointCustomConstraint(unsigned int x0y1z2):RigidBodyDynamics::CustomConstraint(5){    
     TuP.resize(mConstraintCount);
     for(unsigned int i=0; i<TuP.size(); ++i){
       TuP[i].setZero();

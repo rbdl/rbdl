@@ -25,9 +25,9 @@
 // the following macro.
 
 #ifdef EIGEN_CORE_H
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint);
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody);
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody)
 #endif
 
 /** \brief Namespace for all structures of the RigidBodyDynamics library

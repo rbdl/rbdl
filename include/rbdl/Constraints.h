@@ -233,8 +233,7 @@ namespace RigidBodyDynamics {
 
 struct Model;
 
-struct CustomConstraint;
-
+struct RBDL_DLLAPI CustomConstraint;
 
 /** \brief Structure that contains both constraint information and workspace memory.
  *
@@ -1028,8 +1027,10 @@ void SolveConstrainedSystemNullSpace (
 * as the integrator tolerances are lowered.
 */
 struct RBDL_DLLAPI CustomConstraint {
-    CustomConstraint(){}
-        //mAssemblyConstraintCount(0) {};
+    unsigned int mConstraintCount;
+    //unsigned int mAssemblyConstraintCount;
+
+    CustomConstraint(unsigned int constraintCount):mConstraintCount(constraintCount){}
 
     virtual ~CustomConstraint(){};    
 
@@ -1099,8 +1100,6 @@ struct RBDL_DLLAPI CustomConstraint {
                                                     unsigned int i,
                                                     unsigned int j);
     */
-    unsigned int mConstraintCount;
-    //unsigned int mAssemblyConstraintCount;
 
 };
 
