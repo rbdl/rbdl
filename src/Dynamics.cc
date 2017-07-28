@@ -411,7 +411,7 @@ RBDL_DLLAPI void ForwardDynamics (
       model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose()
           * model.multdof3_U[i]).inverse();
 #endif
-      VectorNd tau_temp(Tau.block(q_index,0,3,1));
+      Vector3d tau_temp(Tau.block(q_index,0,3,1));
       model.multdof3_u[i] = tau_temp 
         - model.multdof3_S[i].transpose() * model.pA[i];
 
