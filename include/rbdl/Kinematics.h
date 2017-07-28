@@ -176,10 +176,10 @@ RBDL_DLLAPI void CalcPointJacobian6D (Model &model,
 
 /** \brief Computes the spatial jacobian for a body
  *
- * The spatial velocity of a body at the origin of the base coordinate
- * system can be expressed as \f${}^0 \hat{v}_i = G(q) * \dot{q}\f$. The
- * matrix \f$G(q)\f$ is called the spatial body jacobian of the body and
- * can be computed using this function.
+ * The spatial velocity of a body at the origin of coordinate system of 
+ * body \f$i\f$ can be expressed as \f${}^i \hat{v}_i = G(q) * \dot{q}\f$.
+ * The matrix \f$G(q)\f$ is called the spatial body jacobian of the body
+ * and can be computed using this function.
  *
  * \param model   rigid body model
  * \param Q       state vector of the internal joints
