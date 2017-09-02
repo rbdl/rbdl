@@ -633,7 +633,7 @@ RBDL_DLLAPI void CalcMInvTimesTau ( Model &model,
 
       model.v_J[i].setZero();
       model.v[i].setZero();
-      model.c_J[i].setZero();
+      model.c[i].setZero();
       model.pA[i].setZero();
       model.I[i].setSpatialMatrix (model.IA[i]);
     }
