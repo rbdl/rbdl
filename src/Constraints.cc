@@ -583,7 +583,7 @@ void CalcConstraintsPositionError (
 
   for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
     const unsigned int cci = CS.customConstraintIndices[i];
-    CS.mCustomConstraints[i]->CalcPositionError(model,cci,Q,CS,err, cci);
+    CS.mCustomConstraints[i]->CalcPositionError(model,cci,Q,CS,err, cci);    
   }
 }
 
@@ -741,7 +741,8 @@ void CalcConstrainedSystemVariables (
   CalcConstraintsPositionError (model, Q, CS, CS.err, false);
 
   // Compute velocity error for Baugarte stabilization.
-  CS.errd = CS.G * QDot;
+  CalcConstraintsVelocityError (model, Q, QDot, CS, CS.errd, false);  
+  //CS.errd = CS.G * QDot;
 
   // Compute gamma
   unsigned int prev_body_id = 0;
