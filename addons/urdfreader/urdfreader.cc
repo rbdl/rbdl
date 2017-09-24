@@ -52,7 +52,9 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
 
   vector<string> joint_names;
 
+  // Holds the links that we are processing in our depth first traversal with the top element being the current link.
   stack<LinkPtr > link_stack;
+  // Holds the child joint index of the current link
   stack<int> joint_index_stack;
 
   // add the bodies in a depth-first order of the model tree
@@ -117,14 +119,15 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
         root->name);
   }
 
-  if (link_stack.top()->child_joints.size() > 0) {
-    joint_index_stack.push(0);
-  }
+  // depth first traversal: push the first child onto our joint_index_stack
+  joint_index_stack.push(0);
 
   while (link_stack.size() > 0) {
     LinkPtr cur_link = link_stack.top();
+
     unsigned int joint_idx = joint_index_stack.top();
 
+    // Add any child bodies and increment current joint index if we still have child joints to process.
     if (joint_idx < cur_link->child_joints.size()) {
       JointPtr cur_joint = cur_link->child_joints[joint_idx];
 

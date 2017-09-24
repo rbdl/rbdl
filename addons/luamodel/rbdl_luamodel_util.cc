@@ -22,7 +22,8 @@ void usage (const char* argv_0) {
 }
 
 int main (int argc, char *argv[]) {
-  if (argc < 2 || argc > 4) {
+  if (argc < 2) {
+    cerr << "Error: not enough arguments!" << endl;
     usage(argv[0]);
   }
 

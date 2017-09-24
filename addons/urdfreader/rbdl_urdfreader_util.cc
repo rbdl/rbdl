@@ -20,6 +20,7 @@ void usage (const char* argv_0) {
   cerr << "Usage: " << argv_0 << "[-v] [-m] [-d] <robot.urdf>" << endl;
   cerr << "  -v | --verbose            enable additional output" << endl;
   cerr << "  -d | --dof-overview       print an overview of the degress of freedom" << endl;
+  cerr << "  -f | --floatbase          set the first mobile body as floating base" << endl;
   cerr << "  -m | --model-hierarchy    print the hierarchy of the model" << endl;
   cerr << "  -o | --body-origins       print the origins of all bodies that have names" << endl;
   cerr << "  -c | --center_of_mass     print center of mass for bodies and full model" << endl;
@@ -28,7 +29,8 @@ void usage (const char* argv_0) {
 }
 
 int main (int argc, char *argv[]) {
-  if (argc < 2 || argc > 4) {
+  if (argc < 2) {
+    cerr << "Error: not enough arguments!" << endl;
     usage(argv[0]);
   }
 
