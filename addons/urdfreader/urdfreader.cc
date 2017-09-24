@@ -161,7 +161,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
     // determine where to add the current joint and child body
     unsigned int rbdl_parent_id = 0;
 
-    if (urdf_parent->name != "base_joint") {
+    if (urdf_parent->name != "base_link") {
       rbdl_parent_id = rbdl_model->GetBodyId (urdf_parent->name.c_str());
     }
 
@@ -251,7 +251,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
     Body rbdl_body = Body (link_inertial_mass, link_inertial_position, link_inertial_inertia);
 
     if (verbose) {
-      cout << "+ Adding Body " << endl;
+      cout << "+ Adding Body: " << urdf_child->name << endl;
       cout << "  parent_id  : " << rbdl_parent_id << endl;
       cout << "  joint frame: " << rbdl_joint_frame << endl;
       cout << "  joint dofs : " << rbdl_joint.mDoFCount << endl;
