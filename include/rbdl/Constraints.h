@@ -996,11 +996,12 @@ void SolveConstrainedSystemNullSpace (
 * The interface requires that the user populate
 *
 *   - G: \f$ \dfrac{ \partial \Phi(\ddot{q},\dot{q},q,t)}{ \partial \ddot{q}}\f$
+*   - constraintAxis: the axis that the constraints are applied along
 *   - gamma: \f$ \gamma = - ( \Phi(\ddot{q},\dot{q},q,t) - G \ddot{q})\f$
 *   - errPos: The vector of \f$\phi_p(\dot{q},t)\f$. If the constraint is a velocity-level
 *             constraint or higher this should be set to zero.
 *   - errVel: The vector of \f$\phi_v(\dot{q},t)\f$. If the constraint is an acceleration-level
-*             constraint this should be set to zero.
+*             constraint this should be set to zero
 *
 * The matrix G and the vector gamma are required to compute accelerations that satisfy
 * the desired constraints. The vectors errPos and errVel are required to apply Baumgarte
@@ -1034,7 +1035,8 @@ struct RBDL_DLLAPI CustomConstraint {
 
     virtual ~CustomConstraint(){};    
 
-    virtual void CalcConstraintsJacobian( Model &model,
+    virtual void CalcConstraintsJacobianAndConstraintAxis(
+                                          Model &model,
                                           unsigned int custom_constraint_id,
                                           const Math::VectorNd &Q,
                                           ConstraintSet &CS,

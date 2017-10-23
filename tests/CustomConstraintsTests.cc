@@ -172,7 +172,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
   }
 
 
-  virtual void CalcConstraintsJacobian(
+  virtual void CalcConstraintsJacobianAndConstraintAxis(
                   Model &model,
                   unsigned int ccid,
                   const Math::VectorNd &Q,
