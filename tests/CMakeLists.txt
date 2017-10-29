@@ -30,6 +30,7 @@ SET ( TESTS_SRCS
   SparseFactorizationTests.cc
   CustomJointSingleBodyTests.cc
   CustomJointMultiBodyTests.cc
+  CustomConstraintsTests.cc
   InverseKinematicsTests.cc
   LoopConstraintsTests.cc
   ScrewJointTests.cc

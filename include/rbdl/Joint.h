@@ -216,8 +216,8 @@ struct RBDL_DLLAPI Joint {
     mJointAxes (NULL),
     mJointType (type),
     mDoFCount (0),
-    custom_joint_index(-1),
-    q_index (0) {
+    q_index (0),
+    custom_joint_index(-1) {
       if (type == JointTypeRevoluteX) {
         mDoFCount = 1;
         mJointAxes = new Math::SpatialVector[mDoFCount];
@@ -294,12 +294,12 @@ struct RBDL_DLLAPI Joint {
       mJointAxes (NULL),
       mJointType (type),
       mDoFCount (0),
-      custom_joint_index(-1),
-      q_index (0) {
+      q_index (0),
+      custom_joint_index(-1) {
      if (type == JointTypeCustom) {        
         mDoFCount   = degreesOfFreedom;
         mJointAxes  = new Math::SpatialVector[mDoFCount];
-        for(int i=0; i<mDoFCount;++i){
+        for(unsigned int i=0; i<mDoFCount;++i){
           mJointAxes[i] = Math::SpatialVector (0., 0., 0., 0., 0., 0.);
         }        
       } else {
@@ -630,7 +630,7 @@ struct RBDL_DLLAPI Joint {
   // can be obtained using the CustomJoint structure.
   unsigned int mDoFCount;
   unsigned int q_index;
-  unsigned int custom_joint_index;
+  int custom_joint_index;
 };
 
 /** \brief Computes all variables for a joint model

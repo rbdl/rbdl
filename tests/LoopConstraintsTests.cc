@@ -19,6 +19,7 @@ static double inRange(double angle) {
   return angle;
 }
 
+
 struct DoublePerpendicularPendulumJointCoordinates {
   DoublePerpendicularPendulumJointCoordinates()
     : model()
@@ -34,9 +35,9 @@ struct DoublePerpendicularPendulumJointCoordinates {
     , idB2(0){
 
     model.gravity = Vector3d(0.,-9.81,0.);
-    /*   
+    /*
       The perpendicular pendulum pictured with joint angles of 0,0.
-      The first joint rotates about the x axis, while the second 
+      The first joint rotates about the x axis, while the second
       joint rotates about the local y axis of link 1
 
          y
@@ -51,9 +52,9 @@ axis1:z0| |__________
        (_____________) link 2
         | |
          |
-         
+
          |
-         
+
          | axis2:y1
     */
 
@@ -2357,9 +2358,9 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
 }
 
 TEST(ConstraintCorrectnessTest) {
-  DoublePerpendicularPendulumAbsoluteCoordinates dba 
+  DoublePerpendicularPendulumAbsoluteCoordinates dba
     = DoublePerpendicularPendulumAbsoluteCoordinates();
-  DoublePerpendicularPendulumJointCoordinates dbj 
+  DoublePerpendicularPendulumJointCoordinates dbj
     = DoublePerpendicularPendulumJointCoordinates();
 
   //1. Set the pendulum modeled using joint coordinates to a specific
