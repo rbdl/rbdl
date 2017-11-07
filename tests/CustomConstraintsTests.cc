@@ -221,13 +221,13 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
       phi(q) = 0
       r0P-r0S   = 0 : the points p and q are coincident.
       e1x'e2y   = 0 : the x axis of frame 1 is perp. to y axis of frame 2
-      e1x'e2z   = 0 : the x axis of frame 1 is perp. to y axis of frame 2
+      e1x'e2z   = 0 : the x axis of frame 1 is perp. to z axis of frame 2
 
     Velocity-level
       D_phi(q)_Dq * dq/dt = 0
       [J_r0P0_q             - J_r0Q0_q] dq/dt = 0
       [J_e1x0_q'*e2y0 + e1x1'*J_e2y0_q] dq/dt = 0
-      [J_e1x0_q'*e2z0   e1x1'*J_e2z0_q] dq/dt = 0
+      [J_e1x0_q'*e2z0 + e1x1'*J_e2z0_q] dq/dt = 0
 
       Or equivalently
 

@@ -1016,16 +1016,16 @@ void SolveConstrainedSystemNullSpace (
 * These optional functions are used only during system assembly. This permits a velocity-level
 * constraint (e.g. such as a rolling-without-slipping constraint) to define a position-level
 * constraint to assemble the system (e.g. bring the rolling surfaces into contact with
-* eachother). If you are defining a position-level constraint that these optional functions
+* eachother). If you are defining a position-level constraint these optional functions
 * should simply return errPos, G, errVel, and G respectively.
 *
 * It must be stated that this is an advanced feature of RBDL: you must have an in-depth
 * knowledge of multibody-dynamics in order to write a custom constraint, and to write
 * the corresponding test code to validate that the constraint is working. As a hint the
-* test code should contain a forward simulation of a simple system using the constraint
-* and then check to see that system energy is conserved with only a small error and the
-* constraint is also satisfied with only a small error. The observed error should drop
-* as the integrator tolerances are lowered.
+* test code in tests/CustomConstraintsTest.cc should contain a forward simulation of a simple
+* system using the constraint and then check to see that system energy is conserved with only 
+* a small error and the constraint is also satisfied with only a small error. The observed 
+* error should drop as the integrator tolerances are lowered.
 */
 struct RBDL_DLLAPI CustomConstraint {
     unsigned int mConstraintCount;
@@ -1042,7 +1042,7 @@ struct RBDL_DLLAPI CustomConstraint {
                                           ConstraintSet &CS,
                                           Math::MatrixNd &G,
                                           unsigned int GrowStart,
-                                          unsigned int GcolStart)=0;
+                                          unsigned int GcolStart) = 0;
 
     virtual void CalcGamma( Model &model,
                             unsigned int custom_constraint_id,
@@ -1051,7 +1051,7 @@ struct RBDL_DLLAPI CustomConstraint {
                             ConstraintSet &CS,
                             const Math::MatrixNd &Gblock,
                             Math::VectorNd &gamma,
-                            unsigned int gammaStartIndex)=0;
+                            unsigned int gammaStartIndex) = 0;
 
 
     virtual void CalcPositionError( Model &model,
