@@ -645,6 +645,24 @@ TEST(CustomConstraintCorrectnessTest) {
   MatrixNd Gerr     = dba.cs.G-dbcc.cs.G;
   VectorNd gammaErr = dba.cs.gamma-dbcc.cs.gamma;
 
+  for(unsigned int i = 0; i < dba.cs.G.rows(); ++i){
+    for(unsigned int j=0; j< dba.cs.G.cols();++j){
+      CHECK_CLOSE(dba.cs.G(i,j),dbcc.cs.G(i,j),TEST_PREC);
+    }
+  }
+
+  for(unsigned int i = 0; i < dba.cs.gamma.rows(); ++i){
+    CHECK_CLOSE(dba.cs.gamma[i],dbcc.cs.gamma[i],TEST_PREC);
+  }
+
+  for(unsigned int i =0; i < dba.cs.constraintAxis.size(); ++i){
+    for(unsigned int j=0; j< dba.cs.constraintAxis[0].rows();++j){
+      CHECK_CLOSE(dba.cs.constraintAxis[i][j],
+                  dbcc.cs.constraintAxis[i][j],TEST_PREC);
+    }
+  }
+  
+
   SpatialVector a010c =
       CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,
                           dbcc.idB1,Vector3d(0.,0.,0.),true);
