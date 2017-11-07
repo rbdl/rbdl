@@ -399,9 +399,9 @@ struct RBDL_DLLAPI ConstraintSet {
   // Common constraints variables.
   std::vector<ConstraintType> constraintType;
   std::vector<std::string> name;
-  std::vector<unsigned int> contactConstraintIndices;
-  std::vector<unsigned int> loopConstraintIndices;
-  std::vector<unsigned int> customConstraintIndices;
+  std::vector<unsigned int> mContactConstraintIndices;
+  std::vector<unsigned int> mLoopConstraintIndices;
+  std::vector<unsigned int> mCustomConstraintIndices;
   std::vector< CustomConstraint* > mCustomConstraints;
 
   // Contact constraints variables.
@@ -1069,39 +1069,6 @@ struct RBDL_DLLAPI CustomConstraint {
                                     const Math::MatrixNd &Gblock,
                                     Math::VectorNd &err,
                                     unsigned int errStartIndex) = 0;
-
-    /*
-    virtual void CalcAssemblyPositionError( Model &model,
-                                            unsigned int custom_constraint_id,
-                                            const Math::VectorNd &Q,
-                                            ConstraintSet &CS,
-                                            Math::VectorNd &err,
-                                            unsigned int i);
-
-    virtual void CalcAssemblyPositionErrorJacobian( Model &model,
-                                                    unsigned int custom_constraint_id,
-                                                    const Math::VectorNd &Q,
-                                                    ConstraintSet &CS,
-                                                    Math::MatrixNd &Gasm,
-                                                    unsigned int i,
-                                                    unsigned int j);
-
-    virtual void CalcAssemblyVelocityError( Model &model,
-                                            unsigned int custom_constraint_id,
-                                            const Math::VectorNd &Q,
-                                            const Math::VectorNd &QDot,
-                                            ConstraintSet &CS,
-                                            Math::VectorNd &err,
-                                            unsigned int i);
-
-    virtual void CalcAssemblyVelocityErrorJacobian( Model &model,
-                                                    unsigned int custom_constraint_id,
-                                                    const Math::VectorNd &Q,
-                                                    const Math::VectorNd &QDot,
-                                                    ConstraintSet &CS,
-                                                    unsigned int i,
-                                                    unsigned int j);
-    */
 
 };
 

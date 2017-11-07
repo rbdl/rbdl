@@ -51,7 +51,7 @@ unsigned int ConstraintSet::AddContactConstraint (
 
   constraintType.push_back (ContactConstraint);
   name.push_back (name_str);
-  contactConstraintIndices.push_back(size());
+  mContactConstraintIndices.push_back(size());
 
   // These variables will be used for this type of constraint.
   body.push_back (body_id);
@@ -136,7 +136,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   constraintType.push_back(LoopConstraint);
   name.push_back (name_str);
-  loopConstraintIndices.push_back(size());
+  mLoopConstraintIndices.push_back(size());
 
   // These variables will be used for this kind of constraint.
   body_p.push_back (id_predecessor);
@@ -214,7 +214,7 @@ unsigned int ConstraintSet::AddCustomConstraint(
       name.push_back (nameConstraintIndex.str());
       nameConstraintIndex.str(std::string());
       if(i==0){
-        customConstraintIndices.push_back(n_constr_start_idx);
+        mCustomConstraintIndices.push_back(n_constr_start_idx);
       }
       // These variables will be used for each CustomConstraint
       body_p.push_back (id_predecessor);
@@ -529,13 +529,13 @@ void CalcConstraintsPositionError (
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
   }
 
-  for (unsigned int i = 0; i < CS.contactConstraintIndices.size(); i++) {
-    const unsigned int c = CS.contactConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mContactConstraintIndices.size(); i++) {
+    const unsigned int c = CS.mContactConstraintIndices[i];
     err[c] = 0.;
   }
 
-  for (unsigned int i = 0; i < CS.loopConstraintIndices.size(); i++) {
-    const unsigned int lci = CS.loopConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
+    const unsigned int lci = CS.mLoopConstraintIndices[i];
 
     // Variables used for computations.
     Vector3d pos_p;
@@ -581,8 +581,8 @@ void CalcConstraintsPositionError (
     err[lci] = CS.constraintAxis[lci].transpose() * d;
   } 
 
-  for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
-    const unsigned int cci = CS.customConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mCustomConstraintIndices.size(); i++) {
+    const unsigned int cci = CS.mCustomConstraintIndices[i];
     CS.mCustomConstraints[i]->CalcPositionError(model,cci,Q,CS,err, cci);    
   }
 }
@@ -605,8 +605,8 @@ void CalcConstraintsJacobian (
   SpatialTransform prev_body_X_1;
   SpatialTransform prev_body_X_2;
 
-  for (unsigned int i = 0; i < CS.contactConstraintIndices.size(); i++) {
-    const unsigned int c = CS.contactConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mContactConstraintIndices.size(); i++) {
+    const unsigned int c = CS.mContactConstraintIndices[i];
 
     // only compute the matrix Gi if actually needed
     if (prev_body_id_1 != CS.body[c] 
@@ -634,8 +634,8 @@ void CalcConstraintsJacobian (
   Matrix3d rot_p;
   SpatialTransform X_0p;
 
-  for (unsigned int i = 0; i < CS.loopConstraintIndices.size(); i++) {
-    const unsigned int c = CS.loopConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
+    const unsigned int c = CS.mLoopConstraintIndices[i];
 
     // Only recompute variables if necessary.
     if( prev_body_id_1 != CS.body_p[c]
@@ -674,8 +674,8 @@ void CalcConstraintsJacobian (
   }
 
   // Go and get the CustomConstraint Jacobians
-  for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
-    const unsigned int cci = CS.customConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mCustomConstraintIndices.size(); i++) {
+    const unsigned int cci = CS.mCustomConstraintIndices[i];
     const unsigned int rows= CS.mCustomConstraints[i]->mConstraintCount;
     const unsigned int cols= CS.G.cols();
     CS.mCustomConstraints[i]->CalcConstraintsJacobianAndConstraintAxis(
@@ -702,8 +702,8 @@ void CalcConstraintsVelocityError (
   err = CS.G * QDot;
   
   unsigned int cci, rows, cols;
-  for (unsigned int i = 0; i < CS.customConstraintIndices.size(); i++) {
-    cci = CS.customConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mCustomConstraintIndices.size(); i++) {
+    cci = CS.mCustomConstraintIndices[i];
     rows= CS.mCustomConstraints[i]->mConstraintCount;
     cols= CS.G.cols();
     CS.mCustomConstraints[i]->CalcVelocityError(model,cci,Q,QDot,CS,
@@ -752,8 +752,8 @@ void CalcConstrainedSystemVariables (
   CS.QDDot_0.setZero();
   UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
 
-  for (unsigned int i = 0; i < CS.contactConstraintIndices.size(); i++) {
-    const unsigned int c = CS.contactConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mContactConstraintIndices.size(); i++) {
+    const unsigned int c = CS.mContactConstraintIndices[i];
 
     // only compute point accelerations when necessary
     if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
@@ -770,8 +770,8 @@ void CalcConstrainedSystemVariables (
 
 
 
-  for (unsigned int i = 0; i < CS.loopConstraintIndices.size(); i++) {
-    const unsigned int c = CS.loopConstraintIndices[i];
+  for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
+    const unsigned int c = CS.mLoopConstraintIndices[i];
 
     // Variables used for computations.
     Vector3d pos_p;
@@ -817,8 +817,8 @@ void CalcConstrainedSystemVariables (
   }
 
   unsigned int ccid,rows,cols,z;
-  for(unsigned int i=0; i< CS.customConstraintIndices.size(); i++){
-    ccid  = CS.customConstraintIndices[i];
+  for(unsigned int i=0; i< CS.mCustomConstraintIndices.size(); i++){
+    ccid  = CS.mCustomConstraintIndices[i];
     rows  = CS.mCustomConstraints[i]->mConstraintCount;
     cols  = CS.G.cols();
     CS.mCustomConstraints[i]->CalcGamma(model,ccid,Q,QDot,CS,
@@ -826,7 +826,7 @@ void CalcConstrainedSystemVariables (
                                         CS.gamma,ccid);
     for(unsigned int j=0; j<CS.mCustomConstraints[i]->mConstraintCount;j++){
       z = ccid+j;
-      CS.gamma(z) += (- 2. * CS.T_stab_inv[z] * CS.errd[z]
+      CS.gamma[z] += (- 2. * CS.T_stab_inv[z] * CS.errd[z]
                       - CS.T_stab_inv[z] * CS.T_stab_inv[z] * CS.err[z]);
     }
 

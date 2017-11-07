@@ -149,25 +149,25 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
     switch(x0y1z2){
       case 0:
       {
-        TuP[3](1) = 1;
-        TuP[4](2) = 1;
+        TuP[3][1] = 1;
+        TuP[4][2] = 1;
       }break;
       case 1:{
-        TuP[3](0) = 1;
-        TuP[4](2) = 1;
+        TuP[3][0] = 1;
+        TuP[4][2] = 1;
       }break;
       case 2:{
-        TuP[3](0) = 1;
-        TuP[4](1) = 1;
+        TuP[3][0] = 1;
+        TuP[4][1] = 1;
       }break;
       default: {
         cerr << "Invalid AxisOfRotation argument" << endl;
       }
     };
 
-    TuP[0](3) = 1;
-    TuP[1](4) = 1;
-    TuP[2](5) = 1;
+    TuP[0][3] = 1;
+    TuP[1][4] = 1;
+    TuP[2][5] = 1;
 
   }
 
@@ -284,7 +284,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
     for(unsigned int i=0; i<TuP.size(); ++i){
       eT0    = xP0.apply(TuP[i]);
       eT0Dot = crossm(v0P0,eT0);
-      gamma(i+gammaStartIndex) = -eT0.dot(dv0S0nl-dv0P0nl)
+      gamma[i+gammaStartIndex] = -eT0.dot(dv0S0nl-dv0P0nl)
                                  -eT0Dot.dot(v0S0-v0P0);
     }
 
@@ -315,7 +315,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
     err.block<3,1>(3,0) = rmP0.transpose() * (r0S0 - r0P0);
 
     for(unsigned int i=0; i < TuP.size(); ++i){
-      errPos(i+errStartIndex) = TuP[i].transpose()*err;
+      errPos[i+errStartIndex] = TuP[i].transpose()*err;
     }
 
   }
@@ -333,7 +333,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
     //the velocity error is quite straight forward:
     errVelBlock = Gblock*QDot;
     for(unsigned int i=0; i < errVelBlock.rows();++i){
-      errVel(errStartIndex+i) = errVelBlock(i);
+      errVel[errStartIndex+i] = errVelBlock[i];
     }
   }
 
