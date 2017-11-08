@@ -642,9 +642,6 @@ TEST(CustomConstraintCorrectnessTest) {
   ForwardDynamicsConstraintsDirect(dba.model, dba.q,  dba.qd,
                                    dba.tau,   dba.cs, dba.qdd);
 
-  MatrixNd Gerr     = dba.cs.G-dbcc.cs.G;
-  VectorNd gammaErr = dba.cs.gamma-dbcc.cs.gamma;
-
   for(unsigned int i = 0; i < dba.cs.G.rows(); ++i){
     for(unsigned int j=0; j< dba.cs.G.cols();++j){
       CHECK_CLOSE(dba.cs.G(i,j),dbcc.cs.G(i,j),TEST_PREC);
