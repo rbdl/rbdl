@@ -80,9 +80,8 @@ namespace RigidBodyDynamics {
  * RigidBodyDynamics::Model::AppendBody().
  *
  * To create a model with a floating base (a.k.a a model with a free-flyer
- * joint) it is recommended to use \link
- * RigidBodyDynamics::Model::SetFloatingBaseBody
- * Model::SetFloatingBaseBody(...)\endlink.
+ * joint) it is recommended to use a joint of type JointTypeFloatingBase as
+ * the first joint.
  *
  * Once this is done, the model structure can be used with the functions of \ref
  * kinematics_group, \ref dynamics_group, \ref contacts_page, to perform
@@ -331,32 +330,6 @@ struct RBDL_DLLAPI Model {
       const Body &body,
       std::string body_name = "" 
       );
-
-  /** \brief Specifies the dynamical parameters of the first body and
-   *  \brief assigns it a 6 DoF joint.
-   *
-   * The 6 DoF joint is simulated by adding 5 massless bodies at the base
-   * which are connected with joints. The body that is specified as a
-   * parameter of this function is then added by a 6th joint to the model.
-   *
-   * The floating base has the following order of degrees of freedom:
-   * 
-   * \li translation X
-   * \li translation Y
-   * \li translation Z
-   * \li rotation Z
-   * \li rotation Y
-   * \li rotation X
-   *
-   * To specify a different ordering, it is recommended to create a 6 DoF
-   * joint. See \link RigidBodyDynamics::Joint Joint\endlink for more
-   * information.
-   *
-   * \param body Properties of the floating base body.
-   *
-   *  \returns id of the body with 6 DoF
-   */
-  unsigned int SetFloatingBaseBody (const Body &body);
 
   /** \brief Returns the id of a body that was passed to AddBody()
    *

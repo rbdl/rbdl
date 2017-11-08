@@ -1,18 +1,24 @@
-2.5.0 -> next
-- Replaced Contacts API by new Constraints API. The new API allows to
-  compute dynamics of models with kinematic loops but otherwise uses a very
-  similar API. Loop constraints can be stabilized using Baumgarte
-  stabilization. Special thanks to Davide Corradi for this contribution!
+postponed:
 - New inverse kinematics algorithm and API. It now uses the IK method
   described by Sugihara which is faster and more robust than the
   previously implemented damped Levenberg-Marquardt method. The new API
   allows to specify both point and orientation (and mixed) constraints.
   Thanks to Kevin Stein for implementing it!
+
+2.5.0 -> next
+- New constraint type CustomConstraint: a versatile interface to define
+  more general types of constraints (e.g. time dependent), contributed by
+  Matthew J. Millard.
+- Replaced Contacts API by new Constraints API. The new API allows to
+  compute dynamics of models with kinematic loops but otherwise uses a very
+  similar API. Loop constraints can be stabilized using Baumgarte
+  stabilization. Special thanks to Davide Corradi for this contribution!
 - Changed Quaternion multiplication behaviour for a more standard
   convention: multiplying q1 (1,0,0,0) with q2 (0,1,0,0) results now in
   (0,0,1,0) instead of the previous (0,0,-1,0).
 - New joint type JointTypeHelical that can be used for screwing motions
   (translations and simultaneous rotations), contributed by Stuart Anderson.
+- Removed Model::SetFloatingBaseBody(). Use JointTypeFloatingBase instead.
 
 2.4.1 -> 2.5.0 
 - Added an experimental Cython based Python wrapper of RBDL. The API is
