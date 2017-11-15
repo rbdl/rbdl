@@ -110,6 +110,8 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
     , m2(1.)
     , idB1(0)
     , idB2(0)
+    , idB01(0)
+    , idB02(0)
     , X_p1(Xtrans(Vector3d(0., 0., 0.)))
     , X_s1(Xtrans(Vector3d(0., 0., 0.)))
     , X_p2(Xtrans(Vector3d(0.,-l1, 0.)))
@@ -132,18 +134,13 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
     Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
                           Vector3d(     0., m2*l2*l2/3., m2*l2*l2/3.));
 
-    //Joint joint_free(JointTypeFloatingBase);
     Joint joint_eulerZYX(JointTypeEulerZYX);
     Joint joint_transXYZ(JointTypeTranslationXYZ);
-    Joint joint_rot_z = Joint(SpatialVector(0.,0.,1.,0.,0.,0.));
 
     idB01 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
                           joint_transXYZ, body01);
     idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
                          joint_eulerZYX, link1);
-
-    //idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
-    //                      joint_rot_z, link1);
 
     idB02 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
                           joint_transXYZ, body02);
@@ -152,7 +149,6 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
 
     //Make the revolute joints about the y axis using 5 constraints
     //between the end points
-
     cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
                          SpatialVector(0,0,0,1,0,0), false, 0.1);
     cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
@@ -2491,4 +2487,37 @@ TEST(ConstraintCorrectnessTest) {
     CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
   }
 
+  /*
+  ForwardDynamicsConstraintsNullSpace(dba.model,dba.q,dba.qd,
+                                   dba.tau,dba.cs,dba.qdd);
+  a010c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB1,Vector3d(0.,0.,0.),true);
+  a020c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB2,Vector3d(0.,0.,0.),true);
+  a030c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB2,Vector3d(dba.l2,0.,0.),true);
+
+  for(unsigned int i=0; i<6;++i){
+    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
+    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
+    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+  }
+
+  bool here=true;
+
+  ForwardDynamicsConstraintsRangeSpaceSparse(dba.model,dba.q,dba.qd,
+                                             dba.tau,dba.cs,dba.qdd);
+  a010c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB1,Vector3d(0.,0.,0.),true);
+  a020c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB2,Vector3d(0.,0.,0.),true);
+  a030c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
+                          dba.idB2,Vector3d(dba.l2,0.,0.),true);
+
+  for(unsigned int i=0; i<6;++i){
+    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
+    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
+    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+  }
+  */
 }

@@ -24,6 +24,8 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
     , m2(1.)
     , idB1(0)
     , idB2(0)
+    , idB01(0)
+    , idB02(0)
     , X_p1(Xtrans(Vector3d(0., 0., 0.)))
     , X_s1(Xtrans(Vector3d(0., 0., 0.)))
     , X_p2(Xtrans(Vector3d(0.,-l1, 0.)))
@@ -49,7 +51,6 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
     //Joint joint_free(JointTypeFloatingBase);
     Joint joint_eulerZYX(JointTypeEulerZYX);
     Joint joint_transXYZ(JointTypeTranslationXYZ);
-    Joint joint_rot_z = Joint(SpatialVector(0.,0.,1.,0.,0.,0.));
 
     idB01 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
                           joint_transXYZ, body01);

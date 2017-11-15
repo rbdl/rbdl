@@ -61,12 +61,14 @@ RBDL_DLLAPI void InverseDynamics (
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints (output)
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
 RBDL_DLLAPI void NonlinearEffects (
     Model &model,
     const Math::VectorNd &Q,
     const Math::VectorNd &QDot,
-    Math::VectorNd &Tau
+    Math::VectorNd &Tau,
+    std::vector<Math::SpatialVector> *f_ext = NULL
     );
 
 /** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm

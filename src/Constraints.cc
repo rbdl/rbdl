@@ -719,10 +719,11 @@ void CalcConstrainedSystemVariables (
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
-  ConstraintSet &CS
+  ConstraintSet &CS,
+  std::vector<Math::SpatialVector> *f_ext
   ) {
   // Compute C
-  NonlinearEffects(model, Q, QDot, CS.C);
+  NonlinearEffects(model, Q, QDot, CS.C, f_ext);
   assert(CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
 
   // Compute H
@@ -1002,11 +1003,12 @@ void ForwardDynamicsConstraintsDirect (
   const VectorNd &QDot,
   const VectorNd &Tau,
   ConstraintSet &CS,
-  VectorNd &QDDot
+  VectorNd &QDDot,
+  std::vector<Math::SpatialVector> *f_ext
   ) {
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
+  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
   SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
     , CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
@@ -1028,8 +1030,7 @@ void ForwardDynamicsConstraintsRangeSpaceSparse (
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
-  Math::VectorNd &QDDot
-  ) {
+  Math::VectorNd &QDDot) {
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
 
   SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C
@@ -1043,12 +1044,13 @@ void ForwardDynamicsConstraintsNullSpace (
   const VectorNd &QDot,
   const VectorNd &Tau,
   ConstraintSet &CS,
-  VectorNd &QDDot
+  VectorNd &QDDot,
+  std::vector<Math::SpatialVector> *f_ext
   ) {
 
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
+  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
   CS.GT_qr.compute (CS.G.transpose());
 #ifdef RBDL_USE_SIMPLE_MATH
