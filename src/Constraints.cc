@@ -1030,8 +1030,10 @@ void ForwardDynamicsConstraintsRangeSpaceSparse (
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
-  Math::VectorNd &QDDot) {
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS);
+  Math::VectorNd &QDDot,
+  std::vector<Math::SpatialVector> *f_ext) {
+
+  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
   SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C
     , CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);

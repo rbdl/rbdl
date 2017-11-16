@@ -2,6 +2,9 @@
 #include "rbdl/rbdl.h"
 #include <cassert>
 
+
+#include "PendulumModels.h"
+
 using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
@@ -19,191 +22,6 @@ static double inRange(double angle) {
   return angle;
 }
 
-
-struct DoublePerpendicularPendulumJointCoordinates {
-  DoublePerpendicularPendulumJointCoordinates()
-    : model()
-    , q()
-    , qd()
-    , qdd()
-    , tau()
-    , l1(1.)
-    , l2(1.)
-    , m1(1.)
-    , m2(1.)
-    , idB1(0)
-    , idB2(0){
-
-    model.gravity = Vector3d(0.,-9.81,0.);
-    /*
-      The perpendicular pendulum pictured with joint angles of 0,0.
-      The first joint rotates about the x axis, while the second
-      joint rotates about the local y axis of link 1
-
-         y
-         |
-         |___ x
-      z / |
-        | |
-      / | | link1
-        | |
-    /   | |
-axis1:z0| |__________
-       (_____________) link 2
-        | |
-         |
-
-         |
-
-         | axis2:y1
-    */
-
-    Body link1 = Body(m1, Vector3d(          0., -l1*0.5,          0.),
-                          Vector3d( m1*l1*l1/3.,      0., m1*l1*l1/3.));
-
-    Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
-                          Vector3d(     0., m2*l2*l2/3., m2*l2*l2/3.));
-    Joint joint_rev_z = Joint(SpatialVector(0.,0.,1.,0.,0.,0.));
-    Joint joint_rev_y = Joint(SpatialVector(0.,1.,0.,0.,0.,0.));
-
-    idB1 = model.AddBody(   0, Xtrans(Vector3d(0., 0, 0. )),
-                            joint_rev_z, link1, "body1");
-    idB2 = model.AddBody(idB1, Xtrans(Vector3d(0.,-l1, 0.)),
-                         joint_rev_y, link2, "body2");
-
-    q   = VectorNd::Zero(model.dof_count);
-    qd  = VectorNd::Zero(model.dof_count);
-    qdd = VectorNd::Zero(model.dof_count);
-    tau = VectorNd::Zero(model.dof_count);
-
-
-  }
-
-    Model model;
-
-    VectorNd q;
-    VectorNd qd;
-    VectorNd qdd;
-    VectorNd tau;
-
-    double l1;
-    double l2;
-    double m1;
-    double m2;
-
-    unsigned int idB1;
-    unsigned int idB2;
-
-};
-
-struct DoublePerpendicularPendulumAbsoluteCoordinates {
-  DoublePerpendicularPendulumAbsoluteCoordinates()
-    : model()
-    , cs()
-    , q()
-    , qd()
-    , qdd()
-    , tau()
-    , l1(1.)
-    , l2(1.)
-    , m1(1.)
-    , m2(1.)
-    , idB1(0)
-    , idB2(0)
-    , idB01(0)
-    , idB02(0)
-    , X_p1(Xtrans(Vector3d(0., 0., 0.)))
-    , X_s1(Xtrans(Vector3d(0., 0., 0.)))
-    , X_p2(Xtrans(Vector3d(0.,-l1, 0.)))
-    , X_s2(Xtrans(Vector3d(0., 0., 0.))){
-
-    model.gravity = Vector3d(0.,-9.81,0.);
-    //Planar pendulum is at 0 when it is hanging down.
-    //  x: points to the right
-    //  y: points up
-    //  z: out of the page
-    Body body01 = Body(0, Vector3d( 0.,0.,0.),
-                          Vector3d( 0.,0.,0.));
-
-    Body body02 = Body(0, Vector3d( 0.,0.,0.),
-                          Vector3d( 0.,0.,0.));
-
-    Body link1 = Body(m1, Vector3d(          0., -l1*0.5,          0.),
-                          Vector3d( m1*l1*l1/3.,      0., m1*l1*l1/3.));
-
-    Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
-                          Vector3d(     0., m2*l2*l2/3., m2*l2*l2/3.));
-
-    Joint joint_eulerZYX(JointTypeEulerZYX);
-    Joint joint_transXYZ(JointTypeTranslationXYZ);
-
-    idB01 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
-                          joint_transXYZ, body01);
-    idB1  = model.AddBody(idB01, Xtrans(Vector3d(0., 0., 0. )),
-                         joint_eulerZYX, link1);
-
-    idB02 = model.AddBody(    0, Xtrans(Vector3d(0., 0., 0.)),
-                          joint_transXYZ, body02);
-    idB2  = model.AddBody(idB02, Xtrans(Vector3d(0., 0., 0.)),
-                         joint_eulerZYX, link2);
-    //Make the revolute joints about the y axis using 5 constraints
-    //between the end points
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,1,0,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,0,1,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,0,0,1), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(1,0,0,0,0,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,1,0,0,0,0), false, 0.1);
-
-
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,1,0,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,0,1,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,0,0,1), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(1,0,0,0,0,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,1,0,0,0), false, 0.1);
-
-    cs.Bind(model);
-
-    q   = VectorNd::Zero(model.dof_count);
-    qd  = VectorNd::Zero(model.dof_count);
-    qdd = VectorNd::Zero(model.dof_count);
-    tau = VectorNd::Zero(model.dof_count);
-
-  }
-
-    Model model;
-    ConstraintSet cs;
-
-    VectorNd q;
-    VectorNd qd;
-    VectorNd qdd;
-    VectorNd tau;
-
-    double l1;
-    double l2;
-    double m1;
-    double m2;
-
-    unsigned int idB1;
-    unsigned int idB2;
-    unsigned int idB01;
-    unsigned int idB02;
-
-    SpatialTransform X_p1;
-    SpatialTransform X_s1;
-    SpatialTransform X_p2;
-    SpatialTransform X_s2;
-
-};
 
 
 TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
@@ -357,11 +175,7 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
   for(unsigned int i=0; i<dba.tau.rows();++i){
     dba.tau[i] = 0.;
   }
-  for(unsigned int i=0; i<dba.qdd.rows();++i){
-    dba.qdd[i] = 0.;
-  }
 
-  UpdateKinematics(dba.model,dba.q,dba.qd,dba.qdd);
   ForwardDynamicsConstraintsDirect(dba.model,dba.q,dba.qd,
                                    dba.tau,dba.cs,dba.qdd,&fext_dba);
   SpatialVector a010c =
@@ -380,10 +194,6 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
     CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
   }
 
-  for(unsigned int i=0; i<dba.qdd.rows();++i){
-    dba.qdd[i] = 0.;
-  }
-  UpdateKinematics(dba.model,dba.q,dba.qd,dba.qdd);
   ForwardDynamicsConstraintsNullSpace(
         dba.model,dba.q,dba.qd,
         dba.tau,dba.cs,dba.qdd,&fext_dba);
@@ -400,15 +210,11 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
     CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
     CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
   }
-  for(unsigned int i=0; i<dba.qdd.rows();++i){
-    dba.qdd[i] = 0.;
-  }
 
-  /*
-  UpdateKinematics(dba.model,dba.q,dba.qd,dba.qdd);
+
   ForwardDynamicsConstraintsRangeSpaceSparse(
         dba.model,dba.q,dba.qd,
-        dba.tau,dba.cs,dba.qdd,&fext_dba);
+        dba.tau,dba.cs,dba.qdd, &fext_dba);
   a010c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
                           dba.idB1,Vector3d(0.,0.,0.),true);
   a020c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
@@ -421,6 +227,6 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
     CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
     CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
   }
-  */
+
 
 }
