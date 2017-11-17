@@ -9,4 +9,6 @@
 #define MUSCLE_H_
 
 #include "Millard2016TorqueMuscle.h"
+#include "MuscleFunctionFactory.h"
+#include "TorqueMuscleFunctionFactory.h"
 #endif
