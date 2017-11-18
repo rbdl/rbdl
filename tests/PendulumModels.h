@@ -41,9 +41,9 @@ struct DoublePerpendicularPendulumJointCoordinates {
     */
 
     Body link1 = Body(m1, Vector3d(          0., -l1*0.5,          0.),
-                      Matrix3d( m1*l1*l1/3.,          0.,           0.,
-                                          0., m1*l1*l1/30.,           0.,
-                                          0.,          0.,  m1*l1*l1/3.));
+                      Matrix3d( m1*l1*l1/3.,           0.,           0.,
+                                         0., m1*l1*l1/30.,           0.,
+                                         0.,           0.,  m1*l1*l1/3.));
 
 
     Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
@@ -114,9 +114,9 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
     //  y: points up
     //  z: out of the page
     Body link1 = Body(m1, Vector3d(          0., -l1*0.5,          0.),
-                      Matrix3d( m1*l1*l1/3.,          0.,           0.,
-                                          0., m1*l1*l1/30.,           0.,
-                                          0.,          0.,  m1*l1*l1/3.));
+                      Matrix3d( m1*l1*l1/3.,          0. ,           0.,
+                                         0., m1*l1*l1/30.,           0.,
+                                         0.,          0. ,  m1*l1*l1/3.));
 
 
     Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
@@ -125,20 +125,16 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
                                               0.,          0.,  m2*l2*l2/3.));
 
 
-    Joint jointEA123T123(SpatialVector(0.,0.,0.,1.,0.,0.),
-                         SpatialVector(0.,0.,0.,0.,1.,0.),
-                         SpatialVector(0.,0.,0.,0.,0.,1.),
-                         SpatialVector(0.,0.,1.,0.,0.,0.),
-                         SpatialVector(0.,1.,0.,0.,0.,0.),
-                         SpatialVector(1.,0.,0.,0.,0.,0.));
+    Body nullbody = Body(0, Vector3d( 0.,0.,0.),
+                            Vector3d( 0.,0.,0.));
+    Joint jointT123 (JointTypeTranslationXYZ);
+    Joint jointA123 (JointTypeEulerZYX);
 
+    model.AddBody(0, SpatialTransform(), jointT123, nullbody);
+    idB1 = model.AppendBody(SpatialTransform(), jointA123, link1);
 
-
-    idB1  = model.AddBody(0, Xtrans(Vector3d(0., 0., 0. )),
-                         jointEA123T123, link1);
-
-    idB2  = model.AddBody(0, Xtrans(Vector3d(0., 0., 0.)),
-                         jointEA123T123, link2);
+    model.AddBody(0, SpatialTransform(), jointT123, nullbody);
+    idB2 = model.AppendBody(SpatialTransform(), jointA123, link2);
 
     //Make the revolute joints about the y axis using 5 constraints
     //between the end points
