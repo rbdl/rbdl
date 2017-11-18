@@ -30,7 +30,7 @@ struct DoublePerpendicularPendulumJointCoordinates {
       / | | link1
         | |
     /   | |
-  axis1:z0| |__________
+axis1:z0| |__________
        (_____________) link 2
         | |
          |
