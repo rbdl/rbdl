@@ -13,9 +13,8 @@ struct DoublePerpendicularPendulumJointCoordinates {
     , m2(1.)
     , idB1(0)
     , idB2(0){
-      using namespace RigidBodyDynamics;
-      using namespace RigidBodyDynamics::Math;
-
+    using namespace RigidBodyDynamics;
+    using namespace RigidBodyDynamics::Math;
 
     model.gravity = Vector3d(0.,-9.81,0.);
     /*
@@ -31,7 +30,7 @@ struct DoublePerpendicularPendulumJointCoordinates {
       / | | link1
         | |
     /   | |
-axis1:z0| |__________
+  axis1:z0| |__________
        (_____________) link 2
         | |
          |
@@ -65,25 +64,22 @@ axis1:z0| |__________
     qd  = VectorNd::Zero(model.dof_count);
     qdd = VectorNd::Zero(model.dof_count);
     tau = VectorNd::Zero(model.dof_count);
-
-
   }
 
-    RigidBodyDynamics::Model model;
+  RigidBodyDynamics::Model model;
 
-    RigidBodyDynamics::Math::VectorNd q;
-    RigidBodyDynamics::Math::VectorNd qd;
-    RigidBodyDynamics::Math::VectorNd qdd;
-    RigidBodyDynamics::Math::VectorNd tau;
+  RigidBodyDynamics::Math::VectorNd q;
+  RigidBodyDynamics::Math::VectorNd qd;
+  RigidBodyDynamics::Math::VectorNd qdd;
+  RigidBodyDynamics::Math::VectorNd tau;
 
-    double l1;
-    double l2;
-    double m1;
-    double m2;
+  double l1;
+  double l2;
+  double m1;
+  double m2;
 
-    unsigned int idB1;
-    unsigned int idB2;
-
+  unsigned int idB1;
+  unsigned int idB2;
 };
 
 struct DoublePerpendicularPendulumAbsoluteCoordinates {
@@ -175,29 +171,27 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
     qd  = VectorNd::Zero(model.dof_count);
     qdd = VectorNd::Zero(model.dof_count);
     tau = VectorNd::Zero(model.dof_count);
-
   }
 
 
-    RigidBodyDynamics::Model model;
-    RigidBodyDynamics::ConstraintSet cs;
+  RigidBodyDynamics::Model model;
+  RigidBodyDynamics::ConstraintSet cs;
 
-    RigidBodyDynamics::Math::VectorNd q;
-    RigidBodyDynamics::Math::VectorNd qd;
-    RigidBodyDynamics::Math::VectorNd qdd;
-    RigidBodyDynamics::Math::VectorNd tau;
+  RigidBodyDynamics::Math::VectorNd q;
+  RigidBodyDynamics::Math::VectorNd qd;
+  RigidBodyDynamics::Math::VectorNd qdd;
+  RigidBodyDynamics::Math::VectorNd tau;
 
-    double l1;
-    double l2;
-    double m1;
-    double m2;
+  double l1;
+  double l2;
+  double m1;
+  double m2;
 
-    unsigned int idB1;
-    unsigned int idB2;
+  unsigned int idB1;
+  unsigned int idB2;
 
-    RigidBodyDynamics::Math::SpatialTransform X_p1;
-    RigidBodyDynamics::Math::SpatialTransform X_s1;
-    RigidBodyDynamics::Math::SpatialTransform X_p2;
-    RigidBodyDynamics::Math::SpatialTransform X_s2;
-
+  RigidBodyDynamics::Math::SpatialTransform X_p1;
+  RigidBodyDynamics::Math::SpatialTransform X_s1;
+  RigidBodyDynamics::Math::SpatialTransform X_p2;
+  RigidBodyDynamics::Math::SpatialTransform X_s2;
 };
