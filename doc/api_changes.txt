@@ -11,9 +11,8 @@ postponed:
 - New constraint type CustomConstraint: a versatile interface to define
   more general types of constraints (e.g. time dependent), contributed by
   Matthew J. Millard.
-- Replaced Contacts API by new Constraints API. The new API allows to
-  compute dynamics of models with kinematic loops but otherwise uses a very
-  similar API. Loop constraints can be stabilized using Baumgarte
+- Added support for closed-loop models by replacing Contacts API by a new
+  Constraints API. Loop constraints can be stabilized using Baumgarte
   stabilization. Special thanks to Davide Corradi for this contribution!
 - Changed Quaternion multiplication behaviour for a more standard
   convention: multiplying q1 (1,0,0,0) with q2 (0,1,0,0) results now in

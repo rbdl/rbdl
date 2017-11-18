@@ -9,8 +9,8 @@ body dynamics algorithms such as the Articulated Body Algorithm (ABA) for
 forward dynamics, Recursive Newton-Euler Algorithm (RNEA) for inverse
 dynamics and the Composite Rigid Body Algorithm (CRBA) for the efficient
 computation of the joint space inertia matrix. It further contains code for
-Jacobians, forward and inverse kinematics, and handling of external
-constraints such as contacts and collisions.
+Jacobians, forward and inverse kinematics, handling of external
+constraints such as contacts and collisions, and closed-loop models.
 
 The code is developed by Martin Felis <martin@fysx.org>
 at the research group [Optimization in Robotics and Biomechanics
