@@ -29,13 +29,6 @@ RBDL_DLLAPI void UpdateKinematics(
 
   unsigned int i;
 
-  SpatialVector spatial_gravity (0.,
-      0.,
-      0.,
-      model.gravity[0],
-      model.gravity[1],
-      model.gravity[2]);
-
   model.a[0].setZero();
 
   for (i = 1; i < model.mBodies.size(); i++) {

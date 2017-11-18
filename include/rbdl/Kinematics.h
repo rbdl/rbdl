@@ -355,7 +355,7 @@ RBDL_DLLAPI
       unsigned int max_iter = 50
       );
 
-RBDL_DLLAPI Math::Vector3d CalcCalcAngularVelocityfromMatrix (
+RBDL_DLLAPI Math::Vector3d CalcAngularVelocityfromMatrix (
     const Math::Matrix3d &RotMat);
 
 struct RBDL_DLLAPI InverseKinematicsConstraintSet {
