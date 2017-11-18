@@ -108,7 +108,8 @@ RBDL_DLLAPI void NonlinearEffects (
     Model &model,
     const VectorNd &Q,
     const VectorNd &QDot,
-    VectorNd &Tau) {
+    VectorNd &Tau,
+    std::vector<Math::SpatialVector> *f_ext) {
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
   SpatialVector spatial_gravity (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
@@ -133,6 +134,9 @@ RBDL_DLLAPI void NonlinearEffects (
 
     if (!model.mBodies[i].mIsVirtual) {
       model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
+      if (f_ext != NULL && (*f_ext)[i] != SpatialVector::Zero()) {
+        model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
+      }            
     } else {
       model.f[i].setZero();
     }

@@ -194,9 +194,15 @@ namespace RigidBodyDynamics {
  *
  * \subsection baumgarte_stabilization Baumgarte stabilization
  *
- * The constrained dynamic equations are correct in theory, but are not stable
- * during numeric integration. RBDL implements Baumgarte stabilization to avoid
- * the accumulation of position and velocity errors.
+ * The constrained dynamic equations are correct at the acceleration level
+ * but will drift at the velocity and position level during numerical 
+ * integration. RBDL implements Baumgarte stabilization to avoid
+ * the accumulation of position and velocity errors for loop constraints and
+ * custom constraints. Contact constraints do not have Baumgarte stabilization
+ * because they are a special case which does not typically suffer from drift. 
+ * The stabilization term can be enabled/disabled using the appropriate 
+ * ConstraintSet::AddLoopConstraint and ConstraintSet::AddCustomConstraint 
+ * functions. 
  *
  * The dynamic equations are changed to the following form: \f[
  \left(
@@ -583,6 +589,7 @@ void CalcConstraintsVelocityError(
   * \param QDot the generalized velocities of the joints
   * \param Tau the generalized forces of the joints
   * \param CS the constraint set for which the error should be computed
+  * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
   *
   * \note This function is normally called automatically in the various
   * constrained dynamics functions, the user normally does not have to call it.
@@ -594,7 +601,8 @@ void CalcConstrainedSystemVariables (
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
-  ConstraintSet &CS
+  ConstraintSet &CS,
+  std::vector<Math::SpatialVector> *f_ext = NULL
 );
 
 /** \brief Computes a feasible initial value of the generalized joint positions.
@@ -674,9 +682,9 @@ void CalcAssemblyQDot(
  * effects"), and \f$\gamma\f$ the generalized acceleration independent
  * part of the contact point accelerations.
  *
- * \note So far, only constraints acting along cartesian coordinate axes
- * are allowed (i.e. (1, 0, 0), (0, 1, 0), and (0, 0, 1)). Also, one must
- * not specify redundant constraints!
+ * \note This function works with ContactConstraints, LoopConstraints and
+ * Custom Constraints. Nonetheless, this method will not tolerate redundant
+ * constraints.
  * 
  * \par 
  *
@@ -690,7 +698,7 @@ void CalcAssemblyQDot(
  * \param Tau   actuations of the internal joints
  * \param CS    the description of all acting constraints
  * \param QDDot accelerations of the internals joints (output)
- *
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  * \note During execution of this function values such as
  * ConstraintSet::force get modified and will contain the value
  * of the force acting along the normal.
@@ -703,7 +711,8 @@ void ForwardDynamicsConstraintsDirect (
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
-  Math::VectorNd &QDDot
+  Math::VectorNd &QDDot,
+  std::vector<Math::SpatialVector> *f_ext = NULL
 );
 
 RBDL_DLLAPI
@@ -713,7 +722,8 @@ void ForwardDynamicsConstraintsRangeSpaceSparse (
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
-  Math::VectorNd &QDDot
+  Math::VectorNd &QDDot,
+  std::vector<Math::SpatialVector> *f_ext = NULL
 );
 
 RBDL_DLLAPI
@@ -723,7 +733,8 @@ void ForwardDynamicsConstraintsNullSpace (
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
-  Math::VectorNd &QDDot
+  Math::VectorNd &QDDot,
+  std::vector<Math::SpatialVector> *f_ext = NULL
 );
 
 /** \brief Computes forward dynamics that accounts for active contacts in 
