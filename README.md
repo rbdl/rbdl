@@ -131,6 +131,25 @@ be used by enabling `RBDL_USE_SIMPLE_MATH`, i.e.:
 
     cmake -D RBDL_USE_SIMPLE_MATH=TRUE ../
 
+Citation
+========
+
+An overview of the theoretical and implementation details has been
+published in [https://doi.org/10.1007/s10514-016-9574-0](Felis,
+M.L. Auton Robot (2017) 41: 495). To cite RBDL in your academic
+research you can use the following BibTeX entry:
+
+    @Article{Felis2016,
+      author="Felis, Martin L.",
+      title="RBDL: an efficient rigid-body dynamics library using recursive algorithms",
+      journal="Autonomous Robots",
+      year="2016",
+      pages="1--17",
+      issn="1573-7527",
+      doi="10.1007/s10514-016-9574-0",
+      url="http://dx.doi.org/10.1007/s10514-016-9574-0"
+    }
+
 Licensing
 =========
 

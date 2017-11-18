@@ -11,10 +11,10 @@
  * \li Articulated Body Algorithm (ABA).
  *
  * Furthermore it contains code for forward and inverse kinematics,
- * computations of Jacobians, contact handling. \link
- * RigidBodyDynamics::Model Models \endlink can be loaded from Lua scripts
- * or URDF files.
- * 
+ * computations of Jacobians, contact, and collision handling and closed
+ * loop models.. \link RigidBodyDynamics::Model Models \endlink can be
+ * loaded from Lua scripts or URDF files.
+ *
  * The code is developed by <a
  * href="mailto:martin@fysx.org">Martin Felis
  * <martin@fysx.org></a> at the research group <a
@@ -33,7 +33,7 @@
  * be found here: <a href="http://eigen.tuxfamily.org/"
  * target="_parent">http://eigen.tuxfamily.org/</a>. The Eigen3 library
  * must be obtained and installed separately.
- * 
+ *
  * \section download Download
  *
  * You can download the most recent stable version as zip file from
@@ -128,6 +128,26 @@
  *
  * The page \subpage api_version_checking_page contains information about
  * incompatibilities of the existing versions and how to migrate.
+ *
+ * \section citation Citation
+ *
+ * An overview of the theoretical and implementation details has been
+ * published in <a href="https://doi.org/10.1007/s10514-016-9574-0">Felis,
+ * M.L. Auton Robot (2017) 41: 495</a>. To cite RBDL in your academic
+ * research you can use the following BibTeX entry:
+ *
+ * \code
+ *  @Article{Felis2016,
+ *    author="Felis, Martin L.",
+ *    title="RBDL: an efficient rigid-body dynamics library using recursive algorithms",
+ *    journal="Autonomous Robots",
+ *    year="2016",
+ *    pages="1--17",
+ *    issn="1573-7527",
+ *    doi="10.1007/s10514-016-9574-0",
+ *    url="http://dx.doi.org/10.1007/s10514-016-9574-0"
+ *  }
+ * \endcode
  *
  * \section Licensing Licensing
  *
