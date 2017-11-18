@@ -6,6 +6,8 @@ postponed:
   Thanks to Kevin Stein for implementing it!
 
 2.5.0 -> next
+- Added support to specify external forces on bodies on constrained forward
+  dynamics and NonlinearEffects() (contributed by Matthew J. Millard)
 - New constraint type CustomConstraint: a versatile interface to define
   more general types of constraints (e.g. time dependent), contributed by
   Matthew J. Millard.
