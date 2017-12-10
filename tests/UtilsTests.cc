@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Fixtures.h"
+#include "Human36Fixture.h"
 #include "rbdl/rbdl_mathutils.h"
 #include "rbdl/rbdl_utils.h"
 #include "rbdl/Logging.h"
@@ -153,4 +154,224 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
   CHECK (angular_momentum[0] == 0);
   CHECK (angular_momentum[1] < 0);
   CHECK (angular_momentum[2] == 0.);
+}
+
+template <typename T>
+void TestCoMComputation (
+  T &obj
+) {
+
+  VectorNd Q = VectorNd::Random (obj.model->dof_count);
+  VectorNd QDot = VectorNd::Random (obj.model->dof_count);
+  VectorNd QDDot = VectorNd::Random (obj.model->dof_count);
+
+  // compute quantities directly from model
+  double mass_expected = 0.0;
+
+  UpdateKinematicsCustom(*obj.model, &Q, nullptr, nullptr);
+  for (unsigned int i = 1; i < obj.model->mBodies.size(); i++) {
+    // mass_expected += obj.model->I[i].m;
+    mass_expected += obj.model->mBodies[i].mMass;
+  }
+
+  double mass_actual = 0.0;
+  Vector3d com = Vector3d::Zero();
+  Utils::CalcCenterOfMass (
+    *obj.model,
+    Q, QDot,
+    mass_actual, com,
+    nullptr, nullptr
+  );
+
+  CHECK_CLOSE (mass_expected, mass_actual, 1e-7);
+
+  return;
+}
+
+TEST_FIXTURE(
+  LinearInvertedPendulumModel,
+  TestCoMComputationLinearInvertedPendulumModel
+) {
+  TestCoMComputation (*this);
+}
+
+TEST_FIXTURE(
+  FixedJoint2DoF,
+  TestCoMComputationFixedJoint2DoF
+) {
+  TestCoMComputation (*this);
+}
+
+TEST_FIXTURE(
+  FixedBase6DoF12DoFFloatingBase,
+  TestCoMComputationFixedBase6DoF12DoFFloatingBase
+) {
+  TestCoMComputation (*this);
+}
+
+TEST_FIXTURE(
+  Human36,
+  TestCoMComputationHuman36
+) {
+  TestCoMComputation (*this);
+}
+
+template <typename T>
+void TestCoMAccelerationUsingFD (
+  T & obj,
+  const double TOL = 1e-8
+) {
+  const double EPS = 1e-8;
+
+  obj.Q = VectorNd::Random (obj.model->dof_count);
+  obj.QDot = VectorNd::Random (obj.model->dof_count);
+  obj.QDDot = VectorNd::Random (obj.model->dof_count);
+
+  double mass = 0.0;
+  Vector3d com (Vector3d::Zero());
+  Vector3d com_vec (Vector3d::Zero());
+  Vector3d ang_mom (Vector3d::Zero());
+
+  Vector3d com_acc_nom (Vector3d::Zero());
+  Vector3d com_acc_fd (Vector3d::Zero());
+
+  Vector3d ch_ang_mom_nom (Vector3d::Zero());
+  Vector3d ch_ang_mom_fd (Vector3d::Zero());
+
+  // compute com acceleration nominal
+  Utils::CalcCenterOfMass (
+    *obj.model,
+    obj.Q, obj.QDot, obj.QDDot,
+    mass, com,
+    &com_vec, &ang_mom,
+    &com_acc_nom, &ch_ang_mom_nom
+  );
+
+  // compute com acceleration using finite differences from velocity
+  Utils::CalcCenterOfMass (
+    *obj.model,
+    obj.Q + EPS*obj.QDot,
+    obj.QDot + EPS*obj.QDDot,
+    mass, com,
+    &com_acc_fd, &ch_ang_mom_fd
+  );
+
+  com_acc_fd = (com_acc_fd - com_vec) / EPS;
+  ch_ang_mom_fd = (ch_ang_mom_fd - ang_mom) / EPS;
+
+  // check CoM acceleration
+  CHECK_ARRAY_CLOSE (com_acc_nom.data(), com_acc_fd.data(), 3, TOL);
+  CHECK_ARRAY_CLOSE (ch_ang_mom_nom.data(), ch_ang_mom_fd.data(), 3, TOL);
+
+  return;
+}
+
+TEST_FIXTURE(
+  LinearInvertedPendulumModel,
+  TestCoMAccelerationUsingFDLinearInvertedPendulumModel
+) {
+  TestCoMAccelerationUsingFD (*this, 1e-8);
+}
+
+TEST_FIXTURE(
+  FixedJoint2DoF,
+  TestCoMAccelerationUsingFDFixedJoint2DoF
+) {
+  TestCoMAccelerationUsingFD (*this, 1e-7);
+}
+
+TEST_FIXTURE(
+  FixedBase6DoF12DoFFloatingBase,
+  TestCoMAccelerationUsingFDFixedBase6DoF12DoFFloatingBase
+) {
+  TestCoMAccelerationUsingFD (*this, 1e-6);
+}
+
+template <typename T>
+void TestZMPComputationForNotMovingSystem(
+  T & obj,
+  const double TOL = 1e-8
+) {
+  // Test ZMP against CoM projection for non-moving system (qdot, qddot = 0)
+  // for this configurations CoM and ZMP coincide
+
+  obj.Q = VectorNd::Random (obj.model->dof_count);
+  obj.QDot = VectorNd::Zero (obj.model->dof_count);
+  obj.QDDot = VectorNd::Zero (obj.model->dof_count);
+
+  Vector3d zmp (Vector3d::Zero());
+  Utils::CalcZeroMomentPoint (
+    *obj.model,
+    obj.Q, obj.QDot, obj.QDDot,
+    &zmp,
+    obj.contact_normal, obj.contact_point
+  );
+
+  double mass = 0.0;
+  Vector3d com (Vector3d::Zero());
+  Utils::CalcCenterOfMass (
+    *obj.model,
+    obj.Q, obj.QDot,
+    mass, com, nullptr, nullptr
+  );
+
+  // project CoM onto surface
+  double distance = (com - obj.contact_point).dot(obj.contact_normal);
+  com = com - distance * obj.contact_normal;
+
+  // check ZMP against CoM
+  CHECK_ARRAY_CLOSE (com.data(), zmp.data(), 3, TOL);
+
+  return;
+}
+
+TEST_FIXTURE(
+  LinearInvertedPendulumModel,
+  TestZMPComputationForNotMovingSystemLinearInvertedPendulumModel
+) {
+  TestZMPComputationForNotMovingSystem (*this, 1e-8);
+}
+
+template <typename T>
+void TestZMPComputationAgainstTableCartModel(
+  T & obj,
+  const double TOL = 1e-8
+) {
+  obj.Q = VectorNd::Random (obj.model->dof_count);
+  obj.QDot = VectorNd::Random (obj.model->dof_count);
+  obj.QDDot = VectorNd::Random (obj.model->dof_count);
+
+  Vector3d zmp (Vector3d::Zero());
+  Utils::CalcZeroMomentPoint (
+    *obj.model,
+    obj.Q, obj.QDot, obj.QDDot,
+    &zmp,
+    obj.contact_normal, obj.contact_point
+  );
+
+  double mass = 0.0;
+  Vector3d com (Vector3d::Zero());
+  Utils::CalcCenterOfMass (
+    *obj.model,
+    obj.Q, obj.QDot,
+    mass, com, nullptr, nullptr
+  );
+
+  com.set(
+    obj.Q[0] - com[2]/obj.model->gravity.norm()*obj.QDDot[0],
+    obj.Q[1] - com[2]/obj.model->gravity.norm()*obj.QDDot[1],
+    0.
+  );
+
+  // check ZMP against CoM
+  CHECK_ARRAY_CLOSE (com.data(), zmp.data(), 3, TOL);
+
+  return;
+}
+
+TEST_FIXTURE(
+  LinearInvertedPendulumModel,
+  TestZMPComputationAgainstTableCartModelLinearInvertedPendulumModel
+) {
+  TestZMPComputationAgainstTableCartModel (*this, 1e-8);
 }

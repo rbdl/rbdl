@@ -347,12 +347,12 @@ struct FixedJoint2DoF {
     body_b = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));
     joint_b = Joint (JointTypeFixed);
 
-    body_b_id = model->AddBody(1, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
+    body_b_id = model->AddBody(body_a_id, Xtrans(Vector3d(1., 0., 0.)), joint_b, body_b);
 
     body_c = Body (1., Vector3d (0., 0., 1.), Vector3d (1., 1., 1.));
     joint_c = Joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
-    body_c_id = model->AddBody(2, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
+    body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
     Q = VectorNd::Constant ((size_t) model->dof_count, 0.);
     QDot = VectorNd::Constant ((size_t) model->dof_count, 0.);
@@ -695,4 +695,69 @@ struct FixedBase6DoF12DoFFloatingBase {
   RigidBodyDynamics::Math::Vector3d contact_point;
   RigidBodyDynamics::Math::Vector3d contact_normal;
   RigidBodyDynamics::ConstraintSet constraint_set;
+};
+
+
+struct LinearInvertedPendulumModel {
+  LinearInvertedPendulumModel () {
+    using namespace RigidBodyDynamics;
+    using namespace RigidBodyDynamics::Math;
+
+    ClearLogOutput();
+    model = new Model;
+
+    model->gravity = Vector3d  (0., 0., -9.81);
+
+    /*         point mass
+     *        /
+     * - - - o - - -
+     *      / \
+     *     /   prismatic joint to move parallel to the ground
+     *    /
+     *   X <- contact point at worl frame center
+     */
+
+    // point mass
+    point_mass_body = Body (
+        1.,
+        Vector3d (0., 0., 0.),
+        Vector3d (0., 0., 0.)
+        );
+    joint_trans_xy = Joint (
+        SpatialVector (0., 0., 0., 1., 0., 0.),
+        SpatialVector (0., 0., 0., 0., 1., 0.)
+        );
+    point_mass_id = model->AddBody (
+      0, Xtrans (Vector3d (0., 0., 1.)), joint_trans_xy, point_mass_body
+    );
+
+    Q = VectorNd::Constant (model->dof_count, 0.);
+    QDot = VectorNd::Constant (model->dof_count, 0.);
+    QDDot = VectorNd::Constant (model->dof_count, 0.);
+    Tau = VectorNd::Constant (model->dof_count, 0.);
+
+    contact_point = Vector3d (0.0, 0.0, 0.);
+    contact_normal = Vector3d (0., 0., 1.);
+
+    ClearLogOutput();
+  }
+
+  ~LinearInvertedPendulumModel () {
+    delete model;
+  }
+  RigidBodyDynamics::Model *model;
+
+  unsigned int point_mass_id;
+
+  RigidBodyDynamics::Body point_mass_body;
+
+  RigidBodyDynamics::Joint joint_trans_xy;
+
+  RigidBodyDynamics::Math::VectorNd Q;
+  RigidBodyDynamics::Math::VectorNd QDot;
+  RigidBodyDynamics::Math::VectorNd QDDot;
+  RigidBodyDynamics::Math::VectorNd Tau;
+
+  RigidBodyDynamics::Math::Vector3d contact_point;
+  RigidBodyDynamics::Math::Vector3d contact_normal;
 };
