@@ -275,6 +275,55 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const Vector3d &body_point_coordinates,
             bool update_kinematics)
 
+    cdef Vector3d CalcAngularVelocityfromMatrix (
+        const Matrix3d &RotMat
+    )
+
+    cdef cppclass InverseKinematicsConstraintSet:
+        InverseKinematicsConstraintSet()
+        unsigned int AddPointConstraint (
+              unsigned int body_id,
+              const Vector3d &body_point,
+              const Vector3d &target_pos
+              )
+
+        unsigned int AddOrientationConstraint (
+              unsigned int body_id,
+              const Matrix3d &target_orientation
+              )
+
+        unsigned int AddFullConstraint (
+              unsigned int body_id,
+              const Vector3d &body_point,
+              const Vector3d &target_pos,
+              const Matrix3d &target_orientation
+              )
+
+        unsigned int ClearConstraints()
+
+        unsigned int num_constraints
+        double damper  # lambda is built-in keyword
+        unsigned int num_steps
+        unsigned int max_steps
+        double step_tol
+        double constraint_tol
+        double error_norm
+
+        MatrixNd J # Jacobian of all constraints
+        VectorNd e # Vector of all constraint residuals
+
+        vector[unsigned int] body_ids
+        vector[Vector3d] body_points
+        vector[Vector3d] target_positions
+        vector[Matrix3d] target_orientations
+
+    cdef bool InverseKinematics (
+      Model &model,
+      const VectorNd &Qinit,
+      InverseKinematicsConstraintSet &CS,
+      VectorNd &Qres
+      )
+
 cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
     cdef void CalcCenterOfMass (Model& model,
             const VectorNd &q,
@@ -407,6 +456,15 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             double* tau_ptr,
             const double* qddot_ptr,
             vector[SpatialVector] *f_ext
+            )
+
+    cdef void ForwardDynamicsConstraintsDirectPtr (
+            Model &model,
+            const double* q_ptr,
+            const double* qdot_ptr,
+            const double* tau_ptr,
+            ConstraintSet &CS,
+            double* qddot_ptr
             )
 
 cdef extern from "rbdl_loadmodel.cc":
