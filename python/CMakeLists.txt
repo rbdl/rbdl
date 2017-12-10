@@ -6,22 +6,17 @@ SET (Python_ADDITIONAL_VERSIONS 2.7)
 
 INCLUDE ( UseCython )
 
-FILE( COPY "rbdl.pyx" "crbdl.pxd" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
-
 CONFIGURE_FILE (
   ${CMAKE_CURRENT_SOURCE_DIR}/setup.py.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/setup.py
   )
 
-# Process the rbdl-wrapper.pyx to generate rbdl.pyx
-ADD_CUSTOM_COMMAND ( OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/rbdl.pyx
-  COMMAND ${PYTHON}
-  ARGS ${CMAKE_CURRENT_SOURCE_DIR}/wrappergen.py
-  ${CMAKE_CURRENT_SOURCE_DIR}/rbdl-wrapper.pyx
-  ${CMAKE_CURRENT_SOURCE_DIR}/rbdl.pyx
-  COMMENT "Generating rbdl.pyx from rbdl-wrapper.pyx"
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rbdl-wrapper.pyx ${CMAKE_CURRENT_SOURCE_DIR}/wrappergen.py
-  )
+# Process the rbdl-wrapper.pyx to generate rbdl.pyx BEFORE build time
+# else cython_add_module will complain on configuration
+EXECUTE_PROCESS (
+  COMMAND ${PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/wrappergen.py ${CMAKE_CURRENT_SOURCE_DIR}/rbdl-wrapper.pyx ${CMAKE_CURRENT_SOURCE_DIR}/rbdl.pyx
+  OUTPUT_QUIET
+)
 
 # Enable C++11 (or C++0x for older compilers)
 include(CheckCXXCompilerFlag)
@@ -40,6 +35,8 @@ set_source_files_properties( ${CMAKE_CURRENT_SOURCE_DIR}/rbdl.pyx
   PROPERTIES CYTHON_IS_CXX TRUE )
 
 # Multi-file cython modules do not appear to be working at the moment.
+# NOTE there is some directory property problem in UseCython when build
+#      from CMAKE_CURRENT_BINARY_DIR
 cython_add_module( rbdl-python ${CMAKE_CURRENT_SOURCE_DIR}/rbdl.pyx )
 
 #SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES PREFIX "")
@@ -53,11 +50,11 @@ INCLUDE_DIRECTORIES (
 
 TARGET_LINK_LIBRARIES (rbdl-python rbdl )
 
-IF (RBDL_BUILD_ADDON_LUAMODEL) 
+IF (RBDL_BUILD_ADDON_LUAMODEL)
   TARGET_LINK_LIBRARIES (rbdl-python rbdl_luamodel )
 ENDIF()
 
-IF (RBDL_BUILD_ADDON_URDFREADER) 
+IF (RBDL_BUILD_ADDON_URDFREADER)
   TARGET_LINK_LIBRARIES (rbdl-python rbdl_urdfreader )
 ENDIF()
 
