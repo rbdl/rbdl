@@ -211,7 +211,8 @@ struct RBDL_DLLAPI Joint {
     mJointAxes (NULL),
     mJointType (JointTypeUndefined),
     mDoFCount (0),
-    q_index (0) {};
+    q_index (0),
+    custom_joint_index(-1) {};
   Joint (JointType type) :
     mJointAxes (NULL),
     mJointType (type),
@@ -630,7 +631,7 @@ struct RBDL_DLLAPI Joint {
   // can be obtained using the CustomJoint structure.
   unsigned int mDoFCount;
   unsigned int q_index;
-  int custom_joint_index;
+  unsigned int custom_joint_index;
 };
 
 /** \brief Computes all variables for a joint model

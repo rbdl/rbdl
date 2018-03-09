@@ -351,7 +351,6 @@ void SolveConstrainedSystemDirect (
   const Math::MatrixNd &G, 
   const Math::VectorNd &c, 
   const Math::VectorNd &gamma, 
-  Math::VectorNd &qddot, 
   Math::VectorNd &lambda, 
   Math::MatrixNd &A, 
   Math::VectorNd &b,
@@ -990,7 +989,7 @@ void ForwardDynamicsConstraintsDirect (
 
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
-  SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
+  SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma
     , CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
 
   // Copy back QDDot
@@ -1066,7 +1065,7 @@ void ComputeConstraintImpulsesDirect (
   CalcConstraintsJacobian (model, Q, CS, CS.G, false);
 
   SolveConstrainedSystemDirect (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
-    , QDotPlus, CS.impulse, CS.A, CS.b, CS.x, CS.linear_solver);
+    , CS.impulse, CS.A, CS.b, CS.x, CS.linear_solver);
 
   // Copy back QDotPlus
   for (unsigned int i = 0; i < model.dof_count; i++)

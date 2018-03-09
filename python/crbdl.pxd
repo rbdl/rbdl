@@ -3,6 +3,11 @@
 from libcpp.string cimport string
 from libcpp cimport bool
 from libcpp.vector cimport vector
+from libcpp.map cimport map as cpp_map
+
+cimport cpython.ref as cpy_ref
+
+
 
 cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
     cdef cppclass VectorNd:
@@ -109,7 +114,7 @@ cdef extern from "<rbdl/Body.h>" namespace "RigidBodyDynamics":
 
 
 cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
-    cdef enum JointType:
+    ctypedef enum JointType:
         JointTypeUndefined = 0
         JointTypeRevolute
         JointTypePrismatic
@@ -123,6 +128,7 @@ cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
         JointTypeTranslationXYZ
         JointTypeFloatingBase
         JointTypeFixed
+        JointTypeHelical
         JointType1DoF
         JointType2DoF
         JointType3DoF
@@ -134,11 +140,58 @@ cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
 cdef extern from "<rbdl/Joint.h>" namespace "RigidBodyDynamics":
     cdef cppclass Joint:
         Joint()
-        Joint(JointType joint_type)
+        #Joint (JointType joint_type)
+        Joint (JointType joint_type)
+        Joint (JointType joint_type, int degreesOfFreedom)
+
+        Joint (const SpatialVector axis_0)
+        Joint (const SpatialVector axis_0,
+               const SpatialVector axis_1)
+        Joint (const SpatialVector axis_0,
+               const SpatialVector axis_1,
+               const SpatialVector axis_2)
+        Joint (const SpatialVector axis_0,
+               const SpatialVector axis_1,
+               const SpatialVector axis_2,
+               const SpatialVector axis_3)
+        Joint (const SpatialVector axis_0,
+               const SpatialVector axis_1,
+               const SpatialVector axis_2,
+               const SpatialVector axis_3,
+               const SpatialVector axis_4)
+        Joint (const SpatialVector axis_0,
+               const SpatialVector axis_1,
+               const SpatialVector axis_2,
+               const SpatialVector axis_3,
+               const SpatialVector axis_4,
+               const SpatialVector axis_5)
         SpatialVector* mJointAxes
         JointType mJointType
         unsigned int mDoFCount
         unsigned int q_index
+        unsigned int custom_joint_index;
+
+cdef extern from "<ICustomJoint.h>" namespace "RigidBodyDynamics":
+    cdef cppclass ICustomJoint:
+      ICustomJoint(cpy_ref.PyObject *obj)
+      void jcalc (Model &model,
+      unsigned int joint_id,
+      const VectorNd &q,
+      const VectorNd &qdot
+      )
+      void jcalc_X_lambda_S (Model &model,
+      unsigned int joint_id,
+      const VectorNd &q
+      )
+      unsigned int mDoFCount
+      SpatialTransform XJ
+      MatrixNd S
+      MatrixNd U
+      MatrixNd Dinv
+      VectorNd u
+      VectorNd d_u
+
+
 
 cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
     cdef cppclass Model:
@@ -154,6 +207,14 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 const Body &body,
                 string body_name
                 )
+
+        unsigned int AddBodyCustomJoint (
+                const unsigned int parent_id,
+                const SpatialTransform &joint_frame,
+                ICustomJoint *custom_joint,
+                const Body &body,
+                string body_name)
+
         unsigned int GetParentBodyId(
                 unsigned int body_id)
         unsigned int GetBodyId(
@@ -172,7 +233,7 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 const Quaternion &quat,
                 VectorNd &q)
 
-        vector[unsigned int] _lambda
+        vector[unsigned int] _lambda "RigidBodyDynamics::Model::lambda"
         vector[unsigned int] lambda_q
 #        vector[vector[unsigned int]] mu
 
@@ -222,11 +283,18 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
 
         vector[Body] mBodies
 
+        cpp_map[string, unsigned int] mBodyNameMap
+
 cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
     cdef void UpdateKinematics (Model& model,
             const VectorNd &q,
             const VectorNd &qdot,
             const VectorNd &qddot)
+
+    cdef void UpdateKinematicsCustomPtr (Model& model,
+            const double* q_ptr,
+            const double* qdot_ptr,
+            const double* qddot_ptr)
 
     cdef Vector3d CalcBodyToBaseCoordinates (Model& model,
             const VectorNd &q,
@@ -275,79 +343,69 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const Vector3d &body_point_coordinates,
             bool update_kinematics)
 
-    cdef Vector3d CalcAngularVelocityfromMatrix (
-        const Matrix3d &RotMat
-    )
+
+
+    ctypedef enum InverseKinematicsConstraintSet_ConstraintType "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintType":
+          InverseKinematicsConstraintSet_ConstraintTypePosition "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypePosition"
+          InverseKinematicsConstraintSet_ConstraintTypeOrientation "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypeOrientation"
+          InverseKinematicsConstraintSet_ConstraintTypeFull "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypeFull"
+
 
     cdef cppclass InverseKinematicsConstraintSet:
+
         InverseKinematicsConstraintSet()
-        unsigned int AddPointConstraint (
-              unsigned int body_id,
-              const Vector3d &body_point,
-              const Vector3d &target_pos
-              )
 
-        unsigned int AddOrientationConstraint (
-              unsigned int body_id,
-              const Matrix3d &target_orientation
-              )
+        unsigned int AddPointConstraint (unsigned int body_id,
+                const Vector3d &body_point,
+                const Vector3d &target_pos
+                )
 
-        unsigned int AddFullConstraint (
-              unsigned int body_id,
-              const Vector3d &body_point,
-              const Vector3d &target_pos,
-              const Matrix3d &target_orientation
-              )
+        unsigned int AddOrientationConstraint (unsigned int body_id,
+                const Matrix3d &target_orientation
+                )
+
+        unsigned int AddFullConstraint(unsigned int body_id,
+                const Vector3d &body_point,
+                const Vector3d &target_pos,
+                const Matrix3d &target_orientation
+                )
 
         unsigned int ClearConstraints()
 
-        unsigned int num_constraints
-        double damper  # lambda is built-in keyword
-        unsigned int num_steps
-        unsigned int max_steps
-        double step_tol
-        double constraint_tol
-        double error_norm
 
-        MatrixNd J # Jacobian of all constraints
-        VectorNd e # Vector of all constraint residuals
+        MatrixNd J
+        MatrixNd G
+        VectorNd e
 
-        vector[unsigned int] body_ids
-        vector[Vector3d] body_points
-        vector[Vector3d] target_positions
-        vector[Matrix3d] target_orientations
+        unsigned int num_constraints;
+        double dlambda "RigidBodyDynamics::InverseKinematicsConstraintSet::lambda"
+        unsigned int num_steps;
+        unsigned int max_steps;
+        double step_tol;
+        double constraint_tol;
+        double error_norm;
 
-    cdef bool InverseKinematics (
-      Model &model,
-      const VectorNd &Qinit,
-      InverseKinematicsConstraintSet &CS,
-      VectorNd &Qres
-      )
+        vector[InverseKinematicsConstraintSet_ConstraintType] constraint_type;
+        vector[unsigned int] body_ids;
+        vector[Vector3d] body_points;
+        vector[Vector3d] target_positions;
+        vector[Matrix3d] target_orientations;
+        vector[unsigned int] constraint_row_index;
+
+
 
 cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
     cdef void CalcCenterOfMass (Model& model,
             const VectorNd &q,
             const VectorNd &qdot,
-            const VectorNd *qdot,
             double &mass,
             Vector3d &com,
             Vector3d *com_velocity,
-            Vector3d *com_acceleration,
             Vector3d *angular_momentum,
-            Vector3d *change_of_angular_momentum,
-            bool update_kinematics)
-
-    cdef void CalcZeroMomentPoint (Model& model,
-            const VectorNd &q,
-            const VectorNd &qdot,
-            const VectorNd &qddot,
-            Vector3d* zmp,
-            const Vector3d &normal,
-            const Vector3d &point,
             bool update_kinematics)
 
 cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
-    cdef cppclass ConstraintSet:
+  cdef cppclass ConstraintSet:
         ConstraintSet()
         unsigned int AddContactConstraint (
                 unsigned int body_id,
@@ -362,9 +420,19 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
                 const SpatialTransform &X_predecessor,
                 const SpatialTransform &X_successor,
                 const SpatialVector &axis,
-                bool enable_stabilization,
-                double stabilization_param,
+                double T_stab_inv,
                 const char *constraint_name)
+
+        unsigned int AddLoopConstraint (
+                unsigned int id_predecessor,
+                unsigned int id_successor,
+                const SpatialTransform &X_predecessor,
+                const SpatialTransform &X_successor,
+                const SpatialVector &axis,
+                bool baumgarte_enabled,
+                double T_stab_inv,
+                const char *constraint_name)
+
 
         ConstraintSet Copy()
         # void SetSolver (Math::LinearSolver solver)
@@ -419,6 +487,7 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
         VectorNd d_d
         vector[Vector3d] d_multdof3_u
 
+
 cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
     cdef void CalcPointJacobianPtr (Model& model,
             const double *q_ptr,
@@ -471,14 +540,33 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             vector[SpatialVector] *f_ext
             )
 
+    cdef bool InverseKinematicsPtr (
+						Model &model,
+						const double *qinit_ptr,
+						const vector[unsigned int] body_id,
+						const vector[Vector3d] body_point,
+						const vector[Vector3d] target_pos,
+						const double *qres_ptr,
+						double step_tol,
+						double lambda_,
+						unsigned int max_iter
+						)
+
+    cdef bool InverseKinematicsCSPtr (
+        Model &model,
+        const double *qinit_ptr,
+        InverseKinematicsConstraintSet &CS,
+        const double *qres_ptr)
+
     cdef void ForwardDynamicsConstraintsDirectPtr (
-            Model &model,
-            const double* q_ptr,
-            const double* qdot_ptr,
-            const double* tau_ptr,
-            ConstraintSet &CS,
-            double* qddot_ptr
-            )
+        Model &model,
+        const double* q_ptr,
+        const double* qdot_ptr,
+        const double* tau_ptr,
+        ConstraintSet &CS,
+        double* qddot_ptr,
+        vector[SpatialVector] *f_ext
+        )
 
 cdef extern from "rbdl_loadmodel.cc":
     cdef bool rbdl_loadmodel (

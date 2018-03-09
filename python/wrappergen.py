@@ -40,11 +40,165 @@ wrapper_command_strings = {
 
     "CInitCode" : """        self.%MEMBER% = _%PARENT%_%MEMBER%_%TYPE%_VectorWrapper (<uintptr_t> self.thisptr)""",
 
+    
     "AddProperty" : """    property %MEMBER%:
         def __get__ (self):
-            return self.%MEMBER%
+                return self.%MEMBER%
 """
 }
+
+type_properties = {
+  
+    "SpatialTransform" : """    property %MEMBER%:
+        def __get__ (self):
+            vector_size = self.thisptr.%MEMBER%.size()
+            print "vector_size",  vector_size
+            ST = [SpatialTransform() for i in range(vector_size)]
+            for k in range(vector_size):
+              for i in range (self.thisptr.%MEMBER%[k].r.rows()):
+                ST[k].r[i] = self.thisptr.%MEMBER%[k].r[i]
+              for i in range (self.thisptr.%MEMBER%[k].E.rows()):
+                  for j in range (self.thisptr.%MEMBER%[k].E.cols()):
+                      ST[k].E[i,j] = self.thisptr.%MEMBER%[k].E.coeff(i,j)
+            return ST
+""",
+
+  "SpatialVector" :  """    property %MEMBER%:
+      def __get__ (self):
+          vector_size = self.thisptr.%MEMBER%.size()
+          print "vector_size",  vector_size
+          ST = [%TYPE%() for i in range(vector_size)]
+          for k in range(vector_size):
+            for i in range (self.thisptr.%MEMBER%[k].rows()):
+              ST[k][i] = self.thisptr.%MEMBER%[k][i]
+          return ST
+""",
+
+  "VectorNd" :  """    property %MEMBER%:
+      def __get__ (self):
+          vector_size = self.thisptr.%MEMBER%.size()
+          print "vector_size",  vector_size
+          ST = [%TYPE%() for i in range(vector_size)]
+          for k in range(vector_size):
+            for i in range (self.thisptr.%MEMBER%[k].rows()):
+              ST[k][i] = self.thisptr.%MEMBER%[k][i]
+          return ST
+""",
+
+  "Vector3d" :  """    property %MEMBER%:
+      def __get__ (self):
+          vector_size = self.thisptr.%MEMBER%.size()
+          print "vector_size",  vector_size
+          ST = [%TYPE%() for i in range(vector_size)]
+          for k in range(vector_size):
+            for i in range (self.thisptr.%MEMBER%[k].rows()):
+              ST[k][i] = self.thisptr.%MEMBER%[k][i]
+          return ST
+""",
+                
+    "SpatialMatrix" :  """    property %MEMBER%:
+      def __get__ (self):
+          vector_size = self.thisptr.%MEMBER%.size()
+          print "vector_size",  vector_size
+          ST = [%TYPE%() for i in range(vector_size)]
+          for k in range(vector_size):
+            for i in range (self.thisptr.%MEMBER%[k].rows()):
+                for j in range (self.thisptr.%MEMBER%[k].cols()):
+                    ST[k][i,j] = self.thisptr.%MEMBER%[k].coeff(i,j)
+          return ST
+
+""",
+
+
+    "MatrixNd" :  """    property %MEMBER%:
+      def __get__ (self):
+          vector_size = self.thisptr.%MEMBER%.size()
+          print "vector_size",  vector_size
+          ST = [%TYPE%() for i in range(vector_size)]
+          for k in range(vector_size):
+            for i in range (self.thisptr.%MEMBER%[k].rows()):
+                for j in range (self.thisptr.%MEMBER%[k].cols()):
+                    ST[k][i,j] = self.thisptr.%MEMBER%[k].coeff(i,j)
+          return ST
+
+""",
+
+    "Matrix3d" :  """    property %MEMBER%:
+      def __get__ (self):
+          vector_size = self.thisptr.%MEMBER%.size()
+          print "vector_size",  vector_size
+          ST = [%TYPE%() for i in range(vector_size)]
+          for k in range(vector_size):
+            for i in range (self.thisptr.%MEMBER%[k].rows()):
+                for j in range (self.thisptr.%MEMBER%[k].cols()):
+                    ST[k][i,j] = self.thisptr.%MEMBER%[k].coeff(i,j)
+          return ST
+
+""",
+
+    "SpatialRigidBodyInertia" : """    property %MEMBER%:
+        def __get__ (self):
+            vector_size = self.thisptr.%MEMBER%.size()
+            print "vector_size",  vector_size
+            ST = [%TYPE%() for i in range(vector_size)]
+            for k in range(vector_size):
+              ST[k].m = self.thisptr.%MEMBER%[k].m
+              ST[k].Ixx = self.thisptr.%MEMBER%[k].Ixx
+              ST[k].Iyx = self.thisptr.%MEMBER%[k].Iyx
+              ST[k].Iyy = self.thisptr.%MEMBER%[k].Iyy
+              ST[k].Izx = self.thisptr.%MEMBER%[k].Izx
+              ST[k].Izy = self.thisptr.%MEMBER%[k].Izy
+              ST[k].Izz = self.thisptr.%MEMBER%[k].Izz
+              for i in range (self.thisptr.%MEMBER%[k].h.rows()):
+                ST[k].h[i] = self.thisptr.%MEMBER%[k].h[i]
+            return ST
+""",
+    
+    "Body" : """    property %MEMBER%:
+        def __get__ (self):
+            vector_size = self.thisptr.%MEMBER%.size()
+            print "vector_size",  vector_size
+            ST = [%TYPE%() for i in range(vector_size)]
+            for k in range(vector_size):
+              ST[k].mMass = self.thisptr.%MEMBER%[k].mMass
+              for i in range (self.thisptr.%MEMBER%[k].mCenterOfMass.rows()):
+                ST[k].mCenterOfMass[i] = self.thisptr.%MEMBER%[k].mCenterOfMass[i]
+              for i in range (self.thisptr.%MEMBER%[k].mInertia.rows()):
+                  for j in range (self.thisptr.%MEMBER%[k].mInertia.cols()):
+                      ST[k].mInertia[i,j] = self.thisptr.%MEMBER%[k].mInertia.coeff(i,j)
+            return ST
+""",
+
+    "FixedBody" : """    property %MEMBER%:
+        def __get__ (self):
+            vector_size = self.thisptr.%MEMBER%.size()
+            print "vector_size",  vector_size
+            ST = [%TYPE%() for i in range(vector_size)]
+            for k in range(vector_size):
+              ST[k].mMass = self.thisptr.%MEMBER%[k].mMass
+              for i in range (self.thisptr.%MEMBER%[k].mCenterOfMass.rows()):
+                ST[k].mCenterOfMass[i] = self.thisptr.%MEMBER%[k].mCenterOfMass[i]
+              for i in range (self.thisptr.%MEMBER%[k].mInertia.rows()):
+                  for j in range (self.thisptr.%MEMBER%[k].mInertia.cols()):
+                      ST[k].mInertia[i,j] = self.thisptr.%MEMBER%[k].mInertia.coeff(i,j)
+            return ST
+""",
+
+    "Joint" : """    property %MEMBER%:
+        def __get__ (self):
+            vector_size = self.thisptr.%MEMBER%.size()
+            print "vector_size",  vector_size
+            ST = [%TYPE%() for i in range(vector_size)]
+            for k in range(vector_size):
+              ST[k].mDoFCount = self.thisptr.%MEMBER%[k].mDoFCount
+              
+              ST[k].q_index = self.thisptr.%MEMBER%[k].q_index
+            return ST
+"""
+
+}
+
+
 
 def parse_line (line_str):
     command = ""
@@ -107,29 +261,35 @@ if __name__ == "__main__":
                     "MEMBER": args["MEMBER"]
                     })
 
+
     # generate code
     for line_number, line_str in enumerate (template_lines):
         command, args = parse_line (line_str)
         if not command:
             outfile.write (line_str + "\n")
         else:
-#            print (command, wrapper_command_strings.keys())
+           ## print (command, wrapper_command_strings.keys())
             if command in wrapper_command_strings.keys():
                 parent = args["PARENT"]
                 if command == "AddProperty":
                         content_type = args["TYPE"]
                         member_name = args["MEMBER"]
                         command_code = wrapper_command_strings[command][:]
+                        if content_type in type_properties.keys():
+                          command_code = type_properties[content_type][:]
                         command_code = command_code.replace (
                                 "%PARENT%", parent).replace (
                                 "%MEMBER%", member_name).replace (
                                 "%TYPE%", content_type)
                         outfile.write (command_code + "\n")
+                        
+            
                 else:
                     for member in generated_parent_members[parent]:
                         content_type = member["TYPE"]
                         member_name = member["MEMBER"]
                         command_code = wrapper_command_strings[command][:]
+                        
                         command_code = command_code.replace (
                                 "%PARENT%", parent).replace (
                                 "%MEMBER%", member_name).replace (

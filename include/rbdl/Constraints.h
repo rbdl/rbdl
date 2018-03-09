@@ -922,7 +922,6 @@ void SolveConstrainedSystemDirect (
   const Math::MatrixNd &G, 
   const Math::VectorNd &c, 
   const Math::VectorNd &gamma, 
-  Math::VectorNd &qddot, 
   Math::VectorNd &lambda, 
   Math::MatrixNd &A, 
   Math::VectorNd &b,
