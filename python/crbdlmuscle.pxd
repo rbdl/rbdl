@@ -12,7 +12,7 @@ from crbdl cimport Vector3d
 from crbdl cimport MatrixNd
 
 
-cdef extern from "rbdl/addons/geometry/SmoothSegmentedFunction.h" namespace "RigidBodyDynamics::Addons::Geometry":
+cdef extern from "addons/geometry/SmoothSegmentedFunction.h" namespace "RigidBodyDynamics::Addons::Geometry":
       cdef cppclass SmoothSegmentedFunction:
         SmoothSegmentedFunction()
         SmoothSegmentedFunction(
@@ -47,7 +47,7 @@ cdef extern from "rbdl/addons/geometry/SmoothSegmentedFunction.h" namespace "Rig
         void getYControlPoints(MatrixNd& mat) const
 
 
-cdef extern from "rbdl/addons/muscle/Millard2016TorqueMuscle.h" namespace "RigidBodyDynamics::Addons::Muscle":
+cdef extern from "addons/muscle/Millard2016TorqueMuscle.h" namespace "RigidBodyDynamics::Addons::Muscle":
       ctypedef enum DataSet_item "RigidBodyDynamics::Addons::Muscle::DataSet::item":
         DataSet_Anderson2007 "RigidBodyDynamics::Addons::Muscle::DataSet::Anderson2007"
         DataSet_Gymnast "RigidBodyDynamics::Addons::Muscle::DataSet::Gymnast"
