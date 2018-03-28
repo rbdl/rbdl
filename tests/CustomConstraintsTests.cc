@@ -391,10 +391,13 @@ TEST(CustomConstraintCorrectnessTest) {
   //   equivalent state as the pendulum modelled using joint
   //   coordinates. Next
 
+  double qError = 1.0;
+  double qDotError = 1.0;
 
-
+  //Pefectly initialize the pendulum made with custom constraints and
+  //perturb the initialization a bit.
   dbcc.q[0]  = r010[0];
-  dbcc.q[1]  = r010[1];
+  dbcc.q[1]  = r010[1]+qError;
   dbcc.q[2]  = r010[2];
   dbcc.q[3]  = dbj.q[0];
   dbcc.q[4]  = 0;
@@ -407,7 +410,7 @@ TEST(CustomConstraintCorrectnessTest) {
   dbcc.q[11] = 0;
 
   dbcc.qd[0]  = v010[3];
-  dbcc.qd[1]  = v010[4];
+  dbcc.qd[1]  = v010[4]+qDotError;
   dbcc.qd[2]  = v010[5];
   dbcc.qd[3]  = dbj.qd[0];
   dbcc.qd[4]  = 0;
@@ -419,14 +422,41 @@ TEST(CustomConstraintCorrectnessTest) {
   dbcc.qd[10] = dbj.qd[1];
   dbcc.qd[11] = 0;
 
-  dba.q = dbcc.q;
-  dba.qd= dbcc.qd;
-
   VectorNd err(dbcc.cs.size());
   VectorNd errd(dbcc.cs.size());
 
+
   CalcConstraintsPositionError(dbcc.model,dbcc.q,dbcc.cs,err,true);
   CalcConstraintsVelocityError(dbcc.model,dbcc.q,dbcc.qd,dbcc.cs,errd,true);
+
+
+  CHECK(err.norm()  >= qError);
+  CHECK(errd.norm() >= qDotError);
+
+  //Solve for the initial q and qdot terms that satisfy the constraints
+  VectorNd qAsm,qDotAsm,w;
+  qAsm.resize(dbcc.q.rows());
+  qDotAsm.resize(dbcc.q.rows());
+  w.resize(dbcc.q.rows());
+  for(unsigned int i=0; i<w.rows();++i){
+    w[i] = 1.0;
+  }
+  double tol = 1e-8;
+  unsigned int maxIter = 100;
+
+  CalcAssemblyQ(dbcc.model,dbcc.q,dbcc.cs,qAsm,w,tol,maxIter);
+  for(unsigned int i=0; i<dbcc.q.rows();++i){
+    dbcc.q[i] = qAsm[i];
+  }
+
+  CalcAssemblyQDot(dbcc.model,dbcc.q,dbcc.qd,dbcc.cs,qDotAsm,w);
+  for(unsigned int i=0; i<dbcc.q.rows();++i){
+    dbcc.qd[i] = qDotAsm[i];
+  }
+
+  CalcConstraintsPositionError(dbcc.model,dbcc.q,dbcc.cs,err,true);
+  CalcConstraintsVelocityError(dbcc.model,dbcc.q,dbcc.qd,dbcc.cs,errd,true);
+
 
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
@@ -441,6 +471,9 @@ TEST(CustomConstraintCorrectnessTest) {
 
   //Evaluate the accelerations of the constrained pendulum and
   //compare those to the joint-coordinate pendulum
+  dba.q = dbcc.q;
+  dba.qd= dbcc.qd;
+
   for(unsigned int i=0; i<dbcc.tau.rows();++i){
     dbcc.tau[i] = 0.;
   }

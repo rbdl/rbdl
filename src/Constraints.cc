@@ -679,7 +679,7 @@ void CalcConstraintsJacobian (
     const unsigned int rows= CS.mCustomConstraints[i]->mConstraintCount;
     const unsigned int cols= CS.G.cols();
     CS.mCustomConstraints[i]->CalcConstraintsJacobianAndConstraintAxis(
-                                 model,cci,Q,CS,CS.G, cci,0);
+                                 model,cci,Q,CS,G, cci,0);
   }
 }
 
