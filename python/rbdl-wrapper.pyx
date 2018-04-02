@@ -1429,34 +1429,56 @@ def CalcBodySpatialJacobian(Model model,
 def CalcCenterOfMass (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot,
         np.ndarray[double, ndim=1, mode="c"] com,
         np.ndarray[double, ndim=1, mode="c"] com_velocity=None,
+        np.ndarray[double, ndim=1, mode="c"] com_acceleration=None,
         np.ndarray[double, ndim=1, mode="c"] angular_momentum=None,
+        np.ndarray[double, ndim=1, mode="c"] change_of_angular_momentum=None,
         update_kinematics=True):
     cdef double cmass
     cdef crbdl.Vector3d c_com = crbdl.Vector3d()
     cdef crbdl.Vector3d* c_com_vel_ptr # = crbdl.Vector3d()
+    cdef crbdl.Vector3d* c_com_accel_ptr # = crbdl.Vector3d()
     cdef crbdl.Vector3d* c_ang_momentum_ptr # = crbdl.Vector3d()
+    cdef crbdl.Vector3d* c_change_of_ang_momentum_ptr # = crbdl.Vector3d()
 
     c_com_vel_ptr = <crbdl.Vector3d*> NULL
+    c_com_accel_ptr = <crbdl.Vector3d*> NULL
     c_ang_momentum_ptr = <crbdl.Vector3d*> NULL
+    c_change_of_ang_momentum_ptr = <crbdl.Vector3d*> NULL
 
     if com_velocity is not None:
         c_com_vel_ptr = new crbdl.Vector3d()
 
+    if com_acceleration is not None:
+        c_com_accel_ptr = new crbdl.Vector3d()
+
     if angular_momentum is not None:
         c_ang_momentum_ptr = new crbdl.Vector3d()
+
+    if change_of_angular_momentum is not None:
+        c_change_of_ang_momentum_ptr = new crbdl.Vector3d()
+
+    cdef crbdl.VectorNd qddot_vectornd
+    if qddot is not None:
+        qddot_vectornd = NumpyToVectorNd(qddot) 
 
     cmass = 0.0
     crbdl.CalcCenterOfMass (
             model.thisptr[0],
             NumpyToVectorNd (q),
             NumpyToVectorNd (qdot),
+            <crbdl.VectorNd*> NULL if qddot is None else &qddot_vectornd,
             cmass,
             c_com,
             c_com_vel_ptr,
+            c_com_accel_ptr,
             c_ang_momentum_ptr,
+            c_change_of_ang_momentum_ptr,
             update_kinematics)
+
+    assert com is not None, "Parameter com for call to CalcCenterOfMass() is not provided (value is 'None')."
 
     com[0] = c_com[0]
     com[1] = c_com[1]
@@ -1468,11 +1490,23 @@ def CalcCenterOfMass (Model model,
         com_velocity[2] = c_com_vel_ptr.data()[2]
         del c_com_vel_ptr
 
+    if com_acceleration is not None:
+        com_acceleration[0] = c_com_accel_ptr.data()[0]
+        com_acceleration[1] = c_com_accel_ptr.data()[1]
+        com_acceleration[2] = c_com_accel_ptr.data()[2]
+        del c_com_accel_ptr
+
     if angular_momentum is not None:
         angular_momentum[0] = c_ang_momentum_ptr.data()[0]
         angular_momentum[1] = c_ang_momentum_ptr.data()[1]
         angular_momentum[2] = c_ang_momentum_ptr.data()[2]
         del c_ang_momentum_ptr
+
+    if change_of_angular_momentum is not None:
+        change_of_angular_momentum[0] = c_change_of_ang_momentum_ptr.data()[0]
+        change_of_angular_momentum[1] = c_change_of_ang_momentum_ptr.data()[1]
+        change_of_angular_momentum[2] = c_change_of_ang_momentum_ptr.data()[2]
+        del c_change_of_ang_momentum_ptr
 
     return cmass
 

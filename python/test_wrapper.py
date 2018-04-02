@@ -110,6 +110,7 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
+                None,
                 com,
                 None,
                 None 
@@ -122,6 +123,7 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
+                None,
                 com,
                 com_vel,
                 None 
@@ -134,6 +136,7 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
+                None,
                 com,
                 com_vel,
                 ang_mom

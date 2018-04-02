@@ -328,10 +328,13 @@ cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
     cdef void CalcCenterOfMass (Model& model,
             const VectorNd &q,
             const VectorNd &qdot,
+            const VectorNd *qdot,
             double &mass,
             Vector3d &com,
             Vector3d *com_velocity,
+            Vector3d *com_acceleration,
             Vector3d *angular_momentum,
+            Vector3d *change_of_angular_momentum,
             bool update_kinematics)
 
     cdef void CalcZeroMomentPoint (Model& model,
