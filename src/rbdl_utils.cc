@@ -151,68 +151,34 @@ RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model) {
 }
 
 RBDL_DLLAPI void CalcCenterOfMass (
-    Model &model, 
-    const Math::VectorNd &q, 
-    const Math::VectorNd &qdot, 
-    double &mass, 
-    Math::Vector3d &com, 
-    Math::Vector3d *com_velocity, 
-    Vector3d *angular_momentum, 
-    bool update_kinematics) {
-  if (update_kinematics)
-    UpdateKinematicsCustom (model, &q, &qdot, NULL);
-
-  for (size_t i = 1; i < model.mBodies.size(); i++) {
-    model.Ic[i] = model.I[i];
-    model.hc[i] = model.Ic[i].toMatrix() * model.v[i];
-  }
-
-  SpatialRigidBodyInertia Itot (0., Vector3d (0., 0., 0.), Matrix3d::Zero(3,3));
-  SpatialVector htot (SpatialVector::Zero(6));
-
-  for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
-    unsigned int lambda = model.lambda[i];
-
-    if (lambda != 0) {
-      model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].applyTranspose (model.Ic[i]);
-      model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].applyTranspose (model.hc[i]);
-    } else {
-      Itot = Itot + model.X_lambda[i].applyTranspose (model.Ic[i]);
-      htot = htot + model.X_lambda[i].applyTranspose (model.hc[i]);
-    }
-  }
-
-  mass = Itot.m;
-  com = Itot.h / mass;
-  LOG << "mass = " << mass << " com = " << com.transpose() << " htot = " << htot.transpose() << std::endl;
-
-  if (com_velocity) {
-    *com_velocity = Vector3d (htot[3] / mass, htot[4] / mass, htot[5] / mass);
-  }
-
-  if (angular_momentum) {
-    htot = Xtrans (com).applyAdjoint (htot);
-    angular_momentum->set (htot[0], htot[1], htot[2]);
-  }
-}
-
-RBDL_DLLAPI void CalcCenterOfMass (
   Model &model,
   const Math::VectorNd &q,
   const Math::VectorNd &qdot,
-  const Math::VectorNd &qddot,
-  double &mass, Math::Vector3d &com,
-  Math::Vector3d *com_velocity, Math::Vector3d *angular_momentum,
-  Math::Vector3d *com_acceleration, Math::Vector3d *change_of_angular_momentum,
-  bool update_kinematics
-){
+  const Math::VectorNd *qddot,
+  double &mass,
+  Math::Vector3d &com,
+  Math::Vector3d *com_velocity,
+  Math::Vector3d *com_acceleration, 
+  Math::Vector3d *angular_momentum,
+  Math::Vector3d *change_of_angular_momentum,
+  bool update_kinematics) {
+  // If we want to compute com_acceleration or change of angular momentum
+  // we must have qddot provided.
+  assert((qddot == NULL) || (com_acceleration == NULL && change_of_angular_momentum == NULL));
+
   if (update_kinematics)
-    UpdateKinematicsCustom (model, &q, &qdot, &qddot);
+    UpdateKinematicsCustom (model, &q, &qdot, qddot);
 
   for (size_t i = 1; i < model.mBodies.size(); i++) {
     model.Ic[i] = model.I[i];
     model.hc[i] = model.Ic[i].toMatrix() * model.v[i];
     model.hdotc[i] = model.Ic[i] * model.a[i] + crossf(model.v[i], model.Ic[i] * model.v[i]);
+  }
+
+  if (qddot && (com_acceleration || change_of_angular_momentum)) {
+    for (size_t i = 1; i < model.mBodies.size(); i++) {
+      model.hdotc[i] = model.Ic[i] * model.a[i] + crossf(model.v[i], model.Ic[i] * model.v[i]);
+    }
   }
 
   SpatialRigidBodyInertia Itot (0., Vector3d (0., 0., 0.), Matrix3d::Zero(3,3));
@@ -225,11 +191,21 @@ RBDL_DLLAPI void CalcCenterOfMass (
     if (lambda != 0) {
       model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].applyTranspose (model.Ic[i]);
       model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].applyTranspose (model.hc[i]);
-      model.hdotc[lambda] = model.hdotc[lambda] + model.X_lambda[i].applyTranspose (model.hdotc[i]);
     } else {
       Itot = Itot + model.X_lambda[i].applyTranspose (model.Ic[i]);
       htot = htot + model.X_lambda[i].applyTranspose (model.hc[i]);
-      hdot_tot = hdot_tot + model.X_lambda[i].applyTranspose (model.hdotc[i]);
+    }
+  }
+
+  if (qddot && (com_acceleration || change_of_angular_momentum)) {
+    for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
+      unsigned int lambda = model.lambda[i];
+
+      if (lambda != 0) {
+        model.hdotc[lambda] = model.hdotc[lambda] + model.X_lambda[i].applyTranspose (model.hdotc[i]);
+      } else {
+        hdot_tot = hdot_tot + model.X_lambda[i].applyTranspose (model.hdotc[i]);
+      }
     }
   }
 
@@ -241,13 +217,13 @@ RBDL_DLLAPI void CalcCenterOfMass (
     *com_velocity = Vector3d (htot[3] / mass, htot[4] / mass, htot[5] / mass);
   }
 
-  if (com_acceleration) {
-    *com_acceleration = Vector3d (hdot_tot[3] / mass, hdot_tot[4] / mass, hdot_tot[5] / mass);
-  }
-
   if (angular_momentum) {
     htot = Xtrans (com).applyAdjoint (htot);
     angular_momentum->set (htot[0], htot[1], htot[2]);
+  }
+
+  if (com_acceleration) {
+    *com_acceleration = Vector3d (hdot_tot[3] / mass, hdot_tot[4] / mass, hdot_tot[5] / mass);
   }
 
   if (change_of_angular_momentum) {
@@ -266,8 +242,8 @@ RBDL_DLLAPI void CalcZeroMomentPoint (
   const Math::Vector3d &point,
   bool update_kinematics
 ) {
-  if (zmp == nullptr) {
-    cerr << "ZMP (output) is 'nullptr'!" << endl;
+  if (zmp == NULL) {
+    cerr << "ZMP (output) is 'NULL'!" << endl;
     abort();
   }
 
@@ -338,7 +314,18 @@ RBDL_DLLAPI double CalcPotentialEnergy (
     bool update_kinematics) {
   double mass;
   Vector3d com;
-  CalcCenterOfMass (model, q, VectorNd::Zero (model.qdot_size), mass, com, NULL, NULL, update_kinematics);
+  CalcCenterOfMass (
+      model, 
+      q,
+      VectorNd::Zero (model.qdot_size),
+      NULL,
+      mass,
+      com,
+      NULL,
+      NULL,
+      NULL,
+      NULL,
+      update_kinematics);
 
   Vector3d g = - Vector3d (model.gravity[0], model.gravity[1], model.gravity[2]);
   LOG << "pot_energy: " << " mass = " << mass << " com = " << com.transpose() << std::endl;

@@ -73,19 +73,19 @@ TEST(TestCOMSimple) {
   double mass;
   Vector3d com;
   Vector3d com_velocity;
-  Utils::CalcCenterOfMass (model, q, qdot, mass, com, &com_velocity);
+  Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, &com_velocity);
 
   CHECK_EQUAL (123., mass);
   CHECK_EQUAL (Vector3d (0., 0., 0.), com);
   CHECK_EQUAL (Vector3d (0., 0., 0.), com_velocity);
 
   q[1] = 1.;
-  Utils::CalcCenterOfMass (model, q, qdot, mass, com, &com_velocity);
+  Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, &com_velocity);
   CHECK_EQUAL (Vector3d (0., 1., 0.), com);
   CHECK_EQUAL (Vector3d (0., 0., 0.), com_velocity);
 
   qdot[1] = 1.;
-  Utils::CalcCenterOfMass (model, q, qdot, mass, com, &com_velocity);
+  Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, &com_velocity);
   CHECK_EQUAL (Vector3d (0., 1., 0.), com);
   CHECK_EQUAL (Vector3d (0., 1., 0.), com_velocity);
 }
@@ -114,15 +114,15 @@ TEST(TestAngularMomentumSimple) {
   Vector3d angular_momentum;
 
   qdot << 1., 0., 0.;
-  Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
+  Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
   CHECK_EQUAL (Vector3d (1.1, 0., 0.), angular_momentum);
 
   qdot << 0., 1., 0.;
-  Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
+  Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
   CHECK_EQUAL (Vector3d (0., 2.2, 0.), angular_momentum);
 
   qdot << 0., 0., 1.;
-  Utils::CalcCenterOfMass (model, q, qdot, mass, com, NULL, &angular_momentum);
+  Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
   CHECK_EQUAL (Vector3d (0., 0., 3.3), angular_momentum);
 }
 
@@ -131,7 +131,7 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
   Vector3d com;
   Vector3d angular_momentum;
 
-  Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
+  Utils::CalcCenterOfMass (*model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
 
   CHECK_EQUAL (Vector3d (0., 0., 0.), angular_momentum);
 
@@ -139,7 +139,7 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
   qdot[1] = 2.;
   qdot[2] = 3.;
 
-  Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
+  Utils::CalcCenterOfMass (*model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
 
   // only a rough guess from test calculation
   CHECK_ARRAY_CLOSE (Vector3d (3.3, 2.54, 1.5).data(), angular_momentum.data(), 3, 1.0e-1);
@@ -149,7 +149,7 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
   qdot[5] = -qdot[2];
 
   ClearLogOutput();
-  Utils::CalcCenterOfMass (*model, q, qdot, mass, com, NULL, &angular_momentum);
+  Utils::CalcCenterOfMass (*model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
 
   CHECK (angular_momentum[0] == 0);
   CHECK (angular_momentum[1] < 0);
@@ -168,7 +168,7 @@ void TestCoMComputation (
   // compute quantities directly from model
   double mass_expected = 0.0;
 
-  UpdateKinematicsCustom(*obj.model, &Q, nullptr, nullptr);
+  UpdateKinematicsCustom(*obj.model, &Q, NULL, NULL);
   for (unsigned int i = 1; i < obj.model->mBodies.size(); i++) {
     // mass_expected += obj.model->I[i].m;
     mass_expected += obj.model->mBodies[i].mMass;
@@ -178,9 +178,9 @@ void TestCoMComputation (
   Vector3d com = Vector3d::Zero();
   Utils::CalcCenterOfMass (
     *obj.model,
-    Q, QDot,
+    Q, QDot, NULL,
     mass_actual, com,
-    nullptr, nullptr
+    NULL, NULL
   );
 
   CHECK_CLOSE (mass_expected, mass_actual, 1e-7);
@@ -241,10 +241,10 @@ void TestCoMAccelerationUsingFD (
   // compute com acceleration nominal
   Utils::CalcCenterOfMass (
     *obj.model,
-    obj.Q, obj.QDot, obj.QDDot,
-    mass, com,
-    &com_vec, &ang_mom,
-    &com_acc_nom, &ch_ang_mom_nom
+    obj.Q, obj.QDot, &obj.QDDot,
+    mass,
+    com, &com_vec, &com_acc_nom,
+    &ang_mom, &ch_ang_mom_nom
   );
 
   // compute com acceleration using finite differences from velocity
@@ -252,8 +252,9 @@ void TestCoMAccelerationUsingFD (
     *obj.model,
     obj.Q + EPS*obj.QDot,
     obj.QDot + EPS*obj.QDDot,
-    mass, com,
-    &com_acc_fd, &ch_ang_mom_fd
+    NULL,
+    mass, com, &com_acc_fd, NULL,
+    &ch_ang_mom_fd
   );
 
   com_acc_fd = (com_acc_fd - com_vec) / EPS;
@@ -311,8 +312,8 @@ void TestZMPComputationForNotMovingSystem(
   Vector3d com (Vector3d::Zero());
   Utils::CalcCenterOfMass (
     *obj.model,
-    obj.Q, obj.QDot,
-    mass, com, nullptr, nullptr
+    obj.Q, obj.QDot, NULL,
+    mass, com, NULL, NULL
   );
 
   // project CoM onto surface
@@ -353,8 +354,8 @@ void TestZMPComputationAgainstTableCartModel(
   Vector3d com (Vector3d::Zero());
   Utils::CalcCenterOfMass (
     *obj.model,
-    obj.Q, obj.QDot,
-    mass, com, nullptr, nullptr
+    obj.Q, obj.QDot, NULL,
+    mass, com, NULL, NULL
   );
 
   com.set(
