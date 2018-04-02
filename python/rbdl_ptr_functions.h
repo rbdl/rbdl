@@ -634,4 +634,44 @@ void ForwardDynamicsPtr (
 	LOG << "QDDot = " << QDDot.transpose() << std::endl;
 }
 
+RBDL_DLLAPI
+void ForwardDynamicsConstraintsDirectPtr (
+  Model &model,
+  const double *q_ptr,
+  const double *qdot_ptr,
+  const double *tau_ptr,
+  ConstraintSet &CS,
+  double *qddot_ptr
+) {
+  LOG << "-------- " << __func__ << " --------" << std::endl;
+
+  using namespace RigidBodyDynamics::Math;
+
+  VectorNdRef&& Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+  VectorNdRef&& QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
+  VectorNdRef&& QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
+  VectorNdRef&& Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
+
+  // create copy of non-const accelerations
+  VectorNd QDDot_dummy = QDDot;
+
+  LOG << "Q          = " << Q.transpose() << std::endl;
+  LOG << "QDot       = " << QDot.transpose() << std::endl;
+  LOG << "Tau        = " << Tau.transpose() << std::endl;
+
+  LOG << "QDDot      = " << QDDot.transpose() << std::endl;
+  LOG << "QDDot_dummy      = " << QDDot_dummy.transpose() << std::endl;
+
+  // calling non-pointer version
+  ForwardDynamicsConstraintsDirect (
+    model, Q, QDot, Tau, CS, QDDot_dummy
+  );
+
+  for (int i = 0; i < model.q_size; ++i) {
+    QDDot[i] = QDDot_dummy[i];
+  }
+  LOG << "QDDot      = " << QDDot.transpose() << std::endl;
+  LOG << "QDDot_dummy      = " << QDDot_dummy.transpose() << std::endl;
+  LOG << "---" << std::endl;
+}
 }
