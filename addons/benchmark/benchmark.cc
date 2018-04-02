@@ -42,7 +42,6 @@ bool benchmark_run_crba = true;
 bool benchmark_run_nle = true;
 bool benchmark_run_calc_minv_times_tau = true;
 bool benchmark_run_contacts = false;
-bool benchmark_run_ik = false;
 
 string model_file = "";
 
@@ -465,140 +464,6 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
   return duration;
 }
 
-double run_single_inverse_kinematics_benchmark(Model *model, std::vector<InverseKinematicsConstraintSet> &CS, int sample_count){
-  TimerInfo tinfo;
-  timer_start (&tinfo);
-  VectorNd qinit = VectorNd::Zero(model->dof_count);
-  VectorNd qres = VectorNd::Zero(model->dof_count);
-  VectorNd failures = VectorNd::Zero(model->dof_count);
-
-  for (int i = 0; i < sample_count; i++) {
-    if (!InverseKinematics(*model, qinit, CS[i], qres)){
-      failures[i] = 1;
-    }
-  }
-  double duration = timer_stop (&tinfo);
-  std::cout << "Success Rate: " << (1-failures.mean())*100 << "%  for: ";
-  return duration;
-  
-}
-
-double run_all_inverse_kinematics_benchmark (int sample_count){
-  
-  //initialize the human model
-  Model *model = new Model();
-  generate_human36model(model);
-  
-  unsigned int foot_r = model->GetBodyId ("foot_r");
-  unsigned int foot_l = model->GetBodyId ("foot_l");
-  unsigned int hand_r = model->GetBodyId ("hand_r");
-  unsigned int hand_l = model->GetBodyId ("hand_l");
-  unsigned int head   = model->GetBodyId ("head");
-  
-  Vector3d foot_r_point (1., 0., 0.);
-  Vector3d foot_l_point (-1., 0., 0.);
-  Vector3d hand_r_point (0., 1., 0.);
-  Vector3d hand_l_point (1., 0., 1.);
-  Vector3d head_point (0.,0.,-1.);
-  
-  SampleData sample_data;
-  sample_data.fillRandom(model->dof_count, sample_count);
-  
-  
-  //create constraint sets
-  std::vector<InverseKinematicsConstraintSet> cs_one_point;
-  std::vector<InverseKinematicsConstraintSet> cs_two_point_one_orientation;
-  std::vector<InverseKinematicsConstraintSet> cs_two_full_one_point;
-  std::vector<InverseKinematicsConstraintSet> cs_two_full_two_point_one_orientation;
-  std::vector<InverseKinematicsConstraintSet> cs_five_full;
-  
-  for (unsigned int i = 0; i < sample_count; i++){
-    Vector3d foot_r_position = CalcBodyToBaseCoordinates (*model, sample_data.q[i], foot_r, foot_r_point);
-    Vector3d foot_l_position = CalcBodyToBaseCoordinates (*model, sample_data.q[i], foot_l, foot_l_point);
-    Vector3d hand_r_position = CalcBodyToBaseCoordinates (*model, sample_data.q[i], hand_r, hand_r_point);
-    Vector3d hand_l_position = CalcBodyToBaseCoordinates (*model, sample_data.q[i], hand_l, hand_l_point);
-    Vector3d head_position   = CalcBodyToBaseCoordinates (*model, sample_data.q[i], head  ,   head_point);
-
-    Matrix3d foot_r_orientation = CalcBodyWorldOrientation (*model, sample_data.q[i], foot_r, false);
-    Matrix3d foot_l_orientation = CalcBodyWorldOrientation (*model, sample_data.q[i], foot_l, false);
-    Matrix3d hand_r_orientation = CalcBodyWorldOrientation (*model, sample_data.q[i], hand_r, false);
-    Matrix3d hand_l_orientation = CalcBodyWorldOrientation (*model, sample_data.q[i], hand_l, false);
-    Matrix3d head_orientation   = CalcBodyWorldOrientation (*model, sample_data.q[i], head  , false);
-
-    //single point
-    InverseKinematicsConstraintSet one_point;
-    one_point.AddPointConstraint(foot_r, foot_r_point, foot_r_position);
-    one_point.step_tol = 1e-12;
-    cs_one_point.push_back(one_point);
-
-    //two point and one orientation
-    InverseKinematicsConstraintSet two_point_one_orientation;
-    two_point_one_orientation.AddPointConstraint(foot_l,foot_l_point, foot_l_position);
-    two_point_one_orientation.AddPointConstraint(foot_r, foot_r_point, foot_r_position);
-    two_point_one_orientation.AddOrientationConstraint(head, head_orientation);
-    two_point_one_orientation.step_tol = 1e-12;
-    cs_two_point_one_orientation.push_back(two_point_one_orientation);
-
-    //two full and one point
-    InverseKinematicsConstraintSet two_full_one_point;
-    two_full_one_point.AddFullConstraint(hand_r, hand_r_point, hand_r_position, hand_r_orientation);
-    two_full_one_point.AddFullConstraint(hand_l, hand_l_point, hand_l_position, hand_l_orientation);
-    two_full_one_point.AddPointConstraint(head, head_point, head_position);
-    two_full_one_point.step_tol = 1e-12;
-    cs_two_full_one_point.push_back(two_full_one_point);
-    
-    //two full, two points and one orienation
-    InverseKinematicsConstraintSet two_full_two_point_one_orientation;
-    two_full_two_point_one_orientation.AddPointConstraint(foot_r, foot_r_point, foot_r_position);
-    two_full_two_point_one_orientation.AddPointConstraint(foot_l, foot_l_point, foot_l_position);
-    two_full_two_point_one_orientation.AddFullConstraint(hand_r, hand_r_point, hand_r_position, hand_r_orientation);
-    two_full_two_point_one_orientation.AddFullConstraint(hand_l, hand_l_point, hand_l_position, hand_l_orientation);
-    two_full_two_point_one_orientation.AddOrientationConstraint(head, head_orientation);
-    two_full_two_point_one_orientation.step_tol = 1e-12;
-    cs_two_full_two_point_one_orientation.push_back(two_full_two_point_one_orientation);
-    
-    //five points 5 orientations
-    InverseKinematicsConstraintSet five_full;
-    five_full.AddFullConstraint(foot_r, foot_r_point, foot_r_position, foot_r_orientation);
-    five_full.AddFullConstraint(foot_l, foot_l_point, foot_l_position, foot_l_orientation);
-    five_full.AddFullConstraint(hand_r, hand_r_point, hand_r_position, hand_r_orientation);
-    five_full.AddFullConstraint(hand_l, hand_l_point, hand_l_position, hand_l_orientation);
-    five_full.AddFullConstraint(head, head_point, head_position, head_orientation);
-    five_full.step_tol = 1e-12;
-    cs_five_full.push_back(five_full);
-  }
-  
-  cout << "= #DOF: " << setw(3) << model->dof_count << endl;
-  cout << "= #samples: " << sample_count << endl;
-  double duration;
-  
-  duration = run_single_inverse_kinematics_benchmark(model, cs_one_point, sample_count);
-  cout << "Constraints: 1 Body:   1 Point                      : "
-  << " duration = " << setw(10) << duration << "(s)"
-  << " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
-  
-  duration = run_single_inverse_kinematics_benchmark(model, cs_two_point_one_orientation, sample_count);
-  cout << "Constraints: 3 Bodies: 2 Points 1 Orienation        : "
-  << " duration = " << setw(10) << duration << "(s)"
-  << " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
-  
-  duration = run_single_inverse_kinematics_benchmark(model, cs_two_full_one_point, sample_count);
-  cout << "Constraints: 3 Bodies: 2 Full 1 Point               : "
-  << " duration = " << setw(10) << duration << "(s)"
-  << " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
-  
-  duration = run_single_inverse_kinematics_benchmark(model, cs_two_full_two_point_one_orientation, sample_count);  
-  cout << "Constraints: 5 Bodies: 2 Full 2 Points 1 Orienation : "
-  << " duration = " << setw(10) << duration << "(s)"
-  << " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
-  
-  duration = run_single_inverse_kinematics_benchmark(model, cs_five_full, sample_count);  
-  cout << "Constraints: 5 Bodies: 5 Full                       : "
-  << " duration = " << setw(10) << duration << "(s)"
-  << " (~" << setw(10) << duration / sample_count << "(s) per call)" << endl;
-  return duration;
-}
-
 void print_usage () {
 #if defined (RBDL_BUILD_ADDON_LUAMODEL) || defined (RBDL_BUILD_ADDON_URDFREADER)
   cout << "Usage: benchmark [--count|-c <sample_count>] [--depth|-d <depth>] <model.lua>" << endl;
@@ -695,9 +560,6 @@ void parse_args (int argc, char* argv[]) {
     } else if (arg == "--only-contacts" || arg == "-C") {
       disable_all_benchmarks();
       benchmark_run_contacts = true;
-    } else if (arg == "--only-ik") {
-      disable_all_benchmarks();
-      benchmark_run_ik = true;
 #if defined (RBDL_BUILD_ADDON_LUAMODEL) || defined (RBDL_BUILD_ADDON_URDFREADER)
     } else if (model_file == "") {
       model_file = arg;
@@ -871,11 +733,6 @@ int main (int argc, char *argv[]) {
 
     cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
     contacts_benchmark (benchmark_sample_count, ContactsMethodKokkevis);
-  }
-
-  if (benchmark_run_ik) {
-    cout << "= Inverse Kinematics" << endl;
-    run_all_inverse_kinematics_benchmark(benchmark_sample_count);
   }
 
   return 0;

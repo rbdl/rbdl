@@ -3,7 +3,7 @@ postponed:
   described by Sugihara which is faster and more robust than the
   previously implemented damped Levenberg-Marquardt method. The new API
   allows to specify both point and orientation (and mixed) constraints.
-  Thanks to Kevin Stein for implementing it!
+  (contributed by Kevin Stein>
 
 2.5.0 -> next
 - Added support to specify external forces on bodies on constrained forward
