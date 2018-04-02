@@ -72,7 +72,7 @@ TEST_FIXTURE ( ScrewJoint1DofFixedBase, UpdateKinematics ) {
   UpdateKinematics (*model, q, qdot, qddot);
 
   CHECK_ARRAY_EQUAL (Xrot(1,Vector3d(0,0,1)).E.data(), model->X_base[roller].E.data(), 9);
-  CHECK_ARRAY_EQUAL (Vector3d(1,0,0).data(), model->X_base[roller].r.data(), 3);
+  CHECK_ARRAY_EQUAL (Vector3d(1.,0.,0.).data(), model->X_base[roller].r.data(), 3);
   CHECK_ARRAY_EQUAL (SpatialVector(0.,0.,2.,cos(q[0])*2,-sin(q[0])*2.,0.).data(), model->v[roller].data(), 6);
 
   SpatialVector a0(model->a[roller]);

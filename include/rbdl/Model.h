@@ -223,6 +223,7 @@ struct RBDL_DLLAPI Model {
   std::vector<Math::SpatialRigidBodyInertia> I;
   std::vector<Math::SpatialRigidBodyInertia> Ic;
   std::vector<Math::SpatialVector> hc;
+  std::vector<Math::SpatialVector> hdotc;
 
   ////////////////////////////////////
   // Bodies

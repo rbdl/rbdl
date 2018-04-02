@@ -74,6 +74,7 @@ Model::Model() {
   Ic.push_back (rbi);
   I.push_back(rbi);
   hc.push_back (zero_spatial);
+  hdotc.push_back (zero_spatial);
 
   // Bodies
   X_lambda.push_back(SpatialTransform());
@@ -409,6 +410,7 @@ unsigned int Model::AddBody(
   Ic.push_back (rbi);
   I.push_back (rbi);
   hc.push_back (SpatialVector(0., 0., 0., 0., 0., 0.));
+  hdotc.push_back (SpatialVector(0., 0., 0., 0., 0., 0.));
 
   if (mBodies.size() == fixed_body_discriminator) {
     std::cerr << "Error: cannot add more than " 

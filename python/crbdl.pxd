@@ -285,6 +285,15 @@ cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
             Vector3d *angular_momentum,
             bool update_kinematics)
 
+    cdef void CalcZeroMomentPoint (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const VectorNd &qddot,
+            Vector3d* zmp,
+            const Vector3d &normal,
+            const Vector3d &point,
+            bool update_kinematics)
+
 cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
     cdef cppclass ConstraintSet:
         ConstraintSet()

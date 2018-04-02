@@ -355,6 +355,17 @@ class Matrix {
 			return result;
 		}
 
+		static matrix_type Random (int rows, int cols = 1) {
+			matrix_type result (rows, cols);
+			for (int i = 0; i < rows; i++) {
+				for (int j = 0; j < cols; j++) {
+					result(i,j) = (static_cast<value_type>(rand()) / static_cast<value_type>(RAND_MAX)) * 2.0 - 1.0;
+				}
+			}
+
+			return result;
+		}
+
 		static matrix_type Identity (int rows, int cols = 1) {
 			assert (rows == cols);
 

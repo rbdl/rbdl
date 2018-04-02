@@ -151,15 +151,15 @@ struct FloatingFourBarLinkage {
                          joint_rev_z
       , virtual_body);
 
-    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1,0,0));
-    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0,1,0));
-    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0,0,1));
+    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.));
+    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,1.,0.));
+    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,0.,1.));
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,0,1,0,0), 0.1);
+                         SpatialVector(0.,0.,0.,1.,0.,0.), 0.1);
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,0,0,1,0), 0.1);
+                         SpatialVector(0.,0.,0.,0.,1.,0.), 0.1);
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,1,0,0,0), 0.1);
+                         SpatialVector(0.,0.,1.,0.,0.,0.), 0.1);
 
     cs.Bind(model);
 

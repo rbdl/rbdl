@@ -1347,6 +1347,50 @@ def CalcCenterOfMass (Model model,
 
     return cmass
 
+def CalcZeroMomentPoint (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot,
+        np.ndarray[double, ndim=1, mode="c"] zmp,
+        np.ndarray[double, ndim=1, mode="c"] normal=None,
+        np.ndarray[double, ndim=1, mode="c"] point=None,
+        update_kinematics=True):
+
+    cdef crbdl.Vector3d c_normal = crbdl.Vector3d()
+    cdef crbdl.Vector3d c_point = crbdl.Vector3d()
+
+    cdef crbdl.Vector3d* c_zmp_ptr# = crbdl.Vector3d()
+    c_zmp_ptr = new crbdl.Vector3d()
+
+    if normal is not None:
+        c_normal[0] = normal[0]
+        c_normal[1] = normal[1]
+        c_normal[2] = normal[2]
+    else:
+        c_normal[0] = 0
+        c_normal[1] = 0
+        c_normal[2] = 1
+
+    if point is not None:
+        c_point[0] = point[0]
+        c_point[1] = point[1]
+        c_point[2] = point[2]
+
+    crbdl.CalcZeroMomentPoint (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            NumpyToVectorNd (qdot),
+            NumpyToVectorNd (qddot),
+            c_zmp_ptr,
+            c_normal,
+            c_point,
+            update_kinematics)
+
+    zmp[0] = c_zmp_ptr.data()[0]
+    zmp[1] = c_zmp_ptr.data()[1]
+    zmp[2] = c_zmp_ptr.data()[2]
+
+    return zmp
 ##############################
 #
 # Dynamics.h
