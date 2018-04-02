@@ -322,8 +322,8 @@ RBDL_DLLAPI void CalcZeroMomentPoint (
   // z = n x n_0
   //     -------
   //     n * f
-  Vector3d n_0 = hdot_tot.head(3);
-  Vector3d f = hdot_tot.tail(3);
+  Vector3d n_0 = hdot_tot.block<3,1>(0,0);
+  Vector3d f = hdot_tot.block<3,1>(3,0);
   *zmp = normal.cross(n_0) / normal.dot(f);
 
   // double distance = (hdot_tot - point).dot(normal);

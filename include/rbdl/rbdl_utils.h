@@ -93,8 +93,8 @@ RBDL_DLLAPI void CalcZeroMomentPoint (
   Model &model,
   const Math::VectorNd &q, const Math::VectorNd &qdot, const Math::VectorNd &qddot,
   Math::Vector3d* zmp,
-  const Math::Vector3d &normal = Math::Vector3d (0, 0, 1),
-  const Math::Vector3d &point = Math::Vector3d (0, 0, 0),
+  const Math::Vector3d &normal = Math::Vector3d (0., 0., 1.),
+  const Math::Vector3d &point = Math::Vector3d (0., 0., 0.),
   bool update_kinematics = true
 );
 
