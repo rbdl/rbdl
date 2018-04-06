@@ -326,27 +326,27 @@ struct RBDL_DLLAPI ConstraintSet {
     const char *constraint_name = NULL
     );
 
-	/** \brief Adds a custom constraint to the constraint set.
-	 *
+  /** \brief Adds a custom constraint to the constraint set.
+   *
    * \param custom_constraint The CustomConstraint to be added to the
    * ConstraintSet.
-	 * \param id_predecessor the identifier of the predecessor body
-	 * \param id_successor the identifier of the successor body
-	 * \param X_predecessor a spatial transform localizing the constrained
-	 * frames on the predecessor body, expressed with respect to the predecessor
-	 * body frame
-	 * \param X_successor a spatial transform localizing the constrained
-	 * frames on the successor body, expressed with respect to the successor
-	 * body frame
-	 * \param axis a spatial vector indicating the axis along which the constraint
-	 * acts
+   * \param id_predecessor the identifier of the predecessor body
+   * \param id_successor the identifier of the successor body
+   * \param X_predecessor a spatial transform localizing the constrained
+   * frames on the predecessor body, expressed with respect to the predecessor
+   * body frame
+   * \param X_successor a spatial transform localizing the constrained
+   * frames on the successor body, expressed with respect to the successor
+   * body frame
+   * \param axis a spatial vector indicating the axis along which the constraint
+   * acts
    * \param stabilization_alpha Parameter \f$\alpha\f$ for the \ref
    * baumgarte_stabilization (default: \f$\alpha = \beta = 0\f$, i.e. no stabilization)
    * \param stabilization_beta Parameter \f$\beta\f$ for the \ref
    * baumgarte_stabilization (default: \f$\alpha = \beta = 0\f$, i.e. no stabilization)
-	 * \param constraint_name a human readable name (optional, default: NULL)
-	 *
-	 */
+   * \param constraint_name a human readable name (optional, default: NULL)
+   *
+   */
   unsigned int AddCustomConstraint(
     CustomConstraint* custom_constraint,
     unsigned int id_predecessor,
