@@ -60,7 +60,7 @@ RBDL_DLLAPI void InverseDynamics (
     }else if(model.mJoints[i].mJointType == JointTypeCustom){
       unsigned int k = model.mJoints[i].custom_joint_index;
       VectorNd customJointQDDot(model.mCustomJoints[k]->mDoFCount);
-      for(int z=0; z<model.mCustomJoints[k]->mDoFCount; ++z){
+      for(unsigned z = 0; z < model.mCustomJoints[k]->mDoFCount; ++z){
         customJointQDDot[z] = QDDot[q_index+z];
       }
       model.a[i] =  model.X_lambda[i].apply(model.a[lambda])
@@ -852,7 +852,7 @@ RBDL_DLLAPI void CalcMInvTimesTau ( Model &model,
         * (  model.mCustomJoints[kI]->u 
             - model.mCustomJoints[kI]->U.transpose() * model.a[i]);
 
-      for(int z=0; z<dofI;++z){
+      for(unsigned z = 0; z < dofI; ++z){
         QDDot[q_index+z]      = qdd_temp[z];
       }
 

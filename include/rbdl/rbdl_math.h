@@ -20,6 +20,7 @@
 #include "rbdl/SimpleMath/SimpleMathMap.h"
 #include <vector>
 
+typedef SimpleMath::Fixed::Matrix<double, 2,1> Vector2_t;
 typedef SimpleMath::Fixed::Matrix<double, 3,1> Vector3_t;
 typedef SimpleMath::Fixed::Matrix<double, 3,3> Matrix3_t;
 typedef SimpleMath::Fixed::Matrix<double, 4,1> Vector4_t;
@@ -51,6 +52,7 @@ namespace RigidBodyDynamics {
 
 /** \brief Math types such as vectors and matrices and utility functions. */
 namespace Math {
+typedef Vector2_t Vector2d;
 typedef Vector3_t Vector3d;
 typedef Vector4_t Vector4d;
 typedef Matrix3_t Matrix3d;

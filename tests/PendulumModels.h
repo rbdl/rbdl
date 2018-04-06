@@ -138,28 +138,18 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
 
     //Make the revolute joints about the y axis using 5 constraints
     //between the end points
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,1,0,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,0,1,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,0,0,0,0,1), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(1,0,0,0,0,0), false, 0.1);
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1,
-                         SpatialVector(0,1,0,0,0,0), false, 0.1);
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,0,0,1,0,0));
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,0,0,0,1,0));
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,0,0,0,0,1));
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(1,0,0,0,0,0));
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,1,0,0,0,0));
 
 
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,1,0,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,0,1,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,0,0,0,1), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(1,0,0,0,0,0), false, 0.1);
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2,
-                         SpatialVector(0,0,1,0,0,0), false, 0.1);
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(0,0,0,1,0,0));
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(0,0,0,0,1,0));
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(0,0,0,0,0,1));
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(1,0,0,0,0,0));
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(0,0,1,0,0,0));
 
     cs.Bind(model);
 

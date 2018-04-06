@@ -67,11 +67,11 @@ struct FourBarLinkage {
       , virtual_body);
 
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,0,1,0,0), 0.1);
+                         SpatialVector(0,0,0,1,0,0), 0.1, 0.1);
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,0,0,1,0), 0.1);
+                         SpatialVector(0,0,0,0,1,0), 0.1, 0.1);
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,1,0,0,0), 0.1);
+                         SpatialVector(0,0,1,0,0,0), 0.1, 0.1);
 
     cs.Bind(model);
 
@@ -155,11 +155,11 @@ struct FloatingFourBarLinkage {
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,1.,0.));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,0.,1.));
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0.,0.,0.,1.,0.,0.), 0.1);
+                         SpatialVector(0.,0.,0.,1.,0.,0.), 0.1, 0.1);
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0.,0.,0.,0.,1.,0.), 0.1);
+                         SpatialVector(0.,0.,0.,0.,1.,0.), 0.1, 0.1);
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0.,0.,1.,0.,0.,0.), 0.1);
+                         SpatialVector(0.,0.,1.,0.,0.,0.), 0.1, 0.1);
 
     cs.Bind(model);
 
@@ -249,13 +249,13 @@ struct SliderCrank3D {
                            Vector3d(crank_link2_length, 0, 0));
 
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
-                         SpatialVector(0,0,0,1,0,0), 0.1);
+                         SpatialVector(0,0,0,1,0,0), 0.1, 0.1);
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
-                         SpatialVector(0,0,0,0,1,0), 0.1);
+                         SpatialVector(0,0,0,0,1,0), 0.1, 0.1);
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
-                         SpatialVector(0,0,0,0,0,1), 0.1);
+                         SpatialVector(0,0,0,0,0,1), 0.1, 0.1);
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
-                         SpatialVector(0,0,1,0,0,0), 0.1);
+                         SpatialVector(0,0,1,0,0,0), 0.1, 0.1);
 
     cs.Bind(model);
 
@@ -348,10 +348,14 @@ struct SliderCrank3DSphericalJoint {
     X_p = Xtrans(Vector3d(0., 0., slider_height));
     X_s = SpatialTransform(roty(-0.5 * M_PI),Vector3d(crank_link2_length,0,0));
 
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0),0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,1,0),0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,0,0,1),0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,1,0,0,0),0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
+        SpatialVector(0,0,0,1,0,0), 0.1, 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
+        SpatialVector(0,0,0,0,1,0), 0.1, 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
+        SpatialVector(0,0,0,0,0,1), 0.1, 0.1);
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
+        SpatialVector(0,0,1,0,0,0), 0.1, 0.1);
 
     cs.Bind(model);
 
