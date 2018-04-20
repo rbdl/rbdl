@@ -898,7 +898,7 @@ cdef class Model:
             SpatialTransform joint_frame not None,
             Joint joint not None,
             Body body not None,
-            string body_name = ""):
+            string body_name = b""):
         return self.thisptr.AddBody (
                 parent_id,
                 joint_frame.thisptr[0],
@@ -911,7 +911,7 @@ cdef class Model:
             SpatialTransform joint_frame not None,
             Joint joint not None,
             Body body not None,
-            string body_name = ""):
+            string body_name = b""):
         return self.thisptr.AppendBody (
                 joint_frame.thisptr[0],
                 joint.thisptr[0],
