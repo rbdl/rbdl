@@ -92,7 +92,7 @@ int main (int argc, char *argv[]) {
 
     Vector3d model_com;
     double mass;
-    RigidBodyDynamics::Utils::CalcCenterOfMass (model, q_zero, qdot_zero, mass, model_com);
+    RigidBodyDynamics::Utils::CalcCenterOfMass (model, q_zero, qdot_zero, NULL, mass, model_com);
     cout << setw(14) << "Model COM: " << setw(10) <<  model_com.transpose() << endl;
     cout << setw(14) << "Model mass: " << mass << endl;
   }

@@ -462,6 +462,8 @@ bool LuaModelReadConstraintsFromTable (
           , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["stabilization_coefficient"].getDefault<double>(1.)
           , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+            ["stabilization_coefficient"].getDefault<double>(1.)
+          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["name"].getDefault<string>("").c_str());
         if(verbose) {
           cout << "==== Added Constraint from '" << constraint_set_names[i] 
