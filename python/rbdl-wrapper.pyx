@@ -1093,7 +1093,7 @@ cdef class ConstraintSet:
             SpatialTransform X_predecessor not None,
             SpatialTransform X_successor not None,
             SpatialVector axis not None,
-            enable_stabilization = True,
+            enable_stabilization = False,
             stabilization_param = 0.1,
             constraint_name = None):
         cdef char* constraint_name_ptr

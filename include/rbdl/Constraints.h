@@ -327,7 +327,7 @@ struct RBDL_DLLAPI ConstraintSet {
     const Math::SpatialTransform &X_predecessor,
     const Math::SpatialTransform &X_successor,
     const Math::SpatialVector &axis,
-    bool enable_stabilization = true,
+    bool enable_stabilization = false,
     const double stabilization_param = 0.1,
     const char *constraint_name = NULL
     );
@@ -359,7 +359,7 @@ struct RBDL_DLLAPI ConstraintSet {
     unsigned int id_successor,
     const Math::SpatialTransform &X_predecessor,
     const Math::SpatialTransform &X_successor,
-    bool enable_stabilization = true,
+    bool enable_stabilization = false,
     const double stabilization_param = 0.1,
     const char *constraint_name = NULL
     );
