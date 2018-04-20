@@ -234,7 +234,7 @@ namespace RigidBodyDynamics {
  * too small the constrained dynamics equation becomes stiff, too big
  * values result in errors not being reduced.
  *
- * A good starting point is to use 
+ * A good starting point is to parameterize the coefficients as:
  * \f[
  * \alpha = \beta = 1 / T_\textit{stab}
  * \f]
@@ -245,7 +245,7 @@ namespace RigidBodyDynamics {
  * orders of magnitude as e.g. doubling a value only has little effect.
  *
  * For Loop- and CustomConstraints Baumgarte stabilization is enabled by
- * default and uses \f$T_\textit{stab} = 0.1\f$.
+ * default and uses the stabilization parameter \f$T_\textit{stab} = 0.1\f$.
  *
  * @{
  */
