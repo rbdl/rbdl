@@ -231,8 +231,8 @@ namespace Addons {
 *
 * \par stabilization_parameter(optional, type: number)
 *     The stabilization parameter T_stab for the Baumgarte stabilization (see
-*     RBDL documentation on how this parameter is used). Defaults to 0.1
-*     and must be > 0.0.
+*     RBDL documentation on how this parameter is used). Defaults to 0.1.
+*     When 0.0 this has the effect of disabling constraint stabilization.
 *
 * \section luamodel_example Example
 * Here is an example of a model:
