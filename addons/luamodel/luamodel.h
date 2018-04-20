@@ -183,7 +183,7 @@ namespace Addons {
 * \section luamodel_constraint_table Constraint Information Table
 * The Constraint Information Table is searched for values needed to call
 * ConstraintSet::AddContactConstraint() or ConstraintSet::AddLoopConstraint().
-* The employed fields are defined as follows.. Please note that different fields
+* The employed fields are defined as follows. Please note that different fields
 * may be used for different constraint types.
 *
 * \par constraint_type (required, type: string)
@@ -229,8 +229,10 @@ namespace Addons {
 *     The 6d spatial axis along which the constraint acts, in coordinates
 *     relative to the predecessor constrained frame. Defaults to (0,0,0,0,0,0).
 *
-* \par stabilization_coefficient(optional, type: number)
-*     The stabilization coefficient for Baumgarte stabilization. Defaults to 1.
+* \par stabilization_parameter(optional, type: number)
+*     The stabilization parameter T_stab for the Baumgarte stabilization (see
+*     RBDL documentation on how this parameter is used). Defaults to 0.1
+*     and must be > 0.0.
 *
 * \section luamodel_example Example
 * Here is an example of a model:

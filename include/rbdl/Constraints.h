@@ -232,14 +232,20 @@ namespace RigidBodyDynamics {
  * no clear and simple rule on how to choose them as good values also
  * depend on the used integration method and time step. If the values are
  * too small the constrained dynamics equation becomes stiff, too big
- * values result in errors not reducing.
+ * values result in errors not being reduced.
  *
  * A good starting point is to use 
  * \f[
  * \alpha = \beta = 1 / T_\textit{stab}
  * \f]
- * with \f$T_\textit{stab}\f$ specifies the time for errors in position
- * and velocity errors to reduce. 
+ * with \f$T_\textit{stab}\f$ specifies a time constant for errors in position
+ * and velocity errors to reduce. Featherstone suggests in his book "Rigid
+ * Body Dynamics Algorithms" that for a big industrial robot a value of 0.1
+ * is reasonable. When testing different values best is to try different
+ * orders of magnitude as e.g. doubling a value only has little effect.
+ *
+ * For Loop- and CustomConstraints Baumgarte stabilization is enabled by
+ * default and uses \f$T_\textit{stab} = 0.1\f$.
  *
  * @{
  */
@@ -308,10 +314,10 @@ struct RBDL_DLLAPI ConstraintSet {
    * body frame
    * \param axis a spatial vector indicating the axis along which the constraint
    * acts
-   * \param stabilization_alpha Parameter \f$\alpha\f$ for the \ref
-   * baumgarte_stabilization (default: \f$\alpha = \beta = 0\f$, i.e. no stabilization)
-   * \param stabilization_beta Parameter \f$\beta\f$ for the \ref
-   * baumgarte_stabilization (default: \f$\alpha = \beta = 0\f$, i.e. no stabilization)
+   * \param enable_stabilization Whether \ref baumgarte_stabilization
+   * should be enabled or not.
+   * \param stabilization_param The value for \f$T_\textit{stab}\f$ used for the
+   * \ref baumgarte_stabilization (defaults to 0.1).
    * \param constraint_name a human readable name (optional, default: NULL)
    *
    */
@@ -321,8 +327,8 @@ struct RBDL_DLLAPI ConstraintSet {
     const Math::SpatialTransform &X_predecessor,
     const Math::SpatialTransform &X_successor,
     const Math::SpatialVector &axis,
-    const double stabilization_alpha = 0.0,
-    const double stabilization_beta = 0.0,
+    bool enable_stabilization = true,
+    const double stabilization_param = 0.1,
     const char *constraint_name = NULL
     );
 
@@ -340,10 +346,10 @@ struct RBDL_DLLAPI ConstraintSet {
    * body frame
    * \param axis a spatial vector indicating the axis along which the constraint
    * acts
-   * \param stabilization_alpha Parameter \f$\alpha\f$ for the \ref
-   * baumgarte_stabilization (default: \f$\alpha = \beta = 0\f$, i.e. no stabilization)
-   * \param stabilization_beta Parameter \f$\beta\f$ for the \ref
-   * baumgarte_stabilization (default: \f$\alpha = \beta = 0\f$, i.e. no stabilization)
+   * \param enable_stabilization Whether \ref baumgarte_stabilization
+   * should be enabled or not.
+   * \param stabilization_param The value for \f$T_\textit{stab}\f$ used for the
+   * \ref baumgarte_stabilization (defaults to 0.1).
    * \param constraint_name a human readable name (optional, default: NULL)
    *
    */
@@ -353,8 +359,8 @@ struct RBDL_DLLAPI ConstraintSet {
     unsigned int id_successor,
     const Math::SpatialTransform &X_predecessor,
     const Math::SpatialTransform &X_successor,
-    const double stabilization_alpha = 0.0,
-    const double stabilization_beta = 0.0,
+    bool enable_stabilization = true,
+    const double stabilization_param = 0.1,
     const char *constraint_name = NULL
     );
 

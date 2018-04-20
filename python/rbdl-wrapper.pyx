@@ -1093,8 +1093,8 @@ cdef class ConstraintSet:
             SpatialTransform X_predecessor not None,
             SpatialTransform X_successor not None,
             SpatialVector axis not None,
-            double stabilization_alpha = 0.0,
-            double stabilization_beta = 0.0,
+            enable_stabilization = True,
+            stabilization_param = 0.1,
             constraint_name = None):
         cdef char* constraint_name_ptr
 
@@ -1109,8 +1109,8 @@ cdef class ConstraintSet:
             X_predecessor.thisptr[0],
             X_successor.thisptr[0],
             axis.thisptr[0],
-            stabilization_alpha,
-            stabilization_beta,
+            enable_stabilization,
+            stabilization_param,
             constraint_name_ptr)
 
     def Bind (self, model):

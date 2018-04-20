@@ -317,8 +317,8 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
                 const SpatialTransform &X_predecessor,
                 const SpatialTransform &X_successor,
                 const SpatialVector &axis,
-                double stabilization_alpha,
-                double stabilization_beta,
+                bool enable_stabilization,
+                double stabilization_param,
                 const char *constraint_name)
 
         ConstraintSet Copy()

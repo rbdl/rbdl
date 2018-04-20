@@ -447,7 +447,11 @@ bool LuaModelReadConstraintsFromTable (
           assert(false);
           abort();
         }
-        constraint_sets[i].AddLoopConstraint(model->GetBodyId
+        // Add the loop constraint as a non-stablized constraint and compute
+        // and set the actual stabilization cofficients for the Baumgarte
+        // stabilization afterwards.
+        unsigned int constraint_id;
+        constraint_id = constraint_sets[i].AddLoopConstraint(model->GetBodyId
           (model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["predecessor_body"].getDefault<string>("").c_str())
           , model->GetBodyId(model_table["constraint_sets"]
@@ -459,12 +463,17 @@ bool LuaModelReadConstraintsFromTable (
             ["successor_transform"].getDefault<SpatialTransform>(SpatialTransform())
           , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["stabilization_coefficient"].getDefault<double>(1.)
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["stabilization_coefficient"].getDefault<double>(1.)
+          , false
+          , 0.0
           , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["name"].getDefault<string>("").c_str());
+
+        double stabilization_coefficient = 1.0 /
+          model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+            ["stabilization_parameter"].getDefault<double>(0.1);
+        constraint_sets[i].baumgarteParameters[i] = Vector2d(
+            stabilization_coefficient, stabilization_coefficient);
+
         if(verbose) {
           cout << "==== Added Constraint from '" << constraint_set_names[i] 
             << "' ====" << endl;
@@ -489,7 +498,7 @@ bool LuaModelReadConstraintsFromTable (
             .transpose() << endl;
           cout << "  stabilization coefficient = " 
             << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["stabilization_coefficient"].getDefault<double>(1.) << endl;
+            [ci + 1]["stabilization_parameter"].getDefault<double>(0.1) << endl;
           cout << "  constraint name = " 
             << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["name"].getDefault<string>("").c_str() << endl;

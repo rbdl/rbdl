@@ -93,8 +93,8 @@ unsigned int ConstraintSet::AddLoopConstraint (
   const Math::SpatialTransform &X_predecessor,
   const Math::SpatialTransform &X_successor,
   const Math::SpatialVector &axis,
-  const double stabilization_alpha,
-  const double stabilization_beta,
+  bool enable_stabilization,
+  const double stabilization_param,
   const char *constraint_name
   ) {
   assert (bound == false);
@@ -116,8 +116,18 @@ unsigned int ConstraintSet::AddLoopConstraint (
   X_p.push_back (X_predecessor);
   X_s.push_back (X_successor);
   constraintAxis.push_back (axis);
+
+  // Set up constraint stabilization
+  double baumgarte_coefficient = 0.0;
+  if (enable_stabilization) {
+    if (stabilization_param == 0.0) {
+      std::cerr << "Error: Baumgarte stabilization is enabled but the stabilization parameter is 0.0" << std::endl;
+      abort();
+    }
+    baumgarte_coefficient = 1.0 / stabilization_param;
+  }
   baumgarteParameters.push_back(
-      Vector2d(stabilization_alpha, stabilization_beta));
+      Vector2d(baumgarte_coefficient, baumgarte_coefficient));
 
   err.conservativeResize(n_constr);
   err[n_constr - 1] = 0.;
@@ -153,8 +163,8 @@ unsigned int ConstraintSet::AddCustomConstraint(
   unsigned int id_successor,
   const Math::SpatialTransform &X_predecessor,
   const Math::SpatialTransform &X_successor,
-  const double stabilization_alpha,
-  const double stabilization_beta,
+  bool enable_stabilization,
+  const double stabilization_param,
   const char *constraint_name) {
   assert (bound == false);
 
@@ -183,8 +193,18 @@ unsigned int ConstraintSet::AddCustomConstraint(
       X_p.push_back (X_predecessor);
       X_s.push_back (X_successor);
       constraintAxis.push_back (axis);
+
+      // Set up constraint stabilization
+      double baumgarte_coefficient = 0.0;
+      if (enable_stabilization) {
+        if (stabilization_param == 0.0) {
+          std::cerr << "Error: Baumgarte stabilization is enabled but the stabilization parameter is 0.0" << std::endl;
+          abort();
+        }
+        baumgarte_coefficient = 1.0 / stabilization_param;
+      }
       baumgarteParameters.push_back(
-          Vector2d(stabilization_alpha, stabilization_beta));
+          Vector2d(baumgarte_coefficient, baumgarte_coefficient));
 
       // These variables will not be used in CustomConstraints but are kept
       // so that the indexing across all of the ConstraintSet variables
