@@ -262,6 +262,11 @@ bool LuaModelReadFromFile (
   Model* model,
   bool verbose = false);
 
+/** \brief Reads a model file and returns the names of all constraint sets.
+ */
+RBDL_DLLAPI
+std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename);
+
 /** \brief Reads a model and constraint sets from a Lua file.
  *
  * \param filename the name of the Lua file.

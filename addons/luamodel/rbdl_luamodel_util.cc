@@ -17,9 +17,11 @@ void usage (const char* argv_0) {
   cerr << "  -m | --model-hierarchy    print the hierarchy of the model" << endl;
   cerr << "  -o | --body-origins       print the origins of all bodies that have names" << endl;
   cerr << "  -c | --center_of_mass     print center of mass for bodies and full model" << endl;
+  cerr << "  -s | --constraint_sets    print all constraint sets defined in the model file" << endl;
   cerr << "  -h | --help               print this help" << endl;
   exit (1);
 }
+
 
 int main (int argc, char *argv[]) {
   if (argc < 2) {
@@ -32,6 +34,7 @@ int main (int argc, char *argv[]) {
   bool model_hierarchy = false;
   bool body_origins = false;
   bool center_of_mass = false;
+  bool constraint_sets = false;
 
   string filename = argv[1];
 
@@ -46,6 +49,8 @@ int main (int argc, char *argv[]) {
       body_origins = true;
     else if (string(argv[i]) == "-c" || string (argv[i]) == "--center-of-mass")
       center_of_mass = true;
+    else if (string(argv[i]) == "-s" || string (argv[i]) == "--constraint-sets")
+      constraint_sets = true;
     else if (string(argv[i]) == "-h" || string (argv[i]) == "--help")
       usage(argv[0]);
     else
@@ -53,8 +58,26 @@ int main (int argc, char *argv[]) {
   }
 
   RigidBodyDynamics::Model model;
+  bool result;
 
-  if (!RigidBodyDynamics::Addons::LuaModelReadFromFile(filename.c_str(), &model, verbose)) {
+  if (constraint_sets) {
+    std::vector<std::string> constraint_set_names = 
+      RigidBodyDynamics::Addons::LuaModelGetConstraintSetNames(filename.c_str());
+    std::vector<RigidBodyDynamics::ConstraintSet> constraint_sets(
+        constraint_set_names.size(), RigidBodyDynamics::ConstraintSet());
+    result = RigidBodyDynamics::Addons::LuaModelReadFromFileWithConstraints(
+        filename.c_str(),
+        &model,
+        constraint_sets,
+        constraint_set_names,
+        verbose
+        );
+  } else {
+    result = RigidBodyDynamics::Addons::LuaModelReadFromFile(
+        filename.c_str(), &model, verbose);
+  }
+
+  if (!result) {
     cerr << "Loading of lua model failed!" << endl;
     return -1;
   }
