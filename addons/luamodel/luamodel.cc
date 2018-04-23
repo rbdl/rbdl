@@ -397,6 +397,9 @@ bool LuaModelReadConstraintsFromTable (
   bool verbose
 ) { 
   for(size_t i = 0; i < constraint_set_names.size(); ++i) {
+    if (verbose) {
+      std::cout << "==== Constraint Set: " << constraint_set_names[i] << std::endl;
+    }
 
     if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
       .exists()) {
@@ -411,6 +414,10 @@ bool LuaModelReadConstraintsFromTable (
       .length();
 
     for(size_t ci = 0; ci < num_constraints; ++ci) {
+      if (verbose) {
+        std::cout << "== Constraint " << ci << "/" << num_constraints << " ==" << std::endl;
+      }
+
       if(!model_table["constraint_sets"]
         [constraint_set_names[i].c_str()][ci + 1]["constraint_type"].exists()) {
         cerr << "constraint_type not specified." << endl;
@@ -420,6 +427,9 @@ bool LuaModelReadConstraintsFromTable (
       string constraintType = model_table["constraint_sets"]
         [constraint_set_names[i].c_str()][ci + 1]["constraint_type"]
         .getDefault<string>("");
+      std::string constraint_name = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+        ["name"].getDefault<string>("");
+
       if(constraintType == "contact") {
         if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
           [ci + 1]["body"].exists()) {
@@ -440,9 +450,8 @@ bool LuaModelReadConstraintsFromTable (
           , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["normal_acceleration"].getDefault<double>(0.));
         if(verbose) {
-          cout << "==== Added Constraint from '" << constraint_set_names[i] 
-            << "' ====" << endl;
           cout << "  type = contact" << endl;
+          cout << "  name = " << constraint_name << std::endl;
           cout << "  body = " 
             << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["body"].getDefault<string>("") << endl;
@@ -454,9 +463,6 @@ bool LuaModelReadConstraintsFromTable (
             << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["normal"].getDefault<Vector3d>(Vector3d::Zero()).transpose() 
             << endl;
-          cout << "  constraint name = " 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["name"].getDefault<string>("") << endl;
           cout << "  normal acceleration = "
             << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["normal_acceleration"].getDefault<double>(0.) << endl;
@@ -475,6 +481,7 @@ bool LuaModelReadConstraintsFromTable (
           assert(false);
           abort();
         }
+
         // Add the loop constraint as a non-stablized constraint and compute
         // and set the actual stabilization cofficients for the Baumgarte
         // stabilization afterwards if enabled.
@@ -493,8 +500,7 @@ bool LuaModelReadConstraintsFromTable (
             ["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
           , false
           , 0.0
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["name"].getDefault<string>("").c_str());
+          , constraint_name.c_str());
 
         bool enable_stabilization = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["enable_stabilization"].getDefault<bool>(false);
@@ -502,15 +508,19 @@ bool LuaModelReadConstraintsFromTable (
         if (enable_stabilization) {
           stabilization_parameter = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["stabilization_parameter"].getDefault<double>(0.1);
+          if (stabilization_parameter <= 0.0) {
+            std::cerr << "Invalid stabilization parameter: " << stabilization_parameter
+              << " must be > 0.0" << std::endl;
+            abort();
+          }
           double stabilization_coefficient = 1.0 / stabilization_parameter;
           constraint_sets[i].baumgarteParameters[i] = Vector2d(
               stabilization_coefficient, stabilization_coefficient);
         }
 
         if(verbose) {
-          cout << "==== Added Constraint from '" << constraint_set_names[i] 
-            << "' ====" << endl;
           cout << "  type = loop" << endl;
+          cout << "  name = " << constraint_name << std::endl;
           cout << "  predecessor body = " 
             << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["predecessor_body"].getDefault<string>("") << endl;

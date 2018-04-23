@@ -229,10 +229,12 @@ namespace Addons {
 *     The 6d spatial axis along which the constraint acts, in coordinates
 *     relative to the predecessor constrained frame. Defaults to (0,0,0,0,0,0).
 *
+* \par enable_stabilization(optional, type: bool, default: false)
+*     Whether Baumgarte stabilization should be enabled or not.
+*
 * \par stabilization_parameter(optional, type: number)
 *     The stabilization parameter T_stab for the Baumgarte stabilization (see
 *     RBDL documentation on how this parameter is used). Defaults to 0.1.
-*     When 0.0 this has the effect of disabling constraint stabilization.
 *
 * \section luamodel_example Example
 * Here is an example of a model:
