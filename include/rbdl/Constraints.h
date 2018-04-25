@@ -13,7 +13,7 @@
 
 namespace RigidBodyDynamics {
 
-/** \page contacts_page External Constraints
+/** \page constraints_page Constraints
  *
  * All functions related to contacts are specified in the \ref
  * constraints_group "Constraints Module".
