@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -19,7 +19,6 @@ class LoggingGuard;
  *
  * \warning Logging has a huge impact on performance.
  */
-
 #ifndef RBDL_ENABLE_LOGGING
 #define LOG if (false) LogOutput 
 #define SUPPRESS_LOGGING ;

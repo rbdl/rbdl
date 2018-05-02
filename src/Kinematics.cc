@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -29,20 +29,10 @@ RBDL_DLLAPI void UpdateKinematics(
 
   unsigned int i;
 
-  SpatialVector spatial_gravity (0.,
-      0.,
-      0.,
-      model.gravity[0],
-      model.gravity[1],
-      model.gravity[2]);
-
   model.a[0].setZero();
-  //model.a[0] = spatial_gravity;
 
   for (i = 1; i < model.mBodies.size(); i++) {
     unsigned int q_index = model.mJoints[i].q_index;
-
-    Joint joint = model.mJoints[i];
     unsigned int lambda = model.lambda[i];
 
     jcalc (model, i, Q, QDot);
@@ -129,6 +119,7 @@ RBDL_DLLAPI void UpdateKinematicsCustom(
     }
   }
 
+  // FIXME?: Changing QDot can alter body accelerations via c[] - update to QDot but not QDDot can result in incorrect a[]
   if (QDDot) {
     for (i = 1; i < model.mBodies.size(); i++) {
       unsigned int q_index = model.mJoints[i].q_index;
@@ -450,7 +441,7 @@ RBDL_DLLAPI Vector3d CalcPointVelocity (
     const Vector3d &point_position,
     bool update_kinematics) {
   LOG << "-------- " << __func__ << " --------" << std::endl;
-  assert (model.IsBodyId(body_id));
+  assert (model.IsBodyId(body_id) || body_id == 0);
   assert (model.q_size == Q.size());
   assert (model.qdot_size == QDot.size());
 
@@ -494,7 +485,7 @@ RBDL_DLLAPI Math::SpatialVector CalcPointVelocity6D(
     const Math::Vector3d &point_position,
     bool update_kinematics) {
   LOG << "-------- " << __func__ << " --------" << std::endl;
-  assert (model.IsBodyId(body_id));
+  assert (model.IsBodyId(body_id) || body_id == 0);
   assert (model.q_size == Q.size());
   assert (model.qdot_size == QDot.size());
 

@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -32,24 +32,6 @@ RBDL_DLLAPI Matrix3d Matrix3dZero (
     );
 
 RBDL_DLLAPI SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
-
-RBDL_DLLAPI SpatialMatrix SpatialMatrixIdentity (
-    1., 0., 0., 0., 0., 0.,
-    0., 1., 0., 0., 0., 0.,
-    0., 0., 1., 0., 0., 0.,
-    0., 0., 0., 1., 0., 0.,
-    0., 0., 0., 0., 1., 0.,
-    0., 0., 0., 0., 0., 1.
-    );
-
-RBDL_DLLAPI SpatialMatrix SpatialMatrixZero ( 
-    0., 0., 0., 0., 0., 0.,
-    0., 0., 0., 0., 0., 0.,
-    0., 0., 0., 0., 0., 0.,
-    0., 0., 0., 0., 0., 0.,
-    0., 0., 0., 0., 0., 0.,
-    0., 0., 0., 0., 0., 0.
-    );
 
 RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
   x = VectorNd::Zero(x.size());

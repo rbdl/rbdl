@@ -47,7 +47,7 @@ ext_modules = [
 setup(
     name='rbdl',
     author='Martin Felis',
-    author_email='martin.felis@iwr.uni-heidelberg.de',
+    author_email='martin@fysx.org',
     description='Python wrapper for RBDL - the Rigid Body Dynamics Library',
     license='zlib',
     version='${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}',

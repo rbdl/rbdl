@@ -1,3 +1,21 @@
+2.5.0 -> 2.6.0
+
+- Added support for closed-loop models by replacing Contacts API by a new
+  Constraints API. Loop constraints can be stabilized using Baumgarte
+  stabilization. Special thanks to Davide Corradi for this contribution!
+- New constraint type CustomConstraint: a versatile interface to define
+  more general types of constraints (e.g. time dependent), contributed by
+  Matthew J. Millard.
+- New joint type JointTypeHelical that can be used for screwing motions
+  (translations and simultaneous rotations), contributed by Stuart Anderson.
+- Added support to specify external forces on bodies on constrained forward
+  dynamics and NonlinearEffects() (contributed by Matthew J. Millard)
+- Changed Quaternion multiplication behaviour for a more standard
+  convention: multiplying q1 (1,0,0,0) with q2 (0,1,0,0) results now in
+  (0,0,1,0) instead of the previous (0,0,-1,0).
+- Removed Model::SetFloatingBaseBody(). Use JointTypeFloatingBase instead.
+- LuaModel: extended specification to support ConstraintSets.
+
 2.4.1 -> 2.5.0 
 - Added an experimental Cython based Python wrapper of RBDL. The API is
   very close to the C++ API. For a brief glimpse of the API see the file

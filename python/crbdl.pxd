@@ -154,6 +154,16 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 const Body &body,
                 string body_name
                 )
+        unsigned int GetParentBodyId(
+                unsigned int body_id)
+        unsigned int GetBodyId(
+                const char *body_name)
+        string GetBodyName (
+                unsigned int body_id)
+        bool IsBodyId (
+                unsigned int body_id)
+        bool IsFixedBodyId (
+                unsigned int body_id)
         Quaternion GetQuaternion (
                 unsigned int body_id,
                 const VectorNd &q)
@@ -178,8 +188,8 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
         vector[Joint] mJoints
         vector[SpatialVector] S
         vector[SpatialTransform] X_J
-        vector[SpatialVector] v_J 
-        vector[SpatialVector] c_J 
+        vector[SpatialVector] v_J
+        vector[SpatialVector] c_J
 
         vector[unsigned int] mJointUpdateOrder
 
@@ -195,14 +205,14 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
 
         vector[SpatialVector] c
         vector[SpatialMatrix] IA
-        vector[SpatialVector] pA 
-        vector[SpatialVector] U 
+        vector[SpatialVector] pA
+        vector[SpatialVector] U
         VectorNd d
         VectorNd u
-        vector[SpatialVector] f 
+        vector[SpatialVector] f
         vector[SpatialRigidBodyInertia] I
         vector[SpatialRigidBodyInertia] Ic
-        vector[SpatialVector] hc 
+        vector[SpatialVector] hc
 
         vector[SpatialTransform] X_lambda
         vector[SpatialTransform] X_base
@@ -228,6 +238,11 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const VectorNd &q,
             const unsigned int body_id,
             const Vector3d &body_point_coordinates,
+            bool update_kinematics)
+
+    cdef Matrix3d CalcBodyWorldOrientation (Model& model,
+            const VectorNd &q,
+            const unsigned int body_id,
             bool update_kinematics)
 
     cdef Vector3d CalcPointVelocity (Model& model,
@@ -260,25 +275,51 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
             const Vector3d &body_point_coordinates,
             bool update_kinematics)
 
+    cdef Vector3d CalcAngularVelocityfromMatrix (
+        const Matrix3d &RotMat
+    )
+
 cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
     cdef void CalcCenterOfMass (Model& model,
             const VectorNd &q,
             const VectorNd &qdot,
+            const VectorNd *qdot,
             double &mass,
             Vector3d &com,
             Vector3d *com_velocity,
+            Vector3d *com_acceleration,
             Vector3d *angular_momentum,
+            Vector3d *change_of_angular_momentum,
             bool update_kinematics)
 
-cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
+    cdef void CalcZeroMomentPoint (Model& model,
+            const VectorNd &q,
+            const VectorNd &qdot,
+            const VectorNd &qddot,
+            Vector3d* zmp,
+            const Vector3d &normal,
+            const Vector3d &point,
+            bool update_kinematics)
+
+cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
     cdef cppclass ConstraintSet:
         ConstraintSet()
-        unsigned int AddConstraint (
+        unsigned int AddContactConstraint (
                 unsigned int body_id,
                 const Vector3d &body_point,
                 const Vector3d &world_normal,
                 const char* constraint_name,
                 double normal_acceleration)
+
+        unsigned int AddLoopConstraint (
+                unsigned int id_predecessor, 
+                unsigned int id_successor,
+                const SpatialTransform &X_predecessor,
+                const SpatialTransform &X_successor,
+                const SpatialVector &axis,
+                bool enable_stabilization,
+                double stabilization_param,
+                const char *constraint_name)
 
         ConstraintSet Copy()
         # void SetSolver (Math::LinearSolver solver)
@@ -303,7 +344,7 @@ cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
         VectorNd C
         VectorNd gamma
         VectorNd G
-        
+
         MatrixNd A
         VectorNd b
         VectorNd x
@@ -329,7 +370,7 @@ cdef extern from "<rbdl/Contacts.h>" namespace "RigidBodyDynamics":
 
         vector[SpatialMatrix] d_IA
         vector[SpatialVector] d_U
-        
+
         VectorNd d_d
         vector[Vector3d] d_multdof3_u
 
@@ -383,11 +424,20 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             double* tau_ptr,
             const double* qddot_ptr,
             vector[SpatialVector] *f_ext
-            ) 
+            )
+
+    cdef void ForwardDynamicsConstraintsDirectPtr (
+            Model &model,
+            const double* q_ptr,
+            const double* qdot_ptr,
+            const double* tau_ptr,
+            ConstraintSet &CS,
+            double* qddot_ptr
+            )
 
 cdef extern from "rbdl_loadmodel.cc":
     cdef bool rbdl_loadmodel (
-            const char* filename, 
-            Model* model, 
+            const char* filename,
+            Model* model,
             bool floating_base,
             bool verbose)

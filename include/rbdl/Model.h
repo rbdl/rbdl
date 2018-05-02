@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -25,9 +25,9 @@
 // the following macro.
 
 #ifdef EIGEN_CORE_H
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint);
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body);
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody);
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody)
 #endif
 
 /** \brief Namespace for all structures of the RigidBodyDynamics library
@@ -69,7 +69,7 @@ namespace RigidBodyDynamics {
  * \link RigidBodyDynamics::Body Bodies \endlink are created by calling one
  * of its constructors. Usually they are created by specifying the mass,
  * center of mass and the inertia at the center of mass. 
- * \link RigidJointDynamics::Joint Joints \endlink are similarly created and is
+ * \link RigidBodyDynamics::Joint Joints \endlink are similarly created and is
  * described in detail in \ref joint_description.
  *
  * Adding bodies to the model is done by specifying the
@@ -80,20 +80,20 @@ namespace RigidBodyDynamics {
  * RigidBodyDynamics::Model::AppendBody().
  *
  * To create a model with a floating base (a.k.a a model with a free-flyer
- * joint) it is recommended to use \link
- * RigidBodyDynamics::Model::SetFloatingBaseBody
- * Model::SetFloatingBaseBody(...)\endlink.
+ * joint) it is recommended to use a joint of type JointTypeFloatingBase as
+ * the first joint.
  *
  * Once this is done, the model structure can be used with the functions of \ref
- * kinematics_group, \ref dynamics_group, \ref contacts_page, to perform
+ * kinematics_group, \ref dynamics_group, \ref constraints_group, to perform
  * computations.
  *
  * A simple example can be found \ref SimpleExample "here".
  *
  * \section modeling_lua Using LuaModels
  *
- * For this see the documentation of \ref luamodel_introduction and \link
- * RigidBodyDynamics::Addons::LuaModelReadFromFile \endlink.
+ * For this see the documentation of \ref luamodel_introduction,\link
+ * RigidBodyDynamics::Addons::LuaModelReadFromFile \endlink, and \link
+ * RigidBodyDynamics::Addons::LuaModelReadFromFileWithConstraints \endlink.
 
  * \section modeling_urdf Using URDF
  *
@@ -223,6 +223,7 @@ struct RBDL_DLLAPI Model {
   std::vector<Math::SpatialRigidBodyInertia> I;
   std::vector<Math::SpatialRigidBodyInertia> Ic;
   std::vector<Math::SpatialVector> hc;
+  std::vector<Math::SpatialVector> hdotc;
 
   ////////////////////////////////////
   // Bodies
@@ -331,32 +332,6 @@ struct RBDL_DLLAPI Model {
       std::string body_name = "" 
       );
 
-  /** \brief Specifies the dynamical parameters of the first body and
-   *  \brief assigns it a 6 DoF joint.
-   *
-   * The 6 DoF joint is simulated by adding 5 massless bodies at the base
-   * which are connected with joints. The body that is specified as a
-   * parameter of this function is then added by a 6th joint to the model.
-   *
-   * The floating base has the following order of degrees of freedom:
-   * 
-   * \li translation X
-   * \li translation Y
-   * \li translation Z
-   * \li rotation Z
-   * \li rotation Y
-   * \li rotation X
-   *
-   * To specify a different ordering, it is recommended to create a 6 DoF
-   * joint. See \link RigidBodyDynamics::Joint Joint\endlink for more
-   * information.
-   *
-   * \param body Properties of the floating base body.
-   *
-   *  \returns id of the body with 6 DoF
-   */
-  unsigned int SetFloatingBaseBody (const Body &body);
-
   /** \brief Returns the id of a body that was passed to AddBody()
    *
    * Bodies can be given a human readable name. This function allows to
@@ -365,8 +340,8 @@ struct RBDL_DLLAPI Model {
    * \note Instead of querying this function repeatedly, it might be
    * advisable to query it once and reuse the returned id.
    *
-   * \returns the id of the body or \c std::numeric_limits<unsigned 
-   *          int>::max() if the id was not found.
+   * \returns the id of the body or \c std::numeric_limits\<unsigned 
+   *          int\>::max() if the id was not found.
    */
   unsigned int GetBodyId (const char *body_name) const {
     if (mBodyNameMap.count(body_name) == 0) {
@@ -454,8 +429,8 @@ struct RBDL_DLLAPI Model {
       return X_T[id];	
   }
 
-  /** Sets the joint frame transformtion, i.e. the second argument to Model
-    ::AddBody().
+  /** Sets the joint frame transformtion, i.e. the second argument to 
+  Model::AddBody().
     */
   void SetJointFrame (unsigned int id, 
       const Math::SpatialTransform &transform) {

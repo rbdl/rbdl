@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -36,10 +36,6 @@ enum RBDL_DLLAPI LinearSolver {
 extern RBDL_DLLAPI Vector3d Vector3dZero;
 extern RBDL_DLLAPI Matrix3d Matrix3dIdentity;
 extern RBDL_DLLAPI Matrix3d Matrix3dZero;
-
-extern RBDL_DLLAPI SpatialVector SpatialVectorZero;
-extern RBDL_DLLAPI SpatialMatrix SpatialMatrixIdentity;
-extern RBDL_DLLAPI SpatialMatrix SpatialMatrixZero;
 
 RBDL_DLLAPI inline VectorNd VectorFromPtr (unsigned int n, double *ptr) {
   // TODO: use memory mapping operators for Eigen
