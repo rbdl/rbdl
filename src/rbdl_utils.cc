@@ -164,7 +164,8 @@ RBDL_DLLAPI void CalcCenterOfMass (
   bool update_kinematics) {
   // If we want to compute com_acceleration or change of angular momentum
   // we must have qddot provided.
-  assert((qddot == NULL) || (com_acceleration == NULL && change_of_angular_momentum == NULL));
+  assert( (com_acceleration == NULL && change_of_angular_momentum == NULL) 
+      || (qddot != NULL) );
 
   if (update_kinematics)
     UpdateKinematicsCustom (model, &q, &qdot, qddot);
