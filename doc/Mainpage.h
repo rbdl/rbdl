@@ -42,7 +42,7 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
- * <li>02 April 2018: New release 2.6.0:
+ * <li>02 May 2018: New release 2.6.0:
  *   <ul>
  *     <li> Added support for closed-loop models by replacing Contacts API by a new
  *       Constraints API. Loop constraints can be stabilized using Baumgarte
