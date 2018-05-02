@@ -171,7 +171,7 @@
  * Here is the full license text:
  * \verbatim
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2014 Martin Felis <martin@fysx.org>
+Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
