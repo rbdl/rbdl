@@ -22,7 +22,7 @@ Algorithm".
 
 Recent Changes
 ==============
-  * 02 May 2018: Nev version 2.6.0:
+  * 02 May 2018: New version 2.6.0:
     * Added support for closed-loop models by replacing Contacts API by a new
       Constraints API. Loop constraints can be stabilized using Baumgarte
       stabilization. Special thanks to Davide Corradi for this contribution!
@@ -38,7 +38,7 @@ Recent Changes
       (0,0,1,0) instead of the previous (0,0,-1,0).
     * Removed Model::SetFloatingBaseBody(). Use JointTypeFloatingBase instead.
     * LuaModel: extended specification to support ConstraintSets.
-  * 28 April 2016: Nev version 2.5.0:
+  * 28 April 2016: New version 2.5.0:
     * Added an experimental Cython based Python wrapper of RBDL. The API is
       very close to the C++ API. For a brief glimpse of the API see the file
       python/test_wrapper.py.
