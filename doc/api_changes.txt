@@ -1,4 +1,4 @@
-2.5.0 -> 2.6.0-rc1
+2.5.0 -> 2.6.0
 
 - Added support for closed-loop models by replacing Contacts API by a new
   Constraints API. Loop constraints can be stabilized using Baumgarte
