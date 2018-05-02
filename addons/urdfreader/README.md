@@ -1,5 +1,5 @@
 urdfreader - load models from (URDF Unified Robot Description Format) files
-Copyright (c) 2012 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2012 Martin Felis <martin@fysx.org>
 
 Requirements
 ============
@@ -28,7 +28,7 @@ Full license text:
 
 -------
 urdfreader - load models from URDF (Unified Robot Description Format) files
-Copyright (c) 2012-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2012-2015 Martin Felis <martin@fysx.org>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

@@ -22,7 +22,7 @@ cdef class Vector3d:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.Vector3d()
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (3):
                     self.thisptr.data()[i] = pyvalues[i]
         else:
@@ -75,7 +75,7 @@ cdef class Matrix3d:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.Matrix3d()
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (3):
                     for j in range (3):
                         (&(self.thisptr.coeff(i,j)))[0] = pyvalues[i,j]
@@ -126,7 +126,7 @@ cdef class VectorNd:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.VectorNd(ndim)
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (ndim):
                     self.thisptr.data()[i] = pyvalues[i]
         else:
@@ -182,10 +182,10 @@ cdef class Quaternion:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.Quaternion()
 
-            if pyvalues != None:
+            if pyvalues is not None:
                 for i in range (4):
                     self.thisptr.data()[i] = pyvalues[i]
-            elif pymatvalues != None:
+            elif pymatvalues is not None:
                 mat = Matrix3d()
                 for i in range (3):
                     for j in range (3):
@@ -257,10 +257,14 @@ cdef class SpatialVector:
     cdef crbdl.SpatialVector *thisptr
     cdef free_on_dealloc
 
-    def __cinit__(self, uintptr_t address=0):
+    def __cinit__(self, uintptr_t address=0, pyvalues=None):
         if address == 0:
             self.free_on_dealloc = True
             self.thisptr = new crbdl.SpatialVector()
+
+            if pyvalues is not None:
+                for i in range (6):
+                    self.thisptr.data()[i] = pyvalues[i]
         else:
             self.free_on_dealloc = False
             self.thisptr = <crbdl.SpatialVector*>address
@@ -298,6 +302,10 @@ cdef class SpatialVector:
     @classmethod
     def fromPointer(cls, uintptr_t address):
         return SpatialVector (address)
+
+    @classmethod
+    def fromPythonArray (cls, python_values):
+        return SpatialVector (0, python_values)
 
 cdef class SpatialMatrix:
     cdef crbdl.SpatialMatrix *thisptr
@@ -362,6 +370,14 @@ cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx):
 
     return result
 
+cdef np.ndarray Matrix3dToNumpy (crbdl.Matrix3d cM):
+    result = np.ndarray ([3, 3])
+    for i in range (3):
+        for j in range (3):
+            result[i,j] = cM.coeff(i,j)
+
+    return result
+
 # VectorNd
 cdef crbdl.VectorNd NumpyToVectorNd (np.ndarray[double, ndim=1, mode="c"] x):
     cdef crbdl.VectorNd cx = crbdl.VectorNd(x.shape[0])
@@ -384,7 +400,7 @@ cdef crbdl.MatrixNd NumpyToMatrixNd (np.ndarray[double, ndim=2, mode="c"] M):
         for j in range (M.shape[1]):
             (&(cM.coeff(i,j)))[0] = M[i,j]
 
-    return cM 
+    return cM
 
 cdef np.ndarray MatrixNdToNumpy (crbdl.MatrixNd cM):
     result = np.ndarray ([cM.rows(), cM.cols()])
@@ -433,16 +449,16 @@ cdef class SpatialTransform:
          else:
             self.free_on_dealloc = False
             self.thisptr = <crbdl.SpatialTransform*>address
- 
+
     def __dealloc__(self):
         if self.free_on_dealloc:
             del self.thisptr
 
     def __repr__(self):
         return "SpatialTransform E = [ [{:3.4f}, {:3.4f}, {:3.4f}], [{:3.4f}, {:3.4f}, {:3.4f}], [{:3.4f}, {:3.4f}, {:3.4f}] ], r = [{:3.4f}, {:3.4f}, {:3.4f}]".format (
-                self.thisptr.E.coeff(0,0), self.thisptr.E.coeff(0,1), self.thisptr.E.coeff(0,2), 
-                self.thisptr.E.coeff(1,0), self.thisptr.E.coeff(1,1), self.thisptr.E.coeff(1,2), 
-                self.thisptr.E.coeff(2,0), self.thisptr.E.coeff(2,1), self.thisptr.E.coeff(2,2), 
+                self.thisptr.E.coeff(0,0), self.thisptr.E.coeff(0,1), self.thisptr.E.coeff(0,2),
+                self.thisptr.E.coeff(1,0), self.thisptr.E.coeff(1,1), self.thisptr.E.coeff(1,2),
+                self.thisptr.E.coeff(2,0), self.thisptr.E.coeff(2,1), self.thisptr.E.coeff(2,2),
                 self.thisptr.r[0], self.thisptr.r[1], self.thisptr.r[2])
 
     property E:
@@ -594,7 +610,7 @@ cdef class Body:
 
         if address == 0:
             self.free_on_dealloc = True
-            if (mass != None) and (com != None) and (inertia != None):
+            if (mass is not None) and (com is not None) and (inertia is not None):
                 c_mass = mass
 
                 for i in range (3):
@@ -624,7 +640,7 @@ cdef class Body:
         return Body (address=address)
 
     @classmethod
-    def fromMassComInertia(cls, double mass, 
+    def fromMassComInertia(cls, double mass,
             np.ndarray[double, ndim=1] com,
             np.ndarray[double, ndim=2] inertia):
 
@@ -743,6 +759,7 @@ cdef enum JointType:
     JointTypeTranslationXYZ
     JointTypeFloatingBase
     JointTypeFixed
+    JointTypeHelical
     JointType1DoF
     JointType2DoF
     JointType3DoF
@@ -769,6 +786,7 @@ cdef class Joint:
             JointTypeTranslationXYZ: "JointTypeTranslationXYZ",
             JointTypeFloatingBase: "JointTypeFloatingBase",
             JointTypeFixed: "JointTypeFixed",
+            JointTypeHelical: "JointTypeHelical",
             JointType1DoF: "JointType1DoF",
             JointType2DoF: "JointType2DoF",
             JointType3DoF: "JointType3DoF",
@@ -875,34 +893,34 @@ cdef class Model:
     def __repr__(self):
         return "rbdl.Model (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
 
-    def AddBody (self, 
+    def AddBody (self,
             parent_id,
             SpatialTransform joint_frame not None,
             Joint joint not None,
             Body body not None,
-            string body_name = ""):
+            string body_name = b""):
         return self.thisptr.AddBody (
                 parent_id,
-                joint_frame.thisptr[0], 
+                joint_frame.thisptr[0],
                 joint.thisptr[0],
                 body.thisptr[0],
                 body_name
                 )
 
-    def AppendBody (self, 
+    def AppendBody (self,
             SpatialTransform joint_frame not None,
             Joint joint not None,
             Body body not None,
-            string body_name = ""):
+            string body_name = b""):
         return self.thisptr.AppendBody (
-                joint_frame.thisptr[0], 
+                joint_frame.thisptr[0],
                 joint.thisptr[0],
                 body.thisptr[0],
                 body_name
                 )
 
     def SetQuaternion (self,
-            int body_id,
+            unsigned int body_id,
             np.ndarray[double, ndim=1, mode="c"] quat,
             np.ndarray[double, ndim=1, mode="c"] q):
         quat_wrap = Quaternion.fromPythonArray (quat)
@@ -914,12 +932,27 @@ cdef class Model:
             q[i] = q_wrap[i]
 
     def GetQuaternion (self,
-            int body_id,
+            unsigned int body_id,
             np.ndarray[double, ndim=1, mode="c"] q):
         return QuaternionToNumpy (self.thisptr.GetQuaternion(body_id, NumpyToVectorNd (q)))
 
     def GetBody (self, index):
-        return Body (<uintptr_t> &(self.thisptr.mBodies[index]))
+        return Body (address=<uintptr_t> &(self.thisptr.mBodies[index]))
+
+    def GetParentBodyId (self, index):
+        return self.thisptr.GetParentBodyId(index)
+
+    def GetBodyId (self, name):
+        return self.thisptr.GetBodyId(name)
+
+    def GetBodyName (self, index):
+        return self.thisptr.GetBodyName(index)
+
+    def IsBodyId (self, index):
+        return self.thisptr.IsBodyId(index)
+
+    def IsFixedBodyId (self, index):
+        return self.thisptr.IsFixedBodyId(index)
 
     property dof_count:
         def __get__ (self):
@@ -939,30 +972,30 @@ cdef class Model:
 
     property gravity:
         def __get__ (self):
-            return np.ndarray ([
+            return np.array ([
                 self.thisptr.gravity[0],
                 self.thisptr.gravity[1],
-                self.thisptr.gravity[2],
+                self.thisptr.gravity[2]
                 ]
                 )
         def __set__ (self, values):
             for i in range (0,3):
                 self.thisptr.gravity[i] = values[i]
 
-    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=v, PARENT=Model)% 
-    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=a, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=v, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=a, PARENT=Model)%
 
-    %VectorWrapperAddProperty (TYPE=Joint, MEMBER=mJoints, PARENT=Model)% 
-    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=S, PARENT=Model)% 
-    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_J, PARENT=Model)% 
-    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=v_J, PARENT=Model)% 
-    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=c_J, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=Joint, MEMBER=mJoints, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=S, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_J, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=v_J, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=c_J, PARENT=Model)%
 
     property mJointUpdateOrder:
         def __get__ (self):
             return self.thisptr.mJointUpdateOrder
 
-    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_T, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_T, PARENT=Model)%
 
     property mFixedJointCount:
         def __get__ (self):
@@ -992,8 +1025,8 @@ cdef class Model:
     %VectorWrapperAddProperty (TYPE=SpatialRigidBodyInertia, MEMBER=Ic, PARENT=Model)%
     %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=hc, PARENT=Model)%
 
-    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_lambda, PARENT=Model)% 
-    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_base, PARENT=Model)% 
+    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_lambda, PARENT=Model)%
+    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_base, PARENT=Model)%
 
     %VectorWrapperAddProperty (TYPE=FixedBody, MEMBER=mFixedBodies, PARENT=Model)%
 
@@ -1027,7 +1060,7 @@ cdef class ConstraintSet:
     def __repr__(self):
         return "rbdl.ConstraintSet (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
 
-    def AddConstraint (self, 
+    def AddContactConstraint (self,
             body_id not None,
             body_point not None,
             world_normal not None,
@@ -1035,18 +1068,50 @@ cdef class ConstraintSet:
             normal_acceleration = 0.):
         cdef crbdl.Vector3d c_body_point
         cdef crbdl.Vector3d c_world_normal
+        cdef char* constraint_name_ptr
 
         for i in range (3):
             c_body_point[i] = body_point[i]
             c_world_normal[i] = world_normal[i]
 
-        return self.thisptr.AddConstraint (
+        if constraint_name is None:
+            constraint_name_ptr = NULL
+        else:
+            constraint_name_ptr = constraint_name
+
+        return self.thisptr.AddContactConstraint (
                 body_id,
                 c_body_point,
                 c_world_normal,
-                constraint_name,
+                constraint_name_ptr,
                 normal_acceleration
                 )
+
+    def AddLoopConstraint (self,
+            id_predecessor not None,
+            id_successor not None,
+            SpatialTransform X_predecessor not None,
+            SpatialTransform X_successor not None,
+            SpatialVector axis not None,
+            enable_stabilization = False,
+            stabilization_param = 0.1,
+            constraint_name = None):
+        cdef char* constraint_name_ptr
+
+        if constraint_name is None:
+            constraint_name_ptr = NULL
+        else:
+            constraint_name_ptr = constraint_name
+
+        return self.thisptr.AddLoopConstraint (
+            id_predecessor,
+            id_successor,
+            X_predecessor.thisptr[0],
+            X_successor.thisptr[0],
+            axis.thisptr[0],
+            enable_stabilization,
+            stabilization_param,
+            constraint_name_ptr)
 
     def Bind (self, model):
         return self.thisptr.Bind ((<Model>model).thisptr[0])
@@ -1066,6 +1131,10 @@ cdef class ConstraintSet:
     %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=point, PARENT=ConstraintSet)%
     %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=normal, PARENT=ConstraintSet)%
 
+    property force:
+        def __get__ (self):
+            return VectorNdToNumpy(self.thisptr.force)
+
 #    property acceleration:
 #        def __get__(self):
 #            return VectorNd.fromPointer (<uintptr_t> &(self.thisptr.acceleration)).toNumpy()
@@ -1079,9 +1148,22 @@ cdef class ConstraintSet:
 #
 ##############################
 
+def UpdateKinematics(
+        Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot
+):
+    crbdl.UpdateKinematics(
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            NumpyToVectorNd (qdot),
+            NumpyToVectorNd (qddot)
+    )
+
 def CalcBodyToBaseCoordinates (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         update_kinematics=True):
     return Vector3dToNumpy (crbdl.CalcBodyToBaseCoordinates (
@@ -1089,12 +1171,12 @@ def CalcBodyToBaseCoordinates (Model model,
             NumpyToVectorNd (q),
             body_id,
             NumpyToVector3d (body_point_position),
-            update_kinematics 
+            update_kinematics
             ))
 
 def CalcBaseToBodyCoordinates (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         update_kinematics=True):
     return Vector3dToNumpy (crbdl.CalcBaseToBodyCoordinates (
@@ -1102,13 +1184,24 @@ def CalcBaseToBodyCoordinates (Model model,
             NumpyToVectorNd (q),
             body_id,
             NumpyToVector3d (body_point_position),
-            update_kinematics 
+            update_kinematics
+            ))
+
+def CalcBodyWorldOrientation (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        unsigned int body_id,
+        update_kinematics=True):
+    return Matrix3dToNumpy (crbdl.CalcBodyWorldOrientation (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            body_id,
+            update_kinematics
             ))
 
 def CalcPointVelocity (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         update_kinematics=True):
     return Vector3dToNumpy (crbdl.CalcPointVelocity (
@@ -1117,14 +1210,14 @@ def CalcPointVelocity (Model model,
             NumpyToVectorNd (qdot),
             body_id,
             NumpyToVector3d (body_point_position),
-            update_kinematics 
+            update_kinematics
             ))
 
 def CalcPointAcceleration (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
         np.ndarray[double, ndim=1, mode="c"] qddot,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         update_kinematics=True):
     return Vector3dToNumpy (crbdl.CalcPointAcceleration (
@@ -1134,13 +1227,13 @@ def CalcPointAcceleration (Model model,
             NumpyToVectorNd (qddot),
             body_id,
             NumpyToVector3d (body_point_position),
-            update_kinematics 
+            update_kinematics
             ))
 
 def CalcPointVelocity6D (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         update_kinematics=True):
     return SpatialVectorToNumpy (crbdl.CalcPointVelocity6D (
@@ -1149,14 +1242,14 @@ def CalcPointVelocity6D (Model model,
             NumpyToVectorNd (qdot),
             body_id,
             NumpyToVector3d (body_point_position),
-            update_kinematics 
+            update_kinematics
             ))
 
 def CalcPointAcceleration6D (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
         np.ndarray[double, ndim=1, mode="c"] qddot,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         update_kinematics=True):
     return SpatialVectorToNumpy (crbdl.CalcPointAcceleration6D (
@@ -1166,12 +1259,12 @@ def CalcPointAcceleration6D (Model model,
             NumpyToVectorNd (qddot),
             body_id,
             NumpyToVector3d (body_point_position),
-            update_kinematics 
+            update_kinematics
             ))
 
 def CalcPointJacobian (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         np.ndarray[double, ndim=2, mode="c"] G,
         update_kinematics=True):
@@ -1181,12 +1274,12 @@ def CalcPointJacobian (Model model,
             body_id,
             NumpyToVector3d (body_point_position),
             <double*>G.data,
-            update_kinematics 
+            update_kinematics
             )
 
 def CalcPointJacobian6D (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         np.ndarray[double, ndim=2, mode="c"] G,
         update_kinematics=True):
@@ -1196,12 +1289,12 @@ def CalcPointJacobian6D (Model model,
             body_id,
             NumpyToVector3d (body_point_position),
             <double*>G.data,
-            update_kinematics 
+            update_kinematics
             )
 
 def CalcBodySpatialJacobian(Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
-        int body_id,
+        unsigned int body_id,
         np.ndarray[double, ndim=1, mode="c"] body_point_position,
         np.ndarray[double, ndim=2, mode="c"] G,
         update_kinematics=True):
@@ -1210,7 +1303,7 @@ def CalcBodySpatialJacobian(Model model,
             <double*>q.data,
             body_id,
             <double*>G.data,
-            update_kinematics 
+            update_kinematics
             )
 
 ##############################
@@ -1222,83 +1315,161 @@ def CalcBodySpatialJacobian(Model model,
 def CalcCenterOfMass (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot,
         np.ndarray[double, ndim=1, mode="c"] com,
         np.ndarray[double, ndim=1, mode="c"] com_velocity=None,
+        np.ndarray[double, ndim=1, mode="c"] com_acceleration=None,
         np.ndarray[double, ndim=1, mode="c"] angular_momentum=None,
+        np.ndarray[double, ndim=1, mode="c"] change_of_angular_momentum=None,
         update_kinematics=True):
     cdef double cmass
     cdef crbdl.Vector3d c_com = crbdl.Vector3d()
     cdef crbdl.Vector3d* c_com_vel_ptr # = crbdl.Vector3d()
+    cdef crbdl.Vector3d* c_com_accel_ptr # = crbdl.Vector3d()
     cdef crbdl.Vector3d* c_ang_momentum_ptr # = crbdl.Vector3d()
+    cdef crbdl.Vector3d* c_change_of_ang_momentum_ptr # = crbdl.Vector3d()
 
     c_com_vel_ptr = <crbdl.Vector3d*> NULL
+    c_com_accel_ptr = <crbdl.Vector3d*> NULL
     c_ang_momentum_ptr = <crbdl.Vector3d*> NULL
+    c_change_of_ang_momentum_ptr = <crbdl.Vector3d*> NULL
 
-    if com_velocity != None:
+    if com_velocity is not None:
         c_com_vel_ptr = new crbdl.Vector3d()
 
-    if angular_momentum != None:
+    if com_acceleration is not None:
+        c_com_accel_ptr = new crbdl.Vector3d()
+
+    if angular_momentum is not None:
         c_ang_momentum_ptr = new crbdl.Vector3d()
+
+    if change_of_angular_momentum is not None:
+        c_change_of_ang_momentum_ptr = new crbdl.Vector3d()
+
+    cdef crbdl.VectorNd qddot_vectornd
+    if qddot is not None:
+        qddot_vectornd = NumpyToVectorNd(qddot) 
 
     cmass = 0.0
     crbdl.CalcCenterOfMass (
             model.thisptr[0],
             NumpyToVectorNd (q),
             NumpyToVectorNd (qdot),
+            <crbdl.VectorNd*> NULL if qddot is None else &qddot_vectornd,
             cmass,
             c_com,
             c_com_vel_ptr,
+            c_com_accel_ptr,
             c_ang_momentum_ptr,
+            c_change_of_ang_momentum_ptr,
             update_kinematics)
+
+    assert com is not None, "Parameter com for call to CalcCenterOfMass() is not provided (value is 'None')."
 
     com[0] = c_com[0]
     com[1] = c_com[1]
     com[2] = c_com[2]
 
-    if com_velocity != None:
+    if com_velocity is not None:
         com_velocity[0] = c_com_vel_ptr.data()[0]
         com_velocity[1] = c_com_vel_ptr.data()[1]
         com_velocity[2] = c_com_vel_ptr.data()[2]
         del c_com_vel_ptr
 
-    if angular_momentum != None:
+    if com_acceleration is not None:
+        com_acceleration[0] = c_com_accel_ptr.data()[0]
+        com_acceleration[1] = c_com_accel_ptr.data()[1]
+        com_acceleration[2] = c_com_accel_ptr.data()[2]
+        del c_com_accel_ptr
+
+    if angular_momentum is not None:
         angular_momentum[0] = c_ang_momentum_ptr.data()[0]
         angular_momentum[1] = c_ang_momentum_ptr.data()[1]
         angular_momentum[2] = c_ang_momentum_ptr.data()[2]
         del c_ang_momentum_ptr
 
-    return cmass 
+    if change_of_angular_momentum is not None:
+        change_of_angular_momentum[0] = c_change_of_ang_momentum_ptr.data()[0]
+        change_of_angular_momentum[1] = c_change_of_ang_momentum_ptr.data()[1]
+        change_of_angular_momentum[2] = c_change_of_ang_momentum_ptr.data()[2]
+        del c_change_of_ang_momentum_ptr
 
+    return cmass
+
+def CalcZeroMomentPoint (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot,
+        np.ndarray[double, ndim=1, mode="c"] zmp,
+        np.ndarray[double, ndim=1, mode="c"] normal=None,
+        np.ndarray[double, ndim=1, mode="c"] point=None,
+        update_kinematics=True):
+
+    cdef crbdl.Vector3d c_normal = crbdl.Vector3d()
+    cdef crbdl.Vector3d c_point = crbdl.Vector3d()
+
+    cdef crbdl.Vector3d* c_zmp_ptr# = crbdl.Vector3d()
+    c_zmp_ptr = new crbdl.Vector3d()
+
+    if normal is not None:
+        c_normal[0] = normal[0]
+        c_normal[1] = normal[1]
+        c_normal[2] = normal[2]
+    else:
+        c_normal[0] = 0
+        c_normal[1] = 0
+        c_normal[2] = 1
+
+    if point is not None:
+        c_point[0] = point[0]
+        c_point[1] = point[1]
+        c_point[2] = point[2]
+
+    crbdl.CalcZeroMomentPoint (
+            model.thisptr[0],
+            NumpyToVectorNd (q),
+            NumpyToVectorNd (qdot),
+            NumpyToVectorNd (qddot),
+            c_zmp_ptr,
+            c_normal,
+            c_point,
+            update_kinematics)
+
+    zmp[0] = c_zmp_ptr.data()[0]
+    zmp[1] = c_zmp_ptr.data()[1]
+    zmp[2] = c_zmp_ptr.data()[2]
+
+    return zmp
 ##############################
 #
 # Dynamics.h
 #
 ##############################
 
-def InverseDynamics (Model model, 
+def InverseDynamics (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
         np.ndarray[double, ndim=1, mode="c"] qddot,
         np.ndarray[double, ndim=1, mode="c"] tau):
-    crbdl.InverseDynamicsPtr (model.thisptr[0], 
-            <double*>q.data, 
-            <double*>qdot.data, 
-            <double*>qddot.data, 
+    crbdl.InverseDynamicsPtr (model.thisptr[0],
+            <double*>q.data,
+            <double*>qdot.data,
+            <double*>qddot.data,
             <double*>tau.data,
             NULL
             )
 
-def NonlinearEffects (Model model, 
+def NonlinearEffects (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
         np.ndarray[double, ndim=1, mode="c"] tau):
-    crbdl.NonlinearEffectsPtr (model.thisptr[0], 
-            <double*>q.data, 
-            <double*>qdot.data, 
+    crbdl.NonlinearEffectsPtr (model.thisptr[0],
+            <double*>q.data,
+            <double*>qdot.data,
             <double*>tau.data
             )
 
-def CompositeRigidBodyAlgorithm (Model model, 
+def CompositeRigidBodyAlgorithm (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=2, mode="c"] H,
         update_kinematics=True):
@@ -1307,18 +1478,45 @@ def CompositeRigidBodyAlgorithm (Model model,
             <double*>H.data,
             update_kinematics);
 
-def ForwardDynamics (Model model, 
+def ForwardDynamics (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
         np.ndarray[double, ndim=1, mode="c"] tau,
         np.ndarray[double, ndim=1, mode="c"] qddot):
-    crbdl.ForwardDynamicsPtr (model.thisptr[0], 
-            <double*>q.data, 
-            <double*>qdot.data, 
+    crbdl.ForwardDynamicsPtr (model.thisptr[0],
+            <double*>q.data,
+            <double*>qdot.data,
             <double*>tau.data,
-            <double*>qddot.data, 
+            <double*>qddot.data,
             NULL
             )
+##############################
+#
+# Constraints.h
+#
+##############################
+
+def ForwardDynamicsConstraintsDirect (
+        Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] tau,
+        ConstraintSet CS,
+        np.ndarray[double, ndim=1, mode="c"] qddot):
+    crbdl.ForwardDynamicsConstraintsDirectPtr (
+            model.thisptr[0],
+            <double*>q.data,
+            <double*>qdot.data,
+            <double*>tau.data,
+            CS.thisptr[0],
+            <double*>qddot.data
+            )
+
+##############################
+#
+# Utilities
+#
+##############################
 
 def loadModel (
         filename,

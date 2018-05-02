@@ -19,6 +19,7 @@
 #include <cmath>
 #include <assert.h>
 #include <algorithm>
+#include <string.h>
 
 #include "compileassert.h"
 #include "SimpleMathBlock.h"
@@ -78,6 +79,12 @@ class Matrix {
 			for (i = 0; i < nrows * ncols; i++)
 				mData[i] = matrix.mData[i];
 		}
+		Matrix(unsigned int _nrows, unsigned int _ncols, const value_type* values) {
+			assert(nrows == _nrows);
+			assert(ncols == _ncols);
+			memcpy (mData, values, sizeof(value_type) * nrows * ncols);
+		}
+
 		Matrix& operator=(const Matrix &matrix) {
 			if (this != &matrix) {
 				unsigned int i;
@@ -145,8 +152,29 @@ class Matrix {
 	 	~Matrix() {};
 
 		Matrix (
+				const val_type &v00, const val_type &v01
+				) {
+			COMPILE_ASSERT (nrows * ncols == 2);
+			assert (nrows == 2);
+			assert (ncols == 1);
+
+			mData[0] = v00;
+			mData[1] = v01;
+		}
+
+		void set(
+				const val_type &v00, const val_type &v01
+				) {
+			COMPILE_ASSERT (nrows * ncols == 2);
+
+			mData[0] = v00;
+			mData[1] = v01;
+		}
+
+		Matrix (
 				const val_type &v00, const val_type &v01, const val_type &v02
 				) {
+			COMPILE_ASSERT (nrows * ncols == 3);
 			assert (nrows == 3);
 			assert (ncols == 1);
 
@@ -520,6 +548,28 @@ class Matrix {
 			return result;
 		}
 
+		val_type trace() const {
+			COMPILE_ASSERT(nrows == ncols);
+			val_type result = 0.;
+
+			for (unsigned int i = 0; i < rows(); i++) {
+				result += operator()(i,i);
+			}
+
+			return result;
+		}
+
+		val_type mean() const {
+			COMPILE_ASSERT(nrows == 1 || ncols == 1);
+
+			val_type result = 0.;
+			for (unsigned int i = 0; i < rows() * cols(); i++) {
+				result += operator[](i);
+			}
+
+			return result / static_cast<val_type>(nrows * ncols);
+		}
+
 		static matrix_type Zero() {
 			matrix_type result;
 			result.setZero();
@@ -547,6 +597,17 @@ class Matrix {
 		static matrix_type Identity(int ignore_me, int ignore_me_too) {
 			matrix_type result;
 			result.identity();
+			return result;
+		}
+
+		static matrix_type Random (int rows = 1, int cols = 1) {
+			matrix_type result;
+			for (int i = 0; i < nrows; i++) {
+				for (int j = 0; j < ncols; j++) {
+					result(i,j) = (static_cast<value_type>(rand()) / static_cast<value_type>(RAND_MAX)) * 2.0 - 1.0;
+				}
+			}
+
 			return result;
 		}
 
@@ -606,6 +667,27 @@ class Matrix {
 			block (unsigned int row_start, unsigned int col_start) const {
 				return Block<matrix_type, val_type>(*this, row_start, col_start, block_row_count, block_col_count);
 			}
+
+		// row and col accessors
+		Block<matrix_type, val_type>
+		col(unsigned int index) const {
+			return Block<matrix_type, val_type>(*this, 0, index, rows(), 1);
+		}
+
+		Block<matrix_type, val_type>
+		col(unsigned int index) {
+			return Block<matrix_type, val_type>(*this, 0, index, rows(), 1);
+		}
+
+		Block<matrix_type, val_type>
+		row(unsigned int index) const {
+			return Block<matrix_type, val_type>(*this, index, 0, 1, cols());
+		}
+
+		Block<matrix_type, val_type>
+		row(unsigned int index) {
+			return Block<matrix_type, val_type>(*this, index, 0, 1, cols());
+		}
 
 		// Operators with scalars
 		void operator*=(const val_type &scalar) {
@@ -691,6 +773,28 @@ class Matrix {
 			
 			return result;
 		}
+
+		// Multiplication with a block
+		template <typename other_matrix_type>
+		Dynamic::Matrix<val_type> operator*(const Block<other_matrix_type, val_type> &block) {
+			assert (ncols == block.rows());
+
+			Dynamic::Matrix<val_type> result(nrows, block.cols());
+
+			result.setZero();
+
+			unsigned int i,j, k;
+			for (i = 0; i < nrows; i++) {
+				for (j = 0; j < block.cols(); j++) {
+					for (k = 0; k < block.rows(); k++) {
+						result(i,j) += mData[i * ncols + k] * static_cast<val_type>(block(k,j));
+					}
+				}
+			}
+
+			return result;
+		}
+
 
 		void operator*=(const Matrix &matrix) {
 			matrix_type temp (*this);

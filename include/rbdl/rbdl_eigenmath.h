@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -17,6 +17,43 @@
 #else
 #define RBDL_TEMPLATE_DLLAPI RBDL_DLLAPI
 #endif
+
+class RBDL_TEMPLATE_DLLAPI Vector2_t : public Eigen::Vector2d
+{
+  public:
+    typedef Eigen::Vector2d Base;
+
+    template<typename OtherDerived>
+      Vector2_t(const Eigen::MatrixBase<OtherDerived>& other)
+      : Eigen::Vector2d(other)
+      {}
+
+    template<typename OtherDerived>
+      Vector2_t& operator=(const Eigen::MatrixBase<OtherDerived>& other)
+      {
+        this->Base::operator=(other);
+        return *this;
+      }
+
+    EIGEN_STRONG_INLINE Vector2_t()
+    {}
+
+    EIGEN_STRONG_INLINE Vector2_t(
+        const double& v0, const double& v1
+        )
+    {
+      Base::_check_template_params();
+
+      (*this) << v0, v1;
+    }
+
+    void set(const double& v0, const double& v1)
+    {
+      Base::_check_template_params();
+
+      (*this) << v0, v1;
+    }
+};
 
 class RBDL_TEMPLATE_DLLAPI Vector3_t : public Eigen::Vector3d
 {

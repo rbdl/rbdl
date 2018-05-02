@@ -303,6 +303,28 @@ class Matrix {
 			return result;
 		}
 
+		val_type trace() const {
+			assert (rows() == cols());
+			val_type result = 0.;
+
+			for (unsigned int i = 0; i < rows(); i++) {
+				result += operator()(i,i);
+			}
+
+			return result;
+		}
+
+		val_type mean() const {
+			assert (rows() == 1 || cols() == 1);
+
+			val_type result = 0.;
+			for (unsigned int i = 0; i < rows() * cols(); i++) {
+				result += operator[](i);
+			}
+
+			return result / static_cast<val_type>(rows() * cols());
+		}
+
 		static matrix_type Zero() {
 			matrix_type result;
 			result.setZero();
@@ -330,6 +352,17 @@ class Matrix {
 			for (i = 0; i < result.size(); i++)
 				result[i] = value;
 			
+			return result;
+		}
+
+		static matrix_type Random (int rows, int cols = 1) {
+			matrix_type result (rows, cols);
+			for (int i = 0; i < rows; i++) {
+				for (int j = 0; j < cols; j++) {
+					result(i,j) = (static_cast<value_type>(rand()) / static_cast<value_type>(RAND_MAX)) * 2.0 - 1.0;
+				}
+			}
+
 			return result;
 		}
 
@@ -397,6 +430,27 @@ class Matrix {
 			block (unsigned int row_start, unsigned int col_start) const {
 				return Block<matrix_type, val_type>(*this, row_start, col_start, row_count, col_count);
 			}
+
+		// row and col accessors
+		Block<matrix_type, val_type>
+		col(unsigned int index) const {
+			return Block<matrix_type, val_type>(*this, 0, index, rows(), 1);
+		}
+
+		Block<matrix_type, val_type>
+		col(unsigned int index) {
+			return Block<matrix_type, val_type>(*this, 0, index, rows(), 1);
+		}
+
+		Block<matrix_type, val_type>
+		row(unsigned int index) const {
+			return Block<matrix_type, val_type>(*this, index, 0, 1, cols());
+		}
+
+		Block<matrix_type, val_type>
+		row(unsigned int index) {
+			return Block<matrix_type, val_type>(*this, index, 0, 1, cols());
+		}
 
 		// Operators with scalars
 		void operator*=(const val_type &scalar) {
@@ -524,11 +578,16 @@ class Matrix {
 		}
 
 		operator val_type() {
+
 			assert (nrows == 1);
 			assert (nrows == 1);
 
 			return mData[0];
 		}
+
+		Matrix operator-() const {
+			return *this * -1.0;
+		};
 
 		Matrix inverse() const {
 			return colPivHouseholderQr().inverse();

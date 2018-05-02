@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # 
 # RBDL - Rigid Body Dynamics Library
-# Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+# Copyright (c) 2011-2015 Martin Felis <martin@fysx.org>
 # 
 # Licensed under the zlib license. See LICENSE for more details.
 
@@ -110,6 +110,7 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
+                None,
                 com,
                 None,
                 None 
@@ -122,6 +123,7 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
+                None,
                 com,
                 com_vel,
                 None 
@@ -134,6 +136,7 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
+                None,
                 com,
                 com_vel,
                 ang_mom
@@ -307,6 +310,20 @@ class FloatingBaseModel (unittest.TestCase):
         quat = self.model.GetQuaternion (2, self.q)
 
         assert_array_equal (np.asarray(ref_quat), quat)
+
+class ConstraintSetTests (unittest.TestCase):
+    def test_Simple (self):
+        # only tests whether the API seems to work. No functional
+        # tests yet.
+
+        cs = rbdl.ConstraintSet()
+        idx = cs.AddContactConstraint (1, [1., 2., 3.], [4., 5., 6.])
+        assert_equal (0, idx)
+
+        X = rbdl.SpatialTransform()
+        sv = rbdl.SpatialVector.fromPythonArray ([1., 2., 3., 4., 5., 6.])
+        idx2 = cs.AddLoopConstraint (1, 2, X, X, sv, 1.)
+        assert_equal (1, idx2)
 
 if __name__ == '__main__':
     unittest.main()

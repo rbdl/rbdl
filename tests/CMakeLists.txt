@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 
 # Needed for UnitTest++
 LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../CMake )
@@ -19,7 +19,6 @@ SET ( TESTS_SRCS
   CalcVelocitiesTests.cc
   CalcAccelerationsTests.cc
   DynamicsTests.cc
-  InverseDynamicsTests.cc
   CompositeRigidBodyTests.cc
   ImpulsesTests.cc
   TwolegModelTests.cc
@@ -28,12 +27,17 @@ SET ( TESTS_SRCS
   SparseFactorizationTests.cc
   CustomJointSingleBodyTests.cc
   CustomJointMultiBodyTests.cc
+  CustomConstraintsTests.cc
+  LoopConstraintsTests.cc
+  ScrewJointTests.cc
+  ForwardDynamicsConstraintsExternalForces.cc
   )
 
 INCLUDE_DIRECTORIES ( ../src/ )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
   LINKER_LANGUAGE CXX
+  OUTPUT_NAME runtests
   )
 
 ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} )
@@ -56,7 +60,7 @@ TARGET_LINK_LIBRARIES ( rbdl_tests
 OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)
 
 IF (RUN_AUTOMATIC_TESTS)
-  ADD_CUSTOM_COMMAND (TARGET runtests
+  ADD_CUSTOM_COMMAND (TARGET rbdl_tests
     POST_BUILD
     COMMAND ./runtests
     COMMENT "Running automated tests..."

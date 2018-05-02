@@ -663,10 +663,17 @@ INPUT                  = ./src \
                          doc/example.h \
                          doc/python_example.h \
                          doc/Mainpage.h \
+                         doc/images \
+                         doc/luamodel_example.h \
                          addons/luamodel/luamodel.h \
                          addons/urdfreader/rbdl_urdfreader.h \
                          addons/urdfreader/urdfreader.h \
-                         doc/luamodel_example.h \
+                         addons/geometry/Function.h \
+                         addons/geometry/SegmentedQuinticBezierToolkit.h \
+                         addons/geometry/SmoothSegmentedFunction.h \
+                         addons/muscle/Millard2016TorqueMuscle.h \
+                         addons/muscle/MuscleFunctionFactory.h \
+                         addons/muscle/TorqueMuscleFunctionFactory.h \                         
                          ./include/rbdl
 
 # This tag can be used to specify the character encoding of the source files 
@@ -781,7 +788,10 @@ EXAMPLE_RECURSIVE      = NO
 # directories that contain image that are included in the documentation (see 
 # the \image command).
 
-IMAGE_PATH             = doc
+IMAGE_PATH             = doc/images \
+                         doc \
+                         doc/logo \
+
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should 
 # invoke to filter for each input file. Doxygen will invoke the filter program 
@@ -1824,3 +1834,4 @@ GENERATE_LEGEND        = YES
 # the various graphs.
 
 DOT_CLEANUP            = YES
+

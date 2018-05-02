@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2015 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2015 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  *
@@ -12,7 +12,7 @@
  */
 
 #include <rbdl/rbdl_math.h>
-#include <rbdl/Dynamics.h> 
+#include <rbdl/Dynamics.h>
 
 namespace RigidBodyDynamics {
 
@@ -76,7 +76,7 @@ void UpdateKinematicsCustomPtr (Model &model,
 		const double *qddot_ptr
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	
+
 	using namespace RigidBodyDynamics::Math;
 
 	unsigned int i;
@@ -163,8 +163,8 @@ void CalcPointJacobianPtr (
 		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
 	}
 
-	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
-	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 3, model.q_size);
+	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 3, model.qdot_size);
 
 	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
 
@@ -212,8 +212,8 @@ void CalcPointJacobian6DPtr (
 		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
 	}
 
-	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.qdot_size);
-	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.q_size);
+	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.qdot_size);
 
 	SpatialTransform point_trans = SpatialTransform (Matrix3d::Identity(), CalcBodyToBaseCoordinates (model, Q, body_id, point_position, false));
 
@@ -284,7 +284,7 @@ void CalcBodySpatialJacobianPtr (
 		} else {
 			G.block(0,q_index,6,1) = base_to_body.apply(model.X_base[j].inverse().apply(model.S[j]));
 		}
-	
+
 		j = model.lambda[j];
 	}
 }
@@ -299,7 +299,7 @@ void InverseDynamicsPtr (
 		std::vector<Math::SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	
+
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
@@ -330,7 +330,7 @@ void InverseDynamicsPtr (
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.multdof3_S[i] * Vector3d (QDDot[q_index], QDDot[q_index + 1], QDDot[q_index + 2]);
 		} else {
 			model.a[i] = model.X_lambda[i].apply(model.a[lambda]) + model.c[i] + model.S[i] * QDDot[q_index];
-		}	
+		}
 
 		if (!model.mBodies[i].mIsVirtual) {
 			model.f[i] = model.I[i] * model.a[i] + crossf(model.v[i],model.I[i] * model.v[i]);
@@ -338,7 +338,7 @@ void InverseDynamicsPtr (
 			model.f[i].setZero();
 		}
 
-		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero)
+		if (f_ext != NULL && (*f_ext)[i] != SpatialVector::Zero())
 			model.f[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
 	}
 
@@ -363,7 +363,7 @@ void NonlinearEffectsPtr (
 		const double *tau_ptr
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	
+
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
@@ -501,7 +501,7 @@ void ForwardDynamicsPtr (
 		std::vector<Math::SpatialVector> *f_ext
 		) {
 	LOG << "-------- " << __func__ << " --------" << std::endl;
-	
+
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef&& Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
@@ -547,7 +547,7 @@ void ForwardDynamicsPtr (
 
 		model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
-		if (f_ext != NULL && (*f_ext)[i] != SpatialVectorZero) {
+		if (f_ext != NULL && (*f_ext)[i] != SpatialVector::Zero()) {
 			LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * (*f_ext)[i] << std::endl;
 			model.pA[i] -= model.X_base[i].toMatrixAdjoint() * (*f_ext)[i];
 		}
@@ -634,4 +634,44 @@ void ForwardDynamicsPtr (
 	LOG << "QDDot = " << QDDot.transpose() << std::endl;
 }
 
+RBDL_DLLAPI
+void ForwardDynamicsConstraintsDirectPtr (
+  Model &model,
+  const double *q_ptr,
+  const double *qdot_ptr,
+  const double *tau_ptr,
+  ConstraintSet &CS,
+  double *qddot_ptr
+) {
+  LOG << "-------- " << __func__ << " --------" << std::endl;
+
+  using namespace RigidBodyDynamics::Math;
+
+  VectorNdRef&& Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+  VectorNdRef&& QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
+  VectorNdRef&& QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
+  VectorNdRef&& Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
+
+  // create copy of non-const accelerations
+  VectorNd QDDot_dummy = QDDot;
+
+  LOG << "Q          = " << Q.transpose() << std::endl;
+  LOG << "QDot       = " << QDot.transpose() << std::endl;
+  LOG << "Tau        = " << Tau.transpose() << std::endl;
+
+  LOG << "QDDot      = " << QDDot.transpose() << std::endl;
+  LOG << "QDDot_dummy      = " << QDDot_dummy.transpose() << std::endl;
+
+  // calling non-pointer version
+  ForwardDynamicsConstraintsDirect (
+    model, Q, QDot, Tau, CS, QDDot_dummy
+  );
+
+  for (int i = 0; i < model.q_size; ++i) {
+    QDDot[i] = QDDot_dummy[i];
+  }
+  LOG << "QDDot      = " << QDDot.transpose() << std::endl;
+  LOG << "QDDot_dummy      = " << QDDot_dummy.transpose() << std::endl;
+  LOG << "---" << std::endl;
+}
 }

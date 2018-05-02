@@ -1,5 +1,5 @@
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
 
 Introduction
 ============
@@ -9,10 +9,10 @@ body dynamics algorithms such as the Articulated Body Algorithm (ABA) for
 forward dynamics, Recursive Newton-Euler Algorithm (RNEA) for inverse
 dynamics and the Composite Rigid Body Algorithm (CRBA) for the efficient
 computation of the joint space inertia matrix. It further contains code for
-Jacobians, forward and inverse kinematics, and handling of external
-constraints such as contacts and collisions.
+Jacobians, forward and inverse kinematics, handling of external
+constraints such as contacts and collisions, and closed-loop models.
 
-The code is developed by Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+The code is developed by Martin Felis <martin@fysx.org>
 at the research group [Optimization in Robotics and Biomechanics
 (ORB)](http://orb.iwr.uni-heidelberg.de) of the [Interdisciplinary Center
 for Scientific Computing (IWR)](http://www.iwr.uni-heidelberg.de) at
@@ -131,6 +131,25 @@ be used by enabling `RBDL_USE_SIMPLE_MATH`, i.e.:
 
     cmake -D RBDL_USE_SIMPLE_MATH=TRUE ../
 
+Citation
+========
+
+An overview of the theoretical and implementation details has been
+published in [https://doi.org/10.1007/s10514-016-9574-0](Felis,
+M.L. Auton Robot (2017) 41: 495). To cite RBDL in your academic
+research you can use the following BibTeX entry:
+
+    @Article{Felis2016,
+      author="Felis, Martin L.",
+      title="RBDL: an efficient rigid-body dynamics library using recursive algorithms",
+      journal="Autonomous Robots",
+      year="2016",
+      pages="1--17",
+      issn="1573-7527",
+      doi="10.1007/s10514-016-9574-0",
+      url="http://dx.doi.org/10.1007/s10514-016-9574-0"
+    }
+
 Licensing
 =========
 
@@ -140,7 +159,7 @@ license which should allow you to use the software wherever you need.
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
-    Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+    Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -164,8 +183,8 @@ This is the full license text (zlib license):
 Acknowledgements
 ================
 
-Work on this library was funded by the [Heidelberg Graduate School of
-Mathematical and Computational Methods for the Sciences
+Work on this library was originally funded by the [Heidelberg Graduate
+School of Mathematical and Computational Methods for the Sciences
 (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the European
 FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and
 [Koroibot](http://koroibot.eu) (grant number 611909).

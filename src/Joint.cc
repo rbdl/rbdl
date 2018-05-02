@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -36,10 +36,20 @@ RBDL_DLLAPI void jcalc (
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
     model.X_J[joint_id] = Xrotz (q[model.mJoints[joint_id].q_index]);
     model.v_J[joint_id][2] = qdot[model.mJoints[joint_id].q_index];
+  } else if (model.mJoints[joint_id].mJointType == JointTypeHelical) {
+    model.X_J[joint_id] = jcalc_XJ (model, joint_id, q);
+    jcalc_X_lambda_S(model, joint_id, q);
+    double Jqd = qdot[model.mJoints[joint_id].q_index];
+    model.v_J[joint_id] = model.S[joint_id] * Jqd;
+    
+    Vector3d St = model.S[joint_id].block(0,0,3,1);
+    Vector3d c = model.X_J[joint_id].E * model.mJoints[joint_id].mJointAxes[0].block(3,0,3,1);
+    c = St.cross(c);
+    c *= -Jqd * Jqd;    
+    model.c_J[joint_id] = SpatialVector(0,0,0,c[0],c[1],c[2]);
   } else if (model.mJoints[joint_id].mDoFCount == 1 &&
       model.mJoints[joint_id].mJointType != JointTypeCustom) {
     model.X_J[joint_id] = jcalc_XJ (model, joint_id, q);
-
     model.v_J[joint_id] = 
       model.S[joint_id] * qdot[model.mJoints[joint_id].q_index];
   } else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
@@ -234,9 +244,26 @@ RBDL_DLLAPI Math::SpatialTransform jcalc_XJ (
             * q[model.mJoints[joint_id].q_index]
             )
           );
+    } else if (model.mJoints[joint_id].mJointType == JointTypeHelical) {
+      SpatialTransform rot = Xrot(
+          q[model.mJoints[joint_id].q_index], Vector3d (
+            model.mJoints[joint_id].mJointAxes[0][0],
+            model.mJoints[joint_id].mJointAxes[0][1],
+            model.mJoints[joint_id].mJointAxes[0][2]
+            ));
+      SpatialTransform trans = Xtrans ( Vector3d (
+            model.mJoints[joint_id].mJointAxes[0][3]
+            * q[model.mJoints[joint_id].q_index],
+            model.mJoints[joint_id].mJointAxes[0][4] 
+            * q[model.mJoints[joint_id].q_index],
+            model.mJoints[joint_id].mJointAxes[0][5] 
+            * q[model.mJoints[joint_id].q_index]
+            )
+          );
+      return rot * trans;
     }
   }
-  std::cerr << "Error: invalid joint type!" << std::endl;
+  std::cerr << "Error: invalid joint type: " << model.mJoints[joint_id].mJointType << std::endl;
   abort();
   return SpatialTransform();
 }
@@ -261,11 +288,20 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     model.X_lambda[joint_id] = 
       Xrotz (q[model.mJoints[joint_id].q_index]) * model.X_T[joint_id];
     model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
+  } else if (model.mJoints[joint_id].mJointType == JointTypeHelical){
+    SpatialTransform XJ = jcalc_XJ (model, joint_id, q);
+    model.X_lambda[joint_id] = XJ * model.X_T[joint_id];
+    // Set the joint axis
+    Vector3d trans = XJ.E * model.mJoints[joint_id].mJointAxes[0].block(3,0,3,1);
+    
+    model.S[joint_id] = SpatialVector(model.mJoints[joint_id].mJointAxes[0][0],
+           model.mJoints[joint_id].mJointAxes[0][1],
+           model.mJoints[joint_id].mJointAxes[0][2],
+           trans[0], trans[1], trans[2]);
   } else if (model.mJoints[joint_id].mDoFCount == 1
       && model.mJoints[joint_id].mJointType != JointTypeCustom){
     model.X_lambda[joint_id] = 
       jcalc_XJ (model, joint_id, q) * model.X_T[joint_id];
-    // Set the joint axis
     model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
   } else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
     model.X_lambda[joint_id] = SpatialTransform (

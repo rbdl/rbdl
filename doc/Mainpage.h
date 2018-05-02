@@ -9,31 +9,27 @@
  * \li Recursive Newton Euler Algorithm (RNEA)
  * \li Composite Rigid Body Algorithm (CRBA)
  * \li Articulated Body Algorithm (ABA).
- *
- * Furthermore it contains code for forward and inverse kinematics,
- * computations of Jacobians, contact handling. \link
- * RigidBodyDynamics::Model Models \endlink can be loaded from Lua scripts
- * or URDF files.
- * 
- * The code is developed by <a
- * href="mailto:martin.felis@iwr.uni-heidelberg.de">Martin Felis
- * <martin.felis@iwr.uni-heidelberg.de></a> at the research group <a
- * href="http://orb.iwr.uni-heidelberg.de/">Optimization in Robotics and
- * Biomechanics (ORB)</a> of the <a
- * href="http://www.iwr.uni-heidelberg.de"> Interdisciplinary Center for
- * Scientific Computing (IWR)</a> at <a
- * href="http://www.uni-heidelberg.de">Heidelberg University</a>. The code
- * is heavily inspired by the pseudo code of the book "Rigid Body Dynamics
- * Algorithms" of <a href="http://royfeatherstone.org" target="_parent">Roy
+ 
+ * Furthermore it contains code for forward and inverse \ref
+ * kinematics_group "kinematics", computations of Jacobians, \ref
+ * constraints_group "constraints" for contact and collision handling, and
+ * closed loop models. \link RigidBodyDynamics::Model Models \endlink can
+ * be loaded from Lua scripts or URDF files. The code and API is heavily
+ * inspired by the pseudo code of the book "Rigid Body Dynamics Algorithms"
+ * of <a href="http://royfeatherstone.org" target="_parent">Roy
  * Featherstone</a>.
- *  
+ 
  * The code has no external dependencies but for optimal performance it is
  * advised to use version 3 of the <a href="http://eigen.tuxfamily.org/"
  * target="_parent">Eigen</a> math library. More information about it can
  * be found here: <a href="http://eigen.tuxfamily.org/"
  * target="_parent">http://eigen.tuxfamily.org/</a>. The Eigen3 library
  * must be obtained and installed separately.
- * 
+ *
+ * \note This library is free and published under a very liberal \ref
+ * license "license". If you use it in scientific work we would greatly 
+ * appreciate a citation as described \ref citation "here".
+ *
  * \section download Download
  *
  * You can download the most recent stable version as zip file from
@@ -46,6 +42,25 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>?? April 2018: New release 2.6.0:
+ *   <ul>
+ *     <li> Added support for closed-loop models by replacing Contacts API by a new
+ *       Constraints API. Loop constraints can be stabilized using Baumgarte
+ *       stabilization. Special thanks to Davide Corradi for this contribution!</li>
+ *     <li> New constraint type CustomConstraint: a versatile interface to define
+ *       more general types of constraints (e.g. time dependent), contributed by
+ *       Matthew J. Millard.</li>
+ *     <li> New joint type JointTypeHelical that can be used for screwing motions
+ *       (translations and simultaneous rotations), contributed by Stuart Anderson.</li>
+ *     <li> Added support to specify external forces on bodies on constrained forward
+ *       dynamics and NonlinearEffects() (contributed by Matthew J. Millard)</li>
+ *     <li> Changed Quaternion multiplication behaviour for a more standard
+ *       convention: multiplying q1 (1,0,0,0) with q2 (0,1,0,0) results now in
+ *       (0,0,1,0) instead of the previous (0,0,-1,0).</li>
+ *     <li> Removed Model::SetFloatingBaseBody(). Use JointTypeFloatingBase instead.</li>
+ *     <li> LuaModel: extended specification to support ConstraintSets.</li>
+ *   </ul>
+ * </li>
  * <li>28 April 2016: New release 2.5.0:
  *   <ul>
  *     <li> Added an experimental Cython based Python wrapper of RBDL. The API is
@@ -117,26 +132,46 @@
  * An example of the Python wrapper can be found at \ref PythonExample
  * "Python Example".
  * 
- * \section ModuleOverview API reference separated by functional modules
+ * \section ModuleOverview API Overview
  * 
  * \li \subpage modeling_page
  * \li \subpage joint_description
- * \li \subpage kinematics_page
- * \li \subpage dynamics_page
- * \li \subpage contacts_page
+ * \li \ref kinematics_group
+ * \li \ref dynamics_group
+ * \li \ref constraints_group
  * \li \subpage addon_luamodel_page 
  *
  * The page \subpage api_version_checking_page contains information about
  * incompatibilities of the existing versions and how to migrate.
  *
- * \section Licensing Licensing
+ * \section citation Citation
+ *
+ * An overview of the theoretical and implementation details has been
+ * published in <a href="https://doi.org/10.1007/s10514-016-9574-0">Felis,
+ * M.L. Auton Robot (2017) 41: 495</a>. To cite RBDL in your academic
+ * research you can use the following BibTeX entry:
+ *
+ * \code
+ *  @Article{Felis2016,
+ *    author="Felis, Martin L.",
+ *    title="RBDL: an efficient rigid-body dynamics library using recursive algorithms",
+ *    journal="Autonomous Robots",
+ *    year="2016",
+ *    pages="1--17",
+ *    issn="1573-7527",
+ *    doi="10.1007/s10514-016-9574-0",
+ *    url="http://dx.doi.org/10.1007/s10514-016-9574-0"
+ *  }
+ * \endcode
+ *
+ * \section license License
  *
  * The library is published under the very permissive zlib free software
  * license which should allow you to use the software wherever you need.
  * Here is the full license text:
  * \verbatim
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2014 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+Copyright (c) 2011-2014 Martin Felis <martin@fysx.org>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -160,7 +195,7 @@ freely, subject to the following restrictions:
 
  * \section Acknowledgements
  * 
- * Work on this library was funded by the <a
+ * Previous work on this library was funded by the <a
  * href="http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/">Heidelberg
  * Graduate School of Mathematical and Computational Methods for the
  * Sciences (HGS)</a> and the European FP7 projects <a

@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2016 Martin Felis <martin.felis@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -61,12 +61,14 @@ RBDL_DLLAPI void InverseDynamics (
  * \param Q     state vector of the internal joints
  * \param QDot  velocity vector of the internal joints
  * \param Tau   actuations of the internal joints (output)
+ * \param f_ext External forces acting on the body in base coordinates (optional, defaults to NULL)
  */
 RBDL_DLLAPI void NonlinearEffects (
     Model &model,
     const Math::VectorNd &Q,
     const Math::VectorNd &QDot,
-    Math::VectorNd &Tau
+    Math::VectorNd &Tau,
+    std::vector<Math::SpatialVector> *f_ext = NULL
     );
 
 /** \brief Computes the joint space inertia matrix by using the Composite Rigid Body Algorithm
@@ -156,11 +158,11 @@ RBDL_DLLAPI void ForwardDynamicsLagrangian (
  * \param update_kinematics whether the kinematics should be updated (safer, but at a higher computational cost)
  *
  * This function uses a reduced version of the Articulated %Body Algorithm
- * to compute 
+ * to compute: 
  *
- *   \f$ \ddot{q} = M(q)^{-1} ( -N(q, \dot{q}) + \tau)\f$
+ *   \f$ \ddot{q} = M(q)^{-1} \tau\f$
  *
- * in \f$O(n_{\textit{dof}}\f$) time.
+ * for given \f$q\f$ and \f$\tau\f$ in \f$O(n_{\textit{dof}})\f$ time.
  *
  * \note When calling this function repeatedly for the same values of Q make sure
  * to set the last parameter to false as this avoids expensive
