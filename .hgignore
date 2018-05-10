@@ -7,7 +7,7 @@ doc/notes/*.pdf
 *Debug/*
 *Release/*
 *RelWithDebInfo/*
-*build/*
+*build*/*
 
 .*.swp
 CMakeFiles/*
