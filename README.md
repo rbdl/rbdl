@@ -1,5 +1,5 @@
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
+Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
 
 Introduction
 ============
@@ -22,7 +22,23 @@ Algorithm".
 
 Recent Changes
 ==============
-  * 28 April 2016: Nev version 2.5.0:
+  * 02 May 2018: New version 2.6.0:
+    * Added support for closed-loop models by replacing Contacts API by a new
+      Constraints API. Loop constraints can be stabilized using Baumgarte
+      stabilization. Special thanks to Davide Corradi for this contribution!
+    * New constraint type CustomConstraint: a versatile interface to define
+      more general types of constraints (e.g. time dependent), contributed by
+      Matthew J. Millard.
+    * New joint type JointTypeHelical that can be used for screwing motions
+      (translations and simultaneous rotations), contributed by Stuart Anderson.
+    * Added support to specify external forces on bodies on constrained forward
+      dynamics and NonlinearEffects() (contributed by Matthew J. Millard)
+    * Changed Quaternion multiplication behaviour for a more standard
+      convention: multiplying q1 (1,0,0,0) with q2 (0,1,0,0) results now in
+      (0,0,1,0) instead of the previous (0,0,-1,0).
+    * Removed Model::SetFloatingBaseBody(). Use JointTypeFloatingBase instead.
+    * LuaModel: extended specification to support ConstraintSets.
+  * 28 April 2016: New version 2.5.0:
     * Added an experimental Cython based Python wrapper of RBDL. The API is
       very close to the C++ API. For a brief glimpse of the API see the file
       python/test_wrapper.py.
@@ -159,7 +175,7 @@ license which should allow you to use the software wherever you need.
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
-    Copyright (c) 2011-2016 Martin Felis <martin@fysx.org>
+    Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages

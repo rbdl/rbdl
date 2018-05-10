@@ -42,7 +42,7 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
- * <li>02 April 2018: New release 2.6.0:
+ * <li>02 May 2018: New release 2.6.0:
  *   <ul>
  *     <li> Added support for closed-loop models by replacing Contacts API by a new
  *       Constraints API. Loop constraints can be stabilized using Baumgarte
@@ -171,7 +171,7 @@
  * Here is the full license text:
  * \verbatim
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2014 Martin Felis <martin@fysx.org>
+Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
