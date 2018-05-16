@@ -1903,22 +1903,50 @@ cdef class InverseKinematicsConstraintSet:
     def AddPointConstraint (self,
             body_id not None,
             body_point not None,
-            target_pos not None):     
+            target_pos not None,
+            weight = 1.):     
 
         return self.thisptr.AddPointConstraint (
                 body_id,
                 NumpyToVector3d(body_point),
-                NumpyToVector3d(target_pos)
+                NumpyToVector3d(target_pos),
+				weight
+                )
+    
+    def AddPointConstraintXY (self,
+            body_id not None,
+            body_point not None,
+            target_pos not None,
+            weight = 1.):     
+
+        return self.thisptr.AddPointConstraintXY (
+                body_id,
+                NumpyToVector3d(body_point),
+                NumpyToVector3d(target_pos),
+                weight
+                )
+    
+    def AddPointConstraintCoMXY (self,
+            body_id not None,
+            target_pos not None,
+            weight = 1.):     
+
+        return self.thisptr.AddPointConstraintCoMXY (
+                body_id,
+                NumpyToVector3d(target_pos),
+                weight
                 )
 
 
     def AddOrientationConstraint (self,
             body_id not None,
-            target_orientation not None):
+            target_orientation not None,
+            weight = 1.):
 
         return self.thisptr.AddOrientationConstraint (
             body_id,
-            NumpyToMatrix3d(target_orientation)
+            NumpyToMatrix3d(target_orientation),
+            weight
             )
 
             
@@ -1926,13 +1954,16 @@ cdef class InverseKinematicsConstraintSet:
             body_id not None,
             body_point not None,
             target_pos not None,
-            target_orientation not None):
+            target_orientation not None,
+            weight = 1.):
 
         return self.thisptr.AddFullConstraint (
             body_id,
             NumpyToVector3d(body_point),
             NumpyToVector3d(target_pos),
-            NumpyToMatrix3d(target_orientation))
+            NumpyToMatrix3d(target_orientation),
+			weight
+			)
 
     def ClearConstraints (self):
         return self.thisptr.ClearConstraints()
@@ -2030,6 +2061,13 @@ cdef class InverseKinematicsConstraintSet:
     
         def __set__ (self, value):
             self.thisptr.body_ids = value 
+            
+    property constraint_weight:
+        def __get__ (self):
+          return self.thisptr.constraint_weight
+    
+        def __set__ (self, value):
+            self.thisptr.constraint_weight = value 
        
     
     property constraint_row_index:

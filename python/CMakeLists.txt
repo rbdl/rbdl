@@ -83,6 +83,12 @@ IF (RBDL_BUILD_ADDON_MUSCLE)
   ENDIF()
 ENDIF()
 
-INSTALL ( TARGETS rbdl-python rbdlmuscle-python
+INSTALL ( TARGETS rbdl-python
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/python2.7/site-packages/
 )
+
+IF (RBDL_BUILD_ADDON_MUSCLE)
+INSTALL ( TARGETS rbdlmuscle-python
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/python2.7/site-packages/
+)
+ENDIF()

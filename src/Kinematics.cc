@@ -16,6 +16,8 @@
 #include "rbdl/Model.h"
 #include "rbdl/Kinematics.h"
 
+#include "rbdl/rbdl_utils.h"
+
 namespace RigidBodyDynamics {
 
 using namespace Math;
@@ -733,22 +735,61 @@ RBDL_DLLAPI
 unsigned int InverseKinematicsConstraintSet::AddPointConstraint(
     unsigned int body_id,
     const Vector3d& body_point,
-    const Vector3d& target_pos
+    const Vector3d& target_pos,
+    float weight
     ) {
   constraint_type.push_back (ConstraintTypePosition);
   body_ids.push_back(body_id);
   body_points.push_back(body_point);
   target_positions.push_back(target_pos);
   target_orientations.push_back(Matrix3d::Zero(3,3));
+  constraint_weight.push_back(weight);
   constraint_row_index.push_back(num_constraints);
   num_constraints = num_constraints + 3;
   return constraint_type.size() - 1;
 }
 
+
+unsigned int InverseKinematicsConstraintSet::AddPointConstraintXY(
+    unsigned int body_id,
+    const Vector3d& body_point,
+    const Vector3d& target_pos,
+    float weight
+    ) {
+  constraint_type.push_back (ConstraintTypePositionXY);
+  body_ids.push_back(body_id);
+  body_points.push_back(body_point);
+  target_positions.push_back(target_pos);
+  target_orientations.push_back(Matrix3d::Zero(3,3));
+  constraint_weight.push_back(weight);
+  constraint_row_index.push_back(num_constraints);
+  num_constraints = num_constraints + 2;
+  return constraint_type.size() - 1;
+}
+
+unsigned int InverseKinematicsConstraintSet::AddPointConstraintCoMXY(
+    unsigned int body_id,
+    //const Vector3d& body_point,
+    const Vector3d& target_pos,
+    float weight
+    ) {
+  constraint_type.push_back (ConstraintTypePositionCoMXY);
+  body_ids.push_back(body_id);
+  body_points.push_back(Vector3d::Zero());
+  target_positions.push_back(target_pos);
+  target_orientations.push_back(Matrix3d::Zero(3,3));
+  constraint_weight.push_back(weight);
+  constraint_row_index.push_back(num_constraints);
+  num_constraints = num_constraints + 2;
+  return constraint_type.size() - 1;
+}
+
+
 RBDL_DLLAPI
 unsigned int InverseKinematicsConstraintSet::AddOrientationConstraint(
     unsigned int body_id,
-    const Matrix3d& target_orientation
+    const Matrix3d& target_orientation,
+    float weight
     ) {
   constraint_type.push_back (ConstraintTypeOrientation);
   body_ids.push_back(body_id);
@@ -756,6 +797,7 @@ unsigned int InverseKinematicsConstraintSet::AddOrientationConstraint(
   target_positions.push_back(Vector3d::Zero());
   target_orientations.push_back(target_orientation);
   constraint_row_index.push_back(num_constraints);
+  constraint_weight.push_back(weight);
   num_constraints = num_constraints + 3;
   return constraint_type.size() - 1;
 }
@@ -765,7 +807,8 @@ unsigned int InverseKinematicsConstraintSet::AddFullConstraint(
     unsigned int body_id,
     const Vector3d& body_point,
     const Vector3d& target_pos,
-    const Matrix3d& target_orientation
+    const Matrix3d& target_orientation,
+    float weight
     ) {
   constraint_type.push_back (ConstraintTypeFull);
   body_ids.push_back(body_id);
@@ -773,6 +816,7 @@ unsigned int InverseKinematicsConstraintSet::AddFullConstraint(
   target_positions.push_back(target_pos);
   target_orientations.push_back(target_orientation);
   constraint_row_index.push_back(num_constraints);
+  constraint_weight.push_back(weight);
   num_constraints = num_constraints + 6;
   return constraint_type.size() - 1;
 }
@@ -780,12 +824,14 @@ unsigned int InverseKinematicsConstraintSet::AddFullConstraint(
 RBDL_DLLAPI
 unsigned int InverseKinematicsConstraintSet::ClearConstraints()
 {
-  for (unsigned int i =0; i < constraint_type.size(); i++){
+  unsigned int size = constraint_type.size();
+  for (unsigned int i = 0; i < size; i++){
     constraint_type.pop_back();
     body_ids.pop_back();
     body_points.pop_back();
     target_positions.pop_back();
     target_orientations.pop_back();
+    constraint_weight.pop_back();
     num_constraints = 0;
   }
   return constraint_type.size();
@@ -804,6 +850,7 @@ bool InverseKinematics (
 
   CS.J = MatrixNd::Zero(CS.num_constraints, model.qdot_size);
   CS.e = VectorNd::Zero(CS.num_constraints);
+  double mass;
 
   Qres = Qinit;
 
@@ -821,29 +868,50 @@ bool InverseKinematics (
       if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypeFull){
         for (unsigned int i = 0; i < 3; i++){
           unsigned int row = CS.constraint_row_index[k] + i;
-          CS.e[row + 3] = CS.target_positions[k][i] - point_base[i];
-          CS.e[row] = angular_velocity[i];
+          CS.e[row + 3] = CS.constraint_weight.at(k)*(CS.target_positions[k][i] - point_base[i]);
+          CS.e[row] = CS.constraint_weight.at(k)*angular_velocity[i];
           for (unsigned int j = 0; j < model.qdot_size; j++) {
-            CS.J(row + 3, j) = CS.G (i + 3,j);
-            CS.J(row, j) = CS.G (i,j);
+            CS.J(row + 3, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i,j);
           }
         }
       }
       else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypeOrientation){
         for (unsigned int i = 0; i < 3; i++){
           unsigned int row = CS.constraint_row_index[k] + i;
-          CS.e[row] = angular_velocity[i];
+          CS.e[row] = CS.constraint_weight.at(k)*angular_velocity[i];
           for (unsigned int j = 0; j < model.qdot_size; j++) {
-            CS.J(row, j) = CS.G (i,j);
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i,j);
           }
         }
       }
       else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePosition){
         for (unsigned int i = 0; i < 3; i++){
           unsigned int row = CS.constraint_row_index[k] + i;
-          CS.e[row] = CS.target_positions[k][i] - point_base[i];
+          CS.e[row] = CS.constraint_weight.at(k)*(CS.target_positions[k][i] - point_base[i]);
           for (unsigned int j = 0; j < model.qdot_size; j++) {
-            CS.J(row, j) = CS.G (i + 3,j);
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
+          }
+        }
+      }
+      else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionXY){
+        for (unsigned int i = 0; i < 2; i++){
+          unsigned int row = CS.constraint_row_index[k] + i;
+          CS.e[row] = CS.constraint_weight.at(k)*(CS.target_positions[k][i] - point_base[i]);
+          for (unsigned int j = 0; j < model.qdot_size; j++) {
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
+          }
+        }
+      }
+      else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionCoMXY){
+        Utils::CalcCenterOfMass (model, Qres, Qres, mass, point_base, NULL, NULL, false);
+		CalcPointJacobian6D (model, Qres, CS.body_ids[k], point_base, CS.G, false);
+      
+        for (unsigned int i = 0; i < 2; i++){
+          unsigned int row = CS.constraint_row_index[k] + i;
+          CS.e[row] = CS.constraint_weight.at(k)*(CS.target_positions[k][i] - point_base[i]);
+          for (unsigned int j = 0; j < model.qdot_size; j++) {
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
           }
         }
       }
@@ -909,3 +977,4 @@ bool InverseKinematics (
 }
 
 }
+

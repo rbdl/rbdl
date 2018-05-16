@@ -232,7 +232,7 @@ if __name__ == "__main__":
     infilename = sys.argv[1]
     outfilename = sys.argv[2]
 
-    print ("Processing {} to generate {}".format (infilename, outfilename))
+#    print ("Processing {} to generate {}".format (infilename, outfilename))
     infile = open(infilename)
     outfile = open(outfilename, "w")
     outfile.write ("""# WARNING! 

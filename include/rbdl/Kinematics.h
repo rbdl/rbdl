@@ -362,7 +362,9 @@ struct RBDL_DLLAPI InverseKinematicsConstraintSet {
   enum ConstraintType {
     ConstraintTypePosition = 0,
     ConstraintTypeOrientation,
-    ConstraintTypeFull
+    ConstraintTypeFull,
+    ConstraintTypePositionXY,
+    ConstraintTypePositionCoMXY
   };
 
   InverseKinematicsConstraintSet();
@@ -386,18 +388,23 @@ struct RBDL_DLLAPI InverseKinematicsConstraintSet {
   std::vector<Math::Vector3d> target_positions;
   std::vector<Math::Matrix3d> target_orientations;
   std::vector<unsigned int> constraint_row_index;
+  std::vector<float> constraint_weight;
 
   // Adds a point constraint that tries to get a body point close to a 
   // point described in base coordinates.
-  unsigned int AddPointConstraint (unsigned int body_id, const Math::Vector3d &body_point, const Math::Vector3d &target_pos);
+  unsigned int AddPointConstraint (unsigned int body_id, const Math::Vector3d &body_point, const Math::Vector3d &target_pos, float weight = 1.);
   // Adds an orientation constraint that tries to align a body to the
   // orientation specified as a rotation matrix expressed in base
   // coordinates.
-  unsigned int AddOrientationConstraint (unsigned int body_id, const Math::Matrix3d &target_orientation);
+  unsigned int AddOrientationConstraint (unsigned int body_id, const Math::Matrix3d &target_orientation, float weight = 1.);
   // Adds a constraint on both location and orientation of a body.
-  unsigned int AddFullConstraint (unsigned int body_id, const Math::Vector3d &body_point, const Math::Vector3d &target_pos, const Math::Matrix3d &target_orientation);
+  unsigned int AddFullConstraint (unsigned int body_id, const Math::Vector3d &body_point, const Math::Vector3d &target_pos, const Math::Matrix3d &target_orientation, float weight = 1.);
   // Clears all entries of the constraint setting
-  unsigned int ClearConstraints();  
+  unsigned int ClearConstraints(); 
+  
+  unsigned int AddPointConstraintXY (unsigned int body_id, const Math::Vector3d &body_point, const Math::Vector3d &target_pos, float weight = 1.);
+  unsigned int AddPointConstraintCoMXY (unsigned int body_id, const Math::Vector3d &target_pos, float weight = 1.);
+
 };
 
 RBDL_DLLAPI bool InverseKinematics (
