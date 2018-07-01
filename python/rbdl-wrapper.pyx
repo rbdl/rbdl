@@ -1876,6 +1876,9 @@ class ConstraintType(IntEnum):
     ConstraintTypePosition = 0
     ConstraintTypeOrientation = 1
     ConstraintTypeFull = 2
+    ConstraintTypePositionXY = 3
+    ConstraintTypePositionZ = 4
+    ConstraintTypePositionCoMXY = 5
 
 
      
@@ -1920,6 +1923,19 @@ cdef class InverseKinematicsConstraintSet:
             weight = 1.):     
 
         return self.thisptr.AddPointConstraintXY (
+                body_id,
+                NumpyToVector3d(body_point),
+                NumpyToVector3d(target_pos),
+                weight
+                )
+                
+    def AddPointConstraintZ (self,
+            body_id not None,
+            body_point not None,
+            target_pos not None,
+            weight = 1.):     
+
+        return self.thisptr.AddPointConstraintZ (
                 body_id,
                 NumpyToVector3d(body_point),
                 NumpyToVector3d(target_pos),

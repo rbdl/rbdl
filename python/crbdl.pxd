@@ -349,6 +349,9 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
           InverseKinematicsConstraintSet_ConstraintTypePosition "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypePosition"
           InverseKinematicsConstraintSet_ConstraintTypeOrientation "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypeOrientation"
           InverseKinematicsConstraintSet_ConstraintTypeFull "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypeFull"
+          InverseKinematicsConstraintSet_ConstraintTypePositionXY "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypePositionXY"
+          InverseKinematicsConstraintSet_ConstraintTypePositionZ "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypePositionZ"
+          InverseKinematicsConstraintSet_ConstraintTypePositionCoMXY "RigidBodyDynamics::InverseKinematicsConstraintSet::ConstraintTypePositionCoMXY"
     
             
             
@@ -363,6 +366,11 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
                 )
         
         unsigned int AddPointConstraintXY (unsigned int body_id,
+                const Vector3d &body_point,
+                const Vector3d &target_pos,
+                float weight
+                )
+        unsigned int AddPointConstraintZ (unsigned int body_id,
                 const Vector3d &body_point,
                 const Vector3d &target_pos,
                 float weight

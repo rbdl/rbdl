@@ -364,6 +364,7 @@ struct RBDL_DLLAPI InverseKinematicsConstraintSet {
     ConstraintTypeOrientation,
     ConstraintTypeFull,
     ConstraintTypePositionXY,
+    ConstraintTypePositionZ,
     ConstraintTypePositionCoMXY
   };
 
@@ -403,6 +404,7 @@ struct RBDL_DLLAPI InverseKinematicsConstraintSet {
   unsigned int ClearConstraints(); 
   
   unsigned int AddPointConstraintXY (unsigned int body_id, const Math::Vector3d &body_point, const Math::Vector3d &target_pos, float weight = 1.);
+  unsigned int AddPointConstraintZ  (unsigned int body_id, const Math::Vector3d &body_point, const Math::Vector3d &target_pos, float weight = 1.);
   unsigned int AddPointConstraintCoMXY (unsigned int body_id, const Math::Vector3d &target_pos, float weight = 1.);
 
 };

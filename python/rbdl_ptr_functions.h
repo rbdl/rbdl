@@ -15,6 +15,8 @@
 #include <rbdl/Dynamics.h>
 #include <rbdl/Constraints.h>
 
+#include <rbdl/rbdl_utils.h>
+
 namespace RigidBodyDynamics {
 
 namespace Math {
@@ -1094,7 +1096,7 @@ RBDL_DLLAPI bool InverseKinematicsCSPtr (
   
   
   VectorNdRef&& Qinit = VectorFromPtr(const_cast<double*>(qinit_ptr), model.q_size);
-	VectorNdRef&& Qres = VectorFromPtr(const_cast<double*>(qres_ptr), model.q_size);
+  VectorNdRef&& Qres = VectorFromPtr(const_cast<double*>(qres_ptr), model.q_size);
   
   
   assert (Qinit.size() == model.q_size);
@@ -1103,13 +1105,14 @@ RBDL_DLLAPI bool InverseKinematicsCSPtr (
   CS.J = MatrixNd::Zero(CS.num_constraints, model.qdot_size);
   CS.e = VectorNd::Zero(CS.num_constraints);
 
+  double mass;
   Qres = Qinit;
     
 
   for (CS.num_steps = 0; CS.num_steps < CS.max_steps; CS.num_steps++) {
     UpdateKinematicsCustomPtr (model, qres_ptr, NULL, NULL);
 
-    for (unsigned int k = 0; k < CS.body_ids.size(); k++) {
+    for (unsigned int k = 0; k < CS.constraint_row_index.size(); k++) {
       CS.G = MatrixNd::Zero(6, model.qdot_size);
       CalcPointJacobian6D (model, Qres, CS.body_ids[k], CS.body_points[k], CS.G, false);
       Vector3d point_base = CalcBodyToBaseCoordinates (model, Qres, CS.body_ids[k], CS.body_points[k], false);
@@ -1120,29 +1123,60 @@ RBDL_DLLAPI bool InverseKinematicsCSPtr (
       if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypeFull){
         for (unsigned int i = 0; i < 3; i++){
           unsigned int row = CS.constraint_row_index[k] + i;
-          CS.e[row + 3] = CS.target_positions[k][i] - point_base[i];
-          CS.e[row] = angular_velocity[i];
+          CS.e[row + 3] = CS.constraint_weight.at(k)*(CS.target_positions[k][i] - point_base[i]);
+          CS.e[row] = CS.constraint_weight.at(k)*angular_velocity[i];
           for (unsigned int j = 0; j < model.qdot_size; j++) {
-            CS.J(row + 3, j) = CS.G (i + 3,j);
-            CS.J(row, j) = CS.G (i,j);
+            CS.J(row + 3, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i,j);
           }
         }
       }
       else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypeOrientation){
         for (unsigned int i = 0; i < 3; i++){
           unsigned int row = CS.constraint_row_index[k] + i;
-          CS.e[row] = angular_velocity[i];
+          CS.e[row] = CS.constraint_weight.at(k)*angular_velocity[i];
+          
           for (unsigned int j = 0; j < model.qdot_size; j++) {
-            CS.J(row, j) = CS.G (i,j);
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i,j);
           }
         }
       }
       else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePosition){
         for (unsigned int i = 0; i < 3; i++){
           unsigned int row = CS.constraint_row_index[k] + i;
-          CS.e[row] = CS.target_positions[k][i] - point_base[i];
+          CS.e[row] = CS.constraint_weight.at(k)*(CS.target_positions[k][i] - point_base[i]);
           for (unsigned int j = 0; j < model.qdot_size; j++) {
-            CS.J(row, j) = CS.G (i + 3,j);
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
+          }
+        }
+      }
+      else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionXY){
+        for (unsigned int i = 0; i < 2; i++){
+          unsigned int row = CS.constraint_row_index[k] + i;
+          CS.e[row] = CS.constraint_weight.at(k)*(CS.target_positions[k][i] - point_base[i]);
+          for (unsigned int j = 0; j < model.qdot_size; j++) {
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
+          }
+        }
+      }
+      else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionZ){
+                
+        unsigned int row = CS.constraint_row_index[k];
+        CS.e[row] = CS.constraint_weight.at(k)*(CS.target_positions[k][2] - point_base[2]);
+        for (unsigned int j = 0; j < model.qdot_size; j++) {
+          CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (2 + 3,j);
+        }
+        
+      }
+      else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionCoMXY){
+        Utils::CalcCenterOfMass (model, Qres, Qres, mass, point_base, NULL, NULL, false);
+        CalcPointJacobian6D (model, Qres, CS.body_ids[k], point_base, CS.G, false);
+      
+        for (unsigned int i = 0; i < 2; i++){
+          unsigned int row = CS.constraint_row_index[k] + i;
+          CS.e[row] = CS.constraint_weight.at(k)*(CS.target_positions[k][i] - point_base[i]);
+          for (unsigned int j = 0; j < model.qdot_size; j++) {
+            CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
           }
         }
       }

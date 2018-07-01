@@ -767,6 +767,24 @@ unsigned int InverseKinematicsConstraintSet::AddPointConstraintXY(
   return constraint_type.size() - 1;
 }
 
+
+unsigned int InverseKinematicsConstraintSet::AddPointConstraintZ(
+    unsigned int body_id,
+    const Vector3d& body_point,
+    const Vector3d& target_pos,
+    float weight
+    ) {
+  constraint_type.push_back (ConstraintTypePositionZ);
+  body_ids.push_back(body_id);
+  body_points.push_back(body_point);
+  target_positions.push_back(target_pos);
+  target_orientations.push_back(Matrix3d::Zero(3,3));
+  constraint_weight.push_back(weight);
+  constraint_row_index.push_back(num_constraints);
+  num_constraints = num_constraints + 1;
+  return constraint_type.size() - 1;
+}
+
 unsigned int InverseKinematicsConstraintSet::AddPointConstraintCoMXY(
     unsigned int body_id,
     //const Vector3d& body_point,
@@ -831,9 +849,10 @@ unsigned int InverseKinematicsConstraintSet::ClearConstraints()
     body_points.pop_back();
     target_positions.pop_back();
     target_orientations.pop_back();
-    constraint_weight.pop_back();
-    num_constraints = 0;
+    constraint_row_index.pop_back();
+    constraint_weight.pop_back();    
   }
+  num_constraints = 0;
   return constraint_type.size();
 }
 
@@ -902,6 +921,15 @@ bool InverseKinematics (
             CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (i + 3,j);
           }
         }
+      }
+      else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionZ){
+        
+        unsigned int row = CS.constraint_row_index[k];
+        CS.e[row] = CS.constraint_weight.at(k)*(CS.target_positions[k][2] - point_base[2]);
+        for (unsigned int j = 0; j < model.qdot_size; j++) {
+          CS.J(row, j) = CS.constraint_weight.at(k)*CS.G (2 + 3,j);
+        }
+        
       }
       else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionCoMXY){
         Utils::CalcCenterOfMass (model, Qres, Qres, mass, point_base, NULL, NULL, false);
