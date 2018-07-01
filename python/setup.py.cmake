@@ -17,6 +17,7 @@ urdf_addon = '@RBDL_BUILD_ADDON_BENCHMARK@'
 extra_params = {}
 extra_params['include_dirs'] = [
     '/usr/include',
+    '/usr/local/include/rbdl',
     BASEDIR,
     np.get_include(),
     '@RBDL_INCLUDE_DIR@/',

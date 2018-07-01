@@ -52,7 +52,6 @@ type_properties = {
     "SpatialTransform" : """    property %MEMBER%:
         def __get__ (self):
             vector_size = self.thisptr.%MEMBER%.size()
-            print "vector_size",  vector_size
             ST = [SpatialTransform() for i in range(vector_size)]
             for k in range(vector_size):
               for i in range (self.thisptr.%MEMBER%[k].r.rows()):
@@ -66,7 +65,6 @@ type_properties = {
   "SpatialVector" :  """    property %MEMBER%:
       def __get__ (self):
           vector_size = self.thisptr.%MEMBER%.size()
-          print "vector_size",  vector_size
           ST = [%TYPE%() for i in range(vector_size)]
           for k in range(vector_size):
             for i in range (self.thisptr.%MEMBER%[k].rows()):
@@ -77,7 +75,6 @@ type_properties = {
   "VectorNd" :  """    property %MEMBER%:
       def __get__ (self):
           vector_size = self.thisptr.%MEMBER%.size()
-          print "vector_size",  vector_size
           ST = [%TYPE%() for i in range(vector_size)]
           for k in range(vector_size):
             for i in range (self.thisptr.%MEMBER%[k].rows()):
@@ -88,7 +85,6 @@ type_properties = {
   "Vector3d" :  """    property %MEMBER%:
       def __get__ (self):
           vector_size = self.thisptr.%MEMBER%.size()
-          print "vector_size",  vector_size
           ST = [%TYPE%() for i in range(vector_size)]
           for k in range(vector_size):
             for i in range (self.thisptr.%MEMBER%[k].rows()):
@@ -99,7 +95,6 @@ type_properties = {
     "SpatialMatrix" :  """    property %MEMBER%:
       def __get__ (self):
           vector_size = self.thisptr.%MEMBER%.size()
-          print "vector_size",  vector_size
           ST = [%TYPE%() for i in range(vector_size)]
           for k in range(vector_size):
             for i in range (self.thisptr.%MEMBER%[k].rows()):
@@ -113,7 +108,6 @@ type_properties = {
     "MatrixNd" :  """    property %MEMBER%:
       def __get__ (self):
           vector_size = self.thisptr.%MEMBER%.size()
-          print "vector_size",  vector_size
           ST = [%TYPE%() for i in range(vector_size)]
           for k in range(vector_size):
             for i in range (self.thisptr.%MEMBER%[k].rows()):
@@ -126,7 +120,6 @@ type_properties = {
     "Matrix3d" :  """    property %MEMBER%:
       def __get__ (self):
           vector_size = self.thisptr.%MEMBER%.size()
-          print "vector_size",  vector_size
           ST = [%TYPE%() for i in range(vector_size)]
           for k in range(vector_size):
             for i in range (self.thisptr.%MEMBER%[k].rows()):
@@ -139,7 +132,6 @@ type_properties = {
     "SpatialRigidBodyInertia" : """    property %MEMBER%:
         def __get__ (self):
             vector_size = self.thisptr.%MEMBER%.size()
-            print "vector_size",  vector_size
             ST = [%TYPE%() for i in range(vector_size)]
             for k in range(vector_size):
               ST[k].m = self.thisptr.%MEMBER%[k].m
@@ -157,7 +149,6 @@ type_properties = {
     "Body" : """    property %MEMBER%:
         def __get__ (self):
             vector_size = self.thisptr.%MEMBER%.size()
-            print "vector_size",  vector_size
             ST = [%TYPE%() for i in range(vector_size)]
             for k in range(vector_size):
               ST[k].mMass = self.thisptr.%MEMBER%[k].mMass
@@ -172,7 +163,6 @@ type_properties = {
     "FixedBody" : """    property %MEMBER%:
         def __get__ (self):
             vector_size = self.thisptr.%MEMBER%.size()
-            print "vector_size",  vector_size
             ST = [%TYPE%() for i in range(vector_size)]
             for k in range(vector_size):
               ST[k].mMass = self.thisptr.%MEMBER%[k].mMass
@@ -187,7 +177,6 @@ type_properties = {
     "Joint" : """    property %MEMBER%:
         def __get__ (self):
             vector_size = self.thisptr.%MEMBER%.size()
-            print "vector_size",  vector_size
             ST = [%TYPE%() for i in range(vector_size)]
             for k in range(vector_size):
               ST[k].mDoFCount = self.thisptr.%MEMBER%[k].mDoFCount
