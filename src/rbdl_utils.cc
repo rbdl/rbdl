@@ -36,7 +36,7 @@ string get_dof_name (const SpatialVector &joint_dof) {
     return "TZ";
 
   ostringstream dof_stream(ostringstream::out);
-  dof_stream << "custom (" << joint_dof.transpose() << ")";
+  dof_stream << "custom_axis (" << joint_dof.transpose() << ")";
   return dof_stream.str();
 }
 
