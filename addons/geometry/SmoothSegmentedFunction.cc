@@ -274,6 +274,63 @@ double SmoothSegmentedFunction::calcValue(double x) const
   return yVal;
 }
 
+
+double SmoothSegmentedFunction::calcInverseValue(double y,
+                                                 double xGuess) const
+{
+
+  double xVal = 0;
+
+  int idx = -1;
+  double yLeft  = 0.;
+  double yRight = 0;
+  double xLeft  = 0.;
+  double xRight = 0;
+  double xDist  = 0;
+  double xDistBest  = numeric_limits<double>::infinity();
+
+  for(unsigned int i=0; i < _numBezierSections; ++i){
+
+    yLeft = y - _mYVec[i][0];
+    yRight=     _mYVec[i][5] - y;
+
+    xLeft = xGuess - _mXVec[i][0];
+    xRight=        _mXVec[i][5] - xGuess;
+    xDist = fabs(xLeft)+fabs(xRight);
+
+    //If the y value is in the spline interval and the
+    //x interval is closer to the guess, update the interval
+    if(yLeft*yRight >= 0 && xDist < xDistBest){
+      idx = i;
+      xDistBest = xDist;
+    }
+
+  }
+
+  //y value is in the linear region
+  if(idx == -1){
+    if( (y-_y1)*_dydx1 >= 0
+        && fabs(_dydx1) > numeric_limits< double >::epsilon() ) {
+      xVal = (y-_y1)/_dydx1 + _x1;
+    }else if( (_y0-y)*_dydx0 >= 0
+       && fabs(_dydx0) > numeric_limits< double >::epsilon() ){
+      xVal = (y-_y0)/_dydx0 + _x0;
+    }else{
+      xVal = numeric_limits<double>::signaling_NaN();
+    }
+
+  }else{
+    //y is in an interval
+    double u = SegmentedQuinticBezierToolkit::
+         calcU(y,_mYVec[idx], UTOL, MAXITER);
+    xVal = SegmentedQuinticBezierToolkit::
+         calcQuinticBezierCurveVal(u,_mXVec[idx]);
+  }
+
+  return xVal;
+
+}
+
 double SmoothSegmentedFunction::calcValue(
     const RigidBodyDynamics::Math::VectorNd& ax) const
 {
@@ -525,15 +582,15 @@ void SmoothSegmentedFunction::setName(const std::string &name)
 RigidBodyDynamics::Math::VectorNd 
   SmoothSegmentedFunction::getCurveDomain() const
 {
-  RigidBodyDynamics::Math::VectorNd xrange(2);
+  RigidBodyDynamics::Math::VectorNd domain(2);
   
-  xrange[0] = 0; 
-  xrange[1] = 0; 
+  domain[0] = 0;
+  domain[1] = 0;
   if (!_mXVec.empty()) {
-    xrange[0] = _mXVec[0][0]; 
-    xrange[1] = _mXVec[_mXVec.size()-1][_mXVec[0].size()-1]; 
+    domain[0] = _mXVec[0][0];
+    domain[1] = _mXVec[_mXVec.size()-1][_mXVec[0].size()-1];
   }
-  return xrange;
+  return domain;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

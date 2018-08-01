@@ -9,6 +9,8 @@
 #define MUSCLE_H_
 
 #include "Millard2016TorqueMuscle.h"
-#include "MuscleFunctionFactory.h"
-#include "TorqueMuscleFunctionFactory.h"
+#ifdef RBDL_BUILD_ADDON_MUSCLE_FITTING
+  #include "TorqueMuscleFittingToolkit.h"
+#endif
+
 #endif
