@@ -477,6 +477,75 @@ TEST(ShiftScale)
   }
 
 }
+
+TEST(CalcFunctionInverseValue){
+
+  //1. Make a curve with multiple maxima
+  unsigned int n = 10;
+  RigidBodyDynamics::Math::VectorNd xV(n);
+  RigidBodyDynamics::Math::VectorNd yV(n);
+  RigidBodyDynamics::Math::VectorNd dydxV(n);
+  for(int i=0; i<xV.size();++i){
+    xV[i]      = i*2*M_PI/(xV.size()-1);
+    yV[i]      = sin(xV[i]);
+    dydxV[i]   = cos(xV[i]);
+  }
+  double c = 0.5;
+
+  unsigned int m =n-1;
+  RigidBodyDynamics::Math::MatrixNd mX(6,m), mY(6,m);
+  RigidBodyDynamics::Math::MatrixNd p0(6,2);
+
+  for(int i=0; i < m; ++i){
+    p0 = SegmentedQuinticBezierToolkit::
+          calcQuinticBezierCornerControlPoints(  xV[i],  yV[i],  dydxV[i],
+                                               xV[i+1],yV[i+1],dydxV[i+1],c);
+    mX.col(i)  = p0.col(0);
+    mY.col(i)  = p0.col(1);
+  }
+  SmoothSegmentedFunction curve = SmoothSegmentedFunction();
+  curve.updSmoothSegmentedFunction(       mX,     mY,
+                                        xV[0],   xV[n-1],
+                                        yV[0],   yV[n-1],
+                                     dydxV[0],dydxV[n-1],
+                                     "testCurve");
+
+   //Testing within the curve: make sure it returns an x value that
+   //evaluates to the desired y and that it is the correct x.
+   double xGuess = M_PI*0.25;
+   double y0     = sin(xGuess);
+   double x0     = curve.calcInverseValue(y0,xGuess);
+   double err    = curve.calcValue(x0)-y0;
+   CHECK( abs(err) < TOL_SMALL);
+   CHECK( abs(x0-xGuess) < 0.1);
+
+   //Testing within the curve: test the other x.
+   xGuess = M_PI*(0.25) + M_PI*(0.5);
+   y0     = sin(xGuess);
+   x0     = curve.calcInverseValue(y0,xGuess);
+   err    = curve.calcValue(x0)-y0;
+   CHECK( abs(err) < TOL_SMALL);
+   CHECK( abs(x0-xGuess) < 0.1);
+
+   //Test outside of the interval.
+   xGuess = -1.0;
+   y0     = dydxV[0]*xGuess;
+   x0     = curve.calcInverseValue(y0,xGuess);
+   err    = curve.calcValue(x0)-y0;
+   CHECK( abs(err) < TOL_SMALL);
+   CHECK( abs(x0-xGuess) < 0.1);
+
+   //Test outside of the interval.
+   xGuess = M_PI*2.0 + 1.0;
+   y0     = dydxV[n-1]*1.0;
+   x0     = curve.calcInverseValue(y0,xGuess);
+   err    = curve.calcValue(x0)-y0;
+   CHECK( abs(err) < TOL_SMALL);
+   CHECK( abs(x0-xGuess) < 0.1);
+
+
+}
+
 int main (int argc, char *argv[])
 {
     return UnitTest::RunAllTests ();
