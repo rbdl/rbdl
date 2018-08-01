@@ -63,6 +63,8 @@ OPTION (RBDL_BUILD_ADDON_LUAMODEL "Build the lua model reader" OFF)
 OPTION (RBDL_BUILD_PYTHON_WRAPPER "Build experimental python wrapper" OFF)
 OPTION (RBDL_BUILD_ADDON_GEOMETRY "Build the geometry library" OFF)
 OPTION (RBDL_BUILD_ADDON_MUSCLE "Build the muscle library" OFF)
+OPTION (RBDL_BUILD_ADDON_MUSCLE_FITTING "Build muscle library fitting functions (requires Ipopt)" OFF)
+
 
 # Addons
 IF (RBDL_BUILD_ADDON_URDFREADER)
@@ -79,6 +81,9 @@ ENDIF (RBDL_BUILD_ADDON_LUAMODEL)
 
 IF(RBDL_BUILD_ADDON_MUSCLE)
   SET(RBDL_BUILD_ADDON_GEOMETRY ON CACHE BOOL "Build the geometry library" FORCE)
+  IF (RBDL_BUILD_ADDON_MUSCLE_FITTING)
+    SET(CUSTOM_IPOPT_PATH "" CACHE PATH "Path to specific IPOPT Installation")
+  ENDIF (RBDL_BUILD_ADDON_MUSCLE_FITTING)
   ADD_SUBDIRECTORY ( addons/muscle )
   IF(RBDL_BUILD_TESTS)
   	ADD_SUBDIRECTORY ( addons/muscle/tests ) 

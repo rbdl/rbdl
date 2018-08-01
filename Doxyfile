@@ -674,6 +674,7 @@ INPUT                  = ./src \
                          addons/muscle/Millard2016TorqueMuscle.h \
                          addons/muscle/MuscleFunctionFactory.h \
                          addons/muscle/TorqueMuscleFunctionFactory.h \                         
+                         addons/muscle/TorqueMuscleFittingToolkit.h \                         
                          ./include/rbdl
 
 # This tag can be used to specify the character encoding of the source files 
@@ -1560,7 +1561,7 @@ INCLUDE_FILE_PATTERNS  =
 # undefined via #undef or recursively expanded use the := operator 
 # instead of the = operator.
 
-PREDEFINED             = 
+PREDEFINED             = RBDL_BUILD_ADDON_MUSCLE_FITTING
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 
