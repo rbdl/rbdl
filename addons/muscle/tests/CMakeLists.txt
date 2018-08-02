@@ -105,6 +105,20 @@ TARGET_LINK_LIBRARIES ( rbdl_muscle_tests
   ${RBDL_LIBRARY}
   ${IPOPT_LIBRARY}
   )
+
+FILE ( GLOB csvdata 
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.csv"
+  )
+
+INSTALL ( FILES ${csvdata} 
+  DESTINATION 
+  ${CMAKE_INSTALL_INCLUDEDIR}/rbdl/addons/muscle/tests
+  )
+INSTALL ( FILES ${csvdata} 
+  DESTINATION 
+  ${CMAKE_CURRENT_BINARY_DIR}
+  )
+
 ELSE (RBDL_BUILD_ADDON_MUSCLE_FITTING)
 TARGET_LINK_LIBRARIES ( rbdl_muscle_tests
   ${UNITTEST++_LIBRARY}
