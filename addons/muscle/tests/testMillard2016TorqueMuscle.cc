@@ -1220,7 +1220,7 @@ TEST(calcTorqueMuscleInfoFittingVariableCorrectnessTests){
 
 #ifdef RBDL_BUILD_ADDON_MUSCLE_FITTING
 
-TEST(fitScalingVariableTest){
+TEST(fittingEasyTest){
 
   double jointAngleOffset     = 0;
   double signOfJointAngle     = 1;
@@ -1373,6 +1373,67 @@ TEST(fitScalingVariableTest){
   CHECK(err < SQRTEPSILON);
 
 }
+
+TEST(fittingHardTest)
+{
+  std::vector< std::vector< double > > data;
+  std::string fileName("TorqueMuscleFittingToolkitHardTestCase_TimeQQDotTau.csv");
+  data = readMatrixFromFile(fileName, 0);
+
+  std::string name("hipExt");
+
+  SubjectInformation subjectInfo;
+    subjectInfo.gender          = GenderSet::Male;
+    subjectInfo.ageGroup        = AgeGroupSet::Young18To25;
+    subjectInfo.heightInMeters  =  1.732;
+    subjectInfo.massInKg        = 69.0;
+
+  double angleOffset = 0.;
+  double angleSign = -1;
+  double torqueSign = 1;
+
+  Millard2016TorqueMuscle hipExt(DataSet::Gymnast,
+                                 subjectInfo,
+                                 Gymnast::HipExtension,
+                                 angleOffset,
+                                 angleSign,
+                                 torqueSign,
+                                 name);
+
+  RigidBodyDynamics::Math::VectorNd q, qDot, tau;
+  q.resize(data.size());
+  qDot.resize(data.size());
+  tau.resize(data.size());
+
+  double tauMax = 0;
+  double omegaMax = 0;
+
+  for(unsigned int i=0; i<data.size();++i){
+    q[i]    = data[i][1];
+    qDot[i] = data[i][2];
+    tau[i]  = data[i][3];
+
+    if(fabs(qDot[i])>omegaMax){
+      omegaMax = fabs(qDot[i]);
+    }
+    if(fabs(tau[i])>tauMax){
+      tauMax = fabs(tau[i]);
+    }
+  }
+
+
+  double activationUB = 0.9;
+  double tpUB         = 0.75;
+  bool verbose = false;
+
+
+  TorqueMuscleParameterFittingData fittingData;
+  TorqueMuscleFittingToolkit::fitTorqueMuscleParameters(hipExt,q,qDot,tau,
+                                                        activationUB,tpUB,
+                                                        fittingData,verbose);
+  CHECK(fittingData.fittingConverged == true);
+}
+
 #endif
 
 

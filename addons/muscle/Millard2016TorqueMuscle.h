@@ -19,8 +19,7 @@ namespace RigidBodyDynamics {
       namespace Muscle{
         #ifdef RBDL_BUILD_ADDON_MUSCLE_FITTING
           class TorqueMuscleFittingToolkit;
-          class FitTorqueMuscleBlendingParameters;
-          class FitTorqueMuscleScalingParameters;
+          class FitTorqueMuscleParameters;
         #endif
 
         /**

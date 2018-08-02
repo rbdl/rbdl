@@ -61,11 +61,11 @@ std::vector<std::vector<double > > readMatrixFromFile(
             pos2 = line.find(",",pos1);
             //if this is the first time running this loop, count
             //the number of columns
-            if(pos2 != std::string::npos && row == 0)
+            if(pos2 >= 0 && pos2 < line.length() && row == 0)
                 matrixColNum++;
 
             pos1 = pos2+1;
-        }while(pos2 != std::string::npos);  
+        }while(pos2 >= 0 && pos2 < line.length());
 
         //Initial matrix sizing
         if(row == 0){
@@ -82,7 +82,7 @@ std::vector<std::vector<double > > readMatrixFromFile(
             pos2 = 0;          
             for(int i=0; i < matrixColNum; i++){
                 pos2 = line.find(",",pos1);
-                if(pos2 == std::string::npos)
+                if(pos2 < 0 && pos2 >= line.length())
                     pos2 = line.length();
                 entry = line.substr(pos1,pos2-pos1);
                 pos1 = pos2+1;

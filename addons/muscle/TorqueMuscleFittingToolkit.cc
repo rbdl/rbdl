@@ -44,6 +44,15 @@ void TorqueMuscleFittingToolkit::
   assert(activationUpperBound > 0 && activationUpperBound <= 1.0);
   assert(activationLowerBound >= 0 && activationLowerBound<activationUpperBound);
 
+  VectorNd jointTorqueSingleSided;
+  jointTorqueSingleSided.resize(jointTorque.size());
+  for(unsigned int i=0; i<jointTorque.size();++i){
+    if(tqMcl.getJointTorqueSign()*jointTorque[i] >= 0){
+      jointTorqueSingleSided[i] = jointTorque[i];
+    }else{
+      jointTorqueSingleSided[i] = 0.0;
+    }
+  }
 
   double tiso         = tqMcl.getMaximumActiveIsometricTorque();
   double omegaMax     = tqMcl.getMaximumConcentricJointAngularVelocity();
@@ -84,7 +93,7 @@ void TorqueMuscleFittingToolkit::
                   *tvOmegaMaxScale);
 
   tqMcl.calcTorqueMuscleDataFeatures(
-            jointTorque,jointAngle,jointAngularVelocity,
+            jointTorqueSingleSided,jointAngle,jointAngularVelocity,
             taLambda,tpLambda,tvLambda,
             taAngleScaling,taAngleAtOneNormTorque,tpOffset,omegaMax,
             tiso,tmf);
@@ -146,7 +155,7 @@ void TorqueMuscleFittingToolkit::
         = new FitTorqueMuscleParameters(
                           jointAngle,
                           jointAngularVelocity,
-                          jointTorque,
+                          jointTorqueSingleSided,
                           activationUpperBound,
                           passiveTorqueAngleMultiplierUpperBound,
                           taLambda,
@@ -159,6 +168,7 @@ void TorqueMuscleFittingToolkit::
     double solnTol = SQRTEPSILON;
     app->Options()->SetNumericValue("tol",solnTol);
     app->Options()->SetStringValue("mu_strategy","adaptive");
+
     if(!verbose){
       app->Options()->SetIntegerValue("print_level",0);
     }
@@ -202,7 +212,7 @@ void TorqueMuscleFittingToolkit::
           constraintError= fittingProblem->getConstraintError().norm();
 
           tqMcl.calcTorqueMuscleDataFeatures(
-                  jointTorque,jointAngle,jointAngularVelocity,
+                  jointTorqueSingleSided,jointAngle,jointAngularVelocity,
                   taLambda,tpLambda,tvLambda,
                   taAngleScaling,taAngleAtOneNormTorque,tpOffset,omegaMax,
                   tiso,tmf);
