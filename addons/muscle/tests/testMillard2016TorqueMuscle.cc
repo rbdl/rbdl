@@ -1380,7 +1380,7 @@ TEST(fittingHardTest)
   std::string fileName("TorqueMuscleFittingToolkitHardTestCase_TimeQQDotTau.csv");
   data = readMatrixFromFile(fileName, 0);
 
-  std::string name("hipExt");
+  std::string name("hardTest");
 
   SubjectInformation subjectInfo;
     subjectInfo.gender          = GenderSet::Male;
@@ -1389,12 +1389,12 @@ TEST(fittingHardTest)
     subjectInfo.massInKg        = 69.0;
 
   double angleOffset = 0.;
-  double angleSign = -1;
-  double torqueSign = 1;
+  double angleSign =  1;
+  double torqueSign =-1;
 
-  Millard2016TorqueMuscle hipExt(DataSet::Gymnast,
+  Millard2016TorqueMuscle kneeExt(DataSet::Gymnast,
                                  subjectInfo,
-                                 Gymnast::HipExtension,
+                                 Gymnast::KneeExtension,
                                  angleOffset,
                                  angleSign,
                                  torqueSign,
@@ -1428,7 +1428,7 @@ TEST(fittingHardTest)
 
 
   TorqueMuscleParameterFittingData fittingData;
-  TorqueMuscleFittingToolkit::fitTorqueMuscleParameters(hipExt,q,qDot,tau,
+  TorqueMuscleFittingToolkit::fitTorqueMuscleParameters(kneeExt,q,qDot,tau,
                                                         activationUB,tpUB,
                                                         fittingData,verbose);
   CHECK(fittingData.fittingConverged == true);

@@ -1183,6 +1183,15 @@ namespace RigidBodyDynamics {
                 double getJointAngleAtMaximumActiveIsometricTorque() const;
 
                 /**
+                  @return the width of the active torque angle curve.
+                          Note that this will return the angular width of
+                          the non-blended curve.
+                          Angle is in radians.
+
+                */
+                double getActiveTorqueAngleCurveWidth() const;
+
+                /**
                     @return the joint angle at which the normalized
                             passive-torque-angle curve reaches a value
                             of 1.0. If this curve never reaches a value
