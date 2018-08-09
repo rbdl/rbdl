@@ -304,6 +304,39 @@ FitTorqueMuscleParameters::
   mN = 5;
   mM = 3*jointTorque.rows();
 
+  double angleMin = std::numeric_limits< double >::max();
+  double omegaMin = std::numeric_limits< double >::max();
+  double angleMax = -std::numeric_limits< double >::max();
+  double omegaMax = -std::numeric_limits< double >::max();
+  double tauMax   = 0;
+
+  for(unsigned int i=0; i<mJointAngle.rows();++i){
+    if(mJointAngle[i] < angleMin){
+      angleMin = mJointAngle[i];
+    }
+    if(mJointAngle[i] > angleMax){
+      angleMax = mJointAngle[i];
+    }
+    if(mJointAngularVelocity[i] < omegaMin){
+      omegaMin = mJointAngularVelocity[i];
+    }
+    if(mJointAngularVelocity[i] > omegaMax){
+      omegaMax = mJointAngularVelocity[i];
+    }
+    if(mJointTorque[i]*mTqMcl.getJointTorqueSign() > tauMax){
+      tauMax = mJointTorque[i]*mTqMcl.getJointTorqueSign();
+    }
+  }
+
+  double tvScale = max(fabs(omegaMin),fabs(omegaMax))
+                   /mTqMcl.getMaximumConcentricJointAngularVelocity();
+  double taScale = fabs(angleMax-angleMin)
+                   /mTqMcl.getActiveTorqueAngleCurveWidth();
+
+  double tauScale = tauMax/mTqMcl.getMaximumActiveIsometricTorque();
+
+
+
 
   mConIdxTauActMaxStart  = 0;
   mConIdxTauActMaxEnd    = jointTorque.rows()-1;
@@ -321,11 +354,12 @@ FitTorqueMuscleParameters::
   mTaAngleAtOneNormTorque = mTqMcl.mAngleAtOneNormActiveTorque;
   mOmegaMax               = mTqMcl.mOmegaMax;
 
-  mTaAngleScaleStart    = mTqMcl.getActiveTorqueAngleCurveAngleScaling();
-  mTvOmegaMaxScaleStart = 1.0;
+  mTaAngleScaleStart    = max(taScale,
+                              mTqMcl.getActiveTorqueAngleCurveAngleScaling());
+  mTvOmegaMaxScaleStart = max(tvScale, 1.);
   mTpLambdaStart        = mTqMcl.getPassiveTorqueAngleCurveBlendingVariable();
   mTpAngleOffsetStart   = mTqMcl.getPassiveCurveAngleOffset();
-  mTauScalingStart      = 1.0;
+  mTauScalingStart      = max(tauScale, 1.);
 
   mTaAngleScaleLB     = 1.;
   mTvOmegaMaxScaleLB  = 1.;
@@ -355,11 +389,11 @@ FitTorqueMuscleParameters::
   }
 
   mXOffset.resize(mN);
-  mXOffset[0]         = mTaAngleScaleStart;
-  mXOffset[1]         = mTvOmegaMaxScaleStart;
-  mXOffset[2]         = mTpLambdaStart;
-  mXOffset[3]         = mTpAngleOffsetStart;
-  mXOffset[4]         = mTauScalingStart;
+  mXOffset[0]         = mTqMcl.getActiveTorqueAngleCurveAngleScaling();
+  mXOffset[1]         = 1.0;
+  mXOffset[2]         = mTqMcl.getPassiveTorqueAngleCurveBlendingVariable();
+  mXOffset[3]         = mTqMcl.getPassiveCurveAngleOffset();
+  mXOffset[4]         = 1.0;
 
   for(unsigned int i=0; i< mM; ++i){
     mConstraintErrors[i] = 0.;

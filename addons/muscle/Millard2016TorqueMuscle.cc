@@ -883,6 +883,24 @@ double Millard2016TorqueMuscle::
 }
 
 double Millard2016TorqueMuscle::
+    getActiveTorqueAngleCurveWidth() const
+{
+  if(mMuscleCurvesAreDirty){
+    Millard2016TorqueMuscle* mutableThis =
+        const_cast<Millard2016TorqueMuscle* >(this);
+    mutableThis->updateTorqueMuscleCurves();
+  }
+  VectorNd domain = mTaCurve.getCurveDomain();
+  double activeTorqueAngleAngleScaling
+            = getActiveTorqueAngleCurveAngleScaling();
+  double width = fabs(domain[1]-domain[0])/activeTorqueAngleAngleScaling;
+
+  return width;
+
+}
+
+
+double Millard2016TorqueMuscle::
     getJointAngleAtOneNormalizedPassiveIsometricTorque() const
 {
   if(mMuscleCurvesAreDirty){
