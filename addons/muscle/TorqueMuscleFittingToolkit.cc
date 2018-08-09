@@ -329,11 +329,11 @@ FitTorqueMuscleParameters::
   }
 
   double tvScale = max(fabs(omegaMin),fabs(omegaMax))
-                   /mTqMcl.getMaximumConcentricJointAngularVelocity();
+                   /fabs(mTqMcl.getMaximumConcentricJointAngularVelocity());
   double taScale = fabs(angleMax-angleMin)
                    /mTqMcl.getActiveTorqueAngleCurveWidth();
 
-  double tauScale = tauMax/mTqMcl.getMaximumActiveIsometricTorque();
+  double tauScale = tauMax/fabs(mTqMcl.getMaximumActiveIsometricTorque());
 
 
 
