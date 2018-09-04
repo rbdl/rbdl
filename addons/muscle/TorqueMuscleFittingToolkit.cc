@@ -92,61 +92,14 @@ void TorqueMuscleFittingToolkit::
   omegaMax = fabs(tqMcl.getMaximumConcentricJointAngularVelocity()
                   *tvOmegaMaxScale);
 
+  //If the optimization run fails, the values from tmf are passed out to
+  //the user to help them debug the problem.
   tqMcl.calcTorqueMuscleDataFeatures(
             jointTorqueSingleSided,jointAngle,jointAngularVelocity,
             taLambda,tpLambda,tvLambda,
             taAngleScaling,taAngleAtOneNormTorque,tpOffset,omegaMax,
             tiso,tmf);
 
-  //Form the SQP and solve it
-  //If the muscle is not active, fit just the passive parameter
-  if(tmf.isInactive==true){
-    double tpMax = tmf.summaryAtMaxPassiveTorqueAngleMultiplier
-                      .fiberPassiveTorqueAngleMultiplier;
-    double k = tmf.indexOfMaxPassiveTorqueAngleMultiplier;
-
-    if( tpMax > passiveTorqueAngleMultiplierUpperBound){
-      double currentFiberAngle = tqMcl.calcFiberAngleGivenNormalizedPassiveTorque(
-                                  passiveTorqueAngleMultiplierUpperBound,
-                                  tpLambda,
-                                  tpOffset); //0.);
-      tpOffset =  tqMcl.calcFiberAngle(jointAngle[k]) - currentFiberAngle;
-    }
-
-    parametersOfBestFit.isTorqueMuscleActive = !(tmf.isInactive);
-    parametersOfBestFit.fittingConverged = false;
-
-    parametersOfBestFit.indexAtMaximumActivation
-        =numeric_limits<unsigned int>::signaling_NaN();
-    parametersOfBestFit.indexAtMinimumActivation
-        =numeric_limits<unsigned int>::signaling_NaN();
-    parametersOfBestFit.indexAtMaxPassiveTorqueAngleMultiplier
-        = tmf.indexOfMaxPassiveTorqueAngleMultiplier;
-
-    parametersOfBestFit.activeTorqueAngleBlendingVariable
-        = tqMcl.getActiveTorqueAngleCurveBlendingVariable();
-    parametersOfBestFit.passiveTorqueAngleBlendingVariable
-        = tqMcl.getPassiveTorqueAngleCurveBlendingVariable();
-    parametersOfBestFit.passiveTorqueAngleCurveOffset
-        = tpOffset;
-    parametersOfBestFit.torqueVelocityBlendingVariable
-        = tqMcl.getTorqueAngularVelocityCurveBlendingVariable();
-    parametersOfBestFit.maximumActiveIsometricTorque
-        = tqMcl.getMaximumActiveIsometricTorque();
-    parametersOfBestFit.activeTorqueAngleAngleScaling
-        = tqMcl.getActiveTorqueAngleCurveAngleScaling();
-    parametersOfBestFit.maximumAngularVelocity
-        = fabs(tqMcl.getMaximumConcentricJointAngularVelocity());
-    parametersOfBestFit.summaryDataAtMaximumActivation
-        =tmf.summaryAtMaxActivation;
-    parametersOfBestFit.summaryDataAtMinimumActivation
-        =tmf.summaryAtMinActivation;
-    parametersOfBestFit.summaryDataAtMaximumPassiveTorqueAngleMultiplier
-        =tmf.summaryAtMaxPassiveTorqueAngleMultiplier;
-  }
-
-  //If the muscle is active, fit both the active/passive parameters
-  if(tmf.isInactive==false){
 
     Millard2016TorqueMuscle* mutableTqMcl =
         const_cast<Millard2016TorqueMuscle* >(&tqMcl);
@@ -277,7 +230,6 @@ void TorqueMuscleFittingToolkit::
             =tmf.summaryAtMaxPassiveTorqueAngleMultiplier;
     }
 
-  }
 }
 
 
