@@ -1,4 +1,4 @@
-FIND_PROGRAM ( PYTHON "python" )
+FIND_PROGRAM ( PYTHON "python2" )
 
 SET (Python_ADDITIONAL_VERSIONS 2.7)
 
@@ -61,6 +61,7 @@ INCLUDE_DIRECTORIES (
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/python
   ${PROJECT_SOURCE_DIR}
+  /usr/lib/python2.7/site-packages/numpy/core/include
   )
   
 IF (RBDL_BUILD_ADDON_MUSCLE_FITTING)
