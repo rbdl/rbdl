@@ -20,6 +20,7 @@ extra_params['include_dirs'] = [
     '@CMAKE_CURRENT_SOURCE_DIR@',
     '@RBDL_SOURCE_DIR@/include',
     '@RBDL_BINARY_DIR@/include',
+    '@PROJECT_SOURCE_DIR@',
     '/usr/include/eigen3/'
 ]
 
@@ -49,7 +50,6 @@ setup(
     author='Martin Felis',
     author_email='martin@fysx.org',
     description='Python wrapper for RBDL - the Rigid Body Dynamics Library',
-    install_requires=['numpy', "cython"],
     license='zlib',
     version='${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}',
     url='http://rbdl.bitbucket.org/',
