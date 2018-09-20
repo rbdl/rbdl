@@ -20,6 +20,7 @@ extra_params['include_dirs'] = [
     '@CMAKE_CURRENT_SOURCE_DIR@',
     '@RBDL_SOURCE_DIR@/include',
     '@RBDL_BINARY_DIR@/include',
+    '@PROJECT_SOURCE_DIR@',
     '/usr/include/eigen3/'
 ]
 
