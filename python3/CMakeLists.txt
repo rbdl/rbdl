@@ -3,7 +3,6 @@ FIND_PROGRAM ( PYTHON "python3" )
 SET (Python_ADDITIONAL_VERSIONS 3.7)
 
 INCLUDE ( UseCython )
-
 INCLUDE ( FindNumPy3 )
 
 MESSAGE(${PYTHON_NUMPY_3_INCLUDE_DIR})
@@ -18,7 +17,7 @@ CONFIGURE_FILE (
 # Process the rbdl-wrapper.pyx to generate rbdl.pyx BEFORE build time
 # else cython_add_module will complain on configuration
 EXECUTE_PROCESS (
-  COMMAND ${PYTHON} 
+  COMMAND python3
   ${CMAKE_CURRENT_SOURCE_DIR}/wrappergen.py
   ${CMAKE_CURRENT_SOURCE_DIR}/rbdl-wrapper.pyx
   ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx
@@ -46,14 +45,14 @@ set_source_files_properties( ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx
 #      from CMAKE_CURRENT_BINARY_DIR
 cython_add_module( rbdl-python3 ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx )
 
-#SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES PREFIX "")
+#SET_TARGET_PROPERTIES ( rbdl-python3 PROPERTIES PREFIX "")
 SET_TARGET_PROPERTIES ( rbdl-python3 PROPERTIES OUTPUT_NAME "rbdl")
 
 INCLUDE_DIRECTORIES (
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/python3
   ${PROJECT_SOURCE_DIR}
-  ${PYTHON_NUMPY_INCLUDE_DIR}
+  ${PYTHON_NUMPY_3_INCLUDE_DIR}
   )
 
 TARGET_LINK_LIBRARIES (rbdl-python3 rbdl )
@@ -66,6 +65,4 @@ IF (RBDL_BUILD_ADDON_URDFREADER)
   TARGET_LINK_LIBRARIES (rbdl-python3 rbdl_urdfreader )
 ENDIF()
 
-INSTALL ( TARGETS rbdl-python3
-    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/python3.7/site-packages/
-)
+INSTALL ( CODE "EXECUTE_PROCESS(WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND python3 setup.py install)")
