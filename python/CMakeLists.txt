@@ -17,7 +17,7 @@ CONFIGURE_FILE (
 # Process the rbdl-wrapper.pyx to generate rbdl.pyx BEFORE build time
 # else cython_add_module will complain on configuration
 EXECUTE_PROCESS ( 
-  COMMAND ${PYTHON} 
+  COMMAND python2 
   ${CMAKE_CURRENT_SOURCE_DIR}/wrappergen.py
   ${CMAKE_CURRENT_SOURCE_DIR}/rbdl-wrapper.pyx 
   ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx
