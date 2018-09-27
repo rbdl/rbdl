@@ -6,6 +6,7 @@ INCLUDE ( UseCython )
 INCLUDE ( FindNumPy3 )
 
 MESSAGE(${PYTHON_NUMPY_3_INCLUDE_DIR})
+SET (CYTHON_FLAGS -3)
 
 FILE( COPY "crbdl.pxd" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -37,16 +38,15 @@ else()
 endif()
 
 # If the pyx file is a C++ file, we should specify that here.
-set_source_files_properties( ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx
-  PROPERTIES CYTHON_IS_CXX TRUE )
+set_source_files_properties( ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx PROPERTIES CYTHON_IS_CXX TRUE )
 
 # Multi-file cython modules do not appear to be working at the moment.
 # NOTE there is some directory property problem in UseCython when build
 #      from CMAKE_CURRENT_BINARY_DIR
-cython_add_module( rbdl-python3 ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx )
+cython_add_module( rbdl-python ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx)
 
-#SET_TARGET_PROPERTIES ( rbdl-python3 PROPERTIES PREFIX "")
-SET_TARGET_PROPERTIES ( rbdl-python3 PROPERTIES OUTPUT_NAME "rbdl")
+#SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES PREFIX "")
+SET_TARGET_PROPERTIES ( rbdl-python PROPERTIES OUTPUT_NAME "rbdl")
 
 INCLUDE_DIRECTORIES (
   ${PROJECT_SOURCE_DIR}/include
@@ -55,14 +55,14 @@ INCLUDE_DIRECTORIES (
   ${PYTHON_NUMPY_3_INCLUDE_DIR}
   )
 
-TARGET_LINK_LIBRARIES (rbdl-python3 rbdl )
+TARGET_LINK_LIBRARIES (rbdl-python rbdl )
 
 IF (RBDL_BUILD_ADDON_LUAMODEL)
-  TARGET_LINK_LIBRARIES (rbdl-python3 rbdl_luamodel )
+  TARGET_LINK_LIBRARIES (rbdl-python rbdl_luamodel )
 ENDIF()
 
 IF (RBDL_BUILD_ADDON_URDFREADER)
-  TARGET_LINK_LIBRARIES (rbdl-python3 rbdl_urdfreader )
+  TARGET_LINK_LIBRARIES (rbdl-python rbdl_urdfreader )
 ENDIF()
 
 INSTALL ( CODE "EXECUTE_PROCESS(WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND python3 setup.py install)")
