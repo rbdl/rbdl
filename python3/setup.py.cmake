@@ -25,5 +25,6 @@ setup(
 	version='${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}',
 	url='http://rbdl.bitbucket.org/',
 	data_files = [(lib_path, ["rbdl.so"])],
+	package_dir = {'': 'lib'},
 )
 
