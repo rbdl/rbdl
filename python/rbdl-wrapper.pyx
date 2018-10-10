@@ -1,4 +1,4 @@
-#cython: boundscheck=False, embedsignature=True
+#cython: c_string_type=unicode, c_string_encoding=default, boundscheck=False, embedsignature=True 
 
 import numpy as np
 cimport numpy as np
