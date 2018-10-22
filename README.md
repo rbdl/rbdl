@@ -146,6 +146,14 @@ comes with a simple, albeit much slower math library (SimpleMath) that can
 be used by enabling `RBDL_USE_SIMPLE_MATH`, i.e.:
 
     cmake -D RBDL_USE_SIMPLE_MATH=TRUE ../
+    
+Python Bindings
+===============
+
+RBDL can also build an experimental python wrapper that works with python 3 and python 2. To do this enable the
+the `RBDL_BUILD_PYTHON_WRAPPER` cmake options. This will build the wrapper for python 3, if you want to use python 2 instead
+you will also have to enable the `RBDL_USE_PYTHON_2` cmake option. The result of this is an extra python directory in the build
+directory. From within which you can install it using setup.py. This is done automically when using `make install`
 
 Citation
 ========
