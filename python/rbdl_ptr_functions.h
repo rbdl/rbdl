@@ -1169,7 +1169,7 @@ RBDL_DLLAPI bool InverseKinematicsCSPtr (
         
       }
       else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionCoMXY){
-        Utils::CalcCenterOfMass (model, Qres, Qres, mass, point_base, NULL, NULL, false);
+        Utils::CalcCenterOfMass (model, Qres, Qres, NULL, mass, point_base, NULL, NULL, NULL, NULL, false);
         CalcPointJacobian6D (model, Qres, CS.body_ids[k], point_base, CS.G, false);
       
         for (unsigned int i = 0; i < 2; i++){
@@ -1280,6 +1280,98 @@ RBDL_DLLAPI void ForwardDynamicsConstraintsDirectPtr (
 }
 
 
+
+RBDL_DLLAPI void CalcCenterOfMass (
+  Model &model,
+  const double *q_ptr,
+  const double *qdot_ptr,
+  const double *qddot_ptr,
+  double &mass,
+  Math::Vector3d &com,
+  Math::Vector3d *com_velocity,
+  Math::Vector3d *com_acceleration, 
+  Math::Vector3d *angular_momentum,
+  Math::Vector3d *change_of_angular_momentum,
+  bool update_kinematics) {
+    
+  using namespace RigidBodyDynamics::Math;	
+  
+  
+    
+  VectorNdRef&& q     = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+	VectorNdRef&& qdot  = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
+	VectorNdRef&& qddot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
+    
+  // If we want to compute com_acceleration or change of angular momentum
+  // we must have qddot provided.
+  assert( (com_acceleration == NULL && change_of_angular_momentum == NULL) 
+      || (qddot_ptr != NULL) );
+
+  if (update_kinematics)
+    UpdateKinematicsCustomPtr (model, q_ptr, qdot_ptr, qddot_ptr);
+
+  for (size_t i = 1; i < model.mBodies.size(); i++) {
+    model.Ic[i] = model.I[i];
+    model.hc[i] = model.Ic[i].toMatrix() * model.v[i];
+    model.hdotc[i] = model.Ic[i] * model.a[i] + crossf(model.v[i], model.Ic[i] * model.v[i]);
+  }
+
+  if (qddot_ptr && (com_acceleration || change_of_angular_momentum)) {
+    for (size_t i = 1; i < model.mBodies.size(); i++) {
+      model.hdotc[i] = model.Ic[i] * model.a[i] + crossf(model.v[i], model.Ic[i] * model.v[i]);
+    }
+  }
+
+  SpatialRigidBodyInertia Itot (0., Vector3d (0., 0., 0.), Matrix3d::Zero(3,3));
+  SpatialVector htot (SpatialVector::Zero(6));
+  SpatialVector hdot_tot (SpatialVector::Zero(6));
+
+  for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
+    unsigned int lambda = model.lambda[i];
+
+    if (lambda != 0) {
+      model.Ic[lambda] = model.Ic[lambda] + model.X_lambda[i].applyTranspose (model.Ic[i]);
+      model.hc[lambda] = model.hc[lambda] + model.X_lambda[i].applyTranspose (model.hc[i]);
+    } else {
+      Itot = Itot + model.X_lambda[i].applyTranspose (model.Ic[i]);
+      htot = htot + model.X_lambda[i].applyTranspose (model.hc[i]);
+    }
+  }
+
+  if (qddot_ptr && (com_acceleration || change_of_angular_momentum)) {
+    for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
+      unsigned int lambda = model.lambda[i];
+
+      if (lambda != 0) {
+        model.hdotc[lambda] = model.hdotc[lambda] + model.X_lambda[i].applyTranspose (model.hdotc[i]);
+      } else {
+        hdot_tot = hdot_tot + model.X_lambda[i].applyTranspose (model.hdotc[i]);
+      }
+    }
+  }
+
+  mass = Itot.m;
+  com = Itot.h / mass;
+  LOG << "mass = " << mass << " com = " << com.transpose() << " htot = " << htot.transpose() << std::endl;
+
+  if (com_velocity) {
+    *com_velocity = Vector3d (htot[3] / mass, htot[4] / mass, htot[5] / mass);
+  }
+
+  if (angular_momentum) {
+    htot = Xtrans (com).applyAdjoint (htot);
+    angular_momentum->set (htot[0], htot[1], htot[2]);
+  }
+
+  if (com_acceleration) {
+    *com_acceleration = Vector3d (hdot_tot[3] / mass, hdot_tot[4] / mass, hdot_tot[5] / mass);
+  }
+
+  if (change_of_angular_momentum) {
+    hdot_tot = Xtrans (com).applyAdjoint (hdot_tot);
+    change_of_angular_momentum->set (hdot_tot[0], hdot_tot[1], hdot_tot[2]);
+  }
+}
 
 }
 

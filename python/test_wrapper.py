@@ -25,6 +25,7 @@ class JointTests (unittest.TestCase):
         assert_equal (joint_rot_x_type.mDoFCount, 1)
 
     def test_JointConstructorAxes6DoF(self):
+
         axis = np.asarray([
             [1., 0., 0., 0., 0., 0.],
             [0., 1., 0., 0., 0., 0.],
@@ -49,6 +50,7 @@ class SampleModel3R (unittest.TestCase):
     - all "links" are 1 unit length
     """
     def setUp(self):
+      
         self.model = rbdl.Model()
         joint_rot_y = rbdl.Joint.fromJointType (rbdl.PJointType.PJointTypeRevoluteY)
         self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), np.eye(3) *
@@ -108,7 +110,6 @@ class SampleModel3R (unittest.TestCase):
         """ Tests calculation of center of mass
         TODO: add checks for angular momentum
         """
-
         com = np.array ([-1., -1., -1.])
         com_vel = np.array([-2., -2., -2.])
         ang_mom = np.array([-3., -3., -3.])
@@ -118,11 +119,9 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
-                None,
-                com,
-                None,
-                None 
+                com
                 )
+                
         self.assertEqual (3, mass)
         assert_almost_equal (np.array([0., 0., 1.5]), com)
         assert_almost_equal (np.array([0., 0., 1.5]), com)
@@ -131,10 +130,9 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
-                None,
                 com,
-                com_vel,
-                None 
+                None,
+                com_vel
                 )
         self.assertEqual (3, mass)
         assert_almost_equal (np.array([0., 0., 1.5]), com)
@@ -144,10 +142,12 @@ class SampleModel3R (unittest.TestCase):
                 self.model,
                 self.q,
                 self.qdot,
-                None,
                 com,
+                None,
                 com_vel,
-                ang_mom
+                None,
+                ang_mom,
+                None
                 )
         self.assertEqual (3, mass)
         assert_almost_equal (np.array([0., 0., 1.5]), com)

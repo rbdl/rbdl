@@ -932,7 +932,7 @@ bool InverseKinematics (
         
       }
       else if (CS.constraint_type[k] == InverseKinematicsConstraintSet::ConstraintTypePositionCoMXY){
-        Utils::CalcCenterOfMass (model, Qres, Qres, mass, point_base, NULL, NULL, false);
+        Utils::CalcCenterOfMass (model, Qres, Qres, NULL, mass, point_base, NULL, NULL, NULL, NULL, false);
 		CalcPointJacobian6D (model, Qres, CS.body_ids[k], point_base, CS.G, false);
       
         for (unsigned int i = 0; i < 2; i++){

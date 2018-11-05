@@ -417,14 +417,17 @@ cdef extern from "<rbdl/Kinematics.h>" namespace "RigidBodyDynamics":
   
         
 
-cdef extern from "<rbdl/rbdl_utils.h>" namespace "RigidBodyDynamics::Utils":
+cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
     cdef void CalcCenterOfMass (Model& model,
-            const VectorNd &q,
-            const VectorNd &qdot,
+            const double* q_ptr,
+            const double* qdot_ptr,
+            const double* qddot_ptr,
             double &mass,
             Vector3d &com,
             Vector3d *com_velocity,
+            Vector3d *com_acceleration,
             Vector3d *angular_momentum,
+            Vector3d *change_of_angular_momentum,
             bool update_kinematics)
 
 cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
@@ -437,14 +440,6 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
                 const char* constraint_name,
                 double normal_acceleration)
 
-        unsigned int AddLoopConstraint (
-                unsigned int id_predecessor, 
-                unsigned int id_successor,
-                const SpatialTransform &X_predecessor,
-                const SpatialTransform &X_successor,
-                const SpatialVector &axis,
-                double T_stab_inv,
-                const char *constraint_name)
         
         unsigned int AddLoopConstraint (
                 unsigned int id_predecessor, 

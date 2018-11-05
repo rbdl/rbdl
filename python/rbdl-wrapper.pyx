@@ -1213,8 +1213,6 @@ cdef class CustomJoint:
 
         def __set__ (self, value):
            self.thisptr.u.resize(value.shape[0])
-           #vec = VectorNd.fromPythonArray (value)
-           #self.thisptr.e = <crbdl.VectorNd> (vec.thisptr[0]) 
            for i in range (value.shape[0]):
                     (&(self.thisptr.u[i]))[0] = value[i]   
     
@@ -1224,8 +1222,6 @@ cdef class CustomJoint:
 
         def __set__ (self, value):
            self.thisptr.d_u.resize(value.shape[0])
-           #vec = VectorNd.fromPythonArray (value)
-           #self.thisptr.e = <crbdl.VectorNd> (vec.thisptr[0]) 
            for i in range (value.shape[0]):
                     (&(self.thisptr.d_u[i]))[0] = value[i]   
                                       
@@ -1241,43 +1237,29 @@ cdef public api int cy_call_jcalc(object self, crbdl.Model *model,
       print "has jcalc", (hasattr(self, "jcalc"))
       if (hasattr(self, "jcalc")):
         error[0] = 0
-    #    qddot = np.zeros(model.dof_count)
-    #    print "c "
-    #    for i in range(3):
-    #      print model.X_J[joint_id].r[i]
-#        print "py1 "
-#        error[0] = 0
+        
         c_model = Model()
         del c_model.thisptr
         c_model.thisptr = model
-#      #  UpdateKinematics (c_model, VectorNdToNumpy(q), VectorNdToNumpy(qdot), qddot)
-#        print "after UppdateKinematics "
-        print c_model.gravity
-        print c_model.dof_count
-        print c_model.mFixedJointCount
-        dd = c_model.X_J
-        print dd[joint_id]
+#      # UpdateKinematics (c_model, VectorNdToNumpy(q), VectorNdToNumpy(qdot), qddot)
+#        print c_model.gravity
+#        print c_model.dof_count
+#        print c_model.mFixedJointCount
+#        dd = c_model.X_J
+#        print dd[joint_id]
         
-#        print "py2 " , c_model.X_J[joint_id], "ccccc "
-#        print c_model.mJoints[joint_id].q_index
-#        print c_model.thisptr.mJoints[joint_id].q_index
-#        for i in range(3):
-#          print c_model.thisptr.X_J[joint_id].r[i]
-
-#        print pymodel.gravity
         
-        print "lambda_py", c_model.thisptr._lambda[0]
-        print "lambda_c", model._lambda[0]
+#        print "lambda_py", c_model.thisptr._lambda[0]
+#        print "lambda_c", model._lambda[0]
         
         self.jcalc(c_model, joint_id, VectorNdToNumpy (q), VectorNdToNumpy (qdot))
-        print "after jcalc"
-        print "lambda_py", c_model.thisptr._lambda[0]
-        print "lambda_c", model._lambda[0]
+#        print "after jcalc"
+#        print "lambda_py", c_model.thisptr._lambda[0]
+ #       print "lambda_c", model._lambda[0]
         
         c_model.thisptr = NULL
         del c_model
-        
-        
+      
       else:
         error[0] = 1
      
@@ -1363,7 +1345,7 @@ cdef class Model:
                 body_name
                 )
             
-#        unsigned int Model::AddBodyCustomJoint (
+#    unsigned int Model::AddBodyCustomJoint (
 #    const unsigned int parent_id,
 #    const Math::SpatialTransform &joint_frame,
 #    CustomJoint *custom_joint,
@@ -1567,32 +1549,7 @@ cdef class ConstraintSet:
                 c_world_normal,
                 constraint_name_ptr,
                 normal_acceleration
-                )
-
-    def AddLoopConstraint_BaumEn (self,
-            id_predecessor not None,
-            id_successor not None,
-            SpatialTransform X_predecessor not None,
-            SpatialTransform X_successor not None,
-            SpatialVector axis not None,
-            double T_stab_inv,
-            constraint_name = None):
-        cdef char* constraint_name_ptr
-
-        if constraint_name == None:
-            constraint_name_ptr = NULL
-        else:
-            constraint_name_ptr = constraint_name
-
-        return self.thisptr.AddLoopConstraint (
-            id_predecessor,
-            id_successor,
-            X_predecessor.thisptr[0],
-            X_successor.thisptr[0],
-            axis.thisptr[0],
-            T_stab_inv,
-            constraint_name_ptr)
-            
+                )            
             
     
     def AddLoopConstraint (self,
@@ -1601,8 +1558,8 @@ cdef class ConstraintSet:
             SpatialTransform X_predecessor not None,
             SpatialTransform X_successor not None,
             SpatialVector axis not None,
-            baumgarte_enabled,
-            double T_stab_inv,
+            baumgarte_enabled = False,
+            double T_stab_inv = 0.1,
             constraint_name = None):
         cdef char* constraint_name_ptr
 
@@ -2133,33 +2090,70 @@ def CalcCenterOfMass (Model model,
         np.ndarray[double, ndim=1, mode="c"] q,
         np.ndarray[double, ndim=1, mode="c"] qdot,
         np.ndarray[double, ndim=1, mode="c"] com,
+        np.ndarray[double, ndim=1, mode="c"] qddot = None,
         np.ndarray[double, ndim=1, mode="c"] com_velocity=None,
+        np.ndarray[double, ndim=1, mode="c"] com_acceleration=None,
         np.ndarray[double, ndim=1, mode="c"] angular_momentum=None,
+        np.ndarray[double, ndim=1, mode="c"] change_of_angular_momentum=None,
         update_kinematics=True):
     cdef double cmass
     cdef crbdl.Vector3d c_com = crbdl.Vector3d()
     cdef crbdl.Vector3d* c_com_vel_ptr # = crbdl.Vector3d()
+    cdef crbdl.Vector3d* c_com_acc_ptr
     cdef crbdl.Vector3d* c_ang_momentum_ptr # = crbdl.Vector3d()
+    cdef crbdl.Vector3d* c_change_ang_momentum_ptr
+    
+    #cdef crbdl.VectorNd* qddot_ptr
 
     c_com_vel_ptr = <crbdl.Vector3d*> NULL
+    c_com_acc_ptr = <crbdl.Vector3d*> NULL
     c_ang_momentum_ptr = <crbdl.Vector3d*> NULL
+    c_change_ang_momentum_ptr = <crbdl.Vector3d*> NULL
 
     if com_velocity is not None:
         c_com_vel_ptr = new crbdl.Vector3d()
 
     if angular_momentum is not None:
         c_ang_momentum_ptr = new crbdl.Vector3d()
-
+    
     cmass = 0.0
-    crbdl.CalcCenterOfMass (
+    
+    if qddot is not None:
+            
+      if com_acceleration is not None:
+        c_com_acc_ptr = new crbdl.Vector3d()
+      if change_of_angular_momentum is not None:
+        c_change_ang_momentum_ptr  = new crbdl.Vector3d()
+      
+      
+      crbdl.CalcCenterOfMass (
             model.thisptr[0],
-            NumpyToVectorNd (q),
-            NumpyToVectorNd (qdot),
+            <double*> q.data,
+            <double*> qdot.data,
+            <double*> qddot.data,
             cmass,
             c_com,
             c_com_vel_ptr,
+            c_com_acc_ptr,
             c_ang_momentum_ptr,
+            c_change_ang_momentum_ptr,
             update_kinematics)
+      
+    else:
+
+      crbdl.CalcCenterOfMass (
+              model.thisptr[0],
+              <double*> q.data,
+              <double*> qdot.data,
+              NULL,
+              cmass,
+              c_com,
+              c_com_vel_ptr,
+              c_com_acc_ptr,
+              c_ang_momentum_ptr,
+              c_change_ang_momentum_ptr,
+              update_kinematics)
+              
 
     com[0] = c_com[0]
     com[1] = c_com[1]
@@ -2176,8 +2170,21 @@ def CalcCenterOfMass (Model model,
         angular_momentum[1] = c_ang_momentum_ptr.data()[1]
         angular_momentum[2] = c_ang_momentum_ptr.data()[2]
         del c_ang_momentum_ptr
+    
+    if qddot and com_acceleration is not None:
+        com_acceleration[0] = c_com_acc_ptr.data()[0]
+        com_acceleration[1] = c_com_acc_ptr.data()[1]
+        com_acceleration[2] = c_com_acc_ptr.data()[2]
+        del c_com_acc_ptr
+    
+    if qddot and change_of_angular_momentum is not None:
+        change_of_angular_momentum[0] = c_change_ang_momentum_ptr.data()[0]
+        change_of_angular_momentum[1] = c_change_ang_momentum_ptr.data()[1]
+        change_of_angular_momentum[2] = c_change_ang_momentum_ptr.data()[2]
+        del c_change_ang_momentum_ptr
 
     return cmass
+    
 
 ##############################
 #

@@ -266,6 +266,18 @@ cdef class TorqueMuscleSummary:
         else:
             self.free_on_dealloc = False
             self.thisptr = <crbdlmuscle.TorqueMuscleSummary*>address
+        
+    property fiberAngle:
+        def __get__ (self):
+            return self.thisptr.fiberAngle
+        def __set__ (self, value):
+            self.thisptr.fiberAngle = value
+    
+    property fiberAngularVelocity:
+        def __get__ (self):
+            return self.thisptr.fiberAngularVelocity
+        def __set__ (self, value):
+            self.thisptr.fiberAngularVelocity = value
     
     property activation:
         def __get__ (self):
@@ -285,11 +297,11 @@ cdef class TorqueMuscleSummary:
         def __set__ (self, value):
             self.thisptr.fiberActiveTorqueAngleMultiplier = value
     
-    property fiberActiveTorqueAngularVelocityMultiplier:
+    property fiberTorqueAngularVelocityMultiplier:
         def __get__ (self):
-            return self.thisptr.fiberActiveTorqueAngularVelocityMultiplier
+            return self.thisptr.fiberTorqueAngularVelocityMultiplier
         def __set__ (self, value):
-            self.thisptr.fiberActiveTorqueAngularVelocityMultiplier = value
+            self.thisptr.fiberTorqueAngularVelocityMultiplier = value
     
     property fiberNormalizedDampingTorque:
         def __get__ (self):
@@ -360,18 +372,42 @@ cdef class TorqueMuscleInfo:
             return self.thisptr.fiberPassiveTorqueAngleMultiplier
         def __set__ (self, value):
             self.thisptr.fiberPassiveTorqueAngleMultiplier = value
+    
+    property DfiberPassiveTorqueAngleMultiplier_DblendingVariable:
+        def __get__ (self):
+            return self.thisptr.DfiberPassiveTorqueAngleMultiplier_DblendingVariable
+        def __set__ (self, value):
+            self.thisptr.DfiberPassiveTorqueAngleMultiplier_DblendingVariable = value
+    
+    property DfiberPassiveTorqueAngleMultiplier_DangleOffset:
+        def __get__ (self):
+            return self.thisptr.DfiberPassiveTorqueAngleMultiplier_DangleOffset
+        def __set__ (self, value):
+            self.thisptr.DfiberPassiveTorqueAngleMultiplier_DangleOffset = value
             
     property fiberActiveTorqueAngleMultiplier:
         def __get__ (self):
             return self.thisptr.fiberActiveTorqueAngleMultiplier
         def __set__ (self, value):
             self.thisptr.fiberActiveTorqueAngleMultiplier = value
-            
-    property fiberActiveTorqueAngularVelocityMultiplier:
+    
+    property DfiberActiveTorqueAngleMultiplier_DblendingVariable:
         def __get__ (self):
-            return self.thisptr.fiberActiveTorqueAngularVelocityMultiplier
+            return self.thisptr.DfiberActiveTorqueAngleMultiplier_DblendingVariable
         def __set__ (self, value):
-            self.thisptr.fiberActiveTorqueAngularVelocityMultiplier = value
+            self.thisptr.DfiberActiveTorqueAngleMultiplier_DblendingVariable = value
+            
+    property fiberTorqueAngularVelocityMultiplier:
+        def __get__ (self):
+            return self.thisptr.fiberTorqueAngularVelocityMultiplier
+        def __set__ (self, value):
+            self.thisptr.fiberTorqueAngularVelocityMultiplier = value
+    
+    property DfiberTorqueAngularVelocityMultiplier_DblendingVariable:
+        def __get__ (self):
+            return self.thisptr.DfiberTorqueAngularVelocityMultiplier_DblendingVariable
+        def __set__ (self, value):
+            self.thisptr.DfiberTorqueAngularVelocityMultiplier_DblendingVariable = value
             
     property activation:
         def __get__ (self):
@@ -391,6 +427,12 @@ cdef class TorqueMuscleInfo:
             return self.thisptr.fiberPassiveTorque
         def __set__ (self, value):
             self.thisptr.fiberPassiveTorque = value
+    
+    property fiberPassiveElasticTorque:
+        def __get__ (self):
+            return self.thisptr.fiberPassiveElasticTorque
+        def __set__ (self, value):
+            self.thisptr.fiberPassiveElasticTorque = value
     
     property fiberDampingTorque:
         def __get__ (self):
@@ -453,25 +495,76 @@ cdef class TorqueMuscleInfo:
         def __set__ (self, value):
             self.thisptr.jointPower = value
             
-    property DjointTorqueDactivation:
+    property DjointTorque_Dactivation:
         def __get__ (self):
-            return self.thisptr.DjointTorqueDactivation
+            return self.thisptr.DjointTorque_Dactivation
         def __set__ (self, value):
-            self.thisptr.DjointTorqueDactivation = value
+            self.thisptr.DjointTorque_Dactivation = value
     
-    property DjointTorqueDjointAngle:
+    property DjointTorque_DjointAngle:
         def __get__ (self):
-            return self.thisptr.DjointTorqueDjointAngle
+            return self.thisptr.DjointTorque_DjointAngle
         def __set__ (self, value):
-            self.thisptr.DjointTorqueDjointAngle = value
+            self.thisptr.DjointTorque_DjointAngle = value
             
-    property DjointTorqueDjointAngularVelocity:
+    property DjointTorque_DjointAngularVelocity:
         def __get__ (self):
-            return self.thisptr.DjointTorqueDjointAngularVelocity
+            return self.thisptr.DjointTorque_DjointAngularVelocity
         def __set__ (self, value):
-            self.thisptr.DjointTorqueDjointAngularVelocity = value
+            self.thisptr.DjointTorque_DjointAngularVelocity = value
 
-                
+       
+    property DjointTorque_DactiveTorqueAngleBlendingVariable:
+        def __get__ (self):
+            return self.thisptr.DjointTorque_DactiveTorqueAngleBlendingVariable
+        def __set__ (self, value):
+            self.thisptr.DjointTorque_DactiveTorqueAngleBlendingVariable = value
+    
+    property DjointTorque_DpassiveTorqueAngleBlendingVariable:
+        def __get__ (self):
+            return self.thisptr.DjointTorque_DpassiveTorqueAngleBlendingVariable
+        def __set__ (self, value):
+            self.thisptr.DjointTorque_DpassiveTorqueAngleBlendingVariable = value
+            
+    property DjointTorque_DtorqueAngularVelocityBlendingVariable:
+        def __get__ (self):
+            return self.thisptr.DjointTorque_DtorqueAngularVelocityBlendingVariable
+        def __set__ (self, value):
+            self.thisptr.DjointTorque_DtorqueAngularVelocityBlendingVariable = value
+            
+    property DjointTorque_DmaximumIsometricTorque:
+        def __get__ (self):
+            return self.thisptr.DjointTorque_DmaximumIsometricTorque
+        def __set__ (self, value):
+            self.thisptr.DjointTorque_DmaximumIsometricTorque = value
+            
+    property DjointTorque_DpassiveTorqueAngleCurveAngleOffset:
+        def __get__ (self):
+            return self.thisptr.DjointTorque_DpassiveTorqueAngleCurveAngleOffset
+        def __set__ (self, value):
+            self.thisptr.DjointTorque_DpassiveTorqueAngleCurveAngleOffset = value
+            
+    property DjointTorque_DactiveTorqueAngleAngleScaling:
+        def __get__ (self):
+            return self.thisptr.DjointTorque_DactiveTorqueAngleAngleScaling
+        def __set__ (self, value):
+            self.thisptr.DjointTorque_DactiveTorqueAngleAngleScaling = value
+    
+    property DjointTorque_DmaximumAngularVelocity:
+        def __get__ (self):
+            return self.thisptr.DjointTorque_DmaximumAngularVelocity
+        def __set__ (self, value):
+            self.thisptr.DjointTorque_DmaximumAngularVelocity = value
+            
+    property fittingInfo:
+        def __get__ (self):
+           return VectorNdToNumpy(self.thisptr.fittingInfo)
+
+        def __set__ (self, value):
+           self.thisptr.fittingInfo.resize(value.shape[0])
+           for i in range (value.shape[0]):
+                    (&(self.thisptr.fittingInfo[i]))[0] = value[i]   
+            
    
 
 cdef class Millard2016TorqueMuscle:
@@ -538,6 +631,22 @@ cdef class Millard2016TorqueMuscle:
                                      tms.thisptr[0])
                                      
                                      
+#    def calcActivationfit(self, double jointAngle,
+#                                   double jointAngularVelocity,
+#                                   double jointTorque,
+#                                   TorqueMuscleSummary tms,
+#                                   double taLambdaIn,
+#                                   double tvLambdaIn,
+#                                   double tpLambdaIn,
+#                                   double maxActiveIsometricTorqueIn):
+#		self.thisptr.calcActivation( jointAngle,
+#                                     jointAngularVelocity,
+#                                     jointTorque,
+#                                     tms.thisptr[0]
+#                                     taLambdaIn,
+#                                     tvLambdaIn,
+#                                     tpLambdaIn,
+#                                     maxActiveIsometricTorqueIn)
                                                                       
 
     def calcMaimumActiveIsometricTorqueScalingFactor(self, double jointAngle,
@@ -574,6 +683,9 @@ cdef class Millard2016TorqueMuscle:
         
     def getJointAngleAtMaximumActiveIsometricTorque(self):
         return self.thisptr.getJointAngleAtMaximumActiveIsometricTorque()
+    
+    def getActiveTorqueAngleCurveWidth(self):
+        return self.thisptr.getActiveTorqueAngleCurveWidth()
     
     def getJointAngleAtOneNormalizedPassiveIsometricTorque(self):
         return self.thisptr.getJointAngleAtOneNormalizedPassiveIsometricTorque()
@@ -696,14 +808,342 @@ cdef class Millard2016TorqueMuscle:
         
     def setName(self,  string name):   
         self.thisptr.setName(name)
-       
-                                
+    
+    def setActiveTorqueAngleCurveBlendingVariable (self, blendingVariable):   
+        self.thisptr.setActiveTorqueAngleCurveBlendingVariable ( blendingVariable)
+        
+    def getActiveTorqueAngleCurveBlendingVariable(self):    
+        return self.thisptr.getActiveTorqueAngleCurveBlendingVariable ()
+        
+    def setPassiveTorqueAngleCurveBlendingVariable (self, blendingVariable):
+        self.thisptr.setPassiveTorqueAngleCurveBlendingVariable (blendingVariable)
+        
+    def getPassiveTorqueAngleCurveBlendingVariable(self):
+        return self.thisptr.getPassiveTorqueAngleCurveBlendingVariable ()
+        
+    def setTorqueAngularVelocityCurveBlendingVariable (self, blendingVariable):
+        self.thisptr.setTorqueAngularVelocityCurveBlendingVariable (blendingVariable)
+ 
+    def getTorqueAngularVelocityCurveBlendingVariable(self):
+        return self.thisptr.getTorqueAngularVelocityCurveBlendingVariable ()
+    
+    def getActiveTorqueAngleCurveAngleScaling(self):
+        return self.thisptr.getActiveTorqueAngleCurveAngleScaling ()
+
+    def setActiveTorqueAngleCurveAngleScaling(self, angleScaling):
+        self.thisptr.setActiveTorqueAngleCurveAngleScaling(angleScaling)
+    
+    def setFittedParameters (self, TorqueMuscleParameterFittingData fittedParameters):
+        self.thisptr.setFittedParameters (fittedParameters.thisptr[0])
+
+
+        
+    
+    
+#    def calcInverseBlendedCurveValue( self, 
+#                            blendedCurveValue,
+#                            argGuess,
+#                            blendingVariable,
+#                            maximumBlendingValue,
+#                            SmoothSegmentedFunction curve):
+#        return self.thisptr.calcInverseBlendedCurveValue( blendedCurveValue,
+#                            argGuess,
+#                            blendingVariable,
+#                            maximumBlendingValue,
+#                            curve.thisptr[0])
+    
+#    def calcBlendedCurveDerivative( self,
+#                            curveArgument,
+#                            blendingVariable,
+#                            maximumBlendingValue,
+#                            derivativeOrderArgument,
+#                            derivativeOrderBlendingVariable,
+#                            SmoothSegmentedFunction curve):
+#        return self.thisptr.calcBlendedCurveDerivative( curveArgument,
+#                            blendingVariable,
+#                            maximumBlendingValue,
+#                            derivativeOrderArgument,
+#                            derivativeOrderBlendingVariable,
+#                            curve.thisptr[0])
+    
+#    def calcFiberAngleGivenNormalizedPassiveTorque( self,
+#                    normPassiveFiberTorque,
+#                    blendingVariable,
+#                    passiveTorqueAngleCurveOffset):
+#        return self.thisptr.calcFiberAngleGivenNormalizedPassiveTorque(
+#                    normPassiveFiberTorque,
+#                    blendingVariable,
+#                    passiveTorqueAngleCurveOffset)
+    
+#    def updTorqueMuscleSummaryCurveValues( self,
+#                                  fiberAngle,
+#                                  normFiberAngularVelocity,
+#                                  activeTorqueAngleBlendingVariable,
+#                                  passiveTorqueAngleBlendingVariable,
+#                                  torqueAngularVelocityBlendingVariable,
+#                                  activeTorqueAngleAngleScaling,
+#                                  activeTorqueAngleAtOneNormTorque,
+#                                  passiveTorqueAngleCurveOffset,
+#                                  TorqueMuscleSummary updTms):
+#        self.thisptr.updTorqueMuscleSummaryCurveValues(fiberAngle,
+#                                  normFiberAngularVelocity,
+#                                  activeTorqueAngleBlendingVariable,
+#                                  passiveTorqueAngleBlendingVariable,
+#                                  torqueAngularVelocityBlendingVariable,
+#                                  activeTorqueAngleAngleScaling,
+#                                  activeTorqueAngleAtOneNormTorque,
+#                                  passiveTorqueAngleCurveOffset,
+#                                  updTms.thisptr[0])
+    
+#    def updTorqueMuscleInfo(      self,
+#                                  activation,
+#                                  jointAngle,
+#                                  jointAngularVelocity,
+#                                  activeTorqueAngleBlendingVariable,
+#                                  passiveTorqueAngleBlendingVariable,
+#                                  torqueAngularVelocityBlendingVariable,
+#                                  activeTorqueAngleAngleScaling,
+#                                  activeTorqueAngleAtOneNormTorque,
+#                                  passiveTorqueAngleCurveOffset,
+#                                  maxAngularVelocity,
+#                                  maxActIsoTorque,
+#                                  TorqueMuscleInfo updTmi):
+#        self.thisptr.updTorqueMuscleInfo(
+#                                  activation,
+#                                  jointAngle,
+#                                  jointAngularVelocity,
+#                                  activeTorqueAngleBlendingVariable,
+#                                  passiveTorqueAngleBlendingVariable,
+#                                  torqueAngularVelocityBlendingVariable,
+#                                  activeTorqueAngleAngleScaling,
+#                                  activeTorqueAngleAtOneNormTorque,
+#                                  passiveTorqueAngleCurveOffset,
+#                                  maxAngularVelocity,
+#                                  maxActIsoTorque,
+#                                  updTmi.thisptr[0])
+    
+#    def updTorqueMuscleSummary( self,
+#                              activation,
+#                              jointAngle,
+#                              jointAngularVelocity,
+#                              activeTorqueAngleBlendingVariable,
+#                              passiveTorqueAngleBlendingVariable,
+#                              torqueAngularVelocityBlendingVariable,
+#                              activeTorqueAngleAngleScaling,
+#                              activeTorqueAngleAtOneNormTorque,
+#                              passiveTorqueAngleCurveOffset,
+#                              maxAngularVelocity,
+#                              maxActIsoTorque,
+#                              TorqueMuscleSummary updTms):
+#        self.thisptr.updTorqueMuscleSummary( activation,
+#                              jointAngle,
+#                              jointAngularVelocity,
+#                              activeTorqueAngleBlendingVariable,
+#                              passiveTorqueAngleBlendingVariable,
+#                              torqueAngularVelocityBlendingVariable,
+#                              activeTorqueAngleAngleScaling,
+#                              activeTorqueAngleAtOneNormTorque,
+#                              passiveTorqueAngleCurveOffset,
+#                              maxAngularVelocity,
+#                              maxActIsoTorque,
+#                              updTms.thisptr[0])
+        
+#    def updInvertTorqueMuscleSummary(self, 
+#                                   jointTorque,
+#                                   jointAngle,
+#                                   jointAngularVelocity,
+#                                   activeTorqueAngleBlendingVariable,
+#                                   passiveTorqueAngleBlendingVariable,
+#                                   torqueAngularVelocityBlendingVariable,
+#                                   activeTorqueAngleAngleScaling,
+#                                   activeTorqueAngleAtOneNormTorque,
+#                                   passiveTorqueAngleCurveOffset,
+#                                   maxAngularVelocity,
+#                                   maxActIsoTorque,
+#                                   TorqueMuscleSummary updTms):
+#        self.thisptr.updInvertTorqueMuscleSummary(jointTorque,
+#                                   jointAngle,
+#                                   jointAngularVelocity,
+#                                   activeTorqueAngleBlendingVariable,
+#                                   passiveTorqueAngleBlendingVariable,
+#                                   torqueAngularVelocityBlendingVariable,
+#                                   activeTorqueAngleAngleScaling,
+#                                   activeTorqueAngleAtOneNormTorque,
+#                                   passiveTorqueAngleCurveOffset,
+#                                   maxAngularVelocity,
+#                                   maxActIsoTorque,
+#                                   updTms.thisptr[0])
+                                      
 
 
 
 
+cdef class TorqueMuscleParameterFittingData:
+    
+    
+    cdef crbdlmuscle.TorqueMuscleParameterFittingData *thisptr
+    cdef free_on_dealloc
 
-       
+    def __dealloc__(self):
+        if self.free_on_dealloc:
+            del self.thisptr
+
+
+    def __cinit__(self, uintptr_t address=0):
+        if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdlmuscle.TorqueMuscleParameterFittingData()
+            
+        else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdlmuscle.TorqueMuscleParameterFittingData*>address
+    
+    property indexAtMaximumActivation:
+        def __get__ (self):
+            return self.thisptr.indexAtMaximumActivation
+        def __set__ (self, value):
+            self.thisptr.indexAtMaximumActivation = value
+    
+    property indexAtMinimumActivation:
+        def __get__ (self):
+            return self.thisptr.indexAtMinimumActivation
+        def __set__ (self, value):
+            self.thisptr.indexAtMinimumActivation = value
+    
+    property indexAtMaxPassiveTorqueAngleMultiplier:
+        def __get__ (self):
+            return self.thisptr.indexAtMaxPassiveTorqueAngleMultiplier
+        def __set__ (self, value):
+            self.thisptr.indexAtMaxPassiveTorqueAngleMultiplier = value
+    
+    property isTorqueMuscleActive:
+        def __get__ (self):
+            return self.thisptr.isTorqueMuscleActive
+        def __set__ (self, value):
+            self.thisptr.isTorqueMuscleActive = value
+    
+    property activeTorqueAngleBlendingVariable:
+        def __get__ (self):
+            return self.thisptr.activeTorqueAngleBlendingVariable
+        def __set__ (self, value):
+            self.thisptr.activeTorqueAngleBlendingVariable = value
+    
+    property passiveTorqueAngleBlendingVariable:
+        def __get__ (self):
+            return self.thisptr.passiveTorqueAngleBlendingVariable
+        def __set__ (self, value):
+            self.thisptr.passiveTorqueAngleBlendingVariable = value
+    
+    property torqueVelocityBlendingVariable:
+        def __get__ (self):
+            return self.thisptr.torqueVelocityBlendingVariable
+        def __set__ (self, value):
+            self.thisptr.torqueVelocityBlendingVariable = value
+    
+    property passiveTorqueAngleCurveOffset:
+        def __get__ (self):
+            return self.thisptr.passiveTorqueAngleCurveOffset
+        def __set__ (self, value):
+            self.thisptr.passiveTorqueAngleCurveOffset = value
+    
+    property maximumActiveIsometricTorque:
+        def __get__ (self):
+            return self.thisptr.maximumActiveIsometricTorque
+        def __set__ (self, value):
+            self.thisptr.maximumActiveIsometricTorque = value
+    
+    property activeTorqueAngleAngleScaling:
+        def __get__ (self):
+            return self.thisptr.activeTorqueAngleAngleScaling
+        def __set__ (self, value):
+            self.thisptr.activeTorqueAngleAngleScaling = value
+
+    property maximumAngularVelocity:
+        def __get__ (self):
+            return self.thisptr.maximumAngularVelocity
+        def __set__ (self, value):
+            self.thisptr.maximumAngularVelocity = value
+
+    property fittingConverged:
+        def __get__ (self):
+            return self.thisptr.fittingConverged
+        def __set__ (self, value):
+            self.thisptr.fittingConverged = value
+
+
+    property summaryDataAtMinimumActivation:
+        def __get__ (self):
+            MS = TorqueMuscleSummary()
+            MS.fiberAngle = self.thisptr.summaryDataAtMinimumActivation.fiberAngle
+            MS.fiberAngularVelocity = self.thisptr.summaryDataAtMinimumActivation.fiberAngularVelocity
+            MS.activation = self.thisptr.summaryDataAtMinimumActivation.activation
+            MS.fiberPassiveTorqueAngleMultiplier = self.thisptr.summaryDataAtMinimumActivation.fiberPassiveTorqueAngleMultiplier
+            MS.fiberActiveTorqueAngleMultiplier = self.thisptr.summaryDataAtMinimumActivation.fiberActiveTorqueAngleMultiplier
+            MS.fiberTorqueAngularVelocityMultiplier = self.thisptr.summaryDataAtMinimumActivation.fiberTorqueAngularVelocityMultiplier
+            MS.fiberNormalizedDampingTorque = self.thisptr.summaryDataAtMinimumActivation.fiberNormalizedDampingTorque
+            MS.fiberTorque = self.thisptr.summaryDataAtMinimumActivation.fiberTorque
+            MS.jointTorque = self.thisptr.summaryDataAtMinimumActivation.jointTorque          
+              
+            return MS
+                
+        
+    
+    property summaryDataAtMaximumActivation:
+        def __get__ (self):
+            MS = TorqueMuscleSummary()
+            MS.fiberAngle = self.thisptr.summaryDataAtMaximumActivation.fiberAngle
+            MS.fiberAngularVelocity = self.thisptr.summaryDataAtMaximumActivation.fiberAngularVelocity
+            MS.activation = self.thisptr.summaryDataAtMaximumActivation.activation
+            MS.fiberPassiveTorqueAngleMultiplier = self.thisptr.summaryDataAtMaximumActivation.fiberPassiveTorqueAngleMultiplier
+            MS.fiberActiveTorqueAngleMultiplier = self.thisptr.summaryDataAtMaximumActivation.fiberActiveTorqueAngleMultiplier
+            MS.fiberTorqueAngularVelocityMultiplier = self.thisptr.summaryDataAtMaximumActivation.fiberTorqueAngularVelocityMultiplier
+            MS.fiberNormalizedDampingTorque = self.thisptr.summaryDataAtMaximumActivation.fiberNormalizedDampingTorque
+            MS.fiberTorque = self.thisptr.summaryDataAtMaximumActivation.fiberTorque
+            MS.jointTorque = self.thisptr.summaryDataAtMaximumActivation.jointTorque          
+              
+            return MS
+
+    property summaryDataAtMaximumPassiveTorqueAngleMultiplier:
+        def __get__ (self):
+            MS = TorqueMuscleSummary()
+            MS.fiberAngle = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.fiberAngle
+            MS.fiberAngularVelocity = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.fiberAngularVelocity
+            MS.activation = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.activation
+            MS.fiberPassiveTorqueAngleMultiplier = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.fiberPassiveTorqueAngleMultiplier
+            MS.fiberActiveTorqueAngleMultiplier = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.fiberActiveTorqueAngleMultiplier
+            MS.fiberTorqueAngularVelocityMultiplier = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.fiberTorqueAngularVelocityMultiplier
+            MS.fiberNormalizedDampingTorque = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.fiberNormalizedDampingTorque
+            MS.fiberTorque = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.fiberTorque
+            MS.jointTorque = self.thisptr.summaryDataAtMaximumPassiveTorqueAngleMultiplier.jointTorque          
+              
+            return MS
+
+
+
+cdef class TorqueMuscleFittingToolkit:
+    
+    
+    
+    def fitTorqueMuscleParameters( self,
+                    Millard2016TorqueMuscle tqMcl,
+                    np.ndarray[double, ndim=1, mode="c"] jointAngle,
+                    np.ndarray[double, ndim=1, mode="c"] jointAngularVelocity,
+                    np.ndarray[double, ndim=1, mode="c"] jointTorque,
+                    activationUpperBound,
+                    passiveTorqueAngleMultiplierUpperBound,
+                    TorqueMuscleParameterFittingData parametersOfBestFit,
+                    verbose=False):
+        crbdlmuscle.fitTorqueMuscleParameters(
+                    tqMcl.thisptr[0],
+                    NumpyToVectorNd(jointAngle),
+                    NumpyToVectorNd(jointAngularVelocity),
+                    NumpyToVectorNd(jointTorque),
+                    activationUpperBound,
+                    passiveTorqueAngleMultiplierUpperBound,
+                    parametersOfBestFit.thisptr[0],
+                    verbose)
+
+        
     
     
     

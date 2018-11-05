@@ -11,6 +11,7 @@ import numpy as np
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 
 muscle_addon = '@RBDL_BUILD_ADDON_MUSCLE@'
+muscle_fitting_addon = '@RBDL_BUILD_ADDON_MUSCLE_FITTING@'
 lua_addon = '@RBDL_BUILD_ADDON_LUAMODEL@'
 urdf_addon = '@RBDL_BUILD_ADDON_BENCHMARK@'
 
@@ -29,6 +30,9 @@ extra_params['include_dirs'] = [
     '@RBDL_SOURCE_DIR@/'
 ]
 
+if muscle_fitting_addon == 'ON':
+  extra_params['include_dirs'].append('@IPOPT_INCLUDE_DIR@/')
+
 extra_params['library_dirs'] = [
   '${CMAKE_CURRENT_BINARY_DIR}/../',
   '${CMAKE_INSTALL_PREFIX}/lib/',
@@ -43,6 +47,8 @@ extra_params['extra_compile_args'] = ["-O3", "-Wno-unused-variable", "-std=c++11
 extra_params['libraries'] = ['rbdl']
 if muscle_addon == 'ON':
   extra_params['libraries'] = extra_params['libraries'] + ['rbdl_geometry', 'rbdl_muscle']
+  if muscle_fitting_addon == 'ON':
+    extra_params['libraries'] = extra_params['libraries'] + ['@IPOPT_LIBRARY@']
 if lua_addon == 'ON':
   extra_params['libraries'] = extra_params['libraries'] + ['rbdl_luamodel']
 if urdf_addon == 'ON':
