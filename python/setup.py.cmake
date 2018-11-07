@@ -30,8 +30,6 @@ extra_params['include_dirs'] = [
     '@RBDL_SOURCE_DIR@/'
 ]
 
-if muscle_fitting_addon == 'ON':
-  extra_params['include_dirs'].append('@IPOPT_INCLUDE_DIR@/')
 
 extra_params['library_dirs'] = [
   '${CMAKE_CURRENT_BINARY_DIR}/../',
@@ -39,6 +37,11 @@ extra_params['library_dirs'] = [
   '/usr/lib',
   BASEDIR
   ]
+
+
+if muscle_fitting_addon == 'ON':
+  extra_params['include_dirs'].append('@IPOPT_INCLUDE_DIR@/')
+  extra_params['library_dirs'].append('@IPOPT_INCLUDE_DIR@/../lib/')
 
 
 extra_params['language'] = 'c++'
