@@ -1,3 +1,11 @@
+3.1.3 -> 3.2.0 (05. May 2022)
+
+- Merging RBDL-ORB and RBDL \o/
+- Performance improvements of single DOF revolute joints around coordinate
+  axes.
+- Removed Model::X_J. All joints now have to compute X_lambda directly,
+  especially CustomJoints
+
 3.1.2 -> 3.1.3 (30. September 2021)
 - casadi math backend added tanh support
 
@@ -17,8 +25,8 @@
 - Python Wrapper has been updated to support python3 and python2 and the
   api has been extended to include the muscle addons functionality
 
-2.5.0 -> 2.6.0
 
+2.5.0 -> 2.6.0
 - Added support for closed-loop models by replacing Contacts API by a new
   Constraints API. Loop constraints can be stabilized using Baumgarte
   stabilization. Special thanks to Davide Corradi for this contribution!

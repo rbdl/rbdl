@@ -183,8 +183,6 @@ TEST_CASE_METHOD(ModelFixture,
       0., 0., 1., 0., 0., 0.
       );
 
-  CHECK (SpatialMatrixCompareEpsilon (test_matrix,
-                                      model->X_J[1].toMatrix(), 1.0e-16));
   CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
   CHECK (test_joint_axis == model->S[1]);
 
@@ -202,8 +200,6 @@ TEST_CASE_METHOD(ModelFixture,
       0.,  0.,  0.,  0.,  0.,  1.
       );
 
-  CHECK (SpatialMatrixCompareEpsilon (test_matrix,
-                                      model->X_J[1].toMatrix(), 1.0e-16));
   CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
   CHECK (test_joint_axis == model->S[1]);
 }
