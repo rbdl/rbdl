@@ -19,6 +19,7 @@
 #cmakedefine RBDL_BUILD_ADDON_URDFREADER
 #cmakedefine RBDL_BUILD_STATIC
 #cmakedefine RBDL_USE_ROS_URDF_LIBRARY
+#cmakedefine RBDL_BUILD_ADDON_MUSCLE_FITTING
 
 /* compatibility defines */
 #ifdef _WIN32
