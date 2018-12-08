@@ -37,8 +37,6 @@ RBDL_DLLAPI void UpdateKinematics(
 
     jcalc (model, i, Q, QDot);
 
-    model.X_lambda[i] = model.X_J[i] * model.X_T[i];
-
     if (lambda != 0) {
       model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
       model.v[i] = model.X_lambda[i].apply(model.v[lambda]) + model.v_J[i];
@@ -91,8 +89,6 @@ RBDL_DLLAPI void UpdateKinematicsCustom(
       VectorNd QDot_zero (VectorNd::Zero (model.q_size));
 
       jcalc (model, i, (*Q), QDot_zero);
-
-      model.X_lambda[i] = model.X_J[i] * model.X_T[i];
 
       if (lambda != 0) {
         model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];

@@ -73,7 +73,8 @@ struct CustomJointTypeRevoluteX : public CustomJoint {
                       const Math::VectorNd &q,
                       const Math::VectorNd &qdot)
   {
-    model.X_J[joint_id] = Xrotx(q[model.mJoints[joint_id].q_index]);
+    model.X_lambda[joint_id] = Xrotx(q[model.mJoints[joint_id].q_index])
+      * model.X_T[joint_id];
     model.v_J[joint_id][0] = qdot[model.mJoints[joint_id].q_index];
   }
 
@@ -116,11 +117,13 @@ struct CustomEulerZYXJoint : public CustomJoint {
     double s2 = sin (q2);
     double c2 = cos (q2);
 
-    model.X_J[joint_id].E = Matrix3d(
+    SpatialTransform X_J (Matrix3d(
                        c0 * c1,                s0 * c1,     -s1,
         c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
         c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
-        );
+        ),
+        Vector3d::Zero());
+    model.X_lambda[joint_id] = X_J * model.X_T[joint_id];
 
     S.setZero();
     S(0,0) = -s1;

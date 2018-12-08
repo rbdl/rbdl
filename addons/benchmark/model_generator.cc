@@ -13,7 +13,7 @@ void generate_planar_tree_recursive (Model *model,
     return;
 
   // create left child
-  Joint joint_rot_z (JointTypeRevolute, Vector3d (0., 0., 1.));
+  Joint joint_rot_z (JointTypeRevoluteZ);
   Body body (length, Vector3d (0., -0.25 * length, 0.), Vector3d (length, length, length));
 
   Vector3d displacement (-0.5 * length, -0.25 * length, 0.);
