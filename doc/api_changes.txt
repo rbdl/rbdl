@@ -1,5 +1,10 @@
-2.5.0 -> 2.6.0
+2.6.0 -> next
+- Performance improvements of single DOF revolute joints around coordinate
+  axes.
+- Removed Model::X_J. All joints now have to compute X_lambda directly,
+  especially CustomJoints
 
+2.5.0 -> 2.6.0
 - Added support for closed-loop models by replacing Contacts API by a new
   Constraints API. Loop constraints can be stabilized using Baumgarte
   stabilization. Special thanks to Davide Corradi for this contribution!

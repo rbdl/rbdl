@@ -47,7 +47,6 @@ Model::Model() {
   S.push_back (zero_spatial);
   X_T.push_back(SpatialTransform());
 
-  X_J.push_back (SpatialTransform());
   v_J.push_back (zero_spatial);
   c_J.push_back (zero_spatial);
 
@@ -358,7 +357,6 @@ unsigned int Model::AddBody(
   S.push_back (joint.mJointAxes[0]);
 
   // Joint state variables
-  X_J.push_back (SpatialTransform());
   v_J.push_back (joint.mJointAxes[0]);
   c_J.push_back (SpatialVector(0., 0., 0., 0., 0., 0.));
 

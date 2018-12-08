@@ -65,16 +65,17 @@ const int NUMBER_OF_MODELS = 2;
 
       CustomJointClass()
 
-  3. Implement the method jcalc. This method must populate X_J, v_J, c_J, and S.
+  3. Implement the method jcalc. This method must populate X_lambda, v_J, c_J,
+     and S.
 
         virtual void jcalc
-          model.X_J[joint_id]
+          model.X_lambda[joint_id]
           model.v_J
           model.c_J
           model.mCustomJoints[joint.custom_joint_index]->S = S
 
   4. Implement the method jcalc_X_lambda_S. This method must populate X_lambda
-      and S.
+     and S.
 
         virtual void jcalc_X_lambda_S
           model.X_lambda
@@ -98,7 +99,8 @@ struct CustomJointTypeRevoluteX : public CustomJoint
                       const Math::VectorNd &q,
                       const Math::VectorNd &qdot)
   {
-    model.X_J[joint_id] = Xrotx(q[model.mJoints[joint_id].q_index]);
+    model.X_lambda[joint_id] = Xrotx(q[model.mJoints[joint_id].q_index]) 
+      * model.X_T[joint_id];
     model.v_J[joint_id][0] = qdot[model.mJoints[joint_id].q_index];
   }
 
@@ -143,11 +145,13 @@ struct CustomEulerZYXJoint : public CustomJoint
     double s2 = sin (q2);
     double c2 = cos (q2);
 
-    model.X_J[joint_id].E = Matrix3d(
+    SpatialTransform X_J (Matrix3d(
                        c0 * c1,                s0 * c1,     -s1,
         c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
         c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
-        );
+        ),
+        Vector3d::Zero());
+    model.X_lambda[joint_id] = X_J * model.X_T[joint_id];
 
     S.setZero();
     S(0,0) = -s1;
