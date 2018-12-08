@@ -161,11 +161,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
     // determine where to add the current joint and child body
     unsigned int rbdl_parent_id = 0;
 
-    // Resolve names of global reference frame parents
-    if (urdf_parent->name != "base_link" 
-        && urdf_parent->name != "world") {
-      rbdl_parent_id = rbdl_model->GetBodyId (urdf_parent->name.c_str());
-    }
+    rbdl_parent_id = rbdl_model->GetBodyId (urdf_parent->name.c_str());
 
     if (rbdl_parent_id == std::numeric_limits<unsigned int>::max())
       cerr << "Error while processing joint '" << urdf_joint->name
