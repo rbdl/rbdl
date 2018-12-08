@@ -168,14 +168,23 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
         << "': parent link '" << urdf_parent->name
         << "' could not be found." << endl;
 
-    //cout << "joint: " << urdf_joint->name << "\tparent = " << urdf_parent->name << " child = " << urdf_child->name << " parent_id = " << rbdl_parent_id << endl;
-
     // create the joint
     Joint rbdl_joint;
     if (urdf_joint->type == urdf::Joint::REVOLUTE || urdf_joint->type == urdf::Joint::CONTINUOUS) {
-      rbdl_joint = Joint (SpatialVector (urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z, 0., 0., 0.));
+      Vector3d axis (urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
+
+      if (fabs(axis.dot(Vector3d (1., 0., 0.)) - 1.0) < std::numeric_limits<double>::epsilon()) {
+        rbdl_joint = Joint(JointTypeRevoluteX);
+      } else if (fabs(axis.dot(Vector3d (0., 1., 0.)) - 1.0) < std::numeric_limits<double>::epsilon()) {
+        rbdl_joint = Joint(JointTypeRevoluteY);
+      } else if (fabs(axis.dot(Vector3d (0., 0., 1.)) - 1.0) < std::numeric_limits<double>::epsilon()) {
+        rbdl_joint = Joint(JointTypeRevoluteZ);
+      } else {
+        rbdl_joint = Joint(JointTypeRevolute, axis);
+      }
     } else if (urdf_joint->type == urdf::Joint::PRISMATIC) {
-      rbdl_joint = Joint (SpatialVector (0., 0., 0., urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z));
+      Vector3d axis (urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
+      rbdl_joint = Joint (JointTypePrismatic, axis);
     } else if (urdf_joint->type == urdf::Joint::FIXED) {
       rbdl_joint = Joint (JointTypeFixed);
     } else if (urdf_joint->type == urdf::Joint::FLOATING) {
