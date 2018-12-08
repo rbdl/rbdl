@@ -684,3 +684,37 @@ TEST_CASE (__FILE__"_CalcBodyWorldOrientationFixedJoint", "") {
   );
 }
 
+TEST_CASE (__FILE__"_TestAddFixedBodyToRoot", "") {
+  Model model;
+
+  Body body (1., Vector3d (1., 1., 1.), Vector3d (1., 1., 1.));
+  Joint joint_fixed (JointTypeFixed);
+
+  // Add a fixed body
+  unsigned int body_id_fixed = model.AppendBody (Xtrans(Vector3d (1., 0., 0.)), joint_fixed, body, "FixedBody");
+
+  // Add a second fixed body
+  unsigned int body_id_fixed2 = model.AppendBody (Xtrans(Vector3d (1., 0., 0.)), joint_fixed, body, "FixedBody2");
+
+  // Add a mobile boby
+  unsigned int movable_body = model.AppendBody (Xrotx (45 * M_PI / 180), JointTypeRevoluteX, body, "MovableBody");
+
+  CHECK (2 == model.mBodies.size());
+  CHECK (2 == model.mFixedBodies.size());
+
+  VectorNd q = VectorNd::Zero(model.q_size);
+
+  Vector3d base_coords = CalcBodyToBaseCoordinates(model, q, body_id_fixed, Vector3d::Zero());
+  CHECK_THAT(Vector3d (1., 0., 0.),
+             AllCloseVector(base_coords, 0., 0.));
+
+  base_coords = CalcBodyToBaseCoordinates(model, q, body_id_fixed2, Vector3d::Zero());
+  CHECK_THAT(Vector3d (2., 0., 0.),
+             AllCloseVector(base_coords, 0., 0.));
+
+  base_coords = CalcBodyToBaseCoordinates(model, q, movable_body, Vector3d::Zero());
+  CHECK_THAT(Vector3d (2., 0., 0.),
+             AllCloseVector(base_coords, 0., 0.));
+
+}
+
