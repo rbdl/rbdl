@@ -19,6 +19,7 @@ SET ( TESTS_SRCS
   CalcVelocitiesTests.cc
   CalcAccelerationsTests.cc
   DynamicsTests.cc
+  InverseDynamicsTests.cc
   CompositeRigidBodyTests.cc
   ImpulsesTests.cc
   TwolegModelTests.cc
@@ -28,6 +29,7 @@ SET ( TESTS_SRCS
   CustomJointSingleBodyTests.cc
   CustomJointMultiBodyTests.cc
   CustomConstraintsTests.cc
+  InverseKinematicsTests.cc
   LoopConstraintsTests.cc
   ScrewJointTests.cc
   ForwardDynamicsConstraintsExternalForces.cc
