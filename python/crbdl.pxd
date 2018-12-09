@@ -187,7 +187,6 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
 
         vector[Joint] mJoints
         vector[SpatialVector] S
-        vector[SpatialTransform] X_J
         vector[SpatialVector] v_J
         vector[SpatialVector] c_J
 

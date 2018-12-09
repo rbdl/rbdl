@@ -91,8 +91,6 @@ void UpdateKinematicsCustomPtr (Model &model,
 
 			jcalc (model, i, (Q), QDot_zero);
 
-			model.X_lambda[i] = model.X_J[i] * model.X_T[i];
-
 			if (lambda != 0) {
 				model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
 			}	else {
@@ -534,7 +532,6 @@ void ForwardDynamicsPtr (
 		model.v[i] = model.X_lambda[i].apply( model.v[lambda]) + model.v_J[i];
 
 		/*
-		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
 		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
 		LOG << "X_base (" << i << "):" << std::endl << model.X_base[i] << std::endl;
