@@ -987,7 +987,6 @@ cdef class Model:
 
     %VectorWrapperAddProperty (TYPE=Joint, MEMBER=mJoints, PARENT=Model)%
     %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=S, PARENT=Model)%
-    %VectorWrapperAddProperty (TYPE=SpatialTransform, MEMBER=X_J, PARENT=Model)%
     %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=v_J, PARENT=Model)%
     %VectorWrapperAddProperty (TYPE=SpatialVector, MEMBER=c_J, PARENT=Model)%
 
