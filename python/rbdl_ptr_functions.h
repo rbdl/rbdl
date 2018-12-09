@@ -94,15 +94,13 @@ void UpdateKinematicsCustomPtr (Model &model,
 
       jcalc (model, i, (Q), QDot_zero);
 
-      model.X_lambda[i] = model.X_J[i] * model.X_T[i];
-
-      if (lambda != 0) {
-        model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
-      } else {
-        model.X_base[i] = model.X_lambda[i];
-      }
-    }
-  }
+			if (lambda != 0) {
+				model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
+			}	else {
+				model.X_base[i] = model.X_lambda[i];
+			}
+		}
+	}
 
   if (qdot_ptr) {
     VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
@@ -1006,8 +1004,6 @@ inline void CompositeRigidBodyAlgorithmPtr (
     }
   }
 }
-
-
 
 
 RBDL_DLLAPI

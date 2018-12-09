@@ -34,7 +34,6 @@ void ICustomJoint::jcalc (Model &model,
 
         //test_model = &model;
         //std::cout << "test " << test_model->X_J[joint_id] << std::endl;
-        std::cout << "c" << model.X_J[joint_id] << std::endl;
         std::cout << "lambda before cy[" << 0 << "] :" << model.lambda[0] << std::endl;
         
         cy_call_jcalc(this->m_obj, &model, joint_id, q, qdot, &error);
