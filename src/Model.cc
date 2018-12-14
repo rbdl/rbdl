@@ -282,12 +282,13 @@ unsigned int Model::AddBody(
 
     return previously_added_body_id;
   } else if ( (joint.mJointType == JointTypeSpherical)
-              || (joint.mJointType == JointTypeEulerZYX)
-              || (joint.mJointType == JointTypeEulerXYZ)
-              || (joint.mJointType == JointTypeEulerYXZ)
-              || (joint.mJointType == JointTypeTranslationXYZ)
-              || (joint.mJointType == JointTypeCustom)
-            ) {
+      || (joint.mJointType == JointTypeEulerZYX) 
+      || (joint.mJointType == JointTypeEulerXYZ) 
+      || (joint.mJointType == JointTypeEulerYXZ) 
+      || (joint.mJointType == JointTypeEulerZXY) 
+      || (joint.mJointType == JointTypeTranslationXYZ) 
+      || (joint.mJointType == JointTypeCustom) 
+      ) {
     // no action required
   } else if (joint.mJointType != JointTypePrismatic
              && joint.mJointType != JointTypeRevolute

@@ -862,6 +862,66 @@ TEST_CASE (__FILE__"_TestJointTypeEulerYXZ", "" ) {
   CHECK_THAT (H_emulated, AllCloseMatrix(H_3dof, TEST_PREC, TEST_PREC));
 }
 
+TEST_CASE (__FILE__"_TestJointTypeEulerZXY", "" ) {
+  Model model_emulated;
+  Model model_3dof;
+
+  Body body (1., Vector3d (1., 2., 1.), Matrix3d (1., 0., 0, 0., 1., 0., 0., 0., 1.));
+  Joint joint_emulated (
+      SpatialVector (0., 0., 1., 0., 0., 0.),
+      SpatialVector (1., 0., 0., 0., 0., 0.),
+      SpatialVector (0., 1., 0., 0., 0., 0.)
+      );
+  Joint joint_3dof (JointTypeEulerZXY);
+
+  model_emulated.AppendBody (SpatialTransform (), joint_emulated, body);
+  model_3dof.AppendBody (SpatialTransform (), joint_3dof, body);
+
+  VectorNd q (VectorNd::Zero (model_emulated.q_size));
+  VectorNd qdot (VectorNd::Zero (model_emulated.qdot_size));
+  VectorNd qddot_emulated (VectorNd::Zero (model_emulated.qdot_size));
+  VectorNd qddot_3dof (VectorNd::Zero (model_emulated.qdot_size));
+  VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
+
+  for (int i = 0; i < q.size(); i++) {
+    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot_3dof[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+  }
+
+  qddot_emulated = qddot_3dof;
+
+  UpdateKinematicsCustom (model_emulated, &q, &qdot, &qddot_emulated);
+  UpdateKinematicsCustom (model_3dof, &q, &qdot, &qddot_emulated);
+
+  CHECK_THAT (model_emulated.X_base[3].E,
+              AllCloseMatrix(model_3dof.X_base[1].E, TEST_PREC, TEST_PREC));
+  CHECK_THAT (model_emulated.v[3],
+              AllCloseVector(model_3dof.v[1], TEST_PREC, TEST_PREC));
+
+  VectorNd id_emulated (tau);
+  VectorNd id_3dof(tau);
+  InverseDynamics (model_emulated, q, qdot, qddot_emulated, id_emulated);
+  InverseDynamics (model_3dof, q, qdot, qddot_emulated, id_3dof);
+
+  CHECK_THAT (id_emulated, AllCloseVector(id_3dof, TEST_PREC, TEST_PREC));
+
+  ForwardDynamicsLagrangian (model_emulated, q, qdot, tau, qddot_emulated);
+  ForwardDynamicsLagrangian (model_3dof, q, qdot, tau, qddot_3dof);
+
+  CHECK_THAT(qddot_emulated, AllCloseVector(qddot_3dof, TEST_PREC, TEST_PREC));
+
+  MatrixNd H_emulated (MatrixNd::Zero (q.size(), q.size()));
+  MatrixNd H_3dof (MatrixNd::Zero (q.size(), q.size()));
+
+  CompositeRigidBodyAlgorithm (model_emulated, q, H_emulated);
+  CompositeRigidBodyAlgorithm (model_3dof, q, H_3dof);
+
+  CHECK_THAT (H_emulated,
+              AllCloseMatrix(H_3dof, TEST_PREC, TEST_PREC));
+}
+
 TEST_CASE_METHOD (Human36, __FILE__"_TestUpdateKinematics2", "") {
   for (unsigned int i = 0; i < q.size(); i++) {
     q[i] = 0.5 * M_PI * static_cast<double>(rand())
