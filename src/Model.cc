@@ -271,6 +271,7 @@ unsigned int Model::AddBody(
       || (joint.mJointType == JointTypeEulerZYX) 
       || (joint.mJointType == JointTypeEulerXYZ) 
       || (joint.mJointType == JointTypeEulerYXZ) 
+      || (joint.mJointType == JointTypeEulerZXY) 
       || (joint.mJointType == JointTypeTranslationXYZ) 
       || (joint.mJointType == JointTypeCustom) 
       ) {

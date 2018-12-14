@@ -88,6 +88,8 @@ struct Model;
  *   then Z.</li>
  *   <li>\ref JointTypeEulerYXZ which first rotates around Y, then X, and
  *   then Z.</li>
+ *   <li>\ref JointTypeEulerZXY which first rotates around Z, then X, and
+ *   then Y.</li>
  *   <li>\ref JointTypeSpherical which is a singularity free joint that
  *   uses a Quaternion and the bodies angular velocity (see \ref
  *   joint_singularities for details).</li>
@@ -187,6 +189,7 @@ struct Model;
     JointTypeEulerZYX, ///< 3 DoF joint that uses Euler ZYX convention (faster than emulated multi DoF joints).
     JointTypeEulerXYZ, ///< 3 DoF joint that uses Euler XYZ convention (faster than emulated multi DoF joints).
     JointTypeEulerYXZ, ///< 3 DoF joint that uses Euler YXZ convention (faster than emulated multi DoF joints).
+    JointTypeEulerZXY, ///< 3 DoF joint that uses Euler ZXY convention (faster than emulated multi DoF joints).
     JointTypeTranslationXYZ,
     JointTypeFloatingBase, ///< A 6-DoF joint for floating-base (or freeflyer) systems.
     JointTypeFixed, ///< Fixed joint which causes the inertial properties to be merged with the parent body.
@@ -262,6 +265,14 @@ struct RBDL_DLLAPI Joint {
         mJointAxes[0] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
         mJointAxes[1] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
         mJointAxes[2] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+      } else if (type == JointTypeEulerZXY) {
+        mDoFCount = 3;
+
+        mJointAxes = new Math::SpatialVector[mDoFCount];
+
+        mJointAxes[0] = Math::SpatialVector (0., 0., 1., 0., 0., 0.);
+        mJointAxes[1] = Math::SpatialVector (1., 0., 0., 0., 0., 0.);
+        mJointAxes[2] = Math::SpatialVector (0., 1., 0., 0., 0., 0.);
       } else if (type == JointTypeTranslationXYZ) {
         mDoFCount = 3;
 
