@@ -821,14 +821,10 @@ TEST_CASE (__FILE__"_TestJointTypeEulerYXZ", "" ) {
   VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
 
   for (int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-             / static_cast<double>(RAND_MAX);
-    qddot_3dof[i] = 0.5 * M_PI * static_cast<double>(rand())
-                    / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot_3dof[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   qddot_emulated = qddot_3dof;
@@ -884,10 +880,10 @@ TEST_CASE (__FILE__"_TestJointTypeEulerZXY", "" ) {
   VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
 
   for (int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qddot_3dof[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot_3dof[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   qddot_emulated = qddot_3dof;
@@ -924,14 +920,10 @@ TEST_CASE (__FILE__"_TestJointTypeEulerZXY", "" ) {
 
 TEST_CASE_METHOD (Human36, __FILE__"_TestUpdateKinematics2", "") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    qddot[i] = 0.5 * M_PI * static_cast<double>(rand())
-               / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-             / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd id_emulated (tau);
@@ -956,14 +948,10 @@ TEST_CASE_METHOD (Human36, __FILE__"_TestUpdateKinematics2", "") {
 
 TEST_CASE_METHOD (Human36, __FILE__"_TestInverseDynamics", "") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-      / static_cast<double>(RAND_MAX);
-    qddot[i] = 0.5 * M_PI * static_cast<double>(rand())
-      / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-      / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd id_emulated (tau);
@@ -982,14 +970,10 @@ TEST_CASE_METHOD (Human36, __FILE__"_TestInverseDynamics", "") {
 
 TEST_CASE_METHOD (Human36, __FILE__"_TestNonlinearEffects", "") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    qddot[i] = 0.5 * M_PI * static_cast<double>(rand())
-               / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-             / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd nle_emulated (tau);
@@ -1008,12 +992,9 @@ TEST_CASE_METHOD (Human36, __FILE__"_TestNonlinearEffects", "") {
 
 TEST_CASE_METHOD (Human36,__FILE__"_TestContactsEmulatedLagrangianKokkevis","") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-             / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd qddot_lagrangian (qddot_emulated);
@@ -1055,12 +1036,9 @@ TEST_CASE_METHOD (Human36,__FILE__"_TestContactsEmulatedLagrangianKokkevis","") 
 
 TEST_CASE_METHOD (Human36,__FILE__"_TestContactsEmulatedLagrangianSparse", "") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    tau[i] = -0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = -0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd qddot_lagrangian (qddot_emulated);
@@ -1102,12 +1080,9 @@ TEST_CASE_METHOD (Human36,__FILE__"_TestContactsEmulatedLagrangianSparse", "") {
 
 TEST_CASE_METHOD(Human36,__FILE__"_TestContactsEmulatedLagrangianNullSpace","") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    tau[i] = -0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = -0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd qddot_lagrangian (qddot_emulated);
@@ -1149,14 +1124,10 @@ TEST_CASE_METHOD(Human36,__FILE__"_TestContactsEmulatedLagrangianNullSpace","") 
 
 TEST_CASE_METHOD (Human36, __FILE__"_TestContactsEmulatedMultdofLagrangian","") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    qddot[i] = 0.5 * M_PI * static_cast<double>(rand())
-               / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-             / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   ForwardDynamicsConstraintsDirect (*model_emulated, q, qdot, tau,
@@ -1192,12 +1163,9 @@ TEST_CASE_METHOD (Human36, __FILE__"_TestContactsEmulatedMultdofLagrangian","") 
 
 TEST_CASE_METHOD (Human36, __FILE__"_TestContactsEmulatedMultdofSparse", "") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-             / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   ForwardDynamicsConstraintsRangeSpaceSparse (*model_emulated, q, qdot, tau,
@@ -1242,12 +1210,9 @@ TEST_CASE_METHOD (Human36, __FILE__"_TestContactsEmulatedMultdofSparse", "") {
 TEST_CASE_METHOD (Human36,
                   __FILE__"_TestContactsEmulatedMultdofKokkevisSparse", "") {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-             / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   ForwardDynamicsConstraintsRangeSpaceSparse (*model_emulated, q, qdot, tau,
@@ -1298,12 +1263,9 @@ TEST_CASE_METHOD (Human36,
 TEST_CASE_METHOD (Human36,
                  __FILE__"_TestContactsEmulatedMultdofKokkevisMultiple", "" ) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand())
-           / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand())
-              / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand())
-             / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd qddot_kokkevis (qddot_emulated);
