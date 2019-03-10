@@ -258,12 +258,14 @@ RBDL_DLLAPI void jcalc (
     double s2 = sin (q2);
     double c2 = cos (q2);
 
-    SpatialTransform X_J (Matrix3d(
+    model.X_lambda[joint_id] = SpatialTransform (
+        Matrix3d(
           -s0 * s1 * s2 + c0 * c2, s0 * c2 + s1 * s2 * c0, -s2 * c1,
           -s0 * c1, c0 * c1, s1,
           s0 * s1 * c2 + s2 * c0, s0 * s2 - s1 * c0 * c2, c1 * c2
           ),
-        Vector3d::Zero());
+        Vector3d::Zero())
+      * model.X_T[joint_id];
 
     model.multdof3_S[joint_id](0,0) = -s2 * c1;
     model.multdof3_S[joint_id](0,1) = c2;
@@ -287,7 +289,6 @@ RBDL_DLLAPI void jcalc (
         (-s1 * c2 * qdot1 - c1 * s2 * qdot2) * qdot0 + c2 * qdot2 * qdot1,
         0., 0., 0.
         );
-    model.X_lambda[joint_id] = X_J * model.X_T[joint_id];
   } else if(model.mJoints[joint_id].mJointType == JointTypeTranslationXYZ){
     Scalar q0 = q[model.mJoints[joint_id].q_index];
     Scalar q1 = q[model.mJoints[joint_id].q_index + 1];
@@ -461,8 +462,6 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
         Vector3d (0., 0., 0.))
       * model.X_T[joint_id];
 
-    model.multdof3_S[joint_id].setZero();
-
     model.multdof3_S[joint_id](0,0) = 1.;
     model.multdof3_S[joint_id](1,1) = 1.;
     model.multdof3_S[joint_id](2,2) = 1.;
@@ -486,8 +485,6 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
           ),
         Vector3d (0., 0., 0.))
       * model.X_T[joint_id];
-
-    model.multdof3_S[joint_id].setZero();
 
     model.multdof3_S[joint_id](0,0) = -s1;
     model.multdof3_S[joint_id](0,2) = 1.;
@@ -518,8 +515,6 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
         Vector3d (0., 0., 0.))
       * model.X_T[joint_id];
 
-    model.multdof3_S[joint_id].setZero();
-
     model.multdof3_S[joint_id](0,0) = c2 * c1;
     model.multdof3_S[joint_id](0,1) = s2;
 
@@ -549,8 +544,6 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
         Vector3d (0., 0., 0.))
       * model.X_T[joint_id];
 
-    model.multdof3_S[joint_id].setZero();
-
     model.multdof3_S[joint_id](0,0) = s2 * c1;
     model.multdof3_S[joint_id](0,1) = c2;
 
@@ -571,12 +564,14 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     double s2 = sin (q2);
     double c2 = cos (q2);
 
-    SpatialTransform X_J (Matrix3d(
+    model.X_lambda[joint_id] = SpatialTransform (
+        Matrix3d(
           -s0 * s1 * s2 + c0 * c2, s0 * c2 + s1 * s2 * c0, -s2 * c1,
           -s0 * c1, c0 * c1, s1,
           s0 * s1 * c2 + s2 * c0, s0 * s2 - s1 * c0 * c2, c1 * c2
           ),
-        Vector3d::Zero());
+        Vector3d::Zero())
+      * model.X_T[joint_id];
 
     model.multdof3_S[joint_id](0,0) = -s2 * c1;
     model.multdof3_S[joint_id](0,1) = c2;
@@ -595,8 +590,6 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
         Matrix3d::Identity (),
         Vector3d (q0, q1, q2))
       * model.X_T[joint_id];
-
-    model.multdof3_S[joint_id].setZero();
 
     model.multdof3_S[joint_id](3,0) = 1.;
     model.multdof3_S[joint_id](4,1) = 1.;
