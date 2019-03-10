@@ -219,9 +219,9 @@ TEST_FIXTURE(
 template <typename T>
 void TestCoMAccelerationUsingFD (
   T & obj,
-  const double TOL = 1e-8
+  const double TOL = 1e-7
 ) {
-  const double EPS = 1e-8;
+  const double EPS = 1e-7;
 
   obj.Q = VectorNd::Random (obj.model->dof_count);
   obj.QDot = VectorNd::Random (obj.model->dof_count);
