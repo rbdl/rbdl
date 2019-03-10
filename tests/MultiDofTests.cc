@@ -771,6 +771,8 @@ TEST ( TestJointTypeEulerZXY ) {
   Joint joint_3dof (JointTypeEulerZXY);
 
   model_emulated.AppendBody (SpatialTransform (), joint_emulated, body);
+  model_emulated.AppendBody (SpatialTransform (), joint_emulated, body);
+  model_3dof.AppendBody (SpatialTransform (), joint_3dof, body);
   model_3dof.AppendBody (SpatialTransform (), joint_3dof, body);
 
   VectorNd q (VectorNd::Zero (model_emulated.q_size));
@@ -808,6 +810,10 @@ TEST ( TestJointTypeEulerZXY ) {
 
   MatrixNd H_emulated (MatrixNd::Zero (q.size(), q.size()));
   MatrixNd H_3dof (MatrixNd::Zero (q.size(), q.size()));
+
+  for (int i = 0; i < q.size(); i++) {
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+  }
 
   CompositeRigidBodyAlgorithm (model_emulated, q, H_emulated);
   CompositeRigidBodyAlgorithm (model_3dof, q, H_3dof);
