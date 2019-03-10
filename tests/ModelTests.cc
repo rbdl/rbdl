@@ -185,14 +185,13 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
   jcalc (*model, 1, Q, QDot);
 
-  test_matrix.set (
+  test_matrix <<
       0.,  1.,  0.,  0.,  0.,  0.,
       -1.,  0.,  0.,  0.,  0.,  0.,
       0.,  0.,  1.,  0.,  0.,  0.,
       0.,  0.,  0.,  0.,  1.,  0.,
       0.,  0.,  0., -1.,  0.,  0.,
-      0.,  0.,  0.,  0.,  0.,  1.
-      );
+      0.,  0.,  0.,  0.,  0.,  1.;
 
   CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
   CHECK_EQUAL (test_joint_axis, model->S[1]);

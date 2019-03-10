@@ -86,7 +86,7 @@ TEST (SpatialMatrix_Multiplication) {
 
   SpatialMatrix X_2 (X_1);
 
-  X_2 *= 2;
+  X_2 *= 2.;
 
   SpatialMatrix correct_result (
       1442,    1484,    1526,    1568,    1610,    1652,
