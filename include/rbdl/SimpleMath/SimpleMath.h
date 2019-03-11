@@ -71,6 +71,9 @@ template <typename Derived>
 class LLT;
 
 template <typename Derived>
+class PartialPivLU;
+
+template <typename Derived>
 class HouseholderQR;
 
 template <typename Derived>
@@ -94,8 +97,10 @@ struct MatrixBase {
 
   Derived& operator=(const Derived& other) {
     if (static_cast<const void*>(this) != static_cast<const void*>(&other)) {
-      for (size_t i = 0; i < other.rows(); i++) {
-        for (size_t j = 0; j < other.cols(); j++) {
+      int i, j, in = other.rows(), jn = other.cols();
+
+      for (size_t i = 0; i < in; i++) {
+        for (size_t j = 0; j < jn; j++) {
           this->operator()(i,j) = other(i,j);
         }
       }
@@ -108,8 +113,10 @@ struct MatrixBase {
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Derived& operator=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
     if (static_cast<const void*>(this) != static_cast<const void*>(&other)) {
-      for (size_t i = 0; i < other.rows(); i++) {
-        for (size_t j = 0; j < other.cols(); j++) {
+      int i, j, in = other.rows(), jn = other.cols();
+
+      for (size_t i = 0; i < in; i++) {
+        for (size_t j = 0; j < jn; j++) {
           this->operator()(i,j) = other(i,j);
         }
       }
@@ -123,10 +130,10 @@ struct MatrixBase {
   //
   Matrix<ScalarType, Rows, Cols> operator*(const double& scalar) const {
     Matrix<ScalarType, Rows, Cols> result (rows(), cols());
+    int i, j, in = rows(), jn = cols();
 
-    unsigned int i,j;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < cols(); j++) {
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
         result (i,j) = operator()(i,j) * static_cast<ScalarType>(scalar);
         }
     }
@@ -135,10 +142,10 @@ struct MatrixBase {
 
   Matrix<ScalarType, Rows, Cols> operator*(const float& scalar) const {
     Matrix<ScalarType, Rows, Cols> result (rows(), cols());
+    int i, j, in = rows(), jn = cols();
 
-    unsigned int i,j;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < cols(); j++) {
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
         result (i,j) = operator()(i,j) * static_cast<ScalarType>(scalar);
       }
     }
@@ -150,9 +157,10 @@ struct MatrixBase {
   //
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   bool operator==(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) const {
-    unsigned int i,j;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < cols(); j++) {
+    int i, j, in = rows(), jn = cols();
+
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
         if (this->operator()(i,j) != other(i,j))
           return false;
       }
@@ -195,11 +203,11 @@ struct MatrixBase {
   Matrix<ScalarType, Rows, OtherCols>
   operator*(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols> &other) const {
     Matrix<ScalarType, Rows, OtherCols> result(Matrix<ScalarType, Rows, OtherCols>::Zero(rows(), other.cols()));
+    int i, j, k, in = rows(), jn = other.cols(), kn = other.rows();
 
-    unsigned int i, j, k;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < other.cols(); j++) {
-        for (k = 0; k < other.rows(); k++) {
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
+        for (k = 0; k < kn; k++) {
           result(i, j) += operator()(i, k) * other(k, j);
         }
       }
@@ -213,10 +221,11 @@ struct MatrixBase {
     Derived copy (*static_cast<const Derived*>(this));
     this->setZero();
 
-    unsigned int i, j, k;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < other.cols(); j++) {
-        for (k = 0; k < other.rows(); k++) {
+    int i, j, k, in = rows(), jn = other.cols(), kn = other.rows();
+
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
+        for (k = 0; k < kn; k++) {
           this->operator()(i, j) += copy.operator()(i, k) * other(k, j);
         }
       }
@@ -226,8 +235,10 @@ struct MatrixBase {
 
   Matrix<ScalarType, Rows, Cols> operator-() const {
     Matrix<ScalarType, Rows, Cols> copy (*static_cast<const Derived*>(this));
-    for (int i = 0; i < rows(); i++) {
-      for (int j = 0; j < cols(); j++) {
+    int i, j, in = rows(), jn = cols();
+
+    for (int i = 0; i < in; i++) {
+      for (int j = 0; j < jn; j++) {
         copy(i,j) *= static_cast<ScalarType>(-1.);
       }
     }
@@ -235,9 +246,10 @@ struct MatrixBase {
   }
 
   Derived operator*=(const ScalarType& s) {
-    unsigned int i,j;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < cols(); j++) {
+    int i, j, in = rows(), jn = cols();
+
+    for (int i = 0; i < in; i++) {
+      for (int j = 0; j < jn; j++) {
         operator()(i,j) *= s;
       }
     }
@@ -597,8 +609,22 @@ struct MatrixBase {
     return result;
   }
 
+  ScalarType mean() const {
+    assert(rows() == 1 || cols() == 1);
+    ScalarType result = static_cast<ScalarType>(0.0);
+    for (unsigned int i = 0; i < rows(); i++) {
+      result += operator[](i);
+    }
+
+    return result / static_cast<ScalarType>(rows() * cols());
+  }
+
   const LLT<Derived> llt() const {
     return LLT<Derived>(*this);
+  }
+
+  const PartialPivLU<Derived> partialPivLu() const {
+    return PartialPivLU<Derived>(*this);
   }
 
   const HouseholderQR<Derived> householderQr() const {
@@ -799,6 +825,10 @@ struct Storage<ScalarType, 0, Dynamic, NumCols> {
 
     Storage() {}
 
+    ~Storage() {
+      delete[] mData;
+    }
+
     Storage(int rows, int cols) {
         resize(rows, cols);
     }
@@ -838,6 +868,10 @@ struct Storage<ScalarType, 0, Dynamic, Dynamic> {
     int mCols = 0;
 
     Storage() {}
+
+    ~Storage() {
+      delete[] mData;
+    }
 
     Storage(int rows, int cols) {
         resize(rows, cols);
@@ -924,8 +958,10 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
   Matrix(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols> &other) {
     mStorage.resize(other.rows(), other.cols());
 
-    for (size_t i = 0; i < rows(); i++) {
-      for (size_t j = 0; j < cols(); j++) {
+    int i, j, in = rows(), jn = cols();
+
+    for (size_t i = 0; i < in; i++) {
+      for (size_t j = 0; j < jn; j++) {
         this->operator()(i, j) = other(i, j);
       }
     }
@@ -1164,8 +1200,10 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
     Matrix& operator+=(const OtherDerived& other) {
       assert (rows() == other.rows() && cols() == other.cols() && "Error: matrix dimensions do not match!");
 
-      for (size_t i = 0; i < rows(); i++) {
-        for (size_t j = 0; j < cols(); j++) {
+      int i, j, in = rows(), jn = cols();
+
+      for (size_t i = 0; i < in; i++) {
+        for (size_t j = 0; j < jn; j++) {
           this->operator()(i,j) += other(i,j);
         }
       }
@@ -1176,9 +1214,11 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
     Matrix& operator-=(const OtherDerived& other) {
       assert (rows() == other.rows() && cols() == other.cols() && "Error: matrix dimensions do not match!");
 
-      for (size_t i = 0; i < rows(); i++) {
-        for (size_t j = 0; j < cols(); j++) {
-          this->operator()(i,j) -= other(i,j);
+      int i, j, in = rows(), jn = cols();
+
+      for (size_t i = 0; i < in; i++) {
+        for (size_t j = 0; j < jn; j++) {
+            this->operator()(i,j) -= other(i,j);
         }
       }
       return *this;
@@ -1318,8 +1358,10 @@ struct Transpose : public MatrixBase<Transpose<Derived, ScalarType, NumRows, Num
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Transpose& operator=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
     if (static_cast<const void*>(this) != static_cast<const void*>(&other)) {
-      for (size_t i = 0; i < other.rows(); i++) {
-        for (size_t j = 0; j < other.cols(); j++) {
+      int i, j, in = other.rows(), jn = other.cols();
+
+      for (size_t i = 0; i < in; i++) {
+        for (size_t j = 0; j < jn; j++) {
           this->operator()(i,j) = other(i,j);
         }
       }
@@ -1381,9 +1423,10 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
   { }
 
   Block& operator=(const Block &other) {
-    unsigned int i,j;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < cols(); j++) {
+    int i, j, in = rows(), jn = cols();
+
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
         this->operator()(i,j) = other(i,j);
       }
     }
@@ -1393,9 +1436,10 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
 
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Block& operator=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
-    unsigned int i,j;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < cols(); j++) {
+    int i, j, in = rows(), jn = cols();
+
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
         this->operator()(i,j) = other(i,j);
       }
     }
@@ -1403,25 +1447,15 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
     return *this;
   }
 
-//  template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
-//  Matrix<ScalarType, NumRows, OtherCols>& operator=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
-//    unsigned int i,j,k;
-//    for (i = 0; i < rows(); i++) {
-//      for (j = 0; j < other.cols(); j++) {
-//        operator()(i,k) = other(k,j);
-//      }
-//    }
-//    return *this;
-//  }
 
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Matrix<ScalarType, NumRows, OtherCols> operator*(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) const {
     Matrix<ScalarType, NumRows, OtherCols> result (rows(), other.cols());
 
-    unsigned int i,j,k;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < other.cols(); j++) {
-        for (k = 0; k < other.rows(); k++) {
+    int i, j, k, in = rows(), jn = other.cols(), kn = other.rows();
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
+        for (k = 0; k < kn; k++) {
           result (i,j) += operator()(i,k) * other(k,j);
         }
       }
@@ -1447,9 +1481,9 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
   Matrix<ScalarType, NumRows, OtherCols> operator+(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) const {
     Matrix<ScalarType, NumRows, OtherCols> result (rows(), other.cols());
 
-    unsigned int i,j,k;
-    for (i = 0; i < rows(); i++) {
-      for (j = 0; j < other.cols(); j++) {
+    int i, j, in = rows(), jn = other.cols();
+    for (i = 0; i < in; i++) {
+      for (j = 0; j < jn; j++) {
         result (i,j) = operator()(i,j) + other(i,j);
       }
     }
@@ -1576,6 +1610,185 @@ public:
     }
 };
 
+
+//
+// Partial Pivoting LU Decomposition
+//
+template <typename Derived>
+class PartialPivLU {
+public:
+    typedef typename Derived::value_type value_type;
+    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    PartialPivLU() :
+            mIsFactorized(false)
+    {}
+private:
+    typedef Matrix<value_type> VectorXd;
+    typedef Matrix<value_type> MatrixXXd;
+    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<value_type, 1, Derived::ColsAtCompileTime> RowVector;
+    bool mIsFactorized;
+    unsigned int *mPermutations = nullptr;
+    Derived mLU;
+
+public:
+    ~PartialPivLU() {
+      delete[] mPermutations;
+    }
+
+    PartialPivLU(const Derived &matrix) :
+            mIsFactorized(false),
+            mLU (matrix)
+    {
+        mPermutations = new unsigned int [matrix.cols() + 1];
+        for (unsigned int i = 0; i <= matrix.cols(); i++) {
+            mPermutations[i] = i;
+        }
+        compute(matrix);
+    }
+
+    PartialPivLU& compute(const Derived &matrix) {
+      unsigned int n = matrix.rows();
+
+      double v_abs;
+      RowVector temp_vec;
+
+      unsigned int i,j,k;
+
+      // over all columns
+      for (i = 0; i < n; i++) {
+        double max_v = 0.0;
+        unsigned int max_i = i;
+
+        // Find the row pivoting index
+        for (k = i; k < n; k++) {
+          if ((v_abs = fabs(mLU(k, i))) > max_v) {
+            max_v = v_abs;
+            max_i = k;
+          }
+        }
+
+        if (max_v < std::numeric_limits<double>::epsilon()) {
+          std::cerr << "Error: pivoting failed for matrix A = " << std::endl;
+          std::cerr << "A = " << matrix << std::endl;
+          abort();
+        }
+
+        // Perform the permutation
+        if (max_i != i) {
+          // update permutation vector
+          j = mPermutations[i];
+          mPermutations[i] = mPermutations[max_i];
+          mPermutations[max_i] = j;
+
+          // swap columns
+          temp_vec = mLU.block(i,0,1,n);
+          mLU.block(i, 0, 1, n) = mLU.block(max_i, 0, 1, n);
+          mLU.block(max_i, 0, 1, n) = temp_vec;
+
+          // Increase number of permutations
+          mPermutations[n]++;
+        }
+
+        // eliminate i'th column of k'th row
+        for (int k = i+1; k < n; k++) {
+          mLU(k,i) = mLU(k,i) / mLU(i,i);
+
+          // iterate over all columns
+          for (int j = i+1; j < n; j++) {
+            mLU(k,j) = mLU(k,j) - mLU(i,j) * mLU(k,i);
+          }
+        }
+      }
+
+      mIsFactorized = true;
+
+      return *this;
+    }
+
+    Derived matrixL() const {
+      Derived result (Derived::Zero(mLU.rows(), mLU.cols()));
+
+      unsigned int n = mLU.rows();
+
+      for (int i = 0; i < n; i++) {
+        for (int j = 0; j < i; j++) {
+          result(i,j) = mLU(i,j);
+        }
+
+        result(i,i) = 1.0;
+      }
+
+      return result;
+    }
+
+    Derived matrixU() const {
+      Derived result (Derived::Zero(mLU.rows(), mLU.cols()));
+
+      unsigned int n = mLU.rows();
+
+      for (int i = 0; i < n; i++) {
+        for (int j = i; j < n; j++) {
+          result(i,j) = mLU(i,j);
+        }
+      }
+
+      return result;
+    }
+
+    Derived matrixP() const {
+      Derived result(Derived::Zero(mLU.rows(), mLU.cols()));
+
+      unsigned int n = mLU.rows();
+      for (int i = 0; i < n; i++) {
+        result(i, mPermutations[i]) = 1.0;
+      }
+
+      return result;
+    }
+
+    ColumnVector solve (
+            const ColumnVector &rhs
+    ) const {
+      assert (mIsFactorized);
+
+      unsigned int n = mLU.rows();
+
+      // Backsolve L^-1 * rhs
+      ColumnVector result(n, 1);
+
+      for (int i = 0; i < n; i++) {
+        result[i] = rhs[mPermutations[i]];
+        for (int j = 0; j < i; j++) {
+          result[i] = result[i] - result[j] * mLU(i,j);
+        }
+      }
+
+      // Solve U^-1 * result
+      for (int i = n - 1; i >= 0; i--) {
+        for (int j = i + 1; j < n; j++) {
+          result[i] = result[i] - result[j] * mLU(i,j);
+        }
+
+        result[i] = result[i] / mLU(i,i);
+      }
+
+      return result;
+    }
+
+    Derived inverse() const {
+        assert (mIsFactorized);
+        VectorXd rhs_temp = VectorXd::Zero(mLU.cols());
+        MatrixXXd result (mLU.cols(), mLU.cols());
+        for (unsigned int i = 0; i < mLU.cols(); i++) {
+            rhs_temp[i] = 1.;
+            result.block(0, i, mLU.cols(), 1) = solve(rhs_temp);
+            rhs_temp[i] = 0.;
+        }
+        return result;
+    }
+};
+
 //
 // QR Decomposition
 //
@@ -1661,7 +1874,7 @@ public:
         }
 
         if (fabs(mR(i,i)) < std::numeric_limits<value_type>::epsilon() * 10) {
-          std::cerr << "HouseholderQR: Cannot back-substitute as diagonal element is near zero!" << std::endl;
+          std::cerr << "HouseholderQR: Cannot back-substitute as diagonal element is near zero:" << fabs(mR(i,i))<< std::endl;
           abort();
         }
         x[i] = z / mR(i,i);
@@ -1847,7 +2060,7 @@ public:
       }
 
       if (fabs(mR(i,i)) < std::numeric_limits<value_type>::epsilon() * 10) {
-        std::cerr << "HouseholderQR: Cannot back-substitute as diagonal element is near zero!" << std::endl;
+        std::cerr << "HouseholderQR: Cannot back-substitute as diagonal element is near zero:" << fabs(mR(i,i))<< std::endl;
         abort();
       }
       x[mPermutations[i]] = z / mR(i,i);
