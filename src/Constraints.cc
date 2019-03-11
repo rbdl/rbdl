@@ -8,7 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <limits>
-#include <assert.h>
+#include <cassert>
 
 #include "rbdl/rbdl_mathutils.h"
 #include "rbdl/Logging.h"
@@ -374,12 +374,7 @@ void SolveConstrainedSystemDirect (
 
   switch (linear_solver) {
     case (LinearSolverPartialPivLU) :
-#ifdef RBDL_USE_SIMPLE_MATH
-      // SimpleMath does not have a LU solver so just use its QR solver
-      x = A.householderQr().solve(b);
-#else
       x = A.partialPivLu().solve(b);
-#endif
       break;
     case (LinearSolverColPivHouseholderQR) :
       x = A.colPivHouseholderQr().solve(b);
@@ -449,12 +444,7 @@ void SolveConstrainedSystemNullSpace (
   ) {
   switch (linear_solver) {
     case (LinearSolverPartialPivLU) :
-#ifdef RBDL_USE_SIMPLE_MATH
-      // SimpleMath does not have a LU solver so just use its QR solver
-      qddot_y = (G * Y).householderQr().solve (gamma);
-#else
       qddot_y = (G * Y).partialPivLu().solve (gamma);
-#endif
       break;
     case (LinearSolverColPivHouseholderQR) :
       qddot_y = (G * Y).colPivHouseholderQr().solve (gamma);
@@ -474,12 +464,7 @@ void SolveConstrainedSystemNullSpace (
 
   switch (linear_solver) {
     case (LinearSolverPartialPivLU) :
-#ifdef RBDL_USE_SIMPLE_MATH
-      // SimpleMath does not have a LU solver so just use its QR solver
-      qddot_y = (G * Y).householderQr().solve (gamma);
-#else
       lambda = (G * Y).partialPivLu().solve (Y.transpose() * (H * qddot - c));
-#endif
       break;
     case (LinearSolverColPivHouseholderQR) :
       lambda = (G * Y).colPivHouseholderQr().solve (Y.transpose() * (H * qddot - c));
@@ -1650,12 +1635,7 @@ void SolveLinearSystem (
   // Solve the sistem A*x = b.
   switch (ls) {
   case (LinearSolverPartialPivLU) :
-    #ifdef RBDL_USE_SIMPLE_MATH
-      // SimpleMath does not have a LU solver so just use its QR solver
-      x = A.householderQr().solve(b);
-    #else
       x = A.partialPivLu().solve(b);
-    #endif
     break;
   case (LinearSolverColPivHouseholderQR) :
     x = A.colPivHouseholderQr().solve(b);

@@ -7,8 +7,8 @@
 
 #include <iostream>
 #include <limits>
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 
 #include "rbdl/rbdl_mathutils.h"
 #include "rbdl/Logging.h"
@@ -585,11 +585,7 @@ RBDL_DLLAPI void ForwardDynamicsLagrangian (
 
   switch (linear_solver) {
     case (LinearSolverPartialPivLU) :
-#ifdef RBDL_USE_SIMPLE_MATH
-      QDDot = H->colPivHouseholderQr().solve (*C * -1. + Tau);
-#else
       QDDot = H->partialPivLu().solve (*C * -1. + Tau);
-#endif
       break;
     case (LinearSolverColPivHouseholderQR) :
       QDDot = H->colPivHouseholderQr().solve (*C * -1. + Tau);
