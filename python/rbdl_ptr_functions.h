@@ -986,7 +986,7 @@ RBDL_DLLAPI bool InverseKinematicsPtr (
 			
 	using namespace RigidBodyDynamics::Math;		
 	
-  assert (Qinit.size() == model.q_size);
+//  assert (Qinit.size() == model.q_size);
   assert (body_id.size() == body_point.size());
   assert (body_id.size() == target_pos.size());
   
@@ -1221,7 +1221,7 @@ RBDL_DLLAPI bool InverseKinematicsCSPtr (
     VectorNd ek = CS.J.transpose() * CS.e;
     MatrixNd Wn = MatrixNd::Zero (Qres.size(), Qres.size());
 
-    assert (ek.size() == QNdres.size());
+//    assert (ek.size() == QNdres.size());
 
     for (size_t wi = 0; wi < Qres.size(); wi++) {
       Wn(wi, wi) = ek[wi] * ek[wi] * 0.5 + CS.lambda;
