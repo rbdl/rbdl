@@ -1,3 +1,5 @@
+debug
+build
 syntax: glob
 
 doc/html/*
