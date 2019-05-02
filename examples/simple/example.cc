@@ -49,10 +49,10 @@ int main (int argc, char* argv[]) {
 	
 	body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
-	VectorNd Q = VectorNd::Zero (model->dof_count);
-	VectorNd QDot = VectorNd::Zero (model->dof_count);
-	VectorNd Tau = VectorNd::Zero (model->dof_count);
-	VectorNd QDDot = VectorNd::Zero (model->dof_count);
+	VectorNd Q = VectorNd::Zero (model->q_size);
+	VectorNd QDot = VectorNd::Zero (model->qdot_size);
+	VectorNd Tau = VectorNd::Zero (model->qdot_size);
+	VectorNd QDDot = VectorNd::Zero (model->qdot_size);
 
  	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
 

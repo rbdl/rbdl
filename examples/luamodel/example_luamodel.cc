@@ -43,10 +43,10 @@ int main (int argc, char* argv[]) {
   std::cout << "Model Hierarchy:" << std::endl;
   std::cout << Utils::GetModelHierarchy(*model);
 
-  VectorNd Q = VectorNd::Zero (model->dof_count);
-  VectorNd QDot = VectorNd::Zero (model->dof_count);
-  VectorNd Tau = VectorNd::Zero (model->dof_count);
-  VectorNd QDDot = VectorNd::Zero (model->dof_count);
+  VectorNd Q = VectorNd::Zero (model->q_size);
+  VectorNd QDot = VectorNd::Zero (model->qdot_size);
+  VectorNd Tau = VectorNd::Zero (model->qdot_size);
+  VectorNd QDDot = VectorNd::Zero (model->qdot_size);
 
   std::cout << "Forward Dynamics with q, qdot, tau set to zero:" << std::endl;
   ForwardDynamics (*model, Q, QDot, Tau, QDDot);
