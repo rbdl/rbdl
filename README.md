@@ -5,20 +5,13 @@ Introduction
 ============
 
 RBDL is a highly efficient C++ library that contains some essential rigid
-body dynamics algorithms such as the Articulated Body Algorithm (ABA) for
-forward dynamics, Recursive Newton-Euler Algorithm (RNEA) for inverse
-dynamics and the Composite Rigid Body Algorithm (CRBA) for the efficient
-computation of the joint space inertia matrix. It further contains code for
-Jacobians, forward and inverse kinematics, handling of external
+body dynamics algorithms such as the Articulated Body Algorithm (ABA) for forward dynamics, Recursive Newton-Euler Algorithm (RNEA) for inverse dynamics and the Composite Rigid Body Algorithm (CRBA) for the efficient computation of the joint space inertia matrix. It further contains code for Jacobians, forward and inverse kinematics, handling of external
 constraints such as contacts and collisions, and closed-loop models.
 
-The code is developed by Martin Felis <martin@fysx.org>
-at the research group [Optimization in Robotics and Biomechanics
-(ORB)](http://orb.iwr.uni-heidelberg.de) of the [Interdisciplinary Center
-for Scientific Computing (IWR)](http://www.iwr.uni-heidelberg.de) at
-[Heidelberg University](http://www.uni-heidelberg.de). The code tightly
-follows the notation used in Roy Featherstone''s book "Rigid Body Dynamics
-Algorithm".
+The code is developed by Martin Felis <martin@fysx.org> at the research group [Optimization in Robotics and Biomechanics (ORB)](http://orb.iwr.uni-heidelberg.de) of the [Interdisciplinary Center for Scientific Computing (IWR)](http://www.iwr.uni-heidelberg.de) and [Institut of Computer Engineering](https://www.ziti.uni-heidelberg.de/ziti/en/) at [Heidelberg University](http://www.uni-heidelberg.de). The code closely follows the notation used in Roy Featherstone''s book "Rigid Body Dynamics Algorithm".
+
+This repository contains the version of RBDL that is maintained by the members
+of the ORB research group. 
 
 Recent Changes
 ==============
@@ -100,68 +93,188 @@ For a complete history see doc/api_changes.txt.
 Documentation
 =============
 
-The documentation is contained in the code and can be extracted with the
-tool [doxygen](http://www.doxygen.org).
+The documentation is contained in the code and can be extracted with the tool [doxygen](http://www.doxygen.org).
 
 To create the documentation simply run
-
+```
     doxygen Doxyfile
+```
 
-which will generate the documentation in the subdirectory ./doc/html. The
-main page will then be located in ./doc/html/index.html.
+which will generate the documentation in the subdirectory ./doc/html. The main page will then be located in ./doc/html/index.html.
 
-An online version of the generated documentation can be found at
-[http://rbdl.bitbucket.org](http://rbdl.bitbucket.org).
 
 Getting RBDL
 ============
 
-The latest stable code can be obtained from
+The official rbdl-orb git repository can be cloned from
+```
+    https://github.com/ORB-HD/rbdl-orb
+```
 
-    https://bitbucket.org/rbdl/rbdl/get/default.zip
+(See [https://git-scm.com/downloads/guis/](https://git-scm.com/downloads/guis/) for git clients.)
 
-The official mercurial repository can be cloned from
-
-    https://bitbucket.org/rbdl/rbdl
-
-(See [http://mercurial.selenic.com/](http://mercurial.selenic.com) for
-mercurial clients.)
 
 Building and Installation
 =========================
 
-The RBDL is built using CMake
-([http://www.cmake.org](http://www.cmake.org)). To compile the library in
-a separate directory in Release mode use:
 
-    mkdir build
-    cd build/
-    cmake -D CMAKE_BUILD_TYPE=Release ../ 
-    make
+## Linux: RBDL
 
-For optimal performance it is highly recommended to install the Eigen3
-linear algebra library from
-[http://eigen.tuxfamily.org](http://eigen.tuxfamily.org). RBDL also
-comes with a simple, albeit much slower math library (SimpleMath) that can
-be used by enabling `RBDL_USE_SIMPLE_MATH`, i.e.:
+1. Prior to installation update the apt system. Open a terminal and type
+```
+  sudo apt update
+  sudo apt upgrade
+```
+2. Install git
+```
+  sudo apt install git-core
+```
 
-    cmake -D RBDL_USE_SIMPLE_MATH=TRUE ../
+3. Install cmake 
+```
+  sudo apt install cmake
+```
+
+4. Install cmake-curses *(optional)*
+    If you are planning on taking advantage of the many addons and other build options we recommend that you use cmake-curses as it makes the build configuration process faster and less prone to error.
+```
+  sudo apt install cmake-curses-gui
+```
+
+5. Install a c++ compiler
+  The choice of compiler can have a large effect on performance. Consider evaluating a few different compilers, such as Clang, for the best performance.
+
+```
+  sudo apt-get install build-essential
+```
+
+6. Install UnitTest++ *(optional)*
+  Install UnitTest++ if you want to run RBDL's test code.
+```
+  sudo apt install libunittest++-dev  
+```
+
+7. Install Eigen3 *(optional)*
+  Although RBDL comes with a simple, albeit slow math library (SimpleMath), much
+  better performance can be obtained by using Eigen3 ([http://eigen.tuxfamily.org](http://eigen.tuxfamily.org)). 
+
+```
+  sudo apt install libeigen3-dev
+```
+  
+
+
+8. Build RBDL using CMake
+([http://www.cmake.org](http://www.cmake.org)). To compile the library in a separate directory in Release mode use:
+```
+  mkdir /rbdl-build
+  cd rbdl-build/
+  cmake -D CMAKE_BUILD_TYPE=Release ../rbdl
+  make
+```
+If you have installed cmake-curses-gui you can see all of the available build options by running cmake-curses
+```
+  mkdir /rbdl-build
+  cd rbdl-build/
+  ccmake ../rbdl 
+```
+at which point you will see full list of build options for RBDL. We recommend that you build and run RBDL's test code at least once by building RBDL with 
+  ```
+  RBDL_BUILD_TESTS                 ON
+  RUN_AUTOMATIC_TESTS              ON
+  ```
+
+## Linux: RBDL's examples
+
+1. Install Boost *(optional)*
+  Boost is needed to run many of the example simulations that come with RBDL.  
+  ```
+  sudo apt install libboost-all-dev
+  ```    
+
+## Linux: RBDL's addon dependencies
+
+1. luamodel addon: 
+  -  If you'd like to load model files written in Lua to RBDL. Without this addon you will need to build models programmatically, or read them in using the URDF addon. To do so:
+  - Install Lua51 
+   ```
+    sudo apt install lua5.1
+    sudo apt install liblua5.1-0-dev
+  ```
+  
+  - Build RBDL with
+  ```
+    RBDL_BUILD_ADDON_LUAMODEL        ON
+  ```
+2. muscle addon
+  - If you'd like to include muscles in your RBDL muscles, such as those in Millard et al., then build RBDL with
+  ```
+    RBDL_BUILD_ADDON_GEOMETRY ON
+    RBDL_BUILD_ADDON_MUSCLE   ON
+  ```
+  - The geometry addon is a dependency which cmake will automatically include
+  - Millard M, Emonds AL, Harant M, Mombaur K. A reduced muscle model and planar musculoskeletal model fit for the simulation of whole-body movements. Journal of biomechanics. 2019 Apr 10. 
+   
+3. muscle fitting addon
+  - Why? To make use of the muscle fitting algorithms detailed in Millard et al. 
+  - Install Ipopt. One of the easier ways to do this is to follow these instructions from [Ipopt's online documentation](https://www.coin-or.org/Ipopt/documentation/node12.html#SECTION00042300000000000000) which guides you through the process. Instructions to build the code appear in the README located in the Ipopt folder
+  - Build RBDL with these flags set to 'On'
+  ```
+          RBDL_BUILD_ADDON_GEOMETRY        ON                                           
+          RBDL_BUILD_ADDON_LUAMODEL        ON                                           
+          RBDL_BUILD_ADDON_MUSCLE          ON                                          
+          RBDL_BUILD_ADDON_MUSCLE_FITTING  ON  
+  ```
     
+  -  As of March 2019 all of the muscle fitting code has been tested with Ipopt-3.12.8. To use Ipopt with RBDL you will need to set the CUSTOM_IPOPT_PATH to the main Ipopt directory.
+  - Millard M, Emonds AL, Harant M, Mombaur K. A reduced muscle model and planar musculoskeletal model fit for the simulation of whole-body movements. Journal of biomechanics. 2019 Apr 10.
+
+## Windows
+
+Although RBDL can be installed on Windows, none of the ORB members currently
+uses Windows and so we are unable to provide detailed instructions.
+
 Python Bindings
 ===============
 
-RBDL can also build an experimental python wrapper that works with python 3 and python 2. To do this enable the
-the `RBDL_BUILD_PYTHON_WRAPPER` cmake options. This will build the wrapper for python 3, if you want to use python 2 instead
-you will also have to enable the `RBDL_USE_PYTHON_2` cmake option. The result of this is an extra python directory in the build
-directory. From within which you can install it using setup.py. This is done automically when using `make install`
+RBDL can also build an experimental python wrapper that works with python 3 and 
+python 2. To do this enable the the `RBDL_BUILD_PYTHON_WRAPPER` cmake options. 
+This will build the wrapper for python 3, if you want to use python 2 instead
+you will also have to enable the `RBDL_USE_PYTHON_2` cmake option. The result 
+of this is an extra python directory in the build directory. From within which 
+you can install it using setup.py. This is done automically when using 
+`make install`
 
+## Linux: Python wrapper dependencies 
+1. Install Python3, NumPy, SciPy, \& Matplotlib *(optional)*
+  Most of RBDL is accessible through Python. If you are interested in using the RBDL through Python these instructions:
+
+  - If you are using Ubuntu 18.04 or later python3 comes pre-installed.
+  - To check if you have python3, in a command shell type
+  ```
+  python3 -V
+  ```
+  - If you already have python3 installed system-wide then you can get the remaining libraries with
+  ```
+  sudo apt install python3-numpy python3-scipy python3-matplotlib
+  ```
+  - If you are not using Ubuntu 18.04, and do not currently have python3, please
+    look for instructions online to install these libraries on your system.     
+2. Build and install RBDL with the 
+  ```
+  RBDL_BUILD_PYTHON_WRAPPER : ON
+  ```
+  (Note: you may need sudo privileges to install the rbdl.egg_info file to usr/local/lib/python directory.)
+3. Add RBDL to Python's path
+  Update your .bashrc file so that python can find the python version of rbdl. To do this you need to add the path to 'rbdl-build/python' to the PYTHONPATH which can be done by adding the following line to your .bashrc file.
+  ```
+  export PYTHONPATH=$PYTHONPATH:<path-to-the-RBDL-build-directory>/python
+  ```
+    
 Citation
 ========
 
-An overview of the theoretical and implementation details has been
-published in [https://doi.org/10.1007/s10514-016-9574-0](Felis,
-M.L. Auton Robot (2017) 41: 495). To cite RBDL in your academic
-research you can use the following BibTeX entry:
+An overview of the theoretical and implementation details has been published in [https://doi.org/10.1007/s10514-016-9574-0](Felis, M.L. Auton Robot (2017) 41: 495). To cite RBDL in your academic research you can use the following BibTeX entry:
 
     @Article{Felis2016,
       author="Felis, Martin L.",
@@ -177,8 +290,7 @@ research you can use the following BibTeX entry:
 Licensing
 =========
 
-The library is published under the very permissive zlib free software
-license which should allow you to use the software wherever you need. 
+The library is published under the very permissive zlib free software license which should allow you to use the software wherever you need. 
 
 This is the full license text (zlib license):
 
@@ -207,8 +319,7 @@ This is the full license text (zlib license):
 Acknowledgements
 ================
 
-Work on this library was originally funded by the [Heidelberg Graduate
-School of Mathematical and Computational Methods for the Sciences
-(HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the European
-FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and
-[Koroibot](http://koroibot.eu) (grant number 611909).
+
+Work on this library was originally funded by the [Heidelberg Graduate School of Mathematical and Computational Methods for the Sciences (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the European FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and [Koroibot](http://koroibot.eu) (grant number 611909).
+
+Work on the geometry and muscle addons was completed by Matthew Millard. Financial support from Deutsche Forschungs Gemeinschaft grant no. MI 2109/1-1 and from the European Commission within the H2020 project Spexor (GA 687662) is gratefully acknowledged.
