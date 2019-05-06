@@ -279,7 +279,7 @@ you can install it using setup.py. This is done automically when using
   ```
   - If you already have python3 installed system-wide then you can get the remaining libraries with
   ```
-  sudo apt install python3-numpy python3-scipy python3-matplotlib
+  sudo apt install cython3 python3-numpy python3-scipy python3-matplotlib
   ```
   - If you are not using Ubuntu 18.04, and do not currently have python3, please
     look for instructions online to install these libraries on your system.     
