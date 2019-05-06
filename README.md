@@ -184,6 +184,21 @@ at which point you will see full list of build options for RBDL. We recommend th
   RUN_AUTOMATIC_TESTS              ON
   ```
 
+## Linux: RBDL's documentation
+
+1. Install doxygen
+```  
+    sudo apt install doxygen
+```
+
+2. Build the doxygen:
+  - Open a terminal in the RBDL source directory and type
+  ```
+  doxygen Doxyfile
+  ```
+
+3. Open the file doc/html/index.html in a web-browser.
+
 ## Linux: RBDL's examples
 
 1. Install Boost *(optional)*
