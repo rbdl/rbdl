@@ -216,9 +216,9 @@ at which point you will see full list of build options for RBDL. We recommend th
   - Millard M, Emonds AL, Harant M, Mombaur K. A reduced muscle model and planar musculoskeletal model fit for the simulation of whole-body movements. Journal of biomechanics. 2019 Apr 10. 
    
 3. muscle fitting addon
-  - Why? To make use of the muscle fitting algorithms detailed in Millard et al. 
+  - If you'd like to make use of the muscle fitting algorithms detailed in Millard et al. 
   - Install Ipopt. One of the easier ways to do this is to follow these instructions from [Ipopt's online documentation](https://www.coin-or.org/Ipopt/documentation/node12.html#SECTION00042300000000000000) which guides you through the process. Instructions to build the code appear in the README located in the Ipopt folder
-  - Build RBDL with these flags set to 'On'
+  - Configure RBDL's cmake file with these flags set to 'On'
   ```
           RBDL_BUILD_ADDON_GEOMETRY        ON                                           
           RBDL_BUILD_ADDON_LUAMODEL        ON                                           
@@ -226,7 +226,15 @@ at which point you will see full list of build options for RBDL. We recommend th
           RBDL_BUILD_ADDON_MUSCLE_FITTING  ON  
   ```
     
-  -  As of March 2019 all of the muscle fitting code has been tested with Ipopt-3.12.8. To use Ipopt with RBDL you will need to set the CUSTOM_IPOPT_PATH to the main Ipopt directory.
+  - Set the CUSTOM_IPOPT_PATH to the main Ipopt directory.
+  - Build RBDL
+  - Update your .bashrc file so that Ipopt's lib folder is in LD_LIBRARY_PATH
+  ```
+        export IPOPT_HOME=/home/mjhmilla/dev/Ipopt-3.12.8
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$IPOPT_HOME/lib
+  ```
+  -  As of March 2019 all of the muscle fitting code has been tested with Ipopt-3.12.8. 
+  - 
   - Millard M, Emonds AL, Harant M, Mombaur K. A reduced muscle model and planar musculoskeletal model fit for the simulation of whole-body movements. Journal of biomechanics. 2019 Apr 10.
 
 ## Windows
