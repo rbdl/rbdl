@@ -629,25 +629,7 @@ cdef class Millard2016TorqueMuscle:
                                      jointAngularVelocity,
                                      jointTorque,
                                      tms.thisptr[0])
-                                     
-                                     
-#    def calcActivationfit(self, double jointAngle,
-#                                   double jointAngularVelocity,
-#                                   double jointTorque,
-#                                   TorqueMuscleSummary tms,
-#                                   double taLambdaIn,
-#                                   double tvLambdaIn,
-#                                   double tpLambdaIn,
-#                                   double maxActiveIsometricTorqueIn):
-#		self.thisptr.calcActivation( jointAngle,
-#                                     jointAngularVelocity,
-#                                     jointTorque,
-#                                     tms.thisptr[0]
-#                                     taLambdaIn,
-#                                     tvLambdaIn,
-#                                     tpLambdaIn,
-#                                     maxActiveIsometricTorqueIn)
-                                                                      
+                                                                                                                                               
 
     def calcMaimumActiveIsometricTorqueScalingFactor(self, double jointAngle,
                           double jointAngularVelocity,
@@ -837,145 +819,6 @@ cdef class Millard2016TorqueMuscle:
         self.thisptr.setFittedParameters (fittedParameters.thisptr[0])
 
 
-        
-    
-    
-#    def calcInverseBlendedCurveValue( self, 
-#                            blendedCurveValue,
-#                            argGuess,
-#                            blendingVariable,
-#                            maximumBlendingValue,
-#                            SmoothSegmentedFunction curve):
-#        return self.thisptr.calcInverseBlendedCurveValue( blendedCurveValue,
-#                            argGuess,
-#                            blendingVariable,
-#                            maximumBlendingValue,
-#                            curve.thisptr[0])
-    
-#    def calcBlendedCurveDerivative( self,
-#                            curveArgument,
-#                            blendingVariable,
-#                            maximumBlendingValue,
-#                            derivativeOrderArgument,
-#                            derivativeOrderBlendingVariable,
-#                            SmoothSegmentedFunction curve):
-#        return self.thisptr.calcBlendedCurveDerivative( curveArgument,
-#                            blendingVariable,
-#                            maximumBlendingValue,
-#                            derivativeOrderArgument,
-#                            derivativeOrderBlendingVariable,
-#                            curve.thisptr[0])
-    
-#    def calcFiberAngleGivenNormalizedPassiveTorque( self,
-#                    normPassiveFiberTorque,
-#                    blendingVariable,
-#                    passiveTorqueAngleCurveOffset):
-#        return self.thisptr.calcFiberAngleGivenNormalizedPassiveTorque(
-#                    normPassiveFiberTorque,
-#                    blendingVariable,
-#                    passiveTorqueAngleCurveOffset)
-    
-#    def updTorqueMuscleSummaryCurveValues( self,
-#                                  fiberAngle,
-#                                  normFiberAngularVelocity,
-#                                  activeTorqueAngleBlendingVariable,
-#                                  passiveTorqueAngleBlendingVariable,
-#                                  torqueAngularVelocityBlendingVariable,
-#                                  activeTorqueAngleAngleScaling,
-#                                  activeTorqueAngleAtOneNormTorque,
-#                                  passiveTorqueAngleCurveOffset,
-#                                  TorqueMuscleSummary updTms):
-#        self.thisptr.updTorqueMuscleSummaryCurveValues(fiberAngle,
-#                                  normFiberAngularVelocity,
-#                                  activeTorqueAngleBlendingVariable,
-#                                  passiveTorqueAngleBlendingVariable,
-#                                  torqueAngularVelocityBlendingVariable,
-#                                  activeTorqueAngleAngleScaling,
-#                                  activeTorqueAngleAtOneNormTorque,
-#                                  passiveTorqueAngleCurveOffset,
-#                                  updTms.thisptr[0])
-    
-#    def updTorqueMuscleInfo(      self,
-#                                  activation,
-#                                  jointAngle,
-#                                  jointAngularVelocity,
-#                                  activeTorqueAngleBlendingVariable,
-#                                  passiveTorqueAngleBlendingVariable,
-#                                  torqueAngularVelocityBlendingVariable,
-#                                  activeTorqueAngleAngleScaling,
-#                                  activeTorqueAngleAtOneNormTorque,
-#                                  passiveTorqueAngleCurveOffset,
-#                                  maxAngularVelocity,
-#                                  maxActIsoTorque,
-#                                  TorqueMuscleInfo updTmi):
-#        self.thisptr.updTorqueMuscleInfo(
-#                                  activation,
-#                                  jointAngle,
-#                                  jointAngularVelocity,
-#                                  activeTorqueAngleBlendingVariable,
-#                                  passiveTorqueAngleBlendingVariable,
-#                                  torqueAngularVelocityBlendingVariable,
-#                                  activeTorqueAngleAngleScaling,
-#                                  activeTorqueAngleAtOneNormTorque,
-#                                  passiveTorqueAngleCurveOffset,
-#                                  maxAngularVelocity,
-#                                  maxActIsoTorque,
-#                                  updTmi.thisptr[0])
-    
-#    def updTorqueMuscleSummary( self,
-#                              activation,
-#                              jointAngle,
-#                              jointAngularVelocity,
-#                              activeTorqueAngleBlendingVariable,
-#                              passiveTorqueAngleBlendingVariable,
-#                              torqueAngularVelocityBlendingVariable,
-#                              activeTorqueAngleAngleScaling,
-#                              activeTorqueAngleAtOneNormTorque,
-#                              passiveTorqueAngleCurveOffset,
-#                              maxAngularVelocity,
-#                              maxActIsoTorque,
-#                              TorqueMuscleSummary updTms):
-#        self.thisptr.updTorqueMuscleSummary( activation,
-#                              jointAngle,
-#                              jointAngularVelocity,
-#                              activeTorqueAngleBlendingVariable,
-#                              passiveTorqueAngleBlendingVariable,
-#                              torqueAngularVelocityBlendingVariable,
-#                              activeTorqueAngleAngleScaling,
-#                              activeTorqueAngleAtOneNormTorque,
-#                              passiveTorqueAngleCurveOffset,
-#                              maxAngularVelocity,
-#                              maxActIsoTorque,
-#                              updTms.thisptr[0])
-        
-#    def updInvertTorqueMuscleSummary(self, 
-#                                   jointTorque,
-#                                   jointAngle,
-#                                   jointAngularVelocity,
-#                                   activeTorqueAngleBlendingVariable,
-#                                   passiveTorqueAngleBlendingVariable,
-#                                   torqueAngularVelocityBlendingVariable,
-#                                   activeTorqueAngleAngleScaling,
-#                                   activeTorqueAngleAtOneNormTorque,
-#                                   passiveTorqueAngleCurveOffset,
-#                                   maxAngularVelocity,
-#                                   maxActIsoTorque,
-#                                   TorqueMuscleSummary updTms):
-#        self.thisptr.updInvertTorqueMuscleSummary(jointTorque,
-#                                   jointAngle,
-#                                   jointAngularVelocity,
-#                                   activeTorqueAngleBlendingVariable,
-#                                   passiveTorqueAngleBlendingVariable,
-#                                   torqueAngularVelocityBlendingVariable,
-#                                   activeTorqueAngleAngleScaling,
-#                                   activeTorqueAngleAtOneNormTorque,
-#                                   passiveTorqueAngleCurveOffset,
-#                                   maxAngularVelocity,
-#                                   maxActIsoTorque,
-#                                   updTms.thisptr[0])
-                                      
-
-
 
 
 cdef class TorqueMuscleParameterFittingData:
@@ -1119,29 +962,27 @@ cdef class TorqueMuscleParameterFittingData:
             return MS
 
 
-
-cdef class TorqueMuscleFittingToolkit:
-    
-    
-    
-    def fitTorqueMuscleParameters( self,
-                    Millard2016TorqueMuscle tqMcl,
-                    np.ndarray[double, ndim=1, mode="c"] jointAngle,
-                    np.ndarray[double, ndim=1, mode="c"] jointAngularVelocity,
-                    np.ndarray[double, ndim=1, mode="c"] jointTorque,
-                    activationUpperBound,
-                    passiveTorqueAngleMultiplierUpperBound,
-                    TorqueMuscleParameterFittingData parametersOfBestFit,
-                    verbose=False):
-        crbdlmuscle.fitTorqueMuscleParameters(
-                    tqMcl.thisptr[0],
-                    NumpyToVectorNd(jointAngle),
-                    NumpyToVectorNd(jointAngularVelocity),
-                    NumpyToVectorNd(jointTorque),
-                    activationUpperBound,
-                    passiveTorqueAngleMultiplierUpperBound,
-                    parametersOfBestFit.thisptr[0],
-                    verbose)
+IF "@RBDL_BUILD_ADDON_MUSCLE_FITTING@" == "ON":
+    cdef class TorqueMuscleFittingToolkit:
+        
+        def fitTorqueMuscleParameters( self,
+                        Millard2016TorqueMuscle tqMcl,
+                        np.ndarray[double, ndim=1, mode="c"] jointAngle,
+                        np.ndarray[double, ndim=1, mode="c"] jointAngularVelocity,
+                        np.ndarray[double, ndim=1, mode="c"] jointTorque,
+                        activationUpperBound,
+                        passiveTorqueAngleMultiplierUpperBound,
+                        TorqueMuscleParameterFittingData parametersOfBestFit,
+                        verbose=False):
+            crbdlmuscle.fitTorqueMuscleParameters(
+                        tqMcl.thisptr[0],
+                        NumpyToVectorNd(jointAngle),
+                        NumpyToVectorNd(jointAngularVelocity),
+                        NumpyToVectorNd(jointTorque),
+                        activationUpperBound,
+                        passiveTorqueAngleMultiplierUpperBound,
+                        parametersOfBestFit.thisptr[0],
+                        verbose)
 
         
     
