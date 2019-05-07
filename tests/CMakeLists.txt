@@ -33,6 +33,7 @@ SET ( TESTS_SRCS
   LoopConstraintsTests.cc
   ScrewJointTests.cc
   ForwardDynamicsConstraintsExternalForces.cc
+  InverseDynamicsWithConstraintsTests.cc  
   )
 
 INCLUDE_DIRECTORIES ( ../src/ )
