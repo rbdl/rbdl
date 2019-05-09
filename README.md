@@ -230,7 +230,7 @@ at which point you will see full list of build options for RBDL. We recommend th
   - The geometry addon is a dependency which cmake will automatically include
   - Millard M, Emonds AL, Harant M, Mombaur K. A reduced muscle model and planar musculoskeletal model fit for the simulation of whole-body movements. Journal of biomechanics. 2019 Apr 10. 
    
-3. muscle fitting addon
+3. muscle addong: muscle fitting option
   - If you'd like to make use of the muscle fitting algorithms detailed in Millard et al. 
   - Install Ipopt. One of the easier ways to do this is to follow these instructions from [Ipopt's online documentation](https://www.coin-or.org/Ipopt/documentation/node12.html#SECTION00042300000000000000) which guides you through the process. Instructions to build the code appear in the README located in the Ipopt folder
   - Configure RBDL's cmake file with these flags set to 'On'
@@ -294,6 +294,34 @@ you can install it using setup.py. This is done automically when using
   export PYTHONPATH=$PYTHONPATH:<path-to-the-RBDL-build-directory>/python
   ```
     
+Resources to learn more
+========
+
+There are four main ways to learn about anything that appears in RBDL:
+
+1. The examples folder
+  - There are a set of deep-dive examples which are accompanied by detailed 
+  documentation: if you are new to RBDL start here first.
+  - There are also a set of minimalistic examples 
+  - The examples cover the basics reasonably well, but currently many advanced 
+  items (quaternion joints, custom-joints, custom-constraints, muscle-fitting) 
+  do not have examples.
+2. The Doxygen documentation   
+  - The Doxygen for methods and components that were developed recently are 
+  covered in great detail (e.g. the Millard2016TorqueMuscle class in the muscle addon).
+  - Doxygen for more well established methods are more sparsley documented.
+3. The test code; 
+  - A minimalistic example of every command and modeling component can be found 
+  in the test code (e.g. in rbdl/tests, addons/geometry/tests, addons/muscle/tests, etc).
+  - A specific command can be easily found by using a text editor that can 
+  search an entire directory (e.g. sublime text) of text files for a keyword.
+4. The literature. 
+  - In addition to Featherstone's text and Felis's papers there
+are a number of exciting methods and modeling tools which are included in RBDL.
+  - The appropriate literature references are mentioned in the doxygen for the 
+  method in question.
+
+
 Citation
 ========
 

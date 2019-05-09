@@ -1,16 +1,9 @@
-#     3a. This file is going to look for rbdl, rbdl-luamodel, rbdl-urdfreader,
-#         rbdl-geometry, and rbdl-muscle. Here we make a bunch of boolean flags
-#         to indicate if these resources have been found and initialize them 
-#         to false.
-
 SET (RBDL_FOUND FALSE)
 SET (RBDL_LUAMODEL_FOUND FALSE)
 SET (RBDL_URDFREADER_FOUND FALSE)
 SET (RBDL_GEOMETRY_FOUND FALSE)
 SET (RBDL_MUSCLE_FOUND FALSE)
 
-#     3b. All of the variables that this FindRBDL.cmake file will populate, 
-#         if these resources exist, are listed here.
 
 UNSET( RBDL_INCLUDE_DIR              CACHE)   
 UNSET( RBDL_LIBRARY                  CACHE)    
@@ -23,38 +16,13 @@ UNSET( RBDL_MUSCLE_LIBRARY           CACHE)
 UNSET( RBDL_GEOMETRY_INCLUDE_DIR     CACHE)   
 UNSET( RBDL_GEOMETRY_LIBRARY         CACHE)   
 
-
-#     3c. This script has two different modes:
-#
-#        If there is a CUSTOM_RBDL_PATH: then this path is used to search 
-#        for Rbdl
-#
-#        If there is no CUSTOM_RBDL_PATH, then a bunch of typical install
-#        locations are used. Note that at the present time these typical install
-#        include paths that will only work on linux
-
 IF(CUSTOM_RBDL_PATH)
-
-
-#     3d. The validity of each path is checked by using the FIND_PATH 
-#         command to look for a specific file. In the case of the RBDL_INCLUDE_DIR
-#         it is the correct path if you can find rbdl/rbdl.h from it. 
-#         If that is true then RBDL_INCLUDE_DIR is assigned 
-#         ${CUSTOM_RBDL_PATH}/include (remember the $ converts the variable 
-#         to its string representation)
 
   FIND_PATH (RBDL_INCLUDE_DIR rbdl/rbdl.h
     PATHS 
     ${CUSTOM_RBDL_PATH}/include 
     NO_DEFAULT_PATH
     )
-
-
-#     3e. Similarly the validity of a path to a library is checked by looking
-#         to see if a specific library exists using the FIND_LIBRARY command.
-#         Note that you do not need to put the file type on the end of the 
-#         library name, nor a prefix of 'lib': CMake will do this for you 
-#         in a way that is cross-platform.
 
   FIND_LIBRARY (RBDL_LIBRARY rbdl
     PATHS
@@ -114,11 +82,6 @@ IF(CUSTOM_RBDL_PATH)
     )
 
 ELSE(CUSTOM_RBDL_PATH)
-
-
-#     3f. If there is no CUSTOM_RBDL_PATH given then FIND_PATH and FIND_LIBRARY
-#         commands are used but with substantial HINTS, or places to look
-
   FIND_PATH (RBDL_INCLUDE_DIR rbdl/rbdl.h
     HINTS
     $ENV{HOME}/local/include
@@ -231,13 +194,6 @@ ELSE(CUSTOM_RBDL_PATH)
     )  
 ENDIF(CUSTOM_RBDL_PATH)
 
-
-#     3g. If we've gotten to this point then either all include directories 
-#         and libraries have been found, some have been found, or none have 
-#         been found. All of the code below is going through what the user
-#         asked for, seeing if it was found, and if not issuing an error.
-
-
 IF (RBDL_INCLUDE_DIR AND RBDL_LIBRARY)
   SET (RBDL_FOUND TRUE)
 ELSE(RBDL_INCLUDE_DIR AND RBDL_LIBRARY)
@@ -284,11 +240,6 @@ IF (RBDL_FOUND)
    endforeach ( COMPONENT )
 
 ENDIF (RBDL_FOUND)
-
-
-#     3h. Here all of the specific paths and libraries are marked as advanced
-#         which means that they will not appear in the CMake gui unless the 
-#         user toggles to the advanced mode.                
 
 MARK_AS_ADVANCED (
   RBDL_INCLUDE_DIR
