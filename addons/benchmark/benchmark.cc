@@ -50,7 +50,8 @@ enum ContactsMethod {
   ContactsMethodLagrangian = 0,
   ContactsMethodRangeSpaceSparse,
   ContactsMethodNullSpace,
-  ContactsMethodKokkevis
+  ContactsMethodKokkevis ,
+  ContactsMethodInverseDynamicsConstraints
 };
 
 double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
@@ -210,6 +211,24 @@ double run_calc_minv_times_tau_benchmark (Model *model, int sample_count) {
   return duration;
 }
 
+double run_inverse_dynamics_constraints_benchmark (Model *model, ConstraintSet *constraint_set, std::vector<bool> &dofActuated, int sample_count) {
+  SampleData sample_data;
+  sample_data.fillRandom(model->dof_count, sample_count);
+  VectorNd qddot = VectorNd::Zero(model->dof_count);
+  TimerInfo tinfo;
+  timer_start (&tinfo);
+
+  constraint_set->SetActuationMap(*model, dofActuated);
+
+  for (int i = 0; i < sample_count; i++) {
+    InverseDynamicsConstraints (*model, sample_data.q[i], sample_data.qdot[i], sample_data.qddot[i], *constraint_set, qddot, sample_data.tau[i]); 
+  }
+
+  double duration = timer_stop (&tinfo);
+
+  return duration;
+}
+
 double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constraint_set, int sample_count) {
   SampleData sample_data;
   sample_data.fillRandom(model->dof_count, sample_count);
@@ -284,6 +303,17 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
   unsigned int foot_l = model->GetBodyId ("foot_l");
   unsigned int hand_r = model->GetBodyId ("hand_r");
   unsigned int hand_l = model->GetBodyId ("hand_l");
+
+  std::vector< bool > actuatedDof;
+  actuatedDof.resize(model->qdot_size);
+
+  for(unsigned int i=0; i<actuatedDof.size();++i){
+    if(i < 6){
+      actuatedDof[i] = false;
+    }else{
+      actuatedDof[i] = true;
+    }
+  }
 
   ConstraintSet one_body_one_constraint;
   ConstraintSet two_bodies_one_constraint;
@@ -375,8 +405,10 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     duration = run_contacts_lagrangian_sparse_benchmark (model, &one_body_one_constraint, sample_count);
   } else if (contacts_method == ContactsMethodNullSpace) {
     duration = run_contacts_null_space (model, &one_body_one_constraint, sample_count);
-  } else {
+  } else if (contacts_method == ContactsMethodKokkevis){
     duration = run_contacts_kokkevis_benchmark (model, &one_body_one_constraint, sample_count);
+  } else if (contacts_method == ContactsMethodInverseDynamicsConstraints) {
+    duration = run_inverse_dynamics_constraints_benchmark(model, &one_body_one_constraint, actuatedDof, sample_count);
   }
 
   cout << "ConstraintSet: 1 Body 1 Constraint   : "
@@ -390,8 +422,10 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     duration = run_contacts_lagrangian_sparse_benchmark (model, &two_bodies_one_constraint, sample_count);
   } else if (contacts_method == ContactsMethodNullSpace) {
     duration = run_contacts_null_space (model, &two_bodies_one_constraint, sample_count);
-  } else {
+  } else if (contacts_method == ContactsMethodKokkevis){
     duration = run_contacts_kokkevis_benchmark (model, &two_bodies_one_constraint, sample_count);
+  } else if (contacts_method == ContactsMethodInverseDynamicsConstraints) {
+    duration = run_inverse_dynamics_constraints_benchmark(model, &two_bodies_one_constraint, actuatedDof, sample_count);
   }
 
   cout << "ConstraintSet: 2 Bodies 1 Constraint : "
@@ -406,8 +440,10 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     duration = run_contacts_lagrangian_sparse_benchmark (model, &four_bodies_one_constraint, sample_count);
   } else if (contacts_method == ContactsMethodNullSpace) {
     duration = run_contacts_null_space (model, &four_bodies_one_constraint, sample_count);
-  } else {
+  } else if (contacts_method == ContactsMethodKokkevis){
     duration = run_contacts_kokkevis_benchmark (model, &four_bodies_one_constraint, sample_count);
+  } else if (contacts_method == ContactsMethodInverseDynamicsConstraints) {
+    duration = run_inverse_dynamics_constraints_benchmark(model, &four_bodies_one_constraint, actuatedDof, sample_count);
   }
 
   cout << "ConstraintSet: 4 Bodies 1 Constraint : "
@@ -421,8 +457,10 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     duration = run_contacts_lagrangian_sparse_benchmark (model, &one_body_four_constraints, sample_count);
   } else if (contacts_method == ContactsMethodNullSpace) {
     duration = run_contacts_null_space (model, &one_body_four_constraints, sample_count);
-  } else {
+  } else if (contacts_method == ContactsMethodKokkevis){
     duration = run_contacts_kokkevis_benchmark (model, &one_body_four_constraints, sample_count);
+  } else if (contacts_method == ContactsMethodInverseDynamicsConstraints) {
+    duration = run_inverse_dynamics_constraints_benchmark(model, &one_body_four_constraints, actuatedDof, sample_count);
   }
 
   cout << "ConstraintSet: 1 Body 4 Constraints  : "
@@ -436,8 +474,10 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     duration = run_contacts_lagrangian_sparse_benchmark (model, &two_bodies_four_constraints, sample_count);
   } else if (contacts_method == ContactsMethodNullSpace) {
     duration = run_contacts_null_space (model, &two_bodies_four_constraints, sample_count);
-  } else {
+  } else if (contacts_method == ContactsMethodKokkevis){
     duration = run_contacts_kokkevis_benchmark (model, &two_bodies_four_constraints, sample_count);
+  } else if (contacts_method == ContactsMethodInverseDynamicsConstraints) {
+    duration = run_inverse_dynamics_constraints_benchmark(model, &two_bodies_four_constraints, actuatedDof, sample_count);
   }
 
   cout << "ConstraintSet: 2 Bodies 4 Constraints: "
@@ -452,8 +492,10 @@ double contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     duration = run_contacts_lagrangian_sparse_benchmark (model, &four_bodies_four_constraints, sample_count);
   } else if (contacts_method == ContactsMethodNullSpace) {
     duration = run_contacts_null_space (model, &four_bodies_four_constraints, sample_count);
-  } else {
+  } else if (contacts_method == ContactsMethodKokkevis){
     duration = run_contacts_kokkevis_benchmark (model, &four_bodies_four_constraints, sample_count);
+  } else if (contacts_method == ContactsMethodInverseDynamicsConstraints) {
+    duration = run_inverse_dynamics_constraints_benchmark(model, &four_bodies_four_constraints, actuatedDof, sample_count);
   }
 
   cout << "ConstraintSet: 4 Bodies 4 Constraints: "
@@ -871,6 +913,9 @@ int main (int argc, char *argv[]) {
 
     cout << "= Contacts: ForwardDynamicsContactsKokkevis" << endl;
     contacts_benchmark (benchmark_sample_count, ContactsMethodKokkevis);
+
+    cout << "= Contacts: InverseDynamicsConstraints" << endl;
+    contacts_benchmark (benchmark_sample_count, ContactsMethodInverseDynamicsConstraints);    
   }
 
   if (benchmark_run_ik) {
