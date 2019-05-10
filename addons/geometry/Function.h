@@ -209,7 +209,7 @@ public:
     assert(x.size() == coefficients.size()-1);
     assert(derivComponents.size() > 0);
     if (derivComponents.size() == 1)
-      return coefficients(derivComponents[0]);
+      return coefficients[derivComponents[0]];
     return static_cast<T>(0);
   }
   virtual int getArgumentSize() const {
