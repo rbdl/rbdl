@@ -10,12 +10,17 @@
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
+#include <rbdl/Kinematics.h>
+#include <rbdl/ConstraintsLibrary.h>
+#include <assert.h>
 
 namespace RigidBodyDynamics {
 
+
+
 /** \page constraints_page Constraints
  *
- * All functions related to contacts are specified in the \ref
+ * All functions related to constraints are specified in the \ref
  * constraints_group "Constraints Module".
 
  * \defgroup constraints_group Constraints
@@ -66,14 +71,14 @@ namespace RigidBodyDynamics {
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
- * CompositeRigidBodyAlgorithm(), \f$G\f$ is the constraint jacobian,
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ is the constraint Jacobian,
  * \f$C\f$ the bias force (sometimes called "non-linear
  * effects"), and \f$\gamma\f$ the generalized acceleration independent
  * part of the constraints.
  *
- * \subsection collision_system Linear System of the Contact Collision
+ * \subsection collision_system Linear System of the Constraint Impacts
  *
- * Similarly to compute the response of the model to a contact gain one has
+ * Similarly to compute the response of the model to a constraint gain one has
  * to solve a system of the following form: \f[
  \left(
    \begin{array}{cc}
@@ -95,8 +100,8 @@ namespace RigidBodyDynamics {
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
- * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
- * contact points, \f$\dot{q}^{+}\f$ the generalized velocity after the
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ are the Jacobians of the
+ * constraints, \f$\dot{q}^{+}\f$ the generalized velocity after the
  * impact, \f$\Lambda\f$ the impulses at each constraint, \f$\dot{q}^{-}\f$
  * the generalized velocity before the impact, and \f$v^{+}\f$ the desired
  * velocity of each constraint after the impact (known beforehand, usually
@@ -172,7 +177,7 @@ namespace RigidBodyDynamics {
  * \f}
  *
  * \f$q_{0}\f$ and \f$\dot{q}_{0}\f$ are initial guesses, \f$\phi _{q}\f$ is the
- * constraints jacobian (partial derivative of \f$\phi\f$ with respect to \f$q\f$),
+ * constraints Jacobian (partial derivative of \f$\phi\f$ with respect to \f$q\f$),
  * and \f$\phi _{t}(q)\f$ is the partial derivative of \f$\phi\f$ with respect
  * to time.  \f$W\f$ is a diagonal weighting matrix, which can be exploited
  * to prioritize changes in the position/ velocity of specific joints.
@@ -254,6 +259,11 @@ struct Model;
 
 struct RBDL_DLLAPI CustomConstraint;
 
+//class RBDL_DLLAPI Constraint;
+
+
+
+
 /** \brief Structure that contains both constraint information and workspace memory.
  *
  * This structure is used to reduce the amount of memory allocations that
@@ -268,15 +278,16 @@ struct RBDL_DLLAPI ConstraintSet {
     linear_solver (Math::LinearSolverColPivHouseholderQR),
     bound (false) {}
 
-  // Enum to describe the type of a constraint.
-  enum ConstraintType {
-    ContactConstraint,
-    LoopConstraint,
-    ConstraintTypeCustom,
-    ConstraintTypeLast,
-  };
 
-  /** \brief Adds a contact constraint to the constraint set.
+
+  unsigned int AddBodyToGroundPositionConstraint(
+    unsigned int bodyId,
+    const Math::Vector3d &bodyPoint,
+    const Math::Vector3d &worldNormal,
+    const char *constraintName = NULL);
+    
+
+  /** \brief Adds a contact (point-ground) constraint to the constraint set.
    *
    * This type of constraints ensures that the velocity and acceleration of a specified
    * body point along a specified axis are null. This constraint does not act
@@ -414,7 +425,15 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<unsigned int> mContactConstraintIndices;
   std::vector<unsigned int> mLoopConstraintIndices;
   std::vector<unsigned int> mCustomConstraintIndices;
+
   std::vector< CustomConstraint* > mCustomConstraints;
+
+  std::vector< Constraint* > mConstraints;
+
+  std::vector< BodyToGroundPositionConstraint >  mBodyToGroundPositionConstraints;
+
+  //std::vector< LoopConstraints > mLoopConstraints
+  //std::vector< ContactConstraints> mContactConstraints
 
   // Contact constraints variables.
   std::vector<unsigned int> body;
@@ -437,11 +456,11 @@ struct RBDL_DLLAPI ConstraintSet {
   /** Enforced accelerations of the contact points along the contact
    * normal. */
   Math::VectorNd acceleration;
-  /** Actual constraint forces along the contact normals. */
+  /** Actual constraint forces along the constraint directions. */
   Math::VectorNd force;
-  /** Actual constraint impulses along the contact normals. */
+  /** Actual constraint impulses along the constraint directions. */
   Math::VectorNd impulse;
-  /** The velocities we want to have along the contact normals */
+  /** The velocities we want to have along the constraint directions */
   Math::VectorNd v_plus;
 
   // Variables used by the Lagrangian methods
@@ -572,7 +591,7 @@ void CalcConstraintsJacobian(
   * \param update_kinematics whether the kinematics of the model should be
   * updated from Q.
   *
-  * \note this is equivalent to multiplying the constraint jacobian by the 
+  * \note this is equivalent to multiplying the constraint Jacobian by the
   * generalized velocities of the joints.
   *
   */
@@ -683,7 +702,7 @@ void CalcAssemblyQDot(
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
- * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point Jacobians of the
  * contact points, \f$C\f$ the bias force (sometimes called "non-linear
  * effects"), and \f$\gamma\f$ the generalized acceleration independent
  * part of the contact point accelerations.
@@ -696,7 +715,7 @@ void CalcAssemblyQDot(
  *
  * \note To increase performance group constraints body and pointwise such
  * that constraints acting on the same body point are sequentially in
- * ConstraintSet. This can save computation of point jacobians \f$G\f$.
+ * ConstraintSet. This can save computation of point Jacobians \f$G\f$.
  *
  * \param model rigid body model
  * \param Q     state vector of the internal joints
@@ -842,7 +861,7 @@ void ForwardDynamicsContactsKokkevis (
    \end{array}
  \right)
  * \f] where \f$H\f$ is the joint space inertia matrix computed with the
- * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point jacobians of the
+ * CompositeRigidBodyAlgorithm(), \f$G\f$ are the point Jacobians of the
  * contact points, \f$\dot{q}^{+}\f$ the generalized velocity after the
  * impact, \f$\Lambda\f$ the impulses at each constraint, \f$\dot{q}^{-}\f$
  * the generalized velocity before the impact, and \f$v^{+}\f$ the desired
@@ -904,7 +923,7 @@ void ComputeConstraintImpulsesNullSpace (
  * n_c) \times (n_\textit{dof} + n_c\f$ linear system.
  *
  * \param H the joint space inertia matrix
- * \param G the constraint jacobian
+ * \param G the constraint Jacobian
  * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of 
  * the right hand side of the system
  * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the 
@@ -937,7 +956,7 @@ void SolveConstrainedSystemDirect (
  * preserving \f$L^TL \f$ decomposition described in RBDL, Section 6.5.
  * 
  * \param H the joint space inertia matrix
- * \param G the constraint jacobian
+ * \param G the constraint Jacobian
  * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of 
  * the right hand side of the system
  * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the 
@@ -973,7 +992,7 @@ void SolveConstrainedSystemRangeSpaceSparse (
  * code for ForwardDynamicsContactsNullSpace()).
  *
  * \param H the joint space inertia matrix
- * \param G the constraint jacobian
+ * \param G the constraint Jacobian
  * \param c the \f$ \mathbb{R}^{n_\textit{dof}}\f$ vector of the upper part of 
  * the right hand side of the system
  * \param gamma the \f$ \mathbb{R}^{n_c}\f$ vector of the lower part of the 
@@ -1000,6 +1019,8 @@ void SolveConstrainedSystemNullSpace (
   Math::VectorNd &qddot_z,
   Math::LinearSolver &linear_solver
 );
+
+
 
 
 /** \brief Interface to define general-purpose constraints.
@@ -1087,13 +1108,17 @@ struct RBDL_DLLAPI CustomConstraint {
                                     Math::VectorNd &err,
                                     unsigned int errStartIndex) = 0;
 
+
+
 };
 
 
 
 /** @} */
 
-} /* namespace RigidBodyDynamics */
+} 
+
+/* namespace RigidBodyDynamics */
 
 /* RBDL_CONSTRAINTS_H */
 #endif

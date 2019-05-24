@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <limits>
 #include <assert.h>
 
@@ -33,6 +34,53 @@ void SolveLinearSystem (
 
 unsigned int GetMovableBodyId (Model& model, unsigned int id);
 
+unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
+    unsigned int bodyId,
+    const Math::Vector3d &bodyPoint,
+    const Math::Vector3d &worldNormal,
+    const char *constraintName)
+{
+
+  unsigned int csSize = unsigned(size());
+
+  BodyToGroundPositionConstraint b2g(csSize, bodyId, bodyPoint, worldNormal,
+                                     constraintName);
+
+  unsigned int b2gSize = unsigned(mBodyToGroundPositionConstraints.size());
+  mBodyToGroundPositionConstraints.push_back( b2g );
+
+  mConstraints.push_back( &mBodyToGroundPositionConstraints[b2gSize] );
+
+  csSize +=  b2g.getConstraintSize();
+
+  err.conservativeResize(csSize);
+  errd.conservativeResize(csSize);
+
+  constraintType.push_back( ConstraintTypeBodyToGroundPosition);
+
+  std::string nameStr;
+  if(constraintName != NULL){
+    nameStr = constraintName;
+    nameStr.append("_");
+    nameStr.append(std::to_string(csSize));
+  }else{
+    nameStr = "cs_" + std::to_string(csSize);
+  }
+
+
+  name.push_back(nameStr);
+
+  body.push_back(0);
+
+  body_p.push_back(0);
+  body_s.push_back(0);
+
+
+
+
+}
+
+
 unsigned int ConstraintSet::AddContactConstraint (
   unsigned int body_id,
   const Vector3d &body_point,
@@ -49,7 +97,7 @@ unsigned int ConstraintSet::AddContactConstraint (
     name_str = constraint_name;
   }
 
-  constraintType.push_back (ContactConstraint);
+  constraintType.push_back (ConstraintTypeContact);
   name.push_back (name_str);
   mContactConstraintIndices.push_back(size());
 
@@ -106,7 +154,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
     name_str = constraint_name;
   }
 
-  constraintType.push_back(LoopConstraint);
+  constraintType.push_back(ConstraintTypeLoop);
   name.push_back (name_str);
   mLoopConstraintIndices.push_back(size());
 
@@ -245,7 +293,13 @@ bool ConstraintSet::Bind (const Model &model) {
     std::cerr << "Error: binding an already bound constraint set!" << std::endl;
     abort();
   }
+  for(unsigned int i=0; i<mConstraints.size();++i){
+    mConstraints[i]->bind(model);
+  }
+
   unsigned int n_constr = size();
+
+
 
   H.conservativeResize (model.dof_count, model.dof_count);
   H.setZero();
@@ -809,7 +863,6 @@ void CalcConstrainedSystemVariables (
                       - CS.baumgarteParameters[z][1] 
                       * CS.baumgarteParameters[z][1] * CS.err[z]);
     }
-
   }
 
 }
@@ -1481,7 +1534,7 @@ void ForwardDynamicsContactsKokkevis (
       UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
     }
 
-    if(CS.constraintType[ci] == ConstraintSet::ContactConstraint)
+    if(CS.constraintType[ci] == ConstraintTypeContact)
     {
       LOG << "body_id = " << CS.body[ci] << std::endl;
       LOG << "point = " << CS.point[ci] << std::endl;
@@ -1516,7 +1569,7 @@ void ForwardDynamicsContactsKokkevis (
 
     switch (CS.constraintType[ci]) {
 
-      case ConstraintSet::ContactConstraint:
+      case ConstraintTypeContact:
 
         movable_body_id = GetMovableBodyId(model, CS.body[ci]);
 

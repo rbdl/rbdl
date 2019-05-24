@@ -111,6 +111,7 @@ SET ( RBDL_SOURCES
 	src/rbdl_mathutils.cc
 	src/rbdl_utils.cc
 	src/Constraints.cc
+  src/ConstraintsLibrary.cc
 	src/Dynamics.cc
 	src/Logging.cc
 	src/Joint.cc
