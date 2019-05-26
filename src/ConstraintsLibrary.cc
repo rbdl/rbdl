@@ -23,6 +23,10 @@ using namespace Math;
 
 
 //==============================================================================
+BodyToGroundPositionConstraint::BodyToGroundPositionConstraint():
+  Constraint("",ConstraintTypeBodyToGroundPosition,
+              std::numeric_limits<unsigned int>::max(),1){}
+
 BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,

@@ -27,6 +27,8 @@ enum ConstraintType {
 class RBDL_DLLAPI Constraint {
   public:
 
+    virtual ~Constraint(){};    
+
     Constraint(const char* name,
                const unsigned int typeOfConstraint,
                const unsigned int indexOfConstraintInG,
@@ -46,7 +48,7 @@ class RBDL_DLLAPI Constraint {
       }
     }
 
-    virtual void bind(const Model &model);
+    virtual void bind(const Model &model)=0;
 
     virtual void calcConstraintJacobian(  Model &model,
                                           const Math::VectorNd &Q,
@@ -173,9 +175,12 @@ class RBDL_DLLAPI Constraint {
 };
 
 
-class BodyToGroundPositionConstraint : Constraint {
+class RBDL_DLLAPI BodyToGroundPositionConstraint : public Constraint {
 
 public:
+
+  //~BodyToGroundPositionConstraint(){};  
+  BodyToGroundPositionConstraint();
 
   BodyToGroundPositionConstraint(
       const unsigned int indexOfConstraintInG,
