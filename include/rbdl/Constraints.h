@@ -5,16 +5,18 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef RBDL_CONSTRAINTS_H
-#define RBDL_CONSTRAINTS_H
+#ifndef RBDL_CONSTRAINTSETS_H
+#define RBDL_CONSTRAINTSETS_H
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
 #include <rbdl/Kinematics.h>
-#include <rbdl/ConstraintsLibrary.h>
+#include <rbdl/Constraint.h>
+#include <rbdl/Constraint_BodyToGroundPosition.h>
 #include <assert.h>
 
 namespace RigidBodyDynamics {
+
 
 
 
@@ -260,8 +262,7 @@ struct Model;
 struct RBDL_DLLAPI CustomConstraint;
 
 //class RBDL_DLLAPI Constraint;
-
-
+//class RBDL_DLLAPI BodyToGroundPositionConstraint;
 
 
 /** \brief Structure that contains both constraint information and workspace memory.

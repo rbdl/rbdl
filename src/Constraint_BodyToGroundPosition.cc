@@ -14,7 +14,7 @@
 #include "rbdl/Logging.h"
 
 #include "rbdl/Model.h"
-#include "rbdl/ConstraintsLibrary.h"
+#include "rbdl/Constraint_BodyToGroundPosition.h"
 #include "rbdl/Kinematics.h"
 
 using namespace RigidBodyDynamics;

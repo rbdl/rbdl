@@ -18,6 +18,7 @@
 #include "rbdl/Joint.h"
 #include "rbdl/Body.h"
 #include "rbdl/Constraints.h"
+#include "rbdl/Constraint_BodyToGroundPosition.h"
 #include "rbdl/Dynamics.h"
 #include "rbdl/Kinematics.h"
 
@@ -41,22 +42,22 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
     const char *constraintName)
 {
 
-  unsigned int csSize = unsigned(size());
+  //Update the manditory constraint set fields
+  unsigned int csIndex = unsigned(size());
 
-  BodyToGroundPositionConstraint b2g(csSize, bodyId, bodyPoint, worldNormal,
+  BodyToGroundPositionConstraint b2g(csIndex, bodyId, bodyPoint, worldNormal,
                                      constraintName);
 
   unsigned int b2gSize = unsigned(mBodyToGroundPositionConstraints.size());
-  mBodyToGroundPositionConstraints.push_back( b2g );
+  unsigned int csSize = csIndex + b2gSize;
 
+  mBodyToGroundPositionConstraints.push_back( b2g );
   mConstraints.push_back( &mBodyToGroundPositionConstraints[b2gSize] );
 
-  csSize +=  b2g.getConstraintSize();
-
-  err.conservativeResize(csSize);
-  errd.conservativeResize(csSize);
-
-  constraintType.push_back( ConstraintTypeBodyToGroundPosition);
+  //Update: this will eventually not have an entry for each constraint row
+  for(unsigned int i=0; i<b2gSize; ++i){
+    constraintType.push_back( ConstraintTypeBodyToGroundPosition);
+  }
 
   std::string nameStr;
   if(constraintName != NULL){
@@ -64,20 +65,43 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
     nameStr.append("_");
     nameStr.append(std::to_string(csSize));
   }else{
-    nameStr = "cs_" + std::to_string(csSize);
+    nameStr = "body2GndPos_" + std::to_string(csIndex);
+  }
+  for(unsigned int i=0; i<b2gSize;++i){
+    name.push_back(nameStr +"_"+std::to_string(i));
   }
 
+  //Update the (soon to be deprecated) additional fields in constraint set
 
-  name.push_back(nameStr);
+  err.conservativeResize(csSize);
+  errd.conservativeResize(csSize);
+  acceleration.conservativeResize(csSize);
+  force.conservativeResize(csSize);
+  impulse.conservativeResize(csSize);
+  v_plus.conservativeResize(csSize);
+  d_multdof3_u.resize(csSize);
 
-  body.push_back(0);
+  for(unsigned int i=0; i<(b2gSize); ++i){
+    err[csIndex+i]  = 0.;
+    errd[csIndex+i] = 0.;
+    acceleration[csIndex+i]=0.;
+    force[csIndex+i] = 0.;
+    impulse[csIndex+i] = 0.;
+    v_plus[csIndex+i] = 0.;
+    d_multdof3_u[csIndex+i] = Math::Vector3d::Zero();
 
-  body_p.push_back(0);
-  body_s.push_back(0);
+    body.push_back(0);
+    point.push_back(Vector3dZero);
+    normal.push_back(Vector3dZero);
+    body_p.push_back(0);
+    body_s.push_back(0);
+    X_p.push_back (SpatialTransform());
+    X_s.push_back (SpatialTransform());
+    constraintAxis.push_back (SpatialVector::Zero());
+    baumgarteParameters.push_back(Vector2d(0.0, 0.0));
+  }
 
-
-
-
+  return csSize-1;
 }
 
 

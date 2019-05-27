@@ -1,15 +1,15 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2019 Matthew Millard <matthew.millard@iwr.uni-heidelberg.de>
+ * Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
+ *
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef RBDL_CONSTRAINTS_LIBRARY_H
-#define RBDL_CONSTRAINTS_LIBRARY_H
+#ifndef RBDL_CONSTRAINT_H
+#define RBDL_CONSTRAINT_H
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
-#include <rbdl/Kinematics.h>
 #include <assert.h>
 
 namespace RigidBodyDynamics {
@@ -22,7 +22,6 @@ enum ConstraintType {
   ConstraintTypeBodyToGroundPosition,
   ConstraintTypeLast,
 };
-
 
 class RBDL_DLLAPI Constraint {
   public:
@@ -175,83 +174,6 @@ class RBDL_DLLAPI Constraint {
 };
 
 
-class RBDL_DLLAPI BodyToGroundPositionConstraint : public Constraint {
-
-public:
-
-  //~BodyToGroundPositionConstraint(){};  
-  BodyToGroundPositionConstraint();
-
-  BodyToGroundPositionConstraint(
-      const unsigned int indexOfConstraintInG,
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const Math::Vector3d &groundConstraintUnitVector,
-      const char *name = NULL);
-
-  BodyToGroundPositionConstraint(
-      const unsigned int indexOfConstraintInG,
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
-      const char *name = NULL);
-
-  BodyToGroundPositionConstraint(
-      const unsigned int indexOfConstraintInG,
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const Math::Vector3d &groundPoint,
-      const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
-      const std::vector< bool > &positionLevelConstraint,
-      const std::vector< bool > &velocityLevelConstraint,
-      const char *name = NULL);
-
-  void bind( const Model &model);
-
-  void calcConstraintJacobian(  Model &model,
-                                const Math::VectorNd &Q,
-                                Math::MatrixNd &GSysUpd);
-
-  void calcGamma( Model &model,
-                  const Math::VectorNd &Q,
-                  const Math::VectorNd &QDot,
-                  const Math::MatrixNd &GSys,
-                  Math::VectorNd &gammaSysUpd);
-
-
-  void calcPositionError( Model &model,
-                          const Math::VectorNd &Q,
-                          Math::VectorNd &errSysUpd);
-
-  void calcVelocityError( Model &model,
-                          const Math::VectorNd &Q,
-                          const Math::VectorNd &QDot,
-                          const Math::MatrixNd &GSys,
-                          Math::VectorNd &derrSysUpd);
-
-  void calcConstraintForces(
-        Model &model,
-        const Math::VectorNd &Q,
-        const Math::VectorNd &QDot,
-        const Math::MatrixNd &GSys,
-        const Math::VectorNd &lagrangeMultipliersSys,
-        std::vector< unsigned int > &constraintBodiesUpd,
-        std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
-        std::vector< Math::SpatialVector > &constraintForcesUpd,
-        bool resolveAllInRootFrame = false);
-
-
-private:
-  std::vector< Math::Vector3d > T;
-  Math::MatrixNd XpJacobian3D;
-  Math::Vector3d groundPoint;
-  Math::Matrix3d matA;
-  Math::Vector3d vecA;
-  double dblA;
-};
-
-
-
 
 
 /** @} */
@@ -260,5 +182,5 @@ private:
 
 /* namespace RigidBodyDynamics */
 
-/* RBDL_CONSTRAINTS_LIBRARY_H */
+/* RBDL_CONSTRAINT_H */
 #endif
