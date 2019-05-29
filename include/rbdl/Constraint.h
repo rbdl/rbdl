@@ -53,7 +53,9 @@ class RBDL_DLLAPI Constraint {
     virtual void bind(const Model &model)=0;
 
     virtual void calcConstraintJacobian(  Model &model,
-                                          const Math::VectorNd &Q,
+                                          const Math::VectorNd *Q,
+                                          const Math::VectorNd *QDot,
+                                          const Math::VectorNd *QDDot,
                                           Math::MatrixNd &GSysUpd) = 0;    
 
     Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
@@ -61,9 +63,9 @@ class RBDL_DLLAPI Constraint {
     }
 
     virtual void calcGamma( Model &model,
-                            const Math::VectorNd &Q,
-                            const Math::VectorNd &QDot,
-                            const Math::VectorNd &QDDot0,
+                            const Math::VectorNd *Q,
+                            const Math::VectorNd *QDot,
+                            const Math::VectorNd *QDDot,
                             const Math::MatrixNd &GSys,
                             Math::VectorNd &gammaSysUpd) = 0;   
 

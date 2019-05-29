@@ -52,13 +52,15 @@ public:
   void bind( const Model &model) override;
 
   void calcConstraintJacobian(  Model &model,
-                                const Math::VectorNd &Q,
+                                const Math::VectorNd *Q,
+                                const Math::VectorNd *QDot,
+                                const Math::VectorNd *QDDot,
                                 Math::MatrixNd &GSysUpd) override;
 
   void calcGamma( Model &model,
-                  const Math::VectorNd &Q,
-                  const Math::VectorNd &QDot,
-                  const Math::VectorNd &QDDot0,
+                  const Math::VectorNd *Q,
+                  const Math::VectorNd *QDot,
+                  const Math::VectorNd *QDDot,
                   const Math::MatrixNd &GSys,
                   Math::VectorNd &gammaSysUpd) override;
 

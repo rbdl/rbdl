@@ -164,13 +164,14 @@ void BodyToGroundPositionConstraint::bind(const Model &model)
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
-                              const Math::VectorNd &Q,
+                              const Math::VectorNd *Q,
+                              const Math::VectorNd *QDot,
+                              const Math::VectorNd *QDDot,
                               Math::MatrixNd &GSysUpd)
 {
 
   XpJacobian3D.setZero();
-  CalcPointJacobian(model,Q,bodyIds[0],bodyFrames[0].r,XpJacobian3D,false);
-
+  CalcPointJacobian(model,*Q,bodyIds[0],bodyFrames[0].r,XpJacobian3D,false);
 
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
     GSysUpd.block(indexOfConstraintInG+i,0,1,GSysUpd.cols()) =
@@ -181,13 +182,13 @@ void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcGamma(  Model &model,
-                  const Math::VectorNd &Q,
-                  const Math::VectorNd &QDot,
-                  const Math::VectorNd &QDDot0,
+                  const Math::VectorNd *Q,
+                  const Math::VectorNd *QDot,
+                  const Math::VectorNd *QDDot,
                   const Math::MatrixNd &GSys,
                   Math::VectorNd &gammaSysUpd)
 {
-  vecA = CalcPointAcceleration (model, Q, QDot, QDDot0, bodyIds[0],
+  vecA = CalcPointAcceleration (model, *Q, *QDot, *QDDot, bodyIds[0],
                                 bodyFrames[0].r, false);
 
   gammaSysUpd.block(indexOfConstraintInG,0,
