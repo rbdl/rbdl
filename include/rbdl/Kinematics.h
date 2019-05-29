@@ -352,7 +352,7 @@ RBDL_DLLAPI
       Math::VectorNd &Qres,
       double step_tol = 1.0e-12,
       double lambda = 0.01,
-      unsigned int max_iter = 50
+      unsigned int max_iter = 55
       );
 
 RBDL_DLLAPI Math::Vector3d CalcAngularVelocityfromMatrix (
@@ -381,6 +381,7 @@ struct RBDL_DLLAPI InverseKinematicsConstraintSet {
   double step_tol; // Step tolerance (default = 1.0e-12). If the computed step length is smaller than this value the algorithm terminates successfully (i.e. returns true). If error_norm is still larger than constraint_tol then this usually means that the target is unreachable.
   double constraint_tol; // Constraint tolerance (default = 1.0e-12). If error_norm is smaller than this value the algorithm terminates successfully, i.e. all constraints are satisfied.
   double error_norm; // Norm of the constraint residual vector.
+  double delta_q_norm; //Norm of the change in generalized coordinates
 
   // everything to define a IKin constraint
   std::vector<ConstraintType> constraint_type;

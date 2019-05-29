@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2019 Matthew Millard <matthew.millard@iwr.uni-heidelberg.de>
+ * Copyright (c) 2019 Matthew Millard <millard.matthew@gmail.com>
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
@@ -29,14 +29,14 @@ public:
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
-      const Math::Vector3d &groundConstraintUnitVector,
+      const Math::Vector3d &groundConstraintNormalVectors,
       const char *name = NULL);
 
   BodyToGroundPositionConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
-      const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
+      const std::vector< Math::Vector3d > &groundConstraintNormalVectors,
       const char *name = NULL);
 
   BodyToGroundPositionConstraint(
@@ -49,28 +49,29 @@ public:
       const std::vector< bool > &velocityLevelConstraint,
       const char *name = NULL);
 
-  void bind( const Model &model);
+  void bind( const Model &model) override;
 
   void calcConstraintJacobian(  Model &model,
                                 const Math::VectorNd &Q,
-                                Math::MatrixNd &GSysUpd);
+                                Math::MatrixNd &GSysUpd) override;
 
   void calcGamma( Model &model,
                   const Math::VectorNd &Q,
                   const Math::VectorNd &QDot,
+                  const Math::VectorNd &QDDot0,
                   const Math::MatrixNd &GSys,
-                  Math::VectorNd &gammaSysUpd);
+                  Math::VectorNd &gammaSysUpd) override;
 
 
   void calcPositionError( Model &model,
                           const Math::VectorNd &Q,
-                          Math::VectorNd &errSysUpd);
+                          Math::VectorNd &errSysUpd) override;
 
   void calcVelocityError( Model &model,
                           const Math::VectorNd &Q,
                           const Math::VectorNd &QDot,
                           const Math::MatrixNd &GSys,
-                          Math::VectorNd &derrSysUpd);
+                          Math::VectorNd &derrSysUpd) override;
 
   void calcConstraintForces(
         Model &model,
@@ -81,8 +82,11 @@ public:
         std::vector< unsigned int > &constraintBodiesUpd,
         std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
         std::vector< Math::SpatialVector > &constraintForcesUpd,
-        bool resolveAllInRootFrame = false);
+        bool resolveAllInRootFrame = false) override;
 
+  const std::vector< Math::Vector3d >& getConstraintNormalVectors(){
+    return T;
+  }
 
 private:
   std::vector< Math::Vector3d > T;

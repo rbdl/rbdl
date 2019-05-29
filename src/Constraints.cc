@@ -45,30 +45,33 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
   //Update the manditory constraint set fields
   unsigned int csIndex = unsigned(size());
 
-  BodyToGroundPositionConstraint b2g(csIndex, bodyId, bodyPoint, worldNormal,
-                                     constraintName);
+  mBodyToGroundPositionConstraints.push_back(
+        std::make_shared<BodyToGroundPositionConstraint>(csIndex, bodyId,
+                                                         bodyPoint, worldNormal,
+                                                         constraintName));
 
-  unsigned int b2gSize = unsigned(mBodyToGroundPositionConstraints.size());
-  unsigned int csSize = csIndex + b2gSize;
+  unsigned int b2gIndex = unsigned(mBodyToGroundPositionConstraints.size()-1);
 
-  mBodyToGroundPositionConstraints.push_back( b2g );
-  mConstraints.push_back( &mBodyToGroundPositionConstraints[b2gSize] );
+  mConstraints.emplace_back(mBodyToGroundPositionConstraints[b2gIndex]);
 
-  //Update: this will eventually not have an entry for each constraint row
-  for(unsigned int i=0; i<b2gSize; ++i){
+
+  unsigned int cIndex = unsigned(mConstraints.size()-1);
+  unsigned int csSize   = csIndex + mConstraints[b2gIndex]->getConstraintSize();
+
+
+
+  for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize(); ++i){
     constraintType.push_back( ConstraintTypeBodyToGroundPosition);
   }
 
   std::string nameStr;
   if(constraintName != NULL){
     nameStr = constraintName;
-    nameStr.append("_");
-    nameStr.append(std::to_string(csSize));
   }else{
     nameStr = "body2GndPos_" + std::to_string(csIndex);
   }
-  for(unsigned int i=0; i<b2gSize;++i){
-    name.push_back(nameStr +"_"+std::to_string(i));
+  for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize();++i){
+    name.push_back(nameStr);
   }
 
   //Update the (soon to be deprecated) additional fields in constraint set
@@ -81,7 +84,77 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
   v_plus.conservativeResize(csSize);
   d_multdof3_u.resize(csSize);
 
-  for(unsigned int i=0; i<(b2gSize); ++i){
+  for(unsigned int i=0; i<(mConstraints[cIndex]->getConstraintSize()); ++i){
+    err[csIndex+i]  = 0.;
+    errd[csIndex+i] = 0.;
+    acceleration[csIndex+i]=0.;
+    force[csIndex+i] = 0.;
+    impulse[csIndex+i] = 0.;
+    v_plus[csIndex+i] = 0.;
+    d_multdof3_u[csIndex+i] = Math::Vector3d::Zero();
+
+    body.push_back(0);
+    point.push_back(Vector3dZero);
+    normal.push_back(Vector3dZero);
+    body_p.push_back(0);
+    body_s.push_back(0);
+    X_p.push_back (SpatialTransform());
+    X_s.push_back (SpatialTransform());
+    constraintAxis.push_back (SpatialVector::Zero());
+    baumgarteParameters.push_back(Vector2d(0.0, 0.0));
+  }
+
+  return csSize-1;
+}
+
+unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
+    unsigned int bodyId,
+    const Math::Vector3d &bodyPoint,
+    const std::vector< Math::Vector3d > &worldNormals,
+    const char *constraintName)
+{
+
+  //Update the manditory constraint set fields
+  unsigned int csIndex = unsigned(size());
+
+  mBodyToGroundPositionConstraints.push_back(
+        std::make_shared<BodyToGroundPositionConstraint>(csIndex, bodyId,
+                                                         bodyPoint,worldNormals,
+                                                         constraintName));
+
+  unsigned int b2gIndex = unsigned(mBodyToGroundPositionConstraints.size()-1);
+
+  mConstraints.emplace_back(mBodyToGroundPositionConstraints[b2gIndex]);
+
+
+  unsigned int cIndex = unsigned(mConstraints.size()-1);
+  unsigned int csSize   = csIndex + mConstraints[b2gIndex]->getConstraintSize();
+
+  for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize(); ++i){
+    constraintType.push_back( ConstraintTypeBodyToGroundPosition);
+  }
+
+  std::string nameStr;
+  if(constraintName != NULL){
+    nameStr = constraintName;
+  }else{
+    nameStr = std::to_string(csIndex);
+  }
+  for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize();++i){
+    name.push_back(nameStr);
+  }
+
+  //Update the (soon to be deprecated) additional fields in constraint set
+
+  err.conservativeResize(csSize);
+  errd.conservativeResize(csSize);
+  acceleration.conservativeResize(csSize);
+  force.conservativeResize(csSize);
+  impulse.conservativeResize(csSize);
+  v_plus.conservativeResize(csSize);
+  d_multdof3_u.resize(csSize);
+
+  for(unsigned int i=0; i<(mConstraints[cIndex]->getConstraintSize()); ++i){
     err[csIndex+i]  = 0.;
     errd[csIndex+i] = 0.;
     acceleration[csIndex+i]=0.;
@@ -641,6 +714,10 @@ void CalcConstraintsPositionError (
     const unsigned int cci = CS.mCustomConstraintIndices[i];
     CS.mCustomConstraints[i]->CalcPositionError(model,cci,Q,CS,err, cci);    
   }
+
+  for(unsigned int i=0; i<CS.mConstraints.size();++i){
+    CS.mConstraints[i]->calcPositionError(model,Q,err);
+  }
 }
 
 RBDL_DLLAPI
@@ -737,6 +814,10 @@ void CalcConstraintsJacobian (
     CS.mCustomConstraints[i]->CalcConstraintsJacobianAndConstraintAxis(
                                  model,cci,Q,CS,G, cci,0);
   }
+
+  for(unsigned int i=0; i<CS.mConstraints.size();++i){
+    CS.mConstraints[i]->calcConstraintJacobian(model,Q,G);
+  }
 }
 
 RBDL_DLLAPI
@@ -764,6 +845,10 @@ void CalcConstraintsVelocityError (
     cols= CS.G.cols();
     CS.mCustomConstraints[i]->CalcVelocityError(model,cci,Q,QDot,CS,
                                CS.G.block(cci,0,rows,cols),err, cci);
+  }
+
+  for(unsigned int i=0; i<CS.mConstraints.size();++i){
+    CS.mConstraints[i]->calcVelocityError(model,Q,QDot,CS.G,err);
   }
 
 
@@ -888,6 +973,15 @@ void CalcConstrainedSystemVariables (
                       * CS.baumgarteParameters[z][1] * CS.err[z]);
     }
   }
+
+  for(unsigned int i=0; i<CS.mConstraints.size();++i){
+    CS.mConstraints[i]->calcGamma(model,Q,QDot,CS.QDDot_0,CS.G,CS.gamma);
+    if(CS.mConstraints[i]->isBaumgarteStabilizationEnabled()){
+      CS.mConstraints[i]->addInBaumgarteStabilizationForces(
+                            CS.err,CS.errd,CS.gamma);
+    }
+  }
+
 
 }
 
@@ -1552,13 +1646,11 @@ void ForwardDynamicsContactsKokkevis (
   // we have to compute the standard accelerations first as we use them to
   // compute the effects of each test force
   for(ci = 0; ci < CS.size(); ci++) {
-
     {
       SUPPRESS_LOGGING;
       UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
     }
-
-    if(CS.constraintType[ci] == ConstraintTypeContact)
+    if(CS.constraintType[ci] == ConstraintTypeContact )
     {
       LOG << "body_id = " << CS.body[ci] << std::endl;
       LOG << "point = " << CS.point[ci] << std::endl;
@@ -1572,97 +1664,202 @@ void ForwardDynamicsContactsKokkevis (
           + CS.normal[ci].dot(CS.point_accel_0[ci]);
       }
       LOG << "point_accel_0 = " << CS.point_accel_0[ci].transpose();
-    }
-    else
-    {
-      std::cerr << "Forward Dynamic Contact Kokkevis: unsupported constraint \
-        type." << std::endl;
-      assert(false);
-      abort();
-    }   
-  }
-
-  // Now we can compute and apply the test forces and use their net effect
-  // to compute the inverse articlated inertia to fill K.
-  for (ci = 0; ci < CS.size(); ci++) {
-
-    LOG << "=== Testforce Loop Start ===" << std::endl;
-
-    unsigned int movable_body_id = 0;
-    Vector3d point_global;
-
-    switch (CS.constraintType[ci]) {
-
-      case ConstraintTypeContact:
-
-        movable_body_id = GetMovableBodyId(model, CS.body[ci]);
-
-        // assemble the test force
-        LOG << "normal = " << CS.normal[ci].transpose() << std::endl;
-
-        point_global = CalcBodyToBaseCoordinates(model, Q, CS.body[ci]
-          , CS.point[ci], false);
-        
-        LOG << "point_global = " << point_global.transpose() << std::endl;
-
-        CS.f_t[ci] = SpatialTransform(Matrix3d::Identity(), -point_global)
-          .applyAdjoint(SpatialVector (0., 0., 0.
-          , -CS.normal[ci][0], -CS.normal[ci][1], -CS.normal[ci][2]));
-        CS.f_ext_constraints[movable_body_id] = CS.f_t[ci];
-
-        LOG << "f_t[" << movable_body_id << "] = " << CS.f_t[ci].transpose() 
-          << std::endl;
-
-        {
-          ForwardDynamicsAccelerationDeltas(model, CS, CS.QDDot_t
-            , movable_body_id, CS.f_ext_constraints);
-
-          LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
-          LOG << "QDDot_t = " << (CS.QDDot_t + CS.QDDot_0).transpose() 
-            << std::endl;
-          LOG << "QDDot_t - QDDot_0 = " << (CS.QDDot_t).transpose() << std::endl;
-        }
-
-        CS.f_ext_constraints[movable_body_id].setZero();
-
-        CS.QDDot_t += CS.QDDot_0;
-
-        // compute the resulting acceleration
-        {
-          SUPPRESS_LOGGING;
-          UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_t);
-        }
-
-        for(unsigned int cj = 0; cj < CS.size(); cj++) {
-          {
-            SUPPRESS_LOGGING;
-
-            point_accel_t = CalcPointAcceleration(model, Q, QDot, CS.QDDot_t
-              , CS.body[cj], CS.point[cj], false);
-          }
-      
-          LOG << "point_accel_0  = " << CS.point_accel_0[ci].transpose() 
-            << std::endl;
-          LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
-
-          CS.K(ci,cj) = CS.normal[cj].dot(point_accel_t - CS.point_accel_0[cj]);
-          
-        }
-
-      break;
-
-      default:
-
+    }else{
+      if(CS.constraintType[ci] != ConstraintTypeBodyToGroundPosition){
         std::cerr << "Forward Dynamic Contact Kokkevis: unsupported constraint \
           type." << std::endl;
         assert(false);
         abort();
+      }
+    }   
+  }
 
-      break;
+  //Initial Loop for the BodyToGroundPositionConstraint
+  unsigned int bi = 0;
+  for(bi =0; bi < CS.mBodyToGroundPositionConstraints.size(); ++bi){
+    {
+      SUPPRESS_LOGGING;
+      UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
+    }
+    {
+      LOG << "body_id = "
+          << CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0]
+          << std::endl;
+      LOG << "point = "
+          << CS.mBodyToGroundPositionConstraints[bi]->getBodyFrames()[0].r
+          << std::endl;
+      //LOG << "normal = " << CS.normal[ci] << std::endl;
+      LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
+    }
+    {
+      SUPPRESS_LOGGING;
+      ci = CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex();
+
+      CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0,
+         CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0],
+         CS.mBodyToGroundPositionConstraints[bi]->getBodyFrames()[0].r, false);
+
+      for(unsigned int k=1;
+          k < CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize();++k){
+        CS.point_accel_0[ci+k]=CS.point_accel_0[ci];
+      }
+
+      CS.mBodyToGroundPositionConstraints[bi]->calcGamma(model,Q,QDot,
+                                                         CS.QDDot_0, CS.G,CS.a);
+      CS.a.block(CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex(),0,
+                 CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize(),1)
+        = -1.0*CS.a.block(CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex(),0,
+                          CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize(),1);
+    }
+    //LOG << "point_accel_0 = " ;
+  }
+
+  // K: Contact Constraints
+  // Now we can compute and apply the test forces and use their net effect
+  // to compute the inverse articlated inertia to fill K.
+  for (ci = 0; ci < CS.size(); ci++) {
+    LOG << "=== Testforce Loop Start ===" << std::endl;
+    unsigned int movable_body_id = 0;
+    Vector3d point_global;
+
+    if(CS.constraintType[ci] == ConstraintTypeContact){
+      movable_body_id = GetMovableBodyId(model, CS.body[ci]);
+      // assemble the test force
+      LOG << "normal = " << CS.normal[ci].transpose() << std::endl;
+      point_global = CalcBodyToBaseCoordinates(model, Q, CS.body[ci],
+                                               CS.point[ci], false);
+
+      LOG << "point_global = " << point_global.transpose() << std::endl;
+
+      CS.f_t[ci] = SpatialTransform(Matrix3d::Identity(), -point_global
+                                    ).applyAdjoint(
+            SpatialVector (0., 0., 0.,
+              -CS.normal[ci][0], -CS.normal[ci][1], -CS.normal[ci][2]));
+      CS.f_ext_constraints[movable_body_id] = CS.f_t[ci];
+
+      LOG << "f_t[" << movable_body_id << "] = " << CS.f_t[ci].transpose()
+        << std::endl;
+
+      {
+        ForwardDynamicsAccelerationDeltas(model, CS, CS.QDDot_t
+          , movable_body_id, CS.f_ext_constraints);
+
+        LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
+        LOG << "QDDot_t = " << (CS.QDDot_t + CS.QDDot_0).transpose()
+          << std::endl;
+        LOG << "QDDot_t - QDDot_0 = " << (CS.QDDot_t).transpose() << std::endl;
+      }
+
+      CS.f_ext_constraints[movable_body_id].setZero();
+
+      CS.QDDot_t += CS.QDDot_0;
+
+      // compute the resulting acceleration
+      {
+        SUPPRESS_LOGGING;
+        UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_t);
+      }
+
+      for(unsigned int cj = 0; cj < CS.size(); cj++) {
+        {
+          SUPPRESS_LOGGING;
+          point_accel_t = CalcPointAcceleration(model, Q, QDot, CS.QDDot_t
+            , CS.body[cj], CS.point[cj], false);
+        }
+
+        LOG << "point_accel_0  = " << CS.point_accel_0[ci].transpose()
+          << std::endl;
+        LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
+
+        CS.K(ci,cj) = CS.normal[cj].dot(point_accel_t - CS.point_accel_0[cj]);
+      }
 
     }
-
   }
+
+
+  // K: BodyToGroundPositionConstraints
+  for (bi = 0; bi < CS.mBodyToGroundPositionConstraints.size(); bi++) {
+
+    LOG << "=== Testforce Loop Start ===" << std::endl;
+    unsigned int movable_body_id = 0;
+    Vector3d point_global;
+
+    ci = CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex();
+
+    movable_body_id = GetMovableBodyId(model,
+                      CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0]);
+    // assemble the test force
+    //LOG << "normal = " << CS.normal[ci].transpose() << std::endl;
+    point_global = CalcBodyToBaseCoordinates(model, Q,
+                  CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0],
+                  CS.mBodyToGroundPositionConstraints[bi]->getBodyFrames()[0].r,
+                  false);
+
+    LOG << "point_global = " << point_global.transpose() << std::endl;
+
+    for(unsigned int j = 0; j<CS.mBodyToGroundPositionConstraints[bi]
+                                ->getConstraintNormalVectors().size(); ++j){
+
+      CS.f_t[ci+j] = SpatialTransform(Matrix3d::Identity(), -point_global
+                                ).applyAdjoint( SpatialVector (0., 0., 0.,
+                                   -CS.mBodyToGroundPositionConstraints[bi]
+                                        ->getConstraintNormalVectors()[j][0],
+                                   -CS.mBodyToGroundPositionConstraints[bi]
+                                        ->getConstraintNormalVectors()[j][1],
+                                   -CS.mBodyToGroundPositionConstraints[bi]
+                                        ->getConstraintNormalVectors()[j][2]));
+
+      CS.f_ext_constraints[movable_body_id] = CS.f_t[ci+j];
+
+      LOG << "f_t[" << movable_body_id << "] = " << CS.f_t[ci+j].transpose()
+        << std::endl;
+      {
+        ForwardDynamicsAccelerationDeltas(model, CS, CS.QDDot_t
+          , movable_body_id, CS.f_ext_constraints);
+
+        LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
+        LOG << "QDDot_t = " << (CS.QDDot_t + CS.QDDot_0).transpose()
+          << std::endl;
+        LOG << "QDDot_t - QDDot_0 = " << (CS.QDDot_t).transpose() << std::endl;
+      }
+
+      CS.f_ext_constraints[movable_body_id].setZero();
+
+      CS.QDDot_t += CS.QDDot_0;
+      // compute the resulting acceleration
+      {
+        SUPPRESS_LOGGING;
+        UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_t);
+      }
+
+      for(unsigned int dj = 0;
+          dj < CS.mBodyToGroundPositionConstraints.size(); dj++) {
+          {
+            SUPPRESS_LOGGING;
+            point_accel_t = CalcPointAcceleration(model, Q, QDot, CS.QDDot_t,
+                CS.mBodyToGroundPositionConstraints[dj]->getBodyIds()[0],
+                CS.mBodyToGroundPositionConstraints[dj]->getBodyFrames()[0].r,
+                false);
+          }
+
+          LOG << "point_accel_0  = " << CS.point_accel_0[ci+j].transpose()
+            << std::endl;
+          LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
+          for(unsigned int k=0;
+              k < CS.mBodyToGroundPositionConstraints[dj]
+                      ->getConstraintNormalVectors().size();++k){
+
+            CS.K(ci+j,dj+k) = CS.mBodyToGroundPositionConstraints[dj]
+                                  ->getConstraintNormalVectors()[k].dot(
+                                        point_accel_t - CS.point_accel_0[dj+k]);
+          }
+      }
+    }
+  }
+
+
+
 
   LOG << "K = " << std::endl << CS.K << std::endl;
   LOG << "a = " << std::endl << CS.a << std::endl;
@@ -1691,6 +1888,7 @@ void ForwardDynamicsContactsKokkevis (
   LOG << "f = " << CS.force.transpose() << std::endl;
 
   for (ci = 0; ci < CS.size(); ci++) {
+    if(CS.constraintType[ci] == ConstraintTypeContact){
     unsigned int body_id = CS.body[ci];
     unsigned int movable_body_id = body_id;
 
@@ -1700,8 +1898,31 @@ void ForwardDynamicsContactsKokkevis (
     }
 
     CS.f_ext_constraints[movable_body_id] -= CS.f_t[ci] * CS.force[ci]; 
-    LOG << "f_ext[" << movable_body_id << "] = " << CS.f_ext_constraints[movable_body_id].transpose() << std::endl;
+    LOG << "f_ext[" << movable_body_id << "] = "
+        << CS.f_ext_constraints[movable_body_id].transpose() << std::endl;
+    }
   }
+  for(bi=0; bi<CS.mBodyToGroundPositionConstraints.size();++bi){
+    unsigned int body_id =
+        CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0];
+    unsigned int movable_body_id = body_id;
+
+    if (model.IsFixedBodyId(body_id)) {
+      unsigned int fbody_id = body_id - model.fixed_body_discriminator;
+      movable_body_id = model.mFixedBodies[fbody_id].mMovableParent;
+    }
+    ci = CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex();
+
+    for(unsigned int k=0;
+        k<CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize();++k){
+      CS.f_ext_constraints[movable_body_id] -= CS.f_t[ci+k] * CS.force[ci+k];
+      LOG << "f_ext[" << movable_body_id << "] = "
+          << CS.f_ext_constraints[movable_body_id].transpose() << std::endl;
+    }
+
+  }
+
+
 
   {
     SUPPRESS_LOGGING;

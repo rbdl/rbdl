@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2019 Matthew Millard <matthew.millard@iwr.uni-heidelberg.de>
+ * Copyright (c) 2019 Matthew Millard <millard.matthew@gmail.com>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -27,6 +27,7 @@ BodyToGroundPositionConstraint::BodyToGroundPositionConstraint():
   Constraint("",ConstraintTypeBodyToGroundPosition,
               std::numeric_limits<unsigned int>::max(),1){}
 
+//==============================================================================
 BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
@@ -106,6 +107,8 @@ BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
         Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
 }
 
+//==============================================================================
+
 BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
@@ -150,17 +153,24 @@ BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
 
 }
 
+//==============================================================================
+
 void BodyToGroundPositionConstraint::bind(const Model &model)
 {
     XpJacobian3D.resize(3, model.qdot_size);
 }
+
+
+//==============================================================================
 
 void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
                               const Math::VectorNd &Q,
                               Math::MatrixNd &GSysUpd)
 {
 
+  XpJacobian3D.setZero();
   CalcPointJacobian(model,Q,bodyIds[0],bodyFrames[0].r,XpJacobian3D,false);
+
 
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
     GSysUpd.block(indexOfConstraintInG+i,0,1,GSysUpd.cols()) =
@@ -168,16 +178,27 @@ void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
   }
 }
 
+//==============================================================================
+
 void BodyToGroundPositionConstraint::calcGamma(  Model &model,
                   const Math::VectorNd &Q,
                   const Math::VectorNd &QDot,
+                  const Math::VectorNd &QDDot0,
                   const Math::MatrixNd &GSys,
                   Math::VectorNd &gammaSysUpd)
 {
+  vecA = CalcPointAcceleration (model, Q, QDot, QDDot0, bodyIds[0],
+                                bodyFrames[0].r, false);
+
   gammaSysUpd.block(indexOfConstraintInG,0,
                     sizeOfConstraint,1).setZero();
+
+  for(unsigned int i=0; i < sizeOfConstraint; ++i){
+    gammaSysUpd.block(indexOfConstraintInG+i,0,1,1) += -T[i].transpose()*vecA;
+  }
 }
 
+//==============================================================================
 
 void BodyToGroundPositionConstraint::calcPositionError(  Model &model,
                             const Math::VectorNd &Q,
@@ -194,6 +215,8 @@ void BodyToGroundPositionConstraint::calcPositionError(  Model &model,
   }
 }
 
+//==============================================================================
+
 void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
@@ -209,6 +232,8 @@ void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
     }
   }
 }
+
+//==============================================================================
 
 void BodyToGroundPositionConstraint::calcConstraintForces( 
               Model &model,

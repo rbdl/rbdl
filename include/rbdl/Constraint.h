@@ -1,6 +1,6 @@
 /*
  * RBDL - Rigid Body Dynamics Library
- * Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
+ * Copyright (c) 2019 Matthew Millard <millard.matthew@gmail.com>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
@@ -28,6 +28,7 @@ class RBDL_DLLAPI Constraint {
 
     virtual ~Constraint(){};    
 
+
     Constraint(const char* name,
                const unsigned int typeOfConstraint,
                const unsigned int indexOfConstraintInG,
@@ -47,6 +48,8 @@ class RBDL_DLLAPI Constraint {
       }
     }
 
+
+
     virtual void bind(const Model &model)=0;
 
     virtual void calcConstraintJacobian(  Model &model,
@@ -60,6 +63,7 @@ class RBDL_DLLAPI Constraint {
     virtual void calcGamma( Model &model,
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
+                            const Math::VectorNd &QDDot0,
                             const Math::MatrixNd &GSys,
                             Math::VectorNd &gammaSysUpd) = 0;   
 
@@ -98,24 +102,34 @@ class RBDL_DLLAPI Constraint {
 
 
     Math::VectorNd getBaumgarteStabilizationForces(const Math::VectorNd &errPos,
-                                                    const Math::VectorNd &errVel)
+                                                  const Math::VectorNd &errVel)
     {
-        return Math::VectorNd(baumgarteParameters[0]*errPos 
-                            + baumgarteParameters[1]*errVel);
+        return (-2*baumgarteParameters[0]*errPos
+                  -baumgarteParameters[1]*baumgarteParameters[1]*errVel);
     }
 
     void addInBaumgarteStabilizationForces(const Math::VectorNd &errSys,
                                            const Math::VectorNd &derrSys,
                                            Math::VectorNd &gammaSysUpd)
     {
+
       gammaSysUpd.block(indexOfConstraintInG,0,sizeOfConstraint,1) +=  
-          getBaumgarteStabilizationForces(
-            errSys.block(indexOfConstraintInG,0,sizeOfConstraint,1),
-           derrSys.block(indexOfConstraintInG,0,sizeOfConstraint,1));
+            -2*baumgarteParameters[0]*errSys.block(
+                indexOfConstraintInG,0,sizeOfConstraint,1),
+           -(baumgarteParameters[1]*baumgarteParameters[1])*derrSys.block(
+                indexOfConstraintInG,0,sizeOfConstraint,1);
+    }
+
+    unsigned int getConstraintType(){
+      return typeOfConstraint;
     }
 
     unsigned int getConstraintSize(){
       return sizeOfConstraint;
+    }
+
+    unsigned int getConstraintIndex(){
+      return indexOfConstraintInG;
     }
 
     void setBaumgarteTimeConstant(double tStab){
@@ -124,19 +138,29 @@ class RBDL_DLLAPI Constraint {
       baumgarteParameters[1] = 1./tStab;
     }
 
-    void setBaumgarteStabilization(bool enableBaumgarteStabilization){
-      baumgarteEnabled = enableBaumgarteStabilization;
+    void enableBaumgarteStabilization(){
+      baumgarteEnabled = true;
+    }
+    void disableBaumgarteStabilization(){
+      baumgarteEnabled = false;
     }
 
-    bool getBaumgarteStabilization(){
+    bool isBaumgarteStabilizationEnabled(){
       return baumgarteEnabled;
     }
+
 
     const char* getName(){
       return name;
     }
 
+    const std::vector< unsigned int >& getBodyIds(){
+      return bodyIds;
+    }
 
+    const std::vector< Math::SpatialTransform >& getBodyFrames(){
+      return bodyFrames;
+    }
 
   protected:
     ///A unique name

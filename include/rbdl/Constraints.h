@@ -1,12 +1,14 @@
 /*
  * RBDL - Rigid Body Dynamics Library
  * Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
- *
+ *               2019 Matthew Millard <mjhmilla@protonmail.com>
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
 #ifndef RBDL_CONSTRAINTSETS_H
 #define RBDL_CONSTRAINTSETS_H
+
+#include <memory>
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
@@ -288,6 +290,12 @@ struct RBDL_DLLAPI ConstraintSet {
     const char *constraintName = NULL);
     
 
+  unsigned int AddBodyToGroundPositionConstraint(
+    unsigned int bodyId,
+    const Math::Vector3d &bodyPoint,
+    const std::vector< Math::Vector3d > &worldNormals,
+    const char *constraintName = NULL);
+
   /** \brief Adds a contact (point-ground) constraint to the constraint set.
    *
    * This type of constraints ensures that the velocity and acceleration of a specified
@@ -429,12 +437,21 @@ struct RBDL_DLLAPI ConstraintSet {
 
   std::vector< CustomConstraint* > mCustomConstraints;
 
-  std::vector< Constraint* > mConstraints;
+  //A shared_ptr (MM 28 May 2019)
+  //  :is 2x as expensive (with the optimize flags turned on) as a regular
+  //   pointer (https://www.modernescpp.com/index.php/memory-and-performance-overhead-of-smart-pointer)
+  //  :But
+  //    -The memory is deleted automatically when all references are deleted.
+  //    -A shared_ptr works with the existing Copy function
+  //
+  //  :A unique_ptr would be faster, but will require copy constructors to
+  //   be defined for all constraint objects. In addition unique_ptr is only
+  //   included in C++14, while shared_ptr is available in C++11. While this
+  //   is clearly the better option, this will require me to make more
+  //   edits to ConstraintSet: I don't have the time for this at the moment
+  std::vector< std::shared_ptr<Constraint> > mConstraints;
 
-  std::vector< BodyToGroundPositionConstraint >  mBodyToGroundPositionConstraints;
-
-  //std::vector< LoopConstraints > mLoopConstraints
-  //std::vector< ContactConstraints> mContactConstraints
+  std::vector< std::shared_ptr<BodyToGroundPositionConstraint> > mBodyToGroundPositionConstraints;
 
   // Contact constraints variables.
   std::vector<unsigned int> body;

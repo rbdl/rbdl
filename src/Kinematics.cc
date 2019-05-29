@@ -995,7 +995,8 @@ bool InverseKinematics (
     VectorNd delta_theta = A.colPivHouseholderQr().solve(CS.J.transpose() * CS.e);
 
     Qres = Qres + delta_theta;
-    if (delta_theta.norm() < CS.step_tol) {
+    CS.delta_q_norm = delta_theta.norm();
+    if (CS.delta_q_norm < CS.step_tol) {
       LOG << "reached convergence after " << CS.num_steps << " steps" << std::endl;
       return true;
     }
