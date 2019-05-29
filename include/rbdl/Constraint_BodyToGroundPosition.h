@@ -56,7 +56,8 @@ public:
                                 const Math::VectorNd *Q,
                                 const Math::VectorNd *QDot,
                                 const Math::VectorNd *QDDot,
-                                Math::MatrixNd &GSysUpd) override;
+                                Math::MatrixNd &GSysUpd,
+                                bool updateKinematics=false) override;
 
   void calcGamma( Model &model,
                   const double *time,
@@ -64,20 +65,23 @@ public:
                   const Math::VectorNd *QDot,
                   const Math::VectorNd *QDDot,
                   const Math::MatrixNd &GSys,
-                  Math::VectorNd &gammaSysUpd) override;
+                  Math::VectorNd &gammaSysUpd,
+                  bool updateKinematics=false) override;
 
 
   void calcPositionError( Model &model,
                           const double *time,
                           const Math::VectorNd &Q,
-                          Math::VectorNd &errSysUpd) override;
+                          Math::VectorNd &errSysUpd,
+                          bool updateKinematics=false) override;
 
   void calcVelocityError( Model &model,
                           const double *time,
                           const Math::VectorNd &Q,
                           const Math::VectorNd &QDot,
                           const Math::MatrixNd &GSys,
-                          Math::VectorNd &derrSysUpd) override;
+                          Math::VectorNd &derrSysUpd,
+                          bool updateKinematics=false) override;
 
   void calcConstraintForces(
         Model &model,
@@ -89,13 +93,16 @@ public:
         std::vector< unsigned int > &constraintBodiesUpd,
         std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
         std::vector< Math::SpatialVector > &constraintForcesUpd,
-        bool resolveAllInRootFrame = false) override;
+        bool resolveAllInRootFrame = false,
+        bool updateKinematics=false) override;
 
   const std::vector< Math::Vector3d >& getConstraintNormalVectors(){
     return T;
   }
 
-  void appendNormalVector(Math::Vector3d& normal);
+  void appendNormalVector(const Math::Vector3d& normal,
+                          bool positionLevelConstraint = false,
+                          bool velocityLevelConstraint = true);
 
 private:
   std::vector< Math::Vector3d > T;

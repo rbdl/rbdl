@@ -168,11 +168,13 @@ void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
                               const Math::VectorNd *Q,
                               const Math::VectorNd *QDot,
                               const Math::VectorNd *QDDot,
-                              Math::MatrixNd &GSysUpd)
+                              Math::MatrixNd &GSysUpd,
+                              bool updateKinematics)
 {
 
   XpJacobian3D.setZero();
-  CalcPointJacobian(model,*Q,bodyIds[0],bodyFrames[0].r,XpJacobian3D,false);
+  CalcPointJacobian(model,*Q,bodyIds[0],bodyFrames[0].r,XpJacobian3D,
+                    updateKinematics);
 
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
     GSysUpd.block(indexOfConstraintInG+i,0,1,GSysUpd.cols()) =
@@ -188,10 +190,11 @@ void BodyToGroundPositionConstraint::calcGamma(  Model &model,
                   const Math::VectorNd *QDot,
                   const Math::VectorNd *QDDot,
                   const Math::MatrixNd &GSys,
-                  Math::VectorNd &gammaSysUpd)
+                  Math::VectorNd &gammaSysUpd,
+                  bool updateKinematics)
 {
   vecA = CalcPointAcceleration (model, *Q, *QDot, *QDDot, bodyIds[0],
-                                bodyFrames[0].r, false);
+                                bodyFrames[0].r, updateKinematics);
 
   gammaSysUpd.block(indexOfConstraintInG,0,
                     sizeOfConstraint,1).setZero();
@@ -206,10 +209,11 @@ void BodyToGroundPositionConstraint::calcGamma(  Model &model,
 void BodyToGroundPositionConstraint::calcPositionError(Model &model,
                                                       const double *time,
                                                       const Math::VectorNd &Q,
-                                                      Math::VectorNd &errSysUpd)
+                                                      Math::VectorNd &errSysUpd,
+                                                      bool updateKinematics)
 {
-  vecA = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,false)
-          -groundPoint;
+  vecA = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
+                                   updateKinematics) - groundPoint;
   for(unsigned int i = 0; i < sizeOfConstraint; ++i){
     if(positionConstraint[i]){
       errSysUpd[indexOfConstraintInG+i] = vecA.dot( T[i] );
@@ -226,9 +230,11 @@ void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
                             const Math::MatrixNd &GSys,
-                            Math::VectorNd &derrSysUpd)
+                            Math::VectorNd &derrSysUpd,
+                            bool updateKinematics)
 {
-  vecA =  CalcPointVelocity(model,Q,QDot,bodyIds[0],bodyFrames[0].r,false);
+  vecA =  CalcPointVelocity(model,Q,QDot,bodyIds[0],bodyFrames[0].r,
+                            updateKinematics);
   for(unsigned int i = 0; i < sizeOfConstraint; ++i){
     if(velocityConstraint[i]){
       derrSysUpd[indexOfConstraintInG+i] = vecA.dot( T[i] );
@@ -250,14 +256,16 @@ void BodyToGroundPositionConstraint::calcConstraintForces(
               std::vector< unsigned int > &constraintBodiesUpd,
               std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
               std::vector< Math::SpatialVector > &constraintForcesUpd,
-              bool resolveAllInRootFrame)
+              bool resolveAllInRootFrame,
+              bool updateKinematics)
 {
 
   //Size the vectors of bodies, local frames, and spatial vectors
   constraintBodiesUpd       = bodyIds;
   constraintBodyFramesUpd   = bodyFrames;
 
-  vecA = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,false);
+  vecA = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
+                                    updateKinematics);
 
   if(resolveAllInRootFrame){
     constraintBodiesUpd[0] = constraintBodiesUpd[1];
@@ -277,7 +285,6 @@ void BodyToGroundPositionConstraint::calcConstraintForces(
   for(unsigned int i=0; i< bodyIds.size(); ++i){
     constraintForcesUpd[i].setZero();
   }
-
   //Evaluate the total force the constraint applies to the contact point
   vecA.setZero();
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
@@ -296,7 +303,28 @@ void BodyToGroundPositionConstraint::calcConstraintForces(
   constraintForcesUpd[1].block(3,0,3,1) = -vecA;
 }
 //==============================================================================
+void BodyToGroundPositionConstraint::
+        appendNormalVector(const Math::Vector3d& normal,
+                           bool posLevel, bool velLevel)
+{
+  dblA = 10.0*std::numeric_limits<double>::epsilon();
 
+  //Make sure the normal is valid
+  assert( std::fabs(normal.norm()-1.) < dblA);
+  for(unsigned int i=0; i<sizeOfConstraint;++i){
+    assert(std::fabs(T[i].dot(normal)) <= dblA);
+  }
+
+  T.push_back(normal);
+  positionConstraint.push_back(posLevel);
+  velocityConstraint.push_back(velLevel);
+  sizeOfConstraint++;
+
+  assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);
+
+}
+
+//==============================================================================
 
 
 

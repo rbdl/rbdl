@@ -137,8 +137,6 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
   std::string nameStr;
   if(constraintName != NULL){
     nameStr = constraintName;
-  }else{
-    nameStr = std::to_string(csIndex);
   }
   for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize();++i){
     name.push_back(nameStr);
@@ -187,6 +185,85 @@ unsigned int ConstraintSet::AddContactConstraint (
   ) {
   assert (bound == false);
 
+
+  unsigned int n_constr = size()+1;
+
+  std::string nameStr;
+  if(constraint_name != NULL){
+    nameStr = constraint_name;
+  }
+  //Go through all existing BodyToGroundPositionConstraints,
+  //if there is a BodyToGroundPosition
+  //constraint at body_id with the identical body_point, then append the
+  //constraint.
+  //
+  // Why am I bothering to do this? To save on computation.
+  // Every individual BodyToGroundPositionConstraint evaluates a point Jacobian.
+  // Thus 3 individual constraints evaluates a point Jacobian 3 times. If these
+  // are all grouped together then the point Jacobian is only evaluated once.
+
+  bool constraintAdded = false;
+
+  if(mBodyToGroundPositionConstraints.size() > 0){
+    unsigned int i = unsigned(mBodyToGroundPositionConstraints.size()-1);
+    if(mBodyToGroundPositionConstraints[i]->getBodyIds()[0] == body_id){
+      Vector3d pointErr = body_point -
+          mBodyToGroundPositionConstraints[i]->getBodyFrames()[0].r;
+      if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100){
+        constraintAdded = true;
+        mBodyToGroundPositionConstraints[i]->appendNormalVector(world_normal);
+
+        //
+        constraintType.push_back (ConstraintTypeBodyToGroundPosition);
+        name.push_back (nameStr);
+        mContactConstraintIndices.push_back(size());
+
+        // These variables will be used for this type of constraint.
+        body.push_back (body_id);
+        point.push_back (body_point);
+        normal.push_back (world_normal);
+
+        // These variables will not be used.
+        body_p.push_back (0);
+        body_s.push_back (0);
+        X_p.push_back (SpatialTransform());
+        X_s.push_back (SpatialTransform());
+        constraintAxis.push_back (SpatialVector::Zero());
+        baumgarteParameters.push_back(Vector2d(0.0, 0.0));
+        err.conservativeResize(n_constr);
+        err[n_constr - 1] = 0.;
+        errd.conservativeResize(n_constr);
+        errd[n_constr - 1] = 0.;
+
+        acceleration.conservativeResize (n_constr);
+        acceleration[n_constr - 1] = 0;
+
+        force.conservativeResize (n_constr);
+        force[n_constr - 1] = 0.;
+
+        impulse.conservativeResize (n_constr);
+        impulse[n_constr - 1] = 0.;
+
+        v_plus.conservativeResize (n_constr);
+        v_plus[n_constr - 1] = 0.;
+
+        d_multdof3_u = std::vector<Math::Vector3d>(n_constr, Math::Vector3d::Zero());
+
+      }
+    }
+  }
+
+  if(constraintAdded == false){
+    n_constr = AddBodyToGroundPositionConstraint(body_id,body_point,
+                                                 world_normal,constraint_name);
+    n_constr = n_constr+1;
+
+  }
+
+
+  return n_constr-1;
+
+  /*
   unsigned int n_constr = size() + 1;
 
   std::string name_str;
@@ -230,6 +307,7 @@ unsigned int ConstraintSet::AddContactConstraint (
   d_multdof3_u = std::vector<Math::Vector3d>(n_constr, Math::Vector3d::Zero());
 
   return n_constr - 1;
+  */
 }
 
 unsigned int ConstraintSet::AddLoopConstraint (
@@ -1779,6 +1857,7 @@ void ForwardDynamicsContactsKokkevis (
 
 
   // K: BodyToGroundPositionConstraints
+  unsigned int cj=0;
   for (bi = 0; bi < CS.mBodyToGroundPositionConstraints.size(); bi++) {
 
     LOG << "=== Testforce Loop Start ===" << std::endl;
@@ -1837,6 +1916,8 @@ void ForwardDynamicsContactsKokkevis (
 
       for(unsigned int dj = 0;
           dj < CS.mBodyToGroundPositionConstraints.size(); dj++) {
+
+          cj = CS.mBodyToGroundPositionConstraints[dj]->getConstraintIndex();
           {
             SUPPRESS_LOGGING;
             point_accel_t = CalcPointAcceleration(model, Q, QDot, CS.QDDot_t,
@@ -1852,9 +1933,9 @@ void ForwardDynamicsContactsKokkevis (
               k < CS.mBodyToGroundPositionConstraints[dj]
                       ->getConstraintNormalVectors().size();++k){
 
-            CS.K(ci+j,dj+k) = CS.mBodyToGroundPositionConstraints[dj]
+            CS.K(ci+j,cj+k) = CS.mBodyToGroundPositionConstraints[dj]
                                   ->getConstraintNormalVectors()[k].dot(
-                                        point_accel_t - CS.point_accel_0[dj+k]);
+                                        point_accel_t - CS.point_accel_0[cj+k]);
           }
       }
     }

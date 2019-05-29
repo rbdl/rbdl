@@ -57,7 +57,8 @@ class RBDL_DLLAPI Constraint {
                                           const Math::VectorNd *Q,
                                           const Math::VectorNd *QDot,
                                           const Math::VectorNd *QDDot,
-                                          Math::MatrixNd &GSysUpd) = 0;    
+                                          Math::MatrixNd &GSysUpd,
+                                          bool updateKinematics=false) = 0;
 
     Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
       return GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols());
@@ -69,7 +70,8 @@ class RBDL_DLLAPI Constraint {
                             const Math::VectorNd *QDot,
                             const Math::VectorNd *QDDot,
                             const Math::MatrixNd &GSys,
-                            Math::VectorNd &gammaSysUpd) = 0;   
+                            Math::VectorNd &gammaSysUpd,
+                            bool updateKinematics=false) = 0;
 
     Math::VectorNd getGamma(Math::VectorNd &gammaSys){
       return gammaSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
@@ -85,12 +87,14 @@ class RBDL_DLLAPI Constraint {
                  std::vector< unsigned int > &constraintBodiesUpd,
                  std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
                  std::vector< Math::SpatialVector > &constraintForcesUpd,
-                 bool resolveAllInRootFrame = false) = 0;
+                 bool resolveAllInRootFrame = false,
+                 bool updateKinematics=false) = 0;
 
     virtual void calcPositionError( Model &model,
                                     const double *time,
                                     const Math::VectorNd &Q,
-                                    Math::VectorNd &errSysUpd) = 0;
+                                    Math::VectorNd &errSysUpd,
+                                    bool updateKinematics=false) = 0;
 
     Math::VectorNd getPositionError(Math::VectorNd &errSys){
       return errSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
@@ -101,7 +105,8 @@ class RBDL_DLLAPI Constraint {
                                     const Math::VectorNd &Q,
                                     const Math::VectorNd &QDot,
                                     const Math::MatrixNd &GSys,
-                                    Math::VectorNd &derrSysUpd) = 0;
+                                    Math::VectorNd &derrSysUpd,
+                                    bool updateKinematics=false) = 0;
 
     Math::VectorNd getVelocityError(Math::VectorNd &derrSys){
       return derrSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
