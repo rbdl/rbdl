@@ -139,6 +139,10 @@ class RBDL_DLLAPI Constraint {
       return indexOfConstraintInG;
     }
 
+    void setConstraintIndex(unsigned int updRowIndexInG){
+      indexOfConstraintInG = updRowIndexInG;
+    }
+
     void setBaumgarteTimeConstant(double tStab){
       assert(tStab > 0);
       baumgarteParameters[0] = 1./tStab;
@@ -177,10 +181,10 @@ class RBDL_DLLAPI Constraint {
     const unsigned int typeOfConstraint;
 
     ///The number of rows that this constraint adds to G.
-    const unsigned int sizeOfConstraint;
+    unsigned int sizeOfConstraint;
 
     ///The first row in G that corresponds to this constraint.
-    const unsigned int indexOfConstraintInG;
+    unsigned int indexOfConstraintInG;
 
     ///The index of the predecessor body in the vector of bodies in Model
     std::vector< unsigned int > bodyIds;

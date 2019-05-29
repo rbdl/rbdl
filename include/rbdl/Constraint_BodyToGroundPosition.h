@@ -95,6 +95,8 @@ public:
     return T;
   }
 
+  void appendNormalVector(Math::Vector3d& normal);
+
 private:
   std::vector< Math::Vector3d > T;
   Math::MatrixNd XpJacobian3D;
