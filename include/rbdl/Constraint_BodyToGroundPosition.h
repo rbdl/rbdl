@@ -52,12 +52,14 @@ public:
   void bind( const Model &model) override;
 
   void calcConstraintJacobian(  Model &model,
+                                const double *time,
                                 const Math::VectorNd *Q,
                                 const Math::VectorNd *QDot,
                                 const Math::VectorNd *QDDot,
                                 Math::MatrixNd &GSysUpd) override;
 
   void calcGamma( Model &model,
+                  const double *time,
                   const Math::VectorNd *Q,
                   const Math::VectorNd *QDot,
                   const Math::VectorNd *QDDot,
@@ -66,10 +68,12 @@ public:
 
 
   void calcPositionError( Model &model,
+                          const double *time,
                           const Math::VectorNd &Q,
                           Math::VectorNd &errSysUpd) override;
 
   void calcVelocityError( Model &model,
+                          const double *time,
                           const Math::VectorNd &Q,
                           const Math::VectorNd &QDot,
                           const Math::MatrixNd &GSys,
@@ -77,6 +81,7 @@ public:
 
   void calcConstraintForces(
         Model &model,
+        const double *time,
         const Math::VectorNd &Q,
         const Math::VectorNd &QDot,
         const Math::MatrixNd &GSys,

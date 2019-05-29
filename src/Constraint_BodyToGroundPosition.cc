@@ -164,6 +164,7 @@ void BodyToGroundPositionConstraint::bind(const Model &model)
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
+                              const double *time,
                               const Math::VectorNd *Q,
                               const Math::VectorNd *QDot,
                               const Math::VectorNd *QDDot,
@@ -182,6 +183,7 @@ void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcGamma(  Model &model,
+                  const double *time,
                   const Math::VectorNd *Q,
                   const Math::VectorNd *QDot,
                   const Math::VectorNd *QDDot,
@@ -201,9 +203,10 @@ void BodyToGroundPositionConstraint::calcGamma(  Model &model,
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::calcPositionError(  Model &model,
-                            const Math::VectorNd &Q,
-                            Math::VectorNd &errSysUpd)
+void BodyToGroundPositionConstraint::calcPositionError(Model &model,
+                                                      const double *time,
+                                                      const Math::VectorNd &Q,
+                                                      Math::VectorNd &errSysUpd)
 {
   vecA = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,false)
           -groundPoint;
@@ -219,6 +222,7 @@ void BodyToGroundPositionConstraint::calcPositionError(  Model &model,
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
+                            const double *time,
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
                             const Math::MatrixNd &GSys,
@@ -238,6 +242,7 @@ void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
 
 void BodyToGroundPositionConstraint::calcConstraintForces( 
               Model &model,
+              const double *time,
               const Math::VectorNd &Q,
               const Math::VectorNd &QDot,
               const Math::MatrixNd &GSys,

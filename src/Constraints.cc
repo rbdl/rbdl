@@ -716,7 +716,7 @@ void CalcConstraintsPositionError (
   }
 
   for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcPositionError(model,Q,err);
+    CS.mConstraints[i]->calcPositionError(model,NULL,Q,err);
   }
 }
 
@@ -816,7 +816,7 @@ void CalcConstraintsJacobian (
   }
 
   for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcConstraintJacobian(model,&Q,NULL,NULL,G);
+    CS.mConstraints[i]->calcConstraintJacobian(model,NULL,&Q,NULL,NULL,G);
   }
 }
 
@@ -848,7 +848,7 @@ void CalcConstraintsVelocityError (
   }
 
   for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcVelocityError(model,Q,QDot,CS.G,err);
+    CS.mConstraints[i]->calcVelocityError(model,NULL,Q,QDot,CS.G,err);
   }
 
 
@@ -975,7 +975,7 @@ void CalcConstrainedSystemVariables (
   }
 
   for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcGamma(model,&Q,&QDot,&CS.QDDot_0,CS.G,CS.gamma);
+    CS.mConstraints[i]->calcGamma(model,NULL,&Q,&QDot,&CS.QDDot_0,CS.G,CS.gamma);
     if(CS.mConstraints[i]->isBaumgarteStabilizationEnabled()){
       CS.mConstraints[i]->addInBaumgarteStabilizationForces(
                             CS.err,CS.errd,CS.gamma);
@@ -1704,7 +1704,7 @@ void ForwardDynamicsContactsKokkevis (
         CS.point_accel_0[ci+k]=CS.point_accel_0[ci];
       }
 
-      CS.mBodyToGroundPositionConstraints[bi]->calcGamma(model,&Q,&QDot,
+      CS.mBodyToGroundPositionConstraints[bi]->calcGamma(model,NULL,&Q,&QDot,
                                                          &CS.QDDot_0, CS.G,CS.a);
       CS.a.block(CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex(),0,
                  CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize(),1)
@@ -1798,7 +1798,7 @@ void ForwardDynamicsContactsKokkevis (
 
     LOG << "point_global = " << point_global.transpose() << std::endl;
 
-    CS.mBodyToGroundPositionConstraints[bi]->calcConstraintJacobian(model,&Q,NULL,NULL,CS.G);
+    CS.mBodyToGroundPositionConstraints[bi]->calcConstraintJacobian(model,NULL,&Q,NULL,NULL,CS.G);
 
     for(unsigned int j = 0; j<CS.mBodyToGroundPositionConstraints[bi]
                                 ->getConstraintNormalVectors().size(); ++j){
