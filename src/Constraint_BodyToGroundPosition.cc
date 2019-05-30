@@ -163,15 +163,15 @@ void BodyToGroundPositionConstraint::bind(const Model &model)
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
-                              const double *time,
-                              const Math::VectorNd *Q,
-                              const Math::VectorNd *QDot,
+                              const double time,
+                              const Math::VectorNd &Q,
+                              const Math::VectorNd &QDot,
                               Math::MatrixNd &GSysUpd,
                               ConstraintCache &cache,
                               bool updateKinematics)
 {
   cache.mat3NA.setZero();
-  CalcPointJacobian(model,*Q,bodyIds[0],bodyFrames[0].r,cache.mat3NA,
+  CalcPointJacobian(model, Q,bodyIds[0],bodyFrames[0].r,cache.mat3NA,
                     updateKinematics);
 
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
@@ -183,9 +183,9 @@ void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcGamma(  Model &model,
-                  const double *time,
-                  const Math::VectorNd *Q,
-                  const Math::VectorNd *QDot,                                                 
+                  const double time,
+                  const Math::VectorNd &Q,
+                  const Math::VectorNd &QDot,
                   const Math::MatrixNd &GSys,
                   Math::VectorNd &gammaSysUpd,
                   ConstraintCache &cache,
@@ -193,12 +193,9 @@ void BodyToGroundPositionConstraint::calcGamma(  Model &model,
 {
 
 
-  cache.vec3A = CalcPointAcceleration (model, *Q, *QDot, cache.vecNZeros,
+  cache.vec3A = CalcPointAcceleration (model, Q, QDot, cache.vecNZeros,
                                        bodyIds[0], bodyFrames[0].r,
                                        updateKinematics);
-
-  //gammaSysUpd.block(indexOfConstraintInG,0,
-  //                  sizeOfConstraint,1).setZero();
 
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
     gammaSysUpd.block(indexOfConstraintInG+i,0,1,1) =
@@ -209,20 +206,17 @@ void BodyToGroundPositionConstraint::calcGamma(  Model &model,
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcGamma(  Model &model,
-                  const double *time,
-                  const Math::VectorNd *Q,
-                  const Math::VectorNd *QDot,
-                  const Math::VectorNd *QDDot,
+                  const double time,
+                  const Math::VectorNd &Q,
+                  const Math::VectorNd &QDot,
+                  const Math::VectorNd &QDDot,
                   const Math::MatrixNd &GSys,
                   Math::VectorNd &gammaSysUpd,
                   ConstraintCache &cache,
                   bool updateKinematics)
 {
-  cache.vec3A = CalcPointAcceleration (model, *Q, *QDot, *QDDot, bodyIds[0],
+  cache.vec3A = CalcPointAcceleration (model, Q, QDot, QDDot, bodyIds[0],
                                 bodyFrames[0].r, updateKinematics);
-
-  //gammaSysUpd.block(indexOfConstraintInG,0,
-  //                  sizeOfConstraint,1).setZero();
 
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
     gammaSysUpd.block(indexOfConstraintInG+i,0,1,1) =
@@ -234,7 +228,7 @@ void BodyToGroundPositionConstraint::calcGamma(  Model &model,
 
 
 void BodyToGroundPositionConstraint::calcPositionError(Model &model,
-                                                      const double *time,
+                                                      const double time,
                                                       const Math::VectorNd &Q,
                                                       Math::VectorNd &errSysUpd,
                                                       ConstraintCache &cache,
@@ -254,7 +248,7 @@ void BodyToGroundPositionConstraint::calcPositionError(Model &model,
 //==============================================================================
 
 void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
-                            const double *time,
+                            const double time,
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
                             const Math::MatrixNd &GSys,
@@ -277,7 +271,7 @@ void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
 
 void BodyToGroundPositionConstraint::calcConstraintForces( 
               Model &model,
-              const double *time,
+              const double time,
               const Math::VectorNd &Q,
               const Math::VectorNd &QDot,
               const Math::MatrixNd &GSys,
@@ -307,7 +301,8 @@ void BodyToGroundPositionConstraint::calcConstraintForces(
     //If this constraint direction is not enforced at the position level
     //update the reference position of the ground point
     if(positionConstraint[i]==false){
-      constraintBodyFramesUpd[1].r += (cache.vec3A-bodyFrames[1].r).dot(T[i])*T[i];
+      constraintBodyFramesUpd[1].r +=
+          (cache.vec3A-bodyFrames[1].r).dot(T[i])*T[i];
     }
   }
 

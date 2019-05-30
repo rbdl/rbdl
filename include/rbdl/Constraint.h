@@ -65,9 +65,9 @@ class RBDL_DLLAPI Constraint {
     virtual void bind(const Model &model)=0;
 
     virtual void calcConstraintJacobian(  Model &model,
-                                          const double *time,
-                                          const Math::VectorNd *Q,
-                                          const Math::VectorNd *QDot,
+                                          const double time,
+                                          const Math::VectorNd &Q,
+                                          const Math::VectorNd &QDot,
                                           Math::MatrixNd &GSysUpd,
                                           ConstraintCache &cache,
                                           bool updateKinematics=false) = 0;
@@ -75,9 +75,9 @@ class RBDL_DLLAPI Constraint {
 
 
     virtual void calcGamma( Model &model,
-                            const double *time,
-                            const Math::VectorNd *Q,
-                            const Math::VectorNd *QDot,                            
+                            const double time,
+                            const Math::VectorNd &Q,
+                            const Math::VectorNd &QDot,
                             const Math::MatrixNd &GSys,
                             Math::VectorNd &gammaSysUpd,
                             ConstraintCache &cache,
@@ -86,7 +86,7 @@ class RBDL_DLLAPI Constraint {
 
     virtual void calcConstraintForces(
                  Model &model,
-                 const double *time,
+                 const double time,
                  const Math::VectorNd &Q,
                  const Math::VectorNd &QDot,
                  const Math::MatrixNd &GSys,
@@ -99,7 +99,7 @@ class RBDL_DLLAPI Constraint {
                  bool updateKinematics=false) = 0;
 
     virtual void calcPositionError( Model &model,
-                                    const double *time,
+                                    const double time,
                                     const Math::VectorNd &Q,
                                     Math::VectorNd &errSysUpd,
                                     ConstraintCache &cache,
@@ -107,7 +107,7 @@ class RBDL_DLLAPI Constraint {
 
 
     virtual void calcVelocityError( Model &model,
-                                    const double *time,
+                                    const double time,
                                     const Math::VectorNd &Q,
                                     const Math::VectorNd &QDot,
                                     const Math::MatrixNd &GSys,

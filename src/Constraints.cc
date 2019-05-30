@@ -902,7 +902,8 @@ void CalcConstraintsJacobian (
   }
 
   for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcConstraintJacobian(model,NULL,&Q,NULL,G,CS.cache);
+    CS.mConstraints[i]->calcConstraintJacobian(model,0,Q,CS.cache.vecNZeros,G,
+                                               CS.cache);
   }
 }
 
@@ -1062,7 +1063,7 @@ void CalcConstrainedSystemVariables (
   }
 
   for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcGamma(model,NULL,&Q,&QDot,CS.G,CS.gamma,CS.cache);
+    CS.mConstraints[i]->calcGamma(model,0,Q,QDot,CS.G,CS.gamma,CS.cache);
     if(CS.mConstraints[i]->isBaumgarteStabilizationEnabled()){
       CS.mConstraints[i]->addInBaumgarteStabilizationForces(
                             CS.err,CS.errd,CS.gamma);
@@ -1792,7 +1793,7 @@ void ForwardDynamicsContactsKokkevis (
       }
 
       CS.mBodyToGroundPositionConstraints[bi]->calcGamma(
-                                  model,NULL,&Q,&QDot,&CS.QDDot_0, CS.G,CS.a,
+                                  model,0,Q,QDot,CS.QDDot_0, CS.G,CS.a,
                                   CS.cache);
       CS.a.block(CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex(),0,
                  CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize(),1)
@@ -1887,7 +1888,7 @@ void ForwardDynamicsContactsKokkevis (
     LOG << "point_global = " << point_global.transpose() << std::endl;
 
     CS.mBodyToGroundPositionConstraints[bi]->calcConstraintJacobian(
-          model,NULL,&Q,NULL,CS.G,CS.cache);
+          model,0,Q,CS.cache.vecNZeros,CS.G,CS.cache);
 
     for(unsigned int j = 0; j<CS.mBodyToGroundPositionConstraints[bi]
                                 ->getConstraintNormalVectors().size(); ++j){
