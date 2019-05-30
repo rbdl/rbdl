@@ -551,6 +551,8 @@ struct RBDL_DLLAPI ConstraintSet {
 
   std::vector<Math::Vector3d> d_multdof3_u;
 
+  ConstraintCache cache;
+
   //CustomConstraint variables.
 
   

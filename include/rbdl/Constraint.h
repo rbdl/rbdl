@@ -23,11 +23,24 @@ enum ConstraintType {
   ConstraintTypeLast,
 };
 
+struct ConstraintCache {
+
+  ///Here N is taken to mean the number of elements in QDot.
+  Math::VectorNd vecNZeros;
+  Math::VectorNd vecNA,vecNB;
+
+  Math::MatrixNd mat3NA, mat3NB;
+  Math::MatrixNd mat6NA, mat6NB;
+  Math::Vector3d vec3A,vec3B;
+  Math::Matrix3d mat3A,mat3B;
+
+  ConstraintCache(){}
+};
+
 class RBDL_DLLAPI Constraint {
   public:
 
     virtual ~Constraint(){};    
-
 
     Constraint(const char* name,
                const unsigned int typeOfConstraint,
@@ -49,33 +62,27 @@ class RBDL_DLLAPI Constraint {
     }
 
 
-
     virtual void bind(const Model &model)=0;
 
     virtual void calcConstraintJacobian(  Model &model,
                                           const double *time,
                                           const Math::VectorNd *Q,
                                           const Math::VectorNd *QDot,
-                                          const Math::VectorNd *QDDot,
                                           Math::MatrixNd &GSysUpd,
+                                          ConstraintCache &cache,
                                           bool updateKinematics=false) = 0;
 
-    Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
-      return GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols());
-    }
+
 
     virtual void calcGamma( Model &model,
                             const double *time,
                             const Math::VectorNd *Q,
-                            const Math::VectorNd *QDot,
-                            const Math::VectorNd *QDDot,
+                            const Math::VectorNd *QDot,                            
                             const Math::MatrixNd &GSys,
                             Math::VectorNd &gammaSysUpd,
+                            ConstraintCache &cache,
                             bool updateKinematics=false) = 0;
 
-    Math::VectorNd getGamma(Math::VectorNd &gammaSys){
-      return gammaSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
-    }
 
     virtual void calcConstraintForces(
                  Model &model,
@@ -87,6 +94,7 @@ class RBDL_DLLAPI Constraint {
                  std::vector< unsigned int > &constraintBodiesUpd,
                  std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
                  std::vector< Math::SpatialVector > &constraintForcesUpd,
+                 ConstraintCache &cache,
                  bool resolveAllInRootFrame = false,
                  bool updateKinematics=false) = 0;
 
@@ -94,11 +102,9 @@ class RBDL_DLLAPI Constraint {
                                     const double *time,
                                     const Math::VectorNd &Q,
                                     Math::VectorNd &errSysUpd,
+                                    ConstraintCache &cache,
                                     bool updateKinematics=false) = 0;
 
-    Math::VectorNd getPositionError(Math::VectorNd &errSys){
-      return errSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
-    }
 
     virtual void calcVelocityError( Model &model,
                                     const double *time,
@@ -106,7 +112,22 @@ class RBDL_DLLAPI Constraint {
                                     const Math::VectorNd &QDot,
                                     const Math::MatrixNd &GSys,
                                     Math::VectorNd &derrSysUpd,
+                                    ConstraintCache &cache,
                                     bool updateKinematics=false) = 0;
+
+    //
+
+    Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
+      return GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols());
+    }
+
+    Math::VectorNd getGamma(Math::VectorNd &gammaSys){
+      return gammaSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
+    }
+
+    Math::VectorNd getPositionError(Math::VectorNd &errSys){
+      return errSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
+    }
 
     Math::VectorNd getVelocityError(Math::VectorNd &derrSys){
       return derrSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);

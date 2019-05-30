@@ -1487,7 +1487,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qd[6] = 0.;
   qd[7] = 0.;
 
-  CalcConstraintsVelocityError(model, q, qd, cs, errd);
+  CalcConstraintsVelocityError(model, q, qd, cs, errd,true);
   CalcConstraintsJacobian(model, q, cs, G);
   errdRef = G * qd;
   CHECK_ARRAY_CLOSE(errdRef, errd, cs.size(), TEST_PREC);
@@ -1782,7 +1782,7 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageImpulse) {
   cs.v_plus[5] = 6.;
 
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
-  CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd);
+  CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd,true);
 
   CHECK_ARRAY_CLOSE(cs.v_plus, errd, cs.size(), TEST_PREC);
 
