@@ -93,9 +93,6 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
     v_plus[csIndex+i] = 0.;
     d_multdof3_u[csIndex+i] = Math::Vector3d::Zero();
 
-    body.push_back(0);
-    point.push_back(Vector3dZero);
-    normal.push_back(Vector3dZero);
     body_p.push_back(0);
     body_s.push_back(0);
     X_p.push_back (SpatialTransform());
@@ -161,9 +158,9 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
     v_plus[csIndex+i] = 0.;
     d_multdof3_u[csIndex+i] = Math::Vector3d::Zero();
 
-    body.push_back(0);
-    point.push_back(Vector3dZero);
-    normal.push_back(Vector3dZero);
+    //body.push_back(0);
+    //point.push_back(Vector3dZero);
+    //normal.push_back(Vector3dZero);
     body_p.push_back(0);
     body_s.push_back(0);
     X_p.push_back (SpatialTransform());
@@ -216,12 +213,6 @@ unsigned int ConstraintSet::AddContactConstraint (
         //
         constraintType.push_back (ConstraintTypeBodyToGroundPosition);
         name.push_back (nameStr);
-        mContactConstraintIndices.push_back(size());
-
-        // These variables will be used for this type of constraint.
-        body.push_back (body_id);
-        point.push_back (body_point);
-        normal.push_back (world_normal);
 
         // These variables will not be used.
         body_p.push_back (0);
@@ -260,54 +251,8 @@ unsigned int ConstraintSet::AddContactConstraint (
 
   }
 
-
   return n_constr-1;
 
-  /*
-  unsigned int n_constr = size() + 1;
-
-  std::string name_str;
-  if (constraint_name != NULL) {
-    name_str = constraint_name;
-  }
-
-  constraintType.push_back (ConstraintTypeContact);
-  name.push_back (name_str);
-  mContactConstraintIndices.push_back(size());
-
-  // These variables will be used for this type of constraint.
-  body.push_back (body_id);
-  point.push_back (body_point);
-  normal.push_back (world_normal);
-
-  // These variables will not be used.
-  body_p.push_back (0);
-  body_s.push_back (0);
-  X_p.push_back (SpatialTransform());
-  X_s.push_back (SpatialTransform());
-  constraintAxis.push_back (SpatialVector::Zero());
-  baumgarteParameters.push_back(Vector2d(0.0, 0.0));
-  err.conservativeResize(n_constr);
-  err[n_constr - 1] = 0.;
-  errd.conservativeResize(n_constr);
-  errd[n_constr - 1] = 0.;
-
-  acceleration.conservativeResize (n_constr);
-  acceleration[n_constr - 1] = normal_acceleration;
-
-  force.conservativeResize (n_constr);
-  force[n_constr - 1] = 0.;
-
-  impulse.conservativeResize (n_constr);
-  impulse[n_constr - 1] = 0.;
-
-  v_plus.conservativeResize (n_constr);
-  v_plus[n_constr - 1] = 0.;
-
-  d_multdof3_u = std::vector<Math::Vector3d>(n_constr, Math::Vector3d::Zero());
-
-  return n_constr - 1;
-  */
 }
 
 unsigned int ConstraintSet::AddLoopConstraint (
@@ -357,11 +302,6 @@ unsigned int ConstraintSet::AddLoopConstraint (
   errd.conservativeResize(n_constr);
   errd[n_constr - 1] = 0.;
 
-  // These variables will not be used by loop constraints but are necessary
-  // for point constraints.
-  body.push_back (0);
-  point.push_back (Vector3d::Zero());
-  normal.push_back (Vector3d::Zero());
 
   acceleration.conservativeResize (n_constr);
   acceleration[n_constr - 1] = 0.;
@@ -428,13 +368,6 @@ unsigned int ConstraintSet::AddCustomConstraint(
       }
       baumgarteParameters.push_back(
           Vector2d(baumgarte_coefficient, baumgarte_coefficient));
-
-      // These variables will not be used in CustomConstraints but are kept
-      // so that the indexing across all of the ConstraintSet variables
-      // remains preserved.
-      body.push_back (0);
-      point.push_back (Vector3d::Zero());
-      normal.push_back (Vector3d::Zero());
   }
 
   err.conservativeResize( n_constr_size);
@@ -522,11 +455,15 @@ bool ConstraintSet::Bind (const Model &model) {
   a.setZero();
   QDDot_t.conservativeResize (model.dof_count);
   QDDot_t.setZero();
+  f_t.resize (n_constr, SpatialVector::Zero());
+  point_accel_0.resize (n_constr, Vector3d::Zero());
+
   QDDot_0.conservativeResize (model.dof_count);
   QDDot_0.setZero();
-  f_t.resize (n_constr, SpatialVector::Zero());
+
+
   f_ext_constraints.resize (model.mBodies.size(), SpatialVector::Zero());
-  point_accel_0.resize (n_constr, Vector3d::Zero());
+
 
   d_pA =std::vector<SpatialVector> (model.mBodies.size(),SpatialVector::Zero());
   d_a = std::vector<SpatialVector> (model.mBodies.size(),SpatialVector::Zero());
@@ -558,9 +495,35 @@ void ConstraintSet::clear() {
   b.setZero();
   x.setZero();
 
-  K.setZero();
-  a.setZero();
+  //Constraint cache
+  cache.vecNZeros.setZero();
+  cache.vecNA.setZero();
+  cache.vecNB.setZero();
+  cache.mat3NA.setZero();
+  cache.mat3NB.setZero();
+  cache.vec3A.setZero();
+  cache.vec3B.setZero();
+  cache.svecA.setZero();
+  cache.svecB.setZero();
+  cache.stA.E.setIdentity();
+  cache.stA.r.setZero();
+  cache.stB.E.setIdentity();
+  cache.stB.r.setZero();
+  cache.mat3A.setZero();
+  cache.mat3B.setZero();
+
+
+  //Kokkevis Cache
   QDDot_t.setZero();
+  a.setZero();
+  K.setZero();
+  for(unsigned int i=0; i<point_accel_0.size();++i){
+    point_accel_0[i].setZero();
+  }
+  for(unsigned int i=0; i<f_t.size();++i){
+    f_t[i].setZero();
+  }
+
   QDDot_0.setZero();
 
   unsigned int i;
@@ -744,10 +707,10 @@ void CalcConstraintsPositionError (
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
   }
 
-  for (unsigned int i = 0; i < CS.mContactConstraintIndices.size(); i++) {
-    const unsigned int c = CS.mContactConstraintIndices[i];
-    err[c] = 0.;
-  }
+  //for (unsigned int i = 0; i < CS.mContactConstraintIndices.size(); i++) {
+  //  const unsigned int c = CS.mContactConstraintIndices[i];
+  //  err[c] = 0.;
+  //}
 
   for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
     const unsigned int lci = CS.mLoopConstraintIndices[i];
@@ -802,7 +765,7 @@ void CalcConstraintsPositionError (
   }
 
   for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcPositionError(model,NULL,Q,err, CS.cache);
+    CS.mConstraints[i]->calcPositionError(model,0,Q,err, CS.cache);
   }
 }
 
@@ -824,27 +787,6 @@ void CalcConstraintsJacobian (
   SpatialTransform prev_body_X_1;
   SpatialTransform prev_body_X_2;
 
-  for (unsigned int i = 0; i < CS.mContactConstraintIndices.size(); i++) {
-    const unsigned int c = CS.mContactConstraintIndices[i];
-
-    // only compute the matrix Gi if actually needed
-    if (prev_body_id_1 != CS.body[c] 
-        || prev_body_X_1.r != CS.point[c]) {
-
-      // Compute the jacobian for the point.
-      CS.Gi.setZero();
-      CalcPointJacobian (model, Q, CS.body[c], CS.point[c], CS.Gi, false);
-
-      // Update variables for optimization check.
-      prev_body_id_1 = CS.body[c];
-      prev_body_X_1 = Xtrans(CS.point[c]);
-    }
-
-    for(unsigned int j = 0; j < model.dof_count; j++) {
-      Vector3d gaxis (CS.Gi(0,j), CS.Gi(1,j), CS.Gi(2,j));
-      G(c,j) = gaxis.transpose() * CS.normal[c];
-    }
-  }
 
   // Variables used for computations.
   Vector3d normal;
@@ -935,7 +877,7 @@ void CalcConstraintsVelocityError (
   }
 
   for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcVelocityError(model,NULL,Q,QDot,CS.G,err,CS.cache,
+    CS.mConstraints[i]->calcVelocityError(model,0,Q,QDot,CS.G,err,CS.cache,
                                           update_kinematics);
   }
 
@@ -981,24 +923,6 @@ void CalcConstrainedSystemVariables (
 
   CS.QDDot_0.setZero();
   UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
-
-  for (unsigned int i = 0; i < CS.mContactConstraintIndices.size(); i++) {
-    const unsigned int c = CS.mContactConstraintIndices[i];
-
-    // only compute point accelerations when necessary
-    if (prev_body_id != CS.body[c] || prev_body_point != CS.point[c]) {
-      gamma_i = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0, CS.body[c]
-          , CS.point[c], false);
-      prev_body_id = CS.body[c];
-      prev_body_point = CS.point[c];
-    }
-
-    // we also substract ContactData[c].acceleration such that the contact
-    // point will have the desired acceleration
-    CS.gamma[c] = CS.acceleration[c] - CS.normal[c].dot(gamma_i);
-  }
-
-
 
   for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
     const unsigned int c = CS.mLoopConstraintIndices[i];
@@ -1722,7 +1646,8 @@ void ForwardDynamicsContactsKokkevis (
 
   Vector3d point_accel_t;
 
-  unsigned int ci = 0;
+  unsigned int ci = 0; //constraint index:
+                       // the row index in the constraint Jacobian.
   
   // The default acceleration only needs to be computed once
   {
@@ -1733,36 +1658,6 @@ void ForwardDynamicsContactsKokkevis (
   LOG << "=== Initial Loop Start ===" << std::endl;
   // we have to compute the standard accelerations first as we use them to
   // compute the effects of each test force
-  for(ci = 0; ci < CS.size(); ci++) {
-    {
-      SUPPRESS_LOGGING;
-      UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
-    }
-    if(CS.constraintType[ci] == ConstraintTypeContact )
-    {
-      LOG << "body_id = " << CS.body[ci] << std::endl;
-      LOG << "point = " << CS.point[ci] << std::endl;
-      LOG << "normal = " << CS.normal[ci] << std::endl;
-      LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
-      {
-        SUPPRESS_LOGGING;
-        CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot
-          , CS.QDDot_0, CS.body[ci], CS.point[ci], false);
-        CS.a[ci] = - CS.acceleration[ci] 
-          + CS.normal[ci].dot(CS.point_accel_0[ci]);
-      }
-      LOG << "point_accel_0 = " << CS.point_accel_0[ci].transpose();
-    }else{
-      if(CS.constraintType[ci] != ConstraintTypeBodyToGroundPosition){
-        std::cerr << "Forward Dynamic Contact Kokkevis: unsupported constraint \
-          type." << std::endl;
-        assert(false);
-        abort();
-      }
-    }   
-  }
-
-  //Initial Loop for the BodyToGroundPositionConstraint
   unsigned int bi = 0;
   for(bi =0; bi < CS.mBodyToGroundPositionConstraints.size(); ++bi){
     {
@@ -1776,131 +1671,39 @@ void ForwardDynamicsContactsKokkevis (
       LOG << "point = "
           << CS.mBodyToGroundPositionConstraints[bi]->getBodyFrames()[0].r
           << std::endl;
-      //LOG << "normal = " << CS.normal[ci] << std::endl;
       LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
     }
     {
       SUPPRESS_LOGGING;
-      ci = CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex();
-
-      CS.point_accel_0[ci] = CalcPointAcceleration (model, Q, QDot, CS.QDDot_0,
-         CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0],
-         CS.mBodyToGroundPositionConstraints[bi]->getBodyFrames()[0].r, false);
-
-      for(unsigned int k=1;
-          k < CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize();++k){
-        CS.point_accel_0[ci+k]=CS.point_accel_0[ci];
-      }
-
-      CS.mBodyToGroundPositionConstraints[bi]->calcGamma(
-                                  model,0,Q,QDot,CS.QDDot_0, CS.G,CS.a,
-                                  CS.cache);
-      CS.a.block(CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex(),0,
-                 CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize(),1)
-        *= -1.0;
-    }
-    //LOG << "point_accel_0 = " ;
-  }
-
-  // K: Contact Constraints
-  // Now we can compute and apply the test forces and use their net effect
-  // to compute the inverse articlated inertia to fill K.
-  for (ci = 0; ci < CS.size(); ci++) {
-    LOG << "=== Testforce Loop Start ===" << std::endl;
-    unsigned int movable_body_id = 0;
-    Vector3d point_global;
-
-    if(CS.constraintType[ci] == ConstraintTypeContact){
-      movable_body_id = GetMovableBodyId(model, CS.body[ci]);
-      // assemble the test force
-      LOG << "normal = " << CS.normal[ci].transpose() << std::endl;
-      point_global = CalcBodyToBaseCoordinates(model, Q, CS.body[ci],
-                                               CS.point[ci], false);
-
-      LOG << "point_global = " << point_global.transpose() << std::endl;
-
-      CS.f_t[ci] = SpatialTransform(Matrix3d::Identity(), -point_global
-                                    ).applyAdjoint(
-            SpatialVector (0., 0., 0.,
-              -CS.normal[ci][0], -CS.normal[ci][1], -CS.normal[ci][2]));
-      CS.f_ext_constraints[movable_body_id] = CS.f_t[ci];
-
-      LOG << "f_t[" << movable_body_id << "] = " << CS.f_t[ci].transpose()
-        << std::endl;
-
-      {
-        ForwardDynamicsAccelerationDeltas(model, CS, CS.QDDot_t
-          , movable_body_id, CS.f_ext_constraints);
-
-        LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
-        LOG << "QDDot_t = " << (CS.QDDot_t + CS.QDDot_0).transpose()
-          << std::endl;
-        LOG << "QDDot_t - QDDot_0 = " << (CS.QDDot_t).transpose() << std::endl;
-      }
-
-      CS.f_ext_constraints[movable_body_id].setZero();
-
-      CS.QDDot_t += CS.QDDot_0;
-
-      // compute the resulting acceleration
-      {
-        SUPPRESS_LOGGING;
-        UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_t);
-      }
-
-      for(unsigned int cj = 0; cj < CS.size(); cj++) {
-        {
-          SUPPRESS_LOGGING;
-          point_accel_t = CalcPointAcceleration(model, Q, QDot, CS.QDDot_t
-            , CS.body[cj], CS.point[cj], false);
-        }
-
-        LOG << "point_accel_0  = " << CS.point_accel_0[ci].transpose()
-          << std::endl;
-        LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
-
-        CS.K(ci,cj) = CS.normal[cj].dot(point_accel_t - CS.point_accel_0[cj]);
-      }
-
+      CS.mBodyToGroundPositionConstraints[bi]->calcPointAccelerations(
+                          model,Q,QDot,CS.QDDot_0,CS.point_accel_0,false);
+      CS.mBodyToGroundPositionConstraints[bi]->calcPointAccelerationError(
+                          CS.point_accel_0,CS.a);
     }
   }
-
 
   // K: BodyToGroundPositionConstraints
   unsigned int cj=0;
+  unsigned int movable_body_id = 0;
+  Vector3d point_global;
+
   for (bi = 0; bi < CS.mBodyToGroundPositionConstraints.size(); bi++) {
 
     LOG << "=== Testforce Loop Start ===" << std::endl;
-    unsigned int movable_body_id = 0;
-    Vector3d point_global;
 
     ci = CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex();
 
     movable_body_id = GetMovableBodyId(model,
                       CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0]);
-    // assemble the test force
-    //LOG << "normal = " << CS.normal[ci].transpose() << std::endl;
-    point_global = CalcBodyToBaseCoordinates(model, Q,
-                  CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0],
-                  CS.mBodyToGroundPositionConstraints[bi]->getBodyFrames()[0].r,
-                  false);
 
+    // assemble the test force
     LOG << "point_global = " << point_global.transpose() << std::endl;
 
-    CS.mBodyToGroundPositionConstraints[bi]->calcConstraintJacobian(
-          model,0,Q,CS.cache.vecNZeros,CS.G,CS.cache);
+    CS.mBodyToGroundPositionConstraints[bi]->calcPointForceJacobian(
+          model,Q,CS.cache,CS.f_t,false);
 
     for(unsigned int j = 0; j<CS.mBodyToGroundPositionConstraints[bi]
                                 ->getConstraintNormalVectors().size(); ++j){
-
-      CS.f_t[ci+j] = SpatialTransform(Matrix3d::Identity(), -point_global
-                                ).applyAdjoint( SpatialVector (0., 0., 0.,
-                                   -CS.mBodyToGroundPositionConstraints[bi]
-                                        ->getConstraintNormalVectors()[j][0],
-                                   -CS.mBodyToGroundPositionConstraints[bi]
-                                        ->getConstraintNormalVectors()[j][1],
-                                   -CS.mBodyToGroundPositionConstraints[bi]
-                                        ->getConstraintNormalVectors()[j][2]));
 
       CS.f_ext_constraints[movable_body_id] = CS.f_t[ci+j];
 
@@ -1931,10 +1734,8 @@ void ForwardDynamicsContactsKokkevis (
           cj = CS.mBodyToGroundPositionConstraints[dj]->getConstraintIndex();
           {
             SUPPRESS_LOGGING;
-            point_accel_t = CalcPointAcceleration(model, Q, QDot, CS.QDDot_t,
-                CS.mBodyToGroundPositionConstraints[dj]->getBodyIds()[0],
-                CS.mBodyToGroundPositionConstraints[dj]->getBodyFrames()[0].r,
-                false);
+            CS.mBodyToGroundPositionConstraints[dj]->calcPointAccelerations(
+                  model,Q,QDot,CS.QDDot_t,point_accel_t,false);
           }
 
           LOG << "point_accel_0  = " << CS.point_accel_0[ci+j].transpose()
@@ -1981,21 +1782,7 @@ void ForwardDynamicsContactsKokkevis (
 
   LOG << "f = " << CS.force.transpose() << std::endl;
 
-  for (ci = 0; ci < CS.size(); ci++) {
-    if(CS.constraintType[ci] == ConstraintTypeContact){
-    unsigned int body_id = CS.body[ci];
-    unsigned int movable_body_id = body_id;
 
-    if (model.IsFixedBodyId(body_id)) {
-      unsigned int fbody_id = body_id - model.fixed_body_discriminator;
-      movable_body_id = model.mFixedBodies[fbody_id].mMovableParent;
-    }
-
-    CS.f_ext_constraints[movable_body_id] -= CS.f_t[ci] * CS.force[ci]; 
-    LOG << "f_ext[" << movable_body_id << "] = "
-        << CS.f_ext_constraints[movable_body_id].transpose() << std::endl;
-    }
-  }
   for(bi=0; bi<CS.mBodyToGroundPositionConstraints.size();++bi){
     unsigned int body_id =
         CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0];

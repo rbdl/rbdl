@@ -68,6 +68,7 @@ public:
                   ConstraintCache &cache,
                   bool updateKinematics=false) override;
 
+  /*
   void calcGamma( Model &model,
                   const double time,
                   const Math::VectorNd &Q,
@@ -77,6 +78,7 @@ public:
                   Math::VectorNd &gammaSysUpd,
                   ConstraintCache &cache,
                   bool updateKinematics=false);
+  */
 
 
   void calcPositionError( Model &model,
@@ -109,6 +111,8 @@ public:
         bool resolveAllInRootFrame = false,
         bool updateKinematics=false) override;
 
+  //==========================================================
+
   const std::vector< Math::Vector3d >& getConstraintNormalVectors(){
     return T;
   }
@@ -116,6 +120,35 @@ public:
   void appendNormalVector(const Math::Vector3d& normal,
                           bool positionLevelConstraint = false,
                           bool velocityLevelConstraint = true);
+
+  //To support ForwardDynamicsKokkevis
+  void calcPointAccelerations(Model &model,
+                              const Math::VectorNd &Q,
+                              const Math::VectorNd &QDot,
+                              const Math::VectorNd &QDDot,
+                              std::vector<Math::Vector3d> &pointAccelerationSysUpd,
+                              bool updateKinematics=false);
+
+  //To support ForwardDynamicsKokkevis
+  void calcPointAccelerations(Model &model,
+                              const Math::VectorNd &Q,
+                              const Math::VectorNd &QDot,
+                              const Math::VectorNd &QDDot,
+                              Math::Vector3d &pointAccelerationUpd,
+                              bool updateKinematics=false);
+
+
+  //To support ForwardDynamicsKokkevis
+  void calcPointAccelerationError(
+                    const std::vector<Math::Vector3d> &pointAccelerationsSys,
+                    Math::VectorNd &ddErrSysUpd);
+
+  void calcPointForceJacobian(
+          Model &model,
+          const Math::VectorNd &Q,
+          ConstraintCache &cache,
+          std::vector<Math::SpatialVector> &fExtSysUpd,
+          bool updateKinematics=false);
 
 private:
   std::vector< Math::Vector3d > T;

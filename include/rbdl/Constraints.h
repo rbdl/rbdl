@@ -431,7 +431,6 @@ struct RBDL_DLLAPI ConstraintSet {
   // Common constraints variables.
   std::vector<ConstraintType> constraintType;
   std::vector<std::string> name;
-  std::vector<unsigned int> mContactConstraintIndices;
   std::vector<unsigned int> mLoopConstraintIndices;
   std::vector<unsigned int> mCustomConstraintIndices;
 
@@ -453,10 +452,6 @@ struct RBDL_DLLAPI ConstraintSet {
 
   std::vector< std::shared_ptr<BodyToGroundPositionConstraint> > mBodyToGroundPositionConstraints;
 
-  // Contact constraints variables.
-  std::vector<unsigned int> body;
-  std::vector<Math::Vector3d> point;
-  std::vector<Math::Vector3d> normal;
 
   // Loop constraints variables.
   std::vector<unsigned int> body_p;
@@ -553,7 +548,7 @@ struct RBDL_DLLAPI ConstraintSet {
 
   ConstraintCache cache;
 
-  //CustomConstraint variables.
+
 
   
 };

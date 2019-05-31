@@ -203,26 +203,6 @@ void BodyToGroundPositionConstraint::calcGamma(  Model &model,
   }
 }
 
-//==============================================================================
-
-void BodyToGroundPositionConstraint::calcGamma(  Model &model,
-                  const double time,
-                  const Math::VectorNd &Q,
-                  const Math::VectorNd &QDot,
-                  const Math::VectorNd &QDDot,
-                  const Math::MatrixNd &GSys,
-                  Math::VectorNd &gammaSysUpd,
-                  ConstraintCache &cache,
-                  bool updateKinematics)
-{
-  cache.vec3A = CalcPointAcceleration (model, Q, QDot, QDDot, bodyIds[0],
-                                bodyFrames[0].r, updateKinematics);
-
-  for(unsigned int i=0; i < sizeOfConstraint; ++i){
-    gammaSysUpd.block(indexOfConstraintInG+i,0,1,1) =
-        -T[i].transpose()*cache.vec3A;
-  }
-}
 
 //==============================================================================
 
@@ -351,6 +331,94 @@ void BodyToGroundPositionConstraint::
 
 //==============================================================================
 
+void BodyToGroundPositionConstraint::
+      calcPointAccelerations(Model &model,
+                            const Math::VectorNd &Q,
+                            const Math::VectorNd &QDot,
+                            const Math::VectorNd &QDDot,
+                            std::vector<Math::Vector3d> &pointAccelerationsSysUpd,
+                            bool updateKinematics)
+{
+  pointAccelerationsSysUpd[indexOfConstraintInG] =
+      CalcPointAcceleration (model, Q, QDot, QDDot, bodyIds[0],
+                                      bodyFrames[0].r, updateKinematics);
+  for(unsigned int i=1; i<sizeOfConstraint;++i){
+    pointAccelerationsSysUpd[indexOfConstraintInG+i] =
+        pointAccelerationsSysUpd[indexOfConstraintInG];
+  }
+}
 
+//==============================================================================
+
+void BodyToGroundPositionConstraint::
+      calcPointAccelerations(Model &model,
+                            const Math::VectorNd &Q,
+                            const Math::VectorNd &QDot,
+                            const Math::VectorNd &QDDot,
+                            Math::Vector3d &pointAccelerationsUpd,
+                            bool updateKinematics)
+{
+  pointAccelerationsUpd = CalcPointAcceleration (model, Q, QDot, QDDot,
+                                                 bodyIds[0], bodyFrames[0].r,
+                                                 updateKinematics);
+}
+
+//==============================================================================
+
+void BodyToGroundPositionConstraint::
+      calcPointAccelerationError(
+                    const std::vector<Math::Vector3d> &pointAccelerationsSys,
+                    Math::VectorNd &ddErrSysUpd)
+{
+  for(unsigned int i=0; i<sizeOfConstraint;++i){
+    ddErrSysUpd[indexOfConstraintInG+i] =
+        T[i].dot(pointAccelerationsSys[indexOfConstraintInG+i]);
+  }
+}
+
+void BodyToGroundPositionConstraint::
+      calcPointForceJacobian(
+        Model &model,
+        const Math::VectorNd &Q,
+        ConstraintCache &cache,
+        std::vector<Math::SpatialVector> &fExtSysUpd,
+        bool updateKinematics)
+{
+  cache.vec3A = CalcBodyToBaseCoordinates(
+                  model,Q,bodyIds[0],bodyFrames[0].r,updateKinematics);
+  cache.stA.E.setIdentity();
+  cache.stA.r = -cache.vec3A;
+  cache.svecA[0]=0.;
+  cache.svecA[1]=0.;
+  cache.svecA[2]=0.;
+  for(unsigned int i=0; i<sizeOfConstraint;++i){
+    cache.svecA[3] = -T[i][0];
+    cache.svecA[4] = -T[i][1];
+    cache.svecA[5] = -T[i][2];
+    fExtSysUpd[indexOfConstraintInG+i] = cache.stA.applyAdjoint( cache.svecA );
+  }
+}
+
+
+/*
+void BodyToGroundPositionConstraint::calcGamma(  Model &model,
+                  const double time,
+                  const Math::VectorNd &Q,
+                  const Math::VectorNd &QDot,
+                  const Math::VectorNd &QDDot,
+                  const Math::MatrixNd &GSys,
+                  Math::VectorNd &gammaSysUpd,
+                  ConstraintCache &cache,
+                  bool updateKinematics)
+{
+  cache.vec3A = CalcPointAcceleration (model, Q, QDot, QDDot, bodyIds[0],
+                                bodyFrames[0].r, updateKinematics);
+
+  for(unsigned int i=0; i < sizeOfConstraint; ++i){
+    gammaSysUpd.block(indexOfConstraintInG+i,0,1,1) =
+        -T[i].transpose()*cache.vec3A;
+  }
+}
+*/
 
 

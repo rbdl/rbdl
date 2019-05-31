@@ -32,6 +32,8 @@ struct ConstraintCache {
   Math::MatrixNd mat3NA, mat3NB;
   Math::MatrixNd mat6NA, mat6NB;
   Math::Vector3d vec3A,vec3B;
+  Math::SpatialVector svecA, svecB;
+  Math::SpatialTransform stA, stB;
   Math::Matrix3d mat3A,mat3B;
 
   ConstraintCache(){}
