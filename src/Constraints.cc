@@ -18,7 +18,7 @@
 #include "rbdl/Joint.h"
 #include "rbdl/Body.h"
 #include "rbdl/Constraints.h"
-#include "rbdl/Constraint_BodyToGroundPosition.h"
+#include "rbdl/Constraint_Contact.h"
 #include "rbdl/Dynamics.h"
 #include "rbdl/Kinematics.h"
 
@@ -35,7 +35,8 @@ void SolveLinearSystem (
 
 unsigned int GetMovableBodyId (Model& model, unsigned int id);
 
-unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
+/*
+unsigned int ConstraintSet::AddContactConstraint(
     unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const Math::Vector3d &worldNormal,
@@ -45,23 +46,23 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
   //Update the manditory constraint set fields
   unsigned int csIndex = unsigned(size());
 
-  mBodyToGroundPositionConstraints.push_back(
-        std::make_shared<BodyToGroundPositionConstraint>(csIndex, bodyId,
+  contactConstraints.push_back(
+        std::make_shared<ContactConstraint>(csIndex, bodyId,
                                                          bodyPoint, worldNormal,
                                                          constraintName));
 
-  unsigned int b2gIndex = unsigned(mBodyToGroundPositionConstraints.size()-1);
+  unsigned int ccIndex = unsigned(contactConstraints.size()-1);
 
-  mConstraints.emplace_back(mBodyToGroundPositionConstraints[b2gIndex]);
-
-
-  unsigned int cIndex = unsigned(mConstraints.size()-1);
-  unsigned int csSize   = csIndex + mConstraints[b2gIndex]->getConstraintSize();
+  constraints.emplace_back(contactConstraints[ccIndex]);
 
 
+  unsigned int cIndex = unsigned(constraints.size()-1);
+  unsigned int csSize   = csIndex + constraints[ccIndex]->getConstraintSize();
 
-  for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize(); ++i){
-    constraintType.push_back( ConstraintTypeBodyToGroundPosition);
+
+
+  for(unsigned int i=0; i<constraints[cIndex]->getConstraintSize(); ++i){
+    constraintType.push_back( ConstraintTypeContact);
   }
 
   std::string nameStr;
@@ -70,7 +71,7 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
   }else{
     nameStr = "body2GndPos_" + std::to_string(csIndex);
   }
-  for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize();++i){
+  for(unsigned int i=0; i<constraints[cIndex]->getConstraintSize();++i){
     name.push_back(nameStr);
   }
 
@@ -78,16 +79,14 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
 
   err.conservativeResize(csSize);
   errd.conservativeResize(csSize);
-  acceleration.conservativeResize(csSize);
   force.conservativeResize(csSize);
   impulse.conservativeResize(csSize);
   v_plus.conservativeResize(csSize);
   d_multdof3_u.resize(csSize);
 
-  for(unsigned int i=0; i<(mConstraints[cIndex]->getConstraintSize()); ++i){
+  for(unsigned int i=0; i<(constraints[cIndex]->getConstraintSize()); ++i){
     err[csIndex+i]  = 0.;
     errd[csIndex+i] = 0.;
-    acceleration[csIndex+i]=0.;
     force[csIndex+i] = 0.;
     impulse[csIndex+i] = 0.;
     v_plus[csIndex+i] = 0.;
@@ -103,8 +102,9 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
 
   return csSize-1;
 }
+*/
 
-unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
+unsigned int ConstraintSet::AddContactConstraint(
     unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &worldNormals,
@@ -114,28 +114,28 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
   //Update the manditory constraint set fields
   unsigned int csIndex = unsigned(size());
 
-  mBodyToGroundPositionConstraints.push_back(
-        std::make_shared<BodyToGroundPositionConstraint>(csIndex, bodyId,
+  contactConstraints.push_back(
+        std::make_shared<ContactConstraint>(csIndex, bodyId,
                                                          bodyPoint,worldNormals,
                                                          constraintName));
 
-  unsigned int b2gIndex = unsigned(mBodyToGroundPositionConstraints.size()-1);
+  unsigned int ccIndex = unsigned(contactConstraints.size()-1);
 
-  mConstraints.emplace_back(mBodyToGroundPositionConstraints[b2gIndex]);
+  constraints.emplace_back(contactConstraints[ccIndex]);
 
 
-  unsigned int cIndex = unsigned(mConstraints.size()-1);
-  unsigned int csSize   = csIndex + mConstraints[b2gIndex]->getConstraintSize();
+  unsigned int cIndex = unsigned(constraints.size()-1);
+  unsigned int csSize   = csIndex + constraints[ccIndex]->getConstraintSize();
 
-  for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize(); ++i){
-    constraintType.push_back( ConstraintTypeBodyToGroundPosition);
+  for(unsigned int i=0; i<constraints[cIndex]->getConstraintSize(); ++i){
+    constraintType.push_back( ConstraintTypeContact);
   }
 
   std::string nameStr;
   if(constraintName != NULL){
     nameStr = constraintName;
   }
-  for(unsigned int i=0; i<mConstraints[cIndex]->getConstraintSize();++i){
+  for(unsigned int i=0; i<constraints[cIndex]->getConstraintSize();++i){
     name.push_back(nameStr);
   }
 
@@ -143,16 +143,14 @@ unsigned int ConstraintSet::AddBodyToGroundPositionConstraint(
 
   err.conservativeResize(csSize);
   errd.conservativeResize(csSize);
-  acceleration.conservativeResize(csSize);
   force.conservativeResize(csSize);
   impulse.conservativeResize(csSize);
   v_plus.conservativeResize(csSize);
   d_multdof3_u.resize(csSize);
 
-  for(unsigned int i=0; i<(mConstraints[cIndex]->getConstraintSize()); ++i){
+  for(unsigned int i=0; i<(constraints[cIndex]->getConstraintSize()); ++i){
     err[csIndex+i]  = 0.;
     errd[csIndex+i] = 0.;
-    acceleration[csIndex+i]=0.;
     force[csIndex+i] = 0.;
     impulse[csIndex+i] = 0.;
     v_plus[csIndex+i] = 0.;
@@ -177,8 +175,8 @@ unsigned int ConstraintSet::AddContactConstraint (
   unsigned int body_id,
   const Vector3d &body_point,
   const Vector3d &world_normal,
-  const char *constraint_name,
-  double normal_acceleration
+  const char *constraint_name,  
+  bool allowConstraintAppending
   ) {
   assert (bound == false);
 
@@ -189,29 +187,28 @@ unsigned int ConstraintSet::AddContactConstraint (
   if(constraint_name != NULL){
     nameStr = constraint_name;
   }
-  //Go through all existing BodyToGroundPositionConstraints,
+  //Go through all existing ContactConstraints,
   //if there is a BodyToGroundPosition
   //constraint at body_id with the identical body_point, then append the
   //constraint.
   //
   // Why am I bothering to do this? To save on computation.
-  // Every individual BodyToGroundPositionConstraint evaluates a point Jacobian.
+  // Every individual ContactConstraint evaluates a point Jacobian.
   // Thus 3 individual constraints evaluates a point Jacobian 3 times. If these
   // are all grouped together then the point Jacobian is only evaluated once.
-
   bool constraintAdded = false;
 
-  if(mBodyToGroundPositionConstraints.size() > 0){
-    unsigned int i = unsigned(mBodyToGroundPositionConstraints.size()-1);
-    if(mBodyToGroundPositionConstraints[i]->getBodyIds()[0] == body_id){
+  if(contactConstraints.size() > 0 && allowConstraintAppending){
+    unsigned int i = unsigned(contactConstraints.size()-1);
+    if(contactConstraints[i]->getBodyIds()[0] == body_id){
       Vector3d pointErr = body_point -
-          mBodyToGroundPositionConstraints[i]->getBodyFrames()[0].r;
+          contactConstraints[i]->getBodyFrames()[0].r;
       if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100){
         constraintAdded = true;
-        mBodyToGroundPositionConstraints[i]->appendNormalVector(world_normal);
+        contactConstraints[i]->appendNormalVector(world_normal);
 
         //
-        constraintType.push_back (ConstraintTypeBodyToGroundPosition);
+        constraintType.push_back (ConstraintTypeContact);
         name.push_back (nameStr);
 
         // These variables will not be used.
@@ -225,9 +222,6 @@ unsigned int ConstraintSet::AddContactConstraint (
         err[n_constr - 1] = 0.;
         errd.conservativeResize(n_constr);
         errd[n_constr - 1] = 0.;
-
-        acceleration.conservativeResize (n_constr);
-        acceleration[n_constr - 1] = 0;
 
         force.conservativeResize (n_constr);
         force[n_constr - 1] = 0.;
@@ -245,8 +239,9 @@ unsigned int ConstraintSet::AddContactConstraint (
   }
 
   if(constraintAdded == false){
-    n_constr = AddBodyToGroundPositionConstraint(body_id,body_point,
-                                                 world_normal,constraint_name);
+    std::vector< Vector3d > normals;
+    normals.push_back(world_normal);
+    n_constr = AddContactConstraint(body_id,body_point, normals,constraint_name);
     n_constr = n_constr+1;
 
   }
@@ -274,9 +269,9 @@ unsigned int ConstraintSet::AddLoopConstraint (
     name_str = constraint_name;
   }
 
+  mLoopConstraintIndices.push_back(n_constr-1);
   constraintType.push_back(ConstraintTypeLoop);
   name.push_back (name_str);
-  mLoopConstraintIndices.push_back(size());
 
   // These variables will be used for this kind of constraint.
   body_p.push_back (id_predecessor);
@@ -301,10 +296,6 @@ unsigned int ConstraintSet::AddLoopConstraint (
   err[n_constr - 1] = 0.;
   errd.conservativeResize(n_constr);
   errd[n_constr - 1] = 0.;
-
-
-  acceleration.conservativeResize (n_constr);
-  acceleration[n_constr - 1] = 0.;
 
   force.conservativeResize (n_constr);
   force[n_constr - 1] = 0.;
@@ -373,7 +364,6 @@ unsigned int ConstraintSet::AddCustomConstraint(
   err.conservativeResize( n_constr_size);
   errd.conservativeResize(n_constr_size);
 
-  acceleration.conservativeResize ( n_constr_size);
   force.conservativeResize (        n_constr_size);
   impulse.conservativeResize (      n_constr_size);
   v_plus.conservativeResize (       n_constr_size);
@@ -383,7 +373,6 @@ unsigned int ConstraintSet::AddCustomConstraint(
   for(unsigned int i = n_constr_start_idx; i < n_constr_size; i++){
       err[i]          = 0.;
       errd[i]         = 0.;
-      acceleration[i] = 0.;
       force[i]        = 0.;
       impulse[i]      = 0.;
       v_plus[i]       = 0.;
@@ -401,8 +390,8 @@ bool ConstraintSet::Bind (const Model &model) {
     std::cerr << "Error: binding an already bound constraint set!" << std::endl;
     abort();
   }
-  for(unsigned int i=0; i<mConstraints.size();++i){
-    mConstraints[i]->bind(model);
+  for(unsigned int i=0; i<constraints.size();++i){
+    constraints[i]->bind(model);
   }
 
   unsigned int n_constr = size();
@@ -483,7 +472,6 @@ bool ConstraintSet::Bind (const Model &model) {
 }
 
 void ConstraintSet::clear() {
-  acceleration.setZero();
   force.setZero();
   impulse.setZero();
 
@@ -764,8 +752,8 @@ void CalcConstraintsPositionError (
     CS.mCustomConstraints[i]->CalcPositionError(model,cci,Q,CS,err, cci);    
   }
 
-  for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcPositionError(model,0,Q,err, CS.cache);
+  for(unsigned int i=0; i<CS.constraints.size();++i){
+    CS.constraints[i]->calcPositionError(model,0,Q,err, CS.cache);
   }
 }
 
@@ -843,8 +831,8 @@ void CalcConstraintsJacobian (
                                  model,cci,Q,CS,G, cci,0);
   }
 
-  for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcConstraintJacobian(model,0,Q,CS.cache.vecNZeros,G,
+  for(unsigned int i=0; i<CS.constraints.size();++i){
+    CS.constraints[i]->calcConstraintJacobian(model,0,Q,CS.cache.vecNZeros,G,
                                                CS.cache);
   }
 }
@@ -860,7 +848,7 @@ void CalcConstraintsVelocityError (
   ) {
   
   //This works for the contact and loop constraints because they are
-  //time invariant. But this does not necessarily work for the CustomConstraints
+  //time invariant. But this does not necessarily work for the Custoconstraints
   //which can be time-varying. And thus the parts of err associated with the
   //custom constraints must be updated.
   //MatrixNd G(MatrixNd::Zero(CS.size(), model.dof_count));
@@ -876,8 +864,8 @@ void CalcConstraintsVelocityError (
                                CS.G.block(cci,0,rows,cols),err, cci);
   }
 
-  for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcVelocityError(model,0,Q,QDot,CS.G,err,CS.cache,
+  for(unsigned int i=0; i<CS.constraints.size();++i){
+    CS.constraints[i]->calcVelocityError(model,0,Q,QDot,CS.G,err,CS.cache,
                                           update_kinematics);
   }
 
@@ -986,10 +974,10 @@ void CalcConstrainedSystemVariables (
     }
   }
 
-  for(unsigned int i=0; i<CS.mConstraints.size();++i){
-    CS.mConstraints[i]->calcGamma(model,0,Q,QDot,CS.G,CS.gamma,CS.cache);
-    if(CS.mConstraints[i]->isBaumgarteStabilizationEnabled()){
-      CS.mConstraints[i]->addInBaumgarteStabilizationForces(
+  for(unsigned int i=0; i<CS.constraints.size();++i){
+    CS.constraints[i]->calcGamma(model,0,Q,QDot,CS.G,CS.gamma,CS.cache);
+    if(CS.constraints[i]->isBaumgarteStabilizationEnabled()){
+      CS.constraints[i]->addInBaumgarteStabilizationForces(
                             CS.err,CS.errd,CS.gamma);
     }
   }
@@ -1659,50 +1647,50 @@ void ForwardDynamicsContactsKokkevis (
   // we have to compute the standard accelerations first as we use them to
   // compute the effects of each test force
   unsigned int bi = 0;
-  for(bi =0; bi < CS.mBodyToGroundPositionConstraints.size(); ++bi){
+  for(bi =0; bi < CS.contactConstraints.size(); ++bi){
     {
       SUPPRESS_LOGGING;
       UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
     }
     {
       LOG << "body_id = "
-          << CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0]
+          << CS.contactConstraints[bi]->getBodyIds()[0]
           << std::endl;
       LOG << "point = "
-          << CS.mBodyToGroundPositionConstraints[bi]->getBodyFrames()[0].r
+          << CS.contactConstraints[bi]->getBodyFrames()[0].r
           << std::endl;
       LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
     }
     {
       SUPPRESS_LOGGING;
-      CS.mBodyToGroundPositionConstraints[bi]->calcPointAccelerations(
+      CS.contactConstraints[bi]->calcPointAccelerations(
                           model,Q,QDot,CS.QDDot_0,CS.point_accel_0,false);
-      CS.mBodyToGroundPositionConstraints[bi]->calcPointAccelerationError(
+      CS.contactConstraints[bi]->calcPointAccelerationError(
                           CS.point_accel_0,CS.a);
     }
   }
 
-  // K: BodyToGroundPositionConstraints
+  // K: ContactConstraints
   unsigned int cj=0;
   unsigned int movable_body_id = 0;
   Vector3d point_global;
 
-  for (bi = 0; bi < CS.mBodyToGroundPositionConstraints.size(); bi++) {
+  for (bi = 0; bi < CS.contactConstraints.size(); bi++) {
 
     LOG << "=== Testforce Loop Start ===" << std::endl;
 
-    ci = CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex();
+    ci = CS.contactConstraints[bi]->getConstraintIndex();
 
     movable_body_id = GetMovableBodyId(model,
-                      CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0]);
+                      CS.contactConstraints[bi]->getBodyIds()[0]);
 
     // assemble the test force
     LOG << "point_global = " << point_global.transpose() << std::endl;
 
-    CS.mBodyToGroundPositionConstraints[bi]->calcPointForceJacobian(
+    CS.contactConstraints[bi]->calcPointForceJacobian(
           model,Q,CS.cache,CS.f_t,false);
 
-    for(unsigned int j = 0; j<CS.mBodyToGroundPositionConstraints[bi]
+    for(unsigned int j = 0; j<CS.contactConstraints[bi]
                                 ->getConstraintNormalVectors().size(); ++j){
 
       CS.f_ext_constraints[movable_body_id] = CS.f_t[ci+j];
@@ -1729,12 +1717,12 @@ void ForwardDynamicsContactsKokkevis (
       }
 
       for(unsigned int dj = 0;
-          dj < CS.mBodyToGroundPositionConstraints.size(); dj++) {
+          dj < CS.contactConstraints.size(); dj++) {
 
-          cj = CS.mBodyToGroundPositionConstraints[dj]->getConstraintIndex();
+          cj = CS.contactConstraints[dj]->getConstraintIndex();
           {
             SUPPRESS_LOGGING;
-            CS.mBodyToGroundPositionConstraints[dj]->calcPointAccelerations(
+            CS.contactConstraints[dj]->calcPointAccelerations(
                   model,Q,QDot,CS.QDDot_t,point_accel_t,false);
           }
 
@@ -1742,10 +1730,10 @@ void ForwardDynamicsContactsKokkevis (
             << std::endl;
           LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
           for(unsigned int k=0;
-              k < CS.mBodyToGroundPositionConstraints[dj]
+              k < CS.contactConstraints[dj]
                       ->getConstraintNormalVectors().size();++k){
 
-            CS.K(ci+j,cj+k) = CS.mBodyToGroundPositionConstraints[dj]
+            CS.K(ci+j,cj+k) = CS.contactConstraints[dj]
                                   ->getConstraintNormalVectors()[k].dot(
                                         point_accel_t - CS.point_accel_0[cj+k]);
           }
@@ -1783,19 +1771,19 @@ void ForwardDynamicsContactsKokkevis (
   LOG << "f = " << CS.force.transpose() << std::endl;
 
 
-  for(bi=0; bi<CS.mBodyToGroundPositionConstraints.size();++bi){
+  for(bi=0; bi<CS.contactConstraints.size();++bi){
     unsigned int body_id =
-        CS.mBodyToGroundPositionConstraints[bi]->getBodyIds()[0];
+        CS.contactConstraints[bi]->getBodyIds()[0];
     unsigned int movable_body_id = body_id;
 
     if (model.IsFixedBodyId(body_id)) {
       unsigned int fbody_id = body_id - model.fixed_body_discriminator;
       movable_body_id = model.mFixedBodies[fbody_id].mMovableParent;
     }
-    ci = CS.mBodyToGroundPositionConstraints[bi]->getConstraintIndex();
+    ci = CS.contactConstraints[bi]->getConstraintIndex();
 
     for(unsigned int k=0;
-        k<CS.mBodyToGroundPositionConstraints[bi]->getConstraintSize();++k){
+        k<CS.contactConstraints[bi]->getConstraintSize();++k){
       CS.f_ext_constraints[movable_body_id] -= CS.f_t[ci+k] * CS.force[ci+k];
       LOG << "f_ext[" << movable_body_id << "] = "
           << CS.f_ext_constraints[movable_body_id].transpose() << std::endl;

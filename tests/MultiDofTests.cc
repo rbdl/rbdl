@@ -822,7 +822,7 @@ TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianKokkevis) {
 
   VectorNd qddot_lagrangian (qddot_emulated);
   VectorNd qddot_kokkevis (qddot_emulated);
-  VectorNd qddot_kokkevis_b2g(qddot_emulated);
+
 
   ForwardDynamicsConstraintsDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_lagrangian);
   ForwardDynamicsContactsKokkevis (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_kokkevis);
@@ -830,9 +830,8 @@ TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianKokkevis) {
 
   ForwardDynamicsConstraintsDirect (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_lagrangian);
   ForwardDynamicsContactsKokkevis (*model_emulated, q, qdot, tau, constraints_1B4C_emulated, qddot_kokkevis);
-  ForwardDynamicsContactsKokkevis (*model_emulated, q, qdot, tau, constraints_1B4C_emulated_b2g, qddot_kokkevis_b2g);
+  
   CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_kokkevis.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
-  CHECK_ARRAY_CLOSE (qddot_lagrangian.data(), qddot_kokkevis_b2g.data(), qddot_lagrangian.size(), TEST_PREC * qddot_lagrangian.norm());
 
   ForwardDynamicsConstraintsDirect (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_lagrangian);
   ForwardDynamicsContactsKokkevis (*model_emulated, q, qdot, tau, constraints_4B4C_emulated, qddot_kokkevis);

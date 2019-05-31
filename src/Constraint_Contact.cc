@@ -14,7 +14,7 @@
 #include "rbdl/Logging.h"
 
 #include "rbdl/Model.h"
-#include "rbdl/Constraint_BodyToGroundPosition.h"
+#include "rbdl/Constraint_Contact.h"
 #include "rbdl/Kinematics.h"
 
 using namespace RigidBodyDynamics;
@@ -23,19 +23,19 @@ using namespace Math;
 
 
 //==============================================================================
-BodyToGroundPositionConstraint::BodyToGroundPositionConstraint():
-  Constraint("",ConstraintTypeBodyToGroundPosition,
+ContactConstraint::ContactConstraint():
+  Constraint("",ConstraintTypeContact,
               std::numeric_limits<unsigned int>::max(),1){}
 
 //==============================================================================
-BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
+ContactConstraint::ContactConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintUnitVector,
       const char *name):
         Constraint(name,
-                   ConstraintTypeBodyToGroundPosition,
+                   ConstraintTypeContact,
                    indexOfConstraintInG,
                    unsigned(int(1)))
 {
@@ -68,14 +68,14 @@ BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
   bodyFrames.push_back(
         Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
 }
-BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
+ContactConstraint::ContactConstraint(
     const unsigned int indexOfConstraintInG,
     const unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
     const char *name):
       Constraint(name,
-                 ConstraintTypeBodyToGroundPosition,
+                 ConstraintTypeContact,
                  indexOfConstraintInG,
                  groundConstraintUnitVectors.size()),
       T(groundConstraintUnitVectors){
@@ -109,7 +109,7 @@ BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
 
 //==============================================================================
 
-BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
+ContactConstraint::ContactConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
@@ -119,7 +119,7 @@ BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
       const std::vector< bool > &velocityLevelConstraint,
       const char *name):
         Constraint(name,
-                   ConstraintTypeBodyToGroundPosition,
+                   ConstraintTypeContact,
                    indexOfConstraintInG,
                    groundConstraintUnitVectors.size()),
         T(groundConstraintUnitVectors)
@@ -155,14 +155,14 @@ BodyToGroundPositionConstraint::BodyToGroundPositionConstraint(
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::bind(const Model &model)
+void ContactConstraint::bind(const Model &model)
 {
 }
 
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
+void ContactConstraint::calcConstraintJacobian( Model &model,
                               const double time,
                               const Math::VectorNd &Q,
                               const Math::VectorNd &QDot,
@@ -182,7 +182,7 @@ void BodyToGroundPositionConstraint::calcConstraintJacobian( Model &model,
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::calcGamma(  Model &model,
+void ContactConstraint::calcGamma(  Model &model,
                   const double time,
                   const Math::VectorNd &Q,
                   const Math::VectorNd &QDot,
@@ -207,7 +207,7 @@ void BodyToGroundPositionConstraint::calcGamma(  Model &model,
 //==============================================================================
 
 
-void BodyToGroundPositionConstraint::calcPositionError(Model &model,
+void ContactConstraint::calcPositionError(Model &model,
                                                       const double time,
                                                       const Math::VectorNd &Q,
                                                       Math::VectorNd &errSysUpd,
@@ -227,7 +227,7 @@ void BodyToGroundPositionConstraint::calcPositionError(Model &model,
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
+void ContactConstraint::calcVelocityError(  Model &model,
                             const double time,
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
@@ -249,7 +249,7 @@ void BodyToGroundPositionConstraint::calcVelocityError(  Model &model,
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::calcConstraintForces( 
+void ContactConstraint::calcConstraintForces( 
               Model &model,
               const double time,
               const Math::VectorNd &Q,
@@ -308,7 +308,7 @@ void BodyToGroundPositionConstraint::calcConstraintForces(
   constraintForcesUpd[1].block(3,0,3,1) = -cache.vec3A;
 }
 //==============================================================================
-void BodyToGroundPositionConstraint::
+void ContactConstraint::
         appendNormalVector(const Math::Vector3d& normal,
                            bool posLevel, bool velLevel)
 {
@@ -331,7 +331,7 @@ void BodyToGroundPositionConstraint::
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::
+void ContactConstraint::
       calcPointAccelerations(Model &model,
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
@@ -350,7 +350,7 @@ void BodyToGroundPositionConstraint::
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::
+void ContactConstraint::
       calcPointAccelerations(Model &model,
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
@@ -365,7 +365,7 @@ void BodyToGroundPositionConstraint::
 
 //==============================================================================
 
-void BodyToGroundPositionConstraint::
+void ContactConstraint::
       calcPointAccelerationError(
                     const std::vector<Math::Vector3d> &pointAccelerationsSys,
                     Math::VectorNd &ddErrSysUpd)
@@ -376,7 +376,7 @@ void BodyToGroundPositionConstraint::
   }
 }
 
-void BodyToGroundPositionConstraint::
+void ContactConstraint::
       calcPointForceJacobian(
         Model &model,
         const Math::VectorNd &Q,
@@ -399,26 +399,5 @@ void BodyToGroundPositionConstraint::
   }
 }
 
-
-/*
-void BodyToGroundPositionConstraint::calcGamma(  Model &model,
-                  const double time,
-                  const Math::VectorNd &Q,
-                  const Math::VectorNd &QDot,
-                  const Math::VectorNd &QDDot,
-                  const Math::MatrixNd &GSys,
-                  Math::VectorNd &gammaSysUpd,
-                  ConstraintCache &cache,
-                  bool updateKinematics)
-{
-  cache.vec3A = CalcPointAcceleration (model, Q, QDot, QDDot, bodyIds[0],
-                                bodyFrames[0].r, updateKinematics);
-
-  for(unsigned int i=0; i < sizeOfConstraint; ++i){
-    gammaSysUpd.block(indexOfConstraintInG+i,0,1,1) =
-        -T[i].transpose()*cache.vec3A;
-  }
-}
-*/
 
 

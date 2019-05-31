@@ -316,8 +316,8 @@ TEST ( TestForwardDynamicsConstraintsDirectFootmodel ) {
   //	cout << "QDDot_aba = " << QDDot_aba.transpose() << endl;
   //	cout << "QDDot_lag = " << QDDot_lag.transpose() << endl;
 
-  unsigned int body_id = constraint_set_left.mConstraints[0]->getBodyIds()[0];
-  Vector3d contact_point = constraint_set_left.mConstraints[0]->getBodyFrames()[0].r;
+  unsigned int body_id = constraint_set_left.constraints[0]->getBodyIds()[0];
+  Vector3d contact_point = constraint_set_left.constraints[0]->getBodyFrames()[0].r;
 
   MatrixNd G (3, Q.size());
   CalcPointJacobian (*model, Q, body_id, contact_point, G, true);

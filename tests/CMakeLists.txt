@@ -24,7 +24,6 @@ SET ( TESTS_SRCS
   ImpulsesTests.cc
   TwolegModelTests.cc
   ContactsTests.cc
-  BodyToGroundConstraintTests.cc  
   UtilsTests.cc
   SparseFactorizationTests.cc
   CustomJointSingleBodyTests.cc

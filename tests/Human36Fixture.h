@@ -18,7 +18,7 @@ struct Human36 {
 
   RigidBodyDynamics::ConstraintSet constraints_1B1C_emulated;
   RigidBodyDynamics::ConstraintSet constraints_1B4C_emulated;
-  RigidBodyDynamics::ConstraintSet constraints_1B4C_emulated_b2g;
+  //RigidBodyDynamics::ConstraintSet constraints_1B4C_emulated_b2g;
   RigidBodyDynamics::ConstraintSet constraints_4B4C_emulated;
 
   RigidBodyDynamics::ConstraintSet constraints_1B1C_3dof;
@@ -369,9 +369,9 @@ struct Human36 {
     normals.push_back(Vector3d(0.,1.,0.));
     normals.push_back(Vector3d(0.,0.,1.));
 
-    constraints_1B4C_emulated_b2g.AddBodyToGroundPositionConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), normals);
-    constraints_1B4C_emulated_b2g.AddBodyToGroundPositionConstraint (foot_r_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
-    constraints_1B4C_emulated_b2g.Bind (*model_emulated);
+    //constraints_1B4C_emulated_b2g.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), normals);
+    //constraints_1B4C_emulated_b2g.AddContactConstraint (foot_r_emulated, Vector3d (-0.1, 0., -0.05), Vector3d (1., 0., 0.));
+    //constraints_1B4C_emulated_b2g.Bind (*model_emulated);
 
     constraints_4B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (1., 0., 0.));
     constraints_4B4C_emulated.AddContactConstraint (foot_r_emulated, Vector3d (0.1, 0., -0.05), Vector3d (0., 1., 0.));

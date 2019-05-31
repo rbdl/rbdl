@@ -14,7 +14,7 @@
 #include <rbdl/rbdl_mathutils.h>
 #include <rbdl/Kinematics.h>
 #include <rbdl/Constraint.h>
-#include <rbdl/Constraint_BodyToGroundPosition.h>
+#include <rbdl/Constraint_Contact.h>
 #include <assert.h>
 
 namespace RigidBodyDynamics {
@@ -253,7 +253,7 @@ namespace RigidBodyDynamics {
  * is reasonable. When testing different values best is to try different
  * orders of magnitude as e.g. doubling a value only has little effect.
  *
- * For Loop- and CustomConstraints Baumgarte stabilization is enabled by
+ * For Loop- and CustoallConstraints Baumgarte stabilization is enabled by
  * default and uses the stabilization parameter \f$T_\textit{stab} = 0.1\f$.
  *
  * @{
@@ -264,7 +264,7 @@ struct Model;
 struct RBDL_DLLAPI CustomConstraint;
 
 //class RBDL_DLLAPI Constraint;
-//class RBDL_DLLAPI BodyToGroundPositionConstraint;
+
 
 
 /** \brief Structure that contains both constraint information and workspace memory.
@@ -283,14 +283,20 @@ struct RBDL_DLLAPI ConstraintSet {
 
 
 
-  unsigned int AddBodyToGroundPositionConstraint(
-    unsigned int bodyId,
-    const Math::Vector3d &bodyPoint,
-    const Math::Vector3d &worldNormal,
-    const char *constraintName = NULL);
-    
 
-  unsigned int AddBodyToGroundPositionConstraint(
+  /** \brief Adds a vector of contact (point-ground) constraints to the 
+   *  constraint set.
+   *
+   * This type of constraints ensures that the velocity and acceleration of a specified
+   * body point along a specified axis are null. 
+   *
+   * \param body_id the body which is affected directly by the constraint
+   * \param body_point the point that is constrained relative to the
+   * contact body
+   * \param worldNormals the vector of constraint normals to constrain.
+   * \param constraint_name a human readable name (optional, default: NULL)
+   */
+  unsigned int AddContactConstraint(
     unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &worldNormals,
@@ -308,15 +314,17 @@ struct RBDL_DLLAPI ConstraintSet {
    * \param world_normal the normal along the constraint acts (in base
    * coordinates)
    * \param constraint_name a human readable name (optional, default: NULL)
-   * \param normal_acceleration the acceleration of the contact along the normal
-   * (optional, default: 0.)
+   * \param allowConstraintAppending setting this to true will append this 
+             contact constraint to the last added contact constraint but only
+             if both constraints are applied to the same body and location on
+             that body. This is done to save on computation.
    */
   unsigned int AddContactConstraint (
     unsigned int body_id,
     const Math::Vector3d &body_point,
     const Math::Vector3d &world_normal,
     const char *constraint_name = NULL,
-    double normal_acceleration = 0.);
+    bool allowConstraintAppending=true);
 
   /** \brief Adds a loop constraint to the constraint set.
    *
@@ -417,7 +425,7 @@ struct RBDL_DLLAPI ConstraintSet {
 
   /** \brief Returns the number of constraints. */
   size_t size() const {
-    return acceleration.size();
+    return constraintType.size();
   }
 
   /** \brief Clears all variables in the constraint set. */
@@ -448,9 +456,9 @@ struct RBDL_DLLAPI ConstraintSet {
   //   included in C++14, while shared_ptr is available in C++11. While this
   //   is clearly the better option, this will require me to make more
   //   edits to ConstraintSet: I don't have the time for this at the moment
-  std::vector< std::shared_ptr<Constraint> > mConstraints;
+  std::vector< std::shared_ptr<Constraint> > constraints;
 
-  std::vector< std::shared_ptr<BodyToGroundPositionConstraint> > mBodyToGroundPositionConstraints;
+  std::vector< std::shared_ptr<ContactConstraint> > contactConstraints;
 
 
   // Loop constraints variables.
@@ -466,9 +474,7 @@ struct RBDL_DLLAPI ConstraintSet {
   /** Velocity error for the Baumgarte stabilization */
   Math::VectorNd errd;
 
-  /** Enforced accelerations of the contact points along the contact
-   * normal. */
-  Math::VectorNd acceleration;
+
   /** Actual constraint forces along the constraint directions. */
   Math::VectorNd force;
   /** Actual constraint impulses along the constraint directions. */
@@ -1075,7 +1081,7 @@ void SolveConstrainedSystemNullSpace (
 * It must be stated that this is an advanced feature of RBDL: you must have an in-depth
 * knowledge of multibody-dynamics in order to write a custom constraint, and to write
 * the corresponding test code to validate that the constraint is working. As a hint the
-* test code in tests/CustomConstraintsTest.cc should contain a forward simulation of a simple
+* test code in tests/CustoallConstraintsTest.cc should contain a forward simulation of a simple
 * system using the constraint and then check to see that system energy is conserved with only 
 * a small error and the constraint is also satisfied with only a small error. The observed 
 * error should drop as the integrator tolerances are lowered.

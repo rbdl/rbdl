@@ -19,7 +19,6 @@ enum ConstraintType {
   ConstraintTypeContact=0,
   ConstraintTypeLoop,
   ConstraintTypeCustom,
-  ConstraintTypeBodyToGroundPosition,
   ConstraintTypeLast,
 };
 

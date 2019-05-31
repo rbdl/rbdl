@@ -4,8 +4,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef RBDL_BODY_TO_GROUND_POSITION_H
-#define RBDL_BODY_TO_GROUND_POSITION_H
+#ifndef RBDL_CONTACT_CONSTRAINT_H
+#define RBDL_CONTACT_CONSTRAINT_H
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
@@ -18,28 +18,28 @@ namespace RigidBodyDynamics {
 
 
 
-class RBDL_DLLAPI BodyToGroundPositionConstraint : public Constraint {
+class RBDL_DLLAPI ContactConstraint : public Constraint {
 
 public:
 
-  //~BodyToGroundPositionConstraint(){};  
-  BodyToGroundPositionConstraint();
+  //~ContactConstraint(){};  
+  ContactConstraint();
 
-  BodyToGroundPositionConstraint(
+  ContactConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintNormalVectors,
       const char *name = NULL);
 
-  BodyToGroundPositionConstraint(
+  ContactConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const std::vector< Math::Vector3d > &groundConstraintNormalVectors,
       const char *name = NULL);
 
-  BodyToGroundPositionConstraint(
+  ContactConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
