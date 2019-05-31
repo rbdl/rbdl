@@ -4,7 +4,7 @@
 
 @author Matthew Millard
 
-\copyright 2016 Matthew Millard <matthew.millard@iwr.uni-heidelberg.de>
+\copyright 2016 Matthew Millard <millard.matthew@gmail.com>
 
 \b Requirements
 This addon is standalone as of its first release

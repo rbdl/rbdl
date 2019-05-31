@@ -3,7 +3,7 @@
 
 /* 
  * RBDL - Rigid Body Dynamics Library: Addon : muscle
- * Copyright (c) 2016 Matthew Millard <matthew.millard@iwr.uni-heidelberg.de>
+ * Copyright (c) 2016 Matthew Millard <millard.matthew@gmail.com>
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
