@@ -313,6 +313,116 @@ unsigned int ConstraintSet::AddLoopConstraint (
   return n_constr - 1;
 }
 
+unsigned int ConstraintSet::AddLoopConstraintNew (
+  unsigned int idPredecessor, 
+  unsigned int idSuccessor,
+  const Math::SpatialTransform &XPredecessor,
+  const Math::SpatialTransform &XSuccessor,
+  const Math::SpatialVector &constraintAxisInPredecessor,
+  bool enableStab,
+  const double stabParam,
+  const char *constraintName,  
+  bool allowConstraintAppending,
+  bool positionLevelConstraint,
+  bool velocityLevelConstraint) {
+  assert (bound == false);
+
+
+  unsigned int csIndex = unsigned(size());
+  unsigned int csSize = csIndex+1;
+
+  double tol = std::numeric_limits<double>::epsilon()*100.;
+  bool constraintAdded = false;
+
+  unsigned int idx = unsigned(loopConstraints.size());
+
+  if(loopConstraints.size() > 0 && allowConstraintAppending){
+    idx = idx-1;
+    if(loopConstraints[idx]->getBodyIds()[0] == idPredecessor && 
+       loopConstraints[idx]->getBodyIds()[1] == idSuccessor){
+
+      SpatialTransform frameErrorPre, frameErrorSuc;
+
+      frameErrorPre.r=XPredecessor.r-loopConstraints[idx]->getBodyFrames()[0].r;
+      frameErrorPre.E=XPredecessor.E-loopConstraints[idx]->getBodyFrames()[0].E;
+
+      frameErrorSuc.r=XSuccessor.r  -loopConstraints[idx]->getBodyFrames()[1].r;
+      frameErrorSuc.E=XSuccessor.E  -loopConstraints[idx]->getBodyFrames()[1].E;
+
+      if(frameErrorPre.r.norm() <= tol && frameErrorPre.E.norm() <= tol &&
+         frameErrorSuc.r.norm() <= tol && frameErrorSuc.E.norm() <= tol){
+        constraintAdded = true;
+        loopConstraints[idx]->appendConstraintAxis(constraintAxisInPredecessor,
+                                                   positionLevelConstraint, 
+                                                   velocityLevelConstraint);
+      }
+    }
+  }
+
+  if(constraintAdded==false){
+    loopConstraints.push_back( 
+      std::make_shared<LoopConstraint>(csIndex, 
+                                idPredecessor, idSuccessor,
+                                XPredecessor, XSuccessor, 
+                                constraintAxisInPredecessor,
+                                positionLevelConstraint, 
+                                velocityLevelConstraint, 
+                                constraintName));
+
+   constraints.emplace_back(loopConstraints[idx]);
+  }
+
+  loopConstraints[idx]->setBaumgarteTimeConstant(stabParam);
+  loopConstraints[idx]->setEnableBaumgarteStabilization(enableStab);
+  
+
+  constraintType.push_back(ConstraintTypeLoopNew);
+
+  //Update all of the struct arrays so that they have the correct number
+  //of elements
+  std::string nameStr;
+  if (constraintName != NULL) {
+    nameStr = constraintName;
+  }
+
+  mLoopConstraintIndices.push_back(0);
+  name.push_back (nameStr);
+
+  SpatialTransform emptyX;
+  emptyX.r.setZero();
+  emptyX.E.setIdentity();
+  SpatialVector emptyAxis;
+  emptyAxis.setZero();
+
+  body_p.push_back (0);
+  body_s.push_back (0);
+  X_p.push_back (emptyX);
+  X_s.push_back (emptyX);
+  constraintAxis.push_back (emptyAxis);
+
+  double baumgarteCoefficient = 0.0;
+  baumgarteParameters.push_back(
+      Vector2d(baumgarteCoefficient, baumgarteCoefficient));
+
+  err.conservativeResize(csSize);
+  err[csIndex] = 0.;
+  errd.conservativeResize(csSize);
+  errd[csIndex] = 0.;
+
+  force.conservativeResize (csSize);
+  force[csIndex] = 0.;
+
+  impulse.conservativeResize (csSize);
+  impulse[csIndex] = 0.;
+
+  v_plus.conservativeResize (csSize);
+  v_plus[csIndex] = 0.;
+
+  d_multdof3_u = std::vector<Math::Vector3d>(csSize, Math::Vector3d::Zero());
+
+  return csIndex;
+}
+
 unsigned int ConstraintSet::AddCustomConstraint(
   CustomConstraint *customConstraint,
   unsigned int id_predecessor,

@@ -184,11 +184,8 @@ class RBDL_DLLAPI Constraint {
       baumgarteParameters[1] = 1./tStab;
     }
 
-    void enableBaumgarteStabilization(){
-      baumgarteEnabled = true;
-    }
-    void disableBaumgarteStabilization(){
-      baumgarteEnabled = false;
+    void setEnableBaumgarteStabilization(bool flagEnableBaumgarteStabilization){
+      baumgarteEnabled = flagEnableBaumgarteStabilization;
     }
 
     bool isBaumgarteStabilizationEnabled(){

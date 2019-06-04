@@ -15,6 +15,7 @@
 #include <rbdl/Kinematics.h>
 #include <rbdl/Constraint.h>
 #include <rbdl/Constraint_Contact.h>
+#include <rbdl/Constraint_Loop.h>
 #include <assert.h>
 
 namespace RigidBodyDynamics {
@@ -360,6 +361,19 @@ struct RBDL_DLLAPI ConstraintSet {
     const char *constraint_name = NULL
     );
 
+    unsigned int AddLoopConstraintNew(
+    unsigned int idPredecessor, 
+    unsigned int idSuccessor,
+    const Math::SpatialTransform &XPredecessor,
+    const Math::SpatialTransform &XSuccessor,
+    const Math::SpatialVector &constraintAxisInPredecessor,
+    bool enableStabilization = false,
+    const double stabilizationParam = 0.1,
+    const char *constraintName = NULL,
+    bool allowConstraintAppending = true,
+    bool positionLevelConstraint = true,
+    bool velocityLevelConstraint = true);
+
   /** \brief Adds a custom constraint to the constraint set.
    *
    * \param custom_constraint The CustomConstraint to be added to the
@@ -450,6 +464,7 @@ struct RBDL_DLLAPI ConstraintSet {
   //  :But
   //    -The memory is deleted automatically when all references are deleted.
   //    -A shared_ptr works with the existing Copy function
+  //    -... although the Copy is a shallow copy. A deep copy would be better
   //
   //  :A unique_ptr would be faster, but will require copy constructors to
   //   be defined for all constraint objects. In addition unique_ptr is only
@@ -460,6 +475,7 @@ struct RBDL_DLLAPI ConstraintSet {
 
   std::vector< std::shared_ptr<ContactConstraint> > contactConstraints;
 
+  std::vector< std::shared_ptr<LoopConstraint> > loopConstraints;
 
   // Loop constraints variables.
   std::vector<unsigned int> body_p;

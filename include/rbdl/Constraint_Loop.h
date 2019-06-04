@@ -28,8 +28,8 @@ public:
   LoopConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyIdPredecessor,
-      const Math::SpatialTransform &bodyFramePredecessor,
       const unsigned int bodyIdSuccessor,
+      const Math::SpatialTransform &bodyFramePredecessor,
       const Math::SpatialTransform &bodyFrameSuccessor,
       const Math::SpatialVector &constraintAxis,
       bool positionLevelConstraint=true,
@@ -39,8 +39,8 @@ public:
   LoopConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyIdPredecessor,
-      const Math::SpatialTransform &bodyFramePredecessor,
       const unsigned int bodyIdSuccessor,
+      const Math::SpatialTransform &bodyFramePredecessor,
       const Math::SpatialTransform &bodyFrameSuccessor,
       const std::vector< Math::SpatialVector > &constraintAxes,
       bool positionLevelConstraint=true,
@@ -50,8 +50,8 @@ public:
   LoopConstraint(
       const unsigned int indexOfConstraintInG,
       const unsigned int bodyIdPredecessor,
-      const Math::SpatialTransform &bodyFramePredecessor,
       const unsigned int bodyIdSuccessor,
+      const Math::SpatialTransform &bodyFramePredecessor,
       const Math::SpatialTransform &bodyFrameSuccessor,
       const std::vector< Math::SpatialVector > &constraintAxes,
       const std::vector< bool > &positionLevelConstraint,
