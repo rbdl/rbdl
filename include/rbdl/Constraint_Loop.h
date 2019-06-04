@@ -4,8 +4,8 @@
  * Licensed under the zlib license. See LICENSE for more details.
  */
 
-#ifndef RBDL_CONTACT_CONSTRAINT_H
-#define RBDL_CONTACT_CONSTRAINT_H
+#ifndef RBDL_LOOP_CONSTRAINT_H
+#define RBDL_LOOP_CONSTRAINT_H
 
 #include <rbdl/rbdl_math.h>
 #include <rbdl/rbdl_mathutils.h>
@@ -18,37 +18,42 @@ namespace RigidBodyDynamics {
 
 
 
-class RBDL_DLLAPI ContactConstraint : public Constraint {
+class RBDL_DLLAPI LoopConstraint : public Constraint {
 
 public:
 
+  //~LoopConstraint(){};  
+  LoopConstraint();
 
-  ContactConstraint();
-
-  ContactConstraint(
+  LoopConstraint(
       const unsigned int indexOfConstraintInG,
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const Math::Vector3d &groundConstraintNormalVectors,
-      bool positionLevelConstraint=false,
-      bool velocityLevelConstraint=true,         
+      const unsigned int bodyIdPredecessor,
+      const Math::SpatialTransform &bodyFramePredecessor,
+      const unsigned int bodyIdSuccessor,
+      const Math::SpatialTransform &bodyFrameSuccessor,
+      const Math::SpatialVector &constraintAxis,
+      bool positionLevelConstraint=true,
+      bool velocityLevelConstraint=true,      
       const char *name = NULL);
 
-  ContactConstraint(
+  LoopConstraint(
       const unsigned int indexOfConstraintInG,
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const std::vector< Math::Vector3d > &groundConstraintNormalVectors,
-      bool positionLevelConstraint=false,
-      bool velocityLevelConstraint=true,               
+      const unsigned int bodyIdPredecessor,
+      const Math::SpatialTransform &bodyFramePredecessor,
+      const unsigned int bodyIdSuccessor,
+      const Math::SpatialTransform &bodyFrameSuccessor,
+      const std::vector< Math::SpatialVector > &constraintAxes,
+      bool positionLevelConstraint=true,
+      bool velocityLevelConstraint=true,            
       const char *name = NULL);
 
-  ContactConstraint(
+  LoopConstraint(
       const unsigned int indexOfConstraintInG,
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const Math::Vector3d &groundPoint,
-      const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
+      const unsigned int bodyIdPredecessor,
+      const Math::SpatialTransform &bodyFramePredecessor,
+      const unsigned int bodyIdSuccessor,
+      const Math::SpatialTransform &bodyFrameSuccessor,
+      const std::vector< Math::SpatialVector > &constraintAxes,
       const std::vector< bool > &positionLevelConstraint,
       const std::vector< bool > &velocityLevelConstraint,
       const char *name = NULL);
@@ -104,47 +109,17 @@ public:
 
   //==========================================================
 
-  const std::vector< Math::Vector3d >& getConstraintNormalVectors(){
+  const std::vector< Math::SpatialVector >& getConstraintAxes(){
     return T;
   }
 
-  void appendNormalVector(const Math::Vector3d &normal,
+  void appendConstraintAxis(const Math::SpatialVector &constraintAxis,
                           bool positionLevelConstraint = false,
                           bool velocityLevelConstraint = true);
 
-  //To support ForwardDynamicsKokkevis
-  void calcPointAccelerations(Model &model,
-                              const Math::VectorNd &Q,
-                              const Math::VectorNd &QDot,
-                              const Math::VectorNd &QDDot,
-                              std::vector<Math::Vector3d> &pointAccelerationSysUpd,
-                              bool updateKinematics=false);
-
-  //To support ForwardDynamicsKokkevis
-  void calcPointAccelerations(Model &model,
-                              const Math::VectorNd &Q,
-                              const Math::VectorNd &QDot,
-                              const Math::VectorNd &QDDot,
-                              Math::Vector3d &pointAccelerationUpd,
-                              bool updateKinematics=false);
-
-
-  //To support ForwardDynamicsKokkevis
-  void calcPointAccelerationError(
-                    const std::vector<Math::Vector3d> &pointAccelerationsSys,
-                    Math::VectorNd &ddErrSysUpd);
-
-  //To support ForwardDynamicsKokkevis
-  void calcPointForceJacobian(
-          Model &model,
-          const Math::VectorNd &Q,
-          ConstraintCache &cache,
-          std::vector<Math::SpatialVector> &fExtSysUpd,
-          bool updateKinematics=false);
 
 private:
-  std::vector< Math::Vector3d > T;
-  Math::Vector3d groundPoint;
+  std::vector< Math::SpatialVector > T;
   double dblA;
 
 };
@@ -159,5 +134,5 @@ private:
 
 /* namespace RigidBodyDynamics */
 
-/* RBDL_CONTACT_CONSTRAINT_H */
+/* RBDL_LOOP_CONSTRAINT_H */
 #endif

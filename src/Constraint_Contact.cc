@@ -33,6 +33,8 @@ ContactConstraint::ContactConstraint(
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintUnitVector,
+      bool positionLevelConstraint,
+      bool velocityLevelConstraint,         
       const char *name):
         Constraint(name,
                    ConstraintTypeContact,
@@ -40,25 +42,15 @@ ContactConstraint::ContactConstraint(
                    unsigned(int(1)))
 {
 
-  assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);
+  
 
-  T.resize(sizeOfConstraint);  
+  T.push_back(groundConstraintUnitVector); 
+  dblA = std::numeric_limits<double>::epsilon()*10.;
+  assert(std::fabs(T[0].norm()-1.0)<= dblA);
+
   groundPoint = Math::Vector3dZero;
-  dblA = 10.0*std::numeric_limits<double>::epsilon();
-
-  for(unsigned int i=0; i<sizeOfConstraint;++i){
-    //Check that all vectors in T are orthonormal
-    T[i]=groundConstraintUnitVector;
-    assert(std::fabs(T[i].norm()-1.0) <= dblA);
-    if(i > 0){
-      for(unsigned int j=0; j< i;++j){
-        assert(std::fabs(T[i].dot(T[j])) <= dblA);
-        }
-    }
-    //To make this consistent with the RBDL's ContactConstraints
-    positionConstraint[i]=false;
-    velocityConstraint[i]=true;
-  }
+  positionConstraint[0]=positionLevelConstraint;
+  velocityConstraint[0]=velocityLevelConstraint;
 
   bodyIds.push_back(bodyId);
   bodyFrames.push_back(
@@ -73,19 +65,21 @@ ContactConstraint::ContactConstraint(
     const unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
+    bool positionLevelConstraint,
+    bool velocityLevelConstraint,             
     const char *name):
       Constraint(name,
                  ConstraintTypeContact,
                  indexOfConstraintInG,
                  groundConstraintUnitVectors.size()),
-      T(groundConstraintUnitVectors){
-
+      T(groundConstraintUnitVectors)
+{
   assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);
 
-  groundPoint = Math::Vector3dZero;
   dblA = 10.0*std::numeric_limits<double>::epsilon();
 
   for(unsigned int i=0; i<sizeOfConstraint;++i){
+
     //Check that all vectors in T are orthonormal
     assert(std::fabs(T[i].norm()-1.0) <= dblA);
     if(i > 0){
@@ -93,18 +87,20 @@ ContactConstraint::ContactConstraint(
         assert(std::fabs(T[i].dot(T[j])) <= dblA);
         }
     }
-    //To make this consistent with the RBDL's ContactConstraints
-    positionConstraint[i]=false;
-    velocityConstraint[i]=true;
+
+    //To make this consistent with the RBDL implementation of
+    //ContactConstraints
+    positionConstraint[i]=positionLevelConstraint;
+    velocityConstraint[i]=velocityLevelConstraint;
   }
 
   bodyIds.push_back(bodyId);
   bodyFrames.push_back(
         Math::SpatialTransform(Math::Matrix3dIdentity, bodyPoint));
-
   bodyIds.push_back(0);
   bodyFrames.push_back(
         Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
+
 }
 
 //==============================================================================
@@ -157,6 +153,9 @@ ContactConstraint::ContactConstraint(
 
 void ContactConstraint::bind(const Model &model)
 {
+
+  //The ConstraintCache input to each function contains all of the working
+  //memory necessary for this constraint. So nothing appears here.
 }
 
 

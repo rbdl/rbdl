@@ -112,6 +112,7 @@ SET ( RBDL_SOURCES
 	src/rbdl_utils.cc
 	src/Constraints.cc
   src/Constraint_Contact.cc
+  src/Constraint_Loop.cc  
 	src/Dynamics.cc
 	src/Logging.cc
 	src/Joint.cc

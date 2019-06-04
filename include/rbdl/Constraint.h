@@ -18,6 +18,7 @@ namespace RigidBodyDynamics {
 enum ConstraintType {
   ConstraintTypeContact=0,
   ConstraintTypeLoop,
+  ConstraintTypeLoopNew,
   ConstraintTypeCustom,
   ConstraintTypeLast,
 };
@@ -84,21 +85,6 @@ class RBDL_DLLAPI Constraint {
                             ConstraintCache &cache,
                             bool updateKinematics=false) = 0;
 
-
-    virtual void calcConstraintForces(
-                 Model &model,
-                 const double time,
-                 const Math::VectorNd &Q,
-                 const Math::VectorNd &QDot,
-                 const Math::MatrixNd &GSys,
-                 const Math::VectorNd &LagrangeMultipliersSys,
-                 std::vector< unsigned int > &constraintBodiesUpd,
-                 std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
-                 std::vector< Math::SpatialVector > &constraintForcesUpd,
-                 ConstraintCache &cache,
-                 bool resolveAllInRootFrame = false,
-                 bool updateKinematics=false) = 0;
-
     virtual void calcPositionError( Model &model,
                                     const double time,
                                     const Math::VectorNd &Q,
@@ -116,7 +102,19 @@ class RBDL_DLLAPI Constraint {
                                     ConstraintCache &cache,
                                     bool updateKinematics=false) = 0;
 
-    //
+    virtual void calcConstraintForces(
+                 Model &model,
+                 const double time,
+                 const Math::VectorNd &Q,
+                 const Math::VectorNd &QDot,
+                 const Math::MatrixNd &GSys,
+                 const Math::VectorNd &LagrangeMultipliersSys,
+                 std::vector< unsigned int > &constraintBodiesUpd,
+                 std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
+                 std::vector< Math::SpatialVector > &constraintForcesUpd,
+                 ConstraintCache &cache,
+                 bool resolveAllInRootFrame = false,
+                 bool updateKinematics=false) = 0;
 
     Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
       return GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols());
@@ -133,6 +131,7 @@ class RBDL_DLLAPI Constraint {
     Math::VectorNd getVelocityError(Math::VectorNd &derrSys){
       return derrSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
     }
+
 
 
     Math::VectorNd getBaumgarteStabilizationForces(const Math::VectorNd &errPos,
@@ -185,6 +184,65 @@ class RBDL_DLLAPI Constraint {
 
     bool isBaumgarteStabilizationEnabled(){
       return baumgarteEnabled;
+    }
+
+
+
+    void enableConstraintErrorFromPosition(unsigned int constraintSubIndex)
+    {
+      assert(constraintSubIndex < sizeOfConstraint);
+      positionConstraint[constraintSubIndex] = true;
+      velocityConstraint[constraintSubIndex] = true;      
+    }
+
+    void enableConstraintErrorFromVelocity(unsigned int constraintSubIndex)
+    {
+      assert(constraintSubIndex < sizeOfConstraint);
+      positionConstraint[constraintSubIndex] = false;
+      velocityConstraint[constraintSubIndex] = true;      
+    }
+
+    void enableConstraintErrorFromAcceleration(unsigned int constraintSubIndex)
+    {
+      assert(constraintSubIndex < sizeOfConstraint);
+      positionConstraint[constraintSubIndex] = false;
+      velocityConstraint[constraintSubIndex] = false;      
+    }
+
+    void enableConstraintErrorFromPosition()
+    {
+        for(unsigned int i=0; i<sizeOfConstraint;++i){
+          positionConstraint[i] = true;
+          velocityConstraint[i] = true;                
+        }
+    }
+
+    void enableConstraintErrorFromVelocity()
+    {
+        for(unsigned int i=0; i<sizeOfConstraint;++i){
+          positionConstraint[i] = false;
+          velocityConstraint[i] = true;                
+        }
+    }
+
+    void enableConstraintErrorFromAcceleration()
+    {
+        for(unsigned int i=0; i<sizeOfConstraint;++i){
+          positionConstraint[i] = false;
+          velocityConstraint[i] = false;                
+        }
+    }
+
+
+
+    bool getPositionLevelError(unsigned int constraintSubIndex){
+      assert(constraintSubIndex < sizeOfConstraint);
+      return positionConstraint[constraintSubIndex];      
+    }
+
+    bool getVelocityLevelError(unsigned int constraintSubIndex){
+      assert(constraintSubIndex < sizeOfConstraint);
+      return velocityConstraint[constraintSubIndex];      
     }
 
 

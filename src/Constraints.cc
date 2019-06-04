@@ -10,6 +10,8 @@
 #include <string>
 #include <limits>
 #include <assert.h>
+  //The ConstraintCache input to each function contains all of the working
+  //memory necessary for this constraint. So nothing appears here.
 
 #include "rbdl/rbdl_mathutils.h"
 #include "rbdl/Logging.h"
