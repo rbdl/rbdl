@@ -32,7 +32,7 @@ struct ConstraintCache {
   Math::MatrixNd mat3NA, mat3NB;
   Math::MatrixNd mat6NA, mat6NB;
   Math::Vector3d vec3A,vec3B;
-  Math::SpatialVector svecA, svecB;
+  Math::SpatialVector svecA, svecB, svecC, svecD, svecE, svecF;
   Math::SpatialTransform stA, stB;
   Math::Matrix3d mat3A,mat3B;
 
@@ -61,6 +61,7 @@ class RBDL_DLLAPI Constraint {
         positionConstraint[i]=false;
         velocityConstraint[i]=false;
       }
+      id = std::numeric_limits< unsigned int >::max();
     }
 
 
@@ -115,6 +116,14 @@ class RBDL_DLLAPI Constraint {
                  ConstraintCache &cache,
                  bool resolveAllInRootFrame = false,
                  bool updateKinematics=false) = 0;
+
+    unsigned int getId(){
+      return id;
+    }
+
+    void setId(unsigned int userDefinedId){
+      id = userDefinedId;
+    }
 
     Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
       return GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols());
@@ -259,9 +268,11 @@ class RBDL_DLLAPI Constraint {
     }
 
   protected:
-    ///A unique name
+    ///A user defined name which is unique to this constraint set
     const char* name;
 
+    ///A user defined id which is unique to this constraint set
+    unsigned int id;
     ///The type of this constraint
     const unsigned int typeOfConstraint;
 
