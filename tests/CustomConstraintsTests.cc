@@ -493,12 +493,18 @@ TEST(CustomConstraintCorrectnessTest) {
     CHECK_CLOSE(dba.cs.gamma[i],dbcc.cs.gamma[i],TEST_PREC);
   }
 
-  for(unsigned int i =0; i < dba.cs.constraintAxis.size(); ++i){
-    for(unsigned int j=0; j< dba.cs.constraintAxis[0].rows();++j){
-      CHECK_CLOSE(dba.cs.constraintAxis[i][j],
-                  dbcc.cs.constraintAxis[i][j],TEST_PREC);
+  unsigned int idx=0;
+  for(unsigned int i=0; i < dba.cs.loopConstraints.size();++i){
+    for(unsigned int j=0;
+        j < dba.cs.loopConstraints[i]->getConstraintSize();++j){
+      for(unsigned int k=0; k<6; ++k){
+        CHECK_CLOSE(dba.cs.loopConstraints[i]->getConstraintAxes()[j][k],
+                    dbcc.cs.constraintAxis[idx][k],TEST_PREC);
+      }
+      ++idx;
     }
   }
+
   
 
   SpatialVector a010c =

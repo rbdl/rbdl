@@ -37,75 +37,6 @@ void SolveLinearSystem (
 
 unsigned int GetMovableBodyId (Model& model, unsigned int id);
 
-/*
-unsigned int ConstraintSet::AddContactConstraint(
-    unsigned int bodyId,
-    const Math::Vector3d &bodyPoint,
-    const Math::Vector3d &worldNormal,
-    const char *constraintName)
-{
-
-  //Update the manditory constraint set fields
-  unsigned int csIndex = unsigned(size());
-
-  contactConstraints.push_back(
-        std::make_shared<ContactConstraint>(csIndex, bodyId,
-                                                         bodyPoint, worldNormal,
-                                                         constraintName));
-
-  unsigned int ccIndex = unsigned(contactConstraints.size()-1);
-
-  constraints.emplace_back(contactConstraints[ccIndex]);
-
-
-  unsigned int cIndex = unsigned(constraints.size()-1);
-  unsigned int csSize   = csIndex + constraints[ccIndex]->getConstraintSize();
-
-
-
-  for(unsigned int i=0; i<constraints[cIndex]->getConstraintSize(); ++i){
-    constraintType.push_back( ConstraintTypeContact);
-  }
-
-  std::string nameStr;
-  if(constraintName != NULL){
-    nameStr = constraintName;
-  }else{
-    nameStr = "body2GndPos_" + std::to_string(csIndex);
-  }
-  for(unsigned int i=0; i<constraints[cIndex]->getConstraintSize();++i){
-    name.push_back(nameStr);
-  }
-
-  //Update the (soon to be deprecated) additional fields in constraint set
-
-  err.conservativeResize(csSize);
-  errd.conservativeResize(csSize);
-  force.conservativeResize(csSize);
-  impulse.conservativeResize(csSize);
-  v_plus.conservativeResize(csSize);
-  d_multdof3_u.resize(csSize);
-
-  for(unsigned int i=0; i<(constraints[cIndex]->getConstraintSize()); ++i){
-    err[csIndex+i]  = 0.;
-    errd[csIndex+i] = 0.;
-    force[csIndex+i] = 0.;
-    impulse[csIndex+i] = 0.;
-    v_plus[csIndex+i] = 0.;
-    d_multdof3_u[csIndex+i] = Math::Vector3d::Zero();
-
-    body_p.push_back(0);
-    body_s.push_back(0);
-    X_p.push_back (SpatialTransform());
-    X_s.push_back (SpatialTransform());
-    constraintAxis.push_back (SpatialVector::Zero());
-    baumgarteParameters.push_back(Vector2d(0.0, 0.0));
-  }
-
-  return csSize-1;
-}
-*/
-
 unsigned int ConstraintSet::AddContactConstraint(
     unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
@@ -252,6 +183,7 @@ unsigned int ConstraintSet::AddContactConstraint (
 
 }
 
+/*
 unsigned int ConstraintSet::AddLoopConstraint (
   unsigned int id_predecessor, 
   unsigned int id_successor,
@@ -312,8 +244,9 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   return n_constr - 1;
 }
+*/
 
-unsigned int ConstraintSet::AddLoopConstraintNew (
+unsigned int ConstraintSet::AddLoopConstraint (
   unsigned int idPredecessor, 
   unsigned int idSuccessor,
   const Math::SpatialTransform &XPredecessor,

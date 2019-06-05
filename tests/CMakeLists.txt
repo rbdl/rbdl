@@ -31,7 +31,6 @@ SET ( TESTS_SRCS
   CustomConstraintsTests.cc
   InverseKinematicsTests.cc
   LoopConstraintsTests.cc
-  LoopConstraintsTestsNew.cc  
   ScrewJointTests.cc
   ForwardDynamicsConstraintsExternalForces.cc
   )

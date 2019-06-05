@@ -350,6 +350,7 @@ struct RBDL_DLLAPI ConstraintSet {
    * \param constraint_name a human readable name (optional, default: NULL)
    *
    */
+/*  
   unsigned int AddLoopConstraint(
     unsigned int id_predecessor, 
     unsigned int id_successor,
@@ -360,8 +361,8 @@ struct RBDL_DLLAPI ConstraintSet {
     const double stabilization_param = 0.1,
     const char *constraint_name = NULL
     );
-
-    unsigned int AddLoopConstraintNew(
+*/
+    unsigned int AddLoopConstraint(
     unsigned int idPredecessor, 
     unsigned int idSuccessor,
     const Math::SpatialTransform &XPredecessor,
