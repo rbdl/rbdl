@@ -146,14 +146,15 @@ class RBDL_DLLAPI Constraint {
 
 
     Math::VectorNd getBaumgarteStabilizationForces(const Math::VectorNd &errPos,
-                                                  const Math::VectorNd &errVel)
+                                                   const Math::VectorNd &errVel)
     {
-        return (-2*baumgarteParameters[0]*errPos
-                  -baumgarteParameters[1]*baumgarteParameters[1]*errVel);
+
+        return (-2*baumgarteParameters[0]*errVel
+                  -baumgarteParameters[1]*baumgarteParameters[1]*errPos);
     }
 
-    void addInBaumgarteStabilizationForces(const Math::VectorNd &errSys,
-                                           const Math::VectorNd &derrSys,
+    void addInBaumgarteStabilizationForces(const Math::VectorNd &errPosSys,
+                                           const Math::VectorNd &errVelSys,
                                            Math::VectorNd &gammaSysUpd)
     {
 
@@ -161,9 +162,9 @@ class RBDL_DLLAPI Constraint {
       //to be compatible with SimpleMath.
       for(unsigned int i=0; i<sizeOfConstraint;++i){
         gammaSysUpd[indexOfConstraintInG+i] +=
-              -2.*baumgarteParameters[0]*errSys[indexOfConstraintInG+i],
+              -2.*baumgarteParameters[0]*errVelSys[indexOfConstraintInG+i]
              -(baumgarteParameters[1]*baumgarteParameters[1]
-              )*derrSys[indexOfConstraintInG+i];
+              )*errPosSys[indexOfConstraintInG+i];
       }
     }
 

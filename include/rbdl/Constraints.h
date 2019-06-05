@@ -454,7 +454,7 @@ struct RBDL_DLLAPI ConstraintSet {
   // Common constraints variables.
   std::vector<ConstraintType> constraintType;
   std::vector<std::string> name;
-  std::vector<unsigned int> mLoopConstraintIndices;
+  //std::vector<unsigned int> mLoopConstraintIndices;
   std::vector<unsigned int> mCustomConstraintIndices;
 
   std::vector< CustomConstraint* > mCustomConstraints;
@@ -516,7 +516,7 @@ struct RBDL_DLLAPI ConstraintSet {
   Math::VectorNd x;
 
   /// Workspace when evaluating contact Jacobians
-  Math::MatrixNd Gi;
+  //Math::MatrixNd Gi;
   /// Workspace when evaluating loop/CustomConstraint Jacobians
   Math::MatrixNd GSpi;
   /// Workspace when evaluating loop/CustomConstraint Jacobians

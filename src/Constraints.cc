@@ -145,11 +145,11 @@ unsigned int ConstraintSet::AddContactConstraint (
         name.push_back (nameStr);
 
         // These variables will not be used.
-        body_p.push_back (0);
-        body_s.push_back (0);
-        X_p.push_back (SpatialTransform());
-        X_s.push_back (SpatialTransform());
-        constraintAxis.push_back (SpatialVector::Zero());
+        //body_p.push_back (0);
+        //body_s.push_back (0);
+        //X_p.push_back (SpatialTransform());
+        //X_s.push_back (SpatialTransform());
+        //constraintAxis.push_back (SpatialVector::Zero());
         baumgarteParameters.push_back(Vector2d(0.0, 0.0));
         err.conservativeResize(n_constr);
         err[n_constr - 1] = 0.;
@@ -483,7 +483,7 @@ bool ConstraintSet::Bind (const Model &model) {
   x.conservativeResize (model.dof_count + n_constr);
   x.setZero();
 
-  Gi.conservativeResize (3, model.qdot_size);
+  //Gi.conservativeResize (3, model.qdot_size);
   GSpi.conservativeResize (6, model.qdot_size);
   GSsi.conservativeResize (6, model.qdot_size);
   GSJ.conservativeResize (6, model.qdot_size);
@@ -783,6 +783,7 @@ void CalcConstraintsPositionError (
   //  err[c] = 0.;
   //}
 
+  /*
   for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
     const unsigned int lci = CS.mLoopConstraintIndices[i];
 
@@ -829,6 +830,7 @@ void CalcConstraintsPositionError (
     // Project the error on the constraint axis to find the actual error.
     err[lci] = CS.constraintAxis[lci].transpose() * d;
   } 
+  */
 
   for (unsigned int i = 0; i < CS.mCustomConstraintIndices.size(); i++) {
     const unsigned int cci = CS.mCustomConstraintIndices[i];
@@ -866,6 +868,7 @@ void CalcConstraintsJacobian (
   Matrix3d rot_p;
   SpatialTransform X_0p;
 
+  /*
   for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
     const unsigned int c = CS.mLoopConstraintIndices[i];
 
@@ -904,6 +907,7 @@ void CalcConstraintsJacobian (
     // Compute the constraint Jacobian row.
     G.block(c, 0, 1, model.dof_count) = axis.transpose() * CS.GSJ;
   }
+  */
 
   // Go and get the CustomConstraint Jacobians
   for (unsigned int i = 0; i < CS.mCustomConstraintIndices.size(); i++) {
@@ -995,6 +999,7 @@ void CalcConstrainedSystemVariables (
   CS.QDDot_0.setZero();
   UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
 
+  /*
   for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
     const unsigned int c = CS.mLoopConstraintIndices[i];
 
@@ -1040,6 +1045,7 @@ void CalcConstrainedSystemVariables (
     CS.gamma[c] +=  - 2. * CS.baumgarteParameters[c][0] * CS.errd[c]
       - CS.baumgarteParameters[c][1] * CS.baumgarteParameters[c][1] * CS.err[c];
   }
+  */
 
   unsigned int ccid,rows,cols,z;
   for(unsigned int i=0; i< CS.mCustomConstraintIndices.size(); i++){

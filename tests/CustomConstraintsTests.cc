@@ -232,6 +232,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
   Matrix3d rmP0, rmS0, rmPS;
   SpatialTransform xP0;
 
+
   VectorNd errVelBlock;
 
 };
