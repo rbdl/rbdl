@@ -152,8 +152,9 @@ LoopConstraint::LoopConstraint(
 
 void LoopConstraint::bind(const Model &model)
 {
-  //The ConstraintCache input to each function contains all of the working
-  //memory necessary for this constraint. So nothing appears here.
+  //There are no dynamically-sized local matrices or vectors that
+  //need to be adjusted for this Constraint - the dynamic members in
+  //the ConstraintCache are enough.
 }
 
 
@@ -209,25 +210,12 @@ void LoopConstraint::calcGamma(  Model &model,
   //Please refer to Ch. 8 of Featherstone's Rigid Body Dynamics text for details
 
   // Express the constraint axis in the base frame.
-
-  //pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[c],
-  //                                  CS.X_p[c].r,false);
-  //rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[c], false
-  //                                    ).transpose() * CS.X_p[c].E;
-  //axis = SpatialTransform (rot_p, pos_p).apply(CS.constraintAxis[c]);
-
   cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
                                           updKin);
   cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updKin
                                          ).transpose()*bodyFrames[0].E;
 
   // Compute the spatial velocities of the two constrained bodies.
-
-  //vel_p = CalcPointVelocity6D (model, Q, QDot, CS.body_p[c],
-  //                              CS.X_p[c].r, false);
-  //vel_s = CalcPointVelocity6D (model, Q, QDot, CS.body_s[c],
-  //                              CS.X_s[c].r, false);
-
   //vel_p
   cache.svecA = CalcPointVelocity6D(model,Q,QDot,bodyIds[0],bodyFrames[0].r,
                                     updKin);
@@ -247,33 +235,15 @@ void LoopConstraint::calcGamma(  Model &model,
   cache.svecD = CalcPointAcceleration6D(model,Q,QDot,cache.vecNZeros,
                                         bodyIds[1],bodyFrames[1].r,updKin);
 
-
-  // Compute the derivative of the axis wrt the base frame.
-
-
-
-  //SpatialVector acc_p = CalcPointAcceleration6D (model, Q, QDot
-  //  , VectorNd::Zero(model.dof_count), CS.body_p[c], CS.X_p[c].r, false);
-  //SpatialVector acc_s = CalcPointAcceleration6D (model, Q, QDot
-  //  , VectorNd::Zero(model.dof_count), CS.body_s[c], CS.X_s[c].r, false);
-
-
-  //CS.gamma[c]
-  //  = - axis.dot(acc_s - acc_p) - axis_dot.dot(vel_s - vel_p)
-
   for(unsigned int i=0; i<sizeOfConstraint;++i){
 
-    //axis = SpatialTransform (rot_p, pos_p).apply(CS.constraintAxis[c]);
-    cache.svecE = cache.stA.apply(T[i]);            //axis
+    axis = cache.stA.apply(T[i]);
 
-    //SpatialVector axis_dot = crossm(vel_p, axis);
-    cache.svecF = crossm(cache.svecA, cache.svecE); //axis dot
+    axisDot = crossm(cache.svecA, axis);
 
-    //CS.gamma[c]
-    //  = - axis.dot(acc_s - acc_p) - axis_dot.dot(vel_s - vel_p)
     gammaSysUpd[indexOfConstraintInG+i] =
-        -cache.svecE.dot(cache.svecD-cache.svecC)
-        -cache.svecF.dot(cache.svecB-cache.svecA);
+        -axis.dot(cache.svecD-cache.svecC)
+        -axisDot.dot(cache.svecB-cache.svecA);
   }
 
 }

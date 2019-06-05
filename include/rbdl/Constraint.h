@@ -27,14 +27,16 @@ struct ConstraintCache {
 
   ///Here N is taken to mean the number of elements in QDot.
   Math::VectorNd vecNZeros;
-  Math::VectorNd vecNA,vecNB;
+  Math::VectorNd vecNA, vecNB, vecNC, vecND;
 
-  Math::MatrixNd mat3NA, mat3NB;
-  Math::MatrixNd mat6NA, mat6NB;
-  Math::Vector3d vec3A,vec3B;
-  Math::SpatialVector svecA, svecB, svecC, svecD, svecE, svecF;
-  Math::SpatialTransform stA, stB;
-  Math::Matrix3d mat3A,mat3B;
+  Math::Vector3d  vec3A, vec3B, vec3C, vec3D;
+  Math::Matrix3d  mat3A, mat3B, mat3C, mat3D;
+
+  Math::MatrixNd mat3NA, mat3NB, mat3NC, mat3ND;
+  Math::MatrixNd mat6NA, mat6NB, mat6NC, mat6ND;
+  Math::SpatialVector  svecA, svecB, svecC, svecD;
+  Math::SpatialTransform stA, stB, stC, stD;
+
 
   ConstraintCache(){}
 };

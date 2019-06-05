@@ -22,7 +22,7 @@ class RBDL_DLLAPI LoopConstraint : public Constraint {
 
 public:
 
-  //~LoopConstraint(){};  
+
   LoopConstraint();
 
   LoopConstraint(
@@ -121,14 +121,8 @@ public:
 private:
   std::vector< Math::SpatialVector > T;
   double dblA;
-
+  Math::SpatialVector axis, axisDot;
 };
-
-
-
-
-
-/** @} */
 
 } 
 

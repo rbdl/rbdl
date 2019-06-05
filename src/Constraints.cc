@@ -516,17 +516,24 @@ bool ConstraintSet::Bind (const Model &model) {
     constraints[i]->bind(model);
   }
 
-  unsigned int n_constr = size();
-
-
   cache.vecNZeros = VectorNd::Zero(model.qdot_size);
   cache.vecNA.resize(model.qdot_size,1);
   cache.vecNB.resize(model.qdot_size,1);
+  cache.vecNC.resize(model.qdot_size,1);
+  cache.vecND.resize(model.qdot_size,1);
+
   cache.mat3NA.resize(3, model.qdot_size);
   cache.mat3NB.resize(3, model.qdot_size);
+  cache.mat3NC.resize(3, model.qdot_size);
+  cache.mat3ND.resize(3, model.qdot_size);
+
   cache.mat6NA.resize(6, model.qdot_size);
   cache.mat6NB.resize(6, model.qdot_size);
+  cache.mat6NC.resize(6, model.qdot_size);
+  cache.mat6ND.resize(6, model.qdot_size);
 
+
+  unsigned int n_constr = size();
 
   H.conservativeResize (model.dof_count, model.dof_count);
   H.setZero();
@@ -607,20 +614,41 @@ void ConstraintSet::clear() {
 
   //Constraint cache
   cache.vecNZeros.setZero();
+
   cache.vecNA.setZero();
   cache.vecNB.setZero();
+  cache.vecNC.setZero();
+  cache.vecND.setZero();
+
+
   cache.mat3NA.setZero();
   cache.mat3NB.setZero();
+  cache.mat3NC.setZero();
+  cache.mat3ND.setZero();
+
   cache.vec3A.setZero();
   cache.vec3B.setZero();
+  cache.vec3C.setZero();
+  cache.vec3D.setZero();
+
   cache.svecA.setZero();
   cache.svecB.setZero();
+  cache.svecC.setZero();
+  cache.svecD.setZero();
+
   cache.stA.E.Identity();
   cache.stA.r.setZero();
   cache.stB.E.Identity();
   cache.stB.r.setZero();
+  cache.stC.E.Identity();
+  cache.stC.r.setZero();
+  cache.stD.E.Identity();
+  cache.stD.r.setZero();
+
   cache.mat3A.setZero();
   cache.mat3B.setZero();
+  cache.mat3C.setZero();
+  cache.mat3D.setZero();
 
 
   //Kokkevis Cache

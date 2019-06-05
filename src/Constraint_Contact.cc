@@ -154,8 +154,9 @@ ContactConstraint::ContactConstraint(
 void ContactConstraint::bind(const Model &model)
 {
 
-  //The ConstraintCache input to each function contains all of the working
-  //memory necessary for this constraint. So nothing appears here.
+  //There are no dynamically-sized local matrices or vectors that
+  //need to be adjusted for this constraint
+
 }
 
 
