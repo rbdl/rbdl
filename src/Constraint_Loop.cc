@@ -369,8 +369,22 @@ void LoopConstraint::calcVelocityError(  Model &model,
                             ConstraintCache &cache,
                             bool updKin)
 {
-  derrSysUpd.block(indexOfConstraintInG,0,sizeOfConstraint,1) =
-      GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols())*QDot;
+  //SimpleMath cannot handle multiplying a block matrix by a vector
+  //Using a for loop here to maintain backwards compatibility.
+  //Rant: all of this ugliness for a dot product! Does anyone even use
+  //      SimpleMath?
+
+  //derrSysUpd.block(indexOfConstraintInG,0,sizeOfConstraint,1) =
+  //    GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols())*QDot;
+
+  for(unsigned int i=0; i<sizeOfConstraint;++i){
+    derrSysUpd[indexOfConstraintInG+i] = 0;
+    for(unsigned int j=0; j<GSys.cols();++j){
+      derrSysUpd[indexOfConstraintInG+i] +=
+           GSys(indexOfConstraintInG+i,j)*QDot[j];
+    }
+  }
+
 }
 
 //==============================================================================
@@ -422,9 +436,11 @@ void LoopConstraint::calcConstraintForces(
     //These forces are returned in the coordinates of the
     //root frame but w.r.t. the respective points of the constaint
     constraintBodyFramesUpd[0].r = -cache.stA.r;
-    constraintBodyFramesUpd[0].E.setIdentity();
+    constraintBodyFramesUpd[0].E.Identity();
+    //constraintBodyFramesUpd[0].E.setIdentity();
     constraintBodyFramesUpd[1].r = -cache.stB.r;
-    constraintBodyFramesUpd[1].E.setIdentity();
+    constraintBodyFramesUpd[1].E.Identity();
+    //constraintBodyFramesUpd[1].E.setIdentity();
 
     //Rotate the forces from the predecessor body frame to the
     //root frame.

@@ -385,7 +385,7 @@ void ContactConstraint::
 {
   cache.vec3A = CalcBodyToBaseCoordinates(
                   model,Q,bodyIds[0],bodyFrames[0].r,updateKinematics);
-  cache.stA.E.setIdentity();
+  cache.stA.E.Identity();
   cache.stA.r = -cache.vec3A;
   cache.svecA[0]=0.;
   cache.svecA[1]=0.;

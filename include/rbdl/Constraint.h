@@ -155,11 +155,14 @@ class RBDL_DLLAPI Constraint {
                                            Math::VectorNd &gammaSysUpd)
     {
 
-      gammaSysUpd.block(indexOfConstraintInG,0,sizeOfConstraint,1) +=  
-            -2*baumgarteParameters[0]*errSys.block(
-                indexOfConstraintInG,0,sizeOfConstraint,1),
-           -(baumgarteParameters[1]*baumgarteParameters[1])*derrSys.block(
-                indexOfConstraintInG,0,sizeOfConstraint,1);
+      //Here a for loop is used rather than a block operation
+      //to be compatible with SimpleMath.
+      for(unsigned int i=0; i<sizeOfConstraint;++i){
+        gammaSysUpd[indexOfConstraintInG+i] +=
+              -2.*baumgarteParameters[0]*errSys[indexOfConstraintInG+i],
+             -(baumgarteParameters[1]*baumgarteParameters[1]
+              )*derrSys[indexOfConstraintInG+i];
+      }
     }
 
     unsigned int getConstraintType(){

@@ -341,6 +341,7 @@ unsigned int ConstraintSet::AddLoopConstraintNew (
     if(loopConstraints[idx]->getBodyIds()[0] == idPredecessor && 
        loopConstraints[idx]->getBodyIds()[1] == idSuccessor){
 
+      bool framesNumericallyIdentical=true;
       SpatialTransform frameErrorPre, frameErrorSuc;
 
       frameErrorPre.r=XPredecessor.r-loopConstraints[idx]->getBodyFrames()[0].r;
@@ -349,8 +350,20 @@ unsigned int ConstraintSet::AddLoopConstraintNew (
       frameErrorSuc.r=XSuccessor.r  -loopConstraints[idx]->getBodyFrames()[1].r;
       frameErrorSuc.E=XSuccessor.E  -loopConstraints[idx]->getBodyFrames()[1].E;
 
-      if(frameErrorPre.r.norm() <= tol && frameErrorPre.E.norm() <= tol &&
-         frameErrorSuc.r.norm() <= tol && frameErrorSuc.E.norm() <= tol){
+      //Using this awkward element by element comparison to maintain
+      //compatibility with SimpleMath.
+      for(unsigned int i=0; i<frameErrorPre.r.size();++i){
+        if(fabs(frameErrorPre.r[i]) > tol || fabs(frameErrorSuc.r[i]) > tol){
+          framesNumericallyIdentical=false;
+        }
+        for(unsigned int j=0; j<frameErrorPre.E.cols(); ++j){
+          if(fabs(frameErrorPre.E(i,j))>tol || fabs(frameErrorSuc.E(i,j))>tol){
+            framesNumericallyIdentical=false;
+          }
+        }
+      }
+
+      if(framesNumericallyIdentical){
         constraintAdded = true;
         loopConstraints[idx]->appendConstraintAxis(constraintAxisInPredecessor,
                                                    positionLevelConstraint, 
@@ -389,7 +402,7 @@ unsigned int ConstraintSet::AddLoopConstraintNew (
 
   SpatialTransform emptyX;
   emptyX.r.setZero();
-  emptyX.E.setIdentity();
+  emptyX.E.Identity();
   SpatialVector emptyAxis;
   emptyAxis.setZero();
 
@@ -602,9 +615,9 @@ void ConstraintSet::clear() {
   cache.vec3B.setZero();
   cache.svecA.setZero();
   cache.svecB.setZero();
-  cache.stA.E.setIdentity();
+  cache.stA.E.Identity();
   cache.stA.r.setZero();
-  cache.stB.E.setIdentity();
+  cache.stB.E.Identity();
   cache.stB.r.setZero();
   cache.mat3A.setZero();
   cache.mat3B.setZero();
