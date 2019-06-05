@@ -368,8 +368,8 @@ unsigned int ConstraintSet::AddLoopConstraintNew (
                                 positionLevelConstraint, 
                                 velocityLevelConstraint, 
                                 constraintName));
-
-   constraints.emplace_back(loopConstraints[idx]);
+    idx = unsigned(loopConstraints.size()-1);
+    constraints.emplace_back(loopConstraints[idx]);
   }
 
   loopConstraints[idx]->setBaumgarteTimeConstant(stabParam);
@@ -385,7 +385,6 @@ unsigned int ConstraintSet::AddLoopConstraintNew (
     nameStr = constraintName;
   }
 
-  mLoopConstraintIndices.push_back(0);
   name.push_back (nameStr);
 
   SpatialTransform emptyX;
@@ -400,9 +399,7 @@ unsigned int ConstraintSet::AddLoopConstraintNew (
   X_s.push_back (emptyX);
   constraintAxis.push_back (emptyAxis);
 
-  double baumgarteCoefficient = 0.0;
-  baumgarteParameters.push_back(
-      Vector2d(baumgarteCoefficient, baumgarteCoefficient));
+  baumgarteParameters.push_back(Vector2d(0.,0.));
 
   err.conservativeResize(csSize);
   err[csIndex] = 0.;
@@ -1064,9 +1061,9 @@ void CalcConstrainedSystemVariables (
     // Compute the value of gamma.
     CS.gamma[c]
       // Right hand side term.
-      = - axis.dot(acc_s - acc_p) - axis_dot.dot(vel_s - vel_p)
+      = - axis.dot(acc_s - acc_p) - axis_dot.dot(vel_s - vel_p);
       // Baumgarte stabilization term.
-      - 2. * CS.baumgarteParameters[c][0] * CS.errd[c]
+    CS.gamma[c] +=  - 2. * CS.baumgarteParameters[c][0] * CS.errd[c]
       - CS.baumgarteParameters[c][1] * CS.baumgarteParameters[c][1] * CS.err[c];
   }
 

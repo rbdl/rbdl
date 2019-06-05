@@ -179,7 +179,7 @@ void LoopConstraint::calcConstraintJacobian( Model &model,
 
     //Evaluate the transform from the world frame into the constraint frame
     //that is attached to the precessor body
-    cache.stA.r = CalcBaseToBodyCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
+    cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
                                             updKin);
     cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updKin
                                            ).transpose()*bodyFrames[0].E;
@@ -216,7 +216,7 @@ void LoopConstraint::calcGamma(  Model &model,
   //                                    ).transpose() * CS.X_p[c].E;
   //axis = SpatialTransform (rot_p, pos_p).apply(CS.constraintAxis[c]);
 
-  cache.stA.r = CalcBaseToBodyCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
+  cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
                                           updKin);
   cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updKin
                                          ).transpose()*bodyFrames[0].E;
