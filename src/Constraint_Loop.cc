@@ -28,7 +28,7 @@ LoopConstraint::LoopConstraint():
 
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      //const unsigned int indexOfConstraintInG,
+      //const unsigned int rowInGSys,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -41,7 +41,7 @@ LoopConstraint::LoopConstraint(
                    ConstraintTypeLoopNew,
                    unsigned(int(1)))
 {
-  //connectToConstraintSet(indexOfConstraintInG, unsigned(int(1)));
+  //connectToConstraintSet(rowInGSys, unsigned(int(1)));
 
   T.push_back(constraintAxis);
   dblA = std::numeric_limits<double>::epsilon()*10.;
@@ -59,7 +59,7 @@ LoopConstraint::LoopConstraint(
 }
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      //const unsigned int indexOfConstraintInG,
+      //const unsigned int rowInGSys,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -74,7 +74,7 @@ LoopConstraint::LoopConstraint(
       T(constraintAxes)
 {
 
-  //connectToConstraintSet(indexOfConstraintInG,
+  //connectToConstraintSet(rowInGSys,
   //                       unsigned(constraintAxes.size()));
 
   assert( sizeOfConstraint <= 6 && sizeOfConstraint > 0);
@@ -105,7 +105,7 @@ LoopConstraint::LoopConstraint(
 
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      //const unsigned int indexOfConstraintInG,
+      //const unsigned int rowInGSys,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -191,7 +191,7 @@ void LoopConstraint::calcConstraintJacobian( Model &model,
       cache.svecA =cache.stA.apply(T[i]);
 
       //Take the dot product of the constraint axis with Gs-Gp
-      GSysUpd.block(indexOfConstraintInG+i,0,1,GSysUpd.cols())
+      GSysUpd.block(rowInGSys+i,0,1,GSysUpd.cols())
           = cache.svecA.transpose()*cache.mat6NA;
     }
 
@@ -242,7 +242,7 @@ void LoopConstraint::calcGamma(  Model &model,
 
     axisDot = crossm(cache.svecA, axis);
 
-    gammaSysUpd[indexOfConstraintInG+i] =
+    gammaSysUpd[rowInGSys+i] =
         -axis.dot(cache.svecD-cache.svecC)
         -axisDot.dot(cache.svecB-cache.svecA);
   }
@@ -321,9 +321,9 @@ void LoopConstraint::calcPositionError(Model &model,
 
   for(unsigned int i=0; i<sizeOfConstraint;++i){
     if(positionConstraint[i]){
-      errSysUpd[indexOfConstraintInG+i] = T[i].transpose()*cache.svecA;
+      errSysUpd[rowInGSys+i] = T[i].transpose()*cache.svecA;
     }else{
-      errSysUpd[indexOfConstraintInG+i] = 0.;
+      errSysUpd[rowInGSys+i] = 0.;
     }
   }
 
@@ -345,14 +345,14 @@ void LoopConstraint::calcVelocityError(  Model &model,
   //Rant: all of this ugliness for a dot product! Does anyone even use
   //      SimpleMath?
 
-  //derrSysUpd.block(indexOfConstraintInG,0,sizeOfConstraint,1) =
-  //    GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols())*QDot;
+  //derrSysUpd.block(rowInGSys,0,sizeOfConstraint,1) =
+  //    GSys.block(rowInGSys,0,sizeOfConstraint,GSys.cols())*QDot;
 
   for(unsigned int i=0; i<sizeOfConstraint;++i){
-    derrSysUpd[indexOfConstraintInG+i] = 0;
+    derrSysUpd[rowInGSys+i] = 0;
     for(unsigned int j=0; j<GSys.cols();++j){
-      derrSysUpd[indexOfConstraintInG+i] +=
-           GSys(indexOfConstraintInG+i,j)*QDot[j];
+      derrSysUpd[rowInGSys+i] +=
+           GSys(rowInGSys+i,j)*QDot[j];
     }
   }
 
@@ -394,7 +394,7 @@ void LoopConstraint::calcConstraintForces(
   //Using Eqn. 8.30 of Featherstone. Note that this force is resolved in the
   //predecessor frame
   for(unsigned int i=0; i<sizeOfConstraint;++i){
-    constraintForcesUpd[0] += T[i]*LagMultSys[indexOfConstraintInG+i];
+    constraintForcesUpd[0] += T[i]*LagMultSys[rowInGSys+i];
   }
 
   constraintBodiesUpd.resize(2);

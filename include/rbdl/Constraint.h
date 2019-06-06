@@ -69,7 +69,7 @@ class RBDL_DLLAPI Constraint {
     void setRowIndexInSystemConstraintJacobian(
         const unsigned int rowIndex)
     {
-      indexOfConstraintInG = rowIndex;
+      rowInGSys = rowIndex;
     }
 
 
@@ -134,19 +134,19 @@ class RBDL_DLLAPI Constraint {
     }
 
     Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
-      return GSys.block(indexOfConstraintInG,0,sizeOfConstraint,GSys.cols());
+      return GSys.block(rowInGSys,0,sizeOfConstraint,GSys.cols());
     }
 
     Math::VectorNd getGamma(Math::VectorNd &gammaSys){
-      return gammaSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
+      return gammaSys.block(rowInGSys,0,sizeOfConstraint,1);
     }
 
     Math::VectorNd getPositionError(Math::VectorNd &errSys){
-      return errSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
+      return errSys.block(rowInGSys,0,sizeOfConstraint,1);
     }
 
     Math::VectorNd getVelocityError(Math::VectorNd &derrSys){
-      return derrSys.block(indexOfConstraintInG,0,sizeOfConstraint,1);
+      return derrSys.block(rowInGSys,0,sizeOfConstraint,1);
     }
 
 
@@ -167,10 +167,10 @@ class RBDL_DLLAPI Constraint {
       //Here a for loop is used rather than a block operation
       //to be compatible with SimpleMath.
       for(unsigned int i=0; i<sizeOfConstraint;++i){
-        gammaSysUpd[indexOfConstraintInG+i] +=
-              -2.*baumgarteParameters[0]*errVelSys[indexOfConstraintInG+i]
+        gammaSysUpd[rowInGSys+i] +=
+              -2.*baumgarteParameters[0]*errVelSys[rowInGSys+i]
              -(baumgarteParameters[1]*baumgarteParameters[1]
-              )*errPosSys[indexOfConstraintInG+i];
+              )*errPosSys[rowInGSys+i];
       }
     }
 
@@ -183,11 +183,11 @@ class RBDL_DLLAPI Constraint {
     }
 
     unsigned int getConstraintIndex(){
-      return indexOfConstraintInG;
+      return rowInGSys;
     }
 
     void setConstraintIndex(unsigned int updRowIndexInG){
-      indexOfConstraintInG = updRowIndexInG;
+      rowInGSys = updRowIndexInG;
     }
 
     void setBaumgarteTimeConstant(double tStab){
@@ -289,7 +289,7 @@ class RBDL_DLLAPI Constraint {
     unsigned int sizeOfConstraint;
 
     ///The first row in G that corresponds to this constraint.
-    unsigned int indexOfConstraintInG;
+    unsigned int rowInGSys;
 
     ///The index of the predecessor body in the vector of bodies in Model
     std::vector< unsigned int > bodyIds;
