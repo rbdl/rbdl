@@ -46,16 +46,16 @@ class RBDL_DLLAPI Constraint {
 
     virtual ~Constraint(){};    
 
+    Constraint();
+
     Constraint(const char* name,
                const unsigned int typeOfConstraint,
-               const unsigned int indexOfConstraintInG,
                const unsigned int sizeOfConstraint):
-                name(name),
-                typeOfConstraint(typeOfConstraint),
-                indexOfConstraintInG(indexOfConstraintInG),
-                sizeOfConstraint(sizeOfConstraint),
-                baumgarteParameters(1./0.1,1./0.1),
-                baumgarteEnabled(false)
+               name(name),
+               typeOfConstraint(typeOfConstraint),
+               sizeOfConstraint(sizeOfConstraint),
+               baumgarteParameters(1./0.1,1./0.1),
+               baumgarteEnabled(false)
     {
       positionConstraint.resize(sizeOfConstraint);
       velocityConstraint.resize(sizeOfConstraint);
@@ -64,6 +64,12 @@ class RBDL_DLLAPI Constraint {
         velocityConstraint[i]=false;
       }
       id = std::numeric_limits< unsigned int >::max();
+    }
+
+    void setRowIndexInSystemConstraintJacobian(
+        const unsigned int rowIndex)
+    {
+      indexOfConstraintInG = rowIndex;
     }
 
 

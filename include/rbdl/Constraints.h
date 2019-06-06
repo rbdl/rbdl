@@ -396,6 +396,8 @@ struct RBDL_DLLAPI ConstraintSet {
    * \param constraint_name a human readable name (optional, default: NULL)
    *
    */
+
+
   unsigned int AddCustomConstraint(
     CustomConstraint* custom_constraint,
     unsigned int id_predecessor,

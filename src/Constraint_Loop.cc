@@ -24,12 +24,11 @@ using namespace Math;
 
 //==============================================================================
 LoopConstraint::LoopConstraint():
-  Constraint("",ConstraintTypeLoopNew,
-              std::numeric_limits<unsigned int>::max(),1){}
+  Constraint("",ConstraintTypeLoopNew,unsigned(int(0))){}
 
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      const unsigned int indexOfConstraintInG,
+      //const unsigned int indexOfConstraintInG,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -40,9 +39,10 @@ LoopConstraint::LoopConstraint(
       const char *name):
         Constraint(name,
                    ConstraintTypeLoopNew,
-                   indexOfConstraintInG,
                    unsigned(int(1)))
 {
+  //connectToConstraintSet(indexOfConstraintInG, unsigned(int(1)));
+
   T.push_back(constraintAxis);
   dblA = std::numeric_limits<double>::epsilon()*10.;
   assert(std::fabs(T[0].norm()-1.0)<= dblA);
@@ -59,7 +59,7 @@ LoopConstraint::LoopConstraint(
 }
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      const unsigned int indexOfConstraintInG,
+      //const unsigned int indexOfConstraintInG,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -68,12 +68,14 @@ LoopConstraint::LoopConstraint(
       bool positionLevelConstraint,
       bool velocityLevelConstraint,            
       const char *name):
-      Constraint(name,
-                 ConstraintTypeLoopNew,
-                 indexOfConstraintInG,
-                 unsigned (constraintAxes.size())),
+      Constraint( name,
+                  ConstraintTypeLoopNew,
+                  unsigned(constraintAxes.size())),
       T(constraintAxes)
 {
+
+  //connectToConstraintSet(indexOfConstraintInG,
+  //                       unsigned(constraintAxes.size()));
 
   assert( sizeOfConstraint <= 6 && sizeOfConstraint > 0);
   dblA = std::numeric_limits<double>::epsilon()*10.;
@@ -103,7 +105,7 @@ LoopConstraint::LoopConstraint(
 
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      const unsigned int indexOfConstraintInG,
+      //const unsigned int indexOfConstraintInG,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -114,8 +116,7 @@ LoopConstraint::LoopConstraint(
       const char *name):
       Constraint(name,
                  ConstraintTypeLoopNew,
-                 indexOfConstraintInG,
-                 unsigned(constraintAxes.size()) ),
+                 unsigned(constraintAxes.size())),
       T(constraintAxes)
 {
 

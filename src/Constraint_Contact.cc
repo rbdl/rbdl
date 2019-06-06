@@ -24,12 +24,11 @@ using namespace Math;
 
 //==============================================================================
 ContactConstraint::ContactConstraint():
-  Constraint("",ConstraintTypeContact,
-              std::numeric_limits<unsigned int>::max(),1){}
+  Constraint("",ConstraintTypeContact,1){}
 
 //==============================================================================
 ContactConstraint::ContactConstraint(
-      const unsigned int indexOfConstraintInG,
+      //const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintUnitVector,
@@ -38,7 +37,6 @@ ContactConstraint::ContactConstraint(
       const char *name):
         Constraint(name,
                    ConstraintTypeContact,
-                   indexOfConstraintInG,
                    unsigned(int(1)))
 {
 
@@ -61,7 +59,7 @@ ContactConstraint::ContactConstraint(
         Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
 }
 ContactConstraint::ContactConstraint(
-    const unsigned int indexOfConstraintInG,
+    //const unsigned int indexOfConstraintInG,
     const unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
@@ -70,8 +68,7 @@ ContactConstraint::ContactConstraint(
     const char *name):
       Constraint(name,
                  ConstraintTypeContact,
-                 indexOfConstraintInG,
-                 groundConstraintUnitVectors.size()),
+                 unsigned(groundConstraintUnitVectors.size())),
       T(groundConstraintUnitVectors)
 {
   assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);
@@ -106,7 +103,7 @@ ContactConstraint::ContactConstraint(
 //==============================================================================
 
 ContactConstraint::ContactConstraint(
-      const unsigned int indexOfConstraintInG,
+      //const unsigned int indexOfConstraintInG,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundPoint,
@@ -116,8 +113,7 @@ ContactConstraint::ContactConstraint(
       const char *name):
         Constraint(name,
                    ConstraintTypeContact,
-                   indexOfConstraintInG,
-                   groundConstraintUnitVectors.size()),
+                   unsigned(groundConstraintUnitVectors.size())),
         T(groundConstraintUnitVectors)
 {
   assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);

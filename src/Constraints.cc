@@ -44,21 +44,21 @@ unsigned int ConstraintSet::AddContactConstraint(
     const char *constraintName)
 {
 
-  //Update the manditory constraint set fields
-  unsigned int csIndex = unsigned(size());
+  //Note: 'G' is the constraint Jacobian for the entire system.
+  unsigned int insertAtRowInG = unsigned(size());
+  unsigned int ccIndex = unsigned(contactConstraints.size());
 
   contactConstraints.push_back(
-        std::make_shared<ContactConstraint>(csIndex, bodyId,
-                                                         bodyPoint,worldNormals,
-                                                         constraintName));
-
-  unsigned int ccIndex = unsigned(contactConstraints.size()-1);
+        std::make_shared<ContactConstraint>(bodyId,bodyPoint,
+                                            worldNormals,constraintName));
 
   constraints.emplace_back(contactConstraints[ccIndex]);
+  contactConstraints[ccIndex]->setRowIndexInSystemConstraintJacobian(
+                                                        insertAtRowInG);
 
 
   unsigned int cIndex = unsigned(constraints.size()-1);
-  unsigned int csSize   = csIndex + constraints[ccIndex]->getConstraintSize();
+  unsigned int rowsInG=insertAtRowInG+constraints[ccIndex]->getConstraintSize();
 
   for(unsigned int i=0; i<constraints[cIndex]->getConstraintSize(); ++i){
     constraintType.push_back( ConstraintTypeContact);
@@ -74,20 +74,20 @@ unsigned int ConstraintSet::AddContactConstraint(
 
   //Update the (soon to be deprecated) additional fields in constraint set
 
-  err.conservativeResize(csSize);
-  errd.conservativeResize(csSize);
-  force.conservativeResize(csSize);
-  impulse.conservativeResize(csSize);
-  v_plus.conservativeResize(csSize);
-  d_multdof3_u.resize(csSize);
+  err.conservativeResize(rowsInG);
+  errd.conservativeResize(rowsInG);
+  force.conservativeResize(rowsInG);
+  impulse.conservativeResize(rowsInG);
+  v_plus.conservativeResize(rowsInG);
+  d_multdof3_u.resize(rowsInG);
 
   for(unsigned int i=0; i<(constraints[cIndex]->getConstraintSize()); ++i){
-    err[csIndex+i]  = 0.;
-    errd[csIndex+i] = 0.;
-    force[csIndex+i] = 0.;
-    impulse[csIndex+i] = 0.;
-    v_plus[csIndex+i] = 0.;
-    d_multdof3_u[csIndex+i] = Math::Vector3d::Zero();
+    err[insertAtRowInG+i]  = 0.;
+    errd[insertAtRowInG+i] = 0.;
+    force[insertAtRowInG+i] = 0.;
+    impulse[insertAtRowInG+i] = 0.;
+    v_plus[insertAtRowInG+i] = 0.;
+    d_multdof3_u[insertAtRowInG+i] = Math::Vector3d::Zero();
 
     //body.push_back(0);
     //point.push_back(Vector3dZero);
@@ -100,7 +100,7 @@ unsigned int ConstraintSet::AddContactConstraint(
     baumgarteParameters.push_back(Vector2d(0.0, 0.0));
   }
 
-  return csSize-1;
+  return rowsInG-1;
 }
 
 
@@ -114,7 +114,8 @@ unsigned int ConstraintSet::AddContactConstraint (
   assert (bound == false);
 
 
-  unsigned int n_constr = size()+1;
+  unsigned int insertAtRowInG = size();
+  unsigned int rowsInG = insertAtRowInG+1;
 
   std::string nameStr;
   if(constraint_name != NULL){
@@ -145,27 +146,27 @@ unsigned int ConstraintSet::AddContactConstraint (
         name.push_back (nameStr);
 
         // These variables will not be used.
-        //body_p.push_back (0);
-        //body_s.push_back (0);
-        //X_p.push_back (SpatialTransform());
-        //X_s.push_back (SpatialTransform());
-        //constraintAxis.push_back (SpatialVector::Zero());
+        body_p.push_back (0);
+        body_s.push_back (0);
+        X_p.push_back (SpatialTransform());
+        X_s.push_back (SpatialTransform());
+        constraintAxis.push_back (SpatialVector::Zero());
         baumgarteParameters.push_back(Vector2d(0.0, 0.0));
-        err.conservativeResize(n_constr);
-        err[n_constr - 1] = 0.;
-        errd.conservativeResize(n_constr);
-        errd[n_constr - 1] = 0.;
+        err.conservativeResize(rowsInG);
+        err[insertAtRowInG] = 0.;
+        errd.conservativeResize(rowsInG);
+        errd[insertAtRowInG] = 0.;
 
-        force.conservativeResize (n_constr);
-        force[n_constr - 1] = 0.;
+        force.conservativeResize (rowsInG);
+        force[insertAtRowInG] = 0.;
 
-        impulse.conservativeResize (n_constr);
-        impulse[n_constr - 1] = 0.;
+        impulse.conservativeResize (rowsInG);
+        impulse[insertAtRowInG] = 0.;
 
-        v_plus.conservativeResize (n_constr);
-        v_plus[n_constr - 1] = 0.;
+        v_plus.conservativeResize (rowsInG);
+        v_plus[insertAtRowInG] = 0.;
 
-        d_multdof3_u = std::vector<Math::Vector3d>(n_constr, Math::Vector3d::Zero());
+        d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
 
       }
     }
@@ -174,12 +175,12 @@ unsigned int ConstraintSet::AddContactConstraint (
   if(constraintAdded == false){
     std::vector< Vector3d > normals;
     normals.push_back(world_normal);
-    n_constr = AddContactConstraint(body_id,body_point, normals,constraint_name);
-    n_constr = n_constr+1;
+    unsigned int lastRowInG = AddContactConstraint(body_id,body_point, normals,constraint_name);
+    rowsInG = lastRowInG+1;
 
   }
 
-  return n_constr-1;
+  return rowsInG-1;
 
 }
 
@@ -261,8 +262,8 @@ unsigned int ConstraintSet::AddLoopConstraint (
   assert (bound == false);
 
 
-  unsigned int csIndex = unsigned(size());
-  unsigned int csSize = csIndex+1;
+  unsigned int insertAtRowInG = unsigned(size());
+  unsigned int rowsInG = insertAtRowInG+1;
 
   double tol = std::numeric_limits<double>::epsilon()*100.;
   bool constraintAdded = false;
@@ -307,7 +308,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   if(constraintAdded==false){
     loopConstraints.push_back( 
-      std::make_shared<LoopConstraint>(csIndex, 
+      std::make_shared<LoopConstraint>(
                                 idPredecessor, idSuccessor,
                                 XPredecessor, XSuccessor, 
                                 constraintAxisInPredecessor,
@@ -315,6 +316,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
                                 velocityLevelConstraint, 
                                 constraintName));
     idx = unsigned(loopConstraints.size()-1);
+    loopConstraints[idx]->setRowIndexInSystemConstraintJacobian(insertAtRowInG);
     constraints.emplace_back(loopConstraints[idx]);
   }
 
@@ -347,23 +349,23 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   baumgarteParameters.push_back(Vector2d(0.,0.));
 
-  err.conservativeResize(csSize);
-  err[csIndex] = 0.;
-  errd.conservativeResize(csSize);
-  errd[csIndex] = 0.;
+  err.conservativeResize(rowsInG);
+  err[insertAtRowInG] = 0.;
+  errd.conservativeResize(rowsInG);
+  errd[insertAtRowInG] = 0.;
 
-  force.conservativeResize (csSize);
-  force[csIndex] = 0.;
+  force.conservativeResize (rowsInG);
+  force[insertAtRowInG] = 0.;
 
-  impulse.conservativeResize (csSize);
-  impulse[csIndex] = 0.;
+  impulse.conservativeResize (rowsInG);
+  impulse[insertAtRowInG] = 0.;
 
-  v_plus.conservativeResize (csSize);
-  v_plus[csIndex] = 0.;
+  v_plus.conservativeResize (rowsInG);
+  v_plus[insertAtRowInG] = 0.;
 
-  d_multdof3_u = std::vector<Math::Vector3d>(csSize, Math::Vector3d::Zero());
+  d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
 
-  return csIndex;
+  return insertAtRowInG;
 }
 
 unsigned int ConstraintSet::AddCustomConstraint(
@@ -855,18 +857,18 @@ void CalcConstraintsJacobian (
   }
 
   // variables to check whether we need to recompute G.
-  unsigned int prev_body_id_1 = 0;
-  unsigned int prev_body_id_2 = 0;
-  SpatialTransform prev_body_X_1;
-  SpatialTransform prev_body_X_2;
+  //unsigned int prev_body_id_1 = 0;
+  //unsigned int prev_body_id_2 = 0;
+  //SpatialTransform prev_body_X_1;
+  //SpatialTransform prev_body_X_2;
 
 
   // Variables used for computations.
-  Vector3d normal;
-  SpatialVector axis;
-  Vector3d pos_p;
-  Matrix3d rot_p;
-  SpatialTransform X_0p;
+  //Vector3d normal;
+  //SpatialVector axis;
+  //Vector3d pos_p;
+  //Matrix3d rot_p;
+  //SpatialTransform X_0p;
 
   /*
   for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
