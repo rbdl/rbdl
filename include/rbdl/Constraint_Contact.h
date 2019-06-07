@@ -26,7 +26,6 @@ public:
   ContactConstraint();
 
   ContactConstraint(
-      //const unsigned int rowInSystem,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintNormalVectors,
@@ -35,7 +34,6 @@ public:
       const char *name = NULL);
 
   ContactConstraint(
-      //const unsigned int rowInSystem,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const std::vector< Math::Vector3d > &groundConstraintNormalVectors,
@@ -44,7 +42,6 @@ public:
       const char *name = NULL);
 
   ContactConstraint(
-      //const unsigned int rowInSystem,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundPoint,

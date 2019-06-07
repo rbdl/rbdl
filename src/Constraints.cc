@@ -37,6 +37,7 @@ void SolveLinearSystem (
 
 unsigned int GetMovableBodyId (Model& model, unsigned int id);
 
+//==============================================================================
 unsigned int ConstraintSet::AddContactConstraint(
     unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
@@ -65,42 +66,31 @@ unsigned int ConstraintSet::AddContactConstraint(
     nameStr = constraintName;
   }
 
-  for(unsigned int i=0; i<constraints[cIndex]->getConstraintSize(); ++i){
-    constraintType.push_back( ConstraintTypeContact);
-    name.push_back(nameStr);
-  }
 
-  //Update the additional fields in constraint set
   err.conservativeResize(rowsInG);
   errd.conservativeResize(rowsInG);
-  force.conservativeResize(rowsInG);
-  impulse.conservativeResize(rowsInG);
-  v_plus.conservativeResize(rowsInG);
-  d_multdof3_u.resize(rowsInG);
+  force.conservativeResize (rowsInG);
+  impulse.conservativeResize (rowsInG);
+  v_plus.conservativeResize (rowsInG);
+  d_multdof3_u = std::vector<Math::Vector3d>( rowsInG,
+                                              Math::Vector3d::Zero());
+
 
   for(unsigned int i=0; i<(constraints[cIndex]->getConstraintSize()); ++i){
+    constraintType.push_back( ConstraintTypeContact);
+    name.push_back(nameStr);
     err[          insertAtRowInG+i ] = 0.;
     errd[         insertAtRowInG+i ] = 0.;
     force[        insertAtRowInG+i ] = 0.;
     impulse[      insertAtRowInG+i ] = 0.;
     v_plus[       insertAtRowInG+i ] = 0.;
     d_multdof3_u[ insertAtRowInG+i ] = Math::Vector3d::Zero();
-
-    //body.push_back(0);
-    //point.push_back(Vector3dZero);
-    //normal.push_back(Vector3dZero);
-    body_p.push_back(0);
-    body_s.push_back(0);
-    X_p.push_back (SpatialTransform());
-    X_s.push_back (SpatialTransform());
-    constraintAxis.push_back (SpatialVector::Zero());
-    baumgarteParameters.push_back(Vector2d(0.0, 0.0));
   }
 
   return rowsInG-1;
 }
 
-
+//==============================================================================
 unsigned int ConstraintSet::AddContactConstraint (
   unsigned int body_id,
   const Vector3d &body_point,
@@ -137,18 +127,10 @@ unsigned int ConstraintSet::AddContactConstraint (
       if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100){
         constraintAdded = true;
         contactConstraints[i]->appendNormalVector(world_normal);
-
-        //
+        
         constraintType.push_back (ConstraintTypeContact);
         name.push_back (nameStr);
 
-        // These variables will not be used.
-        body_p.push_back (0);
-        body_s.push_back (0);
-        X_p.push_back (SpatialTransform());
-        X_s.push_back (SpatialTransform());
-        constraintAxis.push_back (SpatialVector::Zero());
-        baumgarteParameters.push_back(Vector2d(0.0, 0.0));
         err.conservativeResize(rowsInG);
         err[insertAtRowInG] = 0.;
         errd.conservativeResize(rowsInG);
@@ -163,7 +145,8 @@ unsigned int ConstraintSet::AddContactConstraint (
         v_plus.conservativeResize (rowsInG);
         v_plus[insertAtRowInG] = 0.;
 
-        d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
+        d_multdof3_u = std::vector<Math::Vector3d>( rowsInG, 
+                                                    Math::Vector3d::Zero());
 
       }
     }
@@ -172,7 +155,8 @@ unsigned int ConstraintSet::AddContactConstraint (
   if(constraintAdded == false){
     std::vector< Vector3d > normals;
     normals.push_back(world_normal);
-    unsigned int lastRowInG = AddContactConstraint(body_id,body_point, normals,constraint_name);
+    unsigned int lastRowInG = 
+    AddContactConstraint(body_id,body_point, normals,constraint_name);
     rowsInG = lastRowInG+1;
 
   }
@@ -181,6 +165,7 @@ unsigned int ConstraintSet::AddContactConstraint (
 
 }
 
+//==============================================================================
 unsigned int ConstraintSet::AddLoopConstraint (
   unsigned int idPredecessor, 
   unsigned int idSuccessor,
@@ -269,20 +254,6 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   name.push_back (nameStr);
 
-  SpatialTransform emptyX;
-  emptyX.r.setZero();
-  emptyX.E.Identity();
-  SpatialVector emptyAxis;
-  emptyAxis.setZero();
-
-  body_p.push_back (0);
-  body_s.push_back (0);
-  X_p.push_back (emptyX);
-  X_s.push_back (emptyX);
-  constraintAxis.push_back (emptyAxis);
-
-  baumgarteParameters.push_back(Vector2d(0.,0.));
-
   err.conservativeResize(rowsInG);
   err[insertAtRowInG] = 0.;
   errd.conservativeResize(rowsInG);
@@ -303,7 +274,68 @@ unsigned int ConstraintSet::AddLoopConstraint (
 }
 
 
+//==============================================================================
+unsigned int ConstraintSet::AddLoopConstraint (
+  unsigned int idPredecessor, 
+  unsigned int idSuccessor,
+  const Math::SpatialTransform &XPredecessor,
+  const Math::SpatialTransform &XSuccessor,
+  const std::vector< Math::SpatialVector > &constraintAxesInPredecessor,
+  bool enableStab,
+  const double stabParam,
+  const char *constraintName,  
+  bool positionLevelConstraint,
+  bool velocityLevelConstraint) {
+  assert (bound == false);
 
+
+  unsigned int insertAtRowInG = unsigned(size());
+  unsigned int rowsInG = unsigned(insertAtRowInG
+                                  + constraintAxesInPredecessor.size());
+
+  loopConstraints.push_back( 
+    std::make_shared<LoopConstraint>(
+                              idPredecessor, idSuccessor,
+                              XPredecessor, XSuccessor, 
+                              constraintAxesInPredecessor,
+                              positionLevelConstraint, 
+                              velocityLevelConstraint, 
+                              constraintName));
+
+  unsigned int idx = unsigned(loopConstraints.size()-1);
+  loopConstraints[idx]->addToConstraintSet(insertAtRowInG);
+  constraints.emplace_back(loopConstraints[idx]);
+  
+
+  loopConstraints[idx]->setBaumgarteTimeConstant(stabParam);
+  loopConstraints[idx]->setEnableBaumgarteStabilization(enableStab);
+  
+  std::string nameStr;
+  if (constraintName != NULL) {
+    nameStr = constraintName;
+  }
+
+  err.conservativeResize(     rowsInG);
+  errd.conservativeResize(    rowsInG);
+  force.conservativeResize(   rowsInG);
+  impulse.conservativeResize( rowsInG);
+  v_plus.conservativeResize(  rowsInG);
+
+  d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
+
+  for(unsigned int i=0; i<constraintAxesInPredecessor.size();++i){
+    constraintType.push_back(ConstraintTypeLoop);
+    name.push_back (nameStr);
+    err[     insertAtRowInG+i ] = 0.;
+    errd[    insertAtRowInG+i ] = 0.;
+    impulse[ insertAtRowInG+i ] = 0.;
+    force[   insertAtRowInG+i ] = 0.;
+    v_plus[  insertAtRowInG+i ] = 0.;
+  }
+
+  return rowsInG-1;
+}
+//==============================================================================
 unsigned int ConstraintSet::AddCustomConstraint(
         std::shared_ptr<Constraint> customConstraint)
 {
@@ -320,22 +352,16 @@ unsigned int ConstraintSet::AddCustomConstraint(
     nameStr = customConstraint->getName();
   }
 
-  err.conservativeResize(rowsInG);
-  errd.conservativeResize(rowsInG);
-  force.conservativeResize (rowsInG);
+  err.conservativeResize(     rowsInG);
+  errd.conservativeResize(    rowsInG);
+  force.conservativeResize (  rowsInG);
   impulse.conservativeResize (rowsInG);
-  v_plus.conservativeResize (rowsInG);
+  v_plus.conservativeResize ( rowsInG);
   d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
 
   for(unsigned int i=0; i<customConstraint->getConstraintSize();++i){
     name.push_back (nameStr);
     constraintType.push_back (ConstraintTypeCustom);
-    body_p.push_back (0);
-    body_s.push_back (0);
-    X_p.push_back (SpatialTransform());
-    X_s.push_back (SpatialTransform());
-    constraintAxis.push_back (SpatialVector::Zero());
-    baumgarteParameters.push_back(Vector2d(0.0, 0.0));
 
     err[      insertAtRowInG+i ] = 0.;
     errd[     insertAtRowInG+i ] = 0.;
@@ -349,78 +375,8 @@ unsigned int ConstraintSet::AddCustomConstraint(
 
 }
 
-unsigned int ConstraintSet::AddCustomConstraint(
-  CustomConstraint *customConstraint,
-  unsigned int id_predecessor,
-  unsigned int id_successor,
-  const Math::SpatialTransform &X_predecessor,
-  const Math::SpatialTransform &X_successor,
-  bool enable_stabilization,
-  const double stabilization_param,
-  const char *constraint_name) {
-  assert (bound == false);
 
-  unsigned int n_constr_start_idx = size();
-  unsigned int n_constr_size      = size() + customConstraint->mConstraintCount;
-
-  std::string name_str;
-  if (constraint_name != NULL) {
-    name_str = constraint_name;
-  }
-
-  SpatialVector axis = SpatialVector::Zero();
-  std::stringstream nameConstraintIndex;
-
-  for(unsigned int i = 0; i < customConstraint->mConstraintCount; ++i ){
-      constraintType.push_back( ConstraintTypeCustom );
-      nameConstraintIndex << name_str << "_" << i;
-      name.push_back (nameConstraintIndex.str());
-      nameConstraintIndex.str(std::string());
-      if(i==0){
-        mCustomConstraintIndices.push_back(n_constr_start_idx);
-      }
-      // These variables will be used for each CustomConstraint
-      body_p.push_back (id_predecessor);
-      body_s.push_back (id_successor);
-      X_p.push_back (X_predecessor);
-      X_s.push_back (X_successor);
-      constraintAxis.push_back (axis);
-
-      // Set up constraint stabilization
-      double baumgarte_coefficient = 0.0;
-      if (enable_stabilization) {
-        if (stabilization_param == 0.0) {
-          std::cerr << "Error: Baumgarte stabilization is enabled but the stabilization parameter is 0.0" << std::endl;
-          abort();
-        }
-        baumgarte_coefficient = 1.0 / stabilization_param;
-      }
-      baumgarteParameters.push_back(
-          Vector2d(baumgarte_coefficient, baumgarte_coefficient));
-  }
-
-  err.conservativeResize( n_constr_size);
-  errd.conservativeResize(n_constr_size);
-
-  force.conservativeResize (        n_constr_size);
-  impulse.conservativeResize (      n_constr_size);
-  v_plus.conservativeResize (       n_constr_size);
-  d_multdof3_u = std::vector<Math::Vector3d>(
-                  n_constr_size, Math::Vector3d::Zero());
-
-  for(unsigned int i = n_constr_start_idx; i < n_constr_size; i++){
-      err[i]          = 0.;
-      errd[i]         = 0.;
-      force[i]        = 0.;
-      impulse[i]      = 0.;
-      v_plus[i]       = 0.;
-  }
-
-   mCustomConstraints.push_back(customConstraint);
-
-  return n_constr_size - 1;
-}
-
+//==============================================================================
 bool ConstraintSet::Bind (const Model &model) {
   assert (bound == false);
 
@@ -465,11 +421,6 @@ bool ConstraintSet::Bind (const Model &model) {
   b.setZero();
   x.conservativeResize (model.dof_count + n_constr);
   x.setZero();
-
-  //Gi.conservativeResize (3, model.qdot_size);
-  GSpi.conservativeResize (6, model.qdot_size);
-  GSsi.conservativeResize (6, model.qdot_size);
-  GSJ.conservativeResize (6, model.qdot_size);
 
   // HouseHolderQR crashes if matrix G has more rows than columns.
 #ifdef RBDL_USE_SIMPLE_MATH
@@ -516,6 +467,7 @@ bool ConstraintSet::Bind (const Model &model) {
   return bound;
 }
 
+//==============================================================================
 void ConstraintSet::clear() {
   force.setZero();
   impulse.setZero();
@@ -605,6 +557,8 @@ void ConstraintSet::clear() {
   d_u.setZero();
 }
 
+
+//==============================================================================
 RBDL_DLLAPI
 void SolveConstrainedSystemDirect (
   Math::MatrixNd &H, 
@@ -655,6 +609,7 @@ void SolveConstrainedSystemDirect (
   LOG << "x = " << std::endl << x << std::endl;
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void SolveConstrainedSystemRangeSpaceSparse (
   Model &model, 
@@ -692,6 +647,7 @@ void SolveConstrainedSystemRangeSpaceSparse (
   SparseSolveLx (model, H, qddot);
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void SolveConstrainedSystemNullSpace (
   Math::MatrixNd &H, 
@@ -727,7 +683,7 @@ void SolveConstrainedSystemNullSpace (
       break;
   }
 
-  qddot_z = (Z.transpose() * H * Z).llt().solve(Z.transpose() * (c - H * Y * qddot_y));
+  qddot_z = (Z.transpose()*H*Z).llt().solve(Z.transpose()*(c - H*Y*qddot_y));
 
   qddot = Y * qddot_y + Z * qddot_z;
 
@@ -741,7 +697,7 @@ void SolveConstrainedSystemNullSpace (
 #endif
       break;
     case (LinearSolverColPivHouseholderQR) :
-      lambda = (G * Y).colPivHouseholderQr().solve (Y.transpose() * (H * qddot - c));
+      lambda = (G*Y).colPivHouseholderQr().solve (Y.transpose()*(H*qddot - c));
       break;
     case (LinearSolverHouseholderQR) :
       lambda = (G * Y).householderQr().solve (Y.transpose() * (H * qddot - c));
@@ -753,6 +709,8 @@ void SolveConstrainedSystemNullSpace (
   }
 }
 
+
+//==============================================================================
 RBDL_DLLAPI
 void CalcConstraintsPositionError (
   Model& model,
@@ -767,71 +725,13 @@ void CalcConstraintsPositionError (
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
   }
 
-  //for (unsigned int i = 0; i < CS.mContactConstraintIndices.size(); i++) {
-  //  const unsigned int c = CS.mContactConstraintIndices[i];
-  //  err[c] = 0.;
-  //}
-
-  /*
-  for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
-    const unsigned int lci = CS.mLoopConstraintIndices[i];
-
-    // Variables used for computations.
-    Vector3d pos_p;
-    Vector3d pos_s;
-    Matrix3d rot_p;
-    Matrix3d rot_s;
-    Matrix3d rot_ps;
-    SpatialVector d;
-
-    // Constraints computed in the predecessor body frame.
-
-    // Compute the orientation of the two constraint frames.
-    rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[lci], false).transpose()
-      * CS.X_p[lci].E;
-    rot_s = CalcBodyWorldOrientation (model, Q, CS.body_s[lci], false).transpose()
-      * CS.X_s[lci].E;
-
-    // Compute the orientation from the predecessor to the successor frame.
-    rot_ps = rot_p.transpose() * rot_s;
-
-    // Compute the position of the two contact points.
-    pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[lci], CS.X_p[lci].r
-      , false);
-    pos_s = CalcBodyToBaseCoordinates (model, Q, CS.body_s[lci], CS.X_s[lci].r
-      , false);
-
-    // The first three elements represent the rotation error.
-    // This formulation is equivalent to u * sin(theta), where u and theta are
-    // the angle-axis of rotation from the predecessor to the successor frame.
-    // These quantities are expressed in the predecessor frame.
-    d[0] = -0.5 * (rot_ps(1,2) - rot_ps(2,1));
-    d[1] = -0.5 * (rot_ps(2,0) - rot_ps(0,2));
-    d[2] = -0.5 * (rot_ps(0,1) - rot_ps(1,0));
-
-    // The last three elements represent the position error.
-    // It is equivalent to the difference in the position of the two
-    // constraint points.
-    // The distance is projected on the predecessor frame to be consistent
-    // with the rotation.
-    d.block<3,1>(3,0) = rot_p.transpose() * (pos_s - pos_p);
-
-    // Project the error on the constraint axis to find the actual error.
-    err[lci] = CS.constraintAxis[lci].transpose() * d;
-  } 
-  */
-
-  for (unsigned int i = 0; i < CS.mCustomConstraintIndices.size(); i++) {
-    const unsigned int cci = CS.mCustomConstraintIndices[i];
-    CS.mCustomConstraints[i]->CalcPositionError(model,cci,Q,CS,err, cci);    
-  }
-
   for(unsigned int i=0; i<CS.constraints.size();++i){
     CS.constraints[i]->calcPositionError(model,0,Q,err, CS.cache,
                                          update_kinematics);
   }
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void CalcConstraintsJacobian (
   Model &model,
@@ -844,76 +744,13 @@ void CalcConstraintsJacobian (
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
   }
 
-  // variables to check whether we need to recompute G.
-  //unsigned int prev_body_id_1 = 0;
-  //unsigned int prev_body_id_2 = 0;
-  //SpatialTransform prev_body_X_1;
-  //SpatialTransform prev_body_X_2;
-
-
-  // Variables used for computations.
-  //Vector3d normal;
-  //SpatialVector axis;
-  //Vector3d pos_p;
-  //Matrix3d rot_p;
-  //SpatialTransform X_0p;
-
-  /*
-  for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
-    const unsigned int c = CS.mLoopConstraintIndices[i];
-
-    // Only recompute variables if necessary.
-    if( prev_body_id_1 != CS.body_p[c]
-        || prev_body_id_2 != CS.body_s[c]
-        || prev_body_X_1.r != CS.X_p[c].r
-        || prev_body_X_2.r != CS.X_s[c].r
-        || prev_body_X_1.E != CS.X_p[c].E
-        || prev_body_X_2.E != CS.X_s[c].E) {
-
-      // Compute the 6D jacobians of the two contact points.
-      CS.GSpi.setZero();
-      CS.GSsi.setZero();
-      CalcPointJacobian6D(model, Q, CS.body_p[c], CS.X_p[c].r, CS.GSpi, false);
-      CalcPointJacobian6D(model, Q, CS.body_s[c], CS.X_s[c].r, CS.GSsi, false);
-      CS.GSJ = CS.GSsi - CS.GSpi;
-
-      // Compute position and rotation matrix from predecessor body to base.
-      pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[c], CS.X_p[c].r
-          , false);
-      rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[c]
-          , false).transpose()* CS.X_p[c].E;
-      X_0p = SpatialTransform (rot_p, pos_p);
-
-      // Update variables for optimization check.
-      prev_body_id_1 = CS.body_p[c];
-      prev_body_id_2 = CS.body_s[c];
-      prev_body_X_1 = CS.X_p[c];
-      prev_body_X_2 = CS.X_s[c];
-    }
-
-    // Express the constraint axis in the base frame.
-    axis = X_0p.apply(CS.constraintAxis[c]);
-
-    // Compute the constraint Jacobian row.
-    G.block(c, 0, 1, model.dof_count) = axis.transpose() * CS.GSJ;
-  }
-  */
-
-  // Go and get the CustomConstraint Jacobians
-  for (unsigned int i = 0; i < CS.mCustomConstraintIndices.size(); i++) {
-    const unsigned int cci = CS.mCustomConstraintIndices[i];
-    const unsigned int rows= CS.mCustomConstraints[i]->mConstraintCount;
-    const unsigned int cols= CS.G.cols();
-    CS.mCustomConstraints[i]->CalcConstraintsJacobianAndConstraintAxis(
-                                 model,cci,Q,CS,G, cci,0);
-  }
-
   for(unsigned int i=0; i<CS.constraints.size();++i){
     CS.constraints[i]->calcConstraintJacobian(model,0,Q,CS.cache.vecNZeros,G,
                                                CS.cache,update_kinematics);
   }
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void CalcConstraintsVelocityError (
   Model& model,
@@ -924,31 +761,17 @@ void CalcConstraintsVelocityError (
   bool update_kinematics
   ) {
   
-  //This works for the contact and loop constraints because they are
-  //time invariant. But this does not necessarily work for the Custoconstraints
-  //which can be time-varying. And thus the parts of err associated with the
-  //custom constraints must be updated.
-  //MatrixNd G(MatrixNd::Zero(CS.size(), model.dof_count));
+
   CalcConstraintsJacobian (model, Q, CS, CS.G, update_kinematics);
-  err = CS.G * QDot;
-  
-  unsigned int cci, rows, cols;
-  for (unsigned int i = 0; i < CS.mCustomConstraintIndices.size(); i++) {
-    cci = CS.mCustomConstraintIndices[i];
-    rows= CS.mCustomConstraints[i]->mConstraintCount;
-    cols= CS.G.cols();
-    CS.mCustomConstraints[i]->CalcVelocityError(model,cci,Q,QDot,CS,
-                               CS.G.block(cci,0,rows,cols),err, cci);
-  }
 
   for(unsigned int i=0; i<CS.constraints.size();++i){
     CS.constraints[i]->calcVelocityError(model,0,Q,QDot,CS.G,err,CS.cache,
                                           update_kinematics);
   }
 
-
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void CalcConstrainedSystemVariables (
   Model &model,
@@ -989,69 +812,6 @@ void CalcConstrainedSystemVariables (
   CS.QDDot_0.setZero();
   UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
 
-  /*
-  for (unsigned int i = 0; i < CS.mLoopConstraintIndices.size(); i++) {
-    const unsigned int c = CS.mLoopConstraintIndices[i];
-
-    // Variables used for computations.
-    Vector3d pos_p;
-    Matrix3d rot_p;
-    SpatialVector vel_p;
-    SpatialVector vel_s;
-    SpatialVector axis;
-    unsigned int id_p;
-    unsigned int id_s;
-
-
-    // Express the constraint axis in the base frame.
-    pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[c], 
-                                      CS.X_p[c].r,false);
-    rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[c], false
-                                        ).transpose() * CS.X_p[c].E;
-    axis = SpatialTransform (rot_p, pos_p).apply(CS.constraintAxis[c]);
-
-    // Compute the spatial velocities of the two constrained bodies.
-    vel_p = CalcPointVelocity6D (model, Q, QDot, CS.body_p[c],
-                                  CS.X_p[c].r, false);
-    vel_s = CalcPointVelocity6D (model, Q, QDot, CS.body_s[c],
-                                  CS.X_s[c].r, false);
-
-    // Compute the derivative of the axis wrt the base frame.
-    SpatialVector axis_dot = crossm(vel_p, axis);
-
-    // Compute the velocity product accelerations. These correspond to the
-    // accelerations that the bodies would have if q ddot were 0.
-    SpatialVector acc_p = CalcPointAcceleration6D (model, Q, QDot
-      , VectorNd::Zero(model.dof_count), CS.body_p[c], CS.X_p[c].r, false);
-    SpatialVector acc_s = CalcPointAcceleration6D (model, Q, QDot
-      , VectorNd::Zero(model.dof_count), CS.body_s[c], CS.X_s[c].r, false);
-
-    // Problem here if one of the bodies is fixed...
-    // Compute the value of gamma.
-    CS.gamma[c]
-      // Right hand side term.
-      = - axis.dot(acc_s - acc_p) - axis_dot.dot(vel_s - vel_p);
-      // Baumgarte stabilization term.
-    CS.gamma[c] +=  - 2. * CS.baumgarteParameters[c][0] * CS.errd[c]
-      - CS.baumgarteParameters[c][1] * CS.baumgarteParameters[c][1] * CS.err[c];
-  }
-  */
-
-  unsigned int ccid,rows,cols,z;
-  for(unsigned int i=0; i< CS.mCustomConstraintIndices.size(); i++){
-    ccid  = CS.mCustomConstraintIndices[i];
-    rows  = CS.mCustomConstraints[i]->mConstraintCount;
-    cols  = CS.G.cols();
-    CS.mCustomConstraints[i]->CalcGamma(model,ccid,Q,QDot,CS,
-                                        CS.G.block(ccid,0,rows,cols),
-                                        CS.gamma,ccid);
-    for(unsigned int j=0; j<CS.mCustomConstraints[i]->mConstraintCount;j++){
-      z = ccid+j;
-      CS.gamma[z] += (- 2. * CS.baumgarteParameters[z][0] * CS.errd[z]
-                      - CS.baumgarteParameters[z][1] 
-                      * CS.baumgarteParameters[z][1] * CS.err[z]);
-    }
-  }
 
   for(unsigned int i=0; i<CS.constraints.size();++i){
     CS.constraints[i]->calcGamma(model,0,Q,QDot,CS.G,CS.gamma,CS.cache);
@@ -1064,6 +824,7 @@ void CalcConstrainedSystemVariables (
 
 }
 
+//==============================================================================
 RBDL_DLLAPI
 bool CalcAssemblyQ (
   Model &model,
@@ -1151,8 +912,6 @@ bool CalcAssemblyQ (
         for(size_t j = 0; j < model.mJoints[i].mDoFCount; ++j) {
           QInit[qIdx + j] += d[qIdx + j];
         }
-        // QInit.block(qIdx, 0, model.mJoints[i].mDoFCount, 1)
-        //   += d.block(model.mJoints[i].q_index, 0, model.mJoints[i].mDoFCount, 1);
       }
     }
 
@@ -1171,6 +930,7 @@ bool CalcAssemblyQ (
   return false;
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void CalcAssemblyQDot (
   Model &model,
@@ -1225,6 +985,7 @@ void CalcAssemblyQDot (
   QDot = x.block (0, 0, model.dof_count, 1);
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void ForwardDynamicsConstraintsDirect (
   Model &model,
@@ -1252,6 +1013,7 @@ void ForwardDynamicsConstraintsDirect (
   }
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void ForwardDynamicsConstraintsRangeSpaceSparse (
   Model &model,
@@ -1268,6 +1030,7 @@ void ForwardDynamicsConstraintsRangeSpaceSparse (
     , CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void ForwardDynamicsConstraintsNullSpace (
   Model &model,
@@ -1298,6 +1061,7 @@ void ForwardDynamicsConstraintsNullSpace (
 
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void ComputeConstraintImpulsesDirect (
   Model &model,
@@ -1328,6 +1092,7 @@ void ComputeConstraintImpulsesDirect (
 
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void ComputeConstraintImpulsesRangeSpaceSparse (
   Model &model,
@@ -1349,6 +1114,7 @@ void ComputeConstraintImpulsesRangeSpaceSparse (
 
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void ComputeConstraintImpulsesNullSpace (
   Model &model,
@@ -1377,12 +1143,14 @@ void ComputeConstraintImpulsesNullSpace (
     , CS.linear_solver);
 }
 
-/** \brief Compute only the effects of external forces on the generalized accelerations
- *
- * This function is a reduced version of ForwardDynamics() which only
- * computes the effects of the external forces on the generalized
- * accelerations.
- *
+//==============================================================================
+/** @brief Compute only the effects of external forces on the generalized 
+    accelerations
+  
+    This function is a reduced version of ForwardDynamics() which only
+    computes the effects of the external forces on the generalized
+    accelerations.
+  
  */
 RBDL_DLLAPI
 void ForwardDynamicsApplyConstraintForces (
@@ -1401,8 +1169,10 @@ void ForwardDynamicsApplyConstraintForces (
     model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
     if (CS.f_ext_constraints[i] != SpatialVector::Zero()) {
-      LOG << "External force (" << i << ") = " << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i] << std::endl;
-      model.pA[i] -= model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i];
+      LOG << "External force (" << i << ") = " 
+          << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i] 
+          << std::endl;
+      model.pA[i] -= model.X_base[i].toMatrixAdjoint()*CS.f_ext_constraints[i];
     }
   }
 
@@ -1505,7 +1275,10 @@ void ForwardDynamicsApplyConstraintForces (
     }
   }
 
-  model.a[0] = SpatialVector (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
+  model.a[0] = SpatialVector (0., 0., 0., 
+                              -model.gravity[0], 
+                              -model.gravity[1], 
+                              -model.gravity[2]);
 
   for (i = 1; i < model.mBodies.size(); i++) {
     unsigned int q_index = model.mJoints[i].q_index;
@@ -1527,7 +1300,8 @@ void ForwardDynamicsApplyConstraintForces (
       model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
     } else if (model.mJoints[i].mDoFCount == 1
         && model.mJoints[i].mJointType != JointTypeCustom) {
-      QDDot[q_index] = (1./model.d[i]) * (model.u[i] - model.U[i].dot(model.a[i]));
+      QDDot[q_index] = (1./model.d[i]) * (
+                            model.u[i] - model.U[i].dot(model.a[i]));
       model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
     } else if (model.mJoints[i].mJointType == JointTypeCustom){
       unsigned int kI     = model.mJoints[i].custom_joint_index;
@@ -1550,11 +1324,13 @@ void ForwardDynamicsApplyConstraintForces (
   LOG << "QDDot = " << QDDot.transpose() << std::endl;
 } 
 
-/** \brief Computes the effect of external forces on the generalized accelerations.
- *
- * This function is essentially similar to ForwardDynamics() except that it
- * tries to only perform computations of variables that change due to
- * external forces defined in f_t.
+//==============================================================================
+/** @brief Computes the effect of external forces on the generalized 
+            accelerations.
+ 
+    This function is essentially similar to ForwardDynamics() except that it
+    tries to only perform computations of variables that change due to
+    external forces defined in f_t.
  */
 RBDL_DLLAPI
 void ForwardDynamicsAccelerationDeltas (
@@ -1690,6 +1466,7 @@ inline void set_zero (std::vector<SpatialVector> &spatial_values) {
     spatial_values[i].setZero();
 }
 
+//==============================================================================
 RBDL_DLLAPI
 void ForwardDynamicsContactsKokkevis (
   Model &model,
@@ -1710,6 +1487,14 @@ void ForwardDynamicsContactsKokkevis (
   assert (CS.K.cols() == CS.size());
   assert (CS.force.size() == CS.size());
   assert (CS.a.size() == CS.size());
+
+  if(CS.constraints.size() != CS.contactConstraints.size()) {
+    std::cerr << "Incompatible constraint types: all constraints" 
+              << " must be ContactConstraints for the Kokkevis method" 
+              << std::endl;
+    assert(false);
+    abort();
+  }
 
   Vector3d point_accel_t;
 
@@ -1880,6 +1665,7 @@ void ForwardDynamicsContactsKokkevis (
   LOG << "QDDot after applying f_ext: " << QDDot.transpose() << std::endl;
 }
 
+//==============================================================================
 void SolveLinearSystem (
   const MatrixNd& A,
   const VectorNd& b, 
@@ -1892,7 +1678,7 @@ void SolveLinearSystem (
     abort();
   }
 
-  // Solve the sistem A*x = b.
+  // Solve the system A*x = b.
   switch (ls) {
   case (LinearSolverPartialPivLU) :
     #ifdef RBDL_USE_SIMPLE_MATH
@@ -1916,6 +1702,7 @@ void SolveLinearSystem (
   }
 }
 
+//==============================================================================
 unsigned int GetMovableBodyId (Model& model, unsigned int id) {
   if(model.IsFixedBodyId(id)) {
     unsigned int fbody_id = id - model.fixed_body_discriminator;

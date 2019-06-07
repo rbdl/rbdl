@@ -328,40 +328,55 @@ struct RBDL_DLLAPI ConstraintSet {
     bool allowConstraintAppending=true);
 
   /** \brief Adds a loop constraint to the constraint set.
-   *
-   * This type of constraints ensures that the relative orientation and position,
-   * spatial velocity, and spatial acceleration between two frames in two bodies
-   * are null along a specified spatial constraint axis.
-   *
-   * \param id_predecessor the identifier of the predecessor body
-   * \param id_successor the identifier of the successor body
-   * \param X_predecessor a spatial transform localizing the constrained
-   * frames on the predecessor body, expressed with respect to the predecessor
-   * body frame
-   * \param X_successor a spatial transform localizing the constrained
-   * frames on the successor body, expressed with respect to the successor
-   * body frame
-   * \param axis a spatial vector indicating the axis along which the constraint
-   * acts
-   * \param enable_stabilization Whether \ref baumgarte_stabilization
-   * should be enabled or not.
-   * \param stabilization_param The value for \f$T_\textit{stab}\f$ used for the
-   * \ref baumgarte_stabilization (defaults to 0.1).
-   * \param constraint_name a human readable name (optional, default: NULL)
-   *
+   
+    This type of constraints ensures that the relative orientation and position,
+    spatial velocity, and spatial acceleration between two frames in two bodies
+    are null along a specified spatial constraint axis.
+   
+    @param idPredecessor the identifier of the predecessor body
+
+    @param idSuccessor the identifier of the successor body
+
+    @param XPredecessor a spatial transform localizing the constrained
+            frames on the predecessor body, expressed with respect to the 
+            predecessor body frame
+    
+    @param XSuccessor a spatial transform localizing the constrained
+          frames on the successor body, expressed with respect to the successor
+          body frame
+    
+    @param constraintAxisInPredessor a spatial vector, resolved in the frame of
+            the predecessor frame, indicating the axis along which the 
+            constraint acts
+    
+    @param enableStabilization Whether \ref baumgarte_stabilization
+            should be enabled or not.
+    
+    @param stabilizationParam The value for \f$T_\textit{stab}\f$  
+           (defaults to 0.1).
+    
+    @param constraintName a human readable name (default: NULL) which must be
+            set if you would like to access constraints by their names.
+    
+    @param allowConstraintAppending this performance enhancing option will
+            allow constraints which are identical in all but the constraintAxis
+            to be grouped together which saves computation. If this constraint
+            differs from the last a new constraint object will be created.   
+    
+    @param positionLevelConstraint : when set to true, position errors will be 
+               computed for this constraint. This has the consequence that
+               the function CalcAssemblyQ will assemble this constraint at
+               the velocity level. In addition if Baumgarte stabilization 
+               is enabled, stabilization forces will be applied as a function
+               of the position error.
+    
+    @param velocityLevelConstraint : when set to true, velocity errors will be
+                computed for this constraint. Similiar to the 
+                positionLevelConstraint flag this means that CalcAssemblyQDot
+                function will assemble this constraint at the velocity level
+                and Baumgarte forces will be applied (if it is enabled) as a 
+                function of velocity-level errors.
    */
-/*  
-  unsigned int AddLoopConstraint(
-    unsigned int id_predecessor, 
-    unsigned int id_successor,
-    const Math::SpatialTransform &X_predecessor,
-    const Math::SpatialTransform &X_successor,
-    const Math::SpatialVector &axis,
-    bool enable_stabilization = false,
-    const double stabilization_param = 0.1,
-    const char *constraint_name = NULL
-    );
-*/
     unsigned int AddLoopConstraint(
     unsigned int idPredecessor, 
     unsigned int idSuccessor,
@@ -375,41 +390,70 @@ struct RBDL_DLLAPI ConstraintSet {
     bool positionLevelConstraint = true,
     bool velocityLevelConstraint = true);
 
+/** \brief Adds multiple loop constraints to the constraint set.
+   
+    This type of constraints ensures that the relative orientation and position,
+    spatial velocity, and spatial acceleration between two frames in two bodies
+    are null along a specified spatial constraint axis.
+   
+    @param idPredecessor the identifier of the predecessor body
+
+    @param idSuccessor the identifier of the successor body
+
+    @param XPredecessor a spatial transform localizing the constrained
+            frames on the predecessor body, expressed with respect to the 
+            predecessor body frame
+    
+    @param XSuccessor a spatial transform localizing the constrained
+          frames on the successor body, expressed with respect to the successor
+          body frame
+    
+    @param constraintAxisInPredessor a vector of spatial vectors, resolved in 
+            the frame of the precessor frame, indicating the axis along which 
+            the constraint acts
+    
+    @param enableStabilization Whether \ref baumgarte_stabilization
+            should be enabled or not.
+    
+    @param stabilizationParam The value for \f$T_\textit{stab}\f$  
+           (defaults to 0.1).
+    
+    @param constraintName a human readable name (default: NULL) which must be
+            set if you would like to access constraints by their names.
+        
+    @param positionLevelConstraint : when set to true, position errors will be 
+               computed for this constraint. This has the consequence that
+               the function CalcAssemblyQ will assemble this constraint at
+               the velocity level. In addition if Baumgarte stabilization 
+               is enabled, stabilization forces will be applied as a function
+               of the position error.
+    
+    @param velocityLevelConstraint : when set to true, velocity errors will be
+                computed for this constraint. Similiar to the 
+                positionLevelConstraint flag this means that CalcAssemblyQDot
+                function will assemble this constraint at the velocity level
+                and Baumgarte forces will be applied (if it is enabled) as a 
+                function of velocity-level errors.
+   */
+    unsigned int AddLoopConstraint(
+    unsigned int idPredecessor, 
+    unsigned int idSuccessor,
+    const Math::SpatialTransform &XPredecessor,
+    const Math::SpatialTransform &XSuccessor,
+    const std::vector < Math::SpatialVector > &constraintAxesInPredecessor,
+    bool enableStabilization = false,
+    const double stabilizationParam = 0.1,
+    const char *constraintName = NULL,
+    bool positionLevelConstraint = true,
+    bool velocityLevelConstraint = true);
+
+
   /** \brief Adds a custom constraint to the constraint set.
    *
-   * \param custom_constraint The CustomConstraint to be added to the
-   * ConstraintSet.
-   * \param id_predecessor the identifier of the predecessor body
-   * \param id_successor the identifier of the successor body
-   * \param X_predecessor a spatial transform localizing the constrained
-   * frames on the predecessor body, expressed with respect to the predecessor
-   * body frame
-   * \param X_successor a spatial transform localizing the constrained
-   * frames on the successor body, expressed with respect to the successor
-   * body frame
-   * \param axis a spatial vector indicating the axis along which the constraint
-   * acts
-   * \param enable_stabilization Whether \ref baumgarte_stabilization
-   * should be enabled or not.
-   * \param stabilization_param The value for \f$T_\textit{stab}\f$ used for the
-   * \ref baumgarte_stabilization (defaults to 0.1).
-   * \param constraint_name a human readable name (optional, default: NULL)
+   * \param customConstraint The CustomConstraint to be added to the
+   * ConstraintSet
    *
    */
-
-
-  unsigned int AddCustomConstraint(
-    CustomConstraint* custom_constraint,
-    unsigned int id_predecessor,
-    unsigned int id_successor,
-    const Math::SpatialTransform &X_predecessor,
-    const Math::SpatialTransform &X_successor,
-    bool enable_stabilization = false,
-    const double stabilization_param = 0.1,
-    const char *constraint_name = NULL
-    );
-
-
   unsigned int AddCustomConstraint(
       std::shared_ptr<Constraint> customConstraint);
 
@@ -458,11 +502,8 @@ struct RBDL_DLLAPI ConstraintSet {
 
   // Common constraints variables.
   std::vector<ConstraintType> constraintType;
-  std::vector<std::string> name;
-  //std::vector<unsigned int> mLoopConstraintIndices;
-  std::vector<unsigned int> mCustomConstraintIndices;
 
-  std::vector< CustomConstraint* > mCustomConstraints;
+  std::vector<std::string> name;
 
   //A shared_ptr (MM 28 May 2019)
   //  :is 2x as expensive (with the optimize flags turned on) as a regular
@@ -483,25 +524,18 @@ struct RBDL_DLLAPI ConstraintSet {
 
   std::vector< std::shared_ptr<LoopConstraint> > loopConstraints;
 
-  // Loop constraints variables.
-  std::vector<unsigned int> body_p;
-  std::vector<unsigned int> body_s;
-  std::vector<Math::SpatialTransform> X_p;
-  std::vector<Math::SpatialTransform> X_s;
-  std::vector<Math::SpatialVector> constraintAxis;
-  /** Baumgarte stabilization parameter */
-  std::vector<Math::Vector2d> baumgarteParameters;
+  
   /** Position error for the Baumgarte stabilization */
   Math::VectorNd err;
   /** Velocity error for the Baumgarte stabilization */
   Math::VectorNd errd;
 
-
-  /** Actual constraint forces along the constraint directions. */
+  /// The Lagrange multipliers, which due to some careful normalization
+  /// in the formulation of constraints are the constraint forces.
   Math::VectorNd force;
-  /** Actual constraint impulses along the constraint directions. */
+  /// Constraint impulses along the constraint directions. 
   Math::VectorNd impulse;
-  /** The velocities we want to have along the constraint directions */
+  /// The velocities we want to have along the constraint directions 
   Math::VectorNd v_plus;
 
   // Variables used by the Lagrangian methods
@@ -510,24 +544,17 @@ struct RBDL_DLLAPI ConstraintSet {
   Math::MatrixNd H;
   /// Workspace for the coriolis forces.
   Math::VectorNd C;
-  /// Workspace of the lower part of b.
+  /// Workspace of the right hand side of the acceleration equation.
   Math::VectorNd gamma;
+  /// Workspace for the constraint Jacobian
   Math::MatrixNd G;
+
   /// Workspace for the Lagrangian left-hand-side matrix.
   Math::MatrixNd A;
   /// Workspace for the Lagrangian right-hand-side.
   Math::VectorNd b;
   /// Workspace for the Lagrangian solution.
   Math::VectorNd x;
-
-  /// Workspace when evaluating contact Jacobians
-  //Math::MatrixNd Gi;
-  /// Workspace when evaluating loop/CustomConstraint Jacobians
-  Math::MatrixNd GSpi;
-  /// Workspace when evaluating loop/CustomConstraint Jacobians
-  Math::MatrixNd GSsi;
-  /// Workspace when evaluating loop/CustomConstraint Jacobians
-  Math::MatrixNd GSJ;
 
   /// Workspace for the QR decomposition of the null-space method
 #ifdef RBDL_USE_SIMPLE_MATH

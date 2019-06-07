@@ -29,7 +29,6 @@ SET ( TESTS_SRCS
   CustomJointSingleBodyTests.cc
   CustomJointMultiBodyTests.cc
   CustomConstraintsTests.cc
-  CustomConstraintsTestsNew.cc
   InverseKinematicsTests.cc
   LoopConstraintsTests.cc
   ScrewJointTests.cc

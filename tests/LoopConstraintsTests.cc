@@ -153,12 +153,13 @@ struct FloatingFourBarLinkage {
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,1.,0.));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,0.,1.));
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0.,0.,0.,1.,0.,0.), true, 0.1);
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0.,0.,0.,0.,1.,0.), true, 0.1);
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0.,0.,1.,0.,0.,0.), true, 0.1);
+
+    std::vector< SpatialVector > axis;
+    axis.push_back(SpatialVector(0.,0.,0.,1.,0.,0.));
+    axis.push_back(SpatialVector(0.,0.,0.,0.,1.,0.));
+    axis.push_back(SpatialVector(0.,0.,1.,0.,0.,0.));
+
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, axis, true, 0.1);
 
     cs.Bind(model);
 
