@@ -1528,15 +1528,9 @@ cdef class ConstraintSet:
             body_id not None,
             body_point not None,
             world_normal not None,
-            constraint_name = None,
-            normal_acceleration = 0.):
-        cdef crbdl.Vector3d c_body_point
-        cdef crbdl.Vector3d c_world_normal
-        cdef char* constraint_name_ptr
+            constraint_name = None):
 
-        for i in range (3):
-            c_body_point[i] = body_point[i]
-            c_world_normal[i] = world_normal[i]
+        cdef char* constraint_name_ptr
 
         if constraint_name == None:
             constraint_name_ptr = NULL
@@ -1545,10 +1539,9 @@ cdef class ConstraintSet:
 
         return self.thisptr.AddContactConstraint (
                 body_id,
-                c_body_point,
-                c_world_normal,
-                constraint_name_ptr,
-                normal_acceleration
+                body_point.thisptr[0],
+                world_normal.thisptr[0],
+                constraint_name_ptr
                 )            
             
     

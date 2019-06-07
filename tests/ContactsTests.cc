@@ -132,10 +132,10 @@ TEST ( TestForwardDynamicsConstraintsDirectSimple ) {
 
   ConstraintSet constraint_set;
 
-  bool enableAppending=true;
+
   unsigned int id=11;
   constraint_set.AddContactConstraint(contact_body_id, contact_point,
-                                     Vector3d (1., 0., 0.),enableAppending,
+                                     Vector3d (1., 0., 0.),true,0.1,
                                       "ground_xyz",id);
   constraint_set.AddContactConstraint (contact_body_id, contact_point,
                                        Vector3d (0., 1., 0.));
@@ -214,9 +214,8 @@ TEST ( TestForwardDynamicsConstraintsDirectMoving ) {
 
   ConstraintSet constraint_set;
 
-  bool enableAppending=true;
   constraint_set.AddContactConstraint(contact_body_id, contact_point,
-                                      Vector3d (1., 0., 0.),enableAppending,
+                                      Vector3d (1., 0., 0.),false,0.1,
                                       "ground_xyz");
   constraint_set.AddContactConstraint (contact_body_id, contact_point,
                                        Vector3d (0., 1., 0.));

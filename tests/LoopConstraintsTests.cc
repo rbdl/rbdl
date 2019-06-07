@@ -68,7 +68,7 @@ struct FourBarLinkage {
 
     bool append=true;
     unsigned int userDefinedId = 7;
-    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,0,1,0,0),append,
+    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,0,1,0,0),true,0.1,
                          "LoopXY_Rz",userDefinedId);
 
     //These two constraints below will be appended to the above
@@ -155,21 +155,20 @@ struct FloatingFourBarLinkage {
                          joint_rev_z, virtual_body);
 
     unsigned int userId = 0;
-    bool append=true;
-    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.),append,
+
+    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.),true,0.1,
                             "ContactXYZ",userId);
     //By default these constraints will be appended to the one above taking on
     //its name and id
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,1.,0.));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,0.,1.));
 
-    std::vector< SpatialVector > axis;
-    axis.push_back(SpatialVector(0.,0.,0.,1.,0.,0.));
-    axis.push_back(SpatialVector(0.,0.,0.,0.,1.,0.));
-    axis.push_back(SpatialVector(0.,0.,1.,0.,0.,0.));
 
     ++userId;
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, axis,"LoopXY_Rz",userId);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0.,0.,0.,1.,0.,0.),
+                         true,0.1,"LoopXY_Rz",userId);
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0.,0.,0.,0.,1.,0.));
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0.,0.,1.,0.,0.,0.));
 
     cs.Bind(model);
 
@@ -260,8 +259,7 @@ struct SliderCrank3D {
 
 
     unsigned int conId = 0;
-    bool append=true;
-    cs.AddLoopConstraint(id_p,id_s,X_p,X_s,SpatialVector(0,0,0,1,0,0),append,
+    cs.AddLoopConstraint(id_p,id_s,X_p,X_s,SpatialVector(0,0,0,1,0,0),true,0.1,
                          "LoopXYZ_Rz",conId);
     //By default the constraints below will be appended to the one above,
     //taking on its name and id.
@@ -362,7 +360,7 @@ struct SliderCrank3DSphericalJoint {
 
     bool append=true;
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0),
-                         append,"LoopXYZ_Rz",0);
+                         true,0.1,"LoopXYZ_Rz",0);
 
     //By default these constraints will be appended to the one above taking
     //on its name and id

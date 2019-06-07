@@ -32,11 +32,10 @@ ContactConstraint::ContactConstraint(
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintUnitVector,
-      const char *name,
-      unsigned int userDefinedIdNumber,
       bool enableBaumgarteStabilization,
       double stabilizationTimeConstant,
-      bool positionLevelConstraint,
+      const char *name,
+      unsigned int userDefinedIdNumber,
       bool velocityLevelConstraint):
         Constraint(name,
                    ConstraintTypeContact,
@@ -49,68 +48,26 @@ ContactConstraint::ContactConstraint(
   assert(std::fabs(T[0].norm()-1.0)<= dblA);
 
   groundPoint = Math::Vector3dZero;
-  positionConstraint[0]=positionLevelConstraint;
+
+  bodyIds.push_back(bodyId);
+  bodyFrames.push_back(
+        Math::SpatialTransform(Math::Matrix3dIdentity, bodyPoint));
+
+  bodyIds.push_back(0);
+  bodyFrames.push_back(
+        Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
+
+  setEnableBaumgarteStabilization(enableBaumgarteStabilization);
+  setBaumgarteTimeConstant(stabilizationTimeConstant);
+
+  //This constraint is not set up to be enforced at the position level:
+  //to do so the user would need to be able to set the ground point, an
+  //option I have thus far not given the user.
+  positionConstraint[0]=false;
   velocityConstraint[0]=velocityLevelConstraint;
 
-  bodyIds.push_back(bodyId);
-  bodyFrames.push_back(
-        Math::SpatialTransform(Math::Matrix3dIdentity, bodyPoint));
-
-  bodyIds.push_back(0);
-  bodyFrames.push_back(
-        Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
-
-  setEnableBaumgarteStabilization(enableBaumgarteStabilization);
-  setBaumgarteTimeConstant(stabilizationTimeConstant);
 }
 
-ContactConstraint::ContactConstraint(
-    const unsigned int bodyId,
-    const Math::Vector3d &bodyPoint,
-    const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
-    const char *name,
-    unsigned int userDefinedIdNumber,
-    bool enableBaumgarteStabilization,
-    double stabilizationTimeConstant,
-    bool positionLevelConstraint,
-    bool velocityLevelConstraint):
-      Constraint(name,
-                 ConstraintTypeContact,
-                 unsigned(groundConstraintUnitVectors.size()),
-                 userDefinedIdNumber),
-      T(groundConstraintUnitVectors)
-{
-  assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);
-
-  dblA = 10.0*std::numeric_limits<double>::epsilon();
-
-  for(unsigned int i=0; i<sizeOfConstraint;++i){
-
-    //Check that all vectors in T are orthonormal
-    assert(std::fabs(T[i].norm()-1.0) <= dblA);
-    if(i > 0){
-      for(unsigned int j=0; j< i;++j){
-        assert(std::fabs(T[i].dot(T[j])) <= dblA);
-        }
-    }
-
-    //To make this consistent with the RBDL implementation of
-    //ContactConstraints
-    positionConstraint[i]=positionLevelConstraint;
-    velocityConstraint[i]=velocityLevelConstraint;
-  }
-
-  bodyIds.push_back(bodyId);
-  bodyFrames.push_back(
-        Math::SpatialTransform(Math::Matrix3dIdentity, bodyPoint));
-  bodyIds.push_back(0);
-  bodyFrames.push_back(
-        Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
-
-  setEnableBaumgarteStabilization(enableBaumgarteStabilization);
-  setBaumgarteTimeConstant(stabilizationTimeConstant);
-
-}
 
 
 //==============================================================================
@@ -274,7 +231,7 @@ void ContactConstraint::calcConstraintForces(
 //==============================================================================
 void ContactConstraint::
         appendNormalVector(const Math::Vector3d& normal,
-                           bool posLevel, bool velLevel)
+                           bool velocityLevelConstraint)
 {
   dblA = 10.0*std::numeric_limits<double>::epsilon();
 
@@ -285,8 +242,8 @@ void ContactConstraint::
   }
 
   T.push_back(normal);
-  positionConstraint.push_back(posLevel);
-  velocityConstraint.push_back(velLevel);
+  positionConstraint.push_back(false);
+  velocityConstraint.push_back(velocityLevelConstraint);
   sizeOfConstraint++;
 
   assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);

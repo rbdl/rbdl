@@ -42,7 +42,7 @@ public:
     bodyFrames.push_back(bodyFramePredecessor);
     bodyFrames.push_back(bodyFrameSuccessor);
 
-    enableConstraintErrorFromPosition();
+    enableConstraintErrorFromPositionLevel();
     setBaumgarteTimeConstant(baumgarteTStab);
     setEnableBaumgarteStabilization(enableBaumgarteStabilization);
 

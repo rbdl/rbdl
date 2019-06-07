@@ -29,22 +29,10 @@ public:
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintNormalVectors,
-      const char *name = NULL,
-      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
       bool enableBaumgarteStabilization=false,
       double stabilizationParameter=0.1,
-      bool positionLevelConstraint=false,
-      bool velocityLevelConstraint=true);
-
-  ContactConstraint(
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const std::vector< Math::Vector3d > &groundConstraintNormalVectors,               
       const char *name = NULL,
       unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
-      bool enableBaumgarteStabilization=false,
-      double stabilizationParameter=0.1,
-      bool positionLevelConstraint=false,
       bool velocityLevelConstraint=true);
 
 
@@ -104,8 +92,7 @@ public:
   }
 
   void appendNormalVector(const Math::Vector3d &normal,
-                          bool positionLevelConstraint = false,
-                          bool velocityLevelConstraint = true);
+                          bool velocityLevelConstraint);
 
   //To support ForwardDynamicsKokkevis
   void calcPointAccelerations(Model &model,

@@ -285,6 +285,13 @@ struct RBDL_DLLAPI ConstraintSet {
     bound (false) {}
 
 
+  /**
+    @param name : the optional name that the constraint was assigned when it was
+                  added to the constraint set.
+
+    @param returns: the index of the constraint in the vector of Constraint
+                    pointers
+  */
   unsigned int GetConstraintIndex(const char* name){
 
     unsigned int index = constraints.size();
@@ -305,6 +312,14 @@ struct RBDL_DLLAPI ConstraintSet {
 
   }
 
+  /**
+    @param userDefinedId : the integer id that was assigned to this constraint
+                           when it was created.
+
+    @param returns: the index of the constraint in the vector of Constraint
+                    pointers
+  */
+
   unsigned int GetConstraintIndex(unsigned int userDefinedId){
     unsigned int index = constraints.size();
     unsigned int i = 0;
@@ -321,57 +336,66 @@ struct RBDL_DLLAPI ConstraintSet {
   }
 
 
-  /** \brief Adds a vector of contact (point-ground) constraints to the 
-   *  constraint set.
-   *
-   * This type of constraints ensures that the velocity and acceleration of a specified
-   * body point along a specified axis are null. 
-   *
-   * \param body_id the body which is affected directly by the constraint
-   * \param body_point the point that is constrained relative to the
-   * contact body
-   * \param worldNormals the vector of constraint normals to constrain.
-   * \param constraint_name a human readable name (optional, default: NULL)
-   */
-  unsigned int AddContactConstraint(
-    unsigned int bodyId,
-    const Math::Vector3d &bodyPoint,
-    const std::vector< Math::Vector3d > &worldNormals,
-    const char *constraintName = NULL,
-    unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
-    bool enableBaumgarteStabilization=false,
-    double stabilizationTimeConstant = 0.1,
-    bool positionLevelConstraint = false,
-    bool velocityLevelConstraint = true);
 
-  /** \brief Adds a contact (point-ground) constraint to the constraint set.
-   *
-   * This type of constraints ensures that the velocity and acceleration of a specified
-   * body point along a specified axis are null. This constraint does not act
-   * at the position level.
-   *
-   * \param body_id the body which is affected directly by the constraint
-   * \param body_point the point that is constrained relative to the
-   * contact body
-   * \param world_normal the normal along the constraint acts (in base
-   * coordinates)
-   * \param constraint_name a human readable name (optional, default: NULL)
-   * \param allowConstraintAppending setting this to true will append this 
-             contact constraint to the last added contact constraint but only
-             if both constraints are applied to the same body and location on
-             that body. This is done to save on computation.
+  /** @brief Adds a single contact constraint (point-ground) to the
+      constraint set.
+
+      This type of constraints ensures that the velocity and acceleration of a
+      specified body point along a specified axis are null.
+
+     @param bodyId the body which is affected directly by the constraint
+
+     @param bodyPoint the point that is constrained relative to the
+            contact body
+
+     @param worldNormals the normal direction in which to apply the constraint
+
+
+     @param constraintName a human readable name (optional, default: NULL).
+            Set this field to a unique name (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
+
+     @param userDefinedId a user defined id (optional, defaults to max()).
+            Set this field to a unique number (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
+
+     @param enableBaumgarteStabilization (optional, default false) setting this
+            flag to true will modify the right hand side of the acceleration
+            equation with a penaltiy term that is proportional to the constraint
+            error scaled by a constant.
+
+     @param stabilizationTimeConstant (optional, defaults to 0.1 sec) this
+            value scales the strength of Baumgarte stabilization so that the
+            settling time of the error is proportional the value given here.
+
+    @param velocityLevelConstraint (advanced, optional, defaults to true) :
+                This flag controls whether or not velocity errors are computed
+                for this constraint. When velocity errors are computed
+                they are used by CalcAssemblyQDot (to assemble this constraint
+                at the velocity level) and by Baumgarte stabilization (if it is
+                enabled) to modify the right hand side of the acceleration
+                equation with a penalty term proportional to error. To be
+                consistent with the original RBDL implementation position level
+                errors are not computed (all 0's) for this constraint type.
+
+     @param allowConstraintAppending (optional, defaults to true) setting this
+            to true will append this contact constraint to the last added
+            contact constraint but only if both constraints are applied to the
+            same body and location on that body. This is done to save on
+            computation. Note that the name and userId of this constraint is
+            ignored when it is appended to an existing parent constraint.
+
    */
   unsigned int AddContactConstraint (
     unsigned int body_id,
     const Math::Vector3d &body_point,
     const Math::Vector3d &world_normal,
-    bool allowConstraintAppending = true,
-    const char *constraint_name = NULL,
-    unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
     bool enableBaumgarteStabilization=false,
     double stabilizationTimeConstant=0.1,
-    bool positionLevelConstraint = false,
-    bool velocityLevelConstraint = true);
+    const char *constraint_name = NULL,
+    unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+    bool velocityLevelConstraint = true,
+    bool allowConstraintAppending = true);
 
   /** \brief Adds a loop constraint to the constraint set.
    
@@ -379,9 +403,9 @@ struct RBDL_DLLAPI ConstraintSet {
     spatial velocity, and spatial acceleration between two frames in two bodies
     are null along a specified spatial constraint axis.
    
-    @param idPredecessor the identifier of the predecessor body
+    @param bodyIdPredecessor the identifier of the predecessor body
 
-    @param idSuccessor the identifier of the successor body
+    @param bodyIdSuccessor the identifier of the successor body
 
     @param XPredecessor a spatial transform localizing the constrained
             frames on the predecessor body, expressed with respect to the 
@@ -395,110 +419,64 @@ struct RBDL_DLLAPI ConstraintSet {
             the predecessor frame, indicating the axis along which the 
             constraint acts
     
-    
-    @param constraintName a human readable name (default: NULL) which must be
-            set if you would like to access constraints by their names.
-    
-    @param allowConstraintAppending this performance enhancing option will
-            allow constraints which are identical in all but the constraintAxis
-            to be grouped together which saves computation. If this constraint
-            differs from the last a new constraint object will be created.   
-    
-    @param positionLevelConstraint : when set to true, position errors will be 
-               computed for this constraint. This has the consequence that
-               the function CalcAssemblyQ will assemble this constraint at
-               the velocity level. In addition if Baumgarte stabilization 
-               is enabled, stabilization forces will be applied as a function
-               of the position error.
-    
-    @param velocityLevelConstraint : when set to true, velocity errors will be
-                computed for this constraint. Similiar to the 
-                positionLevelConstraint flag this means that CalcAssemblyQDot
-                function will assemble this constraint at the velocity level
-                and Baumgarte forces will be applied (if it is enabled) as a 
-                function of velocity-level errors.
 
-    @param enableStabilization Whether \ref baumgarte_stabilization
-            should be enabled or not.
+     @param constraintName a human readable name (optional, default: NULL).
+            Set this field to a unique name (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
 
-    @param stabilizationParam The value for \f$T_\textit{stab}\f$
-           (defaults to 0.1).
+     @param userDefinedId a user defined id (optional, defaults to max()).
+            Set this field to a unique number (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
+
+     @param enableBaumgarteStabilization (optional, default false) setting this
+            flag to true will modify the right hand side of the acceleration
+            equation with a penaltiy term that is proportional to the constraint
+            error scaled by a constant.
+
+     @param stabilizationTimeConstant (optional, defaults to 0.1 sec) this
+            value scales the strength of Baumgarte stabilization so that the
+            settling time of the error is proportional the value given here.
+
+     @param positionLevelConstraint (optional, defaults to true to be consistent
+              with the original implementation):
+              When set to true, position errors will be computed for this
+              constraint. This has the consequence that the function
+              CalcAssemblyQ will assemble this constraint at the position level.
+              In addition if Baumgarte stabilization is enabled, stabilization
+              forces will be applied as a function  of the position error.
+
+     @param velocityLevelConstraint (optional, defaults to true to be consistent
+              with the original implementation) :
+              This flag controls whether or not velocity errors are computed
+              for this constraint. When velocity errors are computed
+              they are used by CalcAssemblyQDot (to assemble this constraint
+              at the velocity level) and by Baumgarte stabilization (if it is
+              enabled) to modify the right hand side of the acceleration
+              equation with a penalty term proportional to error.
+
+     @param allowConstraintAppending (optional, defaults to true) setting this
+            to true will append this contact constraint to the last added
+            contact constraint but only if both constraints are applied to the
+            same body and location on that body. This is done to save on
+            computation. Note that the name and userId of this constraint is
+            ignored when it is appended to an existing parent constraint.
 
    */
     unsigned int AddLoopConstraint(
-      unsigned int idPredecessor,
-      unsigned int idSuccessor,
+      unsigned int bodyIdPredecessor,
+      unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &XPredecessor,
       const Math::SpatialTransform &XSuccessor,
       const Math::SpatialVector &constraintAxisInPredecessor,
-      bool allowConstraintAppending=true,
-      const char *constraintName = NULL,
-      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
       bool enableBaumgarteStabilization = false,
       double stabilizationTimeConstant = 0.1,
-      bool positionLevelConstraint = true,
-      bool velocityLevelConstraint = true);
-
-/** \brief Adds multiple loop constraints to the constraint set.
-   
-    This type of constraints ensures that the relative orientation and position,
-    spatial velocity, and spatial acceleration between two frames in two bodies
-    are null along a specified spatial constraint axis.
-   
-    @param idPredecessor the identifier of the predecessor body
-
-    @param idSuccessor the identifier of the successor body
-
-    @param XPredecessor a spatial transform localizing the constrained
-            frames on the predecessor body, expressed with respect to the 
-            predecessor body frame
-    
-    @param XSuccessor a spatial transform localizing the constrained
-          frames on the successor body, expressed with respect to the successor
-          body frame
-    
-    @param constraintAxisInPredessor a vector of spatial vectors, resolved in 
-            the frame of the precessor frame, indicating the axis along which 
-            the constraint acts
-        
-    @param constraintName a human readable name (default: NULL) which must be
-            set if you would like to access constraints by their names.
-
-    @param enableStabilization Whether \ref baumgarte_stabilization
-            should be enabled or not.
-
-    @param stabilizationParam The value for \f$T_\textit{stab}\f$
-           (defaults to 0.1).
-
-    @param positionLevelConstraint : when set to true, position errors will be 
-               computed for this constraint. This has the consequence that
-               the function CalcAssemblyQ will assemble this constraint at
-               the velocity level. In addition if Baumgarte stabilization 
-               is enabled, stabilization forces will be applied as a function
-               of the position error.
-    
-    @param velocityLevelConstraint : when set to true, velocity errors will be
-                computed for this constraint. Similiar to the 
-                positionLevelConstraint flag this means that CalcAssemblyQDot
-                function will assemble this constraint at the velocity level
-                and Baumgarte forces will be applied (if it is enabled) as a 
-                function of velocity-level errors.
-
-
-
-   */
-    unsigned int AddLoopConstraint(
-      unsigned int idPredecessor,
-      unsigned int idSuccessor,
-      const Math::SpatialTransform &XPredecessor,
-      const Math::SpatialTransform &XSuccessor,
-      const std::vector < Math::SpatialVector > &constraintAxesInPredecessor,
       const char *constraintName = NULL,
       unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
-      bool enableBaumgarteStabilization = false,
-      double stabilizationTimeConstant = 0.1,
       bool positionLevelConstraint = true,
-      bool velocityLevelConstraint = true);
+      bool velocityLevelConstraint = true,
+      bool allowConstraintAppending=true);
+
+
 
 
   /** \brief Adds a custom constraint to the constraint set.

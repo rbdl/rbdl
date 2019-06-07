@@ -462,11 +462,7 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
         bool bound
 
         vector[string] name
-        vector[unsigned int] body
-        vector[Vector3d] point
-        vector[Vector3d] normal
 
-        VectorNd acceleration
         VectorNd force
         VectorNd impulse
         VectorNd v_plus

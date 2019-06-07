@@ -446,9 +446,7 @@ bool LuaModelReadConstraintsFromTable (
           , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["normal"].getDefault<Vector3d>(Vector3d::Zero())
           , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["name"].getDefault<string>("").c_str()
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["normal_acceleration"].getDefault<double>(0.));
+            ["name"].getDefault<string>("").c_str());
         if(verbose) {
           cout << "  type = contact" << endl;
           cout << "  name = " << constraint_name << std::endl;
@@ -463,9 +461,7 @@ bool LuaModelReadConstraintsFromTable (
             << model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["normal"].getDefault<Vector3d>(Vector3d::Zero()).transpose() 
             << endl;
-          cout << "  normal acceleration = "
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["normal_acceleration"].getDefault<double>(0.) << endl;
+          cout << "  normal acceleration = DEPRECATED::IGNORED" << endl;
         }
       }
       else if(constraintType == "loop") {
@@ -486,6 +482,28 @@ bool LuaModelReadConstraintsFromTable (
         // and set the actual stabilization cofficients for the Baumgarte
         // stabilization afterwards if enabled.
         unsigned int constraint_id;
+
+        bool enable_stabilization = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+            ["enable_stabilization"].getDefault<bool>(false);
+        double stabilization_parameter = 0.1;
+        if (enable_stabilization) {
+          stabilization_parameter = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+            ["stabilization_parameter"].getDefault<double>(0.1);
+          if (stabilization_parameter <= 0.0) {
+            std::cerr << "Invalid stabilization parameter: " << stabilization_parameter
+              << " must be > 0.0" << std::endl;
+            abort();
+          }
+        }
+
+        unsigned int constraint_user_id=0;
+        if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+           ["id"].exists()){
+          constraint_user_id = unsigned(int(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+              ["id"].getDefault<double>(0.)));
+        }
+
+
         constraint_id = constraint_sets[i].AddLoopConstraint(model->GetBodyId
           (model_table["constraint_sets"][constraint_set_names[i].c_str()]
             [ci + 1]["predecessor_body"].getDefault<string>("").c_str())
@@ -498,25 +516,12 @@ bool LuaModelReadConstraintsFromTable (
             ["successor_transform"].getDefault<SpatialTransform>(SpatialTransform())
           , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
             ["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
-          , false
-          , 0.0
-          , constraint_name.c_str());
+          , enable_stabilization
+          , stabilization_parameter
+          , constraint_name.c_str()
+          , constraint_user_id);
 
-        bool enable_stabilization = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["enable_stabilization"].getDefault<bool>(false);
-        double stabilization_parameter = 0.0;
-        if (enable_stabilization) {
-          stabilization_parameter = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["stabilization_parameter"].getDefault<double>(0.1);
-          if (stabilization_parameter <= 0.0) {
-            std::cerr << "Invalid stabilization parameter: " << stabilization_parameter
-              << " must be > 0.0" << std::endl;
-            abort();
-          }
-          double stabilization_coefficient = 1.0 / stabilization_parameter;
-          constraint_sets[i].baumgarteParameters[i] = Vector2d(
-              stabilization_coefficient, stabilization_coefficient);
-        }
+
 
         if(verbose) {
           cout << "  type = loop" << endl;

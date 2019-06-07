@@ -201,28 +201,28 @@ class RBDL_DLLAPI Constraint {
 
 
 
-    void enableConstraintErrorFromPosition(unsigned int constraintSubIndex)
+    void enableConstraintErrorFromPositionLevel(unsigned int constraintSubIndex)
     {
       assert(constraintSubIndex < sizeOfConstraint);
       positionConstraint[constraintSubIndex] = true;
       velocityConstraint[constraintSubIndex] = true;      
     }
 
-    void enableConstraintErrorFromVelocity(unsigned int constraintSubIndex)
+    void enableConstraintErrorFromVelocityLevel(unsigned int constraintSubIndex)
     {
       assert(constraintSubIndex < sizeOfConstraint);
       positionConstraint[constraintSubIndex] = false;
       velocityConstraint[constraintSubIndex] = true;      
     }
 
-    void enableConstraintErrorFromAcceleration(unsigned int constraintSubIndex)
+    void enableConstraintErrorFromAccelerationLevel(unsigned int constraintSubIndex)
     {
       assert(constraintSubIndex < sizeOfConstraint);
       positionConstraint[constraintSubIndex] = false;
       velocityConstraint[constraintSubIndex] = false;      
     }
 
-    void enableConstraintErrorFromPosition()
+    void enableConstraintErrorFromPositionLevel()
     {
         for(unsigned int i=0; i<sizeOfConstraint;++i){
           positionConstraint[i] = true;
@@ -230,7 +230,7 @@ class RBDL_DLLAPI Constraint {
         }
     }
 
-    void enableConstraintErrorFromVelocity()
+    void enableConstraintErrorFromVelocityLevel()
     {
         for(unsigned int i=0; i<sizeOfConstraint;++i){
           positionConstraint[i] = false;
@@ -238,7 +238,7 @@ class RBDL_DLLAPI Constraint {
         }
     }
 
-    void enableConstraintErrorFromAcceleration()
+    void enableConstraintErrorFromAccelerationLevel()
     {
         for(unsigned int i=0; i<sizeOfConstraint;++i){
           positionConstraint[i] = false;

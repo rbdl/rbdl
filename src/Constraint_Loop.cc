@@ -35,10 +35,10 @@ LoopConstraint::LoopConstraint(
       const Math::SpatialTransform &bodyFramePredecessor,
       const Math::SpatialTransform &bodyFrameSuccessor,
       const Math::SpatialVector &constraintAxis,
-      const char *name,
-      unsigned int userDefinedIdNumber,
       bool enableBaumgarteStabilization,
       double stabilizationTimeConstant,
+      const char *name,
+      unsigned int userDefinedIdNumber,
       bool positionLevelConstraint,
       bool velocityLevelConstraint):
         Constraint(name,
@@ -65,58 +65,7 @@ LoopConstraint::LoopConstraint(
   setBaumgarteTimeConstant(stabilizationTimeConstant);
 
 }
-//==============================================================================
-LoopConstraint::LoopConstraint(
-      //const unsigned int rowInSystem,
-      const unsigned int bodyIdPredecessor,
-      const unsigned int bodyIdSuccessor,
-      const Math::SpatialTransform &bodyFramePredecessor,
-      const Math::SpatialTransform &bodyFrameSuccessor,
-      const std::vector< Math::SpatialVector > &constraintAxes,
-      const char *name,
-      unsigned int userDefinedIdNumber,
-      bool enableBaumgarteStabilization,
-      double stabilizationTimeConstant,
-      bool positionLevelConstraint,
-      bool velocityLevelConstraint):
-      Constraint( name,
-                  ConstraintTypeLoop,
-                  unsigned(constraintAxes.size()),
-                  userDefinedIdNumber),
-      T(constraintAxes)
-{
 
-  //connectToConstraintSet(rowInSystem,
-  //                       unsigned(constraintAxes.size()));
-
-  assert( sizeOfConstraint <= 6 && sizeOfConstraint > 0);
-  dblA = std::numeric_limits<double>::epsilon()*10.;
-
-  for(unsigned int i = 0; i<sizeOfConstraint;++i){
-
-    //Check that all vectors in T are orthonormal    
-    assert(std::fabs(T[i].norm()-1.0) <= dblA);
-    if(i > 0){
-      for(unsigned int j=0; j< i;++j){
-        assert(std::fabs(T[i].dot(T[j])) <= dblA);
-        }
-    }
-
-    positionConstraint[i] = positionLevelConstraint;
-    velocityConstraint[i] = velocityLevelConstraint;
-  }
-
-  bodyIds.push_back(bodyIdPredecessor);
-  bodyIds.push_back(bodyIdSuccessor);
-
-  bodyFrames.push_back(bodyFramePredecessor);
-  bodyFrames.push_back(bodyFrameSuccessor);
-
-  setEnableBaumgarteStabilization(enableBaumgarteStabilization);
-  setBaumgarteTimeConstant(stabilizationTimeConstant);
-
-
-}
 
 //==============================================================================
 
@@ -223,27 +172,17 @@ void LoopConstraint::calcGamma(  Model &model,
 
 
 void LoopConstraint::calcPositionError(Model &model,
-                                                      const double time,
-                                                      const Math::VectorNd &Q,
-                                                      Math::VectorNd &errSysUpd,
-                                                      ConstraintCache &cache,
-                                                      bool updKin)
+                                      const double time,
+                                      const Math::VectorNd &Q,
+                                      Math::VectorNd &errSysUpd,
+                                      ConstraintCache &cache,
+                                      bool updKin)
 {
 
   // Constraints computed in the predecessor body frame.
 
 
   // Compute the position of the two contact points.
-  //pos_p = CalcBodyToBaseCoordinates (model, Q, CS.body_p[lci], CS.X_p[lci].r
-  //  , false);
-  //pos_s = CalcBodyToBaseCoordinates (model, Q, CS.body_s[lci], CS.X_s[lci].r
-  //  , false);
-
-  // Compute the orientation of the two constraint frames.
-  //rot_p = CalcBodyWorldOrientation (model, Q, CS.body_p[lci], false).transpose()
-  //  * CS.X_p[lci].E;
-  //rot_s = CalcBodyWorldOrientation (model, Q, CS.body_s[lci], false).transpose()
-  //  * CS.X_s[lci].E;
 
   //Kp: predecessor frame
   cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
