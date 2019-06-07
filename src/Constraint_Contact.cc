@@ -28,7 +28,7 @@ ContactConstraint::ContactConstraint():
 
 //==============================================================================
 ContactConstraint::ContactConstraint(
-      //const unsigned int rowInGSys,
+      //const unsigned int rowInSystem,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintUnitVector,
@@ -59,7 +59,7 @@ ContactConstraint::ContactConstraint(
         Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
 }
 ContactConstraint::ContactConstraint(
-    //const unsigned int rowInGSys,
+    //const unsigned int rowInSystem,
     const unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
@@ -103,7 +103,7 @@ ContactConstraint::ContactConstraint(
 //==============================================================================
 
 ContactConstraint::ContactConstraint(
-      //const unsigned int rowInGSys,
+      //const unsigned int rowInSystem,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundPoint,
@@ -171,7 +171,7 @@ void ContactConstraint::calcConstraintJacobian( Model &model,
                     updateKinematics);
 
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
-    GSysUpd.block(rowInGSys+i,0,1,GSysUpd.cols()) =
+    GSysUpd.block(rowInSystem+i,0,1,GSysUpd.cols()) =
         T[i].transpose()*cache.mat3NA;
   }
 }
@@ -194,7 +194,7 @@ void ContactConstraint::calcGamma(  Model &model,
                                        updateKinematics);
 
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
-    gammaSysUpd.block(rowInGSys+i,0,1,1) =
+    gammaSysUpd.block(rowInSystem+i,0,1,1) =
           -T[i].transpose()*cache.vec3A;
   }
 }
@@ -214,9 +214,9 @@ void ContactConstraint::calcPositionError(Model &model,
                                           updateKinematics)  - groundPoint;
   for(unsigned int i = 0; i < sizeOfConstraint; ++i){
     if(positionConstraint[i]){
-      errSysUpd[rowInGSys+i] = cache.vec3A.dot( T[i] );
+      errSysUpd[rowInSystem+i] = cache.vec3A.dot( T[i] );
     }else{
-      errSysUpd[rowInGSys+i] = 0.;
+      errSysUpd[rowInSystem+i] = 0.;
     }
   }
 }
@@ -236,9 +236,9 @@ void ContactConstraint::calcVelocityError(  Model &model,
                                     updateKinematics);
   for(unsigned int i = 0; i < sizeOfConstraint; ++i){
     if(velocityConstraint[i]){
-      derrSysUpd[rowInGSys+i] = cache.vec3A.dot( T[i] );
+      derrSysUpd[rowInSystem+i] = cache.vec3A.dot( T[i] );
     }else{
-      derrSysUpd[rowInGSys+i] = 0.;
+      derrSysUpd[rowInSystem+i] = 0.;
     }
   }
 }
@@ -289,7 +289,7 @@ void ContactConstraint::calcConstraintForces(
   //Evaluate the total force the constraint applies to the contact point
   cache.vec3A.setZero();
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
-    cache.vec3A += T[i]*LagrangeMultipliersSys[rowInGSys+i];
+    cache.vec3A += T[i]*LagrangeMultipliersSys[rowInSystem+i];
   }
 
   //Update the forces applied to the body in the frame of the body
@@ -335,12 +335,12 @@ void ContactConstraint::
                             std::vector<Math::Vector3d> &pointAccelerationsSysUpd,
                             bool updateKinematics)
 {
-  pointAccelerationsSysUpd[rowInGSys] =
+  pointAccelerationsSysUpd[rowInSystem] =
       CalcPointAcceleration (model, Q, QDot, QDDot, bodyIds[0],
                                       bodyFrames[0].r, updateKinematics);
   for(unsigned int i=1; i<sizeOfConstraint;++i){
-    pointAccelerationsSysUpd[rowInGSys+i] =
-        pointAccelerationsSysUpd[rowInGSys];
+    pointAccelerationsSysUpd[rowInSystem+i] =
+        pointAccelerationsSysUpd[rowInSystem];
   }
 }
 
@@ -367,8 +367,8 @@ void ContactConstraint::
                     Math::VectorNd &ddErrSysUpd)
 {
   for(unsigned int i=0; i<sizeOfConstraint;++i){
-    ddErrSysUpd[rowInGSys+i] =
-        T[i].dot(pointAccelerationsSys[rowInGSys+i]);
+    ddErrSysUpd[rowInSystem+i] =
+        T[i].dot(pointAccelerationsSys[rowInSystem+i]);
   }
 }
 
@@ -391,7 +391,7 @@ void ContactConstraint::
     cache.svecA[3] = -T[i][0];
     cache.svecA[4] = -T[i][1];
     cache.svecA[5] = -T[i][2];
-    fExtSysUpd[rowInGSys+i] = cache.stA.applyAdjoint( cache.svecA );
+    fExtSysUpd[rowInSystem+i] = cache.stA.applyAdjoint( cache.svecA );
   }
 }
 

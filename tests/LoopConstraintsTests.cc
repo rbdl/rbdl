@@ -148,8 +148,7 @@ struct FloatingFourBarLinkage {
     idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)),
                          joint_rev_z, link2);
     idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)),
-                         joint_rev_z
-      , virtual_body);
+                         joint_rev_z, virtual_body);
 
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,1.,0.));
@@ -1488,7 +1487,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qd[7] = 0.;
 
   CalcConstraintsVelocityError(model, q, qd, cs, errd,true);
-  CalcConstraintsJacobian(model, q, cs, G);
+  CalcConstraintsJacobian(model, q, cs, G, true);
   errdRef = G * qd;
   CHECK_ARRAY_CLOSE(errdRef, errd, cs.size(), TEST_PREC);
 }

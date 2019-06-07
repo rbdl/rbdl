@@ -18,7 +18,6 @@ namespace RigidBodyDynamics {
 enum ConstraintType {
   ConstraintTypeContact=0,
   ConstraintTypeLoop,
-  ConstraintTypeLoopNew,
   ConstraintTypeCustom,
   ConstraintTypeLast,
 };
@@ -29,14 +28,13 @@ struct ConstraintCache {
   Math::VectorNd vecNZeros;
   Math::VectorNd vecNA, vecNB, vecNC, vecND;
 
-  Math::Vector3d  vec3A, vec3B, vec3C, vec3D;
-  Math::Matrix3d  mat3A, mat3B, mat3C, mat3D;
+  Math::Vector3d  vec3A, vec3B, vec3C, vec3D, vec3E, vec3F;
+  Math::Matrix3d  mat3A, mat3B, mat3C, mat3D, mat3E, mat3F;
 
   Math::MatrixNd mat3NA, mat3NB, mat3NC, mat3ND;
   Math::MatrixNd mat6NA, mat6NB, mat6NC, mat6ND;
-  Math::SpatialVector  svecA, svecB, svecC, svecD;
+  Math::SpatialVector  svecA, svecB, svecC, svecD, svecE, svecF;
   Math::SpatialTransform stA, stB, stC, stD;
-
 
   ConstraintCache(){}
 };
@@ -66,10 +64,10 @@ class RBDL_DLLAPI Constraint {
       id = std::numeric_limits< unsigned int >::max();
     }
 
-    void setRowIndexInSystemConstraintJacobian(
+    void addToConstraintSet(
         const unsigned int rowIndex)
     {
-      rowInGSys = rowIndex;
+      rowInSystem = rowIndex;
     }
 
 
@@ -134,19 +132,19 @@ class RBDL_DLLAPI Constraint {
     }
 
     Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
-      return GSys.block(rowInGSys,0,sizeOfConstraint,GSys.cols());
+      return GSys.block(rowInSystem,0,sizeOfConstraint,GSys.cols());
     }
 
     Math::VectorNd getGamma(Math::VectorNd &gammaSys){
-      return gammaSys.block(rowInGSys,0,sizeOfConstraint,1);
+      return gammaSys.block(rowInSystem,0,sizeOfConstraint,1);
     }
 
     Math::VectorNd getPositionError(Math::VectorNd &errSys){
-      return errSys.block(rowInGSys,0,sizeOfConstraint,1);
+      return errSys.block(rowInSystem,0,sizeOfConstraint,1);
     }
 
     Math::VectorNd getVelocityError(Math::VectorNd &derrSys){
-      return derrSys.block(rowInGSys,0,sizeOfConstraint,1);
+      return derrSys.block(rowInSystem,0,sizeOfConstraint,1);
     }
 
 
@@ -167,10 +165,10 @@ class RBDL_DLLAPI Constraint {
       //Here a for loop is used rather than a block operation
       //to be compatible with SimpleMath.
       for(unsigned int i=0; i<sizeOfConstraint;++i){
-        gammaSysUpd[rowInGSys+i] +=
-              -2.*baumgarteParameters[0]*errVelSys[rowInGSys+i]
+        gammaSysUpd[rowInSystem+i] +=
+              -2.*baumgarteParameters[0]*errVelSys[rowInSystem+i]
              -(baumgarteParameters[1]*baumgarteParameters[1]
-              )*errPosSys[rowInGSys+i];
+              )*errPosSys[rowInSystem+i];
       }
     }
 
@@ -183,11 +181,7 @@ class RBDL_DLLAPI Constraint {
     }
 
     unsigned int getConstraintIndex(){
-      return rowInGSys;
-    }
-
-    void setConstraintIndex(unsigned int updRowIndexInG){
-      rowInGSys = updRowIndexInG;
+      return rowInSystem;
     }
 
     void setBaumgarteTimeConstant(double tStab){
@@ -289,7 +283,7 @@ class RBDL_DLLAPI Constraint {
     unsigned int sizeOfConstraint;
 
     ///The first row in G that corresponds to this constraint.
-    unsigned int rowInGSys;
+    unsigned int rowInSystem;
 
     ///The index of the predecessor body in the vector of bodies in Model
     std::vector< unsigned int > bodyIds;

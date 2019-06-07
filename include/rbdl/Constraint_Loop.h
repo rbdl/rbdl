@@ -26,7 +26,7 @@ public:
   LoopConstraint();
 
   LoopConstraint(
-      //const unsigned int rowInGSys,
+      //const unsigned int rowInSystem,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -37,7 +37,7 @@ public:
       const char *name = NULL);
 
   LoopConstraint(
-      //const unsigned int rowInGSys,
+      //const unsigned int rowInSystem,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -48,7 +48,7 @@ public:
       const char *name = NULL);
 
   LoopConstraint(
-      //const unsigned int rowInGSys,
+      //const unsigned int rowInSystem,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -121,7 +121,6 @@ public:
 private:
   std::vector< Math::SpatialVector > T;
   double dblA;
-  Math::SpatialVector axis, axisDot;
 };
 
 } 

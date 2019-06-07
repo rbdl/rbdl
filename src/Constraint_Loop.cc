@@ -24,11 +24,11 @@ using namespace Math;
 
 //==============================================================================
 LoopConstraint::LoopConstraint():
-  Constraint("",ConstraintTypeLoopNew,unsigned(int(0))){}
+  Constraint("",ConstraintTypeLoop,unsigned(int(0))){}
 
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      //const unsigned int rowInGSys,
+      //const unsigned int rowInSystem,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -38,10 +38,10 @@ LoopConstraint::LoopConstraint(
       bool velocityLevelConstraint,            
       const char *name):
         Constraint(name,
-                   ConstraintTypeLoopNew,
+                   ConstraintTypeLoop,
                    unsigned(int(1)))
 {
-  //connectToConstraintSet(rowInGSys, unsigned(int(1)));
+  //connectToConstraintSet(rowInSystem, unsigned(int(1)));
 
   T.push_back(constraintAxis);
   dblA = std::numeric_limits<double>::epsilon()*10.;
@@ -59,7 +59,7 @@ LoopConstraint::LoopConstraint(
 }
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      //const unsigned int rowInGSys,
+      //const unsigned int rowInSystem,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -69,12 +69,12 @@ LoopConstraint::LoopConstraint(
       bool velocityLevelConstraint,            
       const char *name):
       Constraint( name,
-                  ConstraintTypeLoopNew,
+                  ConstraintTypeLoop,
                   unsigned(constraintAxes.size())),
       T(constraintAxes)
 {
 
-  //connectToConstraintSet(rowInGSys,
+  //connectToConstraintSet(rowInSystem,
   //                       unsigned(constraintAxes.size()));
 
   assert( sizeOfConstraint <= 6 && sizeOfConstraint > 0);
@@ -105,7 +105,7 @@ LoopConstraint::LoopConstraint(
 
 //==============================================================================
 LoopConstraint::LoopConstraint(
-      //const unsigned int rowInGSys,
+      //const unsigned int rowInSystem,
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
@@ -115,7 +115,7 @@ LoopConstraint::LoopConstraint(
       const std::vector< bool > &velocityLevelConstraint,      
       const char *name):
       Constraint(name,
-                 ConstraintTypeLoopNew,
+                 ConstraintTypeLoop,
                  unsigned(constraintAxes.size())),
       T(constraintAxes)
 {
@@ -191,7 +191,7 @@ void LoopConstraint::calcConstraintJacobian( Model &model,
       cache.svecA =cache.stA.apply(T[i]);
 
       //Take the dot product of the constraint axis with Gs-Gp
-      GSysUpd.block(rowInGSys+i,0,1,GSysUpd.cols())
+      GSysUpd.block(rowInSystem+i,0,1,GSysUpd.cols())
           = cache.svecA.transpose()*cache.mat6NA;
     }
 
@@ -238,13 +238,13 @@ void LoopConstraint::calcGamma(  Model &model,
 
   for(unsigned int i=0; i<sizeOfConstraint;++i){
 
-    axis = cache.stA.apply(T[i]);
+    cache.svecE = cache.stA.apply(T[i]);
 
-    axisDot = crossm(cache.svecA, axis);
+    cache.svecF = crossm(cache.svecA, cache.svecE);
 
-    gammaSysUpd[rowInGSys+i] =
-        -axis.dot(cache.svecD-cache.svecC)
-        -axisDot.dot(cache.svecB-cache.svecA);
+    gammaSysUpd[rowInSystem+i] =
+        -cache.svecE.dot(cache.svecD-cache.svecC)
+        -cache.svecF.dot(cache.svecB-cache.svecA);
   }
 
 }
@@ -321,9 +321,9 @@ void LoopConstraint::calcPositionError(Model &model,
 
   for(unsigned int i=0; i<sizeOfConstraint;++i){
     if(positionConstraint[i]){
-      errSysUpd[rowInGSys+i] = T[i].transpose()*cache.svecA;
+      errSysUpd[rowInSystem+i] = T[i].transpose()*cache.svecA;
     }else{
-      errSysUpd[rowInGSys+i] = 0.;
+      errSysUpd[rowInSystem+i] = 0.;
     }
   }
 
@@ -345,14 +345,16 @@ void LoopConstraint::calcVelocityError(  Model &model,
   //Rant: all of this ugliness for a dot product! Does anyone even use
   //      SimpleMath?
 
-  //derrSysUpd.block(rowInGSys,0,sizeOfConstraint,1) =
-  //    GSys.block(rowInGSys,0,sizeOfConstraint,GSys.cols())*QDot;
+  //derrSysUpd.block(rowInSystem,0,sizeOfConstraint,1) =
+  //    GSys.block(rowInSystem,0,sizeOfConstraint,GSys.cols())*QDot;
 
   for(unsigned int i=0; i<sizeOfConstraint;++i){
-    derrSysUpd[rowInGSys+i] = 0;
-    for(unsigned int j=0; j<GSys.cols();++j){
-      derrSysUpd[rowInGSys+i] +=
-           GSys(rowInGSys+i,j)*QDot[j];
+    derrSysUpd[rowInSystem+i] = 0;
+    if(velocityConstraint[i]){
+      for(unsigned int j=0; j<GSys.cols();++j){
+        derrSysUpd[rowInSystem+i] +=
+             GSys(rowInSystem+i,j)*QDot[j];
+      }
     }
   }
 
@@ -374,8 +376,8 @@ void LoopConstraint::calcConstraintForces(
               bool resolveAllInRootFrame,
               bool updKin)
 {
-  assert(bodyIds.size()==2);
-  assert(bodyFrames.size() == 2);
+  constraintBodiesUpd.resize(2);
+  constraintBodyFramesUpd.resize(2);
 
   cache.stA.r = CalcBaseToBodyCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
                                           updKin);
@@ -394,7 +396,7 @@ void LoopConstraint::calcConstraintForces(
   //Using Eqn. 8.30 of Featherstone. Note that this force is resolved in the
   //predecessor frame
   for(unsigned int i=0; i<sizeOfConstraint;++i){
-    constraintForcesUpd[0] += T[i]*LagMultSys[rowInGSys+i];
+    constraintForcesUpd[0] += T[i]*LagMultSys[rowInSystem+i];
   }
 
   constraintBodiesUpd.resize(2);

@@ -410,6 +410,9 @@ struct RBDL_DLLAPI ConstraintSet {
     );
 
 
+  unsigned int AddCustomConstraint(
+      std::shared_ptr<Constraint> customConstraint);
+
   /** \brief Copies the constraints and resets its ConstraintSet::bound
    * flag.
    */
