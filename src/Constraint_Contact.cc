@@ -32,10 +32,10 @@ ContactConstraint::ContactConstraint(
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintUnitVector,
-      bool enableBaumgarteStabilization,
-      double stabilizationTimeConstant,
       const char *name,
       unsigned int userDefinedIdNumber,
+      bool enableBaumgarteStabilization,
+      double stabilizationTimeConstant,      
       bool velocityLevelConstraint):
         Constraint(name,
                    ConstraintTypeContact,

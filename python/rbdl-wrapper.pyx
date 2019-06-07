@@ -1541,8 +1541,7 @@ cdef class ConstraintSet:
                 body_id,
                 body_point.thisptr[0],
                 world_normal.thisptr[0],
-                constraint_name_ptr
-                )            
+                constraint_name_ptr)            
             
     
     def AddLoopConstraint (self,
@@ -1586,8 +1585,8 @@ cdef class ConstraintSet:
 
 #    %VectorWrapperAddProperty (TYPE=string, MEMBER=name, PARENT=ConstraintSet)%
 
-    %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=point, PARENT=ConstraintSet)%
-    %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=normal, PARENT=ConstraintSet)%
+#    %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=point, PARENT=ConstraintSet)%
+#    %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=normal, PARENT=ConstraintSet)%
 
 #    property acceleration:
 #        def __get__(self):

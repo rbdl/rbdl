@@ -390,11 +390,8 @@ struct RBDL_DLLAPI ConstraintSet {
     unsigned int body_id,
     const Math::Vector3d &body_point,
     const Math::Vector3d &world_normal,
-    bool enableBaumgarteStabilization=false,
-    double stabilizationTimeConstant=0.1,
     const char *constraint_name = NULL,
     unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
-    bool velocityLevelConstraint = true,
     bool allowConstraintAppending = true);
 
   /** \brief Adds a loop constraint to the constraint set.

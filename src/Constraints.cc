@@ -45,11 +45,8 @@ unsigned int ConstraintSet::AddContactConstraint (
   unsigned int body_id,
   const Vector3d &body_point,
   const Vector3d &world_normal,
-  bool enableBaumgarteStabilization,
-  double stabilizationTimeConstant,
   const char *constraint_name,
   unsigned int userDefinedId,
-  bool velocityLevelConstraint,
   bool allowConstraintAppending)
 {
   assert (bound == false);
@@ -80,8 +77,7 @@ unsigned int ConstraintSet::AddContactConstraint (
           contactConstraints[i]->getBodyFrames()[0].r;
       if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100){
         constraintAdded = true;
-        contactConstraints[i]->appendNormalVector(world_normal,
-                                                  velocityLevelConstraint);
+        contactConstraints[i]->appendNormalVector(world_normal);
 
       }
     }
@@ -90,9 +86,7 @@ unsigned int ConstraintSet::AddContactConstraint (
   if(constraintAdded == false){
 
     ContactConstraint con(body_id,body_point, world_normal,
-                         enableBaumgarteStabilization,stabilizationTimeConstant,
-                         constraint_name,userDefinedId,
-                         velocityLevelConstraint);
+                         constraint_name,userDefinedId);
 
     contactConstraints.push_back(std::make_shared<ContactConstraint>(con));
     unsigned int idx = unsigned(contactConstraints.size()-1);
