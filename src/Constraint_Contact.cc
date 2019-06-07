@@ -24,23 +24,25 @@ using namespace Math;
 
 //==============================================================================
 ContactConstraint::ContactConstraint():
-  Constraint("",ConstraintTypeContact,1){}
+  Constraint("",ConstraintTypeContact,1,
+             std::numeric_limits<unsigned int>::max()){}
 
 //==============================================================================
 ContactConstraint::ContactConstraint(
-      //const unsigned int rowInSystem,
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintUnitVector,
+      const char *name,
+      unsigned int userDefinedIdNumber,
+      bool enableBaumgarteStabilization,
+      double stabilizationTimeConstant,
       bool positionLevelConstraint,
-      bool velocityLevelConstraint,         
-      const char *name):
+      bool velocityLevelConstraint):
         Constraint(name,
                    ConstraintTypeContact,
-                   unsigned(int(1)))
+                   unsigned(int(1)),
+                   userDefinedIdNumber)
 {
-
-  
 
   T.push_back(groundConstraintUnitVector); 
   dblA = std::numeric_limits<double>::epsilon()*10.;
@@ -57,18 +59,25 @@ ContactConstraint::ContactConstraint(
   bodyIds.push_back(0);
   bodyFrames.push_back(
         Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
+
+  setEnableBaumgarteStabilization(enableBaumgarteStabilization);
+  setBaumgarteTimeConstant(stabilizationTimeConstant);
 }
+
 ContactConstraint::ContactConstraint(
-    //const unsigned int rowInSystem,
     const unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
+    const char *name,
+    unsigned int userDefinedIdNumber,
+    bool enableBaumgarteStabilization,
+    double stabilizationTimeConstant,
     bool positionLevelConstraint,
-    bool velocityLevelConstraint,             
-    const char *name):
+    bool velocityLevelConstraint):
       Constraint(name,
                  ConstraintTypeContact,
-                 unsigned(groundConstraintUnitVectors.size())),
+                 unsigned(groundConstraintUnitVectors.size()),
+                 userDefinedIdNumber),
       T(groundConstraintUnitVectors)
 {
   assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);
@@ -98,52 +107,11 @@ ContactConstraint::ContactConstraint(
   bodyFrames.push_back(
         Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
 
-}
-
-//==============================================================================
-
-ContactConstraint::ContactConstraint(
-      //const unsigned int rowInSystem,
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const Math::Vector3d &groundPoint,
-      const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
-      const std::vector< bool > &positionLevelConstraint,
-      const std::vector< bool > &velocityLevelConstraint,
-      const char *name):
-        Constraint(name,
-                   ConstraintTypeContact,
-                   unsigned(groundConstraintUnitVectors.size())),
-        T(groundConstraintUnitVectors)
-{
-  assert( sizeOfConstraint <= 3 && sizeOfConstraint > 0);
-
-  dblA = 10.0*std::numeric_limits<double>::epsilon();
-
-  for(unsigned int i=0; i<sizeOfConstraint;++i){
-
-    //Check that all vectors in T are orthonormal
-    assert(std::fabs(T[i].norm()-1.0) <= dblA);
-    if(i > 0){
-      for(unsigned int j=0; j< i;++j){
-        assert(std::fabs(T[i].dot(T[j])) <= dblA);
-        }
-    }
-
-    //To make this consistent with the RBDL implementation of
-    //ContactConstraints
-    positionConstraint[i]=positionLevelConstraint[i];
-    velocityConstraint[i]=velocityLevelConstraint[i];
-  }
-
-  bodyIds.push_back(bodyId);
-  bodyFrames.push_back(
-        Math::SpatialTransform(Math::Matrix3dIdentity, bodyPoint));
-  bodyIds.push_back(0);
-  bodyFrames.push_back(
-        Math::SpatialTransform(Math::Matrix3dIdentity, groundPoint));
+  setEnableBaumgarteStabilization(enableBaumgarteStabilization);
+  setBaumgarteTimeConstant(stabilizationTimeConstant);
 
 }
+
 
 //==============================================================================
 

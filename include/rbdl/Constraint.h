@@ -48,10 +48,12 @@ class RBDL_DLLAPI Constraint {
 
     Constraint(const char* name,
                const unsigned int typeOfConstraint,
-               const unsigned int sizeOfConstraint):
+               const unsigned int sizeOfConstraint,
+               const unsigned int userDefinedIdNumber):
                name(name),
                typeOfConstraint(typeOfConstraint),
                sizeOfConstraint(sizeOfConstraint),
+               id(userDefinedIdNumber),
                baumgarteParameters(1./0.1,1./0.1),
                baumgarteEnabled(false)
     {
@@ -61,7 +63,6 @@ class RBDL_DLLAPI Constraint {
         positionConstraint[i]=false;
         velocityConstraint[i]=false;
       }
-      id = std::numeric_limits< unsigned int >::max();
     }
 
     void addToConstraintSet(
@@ -123,11 +124,11 @@ class RBDL_DLLAPI Constraint {
                  bool resolveAllInRootFrame = false,
                  bool updateKinematics=false) = 0;
 
-    unsigned int getId(){
+    unsigned int getUserDefinedId(){
       return id;
     }
 
-    void setId(unsigned int userDefinedId){
+    void setUserDefinedId(unsigned int userDefinedId){
       id = userDefinedId;
     }
 

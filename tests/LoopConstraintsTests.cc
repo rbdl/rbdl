@@ -66,14 +66,18 @@ struct FourBarLinkage {
                          joint_rev_z
       , virtual_body);
 
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,0,1,0,0), true, 0.1);
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,0,0,1,0), true, 0.1);
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s,
-                         SpatialVector(0,0,1,0,0,0), true, 0.1);
+    bool append=true;
+    unsigned int userDefinedId = 7;
+    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,0,1,0,0),append,
+                         "LoopXY_Rz",userDefinedId);
+
+    //These two constraints below will be appended to the above
+    //constraint by default, and will assume its name and user defined id
+    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,0,0,1,0),append);
+    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,1,0,0,0),append);
 
     cs.Bind(model);
+
 
     q = VectorNd::Zero(model.dof_count);
     qd = VectorNd::Zero(model.dof_count);
@@ -150,7 +154,12 @@ struct FloatingFourBarLinkage {
     idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)),
                          joint_rev_z, virtual_body);
 
-    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.));
+    unsigned int userId = 0;
+    bool append=true;
+    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.),append,
+                            "ContactXYZ",userId);
+    //By default these constraints will be appended to the one above taking on
+    //its name and id
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,1.,0.));
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,0.,1.));
 
@@ -159,7 +168,8 @@ struct FloatingFourBarLinkage {
     axis.push_back(SpatialVector(0.,0.,0.,0.,1.,0.));
     axis.push_back(SpatialVector(0.,0.,1.,0.,0.,0.));
 
-    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, axis, true, 0.1);
+    ++userId;
+    cs.AddLoopConstraint(idB2, idB5, X_p, X_s, axis,"LoopXY_Rz",userId);
 
     cs.Bind(model);
 
@@ -248,14 +258,16 @@ struct SliderCrank3D {
     X_s = SpatialTransform(roty(-0.5 * M_PI),
                            Vector3d(crank_link2_length, 0, 0));
 
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
-                         SpatialVector(0,0,0,1,0,0), true, 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
-                         SpatialVector(0,0,0,0,1,0), true, 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
-                         SpatialVector(0,0,0,0,0,1), true, 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
-                         SpatialVector(0,0,1,0,0,0), true, 0.1);
+
+    unsigned int conId = 0;
+    bool append=true;
+    cs.AddLoopConstraint(id_p,id_s,X_p,X_s,SpatialVector(0,0,0,1,0,0),append,
+                         "LoopXYZ_Rz",conId);
+    //By default the constraints below will be appended to the one above,
+    //taking on its name and id.
+    cs.AddLoopConstraint(id_p,id_s,X_p,X_s,SpatialVector(0,0,0,0,1,0));
+    cs.AddLoopConstraint(id_p,id_s,X_p,X_s,SpatialVector(0,0,0,0,0,1));
+    cs.AddLoopConstraint(id_p,id_s,X_p,X_s,SpatialVector(0,0,1,0,0,0));
 
     cs.Bind(model);
 
@@ -348,14 +360,18 @@ struct SliderCrank3DSphericalJoint {
     X_p = Xtrans(Vector3d(0., 0., slider_height));
     X_s = SpatialTransform(roty(-0.5 * M_PI),Vector3d(crank_link2_length,0,0));
 
+    bool append=true;
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, SpatialVector(0,0,0,1,0,0),
+                         append,"LoopXYZ_Rz",0);
+
+    //By default these constraints will be appended to the one above taking
+    //on its name and id
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
-        SpatialVector(0,0,0,1,0,0), true, 0.1);
+        SpatialVector(0,0,0,0,1,0));
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
-        SpatialVector(0,0,0,0,1,0), true, 0.1);
+        SpatialVector(0,0,0,0,0,1));
     cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
-        SpatialVector(0,0,0,0,0,1), true, 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
-        SpatialVector(0,0,1,0,0,0), true, 0.1);
+        SpatialVector(0,0,1,0,0,0));
 
     cs.Bind(model);
 
@@ -403,6 +419,13 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   Vector3d posErr;
   Matrix3d rot_p;
   double angleErr;
+
+  unsigned int loopIndex = cs.GetConstraintIndex("LoopXY_Rz");
+  CHECK(loopIndex==0);
+
+  unsigned int userDefinedId = 7;
+  loopIndex = cs.GetConstraintIndex(userDefinedId);
+  CHECK(loopIndex==0);
 
   // Test in zero position.
   q[0] = 0.;
@@ -1261,7 +1284,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[6] = 0.;
   q[7] = 0.;
 
-  CalcConstraintsPositionError(model, q, cs, err);
+  CalcConstraintsPositionError(model, q, cs, err,true);
 
   CHECK_CLOSE(0., err[0], TEST_PREC);
   CHECK_CLOSE(0., err[1], TEST_PREC);

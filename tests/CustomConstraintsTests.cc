@@ -19,20 +19,22 @@ class PinJointCustomConstraint : public RigidBodyDynamics::Constraint
 public:
 
   PinJointCustomConstraint()
-    :Constraint(NULL,ConstraintTypeCustom,5)
+    :Constraint(NULL,ConstraintTypeCustom,5,
+                std::numeric_limits<unsigned int>::max())
   {
   }
 
   PinJointCustomConstraint(//const unsigned int rowInSystem,
-                              const unsigned int bodyIdPredecessor,
-                              const unsigned int bodyIdSuccessor,
-                              const Math::SpatialTransform &bodyFramePredecessor,
-                              const Math::SpatialTransform &bodyFrameSuccessor,
-                              unsigned int x0y1z2,
-                              bool enableBaumgarteStabilization=false,
-                              double baumgarteTStab = 0.1,
-                              const char *name = NULL):
-                                Constraint(name,ConstraintTypeCustom,5)
+      const unsigned int bodyIdPredecessor,
+      const unsigned int bodyIdSuccessor,
+      const Math::SpatialTransform &bodyFramePredecessor,
+      const Math::SpatialTransform &bodyFrameSuccessor,
+      unsigned int x0y1z2,
+      const char *name = NULL,
+      unsigned int userDefinedId=std::numeric_limits<unsigned int>::max(),
+      bool enableBaumgarteStabilization=false,
+      double baumgarteTStab = 0.1):
+        Constraint(name,ConstraintTypeCustom,5,userDefinedId)
   {
     //Configure the parent member variables
     bodyIds.push_back(bodyIdPredecessor);
@@ -419,8 +421,8 @@ public:
     //Make the revolute joints about the y axis using 5 constraints
     //between the end points
 
-    PinJointCustomConstraint zJoint(0,idB1,X_p1,X_s1,2);
-    PinJointCustomConstraint yJoint(idB1,idB2,X_p2,X_s2,1);
+    PinJointCustomConstraint zJoint(0,idB1,X_p1,X_s1,2,"Rz",0);
+    PinJointCustomConstraint yJoint(idB1,idB2,X_p2,X_s2,1,"Ry",1);
 
     ccPJZaxis = std::make_shared<PinJointCustomConstraint>(zJoint);
     ccPJYaxis = std::make_shared<PinJointCustomConstraint>(yJoint);

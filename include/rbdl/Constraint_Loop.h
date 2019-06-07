@@ -31,29 +31,25 @@ public:
       const Math::SpatialTransform &bodyFramePredecessor,
       const Math::SpatialTransform &bodyFrameSuccessor,
       const Math::SpatialVector &constraintAxis,
+      const char *name = NULL,
+      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+      bool enableBaumgarteStabilization = false,
+      double stabilizationTimeConstant = 0.1,
       bool positionLevelConstraint=true,
-      bool velocityLevelConstraint=true,      
-      const char *name = NULL);
+      bool velocityLevelConstraint=true);
 
   LoopConstraint(
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
       const Math::SpatialTransform &bodyFramePredecessor,
       const Math::SpatialTransform &bodyFrameSuccessor,
-      const std::vector< Math::SpatialVector > &constraintAxes,
+      const std::vector< Math::SpatialVector > &constraintAxes,                  
+      const char *name = NULL,
+      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+      bool enableStabilization = false,
+      double stabilizationParam = 0.1,
       bool positionLevelConstraint=true,
-      bool velocityLevelConstraint=true,            
-      const char *name = NULL);
-
-  LoopConstraint(
-      const unsigned int bodyIdPredecessor,
-      const unsigned int bodyIdSuccessor,
-      const Math::SpatialTransform &bodyFramePredecessor,
-      const Math::SpatialTransform &bodyFrameSuccessor,
-      const std::vector< Math::SpatialVector > &constraintAxes,
-      const std::vector< bool > &positionLevelConstraint,
-      const std::vector< bool > &velocityLevelConstraint,
-      const char *name = NULL);
+      bool velocityLevelConstraint=true);
 
   void bind( const Model &model) override;
 

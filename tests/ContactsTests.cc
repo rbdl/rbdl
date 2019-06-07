@@ -132,11 +132,22 @@ TEST ( TestForwardDynamicsConstraintsDirectSimple ) {
 
   ConstraintSet constraint_set;
 
-  constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), "ground_x");
-  constraint_set.AddContactConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.), "ground_y");
-  constraint_set.AddContactConstraint (contact_body_id, contact_point, Vector3d (0., 0., 1.), "ground_z");
+  bool enableAppending=true;
+  unsigned int id=11;
+  constraint_set.AddContactConstraint(contact_body_id, contact_point,
+                                     Vector3d (1., 0., 0.),enableAppending,
+                                      "ground_xyz",id);
+  constraint_set.AddContactConstraint (contact_body_id, contact_point,
+                                       Vector3d (0., 1., 0.));
+  constraint_set.AddContactConstraint (contact_body_id, contact_point,
+                                       Vector3d (0., 0., 1.));
 
   constraint_set.Bind (model);
+
+  unsigned int index = constraint_set.GetConstraintIndex("ground_xyz");
+  CHECK(index==0);
+  index = constraint_set.GetConstraintIndex(id);
+  CHECK(index==0);
 
   ClearLogOutput();
 
@@ -203,9 +214,14 @@ TEST ( TestForwardDynamicsConstraintsDirectMoving ) {
 
   ConstraintSet constraint_set;
 
-  constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), "ground_x");
-  constraint_set.AddContactConstraint (contact_body_id, contact_point, Vector3d (0., 1., 0.), "ground_y");
-  constraint_set.AddContactConstraint (contact_body_id, contact_point, Vector3d (0., 0., 1.), "ground_z");
+  bool enableAppending=true;
+  constraint_set.AddContactConstraint(contact_body_id, contact_point,
+                                      Vector3d (1., 0., 0.),enableAppending,
+                                      "ground_xyz");
+  constraint_set.AddContactConstraint (contact_body_id, contact_point,
+                                       Vector3d (0., 1., 0.));
+  constraint_set.AddContactConstraint (contact_body_id, contact_point,
+                                       Vector3d (0., 0., 1.));
 
   constraint_set.Bind (model);
 
@@ -213,7 +229,9 @@ TEST ( TestForwardDynamicsConstraintsDirectMoving ) {
 
   ForwardDynamicsConstraintsDirect (model, Q, QDot, Tau, constraint_set, QDDot);
 
-  Vector3d point_acceleration = CalcPointAcceleration (model, Q, QDot, QDDot, contact_body_id, contact_point);
+  Vector3d point_acceleration = CalcPointAcceleration (model, Q, QDot, QDDot,
+                                                       contact_body_id,
+                                                       contact_point);
 
   CHECK_ARRAY_CLOSE (
       Vector3d (0., 0., 0.).data(),

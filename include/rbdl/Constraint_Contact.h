@@ -29,26 +29,24 @@ public:
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintNormalVectors,
+      const char *name = NULL,
+      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+      bool enableBaumgarteStabilization=false,
+      double stabilizationParameter=0.1,
       bool positionLevelConstraint=false,
-      bool velocityLevelConstraint=true,         
-      const char *name = NULL);
+      bool velocityLevelConstraint=true);
 
   ContactConstraint(
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
-      const std::vector< Math::Vector3d > &groundConstraintNormalVectors,
+      const std::vector< Math::Vector3d > &groundConstraintNormalVectors,               
+      const char *name = NULL,
+      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+      bool enableBaumgarteStabilization=false,
+      double stabilizationParameter=0.1,
       bool positionLevelConstraint=false,
-      bool velocityLevelConstraint=true,               
-      const char *name = NULL);
+      bool velocityLevelConstraint=true);
 
-  ContactConstraint(
-      const unsigned int bodyId,
-      const Math::Vector3d &bodyPoint,
-      const Math::Vector3d &groundPoint,
-      const std::vector< Math::Vector3d > &groundConstraintUnitVectors,
-      const std::vector< bool > &positionLevelConstraint,
-      const std::vector< bool > &velocityLevelConstraint,
-      const char *name = NULL);
 
   void bind( const Model &model) override;
 

@@ -24,7 +24,8 @@ using namespace Math;
 
 //==============================================================================
 LoopConstraint::LoopConstraint():
-  Constraint("",ConstraintTypeLoop,unsigned(int(0))){}
+  Constraint("",ConstraintTypeLoop,unsigned(int(0)),
+             std::numeric_limits<unsigned int>::max()){}
 
 //==============================================================================
 LoopConstraint::LoopConstraint(
@@ -34,12 +35,16 @@ LoopConstraint::LoopConstraint(
       const Math::SpatialTransform &bodyFramePredecessor,
       const Math::SpatialTransform &bodyFrameSuccessor,
       const Math::SpatialVector &constraintAxis,
+      const char *name,
+      unsigned int userDefinedIdNumber,
+      bool enableBaumgarteStabilization,
+      double stabilizationTimeConstant,
       bool positionLevelConstraint,
-      bool velocityLevelConstraint,            
-      const char *name):
+      bool velocityLevelConstraint):
         Constraint(name,
                    ConstraintTypeLoop,
-                   unsigned(int(1)))
+                   unsigned(int(1)),
+                   userDefinedIdNumber)
 {
   //connectToConstraintSet(rowInSystem, unsigned(int(1)));
 
@@ -56,6 +61,9 @@ LoopConstraint::LoopConstraint(
   bodyFrames.push_back(bodyFramePredecessor);
   bodyFrames.push_back(bodyFrameSuccessor);
 
+  setEnableBaumgarteStabilization(enableBaumgarteStabilization);
+  setBaumgarteTimeConstant(stabilizationTimeConstant);
+
 }
 //==============================================================================
 LoopConstraint::LoopConstraint(
@@ -65,12 +73,16 @@ LoopConstraint::LoopConstraint(
       const Math::SpatialTransform &bodyFramePredecessor,
       const Math::SpatialTransform &bodyFrameSuccessor,
       const std::vector< Math::SpatialVector > &constraintAxes,
+      const char *name,
+      unsigned int userDefinedIdNumber,
+      bool enableBaumgarteStabilization,
+      double stabilizationTimeConstant,
       bool positionLevelConstraint,
-      bool velocityLevelConstraint,            
-      const char *name):
+      bool velocityLevelConstraint):
       Constraint( name,
                   ConstraintTypeLoop,
-                  unsigned(constraintAxes.size())),
+                  unsigned(constraintAxes.size()),
+                  userDefinedIdNumber),
       T(constraintAxes)
 {
 
@@ -100,54 +112,11 @@ LoopConstraint::LoopConstraint(
   bodyFrames.push_back(bodyFramePredecessor);
   bodyFrames.push_back(bodyFrameSuccessor);
 
-
-}
-
-//==============================================================================
-LoopConstraint::LoopConstraint(
-      //const unsigned int rowInSystem,
-      const unsigned int bodyIdPredecessor,
-      const unsigned int bodyIdSuccessor,
-      const Math::SpatialTransform &bodyFramePredecessor,
-      const Math::SpatialTransform &bodyFrameSuccessor,
-      const std::vector< Math::SpatialVector > &constraintAxes,
-      const std::vector< bool > &positionLevelConstraint,
-      const std::vector< bool > &velocityLevelConstraint,      
-      const char *name):
-      Constraint(name,
-                 ConstraintTypeLoop,
-                 unsigned(constraintAxes.size())),
-      T(constraintAxes)
-{
-
-  assert( sizeOfConstraint <= 6 && sizeOfConstraint > 0);
-  dblA = std::numeric_limits<double>::epsilon()*10.;
-
-  for(unsigned int i = 0; i<sizeOfConstraint;++i){
-
-    //Check that all vectors in T are orthonormal    
-    assert(std::fabs(T[i].norm()-1.0) <= dblA);
-    if(i > 0){
-      for(unsigned int j=0; j< i;++j){
-        assert(std::fabs(T[i].dot(T[j])) <= dblA);
-        }
-    }
-
-    positionConstraint[i] = positionLevelConstraint[i];
-    velocityConstraint[i] = velocityLevelConstraint[i];
-  }
-
-  bodyIds.push_back(bodyIdPredecessor);
-  bodyIds.push_back(bodyIdSuccessor);
-
-  bodyFrames.push_back(bodyFramePredecessor);
-  bodyFrames.push_back(bodyFrameSuccessor);
+  setEnableBaumgarteStabilization(enableBaumgarteStabilization);
+  setBaumgarteTimeConstant(stabilizationTimeConstant);
 
 
 }
-
-//==============================================================================
-
 
 //==============================================================================
 

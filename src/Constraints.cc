@@ -42,20 +42,30 @@ unsigned int ConstraintSet::AddContactConstraint(
     unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &worldNormals,
-    const char *constraintName)
+    const char *constraintName,
+    unsigned int userDefinedId,
+    bool enableBaumgarteStabilization,
+    double stabilizationTimeConstant,
+    bool positionLevelConstraint,
+    bool velocityLevelConstraint)
 {
 
   //Note: 'G' is the constraint Jacobian for the entire system.
   unsigned int insertAtRowInG = unsigned(size());
   unsigned int ccIndex = unsigned(contactConstraints.size());
 
+  ContactConstraint con(bodyId,bodyPoint,worldNormals,
+                        constraintName,userDefinedId,
+                        enableBaumgarteStabilization,
+                        stabilizationTimeConstant,
+                        positionLevelConstraint,
+                        velocityLevelConstraint);
+
   contactConstraints.push_back(
-        std::make_shared<ContactConstraint>(bodyId,bodyPoint,
-                                            worldNormals,constraintName));
+        std::make_shared<ContactConstraint>(con));
 
   constraints.emplace_back(contactConstraints[ccIndex]);
-  contactConstraints[ccIndex]->addToConstraintSet(
-                                                        insertAtRowInG);
+  contactConstraints[ccIndex]->addToConstraintSet(insertAtRowInG);
 
 
   unsigned int cIndex = unsigned(constraints.size()-1);
@@ -95,9 +105,14 @@ unsigned int ConstraintSet::AddContactConstraint (
   unsigned int body_id,
   const Vector3d &body_point,
   const Vector3d &world_normal,
-  const char *constraint_name,  
-  bool allowConstraintAppending
-  ) {
+  bool allowConstraintAppending,
+  const char *constraint_name,
+  unsigned int userDefinedId,
+  bool enableBaumgarteStabilization,
+  double stabilizationTimeConstant,
+  bool positionLevelConstraint,
+  bool velocityLevelConstraint)
+{
   assert (bound == false);
 
 
@@ -126,7 +141,9 @@ unsigned int ConstraintSet::AddContactConstraint (
           contactConstraints[i]->getBodyFrames()[0].r;
       if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100){
         constraintAdded = true;
-        contactConstraints[i]->appendNormalVector(world_normal);
+        contactConstraints[i]->appendNormalVector(world_normal,
+                                                  positionLevelConstraint,
+                                                  velocityLevelConstraint);
         
         constraintType.push_back (ConstraintTypeContact);
         name.push_back (nameStr);
@@ -156,7 +173,12 @@ unsigned int ConstraintSet::AddContactConstraint (
     std::vector< Vector3d > normals;
     normals.push_back(world_normal);
     unsigned int lastRowInG = 
-    AddContactConstraint(body_id,body_point, normals,constraint_name);
+    AddContactConstraint(body_id,body_point, normals,
+                         constraint_name,userDefinedId,
+                         enableBaumgarteStabilization,
+                         stabilizationTimeConstant,
+                         positionLevelConstraint,
+                         velocityLevelConstraint);
     rowsInG = lastRowInG+1;
 
   }
@@ -172,12 +194,14 @@ unsigned int ConstraintSet::AddLoopConstraint (
   const Math::SpatialTransform &XPredecessor,
   const Math::SpatialTransform &XSuccessor,
   const Math::SpatialVector &constraintAxisInPredecessor,
-  bool enableStab,
-  const double stabParam,
-  const char *constraintName,  
   bool allowConstraintAppending,
+  const char *constraintName,
+  unsigned int userDefinedId,
+  bool enableBaumgarteStabilization,
+  double stabilizationTimeConstant,
   bool positionLevelConstraint,
-  bool velocityLevelConstraint) {
+  bool velocityLevelConstraint)
+{
   assert (bound == false);
 
 
@@ -226,22 +250,22 @@ unsigned int ConstraintSet::AddLoopConstraint (
   }
 
   if(constraintAdded==false){
+
+    LoopConstraint loopCon( idPredecessor, idSuccessor,
+                            XPredecessor,  XSuccessor,
+                            constraintAxisInPredecessor,
+                            constraintName,userDefinedId,
+                            enableBaumgarteStabilization,
+                            stabilizationTimeConstant,
+                            positionLevelConstraint,
+                            velocityLevelConstraint);
+
     loopConstraints.push_back( 
-      std::make_shared<LoopConstraint>(
-                                idPredecessor, idSuccessor,
-                                XPredecessor, XSuccessor, 
-                                constraintAxisInPredecessor,
-                                positionLevelConstraint, 
-                                velocityLevelConstraint, 
-                                constraintName));
+      std::make_shared<LoopConstraint>(loopCon));
     idx = unsigned(loopConstraints.size()-1);
     loopConstraints[idx]->addToConstraintSet(insertAtRowInG);
     constraints.emplace_back(loopConstraints[idx]);
   }
-
-  loopConstraints[idx]->setBaumgarteTimeConstant(stabParam);
-  loopConstraints[idx]->setEnableBaumgarteStabilization(enableStab);
-  
 
   constraintType.push_back(ConstraintTypeLoop);
 
@@ -281,11 +305,12 @@ unsigned int ConstraintSet::AddLoopConstraint (
   const Math::SpatialTransform &XPredecessor,
   const Math::SpatialTransform &XSuccessor,
   const std::vector< Math::SpatialVector > &constraintAxesInPredecessor,
-  bool enableStab,
-  const double stabParam,
-  const char *constraintName,  
+  const char *constraintName,
+  unsigned int userDefinedId,
+  bool enableBaumgarteStabilization,
+  double stabilizationTimeConstant,
   bool positionLevelConstraint,
-  bool velocityLevelConstraint) {
+  bool velocityLevelConstraint  ) {
   assert (bound == false);
 
 
@@ -293,22 +318,22 @@ unsigned int ConstraintSet::AddLoopConstraint (
   unsigned int rowsInG = unsigned(insertAtRowInG
                                   + constraintAxesInPredecessor.size());
 
+  LoopConstraint loopCon( idPredecessor, idSuccessor,
+                          XPredecessor, XSuccessor,
+                          constraintAxesInPredecessor,
+                          constraintName, userDefinedId,
+                          enableBaumgarteStabilization,
+                          stabilizationTimeConstant,
+                          positionLevelConstraint,
+                          velocityLevelConstraint);
+
   loopConstraints.push_back( 
-    std::make_shared<LoopConstraint>(
-                              idPredecessor, idSuccessor,
-                              XPredecessor, XSuccessor, 
-                              constraintAxesInPredecessor,
-                              positionLevelConstraint, 
-                              velocityLevelConstraint, 
-                              constraintName));
+    std::make_shared<LoopConstraint>(loopCon));
 
   unsigned int idx = unsigned(loopConstraints.size()-1);
   loopConstraints[idx]->addToConstraintSet(insertAtRowInG);
   constraints.emplace_back(loopConstraints[idx]);
   
-
-  loopConstraints[idx]->setBaumgarteTimeConstant(stabParam);
-  loopConstraints[idx]->setEnableBaumgarteStabilization(enableStab);
   
   std::string nameStr;
   if (constraintName != NULL) {

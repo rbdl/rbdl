@@ -16,7 +16,9 @@
 #include <rbdl/Constraint.h>
 #include <rbdl/Constraint_Contact.h>
 #include <rbdl/Constraint_Loop.h>
+#include <string.h>
 #include <assert.h>
+
 
 namespace RigidBodyDynamics {
 
@@ -283,6 +285,40 @@ struct RBDL_DLLAPI ConstraintSet {
     bound (false) {}
 
 
+  unsigned int GetConstraintIndex(const char* name){
+
+    unsigned int index = constraints.size();
+    unsigned int i = 0;
+    bool found = false;
+    while(i < constraints.size() && found == false){
+
+      if( constraints[i]->getName() != NULL){
+        if( std::strcmp(constraints[i]->getName(), name) == 0){
+          index = i;
+          found=true;
+        }
+      }
+      ++i;
+    }
+
+    return index;
+
+  }
+
+  unsigned int GetConstraintIndex(unsigned int userDefinedId){
+    unsigned int index = constraints.size();
+    unsigned int i = 0;
+    bool found = false;
+    while(i < constraints.size() && found == false){
+      if( constraints[i]->getUserDefinedId() == userDefinedId){
+        index = i;
+        found=true;
+      }
+      ++i;
+    }
+
+    return index;
+  }
 
 
   /** \brief Adds a vector of contact (point-ground) constraints to the 
@@ -301,7 +337,12 @@ struct RBDL_DLLAPI ConstraintSet {
     unsigned int bodyId,
     const Math::Vector3d &bodyPoint,
     const std::vector< Math::Vector3d > &worldNormals,
-    const char *constraintName = NULL);
+    const char *constraintName = NULL,
+    unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+    bool enableBaumgarteStabilization=false,
+    double stabilizationTimeConstant = 0.1,
+    bool positionLevelConstraint = false,
+    bool velocityLevelConstraint = true);
 
   /** \brief Adds a contact (point-ground) constraint to the constraint set.
    *
@@ -324,8 +365,13 @@ struct RBDL_DLLAPI ConstraintSet {
     unsigned int body_id,
     const Math::Vector3d &body_point,
     const Math::Vector3d &world_normal,
+    bool allowConstraintAppending = true,
     const char *constraint_name = NULL,
-    bool allowConstraintAppending=true);
+    unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+    bool enableBaumgarteStabilization=false,
+    double stabilizationTimeConstant=0.1,
+    bool positionLevelConstraint = false,
+    bool velocityLevelConstraint = true);
 
   /** \brief Adds a loop constraint to the constraint set.
    
@@ -349,11 +395,6 @@ struct RBDL_DLLAPI ConstraintSet {
             the predecessor frame, indicating the axis along which the 
             constraint acts
     
-    @param enableStabilization Whether \ref baumgarte_stabilization
-            should be enabled or not.
-    
-    @param stabilizationParam The value for \f$T_\textit{stab}\f$  
-           (defaults to 0.1).
     
     @param constraintName a human readable name (default: NULL) which must be
             set if you would like to access constraints by their names.
@@ -376,19 +417,27 @@ struct RBDL_DLLAPI ConstraintSet {
                 function will assemble this constraint at the velocity level
                 and Baumgarte forces will be applied (if it is enabled) as a 
                 function of velocity-level errors.
+
+    @param enableStabilization Whether \ref baumgarte_stabilization
+            should be enabled or not.
+
+    @param stabilizationParam The value for \f$T_\textit{stab}\f$
+           (defaults to 0.1).
+
    */
     unsigned int AddLoopConstraint(
-    unsigned int idPredecessor, 
-    unsigned int idSuccessor,
-    const Math::SpatialTransform &XPredecessor,
-    const Math::SpatialTransform &XSuccessor,
-    const Math::SpatialVector &constraintAxisInPredecessor,
-    bool enableStabilization = false,
-    const double stabilizationParam = 0.1,
-    const char *constraintName = NULL,
-    bool allowConstraintAppending = true,
-    bool positionLevelConstraint = true,
-    bool velocityLevelConstraint = true);
+      unsigned int idPredecessor,
+      unsigned int idSuccessor,
+      const Math::SpatialTransform &XPredecessor,
+      const Math::SpatialTransform &XSuccessor,
+      const Math::SpatialVector &constraintAxisInPredecessor,
+      bool allowConstraintAppending=true,
+      const char *constraintName = NULL,
+      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+      bool enableBaumgarteStabilization = false,
+      double stabilizationTimeConstant = 0.1,
+      bool positionLevelConstraint = true,
+      bool velocityLevelConstraint = true);
 
 /** \brief Adds multiple loop constraints to the constraint set.
    
@@ -411,16 +460,16 @@ struct RBDL_DLLAPI ConstraintSet {
     @param constraintAxisInPredessor a vector of spatial vectors, resolved in 
             the frame of the precessor frame, indicating the axis along which 
             the constraint acts
-    
-    @param enableStabilization Whether \ref baumgarte_stabilization
-            should be enabled or not.
-    
-    @param stabilizationParam The value for \f$T_\textit{stab}\f$  
-           (defaults to 0.1).
-    
+        
     @param constraintName a human readable name (default: NULL) which must be
             set if you would like to access constraints by their names.
-        
+
+    @param enableStabilization Whether \ref baumgarte_stabilization
+            should be enabled or not.
+
+    @param stabilizationParam The value for \f$T_\textit{stab}\f$
+           (defaults to 0.1).
+
     @param positionLevelConstraint : when set to true, position errors will be 
                computed for this constraint. This has the consequence that
                the function CalcAssemblyQ will assemble this constraint at
@@ -434,18 +483,22 @@ struct RBDL_DLLAPI ConstraintSet {
                 function will assemble this constraint at the velocity level
                 and Baumgarte forces will be applied (if it is enabled) as a 
                 function of velocity-level errors.
+
+
+
    */
     unsigned int AddLoopConstraint(
-    unsigned int idPredecessor, 
-    unsigned int idSuccessor,
-    const Math::SpatialTransform &XPredecessor,
-    const Math::SpatialTransform &XSuccessor,
-    const std::vector < Math::SpatialVector > &constraintAxesInPredecessor,
-    bool enableStabilization = false,
-    const double stabilizationParam = 0.1,
-    const char *constraintName = NULL,
-    bool positionLevelConstraint = true,
-    bool velocityLevelConstraint = true);
+      unsigned int idPredecessor,
+      unsigned int idSuccessor,
+      const Math::SpatialTransform &XPredecessor,
+      const Math::SpatialTransform &XSuccessor,
+      const std::vector < Math::SpatialVector > &constraintAxesInPredecessor,
+      const char *constraintName = NULL,
+      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
+      bool enableBaumgarteStabilization = false,
+      double stabilizationTimeConstant = 0.1,
+      bool positionLevelConstraint = true,
+      bool velocityLevelConstraint = true);
 
 
   /** \brief Adds a custom constraint to the constraint set.
