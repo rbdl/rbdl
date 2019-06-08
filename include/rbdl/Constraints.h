@@ -469,8 +469,6 @@ struct RBDL_DLLAPI ConstraintSet {
       double stabilizationTimeConstant = 0.1,
       const char *constraintName = NULL,
       unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
-      bool positionLevelConstraint = true,
-      bool velocityLevelConstraint = true,
       bool allowConstraintAppending=true);
 
 

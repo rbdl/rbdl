@@ -63,18 +63,17 @@ struct FourBarLinkage {
     idB4 = model.AddBody(idB3, Xtrans(Vector3d(l1, 0., 0.)),
                          joint_rev_z, link2);
     idB5 = model.AddBody(idB4, Xtrans(Vector3d(l2, 0., 0.)),
-                         joint_rev_z
-      , virtual_body);
+                         joint_rev_z, virtual_body);
 
-    bool append=true;
+    bool bgStab=true;
     unsigned int userDefinedId = 7;
-    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,0,1,0,0),true,0.1,
+    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,0,1,0,0),bgStab,0.1,
                          "LoopXY_Rz",userDefinedId);
 
     //These two constraints below will be appended to the above
     //constraint by default, and will assume its name and user defined id
-    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,0,0,1,0),append);
-    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,1,0,0,0),append);
+    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,0,0,1,0));
+    cs.AddLoopConstraint(idB2,idB5,X_p,X_s,SpatialVector(0,0,1,0,0,0));
 
     cs.Bind(model);
 
@@ -156,7 +155,7 @@ struct FloatingFourBarLinkage {
 
     unsigned int userId = 0;
 
-    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.),true,0.1,
+    cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(1.,0.,0.),
                             "ContactXYZ",userId);
     //By default these constraints will be appended to the one above taking on
     //its name and id
@@ -164,9 +163,8 @@ struct FloatingFourBarLinkage {
     cs.AddContactConstraint(idB0, Vector3d::Zero(), Vector3d(0.,0.,1.));
 
 
-    ++userId;
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0.,0.,0.,1.,0.,0.),
-                         true,0.1,"LoopXY_Rz",userId);
+                         true,0.1,"LoopXY_Rz");
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0.,0.,0.,0.,1.,0.));
     cs.AddLoopConstraint(idB2, idB5, X_p, X_s, SpatialVector(0.,0.,1.,0.,0.,0.));
 

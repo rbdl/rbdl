@@ -1526,9 +1526,11 @@ cdef class ConstraintSet:
 
     def AddContactConstraint (self,
             body_id not None,
-            body_point not None,
-            world_normal not None,
-            constraint_name = None):
+            np.ndarray[double, ndim=1, mode="c"] body_point,
+            np.ndarray[double, ndim=1, mode="c"] world_normal,
+            constraint_name = None,
+            unsigned int user_defined_id=4294967295,
+            bool allow_appending=True):
 
         cdef char* constraint_name_ptr
 
@@ -1539,9 +1541,11 @@ cdef class ConstraintSet:
 
         return self.thisptr.AddContactConstraint (
                 body_id,
-                body_point.thisptr[0],
-                world_normal.thisptr[0],
-                constraint_name_ptr)            
+                NumpyToVector3d(body_point),
+                NumpyToVector3d(world_normal),
+                constraint_name_ptr,
+                user_defined_id,
+                allow_appending)            
             
     
     def AddLoopConstraint (self,
@@ -1552,7 +1556,10 @@ cdef class ConstraintSet:
             SpatialVector axis not None,
             baumgarte_enabled = False,
             double T_stab_inv = 0.1,
-            constraint_name = None):
+            constraint_name = None,
+            unsigned int user_defined_id=4294967295,
+            bool allow_appending=True):
+
         cdef char* constraint_name_ptr
 
         if constraint_name == None:
@@ -1568,7 +1575,9 @@ cdef class ConstraintSet:
             axis.thisptr[0],
             baumgarte_enabled,
             T_stab_inv,
-            constraint_name_ptr)
+            constraint_name_ptr,
+            user_defined_id,
+            allow_appending)
 
     def Bind (self, model):
         return self.thisptr.Bind ((<Model>model).thisptr[0])

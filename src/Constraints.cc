@@ -131,8 +131,6 @@ unsigned int ConstraintSet::AddLoopConstraint (
   double stabilizationTimeConstant,
   const char *constraintName,
   unsigned int userDefinedId,
-  bool positionLevelConstraint,
-  bool velocityLevelConstraint,
   bool allowConstraintAppending)
 {
   assert (bound == false);
@@ -175,9 +173,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
       if(framesNumericallyIdentical){
         constraintAdded = true;
-        loopConstraints[idx]->appendConstraintAxis(constraintAxisInPredecessor,
-                                                   positionLevelConstraint, 
-                                                   velocityLevelConstraint);
+        loopConstraints[idx]->appendConstraintAxis(constraintAxisInPredecessor);
       }
     }
   }
@@ -189,9 +185,8 @@ unsigned int ConstraintSet::AddLoopConstraint (
                             constraintAxisInPredecessor,
                             enableBaumgarteStabilization,
                             stabilizationTimeConstant,
-                            constraintName,userDefinedId,
-                            positionLevelConstraint,
-                            velocityLevelConstraint);
+                            constraintName,
+                            userDefinedId);
 
     loopConstraints.push_back( 
       std::make_shared<LoopConstraint>(loopCon));

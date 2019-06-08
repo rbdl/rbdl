@@ -628,11 +628,16 @@ class ConstraintSetTests (unittest.TestCase):
         # tests yet.
 
         cs = rbdl.ConstraintSet()
-        idx = cs.AddContactConstraint (1, [1., 2., 3.], [4., 5., 6.])
+
+        # MM June 2019 Update
+        #   :np.array need to be passed in for points and normals
+        #   :There is an error check condition: the magnitude of the normal 
+        #    must be 1 for both Contact and Loop Constraints
+        idx = cs.AddContactConstraint (1, np.array([1., 2., 3.]), np.array([1., 0., 0.]))
         assert_equal (0, idx)
 
         X = rbdl.SpatialTransform()
-        sv = rbdl.SpatialVector.fromPythonArray ([1., 2., 3., 4., 5., 6.])
+        sv = rbdl.SpatialVector.fromPythonArray ([1., 0., 0., 0., 0., 0.])
         idx2 = cs.AddLoopConstraint (1, 2, X, X, sv, True, 1.)
         assert_equal (1, idx2)
 

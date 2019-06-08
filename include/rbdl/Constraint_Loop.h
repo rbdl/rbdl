@@ -95,7 +95,7 @@ public:
   }
 
   void appendConstraintAxis(const Math::SpatialVector &constraintAxis,
-                          bool positionLevelConstraint = false,
+                          bool positionLevelConstraint = true,
                           bool velocityLevelConstraint = true);
 
 
