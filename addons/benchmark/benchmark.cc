@@ -41,8 +41,8 @@ bool benchmark_run_id_rnea = true;
 bool benchmark_run_crba = true;
 bool benchmark_run_nle = true;
 bool benchmark_run_calc_minv_times_tau = true;
-bool benchmark_run_contacts = false;
-bool benchmark_run_ik = false;
+bool benchmark_run_contacts = true;
+bool benchmark_run_ik = true;
 
 string model_file = "";
 

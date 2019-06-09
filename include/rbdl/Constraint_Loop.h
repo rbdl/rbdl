@@ -25,12 +25,65 @@ public:
 
   LoopConstraint();
 
+  /**
+    @param bodyIdPredecessor the identifier of the predecessor body
+
+    @param bodyIdSuccessor the identifier of the successor body
+
+    @param XPredecessor a spatial transform localizing the constrained
+            frames on the predecessor body, expressed with respect to the 
+            predecessor body frame
+    
+    @param XSuccessor a spatial transform localizing the constrained
+          frames on the successor body, expressed with respect to the successor
+          body frame
+    
+    @param constraintAxisInPredessor a spatial vector, resolved in the frame of
+            the predecessor frame, indicating the axis along which the 
+            constraint acts
+    
+
+     @param enableBaumgarteStabilization (optional, default false) setting this
+            flag to true will modify the right hand side of the acceleration
+            equation with a penaltiy term that is proportional to the constraint
+            error scaled by a constant.
+
+     @param stabilizationTimeConstant (optional, defaults to 0.1 sec) this
+            value scales the strength of Baumgarte stabilization so that the
+            settling time of the error is proportional the value given here.
+
+     @param name a human readable name (optional, default: NULL).
+            Set this field to a unique name (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
+
+     @param userDefinedId a user defined id (optional, defaults to max()).
+            Set this field to a unique number (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
+
+     @param positionLevelConstraint (optional, defaults to true to be consistent
+              with the original implementation):
+              When set to true, position errors will be computed for this
+              constraint. This has the consequence that the function
+              CalcAssemblyQ will assemble this constraint at the position level.
+              In addition if Baumgarte stabilization is enabled, stabilization
+              forces will be applied as a function  of the position error.
+
+     @param velocityLevelConstraint (optional, defaults to true to be consistent
+              with the original implementation) :
+              This flag controls whether or not velocity errors are computed
+              for this constraint. When velocity errors are computed
+              they are used by CalcAssemblyQDot (to assemble this constraint
+              at the velocity level) and by Baumgarte stabilization (if it is
+              enabled) to modify the right hand side of the acceleration
+              equation with a penalty term proportional to error.
+
+  */
   LoopConstraint(
       const unsigned int bodyIdPredecessor,
       const unsigned int bodyIdSuccessor,
-      const Math::SpatialTransform &bodyFramePredecessor,
-      const Math::SpatialTransform &bodyFrameSuccessor,
-      const Math::SpatialVector &constraintAxis,
+      const Math::SpatialTransform &XPredecessor,
+      const Math::SpatialTransform &XSuccessor,
+      const Math::SpatialVector &constraintAxisInPredessor,
       bool enableBaumgarteStabilization = false,
       double stabilizationTimeConstant = 0.1,
       const char *name = NULL,

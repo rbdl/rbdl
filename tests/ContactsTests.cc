@@ -134,7 +134,8 @@ TEST ( TestForwardDynamicsConstraintsDirectSimple ) {
 
 
   unsigned int id=11;
-  constraint_set.AddContactConstraint(contact_body_id, contact_point,
+  unsigned int autoId =
+      constraint_set.AddContactConstraint(contact_body_id, contact_point,
                                      Vector3d (1., 0., 0.),
                                       "ground_xyz",id);
   constraint_set.AddContactConstraint (contact_body_id, contact_point,
@@ -144,9 +145,12 @@ TEST ( TestForwardDynamicsConstraintsDirectSimple ) {
 
   constraint_set.Bind (model);
 
-  unsigned int index = constraint_set.GetConstraintIndex("ground_xyz");
+  std::string name("ground_xyz");
+  unsigned int index = constraint_set.getGroupIndexByName(name);
   CHECK(index==0);
-  index = constraint_set.GetConstraintIndex(id);
+  index = constraint_set.getGroupIndexByUserId(id);
+  CHECK(index==0);
+  index = constraint_set.getGroupIndexById(autoId);
   CHECK(index==0);
 
   ClearLogOutput();

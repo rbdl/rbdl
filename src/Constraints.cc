@@ -46,8 +46,7 @@ unsigned int ConstraintSet::AddContactConstraint (
   const Vector3d &body_point,
   const Vector3d &world_normal,
   const char *constraint_name,
-  unsigned int userDefinedId,
-  bool allowConstraintAppending)
+  unsigned int userDefinedId)
 {
   assert (bound == false);
 
@@ -70,7 +69,7 @@ unsigned int ConstraintSet::AddContactConstraint (
   // are all grouped together then the point Jacobian is only evaluated once.
   bool constraintAdded = false;
 
-  if(contactConstraints.size() > 0 && allowConstraintAppending){
+  if(contactConstraints.size() > 0){
     unsigned int i = unsigned(contactConstraints.size()-1);
     if(contactConstraints[i]->getBodyIds()[0] == body_id){
       Vector3d pointErr = body_point -
@@ -78,7 +77,6 @@ unsigned int ConstraintSet::AddContactConstraint (
       if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100){
         constraintAdded = true;
         contactConstraints[i]->appendNormalVector(world_normal);
-
       }
     }
   }
@@ -93,11 +91,11 @@ unsigned int ConstraintSet::AddContactConstraint (
     contactConstraints[idx]->addToConstraintSet(insertAtRowInG);
     constraints.emplace_back(contactConstraints[idx]);
 
-
   }
 
   constraintType.push_back (ConstraintTypeContact);
   name.push_back (nameStr);
+
 
   err.conservativeResize(rowsInG);
   err[insertAtRowInG] = 0.;
@@ -116,6 +114,45 @@ unsigned int ConstraintSet::AddContactConstraint (
   d_multdof3_u = std::vector<Math::Vector3d>( rowsInG,
                                               Math::Vector3d::Zero());
 
+  //Set up access maps
+  if(nameStr.size() > 0){
+    std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
+    iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
+                          nameStr, unsigned(constraints.size()-1)));
+    if(iter.second == false){
+      std::cerr << "Error: optional name is not unique."
+                << std::endl;
+      assert(0);
+      abort();
+    }
+
+  }
+  if(userDefinedId < std::numeric_limits<unsigned int>::max()){
+    std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
+    iter =userDefinedIdGroupMap.insert( std::pair<unsigned int, unsigned int>(
+                                    userDefinedId,
+                                    unsigned(constraints.size()-1)));
+    if(iter.second == false){
+      std::cerr << "Error: optional userDefinedId is not unique."
+                << std::endl;
+      assert(0);
+      abort();
+    }
+  }
+
+  std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
+  iter = idGroupMap.insert(std::pair<unsigned int, unsigned int>(
+                                     unsigned(rowsInG-1),
+                                     unsigned(constraints.size()-1)));
+  if(iter.second == false){
+    std::cerr << "Error: Constraint row entry in system is not unique."
+              << " (This should not be possible: contact the "
+                 "maintainer of this code.)"
+              << std::endl;
+    assert(0);
+    abort();
+  }
+
   return rowsInG-1;
 
 }
@@ -130,8 +167,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
   bool enableBaumgarteStabilization,
   double stabilizationTimeConstant,
   const char *constraintName,
-  unsigned int userDefinedId,
-  bool allowConstraintAppending)
+  unsigned int userDefinedId)
 {
   assert (bound == false);
 
@@ -141,10 +177,9 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   double tol = std::numeric_limits<double>::epsilon()*100.;
   bool constraintAdded = false;
-
   unsigned int idx = unsigned(loopConstraints.size());
 
-  if(loopConstraints.size() > 0 && allowConstraintAppending){
+  if(loopConstraints.size() > 0){
     idx = idx-1;
     if(loopConstraints[idx]->getBodyIds()[0] == idPredecessor && 
        loopConstraints[idx]->getBodyIds()[1] == idSuccessor){
@@ -206,6 +241,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   name.push_back (nameStr);
 
+
   err.conservativeResize(rowsInG);
   err[insertAtRowInG] = 0.;
   errd.conservativeResize(rowsInG);
@@ -221,6 +257,45 @@ unsigned int ConstraintSet::AddLoopConstraint (
   v_plus[insertAtRowInG] = 0.;
 
   d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
+
+  //Set up access maps
+  if(nameStr.size() > 0){
+    std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
+    iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
+                          nameStr, unsigned(constraints.size()-1)));
+    if(iter.second == false){
+      std::cerr << "Error: optional name is not unique."
+                << std::endl;
+      assert(0);
+      abort();
+    }
+
+  }
+  if(userDefinedId < std::numeric_limits<unsigned int>::max()){
+    std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
+    iter =userDefinedIdGroupMap.insert( std::pair<unsigned int, unsigned int>(
+                                    userDefinedId,
+                                    unsigned(constraints.size()-1)));
+    if(iter.second == false){
+      std::cerr << "Error: optional userDefinedId is not unique."
+                << std::endl;
+      assert(0);
+      abort();
+    }
+  }
+
+  std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
+  iter = idGroupMap.insert(std::pair<unsigned int, unsigned int>(
+                                     unsigned(rowsInG-1),
+                                     unsigned(constraints.size()-1)));
+  if(iter.second == false){
+    std::cerr << "Error: Constraint row entry in system is not unique."
+              << " (This should not be possible: contact the "
+                 "maintainer of this code.)"
+              << std::endl;
+    assert(0);
+    abort();
+  }
 
   return rowsInG-1;
 }
@@ -252,8 +327,11 @@ unsigned int ConstraintSet::AddCustomConstraint(
   d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
 
   for(unsigned int i=0; i<customConstraint->getConstraintSize();++i){
+    //The list of names, constraint types, and ids must have the same
+    //number of entries as G has rows.
     name.push_back (nameStr);
     constraintType.push_back (ConstraintTypeCustom);
+
 
     err[      insertAtRowInG+i ] = 0.;
     errd[     insertAtRowInG+i ] = 0.;
@@ -262,7 +340,49 @@ unsigned int ConstraintSet::AddCustomConstraint(
     v_plus[   insertAtRowInG+i ] = 0.;
 
   }
-  // These variables will not be used.
+
+  //Set up access maps
+  if(nameStr.size() > 0){
+    std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
+    iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
+                          nameStr, unsigned(constraints.size()-1)));
+    if(iter.second == false){
+      std::cerr << "Error: optional name is not unique."
+                << std::endl;
+      assert(0);
+      abort();
+    }
+
+  }
+  if(customConstraint->getUserDefinedId()
+     < std::numeric_limits<unsigned int>::max()){
+    std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
+    iter =userDefinedIdGroupMap.insert( std::pair<unsigned int, unsigned int>(
+                                    customConstraint->getUserDefinedId(),
+                                    unsigned(constraints.size()-1)));
+    if(iter.second == false){
+      std::cerr << "Error: optional userDefinedId is not unique."
+                << std::endl;
+      assert(0);
+      abort();
+    }
+
+  }
+
+  std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
+  iter = idGroupMap.insert(std::pair<unsigned int, unsigned int>(
+                                     unsigned(rowsInG-1),
+                                     unsigned(constraints.size()-1)));
+  if(iter.second == false){
+    std::cerr << "Error: Constraint row entry into system is not unique."
+              << " (This should not be possible: contact the "
+                 "maintainer of this code.)"
+              << std::endl;
+    assert(0);
+    abort();
+
+  }
+
   return rowsInG-1;
 
 }

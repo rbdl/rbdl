@@ -416,11 +416,15 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   Matrix3d rot_p;
   double angleErr;
 
-  unsigned int loopIndex = cs.GetConstraintIndex("LoopXY_Rz");
+  std::string name("LoopXY_Rz");
+  unsigned int loopIndex = cs.getGroupIndexByName(name);
   CHECK(loopIndex==0);
 
   unsigned int userDefinedId = 7;
-  loopIndex = cs.GetConstraintIndex(userDefinedId);
+  loopIndex = cs.getGroupIndexByUserId(userDefinedId);
+  CHECK(loopIndex==0);
+
+  loopIndex = cs.getGroupIndexById(0);
   CHECK(loopIndex==0);
 
   // Test in zero position.

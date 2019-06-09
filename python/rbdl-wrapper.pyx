@@ -1529,8 +1529,7 @@ cdef class ConstraintSet:
             np.ndarray[double, ndim=1, mode="c"] body_point,
             np.ndarray[double, ndim=1, mode="c"] world_normal,
             constraint_name = None,
-            unsigned int user_defined_id=4294967295,
-            bool allow_appending=True):
+            unsigned int user_defined_id=4294967295):
 
         cdef char* constraint_name_ptr
 
@@ -1544,8 +1543,7 @@ cdef class ConstraintSet:
                 NumpyToVector3d(body_point),
                 NumpyToVector3d(world_normal),
                 constraint_name_ptr,
-                user_defined_id,
-                allow_appending)            
+                user_defined_id)            
             
     
     def AddLoopConstraint (self,
@@ -1557,8 +1555,7 @@ cdef class ConstraintSet:
             baumgarte_enabled = False,
             double T_stab_inv = 0.1,
             constraint_name = None,
-            unsigned int user_defined_id=4294967295,
-            bool allow_appending=True):
+            unsigned int user_defined_id=4294967295):
 
         cdef char* constraint_name_ptr
 
@@ -1576,8 +1573,7 @@ cdef class ConstraintSet:
             baumgarte_enabled,
             T_stab_inv,
             constraint_name_ptr,
-            user_defined_id,
-            allow_appending)
+            user_defined_id)
 
     def Bind (self, model):
         return self.thisptr.Bind ((<Model>model).thisptr[0])

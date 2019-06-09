@@ -25,6 +25,44 @@ public:
 
   ContactConstraint();
 
+  /**
+
+    @param bodyId the body which is affected directly by the constraint
+
+    @param bodyPoint the point that is constrained relative to the
+            contact body
+
+    @param groundConstraintNormalVectors the normal direction in which to apply 
+            the constraint
+
+     @param name a human readable name (optional, default: NULL).
+            Set this field to a unique name (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
+
+     @param userDefinedId a user defined id (optional, defaults to max()).
+            Set this field to a unique number (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
+
+    @param enableBaumgarteStabilization (optional, default false) setting this
+            flag to true will modify the right hand side of the acceleration
+            equation with a penaltiy term that is proportional to the constraint
+            error scaled by a constant.
+
+    @param stabilizationTimeConstant (optional, defaults to 0.1 sec) this
+            value scales the strength of Baumgarte stabilization so that the
+            settling time of the error is proportional the value given here.
+
+    @param velocityLevelConstraint (advanced, optional, defaults to true) :
+                This flag controls whether or not velocity errors are computed
+                for this constraint. When velocity errors are computed
+                they are used by CalcAssemblyQDot (to assemble this constraint
+                at the velocity level) and by Baumgarte stabilization (if it is
+                enabled) to modify the right hand side of the acceleration
+                equation with a penalty term proportional to error. To be
+                consistent with the original RBDL implementation position level
+                errors are not computed (all 0's) for this constraint type.
+  */
+
   ContactConstraint(
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,

@@ -18,7 +18,7 @@
 #include <rbdl/Constraint_Loop.h>
 #include <string.h>
 #include <assert.h>
-
+#include <map>
 
 namespace RigidBodyDynamics {
 
@@ -286,54 +286,39 @@ struct RBDL_DLLAPI ConstraintSet {
 
 
   /**
-    @param name : the optional name that the constraint was assigned when it was
+    @param constriaintName : the optional name that the constraint was assigned when it was
                   added to the constraint set.
 
-    @param returns: the index of the constraint in the vector of Constraint
-                    pointers
+    @param returns: the group index of the constraint
   */
-  unsigned int GetConstraintIndex(const char* name){
-
-    unsigned int index = constraints.size();
-    unsigned int i = 0;
-    bool found = false;
-    while(i < constraints.size() && found == false){
-
-      if( constraints[i]->getName() != NULL){
-        if( std::strcmp(constraints[i]->getName(), name) == 0){
-          index = i;
-          found=true;
-        }
-      }
-      ++i;
-    }
-
-    return index;
-
+  unsigned int getGroupIndexByName(std::string &userDefinedName){
+    return nameGroupMap.at(userDefinedName);
   }
 
   /**
     @param userDefinedId : the integer id that was assigned to this constraint
                            when it was created.
 
-    @param returns: the index of the constraint in the vector of Constraint
-                    pointers
+    @param returns: the group index of the constraint
   */
 
-  unsigned int GetConstraintIndex(unsigned int userDefinedId){
-    unsigned int index = constraints.size();
-    unsigned int i = 0;
-    bool found = false;
-    while(i < constraints.size() && found == false){
-      if( constraints[i]->getUserDefinedId() == userDefinedId){
-        index = i;
-        found=true;
-      }
-      ++i;
-    }
-
-    return index;
+  unsigned int getGroupIndexByUserId(unsigned int userDefinedId){
+    return userDefinedIdGroupMap.at(userDefinedId);
   }
+
+  /**
+    @param automaticallyAssignedId :
+            the integer id that was returned by the Add ... Constraint
+            (AddContactConstraint, AddLoopConstraint, AddCustomConstraint, etc)
+            function when this constraint was added to the constraint set.
+
+    @param returns: the group index of the constraint
+  */
+
+  unsigned int getGroupIndexById(unsigned int automaticallyAssignedId){
+    return idGroupMap.at(automaticallyAssignedId);
+  }
+
 
 
 
@@ -350,7 +335,6 @@ struct RBDL_DLLAPI ConstraintSet {
 
      @param worldNormals the normal direction in which to apply the constraint
 
-
      @param constraintName a human readable name (optional, default: NULL).
             Set this field to a unique name (within this ConstraintSet) so that
             the function GetConstraintIndex can find it.
@@ -359,31 +343,7 @@ struct RBDL_DLLAPI ConstraintSet {
             Set this field to a unique number (within this ConstraintSet) so that
             the function GetConstraintIndex can find it.
 
-     @param enableBaumgarteStabilization (optional, default false) setting this
-            flag to true will modify the right hand side of the acceleration
-            equation with a penaltiy term that is proportional to the constraint
-            error scaled by a constant.
 
-     @param stabilizationTimeConstant (optional, defaults to 0.1 sec) this
-            value scales the strength of Baumgarte stabilization so that the
-            settling time of the error is proportional the value given here.
-
-    @param velocityLevelConstraint (advanced, optional, defaults to true) :
-                This flag controls whether or not velocity errors are computed
-                for this constraint. When velocity errors are computed
-                they are used by CalcAssemblyQDot (to assemble this constraint
-                at the velocity level) and by Baumgarte stabilization (if it is
-                enabled) to modify the right hand side of the acceleration
-                equation with a penalty term proportional to error. To be
-                consistent with the original RBDL implementation position level
-                errors are not computed (all 0's) for this constraint type.
-
-     @param allowConstraintAppending (optional, defaults to true) setting this
-            to true will append this contact constraint to the last added
-            contact constraint but only if both constraints are applied to the
-            same body and location on that body. This is done to save on
-            computation. Note that the name and userId of this constraint is
-            ignored when it is appended to an existing parent constraint.
 
    */
   unsigned int AddContactConstraint (
@@ -391,8 +351,7 @@ struct RBDL_DLLAPI ConstraintSet {
     const Math::Vector3d &body_point,
     const Math::Vector3d &world_normal,
     const char *constraint_name = NULL,
-    unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
-    bool allowConstraintAppending = true);
+    unsigned int userDefinedId = std::numeric_limits<unsigned int>::max());
 
   /** \brief Adds a loop constraint to the constraint set.
    
@@ -416,15 +375,6 @@ struct RBDL_DLLAPI ConstraintSet {
             the predecessor frame, indicating the axis along which the 
             constraint acts
     
-
-     @param constraintName a human readable name (optional, default: NULL).
-            Set this field to a unique name (within this ConstraintSet) so that
-            the function GetConstraintIndex can find it.
-
-     @param userDefinedId a user defined id (optional, defaults to max()).
-            Set this field to a unique number (within this ConstraintSet) so that
-            the function GetConstraintIndex can find it.
-
      @param enableBaumgarteStabilization (optional, default false) setting this
             flag to true will modify the right hand side of the acceleration
             equation with a penaltiy term that is proportional to the constraint
@@ -434,29 +384,14 @@ struct RBDL_DLLAPI ConstraintSet {
             value scales the strength of Baumgarte stabilization so that the
             settling time of the error is proportional the value given here.
 
-     @param positionLevelConstraint (optional, defaults to true to be consistent
-              with the original implementation):
-              When set to true, position errors will be computed for this
-              constraint. This has the consequence that the function
-              CalcAssemblyQ will assemble this constraint at the position level.
-              In addition if Baumgarte stabilization is enabled, stabilization
-              forces will be applied as a function  of the position error.
+     @param constraintName a human readable name (optional, default: NULL).
+            Set this field to a unique name (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
 
-     @param velocityLevelConstraint (optional, defaults to true to be consistent
-              with the original implementation) :
-              This flag controls whether or not velocity errors are computed
-              for this constraint. When velocity errors are computed
-              they are used by CalcAssemblyQDot (to assemble this constraint
-              at the velocity level) and by Baumgarte stabilization (if it is
-              enabled) to modify the right hand side of the acceleration
-              equation with a penalty term proportional to error.
+     @param userDefinedId a user defined id (optional, defaults to max()).
+            Set this field to a unique number (within this ConstraintSet) so that
+            the function GetConstraintIndex can find it.
 
-     @param allowConstraintAppending (optional, defaults to true) setting this
-            to true will append this contact constraint to the last added
-            contact constraint but only if both constraints are applied to the
-            same body and location on that body. This is done to save on
-            computation. Note that the name and userId of this constraint is
-            ignored when it is appended to an existing parent constraint.
 
    */
     unsigned int AddLoopConstraint(
@@ -468,8 +403,7 @@ struct RBDL_DLLAPI ConstraintSet {
       bool enableBaumgarteStabilization = false,
       double stabilizationTimeConstant = 0.1,
       const char *constraintName = NULL,
-      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
-      bool allowConstraintAppending=true);
+      unsigned int userDefinedId = std::numeric_limits<unsigned int>::max());
 
 
 
@@ -530,6 +464,10 @@ struct RBDL_DLLAPI ConstraintSet {
   std::vector<ConstraintType> constraintType;
 
   std::vector<std::string> name;
+
+  std::map < std::string, unsigned int > nameGroupMap;
+  std::map < unsigned int, unsigned int> userDefinedIdGroupMap;
+  std::map < unsigned int, unsigned int> idGroupMap;
 
   //A shared_ptr (MM 28 May 2019)
   //  :is 2x as expensive (with the optimize flags turned on) as a regular

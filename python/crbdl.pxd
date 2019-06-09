@@ -438,8 +438,7 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
                 const Vector3d &body_point,
                 const Vector3d &world_normal,
                 const char* constraint_name,
-                unsigned int user_defined_id,
-                bool allow_appending)
+                unsigned int user_defined_id)
 
         
         unsigned int AddLoopConstraint (
@@ -451,8 +450,7 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
                 bool baumgarte_enabled,
                 double T_stab_inv,
                 const char *constraint_name,
-                unsigned int user_defined_id,
-                bool allow_appending)
+                unsigned int user_defined_id)
                 
 
         ConstraintSet Copy()
