@@ -132,30 +132,37 @@ class RBDL_DLLAPI Constraint {
       id = userDefinedId;
     }
 
-    Math::MatrixNd getConstraintJacobian(Math::MatrixNd &GSys){
-      return GSys.block(rowInSystem,0,sizeOfConstraint,GSys.cols());
+    void getConstraintJacobian(const Math::MatrixNd &GSys,
+                               Math::MatrixNd &GContraint){
+      GContraint = GSys.block(rowInSystem,0,sizeOfConstraint,GSys.cols());
     }
 
-    Math::VectorNd getGamma(Math::VectorNd &gammaSys){
-      return gammaSys.block(rowInSystem,0,sizeOfConstraint,1);
+    void getGamma(const Math::VectorNd &gammaSys,
+                  Math::VectorNd &gammaConstraint){
+      gammaConstraint = gammaSys.block(rowInSystem,0,sizeOfConstraint,1);
     }
 
-    Math::VectorNd getPositionError(Math::VectorNd &errSys){
-      return errSys.block(rowInSystem,0,sizeOfConstraint,1);
+    void getPositionError(const Math::VectorNd &errSys,
+                          Math::VectorNd &errConstraint){
+      errConstraint = errSys.block(rowInSystem,0,sizeOfConstraint,1);
     }
 
-    Math::VectorNd getVelocityError(Math::VectorNd &derrSys){
-      return derrSys.block(rowInSystem,0,sizeOfConstraint,1);
+    void getVelocityError(const Math::VectorNd &derrSys,
+                          Math::VectorNd &derrConstraint){
+      derrConstraint = derrSys.block(rowInSystem,0,sizeOfConstraint,1);
     }
 
+    void getBaumgarteStabilizationParameters(Math::Vector2d& bgParamsUpd){
+      bgParamsUpd = baumgarteParameters;
+    }
 
-
-    Math::VectorNd getBaumgarteStabilizationForces(const Math::VectorNd &errPos,
-                                                   const Math::VectorNd &errVel)
+    void getBaumgarteStabilizationForces(const Math::VectorNd &errPos,
+                                         const Math::VectorNd &errVel,
+                                         Math::VectorNd &baumgarteForces)
     {
 
-        return (-2*baumgarteParameters[0]*errVel
-                  -baumgarteParameters[1]*baumgarteParameters[1]*errPos);
+        baumgarteForces=(-2*baumgarteParameters[0]*errVel
+                         -baumgarteParameters[1]*baumgarteParameters[1]*errPos);
     }
 
     void addInBaumgarteStabilizationForces(const Math::VectorNd &errPosSys,

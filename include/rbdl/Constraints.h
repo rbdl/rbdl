@@ -285,94 +285,319 @@ struct RBDL_DLLAPI ConstraintSet {
 
 
   /**
-    @param userDefinedName : the optional name that the constraint was assigned when it was
-                  added to the constraint set.
+      @brief getGroupIndex returns the index to a constraints that have been
+             grouped because they are of the same type, apply to the same
+             bodies, and apply to the same local frames on each body.
+      @param userDefinedName : the optional name that the constraint was assigned when it was
+                    added to the constraint set.
 
-    @param returns: the group index of the constraint
+      @param returns: the group index of the constraint
   */
   unsigned int getGroupIndex(std::string& userDefinedName){
     return nameGroupMap.at(userDefinedName);
   }
+
+  /**
+      @brief getGroupIndex returns the index to a constraints that have been
+             grouped because they are of the same type, apply to the same
+             bodies, and apply to the same local frames on each body.
+      @param userDefinedName : the optional name that the constraint was
+              assigned when it was added to the constraint set.
+      @param returns: the group index of the constraint
+      @note Internally this function makes a temporary string
+  */
+
   unsigned int getGroupIndex(const char* userDefinedName){
     std::string conName(userDefinedName);
     return nameGroupMap.at(conName);
   }
 
   /**
-    @param userDefinedId : the integer id that was assigned to this constraint
-                           when it was created.
+      @brief getGroupIndex returns the index to a constraints that have been
+             grouped because they are of the same type, apply to the same
+             bodies, and apply to the same local frames on each body.
 
-    @param returns: the group index of the constraint
+      @param userDefinedId : the optional integer id that was assigned to this
+                constraint when it was created.
+
+      @param returns: the group index of the constraint
   */
 
   unsigned int getGroupIndex(unsigned int userDefinedId){
     return userDefinedIdGroupMap.at(userDefinedId);
   }
 
-  unsigned int getGroupIndexMin(){
-    return 0;
-  }
-
-  unsigned int getGroupIndexMax(){
-    return unsigned(constraints.size()-1);
-  }
-
-  const char* getGroupName(unsigned int groupIndex){
-    return constraints[groupIndex]->getName();
-  }
-
-  unsigned int getGroupId(unsigned int groupIndex){
-    return constraints[groupIndex]->getUserDefinedId();
-  }
-
-
   /**
-    @param automaticallyAssignedId :
-            the integer id that was returned by the Add ... Constraint
-            (AddContactConstraint, AddLoopConstraint, AddCustomConstraint, etc)
-            function when this constraint was added to the constraint set.
+      @brief getGroupIndex returns the index to a constraints that have been
+         grouped because they are of the same type, apply to the same
+         bodies, and apply to the same local frames on each body.
 
-    @param returns: the group index of the constraint
+      @param assignedId :
+            the integer id that was returned when the constraint was added
+            to the constraint set by the functions: AddContactConstraint,
+            AddLoopConstraint, AddCustomConstraint, etc.
+
+      @param returns: the group index of the constraint
   */
 
   unsigned int getGroupIndexByAssignedId(unsigned int assignedId){
     return idGroupMap.at(assignedId);
   }
 
-  void CalcConstraintForces(
+
+  /**
+      @brief getGroupIndexMax returns the maximum valid constraint
+      group index (the min. is zero) so that constraint groups can
+      be iterated over if desired.
+      @return the largest group index
+   */
+  unsigned int getGroupIndexMax(){
+    return unsigned(constraints.size()-1);
+  }
+
+  /**
+      @brief Returns the name of the constraint group, which may differ from
+             the names entered by the user if the constraint is one in which
+             grouping is done automatically (e.g. contact and loop constraints)
+
+      @param groupIndex the index number of a constraint group.
+
+      @return the name of the constraint group. For constraints that are grouped
+             automatically (e.g. contact and loop constraints) the group name is
+             the name of the first constraint added to the group. For
+             constraints which are not automatically grouped (e.g.
+             CustomConstraints) the group name is identical to the optional
+             name used when the constraint was added to the constraint
+             set (e.g. when AddCustomConstraint was called).
+
+   */
+  const char* getGroupName(unsigned int groupIndex){
+    return constraints[groupIndex]->getName();
+  }
+
+  /**
+      @brief Returns the user-defined-id of the constraint group, which may
+             differ from the names entered by the user if the constraint is one
+             in which grouping is done automatically (e.g. contact and loop
+             constraints).
+
+      @param groupIndex the index number of a constraint group.
+
+      @return the user-defined-id of the constraint group. For constraints that
+              are grouped automatically (e.g. contact and loop constraints) the
+              user-defined-id will be the user-defined-id fo the of the first
+              constraint added to the group. For constraints which are not
+              automatically grouped (e.g. CustomConstraints) the user-defined-id
+              is identical to the one the user assigned (optionally) when the
+              constraint was added to the constraint set (e.g. when
+              AddCustomConstraint was called).
+   */
+  unsigned int getGroupId(unsigned int groupIndex){  
+    return constraints[groupIndex]->getUserDefinedId();
+  }
+
+  /**
+      @brief Returns assigned id of the constraint group which will be the first
+             id assigned to an entry in a group (if the grouping was done
+             automatically - as is done for contact and loop constraints).
+
+      @param groupIndex the index number of a constraint group.
+
+      @return the assigned of the constraint group. For constraints that
+              are grouped automatically (e.g. contact and loop constraints) the
+              assigned id will be the assigned id fo the of the first
+              constraint added to the group. For constraints which are not
+              automatically grouped (e.g. CustomConstraints) the assigned id
+              is identical to the one returned when the constraint was added
+              to the constraint set (e.g. when AddCustomConstraint was called).
+   */
+
+  unsigned int getGroupAssignedId(unsigned int groupIndex){
+    unsigned int assignedId=std::numeric_limits<unsigned int>::max();
+    auto it = idGroupMap.begin();
+    bool found = false;
+    while(it != idGroupMap.end() && found == false){
+      if(it->second == groupIndex){
+        assignedId = it->first;
+        found = true;
+      }
+      it++;
+    }
+    if(found==false){
+      std::cerr << "Error: a groupIndex of " << groupIndex
+                << " could not be found. Valid groupIndex range between 0 and "
+                << unsigned(constraints.size()-1);
+      assert(0);
+      abort();
+    }
+    return assignedId;
+  }
+
+  /**
+      @brief  calcForces resolves the generalized forces generated by
+            this constraint into equivalent spatial forces (resolved in the
+            local or the base frame) that are applied between the bodies and
+            frames that this constraint applies to.
+
+      @note <b>Important:</b> The values returned by this function are only
+            valid <b>after</b> one of the forward dynamics with constraints methods
+            (ForwardDynamicsConstraintsDirect,
+            ForwardDynamicsConstraintsNullSpace, etc) have been called, or
+            after the inverse dynamics with constraints
+            (InverseDynamicsConstraints) method has been called. Why? This
+            function makes use of the Lagrange multipliers stored in the
+            ConstraintSet - these are only evaluated during forward/inverse
+            dynamics function calls.
+
+      @param groupIndex: the index number of this constraint (see getGroupIndex
+            index functions)
+
+      @param model: the multibody model
+
+      @param Q: the generalized positions of the model
+
+      @param QDot: the generalized velocities of the model
+
+      @param constraintBodyIdsUpd: a vector of all of the body (ids) to which this
+            constraint applies. For contact constraints the first entry is for 
+            the body from the model, while the second entry is for the ground.
+            For loop constraints the first entry is for the predecessor while
+            the second entry is for the successor. Please information regarding
+            other constraints please refer the documentation specific to
+            that constraint.
+
+      @param constraintBodyFramesUpd: a vector of the local frames on each body at
+            which the constraint forces are applied. Each frame listed
+            corresponds with constraintBodyIdsUpd: the 1st frame is the local
+            frame for the first body, the 2nd frame is associated with the
+            2nd body. For example, with a contact constraint the 
+            first frame would be local transformation relative to the body
+            frame (which is in the first index).
+
+      @param constraintForcesUpd: the spatial force generated by this constraint.
+            Each wrench listed corresponds with constraintBodyFramesUpd, and
+            constraintBodyIdsUpd: the first spatial force is applied to the
+            origin of the first frame listed in constraintBodyFramesUpd and
+            this frame is located in the first body listed in
+            constraintBodyIdsUpd. 
+
+      @param resolveAllInRootFrame: setting this flag to true will resolve the
+             constraintBodyFramesUpd, and the constraintForcesUpd into the
+             constraints of the root/base frame. Since the
+             constraintBodyFramesUpd are now in the base frame the
+             constraintBodyIdsUpd vector is set to 0's.
+
+      @param updateKinematics: setting this flag to true will trigger the
+            kinematic transforms of the model to be updated.
+   */
+  void calcForces(
       unsigned int groupIndex,
       Model& model,
       const Math::VectorNd &Q,
       const Math::VectorNd &QDot,
       std::vector< unsigned int > &constraintBodyIdsUpd,
       std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
-      std::vector< Math::SpatialVector > &constraintForces,
+      std::vector< Math::SpatialVector > &constraintForcesUpd,
       bool resolveAllInRootFrame = false,
       bool updateKinematics = false);
 
-  void CalcConstraintPositionError(
+  /**
+      @brief calcPositionError calculates the vector of position
+              errors associated with this constraint. Note that if the
+              constraint group, or parts of it, are not defined at the position
+              level then 0's will be returned.
+
+      @param groupIndex: the index number of this constraint (see getGroupIndex
+            index functions)
+
+      @param model: the multibody model
+
+      @param Q: the generalized positions of the model
+
+      @param positionErrorUpd: the vector of constraint errors
+
+      @param updateKinematics: setting this flag to true will trigger the
+            kinematic transforms of the model to be updated.
+   */
+  void calcPositionError(
       unsigned int groupIndex,
       Model& model,
       const Math::VectorNd &Q,
-      Math::VectorNd &posErrUpd,
+      Math::VectorNd &positionErrorUpd,
       bool updateKinematics = false);
 
-  void CalcConstraintVelocityError(
+
+  /**
+      @brief calcVelocityError calculates the vector of position
+              errors associated with this constraint. Note that if the
+              constraint group, or parts of it, are not defined at the position
+              level then 0's will be returned.
+
+      @param groupIndex: the index number of this constraint (see getGroupIndex
+            index functions)
+
+      @param model: the multibody model
+
+      @param Q: the generalized positions of the model
+
+      @param QDot: the generalized velocities of the model
+
+      @param velocityErrorUpd: the vector of constraint errors at the velocity
+              level
+
+      @param updateKinematics: setting this flag to true will trigger the
+            kinematic transforms of the model to be updated.
+   */
+  void calcVelocityError(
       unsigned int groupIndex,
       Model& model,
       const Math::VectorNd &Q,
       const Math::VectorNd &QDot,
-      Math::VectorNd &velErrUpd,
+      Math::VectorNd &velocityErrorUpd,
       bool updateKinematics = false);
 
-  void CalcConstraintBaumgarteStabilization(
+
+  /**
+
+      @param groupIndex: the index number of this constraint (see getGroupIndex
+            index functions)
+
+      @param model: the multibody model
+
+      @param positionError: the position errors associated with this constraint
+                            computed using the calcConstraintPositionError
+                            function
+
+      @param velocityError: the velocity errors associated with this constraint
+                            computed using the calcConstraintVelocityError
+                            function
+
+      @param baumgarteForcesUpd: the baumgarte stabilization forces applied to this
+                              this constraint.
+   */
+  void calcBaumgarteStabilizationForces(
       unsigned int groupIndex,
       Model& model,
-      const Math::VectorNd &Q,
-      const Math::VectorNd &QDot,
-      Math::VectorNd &baumgarteForces,
-      bool updateKinematics = false);
+      const Math::VectorNd &positionError,
+      const Math::VectorNd &velocityError,
+      Math::VectorNd &baumgarteForcesUpd);
 
+  /**
+     @param groupIndex: the index number of this constraint (see getGroupIndex
+            index functions)
+     @return true if Baumgarte stabilization is enabled
+  */
+  bool isBaumgarteStabilizationEnabled(
+      unsigned int groupIndex){
+    return constraints[groupIndex]->isBaumgarteStabilizationEnabled();
+  }
+
+  void getBaumgarteStabilizationCoefficients(
+      unsigned int groupIndex,
+      Math::Vector2d& baumgartePositionVelocityCoefficientsUpd){
+      constraints[groupIndex]->getBaumgarteStabilizationParameters(
+                                baumgartePositionVelocityCoefficientsUpd);
+  }
 
   /** @brief Adds a single contact constraint (point-ground) to the
       constraint set.
@@ -394,9 +619,6 @@ struct RBDL_DLLAPI ConstraintSet {
      @param userDefinedId a user defined id (optional, defaults to max()).
             Set this field to a unique number (within this ConstraintSet) so that
             the function GetConstraintIndex can find it.
-
-
-
    */
   unsigned int AddContactConstraint (
     unsigned int body_id,

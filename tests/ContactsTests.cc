@@ -100,6 +100,130 @@ struct FixedBase6DoF9DoF {
   ConstraintSet constraint_set;
 };
 
+TEST( TestExtendedConstraintFunctionsContact ){
+  //Make a simple system for which we know the constraint forces
+  //by construction and use this to test the newly added generic
+  //functions to compute contraint forces, position errors, velocity errors
+  //and Baumgarte forces
+
+  Model model;
+  model.gravity = Vector3d  (0., -9.81, 0.);
+  Body boxBody (1., Vector3d (0., 0., 0.), Matrix3dIdentity);
+  unsigned int boxId = model.AddBody (0, SpatialTransform(),
+      Joint (
+        SpatialVector (0., 0., 0., 1., 0., 0.),
+        SpatialVector (0., 0., 0., 0., 1., 0.),
+        SpatialVector (0., 0., 1., 0., 0., 0.)),
+      boxBody);
+
+  ConstraintSet cs;
+  cs.AddContactConstraint(boxId,Vector3d(-0.5,0,0),Vector3d(0.,1.,0.),
+                          "LeftCorner");
+  cs.AddContactConstraint(boxId,Vector3d(-0.5,0,0),Vector3d(1.,0.,0.));
+  cs.AddContactConstraint(boxId,Vector3d( 0.5,0,0),Vector3d(0.,1.,0.),
+                          "RightCorner");
+  cs.Bind(model);
+
+  VectorNd qInit  =  VectorNd::Zero(model.dof_count);
+  VectorNd qdInit = VectorNd::Zero(model.dof_count);
+  VectorNd tau    = VectorNd::Zero(model.dof_count);
+
+  VectorNd q =  VectorNd::Zero(model.dof_count);
+  VectorNd qd = VectorNd::Zero(model.dof_count);
+  VectorNd qdd = VectorNd::Zero(model.dof_count);
+
+  VectorNd weights = VectorNd::Ones(model.dof_count);
+  CalcAssemblyQ(model,qInit,cs,q,weights);
+  CalcAssemblyQDot(model,q,qdInit,cs,qd,weights);
+
+  ForwardDynamicsConstraintsDirect(model,q,qd,tau,cs,qdd);
+
+  std::vector< unsigned int > bodyIds;
+  std::vector< SpatialTransform > bodyFrames;
+  std::vector< SpatialVector > constraintForces;
+
+  VectorNd posErrors, velErrors, bgForces;
+
+  unsigned int gIdxLeft = cs.getGroupIndex("LeftCorner");
+  unsigned int gIdxRight = cs.getGroupIndex("RightCorner");
+
+  // New functions to test
+  //    calcForces
+  //    calcPositionError
+  //    calcVelocityError
+  //    calcBaumgarteStabilizationForces
+  //    isBaumgarteStabilizationEnabled
+  //    getBaumgarteStabilizationCoefficients
+
+  cs.calcForces(gIdxLeft,model,q,qd,bodyIds,bodyFrames,constraintForces);
+
+  //ContactConstraints occur between a point on a body and the ground
+  //The body always appears in the 0 index when calcForces is called
+  //while the ground appears in the 1 index
+  unsigned int idxBody = 0;
+  unsigned int idxGround=1;
+
+  CHECK(bodyIds[idxBody]==boxId); //First body is always the model body ContactConstraint
+  CHECK(bodyIds[idxGround]==0);     //Second body is always ground for a ContactConstraint
+
+  //Frames associated with the contacting body
+  Vector3d r = Vector3d(-0.5,0.,0.);
+  CHECK_ARRAY_CLOSE(bodyFrames[idxBody].r,r,3,TEST_PREC);
+  Matrix3d eye = Matrix3dIdentity;
+  for(unsigned int i=0; i<3;++i){
+    for(unsigned int j=0; j<3;++j){
+      CHECK_CLOSE(bodyFrames[idxBody].E(i,j),eye(i,j),TEST_PREC);
+    }
+  }
+
+  //Frame associated with base frame: this is moved to
+  //follow the point of contact on the body since this constraint
+  //is not defined at the position-level.
+  CHECK_ARRAY_CLOSE(bodyFrames[idxGround].r,r,3,TEST_PREC);
+  for(unsigned int i=0; i<3;++i){
+    for(unsigned int j=0; j<3;++j){
+      CHECK_CLOSE(bodyFrames[idxGround].E(i,j),eye(i,j),TEST_PREC);
+    }
+  }
+
+  double f = 9.81*1.0*0.5;
+  unsigned int idxFy = 4;
+  CHECK_CLOSE(constraintForces[idxBody][idxFy], f,TEST_PREC);
+  CHECK_CLOSE(constraintForces[idxGround][idxFy],-f,TEST_PREC);
+
+
+  VectorNd qErr = q;
+  qErr[0] += 1.0;
+  VectorNd posErrUpd;
+  cs.calcPositionError(gIdxLeft,model,qErr,posErrUpd,true);
+  CHECK_CLOSE(posErrUpd[0], 0.0,TEST_PREC);
+  CHECK_CLOSE(posErrUpd[1], 0.0,TEST_PREC);
+
+  VectorNd qdErr = qd;
+  qdErr[0] += 1.0;
+  VectorNd velErrUpd;
+  cs.calcVelocityError(gIdxLeft,model,q,qdErr,velErrUpd,true);
+  CHECK_CLOSE(velErrUpd[0],0.,TEST_PREC);
+  CHECK_CLOSE(velErrUpd[1],1.0,TEST_PREC);
+
+  Vector2d bgParams;
+  cs.getBaumgarteStabilizationCoefficients(gIdxLeft,bgParams);
+  CHECK_CLOSE(bgParams[0],10.,TEST_PREC);
+  CHECK_CLOSE(bgParams[1],10.,TEST_PREC);
+
+  bool bgEnabled = cs.isBaumgarteStabilizationEnabled(gIdxLeft);
+  CHECK(bgEnabled == false);
+
+  cs.calcBaumgarteStabilizationForces(gIdxLeft,model,posErrUpd,velErrUpd,
+                                      bgForces);
+  double bgForcesX = -2*bgParams[0]*velErrUpd[1];
+  CHECK_CLOSE(bgForces[1], bgForcesX, TEST_PREC);
+
+
+}
+
+
+
 // 
 // ForwardDynamicsConstraintsDirect 
 // 

@@ -1728,4 +1728,103 @@ unsigned int GetMovableBodyId (Model& model, unsigned int id) {
   }
 }
 
+//==============================================================================
+
+void ConstraintSet::calcForces(
+    unsigned int groupIndex,
+    Model& model,
+    const Math::VectorNd &Q,
+    const Math::VectorNd &QDot,
+    std::vector< unsigned int > &constraintBodyIdsUpd,
+    std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
+    std::vector< Math::SpatialVector > &constraintForcesUpd,
+    bool resolveAllInRootFrame,
+    bool updKin)
+{
+  assert(groupIndex <= unsigned(constraints.size()-1));
+
+  if (updKin) {
+    UpdateKinematicsCustom (model, &Q, &QDot, NULL);
+  }
+
+  constraints[groupIndex]->calcConstraintForces(model,0.,Q,QDot,G,force,
+                                                constraintBodyIdsUpd,
+                                                constraintBodyFramesUpd,
+                                                constraintForcesUpd,
+                                                cache,
+                                                resolveAllInRootFrame,
+                                                updKin);
+}
+//==============================================================================
+
+void ConstraintSet::calcPositionError(
+    unsigned int groupIndex,
+    Model& model,
+    const Math::VectorNd &Q,
+    Math::VectorNd &posErrUpd,
+    bool updKin)
+{
+  assert(groupIndex <= unsigned(constraints.size()-1));
+
+  if (updKin) {
+    UpdateKinematicsCustom (model, &Q, NULL, NULL);
+  }
+
+  //Update the position errors for this constraint in the system level
+  //error vector
+  constraints[groupIndex]->calcPositionError(model,0.,Q,err,cache,updKin);
+
+  //Pick out the position errors for this constraint from the system level
+  //error vector.
+  constraints[groupIndex]->getPositionError(err,posErrUpd);
+
+}
+//==============================================================================
+
+void ConstraintSet::calcVelocityError(
+    unsigned int groupIndex,
+    Model& model,
+    const Math::VectorNd &Q,
+    const Math::VectorNd &QDot,
+    Math::VectorNd &velErrUpd,
+    bool updKin)
+{
+  assert(groupIndex <= unsigned(constraints.size()-1));
+
+  if (updKin) {
+    UpdateKinematicsCustom (model, &Q, &QDot, NULL);
+  }
+
+  //Update the constraint Jacobian of this constraint
+  constraints[groupIndex]->calcConstraintJacobian(model,0.,Q,QDot,G,cache,
+                                                  updKin);
+
+  //Update the velocity-level errors of this constraint
+  constraints[groupIndex]->calcVelocityError(model,0.,Q,QDot,G,errd,cache,
+                                             updKin);
+
+  //Pick out the sub vector of velocity errors for this constraint from
+  //the system error vector.
+  constraints[groupIndex]->getVelocityError(errd,velErrUpd);
+
+}
+//==============================================================================
+
+void ConstraintSet::calcBaumgarteStabilizationForces(
+    unsigned int groupIndex,
+    Model& model,
+    const Math::VectorNd &positionError,
+    const Math::VectorNd &velocityError,
+    Math::VectorNd &baumgarteForces)
+{
+  assert(groupIndex <= unsigned(constraints.size()-1));
+  assert(positionError.rows() == constraints[groupIndex]->getConstraintSize());
+  assert(velocityError.rows() == constraints[groupIndex]->getConstraintSize());
+
+  constraints[groupIndex]->getBaumgarteStabilizationForces(positionError,
+                                                           velocityError,
+                                                           baumgarteForces);
+
+}
+
 } /* namespace RigidBodyDynamics */
