@@ -421,14 +421,14 @@ public:
     //Make the revolute joints about the y axis using 5 constraints
     //between the end points
 
-    PinJointCustomConstraint zJoint(0,idB1,X_p1,X_s1,2,"Rz",0);
-    PinJointCustomConstraint yJoint(idB1,idB2,X_p2,X_s2,1,"Ry",1);
+    PinJointCustomConstraint zJoint(0,idB1,X_p1,X_s1,2,"Rz",7);
+    PinJointCustomConstraint yJoint(idB1,idB2,X_p2,X_s2,1,"Ry",11);
 
     ccPJZaxis = std::make_shared<PinJointCustomConstraint>(zJoint);
     ccPJYaxis = std::make_shared<PinJointCustomConstraint>(yJoint);
 
-    cs.AddCustomConstraint(ccPJZaxis);
-    cs.AddCustomConstraint(ccPJYaxis);
+    assignedIdRz = cs.AddCustomConstraint(ccPJZaxis);
+    assignedIdRy = cs.AddCustomConstraint(ccPJYaxis);
     cs.Bind(model);
 
     q   = VectorNd::Zero(model.dof_count);
@@ -440,6 +440,7 @@ public:
 
     Model model;
     ConstraintSet cs;
+    unsigned int assignedIdRz, assignedIdRy;
 
     VectorNd q;
     VectorNd qd;
@@ -487,6 +488,17 @@ TEST(CustomConstraintCorrectnessTest) {
   dbj.qd[1] = M_PI/2.0;       //About y1
   dbj.tau[0]= 0.;
   dbj.tau[1]= 0.;
+
+  std::string conName("Rz");
+  unsigned int groupIndex = dbcc.cs.getGroupIndex(conName);
+  assert(groupIndex==0);
+  groupIndex = dbcc.cs.getGroupIndex(conName.c_str());
+  assert(groupIndex==0);
+  groupIndex = dbcc.cs.getGroupIndex(7);
+  assert(groupIndex==0);
+  groupIndex = dbcc.cs.getGroupIndexByAssignedId(dbcc.assignedIdRy);
+  assert(groupIndex==1);
+
 
   ForwardDynamics(dbj.model,dbj.q,dbj.qd,dbj.tau,dbj.qdd);
 

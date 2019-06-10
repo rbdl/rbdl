@@ -417,14 +417,15 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   double angleErr;
 
   std::string name("LoopXY_Rz");
-  unsigned int loopIndex = cs.getGroupIndexByName(name);
-  CHECK(loopIndex==0);
 
+  unsigned int loopIndex = cs.getGroupIndex(name);
+  CHECK(loopIndex==0);
+  loopIndex = cs.getGroupIndex(name.c_str());
+  CHECK(loopIndex==0);
   unsigned int userDefinedId = 7;
-  loopIndex = cs.getGroupIndexByUserId(userDefinedId);
+  loopIndex = cs.getGroupIndex(userDefinedId);
   CHECK(loopIndex==0);
-
-  loopIndex = cs.getGroupIndexById(0);
+  loopIndex = cs.getGroupIndexByAssignedId(0);
   CHECK(loopIndex==0);
 
   // Test in zero position.

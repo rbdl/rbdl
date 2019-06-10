@@ -145,13 +145,20 @@ TEST ( TestForwardDynamicsConstraintsDirectSimple ) {
 
   constraint_set.Bind (model);
 
-  std::string name("ground_xyz");
-  unsigned int index = constraint_set.getGroupIndexByName(name);
+  std::string conName("ground_xyz");
+  unsigned int index = constraint_set.getGroupIndex(conName);
   CHECK(index==0);
-  index = constraint_set.getGroupIndexByUserId(id);
+  index = constraint_set.getGroupIndex(conName.c_str());
   CHECK(index==0);
-  index = constraint_set.getGroupIndexById(autoId);
+  index = constraint_set.getGroupIndex(id);
   CHECK(index==0);
+  index = constraint_set.getGroupIndexByAssignedId(autoId);
+  CHECK(index==0);
+
+  std::string conNameBack(constraint_set.getGroupName(index));
+  CHECK(conNameBack == conName);
+  unsigned userId = constraint_set.getGroupId(index);
+  CHECK(userId == id);
 
   ClearLogOutput();
 

@@ -118,7 +118,8 @@ unsigned int ConstraintSet::AddContactConstraint (
   if(nameStr.size() > 0){
     std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
     iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
-                          nameStr, unsigned(constraints.size()-1)));
+                                name[name.size()-1],
+                                unsigned(constraints.size()-1)));
     if(iter.second == false){
       std::cerr << "Error: optional name is not unique."
                 << std::endl;
@@ -262,7 +263,8 @@ unsigned int ConstraintSet::AddLoopConstraint (
   if(nameStr.size() > 0){
     std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
     iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
-                          nameStr, unsigned(constraints.size()-1)));
+                                name[name.size()-1],
+                                unsigned(constraints.size()-1)));
     if(iter.second == false){
       std::cerr << "Error: optional name is not unique."
                 << std::endl;
@@ -345,7 +347,8 @@ unsigned int ConstraintSet::AddCustomConstraint(
   if(nameStr.size() > 0){
     std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
     iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
-                          nameStr, unsigned(constraints.size()-1)));
+                                  name[name.size()-1],
+                                  unsigned(constraints.size()-1)));
     if(iter.second == false){
       std::cerr << "Error: optional name is not unique."
                 << std::endl;

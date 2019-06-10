@@ -269,7 +269,6 @@ struct RBDL_DLLAPI CustomConstraint;
 //class RBDL_DLLAPI Constraint;
 
 
-
 /** \brief Structure that contains both constraint information and workspace memory.
  *
  * This structure is used to reduce the amount of memory allocations that
@@ -286,13 +285,17 @@ struct RBDL_DLLAPI ConstraintSet {
 
 
   /**
-    @param constriaintName : the optional name that the constraint was assigned when it was
+    @param userDefinedName : the optional name that the constraint was assigned when it was
                   added to the constraint set.
 
     @param returns: the group index of the constraint
   */
-  unsigned int getGroupIndexByName(std::string &userDefinedName){
+  unsigned int getGroupIndex(std::string& userDefinedName){
     return nameGroupMap.at(userDefinedName);
+  }
+  unsigned int getGroupIndex(const char* userDefinedName){
+    std::string conName(userDefinedName);
+    return nameGroupMap.at(conName);
   }
 
   /**
@@ -302,9 +305,26 @@ struct RBDL_DLLAPI ConstraintSet {
     @param returns: the group index of the constraint
   */
 
-  unsigned int getGroupIndexByUserId(unsigned int userDefinedId){
+  unsigned int getGroupIndex(unsigned int userDefinedId){
     return userDefinedIdGroupMap.at(userDefinedId);
   }
+
+  unsigned int getGroupIndexMin(){
+    return 0;
+  }
+
+  unsigned int getGroupIndexMax(){
+    return unsigned(constraints.size()-1);
+  }
+
+  const char* getGroupName(unsigned int groupIndex){
+    return constraints[groupIndex]->getName();
+  }
+
+  unsigned int getGroupId(unsigned int groupIndex){
+    return constraints[groupIndex]->getUserDefinedId();
+  }
+
 
   /**
     @param automaticallyAssignedId :
@@ -315,11 +335,43 @@ struct RBDL_DLLAPI ConstraintSet {
     @param returns: the group index of the constraint
   */
 
-  unsigned int getGroupIndexById(unsigned int automaticallyAssignedId){
-    return idGroupMap.at(automaticallyAssignedId);
+  unsigned int getGroupIndexByAssignedId(unsigned int assignedId){
+    return idGroupMap.at(assignedId);
   }
 
+  void CalcConstraintForces(
+      unsigned int groupIndex,
+      Model& model,
+      const Math::VectorNd &Q,
+      const Math::VectorNd &QDot,
+      std::vector< unsigned int > &constraintBodyIdsUpd,
+      std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
+      std::vector< Math::SpatialVector > &constraintForces,
+      bool resolveAllInRootFrame = false,
+      bool updateKinematics = false);
 
+  void CalcConstraintPositionError(
+      unsigned int groupIndex,
+      Model& model,
+      const Math::VectorNd &Q,
+      Math::VectorNd &posErrUpd,
+      bool updateKinematics = false);
+
+  void CalcConstraintVelocityError(
+      unsigned int groupIndex,
+      Model& model,
+      const Math::VectorNd &Q,
+      const Math::VectorNd &QDot,
+      Math::VectorNd &velErrUpd,
+      bool updateKinematics = false);
+
+  void CalcConstraintBaumgarteStabilization(
+      unsigned int groupIndex,
+      Model& model,
+      const Math::VectorNd &Q,
+      const Math::VectorNd &QDot,
+      Math::VectorNd &baumgarteForces,
+      bool updateKinematics = false);
 
 
   /** @brief Adds a single contact constraint (point-ground) to the
