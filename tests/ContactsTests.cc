@@ -125,6 +125,7 @@ TEST( TestExtendedConstraintFunctionsContact ){
   cs.Bind(model);
 
   VectorNd qInit  =  VectorNd::Zero(model.dof_count);
+  qInit[2] = M_PI/3.0;
   VectorNd qdInit = VectorNd::Zero(model.dof_count);
   VectorNd tau    = VectorNd::Zero(model.dof_count);
 
@@ -176,9 +177,9 @@ TEST( TestExtendedConstraintFunctionsContact ){
     }
   }
 
-  //Frame associated with base frame: this is moved to
-  //follow the point of contact on the body since this constraint
-  //is not defined at the position-level.
+  //Frame associated with base frame
+  r.setZero();
+
   CHECK_ARRAY_CLOSE(bodyFrames[idxGround].r,r,3,TEST_PREC);
   for(unsigned int i=0; i<3;++i){
     for(unsigned int j=0; j<3;++j){
@@ -186,10 +187,11 @@ TEST( TestExtendedConstraintFunctionsContact ){
     }
   }
 
-  double f = 9.81*1.0*0.5;
+  double fbody = 9.81*1.0*0.5*cos(q[2]);
+  double fground= -9.81*1.0*0.5;
   unsigned int idxFy = 4;
-  CHECK_CLOSE(constraintForces[idxBody][idxFy], f,TEST_PREC);
-  CHECK_CLOSE(constraintForces[idxGround][idxFy],-f,TEST_PREC);
+  CHECK_CLOSE(constraintForces[idxBody  ][idxFy], fbody,TEST_PREC);
+  CHECK_CLOSE(constraintForces[idxGround][idxFy], fground,TEST_PREC);
 
 
   VectorNd qErr = q;
@@ -218,6 +220,39 @@ TEST( TestExtendedConstraintFunctionsContact ){
                                       bgForces);
   double bgForcesX = -2*bgParams[0]*velErrUpd[1];
   CHECK_CLOSE(bgForces[1], bgForcesX, TEST_PREC);
+
+
+  //Test calcForces but using the resolveAllInBaseFrame option
+  cs.calcForces(gIdxLeft,model,q,qd,bodyIds,bodyFrames,constraintForces,true,true);
+
+  CHECK(bodyIds[idxBody]  ==0); //First body is always the model body ContactConstraint
+  CHECK(bodyIds[idxGround]==0);     //Second body is always ground for a ContactConstraint
+
+  //Frames associated with the contacting body
+  Matrix3d rotZ45 = rotz(q[2]);
+  r = rotZ45.transpose()*Vector3d(-0.5,0.,0.);
+  CHECK_ARRAY_CLOSE(bodyFrames[idxBody].r,r,3,TEST_PREC);
+
+  for(unsigned int i=0; i<3;++i){
+    for(unsigned int j=0; j<3;++j){
+      CHECK_CLOSE(bodyFrames[idxBody].E(i,j),eye(i,j),TEST_PREC);
+    }
+  }
+
+  //Frame associated with base frame
+  r.setZero();
+  CHECK_ARRAY_CLOSE(bodyFrames[idxGround].r,r,3,TEST_PREC);
+  for(unsigned int i=0; i<3;++i){
+    for(unsigned int j=0; j<3;++j){
+      CHECK_CLOSE(bodyFrames[idxGround].E(i,j),eye(i,j),TEST_PREC);
+    }
+  }
+
+  fbody = 9.81*1.0*0.5;
+  fground= -9.81*1.0*0.5;
+  idxFy = 4;
+  CHECK_CLOSE(constraintForces[idxBody  ][idxFy], fbody,TEST_PREC);
+  CHECK_CLOSE(constraintForces[idxGround][idxFy], fground,TEST_PREC);
 
 
 }

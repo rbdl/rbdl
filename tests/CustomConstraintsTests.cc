@@ -287,7 +287,7 @@ public:
     constraintBodiesUpd.resize(2);
     constraintBodyFramesUpd.resize(2);
 
-    cache.stA.r = CalcBaseToBodyCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
+    cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
                                             updKin);
     //The rotation matrix from the predecessor frame to the base frame
     // 0_E_P
@@ -295,7 +295,7 @@ public:
                                            ).transpose()*bodyFrames[0].E;
 
 
-    cache.stB.r = CalcBaseToBodyCoordinates(model,Q,bodyIds[1],bodyFrames[1].r,
+    cache.stB.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[1],bodyFrames[1].r,
                                             updKin);
     //The rotation matrix from the successor frame to the base frame
     // 0_E_S
@@ -307,10 +307,21 @@ public:
     constraintForcesUpd[1].setZero();
 
     //Using Eqn. 8.30 of Featherstone. Note that this force is resolved in the
-    //predecessor frame
+    //predecessor frame.
+    cache.svecB.setZero();
     for(unsigned int i=0; i<sizeOfConstraint;++i){
-      constraintForcesUpd[0] += T[i]*LagrangeMultipliersSys[rowInSystem+i];
+      cache.svecA =  cache.stA.apply(T[i]);
+      cache.svecB += cache.svecA*LagrangeMultipliersSys[rowInSystem+i];
     }
+
+    //cache.vec3A[0] = cache.svecB[3];
+    //cache.vec3A[1] = cache.svecB[4];
+    //cache.vec3A[2] = cache.svecB[5];
+    //double mag = cache.vec3A.norm();
+
+
+    constraintBodiesUpd.resize(2);
+    constraintBodyFramesUpd.resize(2);
 
     if(resolveAllInRootFrame){
       constraintBodiesUpd[0] = 0;
@@ -318,35 +329,35 @@ public:
 
       //These forces are returned in the coordinates of the
       //root frame but w.r.t. the respective points of the constaint
-      constraintBodyFramesUpd[0].r = -cache.stA.r;
+      constraintBodyFramesUpd[0].r = cache.stA.r;
       constraintBodyFramesUpd[0].E.Identity();
 
-      constraintBodyFramesUpd[1].r = -cache.stB.r;
+      constraintBodyFramesUpd[1].r = cache.stB.r;
       constraintBodyFramesUpd[1].E.Identity();
 
-      //Rotate the forces from the predecessor body frame to the
-      //root frame.
-      constraintForcesUpd[0].block(0,0,3,1) =
-          cache.stA.E*constraintForcesUpd[0].block(0,0,3,1);
-      constraintForcesUpd[0].block(3,0,3,1) =
-          cache.stA.E*constraintForcesUpd[0].block(3,0,3,1);
 
       //The forces applied to the successor body are equal and opposite
-      constraintForcesUpd[1] = -constraintForcesUpd[0];
+      constraintForcesUpd[0] = -cache.svecB;
+      constraintForcesUpd[1] = cache.svecB;
+
     }else{
+
       constraintBodiesUpd     = bodyIds;
       constraintBodyFramesUpd = bodyFrames;
 
-      //The forces applied to the predecessor frame are already in
-      //the correct coordinates. The forces of applied to the successor
-      //frame are equal and opposite, but in the successor frame.
+      constraintForcesUpd[0].block(0,0,3,1) = -cache.stA.E.transpose()
+                                                *cache.svecB.block(0,0,3,1);
+      constraintForcesUpd[0].block(3,0,3,1) = -cache.stA.E.transpose()
+                                                *cache.svecB.block(3,0,3,1);
 
-      // S_E_P = (0_E_S)'*0_E_P
-      cache.mat3A = cache.stB.E.transpose()*cache.stA.E;
-      constraintForcesUpd[1].block(0,0,3,1) =
-          -cache.mat3A*constraintForcesUpd[0].block(0,0,3,1);
-      constraintForcesUpd[1].block(3,0,3,1) =
-          -cache.mat3A*constraintForcesUpd[0].block(3,0,3,1);
+
+      constraintForcesUpd[1].block(0,0,3,1) = cache.stB.E.transpose()
+                                                *cache.svecB.block(0,0,3,1);
+      constraintForcesUpd[1].block(3,0,3,1) = cache.stB.E.transpose()
+                                                *cache.svecB.block(3,0,3,1);
+
+
+
     }
 
 
@@ -682,9 +693,8 @@ TEST(CustomConstraintCorrectnessTest) {
       CHECK( (forcesDba.size()    - forcesDbcc.size()    ) == 0);
 
       for(unsigned int k=0; k < bodyIdDba.size();++k){
-
         CHECK_ARRAY_CLOSE( bodyFramesDba[k].r.data(),
-                          bodyFramesDbcc[k].r.data(), 3, TEST_PREC);
+                            bodyFramesDbcc[k].r.data(), 3, TEST_PREC);
         CHECK_ARRAY_CLOSE(bodyFramesDba[k].E.data(),
                           bodyFramesDbcc[k].E.data(),
                           9,TEST_PREC);

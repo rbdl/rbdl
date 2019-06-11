@@ -73,6 +73,7 @@ axis1:z0| |__________
   RigidBodyDynamics::Math::VectorNd qdd;
   RigidBodyDynamics::Math::VectorNd tau;
 
+
   double l1;
   double l2;
   double m1;
@@ -118,8 +119,8 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
                                          0., m1*l1*l1/30.,           0.,
                                          0.,          0. ,  m1*l1*l1/3.));
 
-
-    Body link2 = Body(m2, Vector3d( l2*0.5,          0.,          0.),
+    r2C2 = Vector3d( l2*0.5,          0.,          0.);
+    Body link2 = Body(m2, r2C2,
                           Matrix3d( m2*l2*l2/30.,          0.,           0.,
                                               0., m2*l2*l2/3.,           0.,
                                               0.,          0.,  m2*l2*l2/3.));
@@ -138,14 +139,16 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
 
     //Make the revolute joints about the y axis using 5 constraints
     //between the end points
-    cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,0,0,1,0,0));
+    cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,0,0,1,0,0),
+                        false,0.1,"RzBase");
     cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,0,0,0,1,0));
     cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,0,0,0,0,1));
     cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(1,0,0,0,0,0));
     cs.AddLoopConstraint(0, idB1, X_p1, X_s1, SpatialVector(0,1,0,0,0,0));
 
 
-    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(0,0,0,1,0,0));
+    cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(0,0,0,1,0,0),
+                         false,0.1, "RyLink1");
     cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(0,0,0,0,1,0));
     cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(0,0,0,0,0,1));
     cs.AddLoopConstraint(idB1, idB2, X_p2, X_s2, SpatialVector(1,0,0,0,0,0));
@@ -163,6 +166,7 @@ struct DoublePerpendicularPendulumAbsoluteCoordinates {
   RigidBodyDynamics::Model model;
   RigidBodyDynamics::ConstraintSet cs;
 
+  RigidBodyDynamics::Math::Vector3d r2C2;
   RigidBodyDynamics::Math::VectorNd q;
   RigidBodyDynamics::Math::VectorNd qd;
   RigidBodyDynamics::Math::VectorNd qdd;

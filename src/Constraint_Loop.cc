@@ -287,12 +287,11 @@ void LoopConstraint::calcConstraintForces(
   constraintBodiesUpd.resize(2);
   constraintBodyFramesUpd.resize(2);
 
-  cache.stA.r = CalcBaseToBodyCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
+  cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
                                           updKin);
   cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updKin
                                          ).transpose()*bodyFrames[0].E;
-
-  cache.stB.r = CalcBaseToBodyCoordinates(model,Q,bodyIds[1],bodyFrames[1].r,
+  cache.stB.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[1],bodyFrames[1].r,
                                           updKin);
   cache.stB.E = CalcBodyWorldOrientation(model,Q,bodyIds[1],updKin
                                          ).transpose()*bodyFrames[1].E;
@@ -301,11 +300,20 @@ void LoopConstraint::calcConstraintForces(
   constraintForcesUpd[0].setZero();
   constraintForcesUpd[1].setZero();
 
+
   //Using Eqn. 8.30 of Featherstone. Note that this force is resolved in the
-  //predecessor frame
+  //root frame.
+  cache.svecB.setZero();
   for(unsigned int i=0; i<sizeOfConstraint;++i){
-    constraintForcesUpd[0] += T[i]*LagMultSys[rowInSystem+i];
+    cache.svecA =  cache.stA.apply(T[i]);
+    cache.svecB += cache.svecA*LagMultSys[rowInSystem+i];
   }
+
+  //cache.vec3A[0] = cache.svecB[3];
+  //cache.vec3A[1] = cache.svecB[4];
+  //cache.vec3A[2] = cache.svecB[5];
+  //double mag = cache.vec3A.norm();
+
 
   constraintBodiesUpd.resize(2);
   constraintBodyFramesUpd.resize(2);
@@ -316,35 +324,33 @@ void LoopConstraint::calcConstraintForces(
 
     //These forces are returned in the coordinates of the
     //root frame but w.r.t. the respective points of the constaint
-    constraintBodyFramesUpd[0].r = -cache.stA.r;
+    constraintBodyFramesUpd[0].r = cache.stA.r;
     constraintBodyFramesUpd[0].E.Identity();
-    //constraintBodyFramesUpd[0].E.setIdentity();
-    constraintBodyFramesUpd[1].r = -cache.stB.r;
-    constraintBodyFramesUpd[1].E.Identity();
-    //constraintBodyFramesUpd[1].E.setIdentity();
 
-    //Rotate the forces from the predecessor body frame to the
-    //root frame.
-    constraintForcesUpd[0].block(0,0,3,1) =
-        cache.stA.E*constraintForcesUpd[0].block(0,0,3,1);
-    constraintForcesUpd[0].block(3,0,3,1) =
-        cache.stA.E*constraintForcesUpd[0].block(3,0,3,1);
+    constraintBodyFramesUpd[1].r = cache.stB.r;
+    constraintBodyFramesUpd[1].E.Identity();
 
     //The forces applied to the successor body are equal and opposite
-    constraintForcesUpd[1] = -constraintForcesUpd[0];
+    constraintForcesUpd[0] = -cache.svecB;
+    constraintForcesUpd[1] = cache.svecB;
 
   }else{
+
     constraintBodiesUpd     = bodyIds;
     constraintBodyFramesUpd = bodyFrames;
 
-    //The forces applied to the predecessor frame are already in
-    //the correct coordinates. The forces of applied to the successor
-    //frame are equal and opposite, but in the successor frame.
-    cache.mat3A = cache.stB.E.transpose()*cache.stA.E;
-    constraintForcesUpd[1].block(0,0,3,1) =
-        -cache.mat3A*constraintForcesUpd[0].block(0,0,3,1);
-    constraintForcesUpd[1].block(3,0,3,1) =
-        -cache.mat3A*constraintForcesUpd[0].block(3,0,3,1);
+    constraintForcesUpd[0].block(0,0,3,1) = -cache.stA.E.transpose()
+                                              *cache.svecB.block(0,0,3,1);
+    constraintForcesUpd[0].block(3,0,3,1) = -cache.stA.E.transpose()
+                                              *cache.svecB.block(3,0,3,1);
+
+
+    constraintForcesUpd[1].block(0,0,3,1) = cache.stB.E.transpose()
+                                              *cache.svecB.block(0,0,3,1);
+    constraintForcesUpd[1].block(3,0,3,1) = cache.stB.E.transpose()
+                                              *cache.svecB.block(3,0,3,1);
+
+
 
   }
 

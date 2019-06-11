@@ -131,9 +131,9 @@ struct FloatingFourBarLinkage {
     , X_p(Xtrans(Vector3d(l2, 0., 0.)))
     , X_s(Xtrans(Vector3d(0., 0., 0.))) {
     
-    Body link1 = Body(m1, Vector3d(0.5 * l1, 0., 0.)
+    link1 = Body(m1, Vector3d(0.5 * l1, 0., 0.)
       , Vector3d(0., 0., m1 * l1 * l1 / 3.));
-    Body link2 = Body(m2, Vector3d(0.5 * l2, 0., 0.)
+    link2 = Body(m2, Vector3d(0.5 * l2, 0., 0.)
       , Vector3d(0., 0., m2 * l2 * l2 / 3.));
     Vector3d vector3d_zero = Vector3d::Zero();
     Body virtual_body(0., vector3d_zero, vector3d_zero);
@@ -179,6 +179,8 @@ struct FloatingFourBarLinkage {
 
   Model model;
   ConstraintSet cs;
+
+  Body link1, link2;
 
   VectorNd q;
   VectorNd qd;
@@ -407,6 +409,244 @@ struct SliderCrank3DSphericalJoint {
   SpatialTransform X_s;
 
 };
+
+
+TEST( TestExtendedConstraintFunctionsLoop ){
+
+  //With loop constraints
+  DoublePerpendicularPendulumAbsoluteCoordinates dba
+    = DoublePerpendicularPendulumAbsoluteCoordinates();
+
+  //Without any joint coordinates
+  DoublePerpendicularPendulumJointCoordinates dbj
+    = DoublePerpendicularPendulumJointCoordinates();
+
+
+  //1. Set the pendulum modeled using joint coordinates to a specific
+  //    state and then compute the spatial acceleration of the body.
+  dbj.q[0]  = M_PI/3.0;   //About z0
+  dbj.q[1]  = M_PI/6.0;         //About y1
+  dbj.qd.setZero();
+  dbj.qdd.setZero();
+  dbj.tau.setZero();
+
+
+  InverseDynamics(dbj.model,dbj.q,dbj.qd,dbj.qdd,dbj.tau);
+  //ForwardDynamics(dbj.model,dbj.q,dbj.qd,dbj.tau,dbj.qdd);
+
+  Vector3d r010 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB1,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d r020 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d r030 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(dbj.l2,0.,0.),true);
+
+  //2. Set the pendulum modelled using absolute coordinates to the
+  //   equivalent state as the pendulum modelled using joint
+  //   coordinates. Next
+
+  dba.q[0]  = r010[0];
+  dba.q[1]  = r010[1];
+  dba.q[2]  = r010[2];
+  dba.q[3]  = dbj.q[0];
+  dba.q[4]  = 0;
+  dba.q[5]  = 0;
+  dba.q[6]  = r020[0];
+  dba.q[7]  = r020[1];
+  dba.q[8]  = r020[2];
+  dba.q[9]  = dbj.q[0];
+  dba.q[10] = dbj.q[1];
+  dba.q[11] = 0;
+
+  dba.qd.setZero();
+  dba.qdd.setZero();
+
+  dba.tau[0]  = 0.;//tx
+  dba.tau[1]  = 0.;//ty
+  dba.tau[2]  = 0.;//tz
+  dba.tau[3]  = dbj.tau[0];//rz
+  dba.tau[4]  = 0.;//ry
+  dba.tau[5]  = 0.;//rx
+  dba.tau[6]  = 0.;//tx
+  dba.tau[7]  = 0.;//ty
+  dba.tau[8]  = 0.;//tz
+  dba.tau[9]  = 0.;//rz
+  dba.tau[10] = dbj.tau[1];//ry
+  dba.tau[11] = 0.;//rx
+
+
+  VectorNd err(dba.cs.size());
+  VectorNd errd(dba.cs.size());
+
+  CalcConstraintsPositionError(dba.model,dba.q,dba.cs,err,true);
+  CalcConstraintsVelocityError(dba.model,dba.q,dba.qd,dba.cs,errd,true);
+
+  //The constraint errors at the position and velocity level
+  //must be zero before the accelerations can be tested.
+  for(unsigned int i=0; i<err.rows();++i){
+    CHECK_CLOSE(0,err[i],TEST_PREC);
+  }
+  for(unsigned int i=0; i<errd.rows();++i){
+    CHECK_CLOSE(0,errd[i],TEST_PREC);
+  }
+
+  // New functions to test
+  //    calcForces
+  //    calcPositionError
+  //    calcVelocityError
+  //    calcBaumgarteStabilizationForces
+  //    isBaumgarteStabilizationEnabled
+  //    getBaumgarteStabilizationCoefficients
+
+  //Evaluate the model at the dynamics level
+
+  ForwardDynamicsConstraintsDirect(dba.model,dba.q, dba.qd,
+                                   dba.tau, dba.cs, dba.qdd);
+
+  for(unsigned int i=0; i<dba.qdd.size();++i){
+    CHECK_CLOSE(dba.qdd[i],0.,TEST_PREC);
+  }
+
+  unsigned int idxRyLink1 = dba.cs.getGroupIndex("RyLink1");
+
+  std::vector< unsigned int >     bodyIds;
+  std::vector< SpatialTransform > bodyFrames;
+  std::vector< SpatialVector >    conForces;
+
+  //Run the tests when the wrenches are resolved in the frame of
+  //the local coordinates
+  dba.cs.calcForces(idxRyLink1,dba.model,dba.q,dba.qd,bodyIds,bodyFrames,
+                    conForces,true);
+
+
+
+  //Check that the reported constraint forces match the wrench that
+  //must be applied to the outboard constraint frame 2 to keep
+  //link two static. Because this is a statics problem this wrench is
+  //easy to calculate: it is just the wrench due to gravity
+
+  Vector3d fp, tp, fs, ts;
+
+  Vector3d r0C0 = CalcBodyToBaseCoordinates(dba.model,dba.q,
+                                             dba.idB2,
+                                             dba.r2C2);
+  Vector3d r2C0 = r0C0 - r020;
+
+  fp = dba.m2*dba.model.gravity;
+
+  Matrix3d r2C0x = Matrix3d(       0, -r2C0[2],   r2C0[1],
+                             r2C0[2],        0,  -r2C0[0],
+                            -r2C0[1],  r2C0[0],        0);
+  tp = r2C0x*fp;
+
+  //This is the total wrench applied to link 2 to hold it static.
+  //We need to subtract off the generalized torque applied to it
+  //to get the reaction forces
+  SpatialVector fp0 = SpatialVector(tp[0],tp[1],tp[2],fp[0],fp[1],fp[2]);
+  SpatialVector fs0 = -fp0;
+
+  SpatialVector fsS, fpP;
+
+  //Rotation matrix from p to 0.
+  Matrix3d Ep0 = CalcBodyWorldOrientation(dba.model,dba.q,dba.idB1
+                                          ).transpose()*bodyFrames[0].E;
+  Matrix3d Es0 = CalcBodyWorldOrientation(dba.model,dba.q,dba.idB2
+                                          ).transpose()*bodyFrames[1].E;
+
+  fpP.block(0,0,3,1) = Ep0.transpose()*fp0.block(0,0,3,1);
+  fpP.block(3,0,3,1) = Ep0.transpose()*fp0.block(3,0,3,1);
+  fpP[1] += dba.tau[10];
+
+  fp0.block(0,0,3,1) = Ep0*fpP.block(0,0,3,1);
+  fp0.block(3,0,3,1) = Ep0*fpP.block(3,0,3,1);
+
+  fs0 = -fp0;
+
+  fsS.block(0,0,3,1) = Es0.transpose()*fs0.block(0,0,3,1);
+  fsS.block(3,0,3,1) = Es0.transpose()*fs0.block(3,0,3,1);
+
+  //Check the bodyIds
+  CHECK(bodyIds[0]==0);
+  CHECK(bodyIds[1]==0);
+  Matrix3d eye = Matrix3dIdentity;
+  //Check the local transformations
+  Vector3d rp = CalcBodyToBaseCoordinates(dba.model,dba.q,dba.idB1,dba.X_p2.r);
+  CHECK_ARRAY_CLOSE(bodyFrames[0].r, rp, 3, TEST_PREC);
+  for(unsigned int i=0; i<3;++i){
+    for(unsigned int j=0; j<3;++j){
+      CHECK_CLOSE(bodyFrames[0].E(i,j),eye(i,j),TEST_PREC);
+    }
+  }
+
+  Vector3d rs = CalcBodyToBaseCoordinates(dba.model,dba.q,dba.idB2,dba.X_s2.r);
+  CHECK_ARRAY_CLOSE(bodyFrames[1].r, rs, 3, TEST_PREC);
+  for(unsigned int i=0; i<3;++i){
+    for(unsigned int j=0; j<3;++j){
+      CHECK_CLOSE(bodyFrames[1].E(i,j),eye(i,j),TEST_PREC);
+    }
+  }
+
+  //Check the reported forces
+
+  CHECK_CLOSE(fp0[0], conForces[0][0],TEST_PREC);
+  CHECK_CLOSE(fp0[1], conForces[0][1],TEST_PREC);
+  CHECK_CLOSE(fp0[2], conForces[0][2],TEST_PREC);
+  CHECK_CLOSE(fp0[3], conForces[0][3],TEST_PREC);
+  CHECK_CLOSE(fp0[4], conForces[0][4],TEST_PREC);
+  CHECK_CLOSE(fp0[5], conForces[0][5],TEST_PREC);
+
+  CHECK_CLOSE(fs0[0], conForces[1][0],TEST_PREC);
+  CHECK_CLOSE(fs0[1], conForces[1][1],TEST_PREC);
+  CHECK_CLOSE(fs0[2], conForces[1][2],TEST_PREC);
+  CHECK_CLOSE(fs0[3], conForces[1][3],TEST_PREC);
+  CHECK_CLOSE(fs0[4], conForces[1][4],TEST_PREC);
+  CHECK_CLOSE(fs0[5], conForces[1][5],TEST_PREC);
+
+
+  //Run the tests when the wrenches are resolved in the frame of root
+  dba.cs.calcForces(idxRyLink1,dba.model,dba.q,dba.qd,bodyIds,bodyFrames,
+                    conForces,false);
+
+
+
+  //Check the bodyIds
+  CHECK(bodyIds[0]==dba.idB1);
+  CHECK(bodyIds[1]==dba.idB2);
+
+  //Check the local transformations
+  CHECK_ARRAY_CLOSE(bodyFrames[0].r, dba.X_p2.r, 3, TEST_PREC);
+  for(unsigned int i=0; i<3;++i){
+    for(unsigned int j=0; j<3;++j){
+      CHECK_CLOSE(bodyFrames[0].E(i,j),eye(i,j),TEST_PREC);
+    }
+  }
+  CHECK_ARRAY_CLOSE(bodyFrames[1].r, dba.X_s2.r, 3, TEST_PREC);
+  for(unsigned int i=0; i<3;++i){
+    for(unsigned int j=0; j<3;++j){
+      CHECK_CLOSE(bodyFrames[1].E(i,j),eye(i,j),TEST_PREC);
+    }
+  }
+
+  CHECK_CLOSE(fpP[0], conForces[0][0],TEST_PREC);
+  CHECK_CLOSE(fpP[1], conForces[0][1],TEST_PREC);
+  CHECK_CLOSE(fpP[2], conForces[0][2],TEST_PREC);
+  CHECK_CLOSE(fpP[3], conForces[0][3],TEST_PREC);
+  CHECK_CLOSE(fpP[4], conForces[0][4],TEST_PREC);
+  CHECK_CLOSE(fpP[5], conForces[0][5],TEST_PREC);
+
+  CHECK_CLOSE(fsS[0], conForces[1][0],TEST_PREC);
+  CHECK_CLOSE(fsS[1], conForces[1][1],TEST_PREC);
+  CHECK_CLOSE(fsS[2], conForces[1][2],TEST_PREC);
+  CHECK_CLOSE(fsS[3], conForces[1][3],TEST_PREC);
+  CHECK_CLOSE(fsS[4], conForces[1][4],TEST_PREC);
+  CHECK_CLOSE(fsS[5], conForces[1][5],TEST_PREC);
+
+
+
+}
 
 TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   VectorNd err = VectorNd::Zero(cs.size());

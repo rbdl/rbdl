@@ -198,14 +198,6 @@ void ContactConstraint::calcConstraintForces(
     constraintBodyFramesUpd[0].E = constraintBodyFramesUpd[1].E;
   }
 
-  for(unsigned int i=0; i < sizeOfConstraint; ++i){
-    //If this constraint direction is not enforced at the position level
-    //update the reference position of the ground point
-    if(positionConstraint[i]==false){
-      constraintBodyFramesUpd[1].r +=
-          (cache.vec3A-bodyFrames[1].r).dot(T[i])*T[i];
-    }
-  }
 
   constraintForcesUpd.resize(bodyIds.size());
   for(unsigned int i=0; i< bodyIds.size(); ++i){
@@ -214,6 +206,8 @@ void ContactConstraint::calcConstraintForces(
   //Evaluate the total force the constraint applies to the contact point
   cache.vec3A.setZero();
   for(unsigned int i=0; i < sizeOfConstraint; ++i){
+    //The only reason that we can use T here is that it is resolved
+    //at the origin of the ground frame.
     cache.vec3A += T[i]*LagrangeMultipliersSys[rowInSystem+i];
   }
 

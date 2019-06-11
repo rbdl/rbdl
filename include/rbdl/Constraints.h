@@ -440,14 +440,12 @@ struct RBDL_DLLAPI ConstraintSet {
             frames that this constraint applies to.
 
       @note <b>Important:</b> The values returned by this function are only
-            valid <b>after</b> one of the forward dynamics with constraints methods
+            valid <b>after</b> one of the dynamics methods
             (ForwardDynamicsConstraintsDirect,
-            ForwardDynamicsConstraintsNullSpace, etc) have been called, or
-            after the inverse dynamics with constraints
-            (InverseDynamicsConstraints) method has been called. Why? This
-            function makes use of the Lagrange multipliers stored in the
-            ConstraintSet - these are only evaluated during forward/inverse
-            dynamics function calls.
+            ForwardDynamicsConstraintsNullSpace, InverseDynamicsWithConstraints,
+            etc) have been evaluated. Why? This function makes use of the
+            Lagrange multipliers which are only evaluated when these
+            dynamics-level functions are called.
 
       @param groupIndex: the index number of this constraint (see getGroupIndex
             index functions)
