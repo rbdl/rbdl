@@ -34,7 +34,7 @@ namespace RigidBodyDynamics {
  *
  * Constraints are handled by specification of a \link
  * RigidBodyDynamics::ConstraintSet
- * ConstraintSet \endlink which contains all informations about the
+ * ConstraintSet \endlink which contains all information about the
  * current constraints and workspace memory.
  *
  * Separate constraints can be specified by calling
@@ -48,9 +48,9 @@ namespace RigidBodyDynamics {
  * ForwardDynamicsContactsDirects().
  *
  * The values in the vectors ConstraintSet::force and
- * ConstraintSet::impulse contain the computed force or
- * impulse values for each constraint when returning from one of the
- * contact functions.
+ * ConstraintSet::impulse contain the Lagrange multipliers or
+ * change in Lagrange multipliers for each constraint when returning from one 
+ * of the contact functions.
  *
  * \section solution_constraint_system Solution of the Constraint System
  *
@@ -256,15 +256,15 @@ namespace RigidBodyDynamics {
  * is reasonable. When testing different values best is to try different
  * orders of magnitude as e.g. doubling a value only has little effect.
  *
- * For Loop- and CustoallConstraints Baumgarte stabilization is enabled by
- * default and uses the stabilization parameter \f$T_\textit{stab} = 0.1\f$.
+ * FBaumgarte stabilization is disabled by default, and uses the default
+ * the stabilization parameter \f$T_\textit{stab} = 0.1\f$.
  *
  * @{
  */
 
 struct Model;
 
-struct RBDL_DLLAPI CustomConstraint;
+
 
 //class RBDL_DLLAPI Constraint;
 
@@ -288,10 +288,17 @@ struct RBDL_DLLAPI ConstraintSet {
       @brief getGroupIndex returns the index to a constraints that have been
              grouped because they are of the same type, apply to the same
              bodies, and apply to the same local frames on each body.
-      @param userDefinedName : the optional name that the constraint was assigned when it was
-                    added to the constraint set.
 
-      @param returns: the group index of the constraint
+      @note String operations are always slow relative to other simple data
+            types. If speed is a concern then do not call this function in a 
+            loop: either save the index locally, use the userDefinedId 
+            (which is an integer), or use the assigned id (also an integer).
+
+
+      @param userDefinedName : the optional name that the constraint was 
+              assigned when it was added to the constraint set.
+
+      @return: the group index of the constraint
   */
   unsigned int getGroupIndex(std::string& userDefinedName){
     return nameGroupMap.at(userDefinedName);
@@ -301,10 +308,16 @@ struct RBDL_DLLAPI ConstraintSet {
       @brief getGroupIndex returns the index to a constraints that have been
              grouped because they are of the same type, apply to the same
              bodies, and apply to the same local frames on each body.
+
+      @note Internally this function makes a temporary string. If speed is 
+            a concern then do not call this function in a loop: either save
+            the index locally, use the userDefinedId (which is an integer),
+            or use the assigned id (also an integer).
+
       @param userDefinedName : the optional name that the constraint was
               assigned when it was added to the constraint set.
-      @param returns: the group index of the constraint
-      @note Internally this function makes a temporary string
+
+      @return: the group index of the constraint
   */
 
   unsigned int getGroupIndex(const char* userDefinedName){
@@ -320,7 +333,7 @@ struct RBDL_DLLAPI ConstraintSet {
       @param userDefinedId : the optional integer id that was assigned to this
                 constraint when it was created.
 
-      @param returns: the group index of the constraint
+      @return: the group index of the constraint
   */
 
   unsigned int getGroupIndex(unsigned int userDefinedId){
@@ -337,7 +350,7 @@ struct RBDL_DLLAPI ConstraintSet {
             to the constraint set by the functions: AddContactConstraint,
             AddLoopConstraint, AddCustomConstraint, etc.
 
-      @param returns: the group index of the constraint
+      @return: the group index of the constraint
   */
 
   unsigned int getGroupIndexByAssignedId(unsigned int assignedId){
@@ -619,10 +632,10 @@ struct RBDL_DLLAPI ConstraintSet {
             the function GetConstraintIndex can find it.
    */
   unsigned int AddContactConstraint (
-    unsigned int body_id,
-    const Math::Vector3d &body_point,
-    const Math::Vector3d &world_normal,
-    const char *constraint_name = NULL,
+    unsigned int bodyId,
+    const Math::Vector3d &bodyPoint,
+    const Math::Vector3d &worldNormal,
+    const char *constraintName = NULL,
     unsigned int userDefinedId = std::numeric_limits<unsigned int>::max());
 
   /** \brief Adds a loop constraint to the constraint set.
@@ -637,11 +650,19 @@ struct RBDL_DLLAPI ConstraintSet {
 
     @param XPredecessor a spatial transform localizing the constrained
             frames on the predecessor body, expressed with respect to the 
-            predecessor body frame
+            predecessor body frame. Note the position vector should be
+            the r_BPB (from the body's origin, to the predessor frame, in the
+            coordinates of the body's frame) and E_BP (the rotation matrix that
+            will rotate vectors from the coordinates of the P frame to the 
+            coordinates of the body's frame).
     
     @param XSuccessor a spatial transform localizing the constrained
           frames on the successor body, expressed with respect to the successor
-          body frame
+          body frame. Note the position vector should be
+            the r_BSB (from the body's origin, to the successor frame, in the
+            coordinates of the body's frame) and E_BS (the rotation matrix that
+            will rotate vectors from the coordinates of the S frame to the 
+            coordinates of the body's frame).
     
     @param constraintAxisInPredessor a spatial vector, resolved in the frame of
             the predecessor frame, indicating the axis along which the 
@@ -1327,100 +1348,6 @@ void SolveConstrainedSystemNullSpace (
 );
 
 
-
-
-/** \brief Interface to define general-purpose constraints.
- *
-* The CustomConstraint interface is a general-purpose interface that is rich
-* enough to define time-varying constraints at the position-level \f$\phi_p(q,t)=0\f$,
-* the velocity-level \f$\phi_v(\dot{q},t)=0\f$, or the acceleration-level
-* \f$\phi_a(\ddot{q},t)=0\f$. These constraints all end up being applied at the
-* acceleration-level by taking successive derivatives until we are left with
-* \f$\Phi(\ddot{q},\dot{q},q,t)=0\f$
-* The interface requires that the user populate
-*
-*   - G: \f$ \dfrac{ \partial \Phi(\ddot{q},\dot{q},q,t)}{ \partial \ddot{q}}\f$
-*   - constraintAxis: the axis that the constraints are applied along
-*   - gamma: \f$ \gamma = - ( \Phi(\ddot{q},\dot{q},q,t) - G \ddot{q})\f$
-*   - errPos: The vector of \f$\phi_p(\dot{q},t)\f$. If the constraint is a velocity-level
-*             constraint or higher this should be set to zero.
-*   - errVel: The vector of \f$\phi_v(\dot{q},t)\f$. If the constraint is an acceleration-level
-*             constraint this should be set to zero
-*
-* The matrix G and the vector gamma are required to compute accelerations that satisfy
-* the desired constraints. The vectors errPos and errVel are required to apply Baumgarte
-* stabilization (a constraint stabilization method) to stabilize the constraint. The
-* interface provides (optional) interfaces for the functions
-*
-*   - CalcAssemblyPositionError
-*   - CalcAssemblyPositionErrorJacobian
-*   - CalcAssemblyVelocityError
-*   - CalcAssemblyVelocityErrorJacobian
-*
-* These optional functions are used only during system assembly. This permits a velocity-level
-* constraint (e.g. such as a rolling-without-slipping constraint) to define a position-level
-* constraint to assemble the system (e.g. bring the rolling surfaces into contact with
-* eachother). If you are defining a position-level constraint these optional functions
-* should simply return errPos, G, errVel, and G respectively.
-*
-* It must be stated that this is an advanced feature of RBDL: you must have an in-depth
-* knowledge of multibody-dynamics in order to write a custom constraint, and to write
-* the corresponding test code to validate that the constraint is working. As a hint the
-* test code in tests/CustoallConstraintsTest.cc should contain a forward simulation of a simple
-* system using the constraint and then check to see that system energy is conserved with only 
-* a small error and the constraint is also satisfied with only a small error. The observed 
-* error should drop as the integrator tolerances are lowered.
-*/
-struct RBDL_DLLAPI CustomConstraint {
-    unsigned int mConstraintCount;
-    //unsigned int mAssemblyConstraintCount;
-
-    CustomConstraint(unsigned int constraintCount):mConstraintCount(constraintCount){}
-
-    virtual ~CustomConstraint(){};    
-
-    virtual void CalcConstraintsJacobianAndConstraintAxis(
-                                          Model &model,
-                                          unsigned int custom_constraint_id,
-                                          const Math::VectorNd &Q,
-                                          ConstraintSet &CS,
-                                          Math::MatrixNd &G,
-                                          unsigned int GrowStart,
-                                          unsigned int GcolStart) = 0;
-
-    virtual void CalcGamma( Model &model,
-                            unsigned int custom_constraint_id,
-                            const Math::VectorNd &Q,
-                            const Math::VectorNd &QDot,
-                            ConstraintSet &CS,
-                            const Math::MatrixNd &Gblock,
-                            Math::VectorNd &gamma,
-                            unsigned int gammaStartIndex) = 0;
-
-
-    virtual void CalcPositionError( Model &model,
-                                    unsigned int custom_constraint_id,
-                                    const Math::VectorNd &Q,
-                                    ConstraintSet &CS,
-                                    Math::VectorNd &err,
-                                    unsigned int errStartIdx) = 0;
-
-    virtual void CalcVelocityError( Model &model,
-                                    unsigned int custom_constraint_id,
-                                    const Math::VectorNd &Q,
-                                    const Math::VectorNd &QDot,
-                                    ConstraintSet &CS,
-                                    const Math::MatrixNd &Gblock,
-                                    Math::VectorNd &err,
-                                    unsigned int errStartIndex) = 0;
-
-
-
-};
-
-
-
-/** @} */
 
 } 
 

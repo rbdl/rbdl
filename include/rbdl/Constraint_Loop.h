@@ -18,6 +18,12 @@ namespace RigidBodyDynamics {
 
 
 
+/**
+  @brief Supports rigid kinematic loop (or body-to-body) constraints as 
+        described in Ch. 8 of Featherstone's Rigid Body Dynamics Algorithms 
+        book.
+
+*/
 class RBDL_DLLAPI LoopConstraint : public Constraint {
 
 public:
@@ -32,16 +38,24 @@ public:
 
     @param XPredecessor a spatial transform localizing the constrained
             frames on the predecessor body, expressed with respect to the 
-            predecessor body frame
+            predecessor body frame. Note the position vector should be
+            the r_BPB (from the body's origin, to the predessor frame, in the
+            coordinates of the body's frame) and E_BP (the rotation matrix that
+            will rotate vectors from the coordinates of the P frame to the 
+            coordinates of the body's frame).
     
     @param XSuccessor a spatial transform localizing the constrained
           frames on the successor body, expressed with respect to the successor
-          body frame
+          body frame. Note the position vector should be
+            the r_BSB (from the body's origin, to the successor frame, in the
+            coordinates of the body's frame) and E_BS (the rotation matrix that
+            will rotate vectors from the coordinates of the S frame to the 
+            coordinates of the body's frame).
     
     @param constraintAxisInPredessor a spatial vector, resolved in the frame of
             the predecessor frame, indicating the axis along which the 
-            constraint acts
-    
+            constraint acts.
+
 
      @param enableBaumgarteStabilization (optional, default false) setting this
             flag to true will modify the right hand side of the acceleration
@@ -92,7 +106,9 @@ public:
       bool velocityLevelConstraint=true);
 
 
+
   void bind( const Model &model) override;
+
 
   void calcConstraintJacobian(  Model &model,
                                 const double time,
@@ -101,6 +117,7 @@ public:
                                 Math::MatrixNd &GSysUpd,
                                 ConstraintCache &cache,
                                 bool updateKinematics=false) override;
+
 
   void calcGamma( Model &model,
                   const double time,
@@ -111,12 +128,14 @@ public:
                   ConstraintCache &cache,
                   bool updateKinematics=false) override;
 
+
   void calcPositionError( Model &model,
                           const double time,
                           const Math::VectorNd &Q,
                           Math::VectorNd &errSysUpd,
                           ConstraintCache &cache,
                           bool updateKinematics=false) override;
+
 
   void calcVelocityError( Model &model,
                           const double time,
@@ -126,6 +145,7 @@ public:
                           Math::VectorNd &derrSysUpd,
                           ConstraintCache &cache,
                           bool updateKinematics=false) override;
+
 
   void calcConstraintForces(
         Model &model,
@@ -143,17 +163,31 @@ public:
 
   //==========================================================
 
+  /**
+    @return the vector of constraint axes which are resolved in the 
+            coordinate system of the predecessor frame
+  */
   const std::vector< Math::SpatialVector >& getConstraintAxes(){
     return T;
   }
 
+  /**
+    @param constraintAxis to append. This constraintAxis must have a norm of 1
+            and be normal to the existing constraintAxis
+    @param positionLevelConstraint if true position errors will be evaluated
+            for this constraint entry.
+    @param velocityLevelConstraint if true velocity errors will be evalulated
+            for this constraint entry.                        
+  */
   void appendConstraintAxis(const Math::SpatialVector &constraintAxis,
                           bool positionLevelConstraint = true,
                           bool velocityLevelConstraint = true);
 
 
 private:
+  /// Vector of constraint axis resolved in the predecessor frame
   std::vector< Math::SpatialVector > T;
+  /// A local working double 
   double dblA;
 };
 
