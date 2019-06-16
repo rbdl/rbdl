@@ -85,7 +85,7 @@ void LoopConstraint::calcConstraintJacobian( Model &model,
                               const Math::VectorNd &QDot,
                               Math::MatrixNd &GSysUpd,
                               ConstraintCache &cache,
-                              bool updKin)
+                              bool updateKinematics)
 {
     //Please refer to Ch. 8 of Featherstone's Rigid Body Dynamics for details
 
@@ -93,15 +93,15 @@ void LoopConstraint::calcConstraintJacobian( Model &model,
     //successor point Gs and evaluate Gs-Gp
     cache.mat6NA.setZero();
     cache.mat6NB.setZero();
-    CalcPointJacobian6D(model,Q,bodyIds[0],bodyFrames[0].r,cache.mat6NA,updKin);
-    CalcPointJacobian6D(model,Q,bodyIds[1],bodyFrames[1].r,cache.mat6NB,updKin);
+    CalcPointJacobian6D(model,Q,bodyIds[0],bodyFrames[0].r,cache.mat6NA,updateKinematics);
+    CalcPointJacobian6D(model,Q,bodyIds[1],bodyFrames[1].r,cache.mat6NB,updateKinematics);
     cache.mat6NA = cache.mat6NB-cache.mat6NA;
 
     //Evaluate the transform from the world frame into the constraint frame
     //that is attached to the precessor body
     cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
-                                            updKin);
-    cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updKin
+                                            updateKinematics);
+    cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updateKinematics
                                            ).transpose()*bodyFrames[0].E;
 
     for(unsigned int i=0; i<sizeOfConstraint;++i){
@@ -124,24 +124,24 @@ void LoopConstraint::calcGamma(  Model &model,
                   const Math::MatrixNd &GSys,
                   Math::VectorNd &gammaSysUpd,
                   ConstraintCache &cache,
-                  bool updKin)
+                  bool updateKinematics)
 {
   //Please refer to Ch. 8 of Featherstone's Rigid Body Dynamics text for details
 
   // Express the constraint axis in the base frame.
   cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
-                                          updKin);
-  cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updKin
+                                          updateKinematics);
+  cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updateKinematics
                                          ).transpose()*bodyFrames[0].E;
 
   // Compute the spatial velocities of the two constrained bodies.
   //vel_p
   cache.svecA = CalcPointVelocity6D(model,Q,QDot,bodyIds[0],bodyFrames[0].r,
-                                    updKin);
+                                    updateKinematics);
 
   //vel_s
   cache.svecB = CalcPointVelocity6D(model,Q,QDot,bodyIds[1],bodyFrames[1].r,
-                                    updKin);
+                                    updateKinematics);
 
   // Compute the velocity product accelerations. These correspond to the
   // accelerations that the bodies would have if q ddot were 0. If this
@@ -149,10 +149,10 @@ void LoopConstraint::calcGamma(  Model &model,
 
   //acc_p
   cache.svecC = CalcPointAcceleration6D(model,Q,QDot,cache.vecNZeros,
-                                        bodyIds[0],bodyFrames[0].r,updKin);
+                                        bodyIds[0],bodyFrames[0].r,updateKinematics);
   //acc_s
   cache.svecD = CalcPointAcceleration6D(model,Q,QDot,cache.vecNZeros,
-                                        bodyIds[1],bodyFrames[1].r,updKin);
+                                        bodyIds[1],bodyFrames[1].r,updateKinematics);
 
   for(unsigned int i=0; i<sizeOfConstraint;++i){
 
@@ -176,7 +176,7 @@ void LoopConstraint::calcPositionError(Model &model,
                                       const Math::VectorNd &Q,
                                       Math::VectorNd &errSysUpd,
                                       ConstraintCache &cache,
-                                      bool updKin)
+                                      bool updateKinematics)
 {
 
   // Constraints computed in the predecessor body frame.
@@ -186,14 +186,14 @@ void LoopConstraint::calcPositionError(Model &model,
 
   //Kp: predecessor frame
   cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
-                                          updKin);
-  cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updKin
+                                          updateKinematics);
+  cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updateKinematics
                                          ).transpose()*bodyFrames[0].E;
 
   //Ks: successor frame
   cache.stB.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[1],bodyFrames[1].r,
-                                          updKin);
-  cache.stB.E = CalcBodyWorldOrientation(model,Q,bodyIds[1],updKin
+                                          updateKinematics);
+  cache.stB.E = CalcBodyWorldOrientation(model,Q,bodyIds[1],updateKinematics
                                          ).transpose()*bodyFrames[1].E;
 
 
@@ -246,7 +246,7 @@ void LoopConstraint::calcVelocityError(  Model &model,
                             const Math::MatrixNd &GSys,
                             Math::VectorNd &derrSysUpd,
                             ConstraintCache &cache,
-                            bool updKin)
+                            bool updateKinematics)
 {
   //SimpleMath cannot handle multiplying a block matrix by a vector
   //Using a for loop here to maintain backwards compatibility.
@@ -282,18 +282,18 @@ void LoopConstraint::calcConstraintForces(
               std::vector< Math::SpatialVector > &constraintForcesUpd,
               ConstraintCache &cache,
               bool resolveAllInRootFrame,
-              bool updKin)
+              bool updateKinematics)
 {
   constraintBodiesUpd.resize(2);
   constraintBodyFramesUpd.resize(2);
 
   cache.stA.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[0],bodyFrames[0].r,
-                                          updKin);
-  cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updKin
+                                          updateKinematics);
+  cache.stA.E = CalcBodyWorldOrientation(model,Q,bodyIds[0],updateKinematics
                                          ).transpose()*bodyFrames[0].E;
   cache.stB.r = CalcBodyToBaseCoordinates(model,Q,bodyIds[1],bodyFrames[1].r,
-                                          updKin);
-  cache.stB.E = CalcBodyWorldOrientation(model,Q,bodyIds[1],updKin
+                                          updateKinematics);
+  cache.stB.E = CalcBodyWorldOrientation(model,Q,bodyIds[1],updateKinematics
                                          ).transpose()*bodyFrames[1].E;
 
   constraintForcesUpd.resize(2);

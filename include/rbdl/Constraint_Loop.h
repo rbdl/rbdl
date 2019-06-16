@@ -19,9 +19,54 @@ namespace RigidBodyDynamics {
 
 
 /**
-  @brief Supports rigid kinematic loop (or body-to-body) constraints as 
+  @brief Implements a rigid kinematic loop (or body-to-body) constraints as 
         described in Ch. 8 of Featherstone's Rigid Body Dynamics Algorithms 
         book.
+
+  \image html fig_Constraint_Loop.png "A loop constraint restricts the movement of a point p located on the predecessor body relative to point s on a successor body in the directions T_i."
+
+    For details on this constraint please do read this documentation. However
+    note that a typical user of RBDL should not need to use any of the functions 
+    described in this class but instead should use the functions that are 
+    defined in ConstraintSet (AddContactConstraint, calcForces, 
+    calcPositionError, calcVelocityError, calcBaumgarteStabilizationForces, etc)
+    when working with this constraint. For those interested in all of the 
+    details of this constraint and how it works please refer to the source
+    code for this class, and its base class.
+
+    A LoopConstraint will zero the acceleration between body-fixed points 
+    \f$p\f$ and \f$s\f$ in the spatial directions \f$^pT_i\f$. The user specifies
+    \f$p\f$ and \f$s\f$ by passing in the spatial transform from the origin of
+    the predecessor body to the predecessor frame (\f$_{1}^{1}r_{P}\f$, 
+    \f$^1E_p\f$) and likewise for the successor body to the successor frame
+    (\f$_{2}^{2}r_{S}\f$, \f$^1E_s\f$). The spatial directions that the 
+    constraint is applied are specified in the vector \f$^pT_i\f$ which is
+    resolved in the coordinates of the predecessor frame.
+
+    As with any other constraint this position-level constraint is index 
+    reduced and applied at the acceleration level. This constraint will only
+    be satisfied at the position-level and velocity-level if, prior to enabling
+    the constraint, the constraint equations are satisified at the position
+    and velocity levels. When assembling the constraint the functions 
+    CalcAssemblyQ and CalcAssemblyQDot can be used to satisfy this constraint
+    at the position and velocity levels.
+
+    During the process of integration numerical error may accumulate. To prevent
+    this error from growing Baumgarte stabilization can be enabled using the
+    function setEnableBaumgarteStabilization provided in the base class. 
+    Numerical drift is usually small with this constraint because \f$^pT_i\f$ is
+    body fixed. When this constraint is used in an optimal control problem 
+    Baumgarte stabilization may also be used to guide the solver to physically
+    valid model configurations. Without stabilization the solver may introduce
+    large constraint errors which will otherwise not be reduced. By default
+    Baumgarte stabilization is not enabled. 
+
+    By default this constraint does have its position-level and velocity-level
+    errors defined. This has the consequence that CalcAssemblyQ will update
+    the position of the model to satisfy these constraints, as will  
+    CalcAssemblyQDot at the velocity level. In addition, Baumgarte stabilization
+    will apply forces to the model in response to constraint errors at 
+    both the position and velocity level.
 
 */
 class RBDL_DLLAPI LoopConstraint : public Constraint {
@@ -146,7 +191,7 @@ public:
                           ConstraintCache &cache,
                           bool updateKinematics=false) override;
 
-
+  
   void calcConstraintForces(
         Model &model,
         const double time,
@@ -161,7 +206,7 @@ public:
         bool resolveAllInRootFrame = false,
         bool updateKinematics=false) override;
 
-  //==========================================================
+
 
   /**
     @return the vector of constraint axes which are resolved in the 
@@ -192,8 +237,6 @@ private:
 };
 
 } 
-
-/* namespace RigidBodyDynamics */
 
 /* RBDL_LOOP_CONSTRAINT_H */
 #endif

@@ -16,11 +16,65 @@
 namespace RigidBodyDynamics {
 
 /**
-  @brief Supports rigid kinematic body-point--to--ground constraints along a 
+  @brief Implements a rigid kinematic body-point--to--ground constraint along a 
           normal direction as described in Ch. 11 of Featherstone's Rigid Body 
           Dynamics Algorithms book.
 
+  \image html fig_Constraint_Contact.png "A contact constraint restricts the movement of a point p located on a body such that its velocity and acceleration in direction n_i is zero."
 
+    For details on this constraint please do read this documentation. However
+    note that a typical user of RBDL should not need to use any of the functions 
+    described in this class but instead should use the functions that are 
+    defined in ConstraintSet (AddContactConstraint, calcForces, 
+    calcPositionError, calcVelocityError, calcBaumgarteStabilizationForces, etc)
+    when working with this constraint. For those interested in all of the 
+    details of this constraint and how it works please refer to the source
+    code for this class, and its base class.
+
+    This class should be named PointGroundConstraint but retains the name
+    ConstactConstraint for historical reasons. A ContactConstraint will prevent
+    a body-fixed point \f$p\f$, from moving in a ground-fixed direction 
+    \f$n_i\f$. The user specifies \f$p\f$ by passing in the body fixed vector 
+    \f$_{1}^{1}r_{P}\f$ (the vector from the origin of the body's frame, to point 
+    \f$p\f$, resolved in the coordinates of the body's frame) and the normal
+    vector \f$^{0}n_{i}\f$ which is fixed in the base frame.
+    
+    As with any other constraint, this restriction is only applied
+    at the acceleration-level. This constraint will only be satisfied at the
+    velocity level if point \f$p\f$ has a velocity of zero
+    in the direction \f$n_i\f$ before the constraint is switched on.
+    When simulating foot ground contact, for example, you can compute the 
+    state that simulates a plastic impact (which will zero the velocity of 
+    point \f$p\f$ in direction \f$n_i\f$) using the family of functions 
+    named ComputeConstraintImpulses (e.g. ComputeConstraintImpulsesDirect,
+    ComputeConstraintImpulsesNullSpace, etc.).
+
+    During the process of integration numerical error may accumulate so that
+    point \f$p\f$ has a non-zero velocity in direction \f$n_i\f$. To prevent
+    this error from growing Baumgarte stabilization can be enabled using
+    the function setEnableBaumgarteStabilization provided in the base class 
+    Constraint.h. Numerical drift is usually quite small with this constraint
+    because \f$n_i\f$ is time and state invariant. By default Baumgarte 
+    stabilization is not enabled.
+
+    By default this constraint does not have any position-level error, only
+    errors at the velocity level are defined. This has two consequences: the
+    method CalcAssemblyQ will not modify the model at the position-level to
+    satisfy this constraint; and Baumgarte stabilization forces are only applied
+    in response to errors at the velocity-level. This gives the user a 
+    certain amount of flexibility when using this constraint to simulate
+    foot-ground contact as the user does not have to remember to update the
+    reference position on the ground of this constraint class prior to enabling
+    the constraint. 
+  
+
+    To extend this class to include position-level 
+    constraints one would have to add functions to update the groundPoint and
+    then use the methods enableConstraintErrorFromPositionLevel provided
+    in the base class to turn on the computation of position-level errors for
+    the desired index. Given that there exists a large number of models that
+    make use of this constraint assuming that the position errors are
+    zero any future developers should retain this default behaviour.
 
 */
 class RBDL_DLLAPI ContactConstraint : public Constraint {
@@ -75,7 +129,7 @@ public:
       const char *name = NULL,
       unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
       bool enableBaumgarteStabilization=false,
-      double stabilizationParameter=0.1,      
+      double stabilizationTimeConstant=0.1,      
       bool velocityLevelConstraint=true);
 
 
@@ -128,7 +182,6 @@ public:
         bool resolveAllInRootFrame = false,
         bool updateKinematics=false) override;
 
-  //==========================================================
 
 
   /**
@@ -222,13 +275,7 @@ private:
 
 
 
-
-
-/** @} */
-
 } 
-
-/* namespace RigidBodyDynamics */
 
 /* RBDL_CONTACT_CONSTRAINT_H */
 #endif

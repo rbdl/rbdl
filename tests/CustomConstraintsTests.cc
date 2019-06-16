@@ -500,12 +500,9 @@ TEST(CustomConstraintCorrectnessTest) {
   dbj.tau[0]= 0.;
   dbj.tau[1]= 0.;
 
-  std::string conName("Rz");
-  unsigned int groupIndex = dbcc.cs.getGroupIndex(conName);
+  unsigned int groupIndex = dbcc.cs.getGroupIndexByName("Rz");
   assert(groupIndex==0);
-  groupIndex = dbcc.cs.getGroupIndex(conName.c_str());
-  assert(groupIndex==0);
-  groupIndex = dbcc.cs.getGroupIndex(7);
+  groupIndex = dbcc.cs.getGroupIndexById(7);
   assert(groupIndex==0);
   groupIndex = dbcc.cs.getGroupIndexByAssignedId(dbcc.assignedIdRy);
   assert(groupIndex==1);

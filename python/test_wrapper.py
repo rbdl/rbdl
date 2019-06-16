@@ -11,6 +11,7 @@ import math
 import numpy as np
 from numpy.testing import *
 import rbdl
+from typing import List
 
 class JointTests (unittest.TestCase):
     def test_JointConstructorAxesSimple(self):
@@ -556,9 +557,9 @@ class FloatingBaseModel2 (unittest.TestCase):
 
         constraint_set = rbdl.ConstraintSet()
 
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([1., 0., 0.]), "ground_x");
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 1., 0.]), "ground_y");
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 0., 1.]), "ground_z");
+        i0 = constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([1., 0., 0.]), "ground_x",3);
+        i1 = constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 1., 0.]), "ground_y",4);
+        i2 = constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 0., 1.]), "ground_z",5);
 
         constraint_set.Bind (self.model);
 
@@ -566,7 +567,28 @@ class FloatingBaseModel2 (unittest.TestCase):
         point_acceleration = rbdl.CalcPointAcceleration (self.model, self.q, self.qdot, self.qddot, contact_body_id, contact_point);
 
         assert_almost_equal( np.array([0., 0., 0.]), point_acceleration)
-  
+
+        #Test the functions to access the group index        
+        gId = constraint_set.getGroupIndexByName("ground_x")
+        assert_equal(0,gId)
+        gId = constraint_set.getGroupIndexByName("ground_y")
+        assert_equal(0,gId)
+        gId = constraint_set.getGroupIndexByName("ground_z")
+        assert_equal(0,gId)
+
+        gId = constraint_set.getGroupIndexById(3)
+        assert_equal(0,gId)
+        gId = constraint_set.getGroupIndexById(4)
+        assert_equal(0,gId)
+        gId = constraint_set.getGroupIndexById(5)
+        assert_equal(0,gId)
+
+        gId = constraint_set.getGroupIndexByAssignedId(i0)
+        assert_equal(0,gId)
+        gId = constraint_set.getGroupIndexByAssignedId(i1)
+        assert_equal(0,gId)
+        gId = constraint_set.getGroupIndexByAssignedId(i2)
+        assert_equal(0,gId)
 
     def test_ForwardDynamicsConstraintsDirectMoving (self):
       
@@ -586,16 +608,16 @@ class FloatingBaseModel2 (unittest.TestCase):
         self.qdot[5] = -1.6
 
         contact_body_id = self.body_1
-        contact_point = np.array( [0., -1., 0.]);
+        contact_point = np.array( [0., -1., 0.])
 
         constraint_set = rbdl.ConstraintSet()
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([1., 0., 0.]), "ground_x");
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 1., 0.]), "ground_y");
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 0., 1.]), "ground_z");
+        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([1., 0., 0.]), "ground_x")
+        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 1., 0.]), "ground_y")
+        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 0., 1.]), "ground_z")
 
-        constraint_set.Bind (self.model);
+        constraint_set.Bind (self.model)
         
-        rbdl.ForwardDynamicsConstraintsDirect (self.model, self.q, self.qdot, self.tau, constraint_set, self.qddot);
+        rbdl.ForwardDynamicsConstraintsDirect (self.model, self.q, self.qdot, self.tau, constraint_set, self.qddot)
 
         point_acceleration = rbdl.CalcPointAcceleration (self.model, self.q, self.qdot, self.qddot, contact_body_id, contact_point);
         
@@ -623,23 +645,195 @@ class FloatingBaseModel2 (unittest.TestCase):
 
 
 class ConstraintSetTests (unittest.TestCase):
-    def test_Simple (self):
-        # only tests whether the API seems to work. No functional
-        # tests yet.
+    def setUp(self):
 
-        cs = rbdl.ConstraintSet()
+        # Make a triple-perpendicular-pendulum in absolute coordinates using
+        # 5 loop constraints to implement the first 2 pin joints 
+        #
+        #    The perpendicular pendulum pictured with joint angles of 0,0.
+        #    The first joint rotates about the x axis, while the second
+        #    joint rotates about the local y axis of link 1
+        #
+        #             y
+        #             |
+        #             |___ x
+        #         z / |
+        #           | |
+        #         / | | link1
+        #           | |
+        #       /   | |
+        #   axis1:z0| |__________
+        #          (_____________) link 2
+        #           | |
+        #            |
+        #   
+        #            |
+        #   
+        #            | axis2:y1        
+        #   
+        self.model = rbdl.Model()
+        self.model.gravity = np.array([0.,-9.81,0.])
 
-        # MM June 2019 Update
-        #   :np.array need to be passed in for points and normals
-        #   :There is an error check condition: the magnitude of the normal 
-        #    must be 1 for both Contact and Loop Constraints
-        idx = cs.AddContactConstraint (1, np.array([1., 2., 3.]), np.array([1., 0., 0.]))
-        assert_equal (0, idx)
+        l1=1.
+        l2=1.
+        m1=1.
+        m2=1.
+        self.l1=l1
+        self.l2=l2
+        self.m1=m1
+        self.m2=m2
 
-        X = rbdl.SpatialTransform()
-        sv = rbdl.SpatialVector.fromPythonArray ([1., 0., 0., 0., 0., 0.])
-        idx2 = cs.AddLoopConstraint (1, 2, X, X, sv, True, 1.)
-        assert_equal (1, idx2)
+        c1 = np.array([0.,-l1*0.5,0.])
+        J1 = np.array([[m1*l1*l1/3.,           0.,          0.],
+                       [         0., m1*l1*l1/30.,          0.],
+                       [         0.,           0., m1*l1*l1/3.]]) 
+
+        c2 = np.array([l2*0.5,0.,0.])        
+        J2 = np.array([ [m2*l2*l2/30.,          0., 0.],
+                        [          0., m2*l2*l2/3., 0.],
+                        [          0.,          0., m2*l2*l2/3.]]) 
+
+        Xp1   = rbdl.SpatialTransform()
+        Xp1.r = np.array([0.,0.,0.])
+        Xp1.E = np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+        
+        Xs1   = rbdl.SpatialTransform()
+        Xs1.r = np.array([0.,0.,0.])
+        Xs1.E = np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+
+        Xp2   = rbdl.SpatialTransform()
+        Xp2.r = np.array([0.,-l1,0.])
+        Xp2.E = np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+
+        Xs2   = rbdl.SpatialTransform()
+        Xs2.r = np.array([0.,0.,0.])
+        Xs2.E = np.array([[1.,0.,0.],[0.,1.,0.],[0.,0.,1.]])
+
+        axis = np.asarray([
+            [0., 0., 0., 1., 0., 0.],
+            [0., 0., 0., 0., 1., 0.],
+            [0., 0., 0., 0., 0., 1.],
+            [0., 0., 1., 0., 0., 0.],
+            [0., 1., 0., 0., 0., 0.],
+            [1., 0., 0., 0., 0., 0.],
+            ])
+
+        joint6Dof = rbdl.Joint.fromJointAxes (axis)
+
+        self.link1 = rbdl.Body.fromMassComInertia(m1,c1,J1)
+        self.link2 = rbdl.Body.fromMassComInertia(m2,c2,J2)
+
+        self.iLink1= self.model.AppendBody(rbdl.SpatialTransform(),joint6Dof, 
+                                            self.link1)
+        self.iLink2= self.model.AppendBody(rbdl.SpatialTransform(),joint6Dof, 
+                                            self.link2)
+
+        #point_coords = np.array ([0., 0., 1.])
+        self.q   = np.zeros (self.model.q_size)
+        self.qd  = np.zeros (self.model.qdot_size)
+        self.qdd = np.zeros (self.model.qdot_size)
+        self.tau = np.zeros (self.model.qdot_size)        
+
+        assert(self.iLink1==6)
+        assert(self.iLink2==12)
+
+        self.cs = rbdl.ConstraintSet()
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[0,0,0,1,0,0]),False,0.1,"LoopGroundLink1",7)
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[0,0,0,0,1,0]),False)
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[0,0,0,0,0,1]),False)
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[1,0,0,0,0,0]),False)
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[0,1,0,0,0,0]),False)
+
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[0,0,0,1,0,0]),False,0.1,"LoopLink1Link2",11)
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[0,0,0,0,1,0]))
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[0,0,0,0,0,1]))
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[1,0,0,0,0,0]))
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[0,0,1,0,0,0]))
+
+        self.cs.Bind(self.model)
+
+
+    def test_GroupIndexAccess (self):
+
+
+        #Test that the groupIndex accessors work
+        gId = self.cs.getGroupIndexByName("LoopGroundLink1")
+        assert_equal(0,gId)
+        gId = self.cs.getGroupIndexById(7)
+        assert_equal(0,gId)
+        gId = self.cs.getGroupIndexByAssignedId(0)
+        assert_equal(0,gId)
+
+        gId = self.cs.getGroupIndexByName("LoopLink1Link2")
+        assert_equal(1,gId)
+        gId = self.cs.getGroupIndexById(11)
+        assert_equal(1,gId)
+        gId = self.cs.getGroupIndexByAssignedId(5)
+        assert_equal(1,gId)
+
+    def test_ConstraintInformationFunctions (self):
+
+
+        self.q[7] = -self.l1
+        self.tau[3] = -self.l2*0.5*self.m2*self.model.gravity[1]
+
+        print("Q")
+        print(self.q)
+        print("QDot")
+        print(self.qd)
+        print("Tau")
+        print(self.tau)
+
+
+        rbdl.ForwardDynamicsConstraintsDirect(self.model,self.q,self.qd,self.tau,self.cs,self.qdd)
+
+        print("QDDot")
+        print(self.qdd)
+
+        for i in range(0,self.model.qdot_size):
+            assert_almost_equal(self.qdd[i],0.)
+                
+        gId0 = 0
+        gId1 = 1
+
+        csListBodyIds = np.ndarray([1], dtype=np.int)
+        csListX = np.ndarray([6,6,2],dtype=np.float)
+        csListF = np.ndarray([6,2],dtype=np.float)
+
+        self.cs.calcForces( gId0,self.model,self.q,self.qd,
+                            csListBodyIds,csListX,csListF,False,False)
+
+        #print("Number of bodies")
+        #print(csListBodyIds.shape())
+        print("bodyId, Transform, Forces")    
+        for i in range(0,csListBodyIds.shape[0]):
+            print(csListBodyIds[i])
+            print(csListX[:,:,i])
+            print(csListF[:,i])
+
+        assert_equal(csListBodyIds[0],0)
+        assert_equal(csListBodyIds[1],self.iLink1)
+
+        self.cs.calcForces( gId1,self.model,self.q,self.qd,
+                            csListBodyIds,csListX,csListF,False,False)
+
+        #print("Number of bodies")
+        #print(csListBodyIds.shape())
+        print("bodyId, Transform, Forces")    
+        for i in range(0,csListBodyIds.shape[0]):
+            print(csListBodyIds[i])
+            print(csListX[:,:,i])
+            print(csListF[:,i])
+
+
+        assert_equal(csListBodyIds[0],self.iLink1)
+        assert_equal(csListBodyIds[1],self.iLink2)
+
+
+
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -10,6 +10,7 @@ from libcpp.vector cimport vector
 from libcpp.map cimport map as cpp_map
 from libcpp cimport bool
 
+from typing import List
 
 cimport cpython.ref as cpy_ref
 
@@ -484,6 +485,23 @@ cdef crbdl.MatrixNd NumpyToMatrixNd (np.ndarray[double, ndim=2, mode="c"] M):
     return cM
 
 cdef np.ndarray MatrixNdToNumpy (crbdl.MatrixNd cM):
+    result = np.ndarray ([cM.rows(), cM.cols()])
+    for i in range (cM.rows()):
+        for j in range (cM.cols()):
+            result[i,j] = cM.coeff(i,j)
+
+    return result
+
+# SpatialMatrix
+cdef crbdl.SpatialMatrix NumpyToSpatialMatrix (np.ndarray[double, ndim=2, mode="c"] M):
+    cdef crbdl.SpatialMatrix cM = crbdl.SpatialMatrix()
+    for i in range (M.shape[0]):
+        for j in range (M.shape[1]):
+            (&(cM.coeff(i,j)))[0] = M[i,j]
+
+    return cM
+
+cdef np.ndarray SpatialMatrixToNumpy (crbdl.SpatialMatrix cM):
     result = np.ndarray ([cM.rows(), cM.cols()])
     for i in range (cM.rows()):
         for j in range (cM.cols()):
@@ -1524,6 +1542,68 @@ cdef class ConstraintSet:
     def __repr__(self):
         return "rbdl.ConstraintSet (0x{:0x})".format(<uintptr_t><void *> self.thisptr)
 
+
+    def getGroupIndexByName(self, constraintNameChar not None):
+        return self.thisptr.getGroupIndexByName(constraintNameChar)
+
+    def getGroupIndexById(self, userDefinedId not None):
+        return self.thisptr.getGroupIndexById(userDefinedId)
+
+    def getGroupIndexByAssignedId(self, assignedId not None):
+        return self.thisptr.getGroupIndexByAssignedId(assignedId)
+
+    def getGroupIndexMax(self):
+        return self.thisptr.getGroupIndexMax()  
+        
+    def getGroupName(self, groupIndex not None):
+        return self.getGroupName(groupIndex)  
+
+    def getGroupId(self, groupIndex not None):
+        return self.getGroupId(groupIndex)  
+
+    def getGroupAssignedId(self, groupIndex not None):
+        return self.getGroupAssignedId(groupIndex)
+
+
+
+
+    def calcForces(self,
+            groupIndex not None,
+            Model model,
+            np.ndarray[double, ndim=1, mode="c"] q,
+            np.ndarray[double, ndim=1, mode="c"] qdot,
+            np.ndarray[np.int64_t, ndim=1, mode="c"]  constraintBodyIdsUpd,
+            np.ndarray[double, ndim=3, mode="c"] constraintFramesUpd,
+            np.ndarray[double, ndim=2, mode="c"] constraintForcesUpd,
+            resolveAllInRootFrame = False,
+            updateKinematics = False):
+
+        cdef vector[unsigned int] bodyIds
+        cdef vector[crbdl.SpatialTransform] frames
+        cdef vector[crbdl.SpatialVector] forces
+
+        self.thisptr.calcForces(groupIndex,
+            model.thisptr[0],
+            NumpyToVectorNd(q),
+            NumpyToVectorNd(qdot),
+            bodyIds,
+            frames,
+            forces,
+            resolveAllInRootFrame,
+            updateKinematics)
+
+
+        constraintBodyIdsUpd = np.ndarray([bodyIds.size()], dtype=np.int)
+        constraintBodyFramesUpd = np.ndarray([6,6,bodyIds.size()],dtype=np.float)
+        constraintForcesUpd = np.ndarray([6,bodyIds.size()],dtype=np.float)
+
+        for i in range(0,bodyIds.size()):
+            constraintBodyIdsUpd[i]    = bodyIds[i]
+            constraintFramesUpd[:,:,i] = SpatialMatrixToNumpy(frames[i].toMatrix())
+            constraintForcesUpd[:,i]   = SpatialVectorToNumpy(forces[i])
+
+
+
     def AddContactConstraint (self,
             body_id not None,
             np.ndarray[double, ndim=1, mode="c"] body_point,
@@ -1583,6 +1663,7 @@ cdef class ConstraintSet:
 
     def clear (self):
         self.thisptr.clear()
+
 
     property bound:
         def __get__ (self):

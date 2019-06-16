@@ -145,8 +145,8 @@ TEST( TestExtendedConstraintFunctionsContact ){
 
   VectorNd posErrors, velErrors, bgForces;
 
-  unsigned int gIdxLeft = cs.getGroupIndex("LeftCorner");
-  unsigned int gIdxRight = cs.getGroupIndex("RightCorner");
+  unsigned int gIdxLeft = cs.getGroupIndexByName("LeftCorner");
+  unsigned int gIdxRight = cs.getGroupIndexByName("RightCorner");
 
   // New functions to test
   //    calcForces
@@ -304,18 +304,15 @@ TEST ( TestForwardDynamicsConstraintsDirectSimple ) {
 
   constraint_set.Bind (model);
 
-  std::string conName("ground_xyz");
-  unsigned int index = constraint_set.getGroupIndex(conName);
+  unsigned int index = constraint_set.getGroupIndexByName("ground_xyz");
   CHECK(index==0);
-  index = constraint_set.getGroupIndex(conName.c_str());
-  CHECK(index==0);
-  index = constraint_set.getGroupIndex(id);
+  index = constraint_set.getGroupIndexById(id);
   CHECK(index==0);
   index = constraint_set.getGroupIndexByAssignedId(autoId);
   CHECK(index==0);
 
-  std::string conNameBack(constraint_set.getGroupName(index));
-  CHECK(conNameBack == conName);
+  const char* conNameBack = constraint_set.getGroupName(index);
+  CHECK(std::strcmp(conNameBack,"ground_xyz")==0);
   unsigned userId = constraint_set.getGroupId(index);
   CHECK(userId == id);
 

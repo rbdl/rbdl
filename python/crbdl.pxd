@@ -433,6 +433,32 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
 cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
   cdef cppclass ConstraintSet:
         ConstraintSet()
+
+        unsigned int getGroupIndexByName(const char *constraintNameChar)        
+        
+        unsigned int getGroupIndexById(unsigned int userDefinedId)
+        
+        unsigned int getGroupIndexByAssignedId(unsigned int assignedId)
+        
+        unsigned int getGroupIndexMax()
+        
+        const char* getGroupName(unsigned int groupIndex)
+        
+        unsigned int getGroupId(unsigned int groupIndex)
+        
+        unsigned int getGroupAssignedId(unsigned int groupIndex)
+
+        void calcForces(unsigned int groupIndex,
+                        Model &model,
+                        const VectorNd &q,
+                        const VectorNd &qdot,
+                        vector[unsigned int] &constraintBodyIdsUpd,
+                        vector[SpatialTransform] &constraintFramesUpd,
+                        vector[SpatialVector] &constraintForcesUpd,
+                        bool resolveAllInRootFrame,
+                        bool updateKinematics)
+
+
         unsigned int AddContactConstraint (
                 unsigned int body_id,
                 const Vector3d &body_point,
@@ -461,6 +487,8 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
         void clear()
         # Math::LinearSolver
         bool bound
+
+
 
         vector[string] name
 

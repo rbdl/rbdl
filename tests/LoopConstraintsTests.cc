@@ -510,7 +510,7 @@ TEST( TestExtendedConstraintFunctionsLoop ){
     CHECK_CLOSE(dba.qdd[i],0.,TEST_PREC);
   }
 
-  unsigned int idxRyLink1 = dba.cs.getGroupIndex("RyLink1");
+  unsigned int idxRyLink1 = dba.cs.getGroupIndexByName("RyLink1");
 
   std::vector< unsigned int >     bodyIds;
   std::vector< SpatialTransform > bodyFrames;
@@ -656,14 +656,11 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   Matrix3d rot_p;
   double angleErr;
 
-  std::string name("LoopXY_Rz");
 
-  unsigned int loopIndex = cs.getGroupIndex(name);
-  CHECK(loopIndex==0);
-  loopIndex = cs.getGroupIndex(name.c_str());
+  unsigned int loopIndex = cs.getGroupIndexByName("LoopXY_Rz");
   CHECK(loopIndex==0);
   unsigned int userDefinedId = 7;
-  loopIndex = cs.getGroupIndex(userDefinedId);
+  loopIndex = cs.getGroupIndexById(userDefinedId);
   CHECK(loopIndex==0);
   loopIndex = cs.getGroupIndexByAssignedId(0);
   CHECK(loopIndex==0);

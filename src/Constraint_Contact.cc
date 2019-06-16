@@ -22,6 +22,7 @@ using namespace Math;
 
 
 
+
 //==============================================================================
 ContactConstraint::ContactConstraint():
   Constraint("",ConstraintTypeContact,1,

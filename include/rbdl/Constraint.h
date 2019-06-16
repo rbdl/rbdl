@@ -289,43 +289,45 @@ class RBDL_DLLAPI Constraint {
     /**
       @brief This function resolves the generalized forces this constraint
       applies to the system into the wrenches that are applied to the bodies
-      that are involved in the constraint. To make this information completely
-      clear, this function updates 3 variables: constraintBodiesUpd, 
-      constraintBodyFramesUpd, and constraintForcesUpd. The vector 
-      constraintBodiesUpd. The items in each of these vectors are associated by
-      index: thus the 5th element of constraintForcesUpd is applied to the 
-      5th frame in constraintBodyFramesUpd which is located on the 5th 
-      body listed in constraintBodiesUpd.
+      that are involved in the constraint.
 
 
       @param model: a reference to the multibody model.
+
       @param time: the time which is included so that rheonomic
       constraints might be included (in the future).
+
       @param Q: the vector of generalized positions.
+
       @param QDot: the vector of generalized velocities.
+
       @param GSys: a reference to the constraint Jacobian for the entire 
           system. If \f$G\f$ is needed in this function do not re-evaluate it 
           but instead extract it from the system \f$G\f$: this constraint's 
           sub-matrix begins at rowInSystem, has sizeOfConstraint rows, and
           the full number of columns of GSys.      
+
       @param LagrangeMultipliersSys: the vector of Lagrange multipliers for the
           entire system. The Lagrange multipliers for this constraint begin 
           at rowInSystem and has sizeOfConstraint elements.
+
       @param constraintBodiesUpd: contains the indices of the bodies that 
               contain the local frames listed in constraintBodyFramesUpd.
               If resolveAllInRootFrame is true, all of these indicies should
               be set to 0: in this case all of the wrenches are resolved in
-              the root frame.
+              the root frame. 
 
       @param constraintBodyFramesUpd: contains the local transformation from
           the origin of each body frame listed in constraintBodiesUpd to the
-          frame in which the constraint wrench is applied. 
-          If resolveAllInRootFrame is true, all of these frames should have 
+          frame in which the constraint wrench is applied. Note the \f$i^{th}\f$
+          frame is located on the \f$i^{th}\f$ body.
+          If resolveAllInRootFrame is true, all of these frames have 
           their origins resolved in the global frame and their orientation 
           set to match that tof the global frame.
 
       @param constraintForcesUpd: contains the wrenches that the constraint
-          applies to the local frames listed in cosntraintBodyFramesUpd. If
+          applies to the local frames listed in constraintBodyFramesUpd. 
+          Note the \f$i^{th}\f$ force is resolved in the \f$i^{th}\f$ frame.If
           resolveAllInRootFrame is true, this wrench should be rotated into
           the coordinates of the root frame.
 
@@ -333,14 +335,10 @@ class RBDL_DLLAPI Constraint {
           memory that can be used to reduce the memory footprint of each 
           Constraint implementation.
 
-      @param resolveAllInRootFrame: When this parameter is false the wrenches 
-          are resolved into their local frames (constraintBodyFramesUpd) which 
-          are attached to specific bodies (constraintBodiesUpd). When this
-          is true the wrenches are resolved into coordinates of the 
-          global frame, applied to frames which have the same origin in the 
-          base frame as constraintBodyFramesUpd (but with orientations to match
-          the base frame), and these frames are all located relative to the 
-          base frame (and thus constraintBodiesUpd is all zeros).
+      @param resolveAllInRootFrame: When this parameter is 
+    
+          - false: the wrenches are resolved into their local frames. 
+          - true: the wrenches are resolved into coordinates of the global frame
 
       @param updateKinematics: setting this flag to true will cause all
           calls to kinematic dependent functions to be updated using the 
@@ -372,10 +370,18 @@ class RBDL_DLLAPI Constraint {
     /**
       @param name: (optional) name of the constraint. Use only as a means to 
                   find a specific constraint.
+
       @param typeOfConstraint: corresponds to the enums listed in 
               ConstraintTypes. This parameter is used by a few methods that
               only work with specific types of constraints such as 
               ForwardDynamicsContactsKokkevis.
+
+      @param sizeOfConstraint: the number of equations that define the 
+              constraint manifold. Equivalently this is the number of rows in 
+              this constraints Jacobian.              
+
+      @param userDefinedIdNumber: an integer that the user can set to rapidly
+              retrieve this constraint from the set.              
     */
     Constraint(const char* name,
                const unsigned int typeOfConstraint,
@@ -425,13 +431,13 @@ class RBDL_DLLAPI Constraint {
     }
 
     /**
-      @param GSys: a reference to the system's constraint Jacobian
-      @param GConstraint: a reference to this constraint's entry within the 
+      @param GSys : a reference to the system's constraint Jacobian
+      @param GConstraint : a reference to this constraint's entry within the 
                           system constraint Jacobian
     */
     void getConstraintJacobian(const Math::MatrixNd &GSys,
-                               Math::MatrixNd &GContraint){
-      GContraint = GSys.block(rowInSystem,0,sizeOfConstraint,GSys.cols());
+                               Math::MatrixNd &GConstraint){
+      GConstraint = GSys.block(rowInSystem,0,sizeOfConstraint,GSys.cols());
     }
 
 
@@ -467,7 +473,7 @@ class RBDL_DLLAPI Constraint {
     }
 
     /**
-      @param bgParamUpd: the Baumgarte stabilization coefficients for this
+      @param bgParamsUpd: the Baumgarte stabilization coefficients for this
                         constraint. Note the velocity error coefficient is in
                         the 0 index and the position error coefficient is in 
                         the 1st index. 
@@ -491,8 +497,8 @@ class RBDL_DLLAPI Constraint {
     }
 
     /**
-      @param errPos : the position error vector of the system
-      @param errVel : the velocity error vector of the system
+      @param errPosSys : the position error vector of the system
+      @param errVelSys : the velocity error vector of the system
       @param gammaSysUpd: the gamma vector of the system
     */
     void addInBaumgarteStabilizationForces(const Math::VectorNd &errPosSys,
@@ -526,7 +532,7 @@ class RBDL_DLLAPI Constraint {
     }
 
     /**
-      @param the index of the first row in G in which this constraint's
+      @return the index of the first row in G in which this constraint's
               entries appear.
     */
     unsigned int getConstraintIndex(){
