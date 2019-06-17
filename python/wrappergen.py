@@ -82,6 +82,16 @@ type_properties = {
           return ST
 """,
 
+"Vector2d" :  """    property %MEMBER%:
+      def __get__ (self):
+          vector_size = self.thisptr.%MEMBER%.size()
+          ST = [%TYPE%() for i in range(vector_size)]
+          for k in range(vector_size):
+            for i in range (self.thisptr.%MEMBER%[k].rows()):
+              ST[k][i] = self.thisptr.%MEMBER%[k][i]
+          return ST
+""",
+
   "Vector3d" :  """    property %MEMBER%:
       def __get__ (self):
           vector_size = self.thisptr.%MEMBER%.size()

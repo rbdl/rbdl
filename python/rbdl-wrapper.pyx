@@ -21,6 +21,59 @@ cimport cpython.ref as cpy_ref
 #
 ##############################
 
+cdef class Vector2d:
+    cdef crbdl.Vector2d *thisptr
+    cdef free_on_dealloc
+
+    def __cinit__(self, uintptr_t address=0, pyvalues=None):
+        if address == 0:
+            self.free_on_dealloc = True
+            self.thisptr = new crbdl.Vector2d()
+
+            if pyvalues is not None:
+                for i in range (2):
+                    self.thisptr.data()[i] = pyvalues[i]
+        else:
+            self.free_on_dealloc = False
+            self.thisptr = <crbdl.Vector2d*>address
+
+    def __dealloc__(self):
+        if self.free_on_dealloc:
+            del self.thisptr
+
+    def __repr__(self):
+        return "Vector2d [{:3.4f}, {:3.4f}]".format (
+                self.thisptr.data()[0], self.thisptr.data()[1])
+
+    def __getitem__(self, key):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            return [self.thisptr.data()[i] for i in xrange(*key.indices(len(self)))]
+        else:
+            return self.thisptr.data()[key]
+
+    def __setitem__(self, key, value):
+        if isinstance( key, slice ) :
+            #Get the start, stop, and step from the slice
+            src_index = 0
+            for i in xrange (*key.indices(len(self))):
+                self.thisptr.data()[i] = value[src_index]
+                src_index = src_index + 1
+        else:
+            self.thisptr.data()[key] = value
+
+    def __len__ (self):
+        return 2
+
+    # Constructors
+    @classmethod
+    def fromPointer(cls, uintptr_t address):
+        return Vector2d (address)
+
+    @classmethod
+    def fromPythonArray (cls, python_values):
+        return Vector2d (0, python_values)
+
 cdef class Vector3d:
     cdef crbdl.Vector3d *thisptr
     cdef free_on_dealloc
@@ -427,6 +480,22 @@ cdef class SpatialMatrix:
 #
 ##############################
 
+# Vector2d
+cdef crbdl.Vector2d NumpyToVector2d (np.ndarray[double, ndim=1, mode="c"] x):
+    cdef crbdl.Vector2d cx = crbdl.Vector2d()
+    for i in range (2):
+        cx[i] = x[i]
+
+    return cx
+
+
+cdef np.ndarray Vector2dToNumpy (crbdl.Vector2d cx):
+    result = np.ndarray ((cx.rows()))
+    for i in range (cx.rows()):
+        result[i] = cx[i]
+
+    return result
+
 # Vector3d
 cdef crbdl.Vector3d NumpyToVector3d (np.ndarray[double, ndim=1, mode="c"] x):
     cdef crbdl.Vector3d cx = crbdl.Vector3d()
@@ -458,6 +527,7 @@ cdef np.ndarray Matrix3dToNumpy (crbdl.Matrix3d cM):
             result[i,j] = cM.coeff(i,j)
 
     return result
+
 
 # VectorNd
 cdef crbdl.VectorNd NumpyToVectorNd (np.ndarray[double, ndim=1, mode="c"] x):
@@ -1555,24 +1625,34 @@ cdef class ConstraintSet:
     def getGroupIndexMax(self):
         return self.thisptr.getGroupIndexMax()  
         
+    def getGroupSize(self, groupIndex not None):
+        return self.thisptr.getGroupSize(groupIndex)
+
+    def getGroupType(self, groupIndex not None):
+        return self.thisptr.getGroupType(groupIndex)
+
+
     def getGroupName(self, groupIndex not None):
-        return self.getGroupName(groupIndex)  
+        return self.thisptr.getGroupName(groupIndex)  
 
     def getGroupId(self, groupIndex not None):
-        return self.getGroupId(groupIndex)  
+        return self.thisptr.getGroupId(groupIndex)  
 
     def getGroupAssignedId(self, groupIndex not None):
-        return self.getGroupAssignedId(groupIndex)
+        return self.thisptr.getGroupAssignedId(groupIndex)
 
+    def enableBaumgarteStabilization(self, groupIndex not None):
+        self.thisptr.enableBaumgarteStabilization(groupIndex)
 
-
+    def disableBaumgarteStabilization(self, groupIndex not None):
+        self.thisptr.disableBaumgarteStabilization(groupIndex)
 
     def calcForces(self,
-            groupIndex not None,
+            groupIndex,
             Model model,
             np.ndarray[double, ndim=1, mode="c"] q,
             np.ndarray[double, ndim=1, mode="c"] qdot,
-            np.ndarray[np.int64_t, ndim=1, mode="c"]  constraintBodyIdsUpd,
+            np.ndarray[uint, ndim=1, mode="c"]   constraintBodyIdsUpd,
             np.ndarray[double, ndim=3, mode="c"] constraintFramesUpd,
             np.ndarray[double, ndim=2, mode="c"] constraintForcesUpd,
             resolveAllInRootFrame = False,
@@ -1592,16 +1672,103 @@ cdef class ConstraintSet:
             resolveAllInRootFrame,
             updateKinematics)
 
-
-        constraintBodyIdsUpd = np.ndarray([bodyIds.size()], dtype=np.int)
-        constraintBodyFramesUpd = np.ndarray([6,6,bodyIds.size()],dtype=np.float)
-        constraintForcesUpd = np.ndarray([6,bodyIds.size()],dtype=np.float)
-
         for i in range(0,bodyIds.size()):
             constraintBodyIdsUpd[i]    = bodyIds[i]
             constraintFramesUpd[:,:,i] = SpatialMatrixToNumpy(frames[i].toMatrix())
             constraintForcesUpd[:,i]   = SpatialVectorToNumpy(forces[i])
 
+    #def calcImpulses(self,
+    #        groupIndex,
+    #        Model model,
+    #        np.ndarray[double, ndim=1, mode="c"] q,
+    #        np.ndarray[double, ndim=1, mode="c"] qdot,
+    #        np.ndarray[uint, ndim=1, mode="c"]   constraintBodyIdsUpd,
+    #        np.ndarray[double, ndim=3, mode="c"] constraintFramesUpd,
+    #        np.ndarray[double, ndim=2, mode="c"] constraintImpulsesUpd,
+    #        resolveAllInRootFrame = False,
+    #        updateKinematics = False):
+
+    #    cdef vector[unsigned int] bodyIds
+    #    cdef vector[crbdl.SpatialTransform] frames
+    #    cdef vector[crbdl.SpatialVector] impulses
+
+    #    self.thisptr.calcImpulses(groupIndex,
+    #        model.thisptr[0],
+    #        NumpyToVectorNd(q),
+    #        NumpyToVectorNd(qdot),
+    #        bodyIds,
+    #        frames,
+    #        impulses,
+    #        resolveAllInRootFrame,
+    #        updateKinematics)
+
+    #    for i in range(0,bodyIds.size()):
+    #        constraintBodyIdsUpd[i]    = bodyIds[i]
+    #        constraintFramesUpd[:,:,i] = SpatialMatrixToNumpy(frames[i].toMatrix())
+    #        constraintImpulsesUpd[:,i]   = SpatialVectorToNumpy(impulses[i])
+
+
+    def calcPositionError(self, 
+                        groupIndex,
+                        Model model,
+                        np.ndarray[double, ndim=1, mode="c"] q,
+                        np.ndarray[double, ndim=1, mode="c"] posErrUpd,
+                        updateKinematics=False):
+        cdef crbdl.VectorNd posErrUpdNd
+        self.thisptr.calcPositionError( groupIndex, 
+                                        model.thisptr[0],
+                                        NumpyToVectorNd(q),
+                                        posErrUpdNd,
+                                        updateKinematics)
+
+        for i in range(0, posErrUpdNd.rows()):
+            posErrUpd[i] = posErrUpdNd[i]
+
+    def calcVelocityError(self, 
+                        groupIndex,
+                        Model model,
+                        np.ndarray[double, ndim=1, mode="c"] q,
+                        np.ndarray[double, ndim=1, mode="c"] qdot,
+                        np.ndarray[double, ndim=1, mode="c"] velErrUpd,
+                        updateKinematics=False):
+        cdef crbdl.VectorNd velErrUpdNd
+        self.thisptr.calcVelocityError( groupIndex, 
+                                        model.thisptr[0],
+                                        NumpyToVectorNd(q),
+                                        NumpyToVectorNd(qdot),
+                                        velErrUpdNd,
+                                        updateKinematics)
+        for i in range(0, velErrUpdNd.rows()):
+            velErrUpd[i] = velErrUpdNd[i]
+
+    def calcBaumgarteStabilizationForces(self,
+                    groupIndex,
+                    Model model,
+                    np.ndarray[double, ndim=1, mode="c"] posErr,
+                    np.ndarray[double, ndim=1, mode="c"] velErr,
+                    np.ndarray[double, ndim=1, mode="c"] baumgarteForcesUpd):
+        cdef crbdl.VectorNd bgStabForcesUpdNd
+        self.thisptr.calcBaumgarteStabilizationForces(groupIndex,
+            model.thisptr[0],
+            NumpyToVectorNd(posErr),
+            NumpyToVectorNd(velErr),
+            bgStabForcesUpdNd)
+        for i in range(0, bgStabForcesUpdNd.rows()):
+            baumgarteForcesUpd[i] = bgStabForcesUpdNd[i]
+
+
+    def isBaumgarteStabilizationEnabled(self,
+                                        groupIndex):
+        return self.thisptr.isBaumgarteStabilizationEnabled(groupIndex)
+
+    def getBaumgarteStabilizationCoefficients(self,
+                  groupIndex,
+                  np.ndarray[double, ndim=1, mode="c"] baumgartePositionVelocityCoefficientsUpd):
+        cdef crbdl.Vector2d bgCoeff
+        self.thisptr.getBaumgarteStabilizationCoefficients(groupIndex,bgCoeff)
+
+        baumgartePositionVelocityCoefficientsUpd[0] = bgCoeff[0]
+        baumgartePositionVelocityCoefficientsUpd[1] = bgCoeff[1]
 
 
     def AddContactConstraint (self,

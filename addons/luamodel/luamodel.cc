@@ -66,6 +66,27 @@ SpatialVector LuaTableNode::getDefault<SpatialVector>(
 }
 
 template<>
+MatrixNd LuaTableNode::getDefault<MatrixNd>(const MatrixNd &default_value) {
+  MatrixNd result = default_value;
+
+  if (stackQueryValue()) {
+    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
+
+    result.resize( int(vector_table.length()),
+                   int(vector_table[1].length()));
+
+    for(int r=0; r<int(vector_table.length());++r){
+      for(int c=0; c<int(vector_table[1].length());++c){
+        result(r,c) = vector_table[r+1][c+1];
+      }
+    }
+  }
+  stackRestore();
+
+  return result;
+}
+
+template<>
 Matrix3d LuaTableNode::getDefault<Matrix3d>(const Matrix3d &default_value) {
   Matrix3d result = default_value;
 
@@ -437,16 +458,42 @@ bool LuaModelReadConstraintsFromTable (
           assert(false);
           abort();
         }
-        constraint_sets[i].AddContactConstraint
-          (model->GetBodyId(model_table["constraint_sets"]
-            [constraint_set_names[i].c_str()][ci + 1]["body"]
-            .getDefault<string>("").c_str())
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["point"].getDefault<Vector3d>(Vector3d::Zero())
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["normal"].getDefault<Vector3d>(Vector3d::Zero())
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["name"].getDefault<string>("").c_str());
+
+        unsigned int constraint_user_id=0;
+        if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+           ["id"].exists()){
+          constraint_user_id = unsigned(int(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+              ["id"].getDefault<double>(0.)));
+
+          constraint_sets[i].AddContactConstraint(
+                model->GetBodyId(model_table["constraint_sets"]
+                    [constraint_set_names[i].c_str()][ci + 1]["body"]
+                    .getDefault<string>("").c_str())
+                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+                              ["point"].getDefault<Vector3d>(Vector3d::Zero())
+                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+                              ["normal"].getDefault<Vector3d>(Vector3d::Zero())
+                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+                  ["name"].getDefault<string>("").c_str()
+                ,constraint_user_id);
+
+
+        }else{
+          constraint_sets[i].AddContactConstraint(
+                model->GetBodyId(model_table["constraint_sets"]
+                    [constraint_set_names[i].c_str()][ci + 1]["body"]
+                    .getDefault<string>("").c_str())
+                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+                              ["point"].getDefault<Vector3d>(Vector3d::Zero())
+                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+                              ["normal"].getDefault<Vector3d>(Vector3d::Zero())
+                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+                  ["name"].getDefault<string>("").c_str());
+
+
+        }
+
+
         if(verbose) {
           cout << "  type = contact" << endl;
           cout << "  name = " << constraint_name << std::endl;
@@ -496,6 +543,39 @@ bool LuaModelReadConstraintsFromTable (
           }
         }
 
+
+        MatrixNd axisSet;
+        SpatialVector axis;
+        std::vector< SpatialVector > axisVector;
+
+        if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+           ["axis_set"].exists()){
+          axisSet = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+              ["axis_set"].getDefault< MatrixNd >( MatrixNd::Zero(1,1));
+
+          for(unsigned int r=0; r<axisSet.rows();++r){
+            for(unsigned int c=0; c<axisSet.cols();++c){
+              axis[c] = axisSet(r,c);
+            }
+            axisVector.push_back(axis);
+          }
+
+        }else if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+                 ["axis"].exists()){
+          axis = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+              ["axis"].getDefault< SpatialVector >( SpatialVector::Zero());
+
+          axisVector.push_back(axis);
+
+        }else{
+          std::cerr << "The LoopConstraint must have either axis_set field "
+                       "(which is a m x 6 matrix) or an axis field. Neither of "
+                       "these fields was found in "
+                    << constraint_set_names[i].c_str() << endl;
+          assert(0);
+          abort();
+        }
+
         unsigned int constraint_user_id=0;
         if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
            ["id"].exists()){
@@ -504,24 +584,38 @@ bool LuaModelReadConstraintsFromTable (
         }
 
 
-        constraint_id = constraint_sets[i].AddLoopConstraint(model->GetBodyId
-          (model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["predecessor_body"].getDefault<string>("").c_str())
-          , model->GetBodyId(model_table["constraint_sets"]
-            [constraint_set_names[i].c_str()][ci + 1]["successor_body"]
-            .getDefault<string>("").c_str())
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["predecessor_transform"].getDefault<SpatialTransform>(SpatialTransform())
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["successor_transform"].getDefault<SpatialTransform>(SpatialTransform())
-          , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
-          , enable_stabilization
-          , stabilization_parameter
-          , constraint_name.c_str()
-          , constraint_user_id);
+        unsigned int idPredecessor =
+            model->GetBodyId(model_table["constraint_sets"]
+                   [constraint_set_names[i].c_str()][ci + 1]["predecessor_body"]
+                    .getDefault<string>("").c_str());
 
+        unsigned int idSuccessor =
+            model->GetBodyId(model_table["constraint_sets"]
+                [constraint_set_names[i].c_str()][ci + 1]["successor_body"]
+                .getDefault<string>("").c_str());
 
+        SpatialTransform Xp =
+            model_table["constraint_sets"][constraint_set_names[i].c_str()]
+            [ci + 1]["predecessor_transform"]
+            .getDefault<SpatialTransform>(SpatialTransform());
+
+        SpatialTransform Xs =
+            model_table["constraint_sets"][constraint_set_names[i].c_str()]
+            [ci + 1]["successor_transform"]
+            .getDefault<SpatialTransform>(SpatialTransform());
+
+        for(unsigned int r=0; r<axisVector.size(); ++r){
+            constraint_id = constraint_sets[i].AddLoopConstraint(
+                idPredecessor
+              , idSuccessor
+              , Xp
+              , Xs
+              , axisVector[r]
+              , enable_stabilization
+              , stabilization_parameter
+              , constraint_name.c_str()
+              , constraint_user_id);
+        }
 
         if(verbose) {
           cout << "  type = loop" << endl;

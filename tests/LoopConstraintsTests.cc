@@ -448,6 +448,11 @@ TEST( TestExtendedConstraintFunctionsLoop ){
   //   equivalent state as the pendulum modelled using joint
   //   coordinates. Next
 
+  double r010xErr = 1.0;
+  double dr010xErr = 2.0;
+
+  VectorNd qErr, qdErr;
+
   dba.q[0]  = r010[0];
   dba.q[1]  = r010[1];
   dba.q[2]  = r010[2];
@@ -461,7 +466,14 @@ TEST( TestExtendedConstraintFunctionsLoop ){
   dba.q[10] = dbj.q[1];
   dba.q[11] = 0;
 
+  qErr = dba.q;
+  qErr[0] += r010xErr;
+
   dba.qd.setZero();
+
+  qdErr = dba.qd;
+  qdErr[0] += dr010xErr;
+
   dba.qdd.setZero();
 
   dba.tau[0]  = 0.;//tx
@@ -477,31 +489,114 @@ TEST( TestExtendedConstraintFunctionsLoop ){
   dba.tau[10] = dbj.tau[1];//ry
   dba.tau[11] = 0.;//rx
 
+  //Test
+  //  calcPositionError
+  //  calcVelocityError
 
   VectorNd err(dba.cs.size());
   VectorNd errd(dba.cs.size());
 
-  CalcConstraintsPositionError(dba.model,dba.q,dba.cs,err,true);
-  CalcConstraintsVelocityError(dba.model,dba.q,dba.qd,dba.cs,errd,true);
+  CalcConstraintsPositionError(dba.model,qErr,dba.cs,err,true);
+  CalcConstraintsVelocityError(dba.model,dba.q,qdErr,dba.cs,errd,true);
 
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
-  for(unsigned int i=0; i<err.rows();++i){
-    CHECK_CLOSE(0,err[i],TEST_PREC);
-  }
-  for(unsigned int i=0; i<errd.rows();++i){
-    CHECK_CLOSE(0,errd[i],TEST_PREC);
+  CHECK_CLOSE(r010xErr,err[0],TEST_PREC);
+  for(unsigned int j=1; j<5;++j){
+    CHECK_CLOSE(0,err[j],TEST_PREC);
   }
 
-  // New functions to test
-  //    calcForces
-  //    calcPositionError
-  //    calcVelocityError
+  CHECK_CLOSE(-r010xErr*cos(dbj.q[0]),err[5+0],TEST_PREC);
+  CHECK_CLOSE( r010xErr*sin(dbj.q[0]),err[5+1],TEST_PREC);
+  for(unsigned int j=2; j<5;++j){
+    CHECK_CLOSE(0,err[5+j],TEST_PREC);
+  }
+
+  CHECK_CLOSE(dr010xErr,errd[0],TEST_PREC);
+  for(unsigned int j=1; j<5;++j){
+    CHECK_CLOSE(0,errd[j],TEST_PREC);
+  }
+
+  CHECK_CLOSE(      -dr010xErr*cos(dbj.q[0]), errd[5+0], TEST_PREC);
+  CHECK_CLOSE(       dr010xErr*sin(dbj.q[0]), errd[5+1], TEST_PREC);
+  CHECK_CLOSE(                            0., errd[5+2], TEST_PREC);
+  CHECK_CLOSE(                            0., errd[5+3], TEST_PREC);
+
+  //MM: this term comes from transforming the T axis into the inertial
+  //    frame using the spatial operator (e.g. see the function
+  //    calcConstraintJacobian). Specifically, this comes from the cross
+  //    product terms that come from the linear spatial transformation.
+  CHECK_CLOSE( dr010xErr*dba.l1*cos(dbj.q[0]),errd[5+4], TEST_PREC);
+
+  VectorNd errGroup0,derrGroup0,errGroup1,derrGroup1;
+  dba.cs.calcPositionError(0,dba.model,qErr,errGroup0,true);
+  dba.cs.calcVelocityError(0,dba.model,dba.q,qdErr,derrGroup0,true);
+
+  CHECK_CLOSE(r010xErr,errGroup0[0],TEST_PREC);
+  for(unsigned int j=1; j<5;++j){
+    CHECK_CLOSE(0,errGroup0[j],TEST_PREC);
+  }
+  CHECK_CLOSE(dr010xErr,derrGroup0[0],TEST_PREC);
+  for(unsigned int j=1; j<5;++j){
+    CHECK_CLOSE(0,derrGroup0[j],TEST_PREC);
+  }
+
+  dba.cs.calcPositionError(1,dba.model,qErr,errGroup1,true);
+  dba.cs.calcVelocityError(1,dba.model,dba.q,qdErr,derrGroup1,true);
+
+  CHECK_CLOSE(-r010xErr*cos(dbj.q[0]),errGroup1[0],TEST_PREC);
+  CHECK_CLOSE( r010xErr*sin(dbj.q[0]),errGroup1[1],TEST_PREC);
+  for(unsigned int j=2; j<5;++j){
+    CHECK_CLOSE(0,errGroup1[j],TEST_PREC);
+  }
+  CHECK_CLOSE(      -dr010xErr*cos(dbj.q[0]), derrGroup1[0], TEST_PREC);
+  CHECK_CLOSE(       dr010xErr*sin(dbj.q[0]), derrGroup1[1], TEST_PREC);
+  CHECK_CLOSE(                            0., derrGroup1[2], TEST_PREC);
+  CHECK_CLOSE(                            0., derrGroup1[3], TEST_PREC);
+  CHECK_CLOSE( dr010xErr*dba.l1*cos(dbj.q[0]), derrGroup1[4], TEST_PREC);
+
+  // Test Baumgarte related functions
   //    calcBaumgarteStabilizationForces
   //    isBaumgarteStabilizationEnabled
   //    getBaumgarteStabilizationCoefficients
 
-  //Evaluate the model at the dynamics level
+  CHECK_EQUAL(dba.cs.isBaumgarteStabilizationEnabled(0), false);
+  dba.cs.enableBaumgarteStabilization(0);
+  CHECK_EQUAL(dba.cs.isBaumgarteStabilizationEnabled(0), true);
+  dba.cs.disableBaumgarteStabilization(0);
+  CHECK_EQUAL(dba.cs.isBaumgarteStabilizationEnabled(0), false);
+
+  Vector2d bgCoeff;
+  VectorNd bgForces;
+  dba.cs.getBaumgarteStabilizationCoefficients(0,bgCoeff);
+  CHECK_CLOSE(bgCoeff[0],10.,TEST_PREC);
+  CHECK_CLOSE(bgCoeff[1],10.,TEST_PREC);
+  dba.cs.calcBaumgarteStabilizationForces(0,dba.model,errGroup0,derrGroup0,bgForces);
+
+  double bgStab = 0.;
+  for(unsigned int i=0; i<5;++i){
+    bgStab = -2.0*bgCoeff[0]*errd[i] - bgCoeff[1]*bgCoeff[1]*err[i];
+    CHECK_CLOSE(bgStab,bgForces[i],TEST_PREC);
+  }
+
+  dba.cs.calcBaumgarteStabilizationForces(1,dba.model,errGroup1,derrGroup1,bgForces);
+  for(unsigned int i=0; i<5;++i){
+    bgStab = -2.0*bgCoeff[0]*errd[i+5] - bgCoeff[1]*bgCoeff[1]*err[i+5];
+    CHECK_CLOSE(bgStab,bgForces[i],TEST_PREC);
+  }
+
+  CHECK_EQUAL(dba.cs.getGroupSize(0),5);
+  CHECK_EQUAL(dba.cs.getGroupType(0),ConstraintTypeLoop);
+
+  //Test the function calcForces
+  //Evaluate the model at the dynamics level. First remove the error
+  CalcConstraintsPositionError(dba.model,dba.q,dba.cs,err,true);
+  CalcConstraintsVelocityError(dba.model,dba.q,dba.qd,dba.cs,errd,true);
+
+  for(unsigned int i=0; i < err.rows();++i){
+    CHECK_CLOSE(err[i],0.,TEST_PREC);
+    CHECK_CLOSE(errd[i],0.,TEST_PREC);
+  }
 
   ForwardDynamicsConstraintsDirect(dba.model,dba.q, dba.qd,
                                    dba.tau, dba.cs, dba.qdd);
@@ -643,6 +738,8 @@ TEST( TestExtendedConstraintFunctionsLoop ){
   CHECK_CLOSE(fsS[3], conForces[1][3],TEST_PREC);
   CHECK_CLOSE(fsS[4], conForces[1][4],TEST_PREC);
   CHECK_CLOSE(fsS[5], conForces[1][5],TEST_PREC);
+
+
 
 
 

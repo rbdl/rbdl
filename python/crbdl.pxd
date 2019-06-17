@@ -26,6 +26,13 @@ cdef extern from "<rbdl/rbdl_math.h>" namespace "RigidBodyDynamics::Math":
         double& operator[](int)
         double* data()
 
+    cdef cppclass Vector2d:
+        Vector2d ()
+        int rows()
+        int cols()
+        double& operator[](int)
+        double* data()
+
     cdef cppclass Quaternion:
         Quaternion ()
         int rows()
@@ -441,12 +448,19 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
         unsigned int getGroupIndexByAssignedId(unsigned int assignedId)
         
         unsigned int getGroupIndexMax()
+
+        unsigned int getGroupSize(unsigned int groupIndex)
         
+        unsigned int getGroupType(unsigned int groupIndex)
+
         const char* getGroupName(unsigned int groupIndex)
         
         unsigned int getGroupId(unsigned int groupIndex)
         
         unsigned int getGroupAssignedId(unsigned int groupIndex)
+
+        void enableBaumgarteStabilization(unsigned int groupIndex)
+        void disableBaumgarteStabilization(unsigned int groupIndex)
 
         void calcForces(unsigned int groupIndex,
                         Model &model,
@@ -458,6 +472,42 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
                         bool resolveAllInRootFrame,
                         bool updateKinematics)
 
+        #The functions to calculate impacts have not been
+        #wrapped so it makes no sense, at this time, to expose calcImpulses
+        #void calcImpulses(unsigned int groupIndex,
+        #                Model &model,
+        #                const VectorNd &q,
+        #                const VectorNd &qdot,
+        #                vector[unsigned int] &constraintBodyIdsUpd,
+        #                vector[SpatialTransform] &constraintFramesUpd,
+        #                vector[SpatialVector] &constraintImpulsesUpd,
+        #                bool resolveAllInRootFrame,
+        #                bool updateKinematics)
+
+        void calcPositionError(unsigned int groupIndex,
+                        Model &model,
+                        const VectorNd &q,
+                        VectorNd &posErrUpd,
+                        bool updateKinematics)
+
+        void calcVelocityError(unsigned int groupIndex,
+                        Model &model,
+                        const VectorNd &q,
+                        const VectorNd &qdot,
+                        VectorNd &velErrUpd,
+                        bool updateKinematics)
+
+        void calcBaumgarteStabilizationForces(unsigned int groupIndex,
+                        Model &model,
+                        const VectorNd &posErr,
+                        const VectorNd &velErr,
+                        VectorNd &baumgarteForcesUpd)
+
+        bool isBaumgarteStabilizationEnabled(unsigned int groupIndex)
+
+        void getBaumgarteStabilizationCoefficients(
+                unsigned int groupIndex,
+                Vector2d &baumgartePositionVelocityCoefficientsUpd)
 
         unsigned int AddContactConstraint (
                 unsigned int body_id,

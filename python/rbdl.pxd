@@ -10,7 +10,8 @@ cimport cpython.ref as cpy_ref
 
 cimport crbdl
 
-
+cdef crbdl.Vector2d NumpyToVector2d (np.ndarray[double, ndim=1, mode="c"] x)
+cdef np.ndarray Vector2dToNumpy (crbdl.Vector2d cx)
 
 cdef crbdl.Vector3d NumpyToVector3d (np.ndarray[double, ndim=1, mode="c"] x)
 cdef np.ndarray Vector3dToNumpy (crbdl.Vector3d cx)

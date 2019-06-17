@@ -46,7 +46,6 @@ LoopConstraint::LoopConstraint(
                    unsigned(int(1)),
                    userDefinedIdNumber)
 {
-  //connectToConstraintSet(rowInSystem, unsigned(int(1)));
 
   T.push_back(constraintAxis);
   dblA = std::numeric_limits<double>::epsilon()*10.;
@@ -93,8 +92,10 @@ void LoopConstraint::calcConstraintJacobian( Model &model,
     //successor point Gs and evaluate Gs-Gp
     cache.mat6NA.setZero();
     cache.mat6NB.setZero();
-    CalcPointJacobian6D(model,Q,bodyIds[0],bodyFrames[0].r,cache.mat6NA,updateKinematics);
-    CalcPointJacobian6D(model,Q,bodyIds[1],bodyFrames[1].r,cache.mat6NB,updateKinematics);
+    CalcPointJacobian6D(model,Q,bodyIds[0],bodyFrames[0].r,cache.mat6NA,
+                        updateKinematics);
+    CalcPointJacobian6D(model,Q,bodyIds[1],bodyFrames[1].r,cache.mat6NB,
+                        updateKinematics);
     cache.mat6NA = cache.mat6NB-cache.mat6NA;
 
     //Evaluate the transform from the world frame into the constraint frame
@@ -107,7 +108,6 @@ void LoopConstraint::calcConstraintJacobian( Model &model,
     for(unsigned int i=0; i<sizeOfConstraint;++i){
       //Resolve each constraint axis into the global frame
       cache.svecA =cache.stA.apply(T[i]);
-
       //Take the dot product of the constraint axis with Gs-Gp
       GSysUpd.block(rowInSystem+i,0,1,GSysUpd.cols())
           = cache.svecA.transpose()*cache.mat6NA;
@@ -200,14 +200,12 @@ void LoopConstraint::calcPositionError(Model &model,
   // Compute the orientation from the predecessor to the successor frame.
 
   cache.mat3A = cache.stA.E.transpose()*cache.stB.E;
-  //rot_ps = rot_p.transpose() * rot_s;
-
 
   // The first three elements represent the rotation error.
   // This formulation is equivalent to u * sin(theta), where u and theta are
   // the angle-axis of rotation from the predecessor to the successor frame.
   // These quantities are expressed in the predecessor frame. This is also
-  // identical to the rotation error calculation that appears in Table 8.1 of
+  // similar to the rotation error calculation that appears in Table 8.1 of
   // Featherstone.
   cache.svecA[0] = -0.5*(cache.mat3A(1,2)-cache.mat3A(2,1));
   cache.svecA[1] = -0.5*(cache.mat3A(2,0)-cache.mat3A(0,2));
@@ -222,10 +220,6 @@ void LoopConstraint::calcPositionError(Model &model,
   //For now I'm leaving this as is: this is equivalent to the functioning
   //original loop constraint code.
   cache.svecA.block(3,0,3,1)=cache.stA.E.transpose()*(cache.stB.r-cache.stA.r);
-
-  //d.block<3,1>(3,0) = rot_p.transpose() * (pos_s - pos_p);
-  // Project the error on the constraint axis to find the actual error.
-  //err[lci] = CS.constraintAxis[lci].transpose() * d;
 
   for(unsigned int i=0; i<sizeOfConstraint;++i){
     if(positionConstraint[i]){
@@ -308,12 +302,6 @@ void LoopConstraint::calcConstraintForces(
     cache.svecA =  cache.stA.apply(T[i]);
     cache.svecB += cache.svecA*LagMultSys[rowInSystem+i];
   }
-
-  //cache.vec3A[0] = cache.svecB[3];
-  //cache.vec3A[1] = cache.svecB[4];
-  //cache.vec3A[2] = cache.svecB[5];
-  //double mag = cache.vec3A.norm();
-
 
   constraintBodiesUpd.resize(2);
   constraintBodyFramesUpd.resize(2);

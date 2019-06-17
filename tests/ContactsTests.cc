@@ -108,7 +108,8 @@ TEST( TestExtendedConstraintFunctionsContact ){
 
   Model model;
   model.gravity = Vector3d  (0., -9.81, 0.);
-  Body boxBody (1., Vector3d (0., 0., 0.), Matrix3dIdentity);
+  double m1=1.;
+  Body boxBody (m1, Vector3d (0., 0., 0.), Matrix3dIdentity);
   unsigned int boxId = model.AddBody (0, SpatialTransform(),
       Joint (
         SpatialVector (0., 0., 0., 1., 0., 0.),
@@ -124,17 +125,19 @@ TEST( TestExtendedConstraintFunctionsContact ){
                           "RightCorner");
   cs.Bind(model);
 
-  VectorNd qInit  =  VectorNd::Zero(model.dof_count);
-  qInit[2] = M_PI/3.0;
+  //VectorNd qInit  =  VectorNd::Zero(model.dof_count);
+  //qInit[2] = M_PI/3.0;
   VectorNd qdInit = VectorNd::Zero(model.dof_count);
   VectorNd tau    = VectorNd::Zero(model.dof_count);
 
   VectorNd q =  VectorNd::Zero(model.dof_count);
+  q[2] = M_PI/3.0;
   VectorNd qd = VectorNd::Zero(model.dof_count);
   VectorNd qdd = VectorNd::Zero(model.dof_count);
 
   VectorNd weights = VectorNd::Ones(model.dof_count);
-  CalcAssemblyQ(model,qInit,cs,q,weights);
+
+  //CalcAssemblyQ(model,qInit,cs,q,weights); ContactConstraints not defined at position level  
   CalcAssemblyQDot(model,q,qdInit,cs,qd,weights);
 
   ForwardDynamicsConstraintsDirect(model,q,qd,tau,cs,qdd);
@@ -148,6 +151,11 @@ TEST( TestExtendedConstraintFunctionsContact ){
   unsigned int gIdxLeft = cs.getGroupIndexByName("LeftCorner");
   unsigned int gIdxRight = cs.getGroupIndexByName("RightCorner");
 
+
+  CHECK_EQUAL(cs.getGroupSize(0),2);
+  CHECK_EQUAL(cs.getGroupSize(1),1);
+  CHECK_EQUAL(cs.getGroupType(0),ConstraintTypeContact);
+
   // New functions to test
   //    calcForces
   //    calcPositionError
@@ -155,6 +163,9 @@ TEST( TestExtendedConstraintFunctionsContact ){
   //    calcBaumgarteStabilizationForces
   //    isBaumgarteStabilizationEnabled
   //    getBaumgarteStabilizationCoefficients
+  //
+  //    and finally
+  //    calcImpulses
 
   cs.calcForces(gIdxLeft,model,q,qd,bodyIds,bodyFrames,constraintForces);
 
@@ -253,6 +264,59 @@ TEST( TestExtendedConstraintFunctionsContact ){
   idxFy = 4;
   CHECK_CLOSE(constraintForces[idxBody  ][idxFy], fbody,TEST_PREC);
   CHECK_CLOSE(constraintForces[idxGround][idxFy], fground,TEST_PREC);
+
+
+  //Check the computation of impulses
+  q.setZero();
+  qd.setZero();
+  double vx1 = 2.;
+  double vy1 = -1.;
+  qd[0] = vx1;
+  qd[1] = vy1;
+  VectorNd qDotPlus;
+  qDotPlus.resize(qd.rows());
+
+  ComputeConstraintImpulsesDirect(model,q,qd,cs,qDotPlus);
+
+  for(unsigned int i=0; i<qDotPlus.rows();++i){
+    CHECK_CLOSE(qDotPlus[i],0.,TEST_PREC);
+  }
+
+  std::vector< SpatialVector > constraintImpulses;
+
+  cs.calcImpulses(0,model,q,qDotPlus,bodyIds,bodyFrames,constraintImpulses,false,false);
+
+  //Due to symmetry this contraint group will only get half of the impulse
+  CHECK_CLOSE(constraintImpulses[0][0],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][1],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][2],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][3],    -vx1*m1, TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][4],-vy1*m1*0.5, TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][5],         0., TEST_PREC);
+
+  CHECK_CLOSE(constraintImpulses[1][0],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][1],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][2],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][3],     vx1*m1, TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][4], vy1*m1*0.5, TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][5],         0., TEST_PREC);
+
+  cs.calcImpulses(1,model,q,qDotPlus,bodyIds,bodyFrames,constraintImpulses,false,false);
+
+  //Due to symmetry this contraint group will only get half of the impulse
+  CHECK_CLOSE(constraintImpulses[0][0],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][1],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][2],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][3],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][4],-vy1*m1*0.5, TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[0][5],         0., TEST_PREC);
+
+  CHECK_CLOSE(constraintImpulses[1][0],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][1],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][2],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][3],         0., TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][4], vy1*m1*0.5, TEST_PREC);
+  CHECK_CLOSE(constraintImpulses[1][5],         0., TEST_PREC);
 
 
 }

@@ -67,7 +67,7 @@ unsigned int ConstraintSet::AddContactConstraint (
   // Every individual ContactConstraint evaluates a point Jacobian.
   // Thus 3 individual constraints evaluates a point Jacobian 3 times. If these
   // are all grouped together then the point Jacobian is only evaluated once.
-  bool constraintAdded = false;
+  bool constraintAppended = false;
 
   if(contactConstraints.size() > 0){
     unsigned int i = unsigned(contactConstraints.size()-1);
@@ -75,16 +75,16 @@ unsigned int ConstraintSet::AddContactConstraint (
       Vector3d pointErr = body_point -
           contactConstraints[i]->getBodyFrames()[0].r;
       if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100){
-        constraintAdded = true;
+        constraintAppended = true;
         contactConstraints[i]->appendNormalVector(world_normal);
       }
     }
   }
 
-  if(constraintAdded == false){
+  if(constraintAppended == false){
 
-    ContactConstraint con(body_id,body_point, world_normal,
-                         constraint_name,userDefinedId);
+    ContactConstraint con = ContactConstraint(body_id,body_point, world_normal,
+                                              constraint_name,userDefinedId);
 
     contactConstraints.push_back(std::make_shared<ContactConstraint>(con));
     unsigned int idx = unsigned(contactConstraints.size()-1);
@@ -120,12 +120,12 @@ unsigned int ConstraintSet::AddContactConstraint (
     iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
                                 name[name.size()-1],
                                 unsigned(constraints.size()-1)));
-    if(iter.second == false){
-      std::cerr << "Error: optional name is not unique."
-                << std::endl;
-      assert(0);
-      abort();
-    }
+    //if(iter.second == false){
+    //  std::cerr << "Error: optional name is not unique."
+    //            << std::endl;
+    //  assert(0);
+    //  abort();
+    //}
 
   }
   if(userDefinedId < std::numeric_limits<unsigned int>::max()){
@@ -133,12 +133,12 @@ unsigned int ConstraintSet::AddContactConstraint (
     iter =userDefinedIdGroupMap.insert( std::pair<unsigned int, unsigned int>(
                                     userDefinedId,
                                     unsigned(constraints.size()-1)));
-    if(iter.second == false){
-      std::cerr << "Error: optional userDefinedId is not unique."
-                << std::endl;
-      assert(0);
-      abort();
-    }
+    //if(iter.second == false){
+    //  std::cerr << "Error: optional userDefinedId is not unique."
+    //            << std::endl;
+    //  assert(0);
+    //  abort();
+    //}
   }
 
   std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
@@ -177,12 +177,12 @@ unsigned int ConstraintSet::AddLoopConstraint (
   unsigned int rowsInG = insertAtRowInG+1;
 
   double tol = std::numeric_limits<double>::epsilon()*100.;
-  bool constraintAdded = false;
+  bool constraintAppended = false;
   unsigned int idx = unsigned(loopConstraints.size());
 
   if(loopConstraints.size() > 0){
     idx = idx-1;
-    if(loopConstraints[idx]->getBodyIds()[0] == idPredecessor && 
+    if(loopConstraints[idx]->getBodyIds()[0] == idPredecessor &&
        loopConstraints[idx]->getBodyIds()[1] == idSuccessor){
 
       bool framesNumericallyIdentical=true;
@@ -208,13 +208,13 @@ unsigned int ConstraintSet::AddLoopConstraint (
       }
 
       if(framesNumericallyIdentical){
-        constraintAdded = true;
+        constraintAppended = true;
         loopConstraints[idx]->appendConstraintAxis(constraintAxisInPredecessor);
       }
     }
   }
 
-  if(constraintAdded==false){
+  if(constraintAppended==false){
 
     LoopConstraint loopCon( idPredecessor, idSuccessor,
                             XPredecessor,  XSuccessor,
@@ -224,8 +224,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
                             constraintName,
                             userDefinedId);
 
-    loopConstraints.push_back( 
-      std::make_shared<LoopConstraint>(loopCon));
+    loopConstraints.push_back(std::make_shared<LoopConstraint>(loopCon));
     idx = unsigned(loopConstraints.size()-1);
     loopConstraints[idx]->addToConstraintSet(insertAtRowInG);
     constraints.emplace_back(loopConstraints[idx]);
@@ -265,25 +264,26 @@ unsigned int ConstraintSet::AddLoopConstraint (
     iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
                                 name[name.size()-1],
                                 unsigned(constraints.size()-1)));
-    if(iter.second == false){
-      std::cerr << "Error: optional name is not unique."
-                << std::endl;
-      assert(0);
-      abort();
-    }
+    //if(iter.second == false){
+    //  std::cerr << "Error: optional name is not unique."
+    //            << std::endl;
+    //  assert(0);
+    //  abort();
+    //}
 
   }
+
   if(userDefinedId < std::numeric_limits<unsigned int>::max()){
     std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
     iter =userDefinedIdGroupMap.insert( std::pair<unsigned int, unsigned int>(
                                     userDefinedId,
                                     unsigned(constraints.size()-1)));
-    if(iter.second == false){
-      std::cerr << "Error: optional userDefinedId is not unique."
-                << std::endl;
-      assert(0);
-      abort();
-    }
+    //if(iter.second == false){
+    //  std::cerr << "Error: optional userDefinedId is not unique."
+    //            << std::endl;
+    //  assert(0);
+    //  abort();
+    //}
   }
 
   std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
@@ -1755,6 +1755,43 @@ void ConstraintSet::calcForces(
                                                 resolveAllInRootFrame,
                                                 updKin);
 }
+
+//==============================================================================
+
+void ConstraintSet::calcImpulses(
+    unsigned int groupIndex,
+    Model& model,
+    const Math::VectorNd &Q,
+    const Math::VectorNd &QDot,
+    std::vector< unsigned int > &constraintBodyIdsUpd,
+    std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
+    std::vector< Math::SpatialVector > &constraintImpulsesUpd,
+    bool resolveAllInRootFrame,
+    bool updKin)
+{
+  assert(groupIndex <= unsigned(constraints.size()-1));
+
+  if (updKin) {
+    UpdateKinematicsCustom (model, &Q, &QDot, NULL);
+  }
+
+  //The transformation is identical to resolve the impulses
+  //to the desired frame
+  constraints[groupIndex]->calcConstraintForces(model,0.,Q,QDot,G,impulse,
+                                                constraintBodyIdsUpd,
+                                                constraintBodyFramesUpd,
+                                                constraintImpulsesUpd,
+                                                cache,
+                                                resolveAllInRootFrame,
+                                                updKin);
+
+  //But due to Martin's choice of signs on the Lagrange multipliers vs
+  //impulses the signs are opposite
+  for(unsigned int i=0; i<constraintImpulsesUpd.size();++i){
+    constraintImpulsesUpd[i] *= -1.0;
+  }
+}
+
 //==============================================================================
 
 void ConstraintSet::calcPositionError(

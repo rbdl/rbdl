@@ -771,24 +771,34 @@ class ConstraintSetTests (unittest.TestCase):
         gId = self.cs.getGroupIndexByAssignedId(5)
         assert_equal(1,gId)
 
-    def test_ConstraintInformationFunctions (self):
+        testName = self.cs.getGroupName(0)
+        assert_equal(testName,"LoopGroundLink1")
 
+        gType = self.cs.getGroupType(0)
+        assert_equal(gType,1)
+
+
+    def test_calcForces (self):
+
+        self.q.fill(0.)
+        self.qd.fill(0.)
+        self.qdd.fill(0.)
+        self.tau.fill(0.)
 
         self.q[7] = -self.l1
         self.tau[3] = -self.l2*0.5*self.m2*self.model.gravity[1]
 
-        print("Q")
-        print(self.q)
-        print("QDot")
-        print(self.qd)
-        print("Tau")
-        print(self.tau)
-
+        #print("Q")
+        #print(self.q)
+        #print("QDot")
+        #print(self.qd)
+        #print("Tau")
+        #print(self.tau)
 
         rbdl.ForwardDynamicsConstraintsDirect(self.model,self.q,self.qd,self.tau,self.cs,self.qdd)
 
-        print("QDDot")
-        print(self.qdd)
+        #print("QDDot")
+        #print(self.qdd)
 
         for i in range(0,self.model.qdot_size):
             assert_almost_equal(self.qdd[i],0.)
@@ -796,44 +806,153 @@ class ConstraintSetTests (unittest.TestCase):
         gId0 = 0
         gId1 = 1
 
-        csListBodyIds = np.ndarray([1], dtype=np.int)
+        csListBodyIds = np.ndarray([2], dtype=np.uintc )
         csListX = np.ndarray([6,6,2],dtype=np.float)
         csListF = np.ndarray([6,2],dtype=np.float)
+
+        csListXTest = np.ndarray([6,6,2],dtype=np.float)
+        csListFTest = np.ndarray([6,2],dtype=np.float)
+
+        csListXTest.fill(0.)
+        csListFTest.fill(0.)
+        csListFTest[4,0] =  (self.m1+self.m2)*self.model.gravity[1]
+        csListFTest[4,1] = -(self.m1+self.m2)*self.model.gravity[1]
+
+        for i in range(0,6):
+            csListXTest[i,i,0]=1. 
+            csListXTest[i,i,1]=1. 
 
         self.cs.calcForces( gId0,self.model,self.q,self.qd,
                             csListBodyIds,csListX,csListF,False,False)
 
-        #print("Number of bodies")
-        #print(csListBodyIds.shape())
-        print("bodyId, Transform, Forces")    
-        for i in range(0,csListBodyIds.shape[0]):
-            print(csListBodyIds[i])
-            print(csListX[:,:,i])
-            print(csListF[:,i])
+        #print("bodyId, Transform, Forces")    
+        #for i in range(0,csListBodyIds.shape[0]):
+        #    print(csListBodyIds[i])
+        #    print(csListX[:,:,i])
+        #    print(csListF[:,i])
 
         assert_equal(csListBodyIds[0],0)
         assert_equal(csListBodyIds[1],self.iLink1)
 
+        assert_almost_equal(csListX, csListXTest)
+        assert_almost_equal(csListF, csListFTest) 
+
+        csListBodyIds = np.ndarray([2], dtype=np.uintc )
+        csListX = np.ndarray([6,6,2],dtype=np.float)
+        csListF = np.ndarray([6,2],dtype=np.float)
+
         self.cs.calcForces( gId1,self.model,self.q,self.qd,
                             csListBodyIds,csListX,csListF,False,False)
 
-        #print("Number of bodies")
-        #print(csListBodyIds.shape())
-        print("bodyId, Transform, Forces")    
-        for i in range(0,csListBodyIds.shape[0]):
-            print(csListBodyIds[i])
-            print(csListX[:,:,i])
-            print(csListF[:,i])
-
+        #print("bodyId, Transform, Forces")    
+        #for i in range(0,csListBodyIds.shape[0]):
+        #    print(csListBodyIds[i])
+        #    print(csListX[:,:,i])
+        #    print(csListF[:,i])
 
         assert_equal(csListBodyIds[0],self.iLink1)
         assert_equal(csListBodyIds[1],self.iLink2)
 
+        csListXTest.fill(0.)
+        csListFTest.fill(0.)
+        csListFTest[2,0] =  (self.m2*self.l2*0.5)*self.model.gravity[1]
+        csListFTest[2,1] = -csListFTest[2,0]         
+        csListFTest[4,0] =  (self.m2)*self.model.gravity[1]
+        csListFTest[4,1] = -csListFTest[4,0]
 
+        for i in range(0,6):
+            csListXTest[i,i,0]=1. 
+            csListXTest[i,i,1]=1. 
 
+        csListXTest[3,2,0] =  self.l1  #Spatial transform of r=(0,-l1,0), E=eye
+        csListXTest[5,0,0] = -self.l1    
 
+        assert_almost_equal(csListX, csListXTest)
+        assert_almost_equal(csListF, csListFTest) 
 
+    def test_calcPositionError (self):
+        self.q.fill(0.)
+        self.qd.fill(0.)
+        self.qdd.fill(0.)
+        self.tau.fill(0.)
 
+        self.q[7] = -self.l1
+        self.tau[3] = -self.l2*0.5*self.m2*self.model.gravity[1]
+        self.qd[1] = -1.0
+        self.qd[7] = -1.0
+
+        self.q[0] = 1.0
+
+        posErr = np.ndarray([5],dtype=np.float)
+        posErrTest=np.ndarray([5],dtype=np.float)
+
+        self.cs.calcPositionError(0,self.model,self.q,posErr,True)
+
+        posErrTest.fill(0.)
+        posErrTest[0] = 1.0
+
+        assert_almost_equal(posErr,posErrTest)
+
+    def test_calcVelocityError (self):
+        self.q.fill(0.)
+        self.qd.fill(0.)
+        self.qdd.fill(0.)
+        self.tau.fill(0.)
+
+        self.q[7] = -self.l1
+        self.tau[3] = -self.l2*0.5*self.m2*self.model.gravity[1]
+        self.qd[0] = -1.0
+        self.qd[6] = -1.0
+
+        velErr = np.ndarray([5],dtype=np.float)
+        velErrTest=np.ndarray([5],dtype=np.float)
+
+        self.cs.calcVelocityError(0,self.model,self.q,self.qd,velErr,True)
+
+        velErrTest.fill(0.)
+        velErrTest[0] = -1.0
+
+        assert_almost_equal(velErr,velErrTest)
+
+    def test_Baumgarte(self):
+
+        assert_equal(self.cs.isBaumgarteStabilizationEnabled(0), False)
+        self.cs.enableBaumgarteStabilization(0)
+        assert_equal(self.cs.isBaumgarteStabilizationEnabled(0), True)
+        self.cs.disableBaumgarteStabilization(0)
+        assert_equal(self.cs.isBaumgarteStabilizationEnabled(0), False)
+
+        bgCoeff=np.ndarray([2],dtype=np.float)
+        self.cs.getBaumgarteStabilizationCoefficients(0, bgCoeff)
+
+        bgCoeffTest=np.ndarray([2],dtype=np.float)
+        bgCoeffTest[0]=10.
+        bgCoeffTest[1]=10.
+        assert_almost_equal(bgCoeff,bgCoeffTest)
+
+        self.q.fill(0.)
+        self.qd.fill(0.)
+        self.qdd.fill(0.)
+        self.tau.fill(0.)
+
+        self.q[7] = -self.l1
+
+        self.q[0] = 1.
+        self.qd[1] = 2.
+        
+        bgStabForceTest=np.ndarray([5],dtype=np.float)
+        bgStabForce=np.ndarray([5],dtype=np.float)
+
+        posErr = np.ndarray([5],dtype=np.float)
+        velErr = np.ndarray([5],dtype=np.float)
+        self.cs.calcPositionError(0,self.model,self.q,posErr,True)
+        self.cs.calcVelocityError(0,self.model,self.q,self.qd,velErr,True)
+        self.cs.calcBaumgarteStabilizationForces(0,self.model,posErr,velErr,bgStabForce)
+
+        for i in range(0,5):
+            bgStabForceTest[i] = -2.*bgCoeff[0]*velErr[i] - bgCoeff[1]*bgCoeff[1]*posErr[i]
+
+        assert_almost_equal(bgStabForce, bgStabForceTest)
 
 if __name__ == '__main__':
     unittest.main()
