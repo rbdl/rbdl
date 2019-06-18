@@ -134,82 +134,31 @@ model = {
   },
 
   constraint_sets = {
-    loop_constraints = {
-      {
-        constraint_type = 'loop',
-        predecessor_body = 'l12',
-        successor_body = 'l22',
-        predecessor_transform = {
-          E = {
-            {1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1},
-          },
-          r = {l2, 0, 0},
-        },
-        successor_transform = {
-          E = {
-            {1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1},
-          },
-          r = {0, 0, 0},
-        },
-        axis = {0, 0, 0, 1, 0, 0},
-        stabilization_coefficient = 0.1,
-        name = 'linkTX',
-      },
-
-      {
-        constraint_type = 'loop',
-        predecessor_body = 'l12',
-        successor_body = 'l22',
-        predecessor_transform = {
-          E = {
-            {1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1},
-          },
-          r = {l2, 0, 0},
-        },
-        successor_transform = {
-          E = {
-            {1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1},
-          },
-          r = {0, 0, 0},
-        },
-        axis = {0, 0, 0, 0, 1, 0},
-        stabilization_coefficient = 0.1,
-        name = 'linkTY',
-      },
-    },
-
-    all_constraints = {
+    individual_constraints = {
       {
         constraint_type = 'contact',
         body = 'base',
         point = {0, 0, 0},
-        normal = {1, 0, 0},
-        name = 'baseTX',
-        normal_acceleration = 0,
-      },
-
+        normal = {1., 0., 0.},
+        name = 'contactBaseX',
+        id = 2,
+      }, 
       {
         constraint_type = 'contact',
         body = 'base',
-        normal = {0, 1, 0},
-        name = 'baseTY',
-      },
-
+        point = {0, 0, 0},
+        normal = {0., 1., 0.},
+        name = 'contactBaseY',
+        id = 3,
+      }, 
       {
         constraint_type = 'contact',
         body = 'base',
-        normal = {0, 0, 1},
-        name = 'baseTZ',
-      },
-
+        point = {0, 0, 0},
+        normal = {0., 0., 1.},
+        name = 'contactBaseZ',
+        id = 4,
+      },                  
       {
         constraint_type = 'loop',
         predecessor_body = 'l12',
@@ -230,11 +179,11 @@ model = {
           },
           r = {0, 0, 0},
         },
-        axis = {0, 0, 0, 1, 0, 0},
+        axis =  {0., 0., 0., 1., 0., 0.},
         stabilization_coefficient = 0.1,
-        name = 'linkTX',
+        name = 'loopL12L22Tx',
+        id = 1,
       },
-
       {
         constraint_type = 'loop',
         predecessor_body = 'l12',
@@ -255,9 +204,48 @@ model = {
           },
           r = {0, 0, 0},
         },
-        axis = {0, 0, 0, 0, 1, 0},
+        axis = {0., 0., 0., 0., 1., 0.},      
         stabilization_coefficient = 0.1,
-        name = 'linkTY',
+        name = 'loopL12L22Ty',
+        id = 2,
+      },      
+    },
+    constraints_in_sets = {
+      {
+        constraint_type = 'contact',
+        body = 'base',
+        point = {0, 0, 0},
+        normal_sets = {{1., 0., 0.},
+                       {0., 1., 0.},
+                       {0., 0., 1.},},
+        name = 'contactBaseXYZ',
+        id = 2,
+      },
+      {
+        constraint_type = 'loop',
+        predecessor_body = 'l12',
+        successor_body = 'l22',
+        predecessor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {l2, 0, 0},
+        },
+        successor_transform = {
+          E = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, 1},
+          },
+          r = {0, 0, 0},
+        },
+        axis_sets = {{0., 0., 0., 1., 0., 0.},
+                     {0., 0., 0., 0., 1., 0.},},
+        stabilization_coefficient = 0.1,
+        name = 'loopL12L22TxTy',
+        id = 1,
       },
     },
   },

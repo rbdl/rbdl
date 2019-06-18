@@ -417,108 +417,168 @@ bool LuaModelReadConstraintsFromTable (
   const std::vector<std::string>& constraint_set_names,
   bool verbose
 ) { 
+  std::string conName;
+
+  std::vector< Vector3d > normalSets;
+  MatrixNd normalSetsMatrix;
+  Vector3d normal;
+
+  MatrixNd axisSetsMatrix;
+  SpatialVector axis;
+  std::vector< SpatialVector > axisSets;
+
   for(size_t i = 0; i < constraint_set_names.size(); ++i) {
+    conName = constraint_set_names[i];
     if (verbose) {
-      std::cout << "==== Constraint Set: " << constraint_set_names[i] << std::endl;
+      std::cout << "==== Constraint Set: " << conName << std::endl;
     }
 
-    if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
+    if(!model_table["constraint_sets"][conName.c_str()]
       .exists()) {
-      cerr << "Constraint set not existing: " << constraint_set_names[i] << "." 
+      cerr << "Constraint set not existing: " << conName << "."
         << endl;
       assert(false);
       abort();
     }
 
     size_t num_constraints = model_table["constraint_sets"]
-      [constraint_set_names[i].c_str()]
+      [conName.c_str()]
       .length();
 
     for(size_t ci = 0; ci < num_constraints; ++ci) {
       if (verbose) {
-        std::cout << "== Constraint " << ci << "/" << num_constraints << " ==" << std::endl;
+        std::cout << "== Constraint " << ci << "/" << num_constraints
+                  << " ==" << std::endl;
       }
 
       if(!model_table["constraint_sets"]
-        [constraint_set_names[i].c_str()][ci + 1]["constraint_type"].exists()) {
+        [conName.c_str()][ci + 1]["constraint_type"].exists()) {
         cerr << "constraint_type not specified." << endl;
         assert(false);
         abort();
       }
-      string constraintType = model_table["constraint_sets"]
-        [constraint_set_names[i].c_str()][ci + 1]["constraint_type"]
-        .getDefault<string>("");
-      std::string constraint_name = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-        ["name"].getDefault<string>("");
 
+      string constraintType = model_table["constraint_sets"]
+        [conName.c_str()][ci + 1]["constraint_type"]
+        .getDefault<string>("");
+      std::string constraint_name =
+          model_table["constraint_sets"][conName.c_str()]
+          [ci + 1]["name"].getDefault<string>("");
+
+      //========================================================================
+      //Contact
+      //========================================================================
       if(constraintType == "contact") {
-        if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
+        if(!model_table["constraint_sets"][conName.c_str()]
           [ci + 1]["body"].exists()) {
           cerr << "body not specified." << endl;
           assert(false);
           abort();
         }
 
-        unsigned int constraint_user_id=0;
-        if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-           ["id"].exists()){
-          constraint_user_id = unsigned(int(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-              ["id"].getDefault<double>(0.)));
+        unsigned int constraint_user_id=std::numeric_limits<unsigned int>::max();
+        if(model_table["constraint_sets"][conName.c_str()]
+           [ci + 1]["id"].exists()){
+          constraint_user_id = unsigned(int(
+              model_table["constraint_sets"][conName.c_str()]
+              [ci + 1]["id"].getDefault<double>(0.)));
+        }
 
-          constraint_sets[i].AddContactConstraint(
-                model->GetBodyId(model_table["constraint_sets"]
-                    [constraint_set_names[i].c_str()][ci + 1]["body"]
-                    .getDefault<string>("").c_str())
-                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-                              ["point"].getDefault<Vector3d>(Vector3d::Zero())
-                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-                              ["normal"].getDefault<Vector3d>(Vector3d::Zero())
-                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-                  ["name"].getDefault<string>("").c_str()
-                ,constraint_user_id);
 
+        unsigned int bodyId = model->GetBodyId(model_table["constraint_sets"]
+                              [conName.c_str()][ci + 1]["body"]
+                              .getDefault<string>("").c_str());
+
+        Vector3d bodyPoint = model_table["constraint_sets"]
+                              [conName.c_str()][ci + 1]
+                              ["point"].getDefault<Vector3d>(Vector3d::Zero());
+
+        normalSets.resize(0);
+        normalSetsMatrix.resize(1,1);
+
+        if(model_table["constraint_sets"][conName.c_str()][ci + 1]
+           ["normal_sets"].exists()){
+
+          normalSetsMatrix =
+              model_table["constraint_sets"][conName.c_str()]
+              [ci + 1]["normal_sets"].getDefault< MatrixNd >(MatrixNd::Zero(1,1));
+
+          if(normalSetsMatrix.cols() != 3 ){
+            std::cerr << "The normal_sets field must be m x 3, the one read for "
+                      << conName.c_str() << " has an normal_sets of size "
+                      << normalSetsMatrix.rows() << " x " << normalSetsMatrix.cols()
+                      << ". In addition the normal_sets field should resemble:"
+                      << endl;
+            std::cerr << "  normal_sets = {{1.,0.,0.,}, " <<endl;
+            std::cerr << "                 {0.,1.,0.,},}, " <<endl;
+            assert(0);
+            abort();
+          }
+
+
+          for(unsigned int r=0; r<normalSetsMatrix.rows();++r){
+            for(unsigned int c=0; c<normalSetsMatrix.cols();++c){
+              normal[c] = normalSetsMatrix(r,c);
+            }
+            normalSets.push_back(normal);
+          }
+
+        }else if(model_table["constraint_sets"][conName.c_str()]
+                 [ci + 1]["normal"].exists()){
+
+          normal = model_table["constraint_sets"]
+                              [conName.c_str()][ci + 1]
+                              ["normal"].getDefault<Vector3d>(Vector3d::Zero());
+          normalSets.push_back(normal);
 
         }else{
-          constraint_sets[i].AddContactConstraint(
-                model->GetBodyId(model_table["constraint_sets"]
-                    [constraint_set_names[i].c_str()][ci + 1]["body"]
-                    .getDefault<string>("").c_str())
-                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-                              ["point"].getDefault<Vector3d>(Vector3d::Zero())
-                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-                              ["normal"].getDefault<Vector3d>(Vector3d::Zero())
-                , model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-                  ["name"].getDefault<string>("").c_str());
+          std::cerr<<"The ContactConstraint must have either normal_sets field "
+                     "(which is a m x 3 matrix) or an normal field. Neither of "
+                     "these fields was found in "
+                   <<conName.c_str() << endl;
+          assert(0);
+          abort();
+        }
 
+        std::string contactName = model_table["constraint_sets"]
+                                  [conName.c_str()][ci + 1]
+                                  ["name"].getDefault<string>("").c_str();
 
+        for(unsigned int c=0; c<normalSets.size();++c){
+          constraint_sets[i].AddContactConstraint(bodyId,
+                                                   bodyPoint,
+                                                   normalSets[c],
+                                                   contactName.c_str(),
+                                                   constraint_user_id);
         }
 
 
         if(verbose) {
-          cout << "  type = contact" << endl;
-          cout << "  name = " << constraint_name << std::endl;
-          cout << "  body = " 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["body"].getDefault<string>("") << endl;
-          cout << "  body point = " 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["point"].getDefault<Vector3d>(Vector3d::Zero()).transpose() 
-            << endl;
-          cout << "  world normal = " 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["normal"].getDefault<Vector3d>(Vector3d::Zero()).transpose() 
-            << endl;
+          cout  << "  type = contact" << endl;
+          cout  << "  name = " << constraint_name << std::endl;
+          cout  << "  body = "
+                << model->GetBodyName(bodyId) << endl;
+          cout  << "  body point = "
+                << bodyPoint.transpose()
+                << endl;
+          cout  << "  world normal = " << endl;
+            for(unsigned int c=0; c<normalSets.size();++c){
+              cout << normalSets[c].transpose() << endl;
+            }
           cout << "  normal acceleration = DEPRECATED::IGNORED" << endl;
         }
-      }
-      else if(constraintType == "loop") {
-        if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
+
+      //========================================================================
+      //Loop
+      //========================================================================
+      }else if(constraintType == "loop") {
+        if(!model_table["constraint_sets"][conName.c_str()]
           [ci + 1]["predecessor_body"].exists()) {
           cerr << "predecessor_body not specified." << endl;
           assert(false);
           abort();
         }
-        if(!model_table["constraint_sets"][constraint_set_names[i].c_str()]
+        if(!model_table["constraint_sets"][conName.c_str()]
           [ci + 1]["successor_body"].exists()) {
           cerr << "successor_body not specified." << endl;
           assert(false);
@@ -530,87 +590,101 @@ bool LuaModelReadConstraintsFromTable (
         // stabilization afterwards if enabled.
         unsigned int constraint_id;
 
-        bool enable_stabilization = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["enable_stabilization"].getDefault<bool>(false);
+        bool enable_stabilization =
+            model_table["constraint_sets"][conName.c_str()][ci + 1]
+                       ["enable_stabilization"].getDefault<bool>(false);
         double stabilization_parameter = 0.1;
+
         if (enable_stabilization) {
-          stabilization_parameter = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-            ["stabilization_parameter"].getDefault<double>(0.1);
+          stabilization_parameter =
+              model_table["constraint_sets"][conName.c_str()][ci + 1]
+                         ["stabilization_parameter"].getDefault<double>(0.1);
           if (stabilization_parameter <= 0.0) {
-            std::cerr << "Invalid stabilization parameter: " << stabilization_parameter
-              << " must be > 0.0" << std::endl;
+            std::cerr << "Invalid stabilization parameter: "
+                      << stabilization_parameter
+                      << " must be > 0.0" << std::endl;
             abort();
           }
         }
 
+        axisSetsMatrix.resize(1,1);
+        axisSets.resize(0);
+        if(model_table["constraint_sets"][conName.c_str()][ci + 1]
+           ["axis_sets"].exists()){
+          axisSetsMatrix =
+              model_table["constraint_sets"][conName.c_str()][ci + 1]
+                ["axis_sets"].getDefault< MatrixNd >( MatrixNd::Zero(1,1));
 
-        MatrixNd axisSet;
-        SpatialVector axis;
-        std::vector< SpatialVector > axisVector;
-
-        if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-           ["axis_set"].exists()){
-          axisSet = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-              ["axis_set"].getDefault< MatrixNd >( MatrixNd::Zero(1,1));
-
-          for(unsigned int r=0; r<axisSet.rows();++r){
-            for(unsigned int c=0; c<axisSet.cols();++c){
-              axis[c] = axisSet(r,c);
-            }
-            axisVector.push_back(axis);
+          if(axisSetsMatrix.cols() != 6 ){
+            std::cerr << "The axis_sets field must be m x 6, the one read for "
+                      << conName.c_str() << " has an axis_sets of size "
+                      << axisSetsMatrix.rows() << " x " << axisSetsMatrix.cols()
+                      << ". In addition the axis_sets field should resemble:"
+                      << endl;
+            std::cerr << "  axis_sets = {{0.,0.,0.,1.,0.,0.,}, " <<endl;
+            std::cerr << "               {0.,0.,0.,0.,1.,0.,},}, " <<endl;
+            assert(0);
+            abort();
           }
 
-        }else if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+          for(unsigned int r=0; r<axisSetsMatrix.rows();++r){
+            for(unsigned int c=0; c<axisSetsMatrix.cols();++c){
+              axis[c] = axisSetsMatrix(r,c);
+            }
+            axisSets.push_back(axis);
+          }
+
+        }else if(model_table["constraint_sets"][conName.c_str()][ci + 1]
                  ["axis"].exists()){
-          axis = model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+          axis = model_table["constraint_sets"][conName.c_str()][ci + 1]
               ["axis"].getDefault< SpatialVector >( SpatialVector::Zero());
 
-          axisVector.push_back(axis);
+          axisSets.push_back(axis);
 
         }else{
-          std::cerr << "The LoopConstraint must have either axis_set field "
+          std::cerr << "The LoopConstraint must have either axis_sets field "
                        "(which is a m x 6 matrix) or an axis field. Neither of "
                        "these fields was found in "
-                    << constraint_set_names[i].c_str() << endl;
+                    << conName.c_str() << endl;
           assert(0);
           abort();
         }
 
-        unsigned int constraint_user_id=0;
-        if(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
+        unsigned int constraint_user_id=std::numeric_limits<unsigned int>::max();
+        if(model_table["constraint_sets"][conName.c_str()][ci + 1]
            ["id"].exists()){
-          constraint_user_id = unsigned(int(model_table["constraint_sets"][constraint_set_names[i].c_str()][ci + 1]
-              ["id"].getDefault<double>(0.)));
+          constraint_user_id = unsigned(int(
+                                model_table["constraint_sets"][conName.c_str()]
+                                [ci + 1]["id"].getDefault<double>(0.)));
         }
-
 
         unsigned int idPredecessor =
             model->GetBodyId(model_table["constraint_sets"]
-                   [constraint_set_names[i].c_str()][ci + 1]["predecessor_body"]
+                   [conName.c_str()][ci + 1]["predecessor_body"]
                     .getDefault<string>("").c_str());
 
         unsigned int idSuccessor =
             model->GetBodyId(model_table["constraint_sets"]
-                [constraint_set_names[i].c_str()][ci + 1]["successor_body"]
+                [conName.c_str()][ci + 1]["successor_body"]
                 .getDefault<string>("").c_str());
 
         SpatialTransform Xp =
-            model_table["constraint_sets"][constraint_set_names[i].c_str()]
+            model_table["constraint_sets"][conName.c_str()]
             [ci + 1]["predecessor_transform"]
             .getDefault<SpatialTransform>(SpatialTransform());
 
         SpatialTransform Xs =
-            model_table["constraint_sets"][constraint_set_names[i].c_str()]
+            model_table["constraint_sets"][conName.c_str()]
             [ci + 1]["successor_transform"]
             .getDefault<SpatialTransform>(SpatialTransform());
 
-        for(unsigned int r=0; r<axisVector.size(); ++r){
+        for(unsigned int r=0; r<axisSets.size(); ++r){
             constraint_id = constraint_sets[i].AddLoopConstraint(
                 idPredecessor
               , idSuccessor
               , Xp
               , Xs
-              , axisVector[r]
+              , axisSets[r]
               , enable_stabilization
               , stabilization_parameter
               , constraint_name.c_str()
@@ -621,23 +695,17 @@ bool LuaModelReadConstraintsFromTable (
           cout << "  type = loop" << endl;
           cout << "  name = " << constraint_name << std::endl;
           cout << "  predecessor body = " 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["predecessor_body"].getDefault<string>("") << endl;
+            << model->GetBodyName(idPredecessor)<< endl;
           cout << "  successor body = " 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["successor_body"].getDefault<string>("") << endl;
+            << model->GetBodyName(idSuccessor) << endl;
           cout << "  predecessor body transform = " << endl 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["predecessor_transform"]
-            .getDefault<SpatialTransform>(SpatialTransform()) << endl;
+            << Xp << endl;
           cout << "  successor body transform = " << endl 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["successor_transform"]
-            .getDefault<SpatialTransform>(SpatialTransform()) << endl;
-          cout << "  constraint axis (in predecessor frame) = " 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["axis"].getDefault<SpatialVector>(SpatialVector::Zero())
-            .transpose() << endl;
+            << Xs << endl;
+          cout << "  constraint axis (in predecessor frame) = " << endl;
+            for(unsigned int c=0; c<axisSets.size();++c){
+              cout << axisSets[c].transpose() << endl;
+            }
           cout << "  enable_stabilization = " << enable_stabilization 
             << endl; 
           if (enable_stabilization) {
@@ -645,8 +713,7 @@ bool LuaModelReadConstraintsFromTable (
               << endl; 
           }
           cout << "  constraint name = " 
-            << model_table["constraint_sets"][constraint_set_names[i].c_str()]
-            [ci + 1]["name"].getDefault<string>("").c_str() << endl;
+            << constraint_name.c_str() << endl;
         }
       }
       else {
