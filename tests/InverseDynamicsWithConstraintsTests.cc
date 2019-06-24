@@ -1,5 +1,6 @@
 #include <UnitTest++.h>
 #include "rbdl/rbdl.h"
+#include "PendulumModels.h"
 #include <cassert>
 
 #include <chrono>
@@ -14,6 +15,127 @@ const double TEST_PREC = 1.0e-11;
 
 const bool flag_printTimingData = false;
 
+
+TEST(CorrectnessTestWithDoublePerpendicularPendulums){
+
+  //With loop constraints
+  DoublePerpendicularPendulumAbsoluteCoordinates dba
+    = DoublePerpendicularPendulumAbsoluteCoordinates();
+
+  //Without any joint coordinates
+  DoublePerpendicularPendulumJointCoordinates dbj
+    = DoublePerpendicularPendulumJointCoordinates();
+
+
+  //1. Set the pendulum modeled using joint coordinates to a specific
+  //    state and then compute the spatial acceleration of the body.
+  dbj.q[0]  = M_PI/3.0;   //About z0
+  dbj.q[1]  = M_PI/6.0;         //About y1
+  dbj.qd.setZero();
+  dbj.qdd.setZero();
+  dbj.tau.setZero();
+
+
+  InverseDynamics(dbj.model,dbj.q,dbj.qd,dbj.qdd,dbj.tau);
+
+  Vector3d r010 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB1,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d r020 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(0.,0.,0.),true);
+  Vector3d r030 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(dbj.l2,0.,0.),true);
+
+  //2. Set the pendulum modelled using absolute coordinates to the
+  //   equivalent state as the pendulum modelled using joint
+  //   coordinates.
+
+  dba.q[0]  = r010[0];
+  dba.q[1]  = r010[1];
+  dba.q[2]  = r010[2];
+  dba.q[3]  = dbj.q[0];
+  dba.q[4]  = 0;
+  dba.q[5]  = 0;
+  dba.q[6]  = r020[0];
+  dba.q[7]  = r020[1];
+  dba.q[8]  = r020[2];
+  dba.q[9]  = dbj.q[0];
+  dba.q[10] = dbj.q[1];
+  dba.q[11] = 0;
+
+  dba.qd.setZero();
+  dba.qdd.setZero();
+
+  dba.tau[0]  = 0.;//tx
+  dba.tau[1]  = 0.;//ty
+  dba.tau[2]  = 0.;//tz
+  dba.tau[3]  = dbj.tau[0];//rz
+  dba.tau[4]  = 0.;//ry
+  dba.tau[5]  = 0.;//rx
+  dba.tau[6]  = 0.;//tx
+  dba.tau[7]  = 0.;//ty
+  dba.tau[8]  = 0.;//tz
+  dba.tau[9]  = 0.;//rz
+  dba.tau[10] = dbj.tau[1];//ry
+  dba.tau[11] = 0.;//rx
+
+  //Test
+  //  calcPositionError
+  //  calcVelocityError
+
+  VectorNd err(dba.cs.size());
+  VectorNd errd(dba.cs.size());
+
+  CalcConstraintsPositionError(dba.model,dba.q,dba.cs,err,true);
+  CalcConstraintsVelocityError(dba.model,dba.q,dba.qd,dba.cs,errd,true);
+
+  for(unsigned int i=0; i<err.rows();++i){
+    CHECK_CLOSE(0, err[i], TEST_PREC);
+  }
+  for(unsigned int i=0; i<errd.rows();++i){
+    CHECK_CLOSE(0, errd[i], TEST_PREC);
+  }
+
+  ForwardDynamicsConstraintsDirect(dba.model,dba.q, dba.qd, dba.tau,dba.cs,
+                                   dba.qdd);
+  for(unsigned int i=0; i<dba.qdd.rows();++i){
+    CHECK_CLOSE(0., dba.qdd[i], TEST_PREC);
+  }
+
+  std::vector< bool > actuationMap;
+  actuationMap.resize(dba.tau.rows());
+  for(unsigned int i=0; i<actuationMap.size();++i){
+    actuationMap[i]=false;
+  }
+  actuationMap[3] = true;
+  actuationMap[10]= true;
+
+  VectorNd qddDesired = VectorNd::Zero(dba.qdd.rows());
+  VectorNd qddIdc = VectorNd::Zero(dba.qdd.rows());
+  VectorNd tauIdc = VectorNd::Zero(dba.qdd.rows());
+
+  //The IDC operator should be able to statisfy qdd=0 and return a tau
+  //vector that matches the hand solution produced above.
+  dba.cs.SetActuationMap(dba.model,actuationMap);
+  InverseDynamicsConstraints(dba.model,dba.q,dba.qd,qddDesired,dba.cs,
+                             qddIdc,tauIdc);
+
+  for(unsigned int i=0; i<qddIdc.rows();++i){
+    CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
+  }
+  for(unsigned int i=0; i<tauIdc.rows();++i){
+    CHECK_CLOSE(dba.tau[i],tauIdc[i],TEST_PREC);
+  }
+}
+
+
+
+//M.Millard
+// 24/6/2019
+//These tests were complicated enough that I did not catch a bug
+/*
 void calcCuboidInertia(double mass,
                        double xLength,
                        double yLength,
@@ -38,6 +160,8 @@ struct PlanarBipedFloatingBase {
       ,segmentMass(1.0)
       ,X_p(Xtrans(Vector3d(0.,0.,-segmentLength)))
       ,X_s(Xtrans(Vector3d(0.,0.,0.))) {
+
+    model.gravity = Vector3d(0.,0.,-9.81);
 
     Body segment = Body(segmentMass,
                         Vector3d(0, 0., -0.5 * segmentLength),
@@ -126,12 +250,13 @@ struct SpatialBipedFloatingBase {
       ,X_p(Xtrans(Vector3d(0.,0.,-segmentLength)))
       ,X_s(Xtrans(Vector3d(0.,0.,0.))) {
 
-    /*
-      From the biped's perspective
-      x: forward
-      z: up
-      y: left
-    */
+
+    //From the biped's perspective
+    //x: forward
+    //z: up
+    //y: left
+
+    model.gravity = Vector3d(0.,0.,-9.81);
 
     Vector3d segmentInertia, pelvisInertia, footInertia;
     calcCuboidInertia(segmentMass,
@@ -555,3 +680,4 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
                         << double(tfd.count())/double(tfd.count()) << std::endl;
   }
 }
+*/
