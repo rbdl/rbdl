@@ -16,7 +16,99 @@ const double TEST_PREC = 1.0e-11;
 const bool flag_printTimingData = false;
 
 
-TEST(CorrectnessTestWithDoublePerpendicularPendulums){
+TEST(CorrectnessTestWithSinglePlanarPendulum){
+
+  //With loop constraints
+  SinglePendulumAbsoluteCoordinates spa
+    = SinglePendulumAbsoluteCoordinates();
+
+  //Without any joint coordinates
+  SinglePendulumJointCoordinates spj
+    = SinglePendulumJointCoordinates();
+
+
+  //1. Set the pendulum modeled using joint coordinates to a specific
+  //    state and then compute the spatial acceleration of the body.
+  spj.q[0]  = M_PI/3.0;   //About z0
+  spj.qd.setZero();
+  spj.qdd.setZero();
+  spj.tau.setZero();
+
+
+  InverseDynamics(spj.model,spj.q,spj.qd,spj.qdd,spj.tau);
+
+  Vector3d r010 = CalcBodyToBaseCoordinates(
+                    spj.model,spj.q,spj.idB1,
+                    Vector3d(0.,0.,0.),true);
+
+  //2. Set the pendulum modelled using absolute coordinates to the
+  //   equivalent state as the pendulum modelled using joint
+  //   coordinates.
+
+  spa.q[0]  = r010[0];
+  spa.q[1]  = r010[1];
+  spa.q[2]  = spj.q[0];
+
+
+  spa.qd.setZero();
+  spa.qdd.setZero();
+
+  spa.tau[0]  = 0.;//tx
+  spa.tau[1]  = 0.;//ty
+  spa.tau[2]  = spj.tau[0];//rz
+
+
+  //Test
+  //  calcPositionError
+  //  calcVelocityError
+
+  VectorNd err(spa.cs.size());
+  VectorNd errd(spa.cs.size());
+
+  CalcConstraintsPositionError(spa.model,spa.q,spa.cs,err,true);
+  CalcConstraintsVelocityError(spa.model,spa.q,spa.qd,spa.cs,errd,true);
+
+  for(unsigned int i=0; i<err.rows();++i){
+    CHECK_CLOSE(0, err[i], TEST_PREC);
+  }
+  for(unsigned int i=0; i<errd.rows();++i){
+    CHECK_CLOSE(0, errd[i], TEST_PREC);
+  }
+
+  ForwardDynamicsConstraintsDirect(spa.model,spa.q, spa.qd, spa.tau,spa.cs,
+                                   spa.qdd);
+  for(unsigned int i=0; i<spa.qdd.rows();++i){
+    CHECK_CLOSE(0., spa.qdd[i], TEST_PREC);
+  }
+
+  std::vector< bool > actuationMap;
+  actuationMap.resize(spa.tau.rows());
+  for(unsigned int i=0; i<actuationMap.size();++i){
+    actuationMap[i]=false;
+  }
+  actuationMap[2] = true;
+
+  VectorNd qddDesired = VectorNd::Zero(spa.qdd.rows());
+  VectorNd qddIdc = VectorNd::Zero(spa.qdd.rows());
+  VectorNd tauIdc = VectorNd::Zero(spa.qdd.rows());
+
+  //The IDC operator should be able to statisfy qdd=0 and return a tau
+  //vector that matches the hand solution produced above.
+  spa.cs.SetActuationMap(spa.model,actuationMap);
+  InverseDynamicsConstraintsFullyActuated(spa.model,spa.q,spa.qd,qddDesired,
+                                          spa.cs, qddIdc,tauIdc);
+
+  for(unsigned int i=0; i<qddIdc.rows();++i){
+    CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
+  }
+  for(unsigned int i=0; i<tauIdc.rows();++i){
+    CHECK_CLOSE(spa.tau[i],tauIdc[i],TEST_PREC);
+  }
+}
+
+
+
+TEST(CorrectnessTestWithDoublePerpendicularPendulum){
 
   //With loop constraints
   DoublePerpendicularPendulumAbsoluteCoordinates dba
@@ -37,6 +129,7 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulums){
 
 
   InverseDynamics(dbj.model,dbj.q,dbj.qd,dbj.qdd,dbj.tau);
+  //ForwardDynamics(dbj.model,dbj.q,dbj.qd,dbj.tau,dbj.qdd);
 
   Vector3d r010 = CalcBodyToBaseCoordinates(
                     dbj.model,dbj.q,dbj.idB1,
@@ -50,7 +143,8 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulums){
 
   //2. Set the pendulum modelled using absolute coordinates to the
   //   equivalent state as the pendulum modelled using joint
-  //   coordinates.
+  //   coordinates. Next
+
 
   dba.q[0]  = r010[0];
   dba.q[1]  = r010[1];
@@ -81,9 +175,7 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulums){
   dba.tau[10] = dbj.tau[1];//ry
   dba.tau[11] = 0.;//rx
 
-  //Test
-  //  calcPositionError
-  //  calcVelocityError
+
 
   VectorNd err(dba.cs.size());
   VectorNd errd(dba.cs.size());
@@ -110,7 +202,7 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulums){
     actuationMap[i]=false;
   }
   actuationMap[3] = true;
-  actuationMap[10]= true;
+  actuationMap[10] = true;
 
   VectorNd qddDesired = VectorNd::Zero(dba.qdd.rows());
   VectorNd qddIdc = VectorNd::Zero(dba.qdd.rows());
@@ -119,8 +211,8 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulums){
   //The IDC operator should be able to statisfy qdd=0 and return a tau
   //vector that matches the hand solution produced above.
   dba.cs.SetActuationMap(dba.model,actuationMap);
-  InverseDynamicsConstraints(dba.model,dba.q,dba.qd,qddDesired,dba.cs,
-                             qddIdc,tauIdc);
+  InverseDynamicsConstraintsFullyActuated(dba.model,dba.q,dba.qd,qddDesired,
+                                          dba.cs, qddIdc,tauIdc);
 
   for(unsigned int i=0; i<qddIdc.rows();++i){
     CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
@@ -129,7 +221,6 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulums){
     CHECK_CLOSE(dba.tau[i],tauIdc[i],TEST_PREC);
   }
 }
-
 
 
 //M.Millard
