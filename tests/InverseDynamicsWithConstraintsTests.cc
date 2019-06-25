@@ -95,8 +95,19 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   //The IDC operator should be able to statisfy qdd=0 and return a tau
   //vector that matches the hand solution produced above.
   spa.cs.SetActuationMap(spa.model,actuationMap);
-  InverseDynamicsConstraintsFullyActuated(spa.model,spa.q,spa.qd,qddDesired,
+  InverseDynamicsConstraints(spa.model,spa.q,spa.qd,qddDesired,
                                           spa.cs, qddIdc,tauIdc);
+
+  for(unsigned int i=0; i<qddIdc.rows();++i){
+    CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
+  }
+  for(unsigned int i=0; i<tauIdc.rows();++i){
+    CHECK_CLOSE(spa.tau[i],tauIdc[i],TEST_PREC);
+  }
+
+
+  InverseDynamicsConstraintsRelaxed(spa.model,spa.q,spa.qd,qddDesired,
+                                    spa.cs, qddIdc,tauIdc);
 
   for(unsigned int i=0; i<qddIdc.rows();++i){
     CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
@@ -211,8 +222,27 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   //The IDC operator should be able to statisfy qdd=0 and return a tau
   //vector that matches the hand solution produced above.
   dba.cs.SetActuationMap(dba.model,actuationMap);
-  InverseDynamicsConstraintsFullyActuated(dba.model,dba.q,dba.qd,qddDesired,
+  InverseDynamicsConstraints(dba.model,dba.q,dba.qd,qddDesired,
                                           dba.cs, qddIdc,tauIdc);
+
+  for(unsigned int i=0; i<qddIdc.rows();++i){
+    CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
+  }
+  for(unsigned int i=0; i<tauIdc.rows();++i){
+    CHECK_CLOSE(dba.tau[i],tauIdc[i],TEST_PREC);
+  }
+
+  InverseDynamicsConstraintsRelaxed(dba.model,dba.q,dba.qd,qddDesired,
+                                          dba.cs, qddIdc,tauIdc);
+
+  //Check if the result is physically consistent.
+  VectorNd qddCheck(qddIdc.rows());
+  ForwardDynamicsConstraintsDirect(dba.model,dba.q,dba.qd, tauIdc, dba.cs, qddCheck);
+
+  for(unsigned int i=0; i<qddIdc.rows();++i){
+    CHECK_CLOSE(qddCheck[i],qddIdc[i],TEST_PREC);
+  }
+
 
   for(unsigned int i=0; i<qddIdc.rows();++i){
     CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
