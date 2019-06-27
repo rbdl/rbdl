@@ -73,16 +73,28 @@ struct PlanarBipedFloatingBase {
                                     Xtrans(Vector3d(0.,0.,-segmentLength)),
                                     joint_Ry, segment);
 
-    cs.AddContactConstraint(idxLeftLowerLeg, Vector3d(0.,0.,-segmentLength),
+    cs.resize(2);
+
+    //double stance
+    cs[0].AddContactConstraint(idxLeftLowerLeg, Vector3d(0.,0.,-segmentLength),
                                              Vector3d(1.,0.,0.));
-    cs.AddContactConstraint(idxLeftLowerLeg, Vector3d(0.,0.,-segmentLength),
+    cs[0].AddContactConstraint(idxLeftLowerLeg, Vector3d(0.,0.,-segmentLength),
                                              Vector3d(0.,0.,1.));
-    cs.AddContactConstraint(idxRightLowerLeg, Vector3d(0.,0.,-segmentLength),
+    cs[0].AddContactConstraint(idxRightLowerLeg, Vector3d(0.,0.,-segmentLength),
                                               Vector3d(1.,0.,0.));
-    cs.AddContactConstraint(idxRightLowerLeg, Vector3d(0.,0.,-segmentLength),
+    cs[0].AddContactConstraint(idxRightLowerLeg, Vector3d(0.,0.,-segmentLength),
                                               Vector3d(0.,0.,1.));
 
-    cs.Bind(model);
+    cs[0].Bind(model);
+
+    //single stance
+    cs[1].AddContactConstraint(idxLeftLowerLeg, Vector3d(0.,0.,-segmentLength),
+                                             Vector3d(1.,0.,0.));
+    cs[1].AddContactConstraint(idxLeftLowerLeg, Vector3d(0.,0.,-segmentLength),
+                                             Vector3d(0.,0.,1.));
+    cs[1].Bind(model);
+
+
     q     = VectorNd::Zero(model.dof_count);
     qd    = VectorNd::Zero(model.dof_count);
     qdd   = VectorNd::Zero(model.dof_count);
@@ -91,7 +103,7 @@ struct PlanarBipedFloatingBase {
   }
 
   Model model;
-  ConstraintSet cs;
+  std::vector< ConstraintSet > cs;
 
   VectorNd q;
   VectorNd qd;
@@ -350,20 +362,31 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
   qddTarget[5]  = 0.;
   qddTarget[6]  = 0.;
 
+  //============================================================================
+  // Double stance: fully actuated
+  //============================================================================
 
-  bool qasm = CalcAssemblyQ(model,q0,cs,q,weights);
+  //cs[0]: double stance
+  bool qasm = CalcAssemblyQ(model,q0,cs[0],q,weights);
   CHECK(qasm);
-  CalcAssemblyQDot(model,q,qd0,cs,qd,weights);
+  CalcAssemblyQDot(model,q,qd0,cs[0],qd,weights);
 
 
   //6. Call InverseDynamicsConstraints & repeat setps 4 & 5
   VectorNd tauIDC = VectorNd::Zero(tau.size());
   VectorNd qddIDC = VectorNd::Zero(qdd.size());
 
-  cs.SetActuationMap(model, dofActuated);
+  cs[0].SetActuationMap(model, dofActuated);
+
+  //Test to see if this model is compatiable with the exact IDC operator
+  bool isCompatible = isConstrainedSystemFullyActuated(
+                        model,q,qd,cs[0]);
+  CHECK(isCompatible);
+
+
   InverseDynamicsConstraints(model,
                              q,qd,qddTarget,
-                             cs, qddIDC,tauIDC);
+                             cs[0], qddIDC,tauIDC);
 
   //In this case the target qdd should be reachable exactly.
   for(unsigned int i=0; i<qddIDC.rows();++i){
@@ -371,9 +394,9 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
   }
 
 
-  lambdaIdc = cs.force;
-  ForwardDynamicsConstraintsDirect(model,q,qd,tauIDC,cs,qddFwd);
-  lambdaFwd = cs.force;
+  lambdaIdc = cs[0].force;
+  ForwardDynamicsConstraintsDirect(model,q,qd,tauIDC,cs[0],qddFwd);
+  lambdaFwd = cs[0].force;
 
 
   qddErr = qddIDC-qddFwd;
@@ -390,8 +413,8 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
   VectorNd qddIDCR(tauIDC.rows());
   InverseDynamicsConstraintsRelaxed(model,
                              q,qd,qddTarget,
-                             cs, qddIDCR,tauIDCR);
-  lambdaIdc = cs.force;
+                             cs[0], qddIDCR,tauIDCR);
+  lambdaIdc = cs[0].force;
 
   //In this case the acceleration constraint is relaxed and so there
   //is always some error between what is asked for and what is received.
@@ -399,8 +422,8 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
     CHECK_CLOSE(qddIDCR[i], qddTarget[i],0.01);
   }
 
-  ForwardDynamicsConstraintsDirect(model,q,qd,tauIDCR,cs,qddFwd);
-  lambdaFwd = cs.force;
+  ForwardDynamicsConstraintsDirect(model,q,qd,tauIDCR,cs[0],qddFwd);
+  lambdaFwd = cs[0].force;
 
   lambdaErr=lambdaIdc-lambdaFwd;
   for(unsigned int i=0; i<q.rows();++i){
@@ -410,7 +433,66 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
     CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
   }
 
+
+  //============================================================================
+  // Single stance: under actuated because of the point foot
+  //============================================================================
+
+  q0.setZero();
+  q0[1]=1.0;
+  q0[2]=0.;
+  qd.setZero();
+  qd0.setZero();
+  qd0[2] = 0.001; //Will result in the system rotating about the +z axis
+
+  qasm = CalcAssemblyQ(model,q0,cs[1],q,weights);
+  CHECK(qasm);
+  CalcAssemblyQDot(model,q,qd0,cs[1],qd,weights);
+
+
+  //6. Call InverseDynamicsConstraints & repeat setps 4 & 5
+  tauIDC = VectorNd::Zero(tau.size());
+  qddIDC = VectorNd::Zero(qdd.size());
+
+  cs[1].SetActuationMap(model, dofActuated);
+
+  //Test to see if this model is compatiable with the exact IDC operator
+  isCompatible = isConstrainedSystemFullyActuated(
+                        model,q,qd,cs[1]);
+  CHECK(isCompatible==false);
+
+  //Check the relaxed method
+  qddTarget.setZero();
+  InverseDynamicsConstraintsRelaxed(model,
+                             q,qd,qddTarget,
+                             cs[1], qddIDCR,tauIDCR);
+  lambdaIdc = cs[1].force;
+
+  //In this case the acceleration constraint is relaxed and so there
+  //is always some error between what is asked for and what is received.
+  for(unsigned int i=0; i<qddIDC.rows();++i){
+    if(dofActuated[i]==true){
+      CHECK_CLOSE(qddIDCR[i], qddTarget[i],0.01);
+    }
+  }
+
+  ForwardDynamicsConstraintsDirect(model,q,qd,tauIDCR,cs[1],qddFwd);
+  lambdaFwd = cs[1].force;
+
+  lambdaErr=lambdaIdc-lambdaFwd;
+  for(unsigned int i=0; i<q.rows();++i){
+    CHECK_CLOSE(qddIDCR[i], qddFwd[i], TEST_PREC);
+  }
+  for(unsigned int i=0; i<lambdaFwd.rows();++i){
+    CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
+  }
+
+
+
+
+  //============================================================================
   //Timing comparision
+  //============================================================================
   if(flag_printTimingData){
     unsigned int iterations = 100;
 
@@ -418,14 +500,14 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
     for(unsigned int i=0; i<iterations; ++i){
       InverseDynamicsConstraints(model,
                                  q,qd,qddTarget,
-                                 cs,qddIDC,tauIDC);
+                                 cs[0],qddIDC,tauIDC);
     }
     auto t2   = std::chrono::high_resolution_clock::now();
     auto tidc = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
 
     t1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
-      ForwardDynamicsConstraintsDirect(model,q,qd,tauIDC,cs,qddFwd);
+      ForwardDynamicsConstraintsDirect(model,q,qd,tauIDC,cs[0],qddFwd);
     }
     t2 = std::chrono::high_resolution_clock::now();
     auto tfd = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
@@ -472,10 +554,8 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
     }
   }
 
-  //All of the ugly numbers below are pseudo random numbers generated
-  //from Matlab to ensure that the method works, and that the tests are
-  //not passing due to some quirk of symmetry in the state of the model.
-
+  //A statically stable standing pose which will have a physically
+  //consistent solution
   q0[0]  = 0.;         //tx Floating base
   q0[1]  = 0.;         //ty
   q0[2]  = 0.75;       //tx
@@ -549,6 +629,12 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   VectorNd tauIDC = VectorNd::Zero(tau.size());
   VectorNd qddIDC = VectorNd::Zero(qdd.size());
   cs.SetActuationMap(model,dofActuated);
+
+  //Test to see if this model is compatiable with the exact IDC operator
+  bool isCompatible = isConstrainedSystemFullyActuated(
+                        model,q,qd,cs);
+  CHECK(isCompatible);
+
   InverseDynamicsConstraints(model,
                              q,qd,qddTarget,
                              cs, qddIDC,tauIDC);
@@ -595,7 +681,7 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   qddErr = qddIDCR-qddFwd;
   lambdaErr= lambdaIdc-lambdaFwd;
   for(unsigned int i=0; i<q.rows();++i){
-    CHECK_CLOSE(qddIDC[i], qddFwd[i], TEST_PREC);
+    CHECK_CLOSE(qddIDCR[i], qddFwd[i], TEST_PREC);
   }
   for(unsigned int i=0; i<lambdaIdc.rows();++i){
     CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
@@ -711,6 +797,12 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   //The IDC operator should be able to statisfy qdd=0 and return a tau
   //vector that matches the hand solution produced above.
   spa.cs.SetActuationMap(spa.model,actuationMap);
+
+  //Test to see if this model is compatiable with the exact IDC operator
+  bool isCompatible = isConstrainedSystemFullyActuated(
+                        spa.model,spa.q,spa.qd,spa.cs);
+  CHECK(isCompatible);
+
   InverseDynamicsConstraints(spa.model,spa.q,spa.qd,qddDesired,
                                           spa.cs, qddIdc,tauIdc);
 
@@ -725,8 +817,8 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   InverseDynamicsConstraintsRelaxed(spa.model,spa.q,spa.qd,qddDesired,
                                     spa.cs, qddIdc,tauIdc);
 
-  //For this simple system with only point-ground constraints the
-  //desired qdd's should be met exactly (thanks to the small updates I've made
+  //For this simple single body system the desired qdd's are met exactly
+  //(thanks to the small updates I've made
   for(unsigned int i=0; i<qddIdc.rows();++i){
     CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
   }
@@ -839,7 +931,13 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
 
   //The IDC operator should be able to statisfy qdd=0 and return a tau
   //vector that matches the hand solution produced above.
+
   dba.cs.SetActuationMap(dba.model,actuationMap);
+  //Test to see if this model is compatiable with the exact IDC operator
+  bool isCompatible = isConstrainedSystemFullyActuated(
+                        dba.model,dba.q,dba.qd,dba.cs);
+  CHECK(isCompatible);
+
   InverseDynamicsConstraints(dba.model,dba.q,dba.qd,qddDesired,
                                           dba.cs, qddIdc,tauIdc);
 
@@ -853,6 +951,13 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   InverseDynamicsConstraintsRelaxed(dba.model,dba.q,dba.qd,qddDesired,
                                           dba.cs, qddIdc,tauIdc);
 
+  //The relaxed operator is not able to exactly satisfy the desired
+  //accelerations, though the error will be on the order of 1/10 for this system
+
+  for(unsigned int i=0; i<qddIdc.rows();++i){
+    CHECK_CLOSE(qddDesired[i],qddIdc[i],0.2);
+  }
+
   //Check if the result is physically consistent.
   VectorNd qddCheck(qddIdc.rows());
   ForwardDynamicsConstraintsDirect(dba.model,dba.q,dba.qd, tauIdc, dba.cs, qddCheck);
@@ -861,15 +966,138 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
     CHECK_CLOSE(qddCheck[i],qddIdc[i],TEST_PREC);
   }
 
-  //Unfortunately because this system contains loop constraints the
-  //IDC relaxed operator is not able to exactly satisfy the desired accelerations
-
-  //for(unsigned int i=0; i<qddIdc.rows();++i){
-  //  CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
-  //}
-  //for(unsigned int i=0; i<tauIdc.rows();++i){
-  //  CHECK_CLOSE(dba.tau[i],tauIdc[i],TEST_PREC);
-  //}
 }
 
+TEST(CorrectnessTestWithUnderactuatedCartPendulum){
+  //This model is not compatible with InverseDynamicsConstraints
+  //which is valuable: all other models tested have been.
+  //This model is identical to the one presented in Sec. 3 of Henning's thesis
+
+  Model model;
+  model.gravity = Vector3d(0.,0.,-9.81);
+
+  double m1 = 10;
+  double l1 = 1.;
+  double h1 = 0.5;
+  double J1xx = m1*(h1*h1+h1*h1)/12.;
+  double J1yy = m1*(l1*l1+h1*h1)/12.;
+  double J1zz = m1*(l1*l1+h1*h1)/12.;
+
+  double m2 = 1.;
+  double l2 = 1.;
+  double J2xx = m2*(l1*l1)/3.;
+  double J2yy = m2*(l1*l1)/3.;
+  double J2zz = m2*(l1*l1)/30.;
+
+
+  Body cart1 = Body(m1, Vector3d(0., 0., 0.),
+                    Matrix3d(   J1xx,   0.,  0.,
+                                  0., J1yy,  0.,
+                                  0.,   0.,  J1zz));
+
+  Body link2 = Body(m2, Vector3d( 0., -l2*0.5, 0.),
+                    Matrix3d( J2xx,   0. ,   0.,
+                                 0., J2yy,   0.,
+                                 0.,  0. ,  J2zz));
+
+  Joint jointXYRz (SpatialVector(0.,0.,0., 1.,0.,0.),
+                   SpatialVector(0.,0.,0., 0.,0.,1.),
+                   SpatialVector(0.,1.,0, 0.,0.,0.));
+
+  Joint jointRy (SpatialVector(0.,1.,0., 0.,0.,0.));
+
+  unsigned int idB1 = model.AddBody(0, SpatialTransform(), jointXYRz, cart1);
+  unsigned int idB2 = model.AddBody(idB1, SpatialTransform(), jointRy, link2);
+
+  ConstraintSet cs;
+  SpatialTransform X;
+  X.r.setZero();
+  X.E.setIdentity();
+  unsigned int cp1=cs.AddLoopConstraint(0,idB1,X,X,SpatialVector(0,0,0,0,0,1));
+  unsigned int cp2=cs.AddLoopConstraint(0,idB1,X,X,SpatialVector(0,1,0,0,0,0));
+
+  cs.Bind(model);
+
+  //This system should not be compatible with the InverseDynamicsConstraints
+  //operator:
+
+  VectorNd q,qd,qdd,qddDesired, qddFwd,tau;
+  q.resize(model.q_size);
+  qd.resize(model.qdot_size);
+  qdd.resize(model.qdot_size);
+  qddFwd.resize(model.qdot_size);
+  qddDesired.resize(model.qdot_size);
+  tau.resize(model.qdot_size);
+
+  q.setZero();
+  qd.setZero();
+  qdd.setZero();
+  qddFwd.setZero();
+  qddDesired.setZero();
+  tau.setZero();
+
+  std::vector< bool > actuation;
+  actuation.resize(model.qdot_size);
+  for(unsigned int i=0; i<actuation.size();++i){
+    actuation[i] = false;
+  }
+  actuation[model.qdot_size-1] = true;
+  cs.SetActuationMap(model,actuation);
+
+  bool isCompatible =
+      isConstrainedSystemFullyActuated(model,q,qd,cs);
+  CHECK(isCompatible == false);
+
+  //pose 1
+  InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
+  for(unsigned int i=0; i<qddDesired.rows();++i){
+    CHECK_CLOSE(qdd[i],qddDesired[i],0.01);
+  }
+
+  //Check if the result is physically consistent.
+  ForwardDynamicsConstraintsDirect(model,q,qd, tau, cs, qddFwd);
+  for(unsigned int i=0; i<qddFwd.rows();++i){
+    CHECK_CLOSE(qdd[i],qddFwd[i],TEST_PREC);
+  }
+
+  //pose 2
+  q[3] = M_PI*0.5;
+  InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
+  for(unsigned int i=0; i<qddDesired.rows();++i){
+    CHECK_CLOSE(qdd[i],qddDesired[i],0.01);
+  }
+
+  //Check if the result is physically consistent.
+  ForwardDynamicsConstraintsDirect(model,q,qd, tau, cs, qddFwd);
+  for(unsigned int i=0; i<qddFwd.rows();++i){
+    CHECK_CLOSE(qdd[i],qddFwd[i],TEST_PREC);
+  }
+
+  //pose 2 and some movement
+  VectorNd qd0(qd.rows());
+  qd0[0] = 0.5;
+  qd0[1] = 0.125;
+  qd0[2] = 0.25;
+  qd0[3] = 1.1;
+  VectorNd w(qd.rows());
+  w.setOnes();
+
+  //Make sure that we are on the constraint manifold
+  CalcAssemblyQDot(model,q,qd0,cs,qd,w);
+
+  //Add a non-zero desired acceleration in the actuation domain
+  qddDesired[3] = 2.2;
+  InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
+  for(unsigned int i=0; i<qddDesired.rows();++i){
+    CHECK_CLOSE(qdd[i],qddDesired[i],0.01);
+  }
+
+  //Check if the result is physically consistent.
+  ForwardDynamicsConstraintsDirect(model,q,qd, tau, cs, qddFwd);
+  for(unsigned int i=0; i<qddFwd.rows();++i){
+    CHECK_CLOSE(qdd[i],qddFwd[i],TEST_PREC);
+  }
+
+
+}
 
