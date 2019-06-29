@@ -378,12 +378,14 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   cs[0].SetActuationMap(model, dofActuated);
 
+#ifndef RBDL_USE_SIMPLE_MATH
   //Test to see if this model is compatiable with the exact IDC operator
   bool isCompatible = isConstrainedSystemFullyActuated(
                         model,q,qd,cs[0]);
   CHECK(isCompatible);
 
-
+  //The SimpleMath library fails if it tries to solve this
+  //linear system. Eigen has no problems.
   InverseDynamicsConstraints(model,
                              q,qd,qddTarget,
                              cs[0], qddIDC,tauIDC);
@@ -407,7 +409,7 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
   for(unsigned int i=0; i<lambdaFwd.rows();++i){
     CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
   }
-
+#endif
   //Check the relaxed method
   VectorNd tauIDCR(tauIDC.rows());
   VectorNd qddIDCR(tauIDC.rows());
@@ -418,7 +420,7 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   //In this case the acceleration constraint is relaxed and so there
   //is always some error between what is asked for and what is received.
-  for(unsigned int i=0; i<qddIDC.rows();++i){
+  for(unsigned int i=0; i<qddIDCR.rows();++i){
     CHECK_CLOSE(qddIDCR[i], qddTarget[i],0.01);
   }
 
@@ -456,11 +458,12 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   cs[1].SetActuationMap(model, dofActuated);
 
+#ifndef RBDL_USE_SIMPLE_MATH
   //Test to see if this model is compatiable with the exact IDC operator
   isCompatible = isConstrainedSystemFullyActuated(
                         model,q,qd,cs[1]);
   CHECK(isCompatible==false);
-
+#endif
   //Check the relaxed method
   qddTarget.setZero();
   InverseDynamicsConstraintsRelaxed(model,
@@ -629,12 +632,13 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   VectorNd tauIDC = VectorNd::Zero(tau.size());
   VectorNd qddIDC = VectorNd::Zero(qdd.size());
   cs.SetActuationMap(model,dofActuated);
-
+#ifndef RBDL_USE_SIMPLE_MATH
   //Test to see if this model is compatiable with the exact IDC operator
   bool isCompatible = isConstrainedSystemFullyActuated(
                         model,q,qd,cs);
   CHECK(isCompatible);
-
+  //The SimpleMath library fails if it tries to solve this
+  //linear system. Eigen has no problems.
   InverseDynamicsConstraints(model,
                              q,qd,qddTarget,
                              cs, qddIDC,tauIDC);
@@ -658,6 +662,7 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   for(unsigned int i=0; i<lambdaIdc.rows();++i){
     CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
   }
+#endif
 
   //Check the relaxed method
   VectorNd tauIDCR(tauIDC.rows());
@@ -797,12 +802,12 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   //The IDC operator should be able to statisfy qdd=0 and return a tau
   //vector that matches the hand solution produced above.
   spa.cs.SetActuationMap(spa.model,actuationMap);
-
+#ifndef RBDL_USE_SIMPLE_MATH
   //Test to see if this model is compatiable with the exact IDC operator
   bool isCompatible = isConstrainedSystemFullyActuated(
                         spa.model,spa.q,spa.qd,spa.cs);
   CHECK(isCompatible);
-
+#endif
   InverseDynamicsConstraints(spa.model,spa.q,spa.qd,qddDesired,
                                           spa.cs, qddIdc,tauIdc);
 
@@ -933,11 +938,12 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   //vector that matches the hand solution produced above.
 
   dba.cs.SetActuationMap(dba.model,actuationMap);
+#ifndef RBDL_USE_SIMPLE_MATH  
   //Test to see if this model is compatiable with the exact IDC operator
   bool isCompatible = isConstrainedSystemFullyActuated(
                         dba.model,dba.q,dba.qd,dba.cs);
   CHECK(isCompatible);
-
+#endif
   InverseDynamicsConstraints(dba.model,dba.q,dba.qd,qddDesired,
                                           dba.cs, qddIdc,tauIdc);
 
@@ -1012,7 +1018,7 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
   ConstraintSet cs;
   SpatialTransform X;
   X.r.setZero();
-  X.E.setIdentity();
+  X.E = Matrix3d::Identity();
   unsigned int cp1=cs.AddLoopConstraint(0,idB1,X,X,SpatialVector(0,0,0,0,0,1));
   unsigned int cp2=cs.AddLoopConstraint(0,idB1,X,X,SpatialVector(0,1,0,0,0,0));
 
@@ -1044,10 +1050,11 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
   actuation[model.qdot_size-1] = true;
   cs.SetActuationMap(model,actuation);
 
+#ifndef RBDL_USE_SIMPLE_MATH
   bool isCompatible =
       isConstrainedSystemFullyActuated(model,q,qd,cs);
   CHECK(isCompatible == false);
-
+#endif
   //pose 1
   InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
   for(unsigned int i=0; i<qddDesired.rows();++i){
@@ -1079,8 +1086,8 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
   qd0[1] = 0.125;
   qd0[2] = 0.25;
   qd0[3] = 1.1;
-  VectorNd w(qd.rows());
-  w.setOnes();
+  VectorNd w = VectorNd::Constant(qd0.rows(),1.);
+
 
   //Make sure that we are on the constraint manifold
   CalcAssemblyQDot(model,q,qd0,cs,qd,w);
