@@ -499,27 +499,43 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
   if(flag_printTimingData){
     unsigned int iterations = 100;
 
-    auto t1 = std::chrono::high_resolution_clock::now();
+    auto tidcr1 = std::chrono::high_resolution_clock::now();
+    for(unsigned int i=0; i<iterations; ++i){
+      InverseDynamicsConstraintsRelaxed(model,
+                                 q,qd,qddTarget,
+                                 cs[0],qddIDC,tauIDC);
+    }
+    auto tidcr2   = std::chrono::high_resolution_clock::now();
+    auto tidcr = std::chrono::duration_cast<std::chrono::microseconds>(tidcr2-tidcr1);
+
+
+#ifndef RBDL_USE_SIMPLE_MATH
+    auto tidc1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
       InverseDynamicsConstraints(model,
                                  q,qd,qddTarget,
                                  cs[0],qddIDC,tauIDC);
     }
-    auto t2   = std::chrono::high_resolution_clock::now();
-    auto tidc = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
-
-    t1 = std::chrono::high_resolution_clock::now();
+    auto tidc2   = std::chrono::high_resolution_clock::now();
+    auto tidc = std::chrono::duration_cast<std::chrono::microseconds>(tidc2-tidc1);
+#endif
+    auto tfd1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
-      ForwardDynamicsConstraintsDirect(model,q,qd,tauIDC,cs[0],qddFwd);
+      ForwardDynamicsConstraintsNullSpace(model,q,qd,tauIDC,cs[0],qddFwd);
     }
-    t2 = std::chrono::high_resolution_clock::now();
-    auto tfd = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
+    auto tfd2 = std::chrono::high_resolution_clock::now();
+    auto tfd = std::chrono::duration_cast<std::chrono::microseconds>(tfd2-tfd1);
 
     std::cout << "Planar Biped Dof: " << model.dof_count << std::endl;
     std::cout << "Cost per evaluation : us, xfd " << std::endl;
-    std::cout << "IDCns: " << double(tidc.count()) / double(iterations) << " "
+#ifndef RBDL_USE_SIMPLE_MATH
+    std::cout << "IDC: " << double(tidc.count()) / double(iterations) << " "
                         << double(tidc.count())/double(tfd.count()) << std::endl;
-    std::cout << "FD:    " << double(tfd.count()) / double(iterations) << " "
+#endif
+    std::cout << "IDCRelaxed: " << double(tidcr.count()) / double(iterations) << " "
+                        << double(tidcr.count())/double(tfd.count()) << std::endl;
+
+    std::cout << "FDNullSp:    " << double(tfd.count()) / double(iterations) << " "
                         << double(tfd.count())/double(tfd.count()) << std::endl;
   }
 
@@ -637,6 +653,7 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   bool isCompatible = isConstrainedSystemFullyActuated(
                         model,q,qd,cs);
   CHECK(isCompatible);
+
   //The SimpleMath library fails if it tries to solve this
   //linear system. Eigen has no problems.
   InverseDynamicsConstraints(model,
@@ -697,29 +714,46 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   if(flag_printTimingData){
     unsigned int iterations = 100;
 
-    auto t1 = std::chrono::high_resolution_clock::now();
+    auto tidcr1 = std::chrono::high_resolution_clock::now();
+    for(unsigned int i=0; i<iterations; ++i){
+      InverseDynamicsConstraintsRelaxed(model,
+                                 q,qd,qddTarget,
+                                 cs,qddIDC,tauIDC);
+    }
+    auto tidcr2   = std::chrono::high_resolution_clock::now();
+    auto tidcr = std::chrono::duration_cast<std::chrono::microseconds>(tidcr2-tidcr1);
+
+
+#ifndef RBDL_USE_SIMPLE_MATH
+    auto tidc1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
       InverseDynamicsConstraints(model,
                                  q,qd,qddTarget,
-                                 cs, qddIDC,tauIDC);
+                                 cs,qddIDC,tauIDC);
     }
-    auto t2     = std::chrono::high_resolution_clock::now();
-    auto tidc = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
-
-    t1 = std::chrono::high_resolution_clock::now();
+    auto tidc2   = std::chrono::high_resolution_clock::now();
+    auto tidc = std::chrono::duration_cast<std::chrono::microseconds>(tidc2-tidc1);
+#endif
+    auto tfd1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
-      ForwardDynamicsConstraintsDirect(model,q,qd,tauIDC,cs,qddFwd);
+      ForwardDynamicsConstraintsNullSpace(model,q,qd,tauIDC,cs,qddFwd);
     }
-    t2 = std::chrono::high_resolution_clock::now();
-    auto tfd = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
+    auto tfd2 = std::chrono::high_resolution_clock::now();
+    auto tfd = std::chrono::duration_cast<std::chrono::microseconds>(tfd2-tfd1);
 
     std::cout << "Spatial Biped Dof: " << model.dof_count << std::endl;
-    std::cout << "Cost per evaluation : us, xfd" << std::endl;
-    std::cout << "IDCns: " << double(tidc.count())/double(iterations) << " "
+    std::cout << "Cost per evaluation : us, xfd " << std::endl;
+#ifndef RBDL_USE_SIMPLE_MATH
+    std::cout << "IDC: " << double(tidc.count()) / double(iterations) << " "
                         << double(tidc.count())/double(tfd.count()) << std::endl;
-    std::cout << "FD:    " << double(tfd.count())/double(iterations) << " "
+#endif
+    std::cout << "IDCRelaxed: " << double(tidcr.count()) / double(iterations) << " "
+                        << double(tidcr.count())/double(tfd.count()) << std::endl;
+
+    std::cout << "FDNullSp:    " << double(tfd.count()) / double(iterations) << " "
                         << double(tfd.count())/double(tfd.count()) << std::endl;
   }
+
 }
 
 
@@ -807,7 +841,7 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   bool isCompatible = isConstrainedSystemFullyActuated(
                         spa.model,spa.q,spa.qd,spa.cs);
   CHECK(isCompatible);
-#endif
+
   InverseDynamicsConstraints(spa.model,spa.q,spa.qd,qddDesired,
                                           spa.cs, qddIdc,tauIdc);
 
@@ -817,7 +851,7 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   for(unsigned int i=0; i<tauIdc.rows();++i){
     CHECK_CLOSE(spa.tau[i],tauIdc[i],TEST_PREC);
   }
-
+#endif
 
   InverseDynamicsConstraintsRelaxed(spa.model,spa.q,spa.qd,qddDesired,
                                     spa.cs, qddIdc,tauIdc);
@@ -943,7 +977,7 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   bool isCompatible = isConstrainedSystemFullyActuated(
                         dba.model,dba.q,dba.qd,dba.cs);
   CHECK(isCompatible);
-#endif
+
   InverseDynamicsConstraints(dba.model,dba.q,dba.qd,qddDesired,
                                           dba.cs, qddIdc,tauIdc);
 
@@ -953,7 +987,7 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   for(unsigned int i=0; i<tauIdc.rows();++i){
     CHECK_CLOSE(dba.tau[i],tauIdc[i],TEST_PREC);
   }
-
+#endif
   InverseDynamicsConstraintsRelaxed(dba.model,dba.q,dba.qd,qddDesired,
                                           dba.cs, qddIdc,tauIdc);
 
