@@ -212,8 +212,9 @@ RBDL_DLLAPI void jcalc (
       model.mCustomJoints[joint.custom_joint_index];
     custom_joint->jcalc (model, joint_id, q, qdot);
   } else {
-    std::cerr << "Error: invalid joint type " << model.mJoints[joint_id].mJointType << " at id " << joint_id << std::endl;
-    abort();
+    std::ostringstream errormsg;
+    errormsg << "Error: invalid joint type " << model.mJoints[joint_id].mJointType << " at id " << joint_id << std::endl;
+    throw Errors::RBDLError(errormsg.str());
   }
 
   model.X_lambda[joint_id] = model.X_J[joint_id] * model.X_T[joint_id];

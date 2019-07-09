@@ -113,6 +113,7 @@ SET ( RBDL_SOURCES
 	src/rbdl_version.cc
 	src/rbdl_mathutils.cc
 	src/rbdl_utils.cc
+	src/rbdl_errors.cc
 	src/Constraints.cc
   src/Constraint_Contact.cc
   src/Constraint_Loop.cc  
