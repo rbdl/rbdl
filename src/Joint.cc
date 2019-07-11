@@ -13,6 +13,7 @@
 
 #include "rbdl/Model.h"
 #include "rbdl/Joint.h"
+#include "rbdl/rbdl_errors.h"
 
 namespace RigidBodyDynamics {
 
@@ -264,8 +265,12 @@ RBDL_DLLAPI Math::SpatialTransform jcalc_XJ (
       return rot * trans;
     }
   }
-  std::cerr << "Error: invalid joint type: " << model.mJoints[joint_id].mJointType << std::endl;
-  abort();
+
+  std::ostringstream errormsg;
+  errormsg << "Error: invalid joint type: " << model.mJoints[joint_id].mJointType << std::endl;
+  throw Errors::RBDLError(errormsg.str());
+
+  //never reaches this
   return SpatialTransform();
 }
 
@@ -430,8 +435,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
 
     custom_joint->jcalc_X_lambda_S (model, joint_id, q);
   } else {
-    std::cerr << "Error: invalid joint type!" << std::endl;
-    abort();
+    throw Errors::RBDLError("Error: invalid joint type!");
   }
 }
 }

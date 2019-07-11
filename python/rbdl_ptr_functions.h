@@ -48,8 +48,9 @@ RBDL_DLLAPI inline VectorNdRef VectorFromPtr (double *ptr, unsigned int n) {
 #elif defined EIGEN_CORE_H
 	return Eigen::Map<VectorNd> (ptr, n, 1);
 #else
-	std::cerr << __func__ << " not defined for used math library!" << std::endl;
-	abort();
+	std::ostringstream errormsg;
+	errormsg << __func__ << " not defined for used math library!" << std::endl;
+	throw Errors::RBDLError(errormsg.str());
 	return VectorNd::Constant (1,1./0.);
 #endif
 }
@@ -64,8 +65,9 @@ RBDL_DLLAPI inline MatrixNdRef MatrixFromPtr (double *ptr, unsigned int rows, un
 	return Eigen::Map<MatrixNd> (ptr, rows, cols);
 #endif
 #else
-	std::cerr << __func__ << " not defined for used math library!" << std::endl;
-	abort();
+	std::ostringstream errormsg;
+	errormsg << __func__ << " not defined for used math library!" << std::endl;
+	throw Errors::RBDLError(errormsg.str());
 	return MatrixNd::Constant (1,1, 1./0.);
 #endif
 }

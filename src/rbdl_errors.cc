@@ -17,6 +17,7 @@ const char* RBDLError::what() const noexcept {
 }
 
 RBDLFileParseError::RBDLFileParseError(std::string text): RBDLError(text) {}
+RBDLSizeMismatchError::RBDLSizeMismatchError(std::string text): RBDLError(text) {}
 
 }
 }

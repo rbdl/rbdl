@@ -4,12 +4,12 @@
  *
  * Licensed under the zlib license. See LICENSE for more details.
  */
+#ifndef RBDL_ERRORS_H
+#define RBDL_ERRORS_H
 
 #include <string>
 #include <exception>
 
-#ifndef RBDL_ERRORS_H
-#define RBDL_ERRORS_H
 
 namespace RigidBodyDynamics {
 
@@ -25,12 +25,17 @@ class RBDLError : public std::exception {
 		virtual const char* what() const noexcept;
 };
 
+class RBDLSizeMismatchError : public RBDLError {
+	public:
+		RBDLSizeMismatchError(std::string text);
+};
+
 class RBDLFileParseError : public RBDLError {
 	public:
 		RBDLFileParseError(std::string text);
 };
-}
 
+}
 }
 
 #endif

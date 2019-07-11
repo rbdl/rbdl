@@ -19,6 +19,7 @@
 #include "rbdl/Logging.h"
 #include "rbdl/Joint.h"
 #include "rbdl/Body.h"
+#include "rbdl/rbdl_errors.h"
 
 // std::vectors containing any objects that have Eigen matrices or vectors
 // as members need to have a special allocater. This can be achieved with
@@ -435,9 +436,7 @@ struct RBDL_DLLAPI Model {
   void SetJointFrame (unsigned int id, 
       const Math::SpatialTransform &transform) {
     if (id >= fixed_body_discriminator) {
-      std::cerr << "Error: setting of parent transform "
-        << "not supported for fixed bodies!" << std::endl;
-      abort();
+      throw Errors::RBDLError("Error: setting of parent transform not supported for fixed bodies!");
     }
 
     unsigned int child_id = id;
