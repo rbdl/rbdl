@@ -12,6 +12,7 @@
 #include <assert.h>
 #include <iostream>
 #include "rbdl/Logging.h"
+#include "rbdl/rbdl_errors.h"
 
 namespace RigidBodyDynamics {
 
@@ -280,15 +281,15 @@ struct RBDL_DLLAPI Joint {
       } else if (type == JointTypeCustom) {
         //This constructor cannot be used for a JointTypeCustom because
         //we have no idea what mDoFCount is.
-        std::cerr << "Error: Invalid use of Joint constructor Joint(JointType"
+	    std::ostringstream errormsg;
+        errormsg  << "Error: Invalid use of Joint constructor Joint(JointType"
                   << " type). Only allowed when type != JointTypeCustom" 
                   << std::endl;
-        assert(0);
-        abort();                  
+        throw Errors::RBDLError(errormsg.str());
       } else if (type != JointTypeFixed && type != JointTypeFloatingBase) {
-        std::cerr << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
-        assert (0);
-        abort();
+	    std::ostringstream errormsg;
+        errormsg << "Error: Invalid use of Joint constructor Joint(JointType type). Only allowed when type == JointTypeFixed or JointTypeSpherical." << std::endl;
+        throw Errors::RBDLError(errormsg.str());
       }
     }
     Joint (JointType type, int degreesOfFreedom) :
@@ -304,12 +305,12 @@ struct RBDL_DLLAPI Joint {
           mJointAxes[i] = Math::SpatialVector (0., 0., 0., 0., 0., 0.);
         }        
       } else {
-        std::cerr << "Error: Invalid use of Joint constructor Joint(JointType"
+	    std::ostringstream errormsg;
+        errormsg  << "Error: Invalid use of Joint constructor Joint(JointType"
                   << " type, int degreesOfFreedom). Only allowed when "
                   << "type  == JointTypeCustom." 
                   << std::endl;
-        assert (0);
-        abort();
+        throw Errors::RBDLError(errormsg.str());
       }
     }  
   Joint (const Joint &joint) :

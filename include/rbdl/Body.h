@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <iostream>
 #include "rbdl/Logging.h"
+#include "rbdl/rbdl_errors.h"
 
 namespace RigidBodyDynamics {
 
@@ -114,9 +115,7 @@ struct RBDL_DLLAPI Body {
     double new_mass = mMass + other_mass;
 
     if (new_mass == 0.) {
-      std::cerr << "Error: cannot join bodies as both have zero mass!" << std::endl;
-      assert (false);
-      abort();
+      throw Errors::RBDLError("Error: cannot join bodies as both have zero mass!\n");
     }
 
     Math::Vector3d other_com = transform.E.transpose() * other_body.mCenterOfMass + transform.r;

@@ -30,6 +30,11 @@ class RBDLSizeMismatchError : public RBDLError {
 		RBDLSizeMismatchError(std::string text);
 };
 
+class RBDLDofMismatchError : public RBDLError {
+	public:
+		RBDLDofMismatchError(std::string text);
+};
+
 class RBDLFileParseError : public RBDLError {
 	public:
 		RBDLFileParseError(std::string text);

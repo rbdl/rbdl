@@ -6,6 +6,7 @@
  */
 
 #include "rbdl/rbdl_utils.h"
+#include "rbdl/rbdl_errors.h"
 
 #include "rbdl/rbdl_math.h"
 #include "rbdl/Model.h"
@@ -87,11 +88,12 @@ std::string print_hierarchy (const RigidBodyDynamics::Model &model, unsigned int
       result << " end";
       break;
     } else if (model.mu[body_index].size() > 1) {
-      cerr << endl << "Error: Cannot determine multi-dof joint as massless body with id " << body_index << " (name: " << model.GetBodyName(body_index) << ") has more than one child:" << endl;
+	  std::ostringstream errormsg;
+      errormsg << endl << "Error: Cannot determine multi-dof joint as massless body with id " << body_index << " (name: " << model.GetBodyName(body_index) << ") has more than one child:" << endl;
       for (unsigned int ci = 0; ci < model.mu[body_index].size(); ci++) {
-        cerr << "  id: " << model.mu[body_index][ci] << " name: " << model.GetBodyName(model.mu[body_index][ci]) << endl;
+        errormsg << "  id: " << model.mu[body_index][ci] << " name: " << model.GetBodyName(model.mu[body_index][ci]) << endl;
       }
-      abort();
+      throw Errors::RBDLError(errormsg.str());
     }
 
     result << get_dof_name(model.S[body_index]) << ", ";
@@ -244,8 +246,7 @@ RBDL_DLLAPI void CalcZeroMomentPoint (
   bool update_kinematics
 ) {
   if (zmp == NULL) {
-    cerr << "ZMP (output) is 'NULL'!" << endl;
-    abort();
+    throw Errors::RBDLError("ZMP (output) is 'NULL'!\n");
   }
 
   // update kinematics if required

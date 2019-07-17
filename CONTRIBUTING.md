@@ -113,8 +113,12 @@ many editors (see http://editorconfig.org/ for more details).
 
 ## Error Handling
 
-RBDL will fail loudly and abort if an error occurs. This allows you to spot
-errors early on. RBDL does not use exceptions.
+RBDL has a base class for all the errors that can occur. So when calling a function that may fail catching for this base class
+is sufficient to catch all possible error types.
+
+Due to historic reasons there may still be places in the code where abort is called instead of throwing an error, the change to exceptions
+was made because just aborting caused issues when trying to use RBDL to develop applications, and killing the entire process is
+not acceptable for this.
 
 Code must compile without warnings with all compiler warnings enabled.
 Please also consider checking code with static code analyzers such as

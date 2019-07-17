@@ -117,26 +117,24 @@ unsigned int AddBodyFixedJoint (
 
   model.mFixedBodies.push_back (fbody);
 
-  if (model.mFixedBodies.size() > 
-      std::numeric_limits<unsigned int>::max() - model.fixed_body_discriminator) {
-    std::cerr << "Error: cannot add more than " 
-      << std::numeric_limits<unsigned int>::max() 
-      - model.mFixedBodies.size() 
-      << " fixed bodies. You need to modify "
-      << "Model::fixed_body_discriminator for this." 
-      << std::endl;
-    assert (0);
-    abort();
+  if (model.mFixedBodies.size() > std::numeric_limits<unsigned int>::max() - model.fixed_body_discriminator) {
+	std::ostringstream errormsg;
+    errormsg  << "Error: cannot add more than " 
+              << std::numeric_limits<unsigned int>::max() - model.mFixedBodies.size() 
+              << " fixed bodies. You need to modify "
+              << "Model::fixed_body_discriminator for this." 
+              << std::endl;
+    throw Errors::RBDLError(errormsg.str());
   }
 
   if (body_name.size() != 0) {
     if (model.mBodyNameMap.find(body_name) != model.mBodyNameMap.end()) {
-      std::cerr << "Error: Body with name '" 
-        << body_name 
-        << "' already exists!" 
-        << std::endl;
-      assert (0);
-      abort();
+	  std::ostringstream errormsg;
+      errormsg << "Error: Body with name '" 
+               << body_name 
+               << "' already exists!" 
+               << std::endl;
+      throw Errors::RBDLError(errormsg.str());
     }
     model.mBodyNameMap[body_name] = model.mFixedBodies.size() 
       + model.fixed_body_discriminator - 1;
@@ -172,11 +170,11 @@ unsigned int AddBodyMultiDofJoint (
     // no action required
   {}
   else {
-    std::cerr << "Error: Invalid joint type: " 
-      << joint.mJointType 
-      << std::endl;
-
-    assert (0 && !"Invalid joint type!");
+	std::ostringstream errormsg;
+    errormsg << "Error: Invalid joint type: " 
+             << joint.mJointType 
+             << std::endl;
+    throw Errors::RBDLError(errormsg.str());
   }
 
   Body null_body (0., Vector3d (0., 0., 0.), Vector3d (0., 0., 0.));
@@ -329,12 +327,12 @@ unsigned int Model::AddBody(
 
   if (body_name.size() != 0) {
     if (mBodyNameMap.find(body_name) != mBodyNameMap.end()) {
-      std::cerr << "Error: Body with name '" 
-        << body_name 
-        << "' already exists!"
-        << std::endl;
-      assert (0);
-      abort();
+      std::ostringstream errormsg;
+      errormsg << "Error: Body with name '" 
+               << body_name 
+               << "' already exists!"
+               << std::endl;
+      throw Errors::RBDLError(errormsg.str());
     }
     mBodyNameMap[body_name] = mBodies.size() - 1;
   }
@@ -413,14 +411,13 @@ unsigned int Model::AddBody(
   hdotc.push_back (SpatialVector(0., 0., 0., 0., 0., 0.));
 
   if (mBodies.size() == fixed_body_discriminator) {
-    std::cerr << "Error: cannot add more than " 
-      << fixed_body_discriminator 
-      <<  " movable bodies. You need to modify "
-      "Model::fixed_body_discriminator for this."
-      << std::endl;
-    assert (0);
-    abort();
-  }
+	std::ostringstream errormsg;
+    errormsg << "Error: cannot add more than " 
+             << fixed_body_discriminator 
+             <<  " movable bodies. You need to modify Model::fixed_body_discriminator for this."
+             << std::endl;
+    throw Errors::RBDLError(errormsg.str());
+}
 
   previously_added_body_id = mBodies.size() - 1;
 
