@@ -22,5 +22,11 @@ RBDLDofMismatchError::RBDLDofMismatchError(std::string text): RBDLError(text) {}
 
 RBDLSizeMismatchError::RBDLSizeMismatchError(std::string text): RBDLError(text) {}
 
+RBDLMissingImplementationError::RBDLMissingImplementationError(std::string text): RBDLError(text) {}
+
+RBDLInvalidFileError::RBDLInvalidFileError(std::string text): RBDLError(text) {}
+
+RBDLInvalidParameterError::RBDLInvalidParameterError(std::string text): RBDLError(text) {}
+
 }
 }

@@ -36,6 +36,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <rbdl/rbdl_errors.h>
+
 using namespace std;
 using namespace RigidBodyDynamics::Math;
 using namespace RigidBodyDynamics::Addons::Muscle;
@@ -56,13 +58,13 @@ void TorqueMuscleFunctionFactory::
 {
   //Check the input arguments
   if( !(c2 > 0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createAnderson2007ActiveTorqueAngleCurve " 
-          << curveName
-          << ": c2 must be greater than 0"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createAnderson2007ActiveTorqueAngleCurve " 
+             << curveName
+             << ": c2 must be greater than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
 
@@ -150,54 +152,54 @@ void TorqueMuscleFunctionFactory::
 {
   //Check the input arguments
   if( !(c4 < c5) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createAndersonActiveTorqueVelocityCurve " 
-          << curveName
-          << ": c4 must be greater than c5"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createAndersonActiveTorqueVelocityCurve " 
+             << curveName
+             << ": c4 must be greater than c5"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !((c4 > 0)) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createAndersonActiveTorqueVelocityCurve " 
-          << curveName
-          << ": c4 must be greater than 0"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createAndersonActiveTorqueVelocityCurve " 
+             << curveName
+             << ": c4 must be greater than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(c6 > 0.0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createAndersonActiveTorqueVelocityCurve " 
-          << curveName
-          << ": c6 must be greater than 1.0"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createAndersonActiveTorqueVelocityCurve " 
+             << curveName
+             << ": c6 must be greater than 1.0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(minEccentricMultiplier > 1.0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createAndersonActiveTorqueVelocityCurve " 
-          << curveName
-          << ": minEccentricMultiplier must be greater than 1.0"
-          << endl;
-    assert(0);
-    abort(); 
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createAndersonActiveTorqueVelocityCurve " 
+             << curveName
+             << ": minEccentricMultiplier must be greater than 1.0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(maxEccentricMultiplier > minEccentricMultiplier) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createAndersonActiveTorqueVelocityCurve " 
-          << curveName
-          << ": maxEccentricMultiplier must be greater than "
-          << " minEccentricMultiplier"
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createAndersonActiveTorqueVelocityCurve " 
+             << curveName
+             << ": maxEccentricMultiplier must be greater than "
+             << " minEccentricMultiplier"
           << endl;
-    assert(0);
-    abort();
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   //Advanced settings that we'll hide for now
@@ -243,23 +245,23 @@ void TorqueMuscleFunctionFactory::
 {
 
   if( !(scale > 0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createAnderson2007PassiveTorqueAngleCurve " 
-          << curveName
-          << ": scale must be greater than 0"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createAnderson2007PassiveTorqueAngleCurve " 
+             << curveName
+             << ": scale must be greater than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(c1 > 0) ) { 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createAnderson2007PassiveTorqueAngleCurve " 
-          << curveName
-          << ": c1 must be greater than 0"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createAnderson2007PassiveTorqueAngleCurve " 
+             << curveName
+             << ": c1 must be greater than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   //Advanced settings that we'll hide for now
@@ -562,13 +564,13 @@ void TorqueMuscleFunctionFactory::
       }break;
     default:
     {
-      cerr  << "TorqueMuscleFunctionFactory::"
-            << "createAnderson2007PassiveTorqueAngleCurve " 
-            << curveName
-            << ": undefined curveType"
-            << endl;
-    assert(0);
-    abort();   
+      ostringstream errormsg;
+      errormsg << "TorqueMuscleFunctionFactory::"
+               << "createAnderson2007PassiveTorqueAngleCurve " 
+               << curveName
+               << ": undefined curveType"
+               << endl;
+      throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
     }
 
   };
@@ -633,64 +635,64 @@ void  TorqueMuscleFunctionFactory::createTorqueVelocityCurve(
 {
 
   if( (tvAtEccentricOmegaMax < 1.05) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTorqueVelocityCurve " 
-          << curveName
-          << ": tvAtEccentricOmegaMax must be greater than 1.05"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTorqueVelocityCurve " 
+             << curveName
+             << ": tvAtEccentricOmegaMax must be greater than 1.05"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(    (tvAtHalfConcentricOmegaMax < 0.05
        || tvAtHalfConcentricOmegaMax > 0.45) ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTorqueVelocityCurve " 
-          << curveName
-          << ": tvAtHalfOmegaMax must be in the interval [0.05,0.45]"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTorqueVelocityCurve " 
+             << curveName
+             << ": tvAtHalfOmegaMax must be in the interval [0.05,0.45]"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( (slopeAtConcentricOmegaMax > 0) ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTorqueVelocityCurve " 
-          << curveName
-          << ": slopeAtConcentricOmegaMax cannot be less than 0"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTorqueVelocityCurve " 
+             << curveName
+             << ": slopeAtConcentricOmegaMax cannot be less than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }      
 
   if( (slopeNearEccentricOmegaMax > 0) ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTorqueVelocityCurve " 
-          << curveName
-          << ": slopeNearEccentricOmegaMax cannot be less than 0"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTorqueVelocityCurve " 
+             << curveName
+             << ": slopeNearEccentricOmegaMax cannot be less than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( (slopeAtEccentricOmegaMax > 0) ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTorqueVelocityCurve " 
-          << curveName
-          << ": slopeAtEccentricOmegaMax cannot be less than 0"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTorqueVelocityCurve " 
+             << curveName
+             << ": slopeAtEccentricOmegaMax cannot be less than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( (eccentricCurviness < 0 || eccentricCurviness > 1.0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTorqueVelocityCurve " 
-          << curveName
-          << ": eccentricCurviness must be in the interval [0,1]"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTorqueVelocityCurve " 
+             << curveName
+             << ": eccentricCurviness must be in the interval [0,1]"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }      
 
 
@@ -737,16 +739,16 @@ void  TorqueMuscleFunctionFactory::createTorqueVelocityCurve(
   double yCheck  = (b*fiso-a*w)/(b+w);
 
   if( abs(yCheck-tvAtHalfConcentricOmegaMax) > SQRTEPS ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTorqueVelocityCurve " 
-          << curveName
-          << ": Internal error fitting the concentric curve to Hill's "
-          << "hyperbolic curve. This error condition was true: "
-          << "abs(yCheck-tvAtHalfOmegaMax) > sqrt(eps)"
-          << "Consult the maintainers of this addon."
-          << endl;
-    assert(0);
-    abort();  
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTorqueVelocityCurve " 
+             << curveName
+             << ": Internal error fitting the concentric curve to Hill's "
+             << "hyperbolic curve. This error condition was true: "
+             << "abs(yCheck-tvAtHalfOmegaMax) > sqrt(eps)"
+             << "Consult the maintainers of this addon."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
   }
 
 
@@ -759,16 +761,16 @@ void  TorqueMuscleFunctionFactory::createTorqueVelocityCurve(
 
 
   if( dydxNearC > slopeAtConcentricOmegaMax || abs(dydxNearC) > abs(1/wmaxC) ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTorqueVelocityCurve " 
-          << curveName
-          << ": Internal error fitting the concentric curve to Hill's "
-          << "hyperbolic curve. This error condition was true: "
-          << " dydxNearC < dydxC || dydxNearC > abs(1/wmaxC)"
-          << "Consult the maintainers of this addon."
-          << endl;
-    assert(0);
-    abort(); 
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTorqueVelocityCurve " 
+             << curveName
+             << ": Internal error fitting the concentric curve to Hill's "
+             << "hyperbolic curve. This error condition was true: "
+             << " dydxNearC < dydxC || dydxNearC > abs(1/wmaxC)"
+             << "Consult the maintainers of this addon."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
   }
 
   //----------------------------------------------------------------------------
@@ -992,71 +994,68 @@ void TorqueMuscleFunctionFactory::createPassiveTorqueAngleCurve(
 {
 
   if( abs(angleAtOneNormTorque - angleAtZeroTorque) <= SQRTEPS){
-    cerr  << "TorqueMuscleFunctionFactory::"
-      << "createPassiveTorqueAngleCurve " 
-      << curveName
-      << ": abs(angleAtOneNormTorque - angleAtZeroTorque) must be "
-      << "greater than sqrt(eps)"
-      << endl;
-    assert(0);
-    abort();   
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createPassiveTorqueAngleCurve " 
+             << curveName
+             << ": abs(angleAtOneNormTorque - angleAtZeroTorque) must be "
+             << "greater than sqrt(eps)"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
-  if( abs(stiffnessAtLowTorque) 
-        > (0.9/abs(angleAtOneNormTorque-angleAtZeroTorque)) ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-      << "createPassiveTorqueAngleCurve " 
-      << curveName
-      << ": stiffnessAtLowTorque has a magnitude that is too "
-      << "large, it exceeds 0.9/abs(angleAtOneNormTorque-angleAtZeroTorque)"
-      << endl;
-    assert(0);
-    abort();   
+  if( abs(stiffnessAtLowTorque) > (0.9/abs(angleAtOneNormTorque-angleAtZeroTorque)) ){
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+            << "createPassiveTorqueAngleCurve " 
+            << curveName
+            << ": stiffnessAtLowTorque has a magnitude that is too "
+            << "large, it exceeds 0.9/abs(angleAtOneNormTorque-angleAtZeroTorque)"
+            << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
-  if( abs(stiffnessAtOneNormTorque) 
-        < (1.1/abs(angleAtOneNormTorque-angleAtZeroTorque)) ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-      << "createPassiveTorqueAngleCurve " 
-      << curveName
-      << ": stiffnessAtOneNormTorque has a magnitude that is too "
-      << "small, it is less than 1.1/abs(angleAtOneNormTorque-angleAtZeroTorque)"
-      << endl;
-    assert(0);
-    abort();   
+  if( abs(stiffnessAtOneNormTorque) < (1.1/abs(angleAtOneNormTorque-angleAtZeroTorque)) ){
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+            << "createPassiveTorqueAngleCurve " 
+            << curveName
+            << ": stiffnessAtOneNormTorque has a magnitude that is too "
+            << "small, it is less than 1.1/abs(angleAtOneNormTorque-angleAtZeroTorque)"
+            << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
   if( stiffnessAtOneNormTorque*stiffnessAtLowTorque < 0.0 ){
-    cerr  << "TorqueMuscleFunctionFactory::"
-      << "createPassiveTorqueAngleCurve " 
-      << curveName
-      << ": stiffnessAtLowTorque and  stiffnessAtOneNormTorque must have the"
-      << " same sign."
-      << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+            << "createPassiveTorqueAngleCurve " 
+            << curveName
+            << ": stiffnessAtLowTorque and  stiffnessAtOneNormTorque must have the"
+            << " same sign."
+            << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
-  if( stiffnessAtOneNormTorque
-      *(angleAtOneNormTorque-angleAtZeroTorque) < 0.0){
-    cerr  << "TorqueMuscleFunctionFactory::"
-      << "createPassiveTorqueAngleCurve " 
-      << curveName
-      << ": stiffnessAtOneNormTorque must have the same sign as "
-      << "(angleAtOneNormTorque-angleAtZeroTorque)"
-      << endl;
-    assert(0);
-    abort();
+  if( stiffnessAtOneNormTorque*(angleAtOneNormTorque-angleAtZeroTorque) < 0.0){
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+            << "createPassiveTorqueAngleCurve " 
+            << curveName
+            << ": stiffnessAtOneNormTorque must have the same sign as "
+            << "(angleAtOneNormTorque-angleAtZeroTorque)"
+            << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( (curviness < 0 || curviness > 1.0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createPassiveTorqueAngleCurve " 
-          << curveName
-          << ": curviness must be in the interval [0,1]"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createPassiveTorqueAngleCurve " 
+             << curveName
+             << ": curviness must be in the interval [0,1]"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
   MatrixNd xM(6,2);
@@ -1164,44 +1163,44 @@ void TorqueMuscleFunctionFactory::createGaussianShapedActiveTorqueAngleCurve(
 {
 
    if( (angularStandardDeviation < SQRTEPS) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createGaussianShapedActiveTorqueAngleCurve " 
-          << curveName
-          << ": angularStandardDeviation is less than sqrt(eps)"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createGaussianShapedActiveTorqueAngleCurve " 
+             << curveName
+             << ": angularStandardDeviation is less than sqrt(eps)"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
   if( (minValueAtShoulders < 0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createGaussianShapedActiveTorqueAngleCurve " 
-          << curveName
-          << ": minValueAtShoulders is less than 0"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createGaussianShapedActiveTorqueAngleCurve " 
+             << curveName
+             << ": minValueAtShoulders is less than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
 
   if( (minSlopeAtShoulders < 0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createGaussianShapedActiveTorqueAngleCurve " 
-          << curveName
-          << ": minSlopeAtShoulders is less than 0"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createGaussianShapedActiveTorqueAngleCurve " 
+             << curveName
+             << ": minSlopeAtShoulders is less than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
  if( (curviness < 0 || curviness > 1.0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createGaussianShapedActiveTorqueAngleCurve " 
-          << curveName
-          << ": curviness must be in the interval [0,1]"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createGaussianShapedActiveTorqueAngleCurve " 
+             << curveName
+             << ": curviness must be in the interval [0,1]"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
   double taCutoff = 1e-3;
@@ -1338,44 +1337,44 @@ void TorqueMuscleFunctionFactory::createTendonTorqueAngleCurve(
 
 
   if( angularStretchAtOneNormTorque < SQRTEPS ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTendonTorqueAngleCurve " 
-          << curveName
-          << ": angularStretchAtOneNormTorque should be greater than sqrt(eps)"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTendonTorqueAngleCurve " 
+             << curveName
+             << ": angularStretchAtOneNormTorque should be greater than sqrt(eps)"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
   if( stiffnessAtOneNormTorque < 1.1/angularStretchAtOneNormTorque){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTendonTorqueAngleCurve " 
-          << curveName
-          << ": stiffnessAtOneNormTorque should be greater "
-          << " than 1.1/angularStretchAtOneNormTorque"
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTendonTorqueAngleCurve " 
+             << curveName
+             << ": stiffnessAtOneNormTorque should be greater "
+             << " than 1.1/angularStretchAtOneNormTorque"
           << endl;
-    assert(0);
-    abort();         
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
   if( normTorqueAtToeEnd < SQRTEPS || normTorqueAtToeEnd > 0.99){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTendonTorqueAngleCurve " 
-          << curveName
-          << ": normTorqueAtToeEnd must be in the inteval [sqrt(eps), 0.99]"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTendonTorqueAngleCurve " 
+             << curveName
+             << ": normTorqueAtToeEnd must be in the inteval [sqrt(eps), 0.99]"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
   if( (curviness < 0 || curviness > 1.0) ){ 
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createTendonTorqueAngleCurve " 
-          << curveName
-          << ": curviness must be in the interval [0,1]"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createTendonTorqueAngleCurve " 
+             << curveName
+             << ": curviness must be in the interval [0,1]"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }  
 
   double c = SegmentedQuinticBezierToolkit::scaleCurviness(curviness);
@@ -1445,13 +1444,13 @@ void TorqueMuscleFunctionFactory::createDampingBlendingCurve(
      smoothSegmentedFunctionToUpdate)
 {
   if( abs(normAngularVelocityAtMaximumDamping) < SQRTEPS){
-    cerr  << "TorqueMuscleFunctionFactory::"
-          << "createDampingBlendingCurve "
-          << curveName
-          << ": |normAngularVelocityAtMaximumDamping| < SQRTEPS"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "TorqueMuscleFunctionFactory::"
+             << "createDampingBlendingCurve "
+             << curveName
+             << ": |normAngularVelocityAtMaximumDamping| < SQRTEPS"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   double x0,x1,x2,y0,y1,y2,dydx0,dydx1,dydx2;

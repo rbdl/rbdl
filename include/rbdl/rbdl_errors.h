@@ -25,6 +25,12 @@ class RBDLError : public std::exception {
 		virtual const char* what() const noexcept;
 };
 
+class RBDLInvalidParameterError : public RBDLError {
+	public:
+		RBDLInvalidParameterError(std::string text);
+};
+
+
 class RBDLSizeMismatchError : public RBDLError {
 	public:
 		RBDLSizeMismatchError(std::string text);
@@ -33,6 +39,17 @@ class RBDLSizeMismatchError : public RBDLError {
 class RBDLDofMismatchError : public RBDLError {
 	public:
 		RBDLDofMismatchError(std::string text);
+};
+
+
+class RBDLMissingImplementationError: public RBDLError {
+	public:
+		RBDLMissingImplementationError(std::string text);
+};
+
+class RBDLInvalidFileError : public RBDLError {
+	public:
+		RBDLInvalidFileError(std::string text);
 };
 
 class RBDLFileParseError : public RBDLError {

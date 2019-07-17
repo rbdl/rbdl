@@ -10,6 +10,8 @@
 #include "TorqueMuscleFunctionFactory.h"
 #include "csvtools.h"
 
+#include <rbdl/rbdl_errors.h>
+
 
 #include <limits>
 
@@ -406,66 +408,65 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
     }
 
     if(joint == -1 || jointDirection == -1){
-        cerr << "Millard2016TorqueMuscle::"
-               << "Millard2016TorqueMuscle:"
-               << mMuscleName
-               << ": A jointTorqueDirection of " << jointTorque
-               << " does not exist.";
-        assert(0);
-        abort();
+	    ostringstream errormsg;
+        errormsg << "Millard2016TorqueMuscle::"
+                 << "Millard2016TorqueMuscle:"
+                 << mMuscleName
+                 << ": A jointTorqueDirection of " << jointTorque
+                 << " does not exist.";
+        throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
     }
 
     if( abs(abs(mSignOfJointAngle)-1) >  EPSILON){
-
-        cerr << "Millard2016TorqueMuscle::"
-               << "Millard2016TorqueMuscle:"
-               << mMuscleName
-               << ": signOfJointAngleRelativeToAnderson2007 must be [-1,1] not "
-               << mSignOfJointAngle;
-        assert(0);
-        abort();
+	    ostringstream errormsg;
+        errormsg << "Millard2016TorqueMuscle::"
+                 << "Millard2016TorqueMuscle:"
+                 << mMuscleName
+                 << ": signOfJointAngleRelativeToAnderson2007 must be [-1,1] not "
+                 << mSignOfJointAngle;
+        throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
     }
 
     if( abs(abs(mSignOfConcentricAnglularVelocity)-1) >  EPSILON){
+	    ostringstream errormsg;
         cerr << "Millard2016TorqueMuscle::"
                << "Millard2016TorqueMuscle:"
                << mMuscleName
                << ": signOfJointAngularVelocityDuringConcentricContraction "
                << "must be [-1,1] not "
                << mSignOfConcentricAnglularVelocity;
-        assert(0);
-        abort();
+        throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
     }
 
     if( abs(abs(mSignOfJointTorque)-1) >  EPSILON){
-        cerr << "Millard2016TorqueMuscle::"
-               << "Millard2016TorqueMuscle:"
-               << mMuscleName
-               << ": mSignOfJointTorque must be [-1,1] not "
-               << mSignOfJointTorque;
-        assert(0);
-        abort();
+	    ostringstream errormsg;
+        errormsg << "Millard2016TorqueMuscle::"
+                 << "Millard2016TorqueMuscle:"
+                 << mMuscleName
+                 << ": mSignOfJointTorque must be [-1,1] not "
+                 << mSignOfJointTorque;
+        throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
     }
 
 
     if(mSubjectHeightInMeters <= 0){
-        cerr   << "Millard2016TorqueMuscle::"
-               << "Millard2016TorqueMuscle:"
-               << mMuscleName
-               << ": mSubjectHeightInMeters > 0, but it's "
-               << mSubjectHeightInMeters;
-        assert(0);
-        abort();
+	    ostringstream errormsg;
+        errormsg << "Millard2016TorqueMuscle::"
+                 << "Millard2016TorqueMuscle:"
+                 << mMuscleName
+                 << ": mSubjectHeightInMeters > 0, but it's "
+                 << mSubjectHeightInMeters;
+        throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
     }
 
     if(mSubjectMassInKg <= 0){
-        cerr   << "Millard2016TorqueMuscle::"
-               << "Millard2016TorqueMuscle:"
-               << mMuscleName
-               << ": mSubjectMassInKg > 0, but it's "
-               << mSubjectMassInKg;
-        assert(0);
-        abort();
+	    ostringstream errormsg;
+        errormsg << "Millard2016TorqueMuscle::"
+                 << "Millard2016TorqueMuscle:"
+                 << mMuscleName
+                 << ": mSubjectMassInKg > 0, but it's "
+                 << mSubjectMassInKg;
+        throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
     }
 
 
@@ -533,30 +534,29 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
 
       default:
       {
-        cerr << "Millard2016TorqueMuscle::"
+	    ostringstream errormsg;
+        errormsg << "Millard2016TorqueMuscle::"
              << "Millard2016TorqueMuscle:"
              << mMuscleName
              << "The requested DataSet does not exist.";
-        assert(0);
-        abort();
+        throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
       }
     };
 
 
 
     if(idx == -1){
-        cerr << "Millard2016TorqueMuscle::"
-               << "Millard2016TorqueMuscle:"
-               << mMuscleName
-               << "The combination of data set (" << mDataSet << ")"
-               << " joint (" << joint << ")"
-               << " joint direction (" << jointDirection << ")"
-               << " gender, (" << gender << ")"
-               << "and age " << ageGroup << ")"
-               << "could not be found";
-
-        assert(0);
-        abort();
+	    ostringstream errormsg;
+        errormsg << "Millard2016TorqueMuscle::"
+                 << "Millard2016TorqueMuscle:"
+                 << mMuscleName
+                 << "The combination of data set (" << mDataSet << ")"
+                 << " joint (" << joint << ")"
+                 << " joint direction (" << jointDirection << ")"
+                 << " gender, (" << gender << ")"
+                 << "and age " << ageGroup << ")"
+                 << "could not be found";
+        throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
     }
 
 
@@ -766,14 +766,14 @@ void Millard2016TorqueMuscle::
     setNormalizedDampingCoefficient(double betaUpd)
 {
   if(betaUpd < 0){
-      cerr << "Millard2016TorqueMuscle::"
-             << "setNormalizedDampingCoefficient:"
-             << mMuscleName
-             << "mBetaMax is " << betaUpd
-             << " but mBetaMax must be > 0 "
-             << endl;
-      assert(0);
-      abort();
+	  ostringstream errormsg;
+      errormsg << "Millard2016TorqueMuscle::"
+               << "setNormalizedDampingCoefficient:"
+               << mMuscleName
+               << "mBetaMax is " << betaUpd
+               << " but mBetaMax must be > 0 "
+               << endl;
+     throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   mBetaMax = betaUpd;
@@ -829,14 +829,14 @@ void Millard2016TorqueMuscle::
       setTorqueVelocityMultiplierAtHalfOmegaMax(double tvAtHalfOmegaMax)
 {
   if(mDataSet == DataSet::Anderson2007){
-    cerr << "Millard2016TorqueMuscle::"
-         << "setTorqueVelocityMultiplierAtHalfOmegaMax:"
-         << mMuscleName
-         << " This function is only compatible with the Gymnast dataset"
-         << " but this muscle is from the Anderson2007 dataset. Switch"
-         << " data sets or stop using this function.";
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "Millard2016TorqueMuscle::"
+             << "setTorqueVelocityMultiplierAtHalfOmegaMax:"
+             << mMuscleName
+             << " This function is only compatible with the Gymnast dataset"
+             << " but this muscle is from the Anderson2007 dataset. Switch"
+             << " data sets or stop using this function.";
+    throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
   }
   mMuscleCurvesAreDirty                = true;
   mUseTabularTorqueVelocityMultiplierAtHalfOmegaMax = false;
@@ -856,14 +856,14 @@ void Millard2016TorqueMuscle::
 void Millard2016TorqueMuscle::
     setMaximumConcentricJointAngularVelocity(double maxAngularVelocity){
   if(fabs(maxAngularVelocity) < SQRTEPSILON){
-    cerr << "Millard2016TorqueMuscle::"
+    ostringstream errormsg;
+    errormsg << "Millard2016TorqueMuscle::"
          << "setMaximumJointAngularVelocity:"
          << mMuscleName
          << " The value of maxJointAngularVelocity needs to be greater "
-            " than sqrt(epsilon), but it is "
+         << " than sqrt(epsilon), but it is "
          << maxAngularVelocity;
-    assert(0);
-    abort();
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
     mMuscleCurvesAreDirty = true;
@@ -971,14 +971,14 @@ void Millard2016TorqueMuscle::
     updateTorqueMuscleCurves();
 
     if(passiveFiberTorqueTarget < SQRTEPSILON){
-      cerr   << "Millard2016TorqueMuscle::"
-             << "fitPassiveTorqueScale:"
-             << mMuscleName
-             << ": passiveTorque " << passiveFiberTorqueTarget
-             << " but it should be greater than sqrt(eps)"
-             << endl;
-      assert(0);
-      abort();
+	  ostringstream errormsg;
+      errormsg << "Millard2016TorqueMuscle::"
+               << "fitPassiveTorqueScale:"
+               << mMuscleName
+               << ": passiveTorque " << passiveFiberTorqueTarget
+               << " but it should be greater than sqrt(eps)"
+               << endl;
+      throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
     }
 
     //Solve for the fiber angle at which the curve develops
@@ -1165,6 +1165,7 @@ void Millard2016TorqueMuscle::
     setActiveTorqueAngleCurveAngleScaling(double angleScaling)
 {
   if(angleScaling < SQRTEPSILON){
+	ostringstream errormsg;
     cerr << "Millard2016TorqueMuscle::"
          << "setActiveTorqueAngleCurveAngleScaling:"
          << mMuscleName
@@ -1172,8 +1173,7 @@ void Millard2016TorqueMuscle::
          << angleScaling
          <<" is outside the acceptable range."
          << endl;
-    assert(0);
-    abort();
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   mMuscleCurvesAreDirty = true;
@@ -1184,15 +1184,15 @@ void Millard2016TorqueMuscle::
       setActiveTorqueAngleCurveBlendingVariable(double blendingVariable)
 {
   if(blendingVariable < 0. || blendingVariable > 1.0){
-    cerr   << "Millard2016TorqueMuscle::"
-           << "setActiveTorqueAngleCurveBlendingVariable:"
-           << mMuscleName
-           << ": blending variable must be [0,1] and this "
-           << blendingVariable
-           << " is outside the acceptable range."
-           << endl;
-    assert(0);
-    abort();
+	ostringstream errormsg;
+    errormsg << "Millard2016TorqueMuscle::"
+             << "setActiveTorqueAngleCurveBlendingVariable:"
+             << mMuscleName
+             << ": blending variable must be [0,1] and this "
+             << blendingVariable
+             << " is outside the acceptable range."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
   mMuscleCurvesAreDirty = true;
   mTaLambda = blendingVariable;
@@ -1202,15 +1202,15 @@ void Millard2016TorqueMuscle::
       setPassiveTorqueAngleCurveBlendingVariable(double blendingVariable)
 {
   if(blendingVariable < 0. || blendingVariable > 1.0){
-    cerr   << "Millard2016TorqueMuscle::"
-           << "setPassiveTorqueAngleCurveBlendingVariable:"
-           << mMuscleName
-           << ": blending variable must be [0,1] and this "
-           << blendingVariable
-           << " is outside the acceptable range."
-           << endl;
-    assert(0);
-    abort();
+	ostringstream errormsg;
+    errormsg << "Millard2016TorqueMuscle::"
+             << "setPassiveTorqueAngleCurveBlendingVariable:"
+             << mMuscleName
+             << ": blending variable must be [0,1] and this "
+             << blendingVariable
+             << " is outside the acceptable range."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
   mMuscleCurvesAreDirty = true;
   mTpLambda = blendingVariable;
@@ -1221,15 +1221,15 @@ void Millard2016TorqueMuscle::
 {
 
   if(blendingVariable < 0. || blendingVariable > 1.0){
-    cerr   << "Millard2016TorqueMuscle::"
-           << "setTorqueAngularVelocityCurveBlendingVariable:"
-           << mMuscleName
-           << ": blending variable must be [0,1] and this "
-           << blendingVariable
-           << " is outside the acceptable range."
-           << endl;
-    assert(0);
-    abort();
+	ostringstream errormsg;
+    errormsg << "Millard2016TorqueMuscle::"
+             << "setTorqueAngularVelocityCurveBlendingVariable:"
+             << mMuscleName
+             << ": blending variable must be [0,1] and this "
+             << blendingVariable
+             << " is outside the acceptable range."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
   mMuscleCurvesAreDirty = true;
   mTvLambda = blendingVariable;
@@ -1240,13 +1240,13 @@ void Millard2016TorqueMuscle::setFittedParameters(
 {
 
   if(!fittedParameters.fittingConverged){
-    cerr   << "Millard2016TorqueMuscle::"
-           << "setTorqueMuscleParameters:"
-           << mMuscleName
-           << ": The fittingConverged field of fittedParameters is false! "
-           << endl;
-    assert(0);
-    abort();
+	ostringstream errormsg;
+    errormsg  << "Millard2016TorqueMuscle::"
+              << "setTorqueMuscleParameters:"
+              << mMuscleName
+              << ": The fittingConverged field of fittedParameters is false! "
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   setPassiveTorqueAngleCurveBlendingVariable(
@@ -1484,13 +1484,13 @@ void Millard2016TorqueMuscle::updateTorqueMuscleCurves()
       } break;
     default:
     {
-      cerr << "Millard2016TorqueMuscle::"
-             << "Millard2016TorqueMuscle:"
-             << mMuscleName
-             << "mDataSet has a value of " << mDataSet
-             << " which is not a valid choice";
-      assert(0);
-      abort();
+	  ostringstream errormsg;
+      errormsg << "Millard2016TorqueMuscle::"
+               << "Millard2016TorqueMuscle:"
+               << mMuscleName
+               << "mDataSet has a value of " << mDataSet
+               << " which is not a valid choice";
+      throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
     }
   };
 
@@ -1779,9 +1779,7 @@ double Millard2016TorqueMuscle::
   } break;
 
     default: {
-        cerr << "3rd order derivatives not yet implemented";
-        assert(0);
-        abort();
+        throw RigidBodyDynamics::Errors::RBDLMissingImplementationError("3rd order derivatives not yet implemented\n");
     }
   };
   return output;

@@ -285,8 +285,9 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
 RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model, bool floating_base, bool verbose) {
   ifstream model_file (filename);
   if (!model_file) {
-    cerr << "Error opening file '" << filename << "'." << endl;
-    abort();
+    ostringstream errormsg;
+    errormsg << "Error opening file '" << filename << "'." << endl;
+    throw Errors::RBDLInvalidFileError(errormsg.str());
   }
   
   // reserve memory for the contents of the file

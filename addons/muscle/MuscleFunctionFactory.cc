@@ -44,6 +44,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <rbdl/rbdl_errors.h>
+
 using namespace std;
 using namespace RigidBodyDynamics::Addons::Muscle;
 using namespace RigidBodyDynamics::Addons::Geometry;
@@ -90,50 +92,48 @@ void  MuscleFunctionFactory::createFiberActiveForceLengthCurve(
   double rootEPS = sqrt(std::numeric_limits<double>::epsilon());
 
   if( (!(x0>=0 && x1>x0+rootEPS && x2>x1+rootEPS && x3>x2+rootEPS) ) ){
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberActiveForceLengthCurve: "
-          << curveName
-          << ": This must be true: 0 < lce0 < lce1 < lce2 < lce3"
-          << endl;
-    assert(0);
-    abort();     
-              
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberActiveForceLengthCurve: "
+             << curveName
+             << ": This must be true: 0 < lce0 < lce1 < lce2 < lce3"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());     
   }
 
 
   if( !(ylow >= 0) ){
-    cerr << "MuscleFunctionFactory::"
-         << "createFiberActiveForceLengthCurve:"
-         << curveName
-         <<": shoulderVal must be greater than, or equal to 0"
-         << endl;
-    assert(0);
-    abort();
-
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberActiveForceLengthCurve:"
+             << curveName
+             << ": shoulderVal must be greater than, or equal to 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());     
   }
 
   double dydxUpperBound = (1-ylow)/(x2-x1);
 
 
   if( !(dydx >= 0 && dydx < dydxUpperBound) ){
-    cerr << "MuscleFunctionFactory::"
-         << "createFiberActiveForceLengthCurve:"
-         << curveName
-         << ": plateauSlope must be greater than 0 and less than "
-         << dydxUpperBound
-         << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberActiveForceLengthCurve:"
+             << curveName
+             << ": plateauSlope must be greater than 0 and less than "
+             << dydxUpperBound
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());     
   }
 
   if( !(curviness >= 0 && curviness <= 1) ){
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberActiveForceLengthCurve:"
-          << curveName
-          << ": curviness must be between 0 and 1"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberActiveForceLengthCurve:"
+             << curveName
+             << ": curviness must be between 0 and 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   std::string name = curveName;
@@ -234,91 +234,91 @@ void MuscleFunctionFactory::createFiberForceVelocityCurve(
   //Ensure that the inputs are within a valid range
   
   if( !(fmaxE > 1.0) ){
-    cerr << "MuscleFunctionFactory::"
-        << "createFiberForceVelocityCurve: "
-        << curveName
-        <<": fmaxE must be greater than 1"
-        << endl;
-    assert(0);
-    abort(); 
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityCurve: "
+             << curveName
+             <<": fmaxE must be greater than 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
   
   if( !(dydxC >= 0.0 && dydxC < 1) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityCurve: "
-          << curveName
-          << ": dydxC must be greater than or equal to 0 "
-          <<" and less than 1"
-          << endl;
-    assert(0);
-    abort();     
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityCurve: "
+             << curveName
+             << ": dydxC must be greater than or equal to 0 "
+             <<" and less than 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(dydxNearC > dydxC && dydxNearC <= 1) ){
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityCurve: "
-          << curveName
-          << ": dydxNearC must be greater than or equal to 0 "
-          << "and less than 1"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityCurve: "
+             << curveName
+             << ": dydxNearC must be greater than or equal to 0 "
+             << "and less than 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(dydxIso > 1) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityCurve: "
-          << curveName
-          << ": dydxIso must be greater than (fmaxE-1)/1 ("
-          << ((fmaxE-1.0)/1.0)
-          << ")"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityCurve: "
+             << curveName
+             << ": dydxIso must be greater than (fmaxE-1)/1 ("
+             << ((fmaxE-1.0)/1.0)
+             << ")"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(dydxE >= 0.0 && dydxE < (fmaxE-1)) ){
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityCurve: "
-          <<  curveName
-          <<": dydxE must be greater than or equal to 0 "
-          << "and less than fmaxE-1 ("
-          << (fmaxE-1) << ")"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityCurve: "
+             <<  curveName
+             <<": dydxE must be greater than or equal to 0 "
+             << "and less than fmaxE-1 ("
+             << (fmaxE-1) << ")"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(!(dydxNearE >= dydxE && dydxNearE < (fmaxE-1))){
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityCurve"
-          << curveName
-          << ": dydxNearE must be greater than or equal to dydxE "
-          << "and less than fmaxE-1 (" << (fmaxE-1)
-          << ")"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityCurve"
+             << curveName
+             << ": dydxNearE must be greater than or equal to dydxE "
+             << "and less than fmaxE-1 (" << (fmaxE-1)
+             << ")"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(! (concCurviness <= 1.0 && concCurviness >= 0)){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityCurve "
-          << curveName
-          << ": concCurviness must be between 0 and 1"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityCurve "
+             << curveName
+             << ": concCurviness must be between 0 and 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(! (eccCurviness <= 1.0 && eccCurviness >= 0)){
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityCurve "
-          << curveName    
-          << ": eccCurviness must be between 0 and 1"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityCurve "
+             << curveName    
+             << ": eccCurviness must be between 0 and 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   std::string name = curveName;
@@ -388,95 +388,93 @@ void MuscleFunctionFactory::createFiberForceVelocityInverseCurve(
 {
   //Ensure that the inputs are within a valid range  
   if(! (fmaxE > 1.0 )){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityInverseCurve: "
-          << curveName
-          << ": fmaxE must be greater than 1"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityInverseCurve: "
+             << curveName
+             << ": fmaxE must be greater than 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
   
   double SimTKSignificantReal = 
     pow((double)std::numeric_limits<double>::epsilon(), 7.0/8.0);
 
   if(! (dydxC > SimTKSignificantReal && dydxC < 1 )){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityInverseCurve "
-          << curveName
-          << ": dydxC must be greater than 0"
-          << "and less than 1"
-          << endl;
-    assert(0);
-    abort();
-
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityInverseCurve "
+             << curveName
+             << ": dydxC must be greater than 0"
+             << "and less than 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(! (dydxNearC > dydxC && dydxNearC < 1 )){
-    std::stringstream errMsg;
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityInverseCurve "
-          << ": dydxNearC must be greater than 0 "
-          << curveName
-          << " and less than 1"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityInverseCurve "
+             << ": dydxNearC must be greater than 0 "
+             << curveName
+             << " and less than 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(! (dydxIso > 1)){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityInverseCurve "
-          << curveName
-          << ": dydxIso must be greater than or equal to 1"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityInverseCurve "
+             << curveName
+             << ": dydxIso must be greater than or equal to 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   //double SimTKSignificantReal =
   //  pow(std::numeric_limits<double>::epsilon(), 7.0/8.0);
 
   if(! (dydxE > SimTKSignificantReal && dydxE < (fmaxE-1)) ){
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityInverseCurve "
-          << curveName
-          << ": dydxE must be greater than or equal to 0"
-          << " and less than fmaxE-1 (" << (fmaxE-1) << ")"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityInverseCurve "
+             << curveName
+             << ": dydxE must be greater than or equal to 0"
+             << " and less than fmaxE-1 (" << (fmaxE-1) << ")"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(! (dydxNearE >= dydxE && dydxNearE < (fmaxE-1)) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityInverseCurve "
-          << curveName
-          << ": dydxNearE must be greater than or equal to dydxE"
-          << "and less than fmaxE-1 ("<< (fmaxE-1) << ")"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityInverseCurve "
+             << curveName
+             << ": dydxNearE must be greater than or equal to dydxE"
+             << "and less than fmaxE-1 ("<< (fmaxE-1) << ")"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(! (concCurviness <= 1.0 && concCurviness >= 0) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityInverseCurve "
-          << curveName
-          << ": concCurviness must be between 0 and 1"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityInverseCurve "
+             << curveName
+             << ": concCurviness must be between 0 and 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if(! (eccCurviness <= 1.0 && eccCurviness >= 0) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceVelocityInverseCurve "
-          << curveName
-          << ": eccCurviness must be between 0 and 1"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceVelocityInverseCurve "
+             << curveName
+             << ": eccCurviness must be between 0 and 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   std::string name = curveName;
@@ -541,33 +539,33 @@ void MuscleFunctionFactory::createFiberCompressiveForcePennationCurve(
 {
   //Check the input arguments
   if( !(phi0>0 && phi0<(M_PI/2.0)) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberCompressiveForcePennationCurve "
-          << curveName
-          << ": phi0 must be greater than 0, and less than Pi/2"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForcePennationCurve "
+             << curveName
+             << ": phi0 must be greater than 0, and less than Pi/2"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(k > (1.0/(M_PI/2.0-phi0))) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberCompressiveForcePennationCurve " 
-          << curveName
-          << ": k must be greater than " << (1.0/(M_PI/2.0-phi0))
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForcePennationCurve " 
+             << curveName
+             << ": k must be greater than " << (1.0/(M_PI/2.0-phi0))
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(curviness>=0 && curviness <= 1)  ){
-    cerr << "MuscleFunctionFactory::"
-         << "createFiberCompressiveForcePennationCurve "
-         << curveName 
-         << ": curviness must be between 0.0 and 1.0"
-          << endl;
-    assert(0);
-    abort();         
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForcePennationCurve "
+             << curveName 
+             << ": curviness must be between 0.0 and 1.0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   std::string name=curveName;
@@ -603,33 +601,33 @@ void MuscleFunctionFactory::
 {
   //Check the input arguments
   if( !(cosPhi0>0 && cosPhi0 < 1) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberCompressiveForceCosPennationCurve " 
-          << curveName
-          << ": cosPhi0 must be greater than 0, and less than 1"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForceCosPennationCurve " 
+             << curveName
+             << ": cosPhi0 must be greater than 0, and less than 1"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(k < 1/cosPhi0) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberCompressiveForceCosPennationCurve " 
-          << curveName
-          << ": k must be less than 0"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForceCosPennationCurve " 
+             << curveName
+             << ": k must be less than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(curviness>=0 && curviness <= 1) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberCompressiveForceCosPennationCurve"
-          << curveName
-          << ": curviness must be between 0.0 and 1.0"
-          << endl;
-    assert(0);
-    abort();   
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForceCosPennationCurve"
+             << curveName
+             << ": curviness must be between 0.0 and 1.0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   std::string name=curveName;
@@ -664,34 +662,34 @@ void MuscleFunctionFactory::createFiberCompressiveForceLengthCurve(
 {
 
   if( !(lmax>0) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberCompressiveForceLength "
-          << curveName
-          << ": l0 must be greater than 0"
-          << endl;
-    assert(0);
-    abort();     
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForceLength "
+             << curveName
+             << ": l0 must be greater than 0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(k < -(1.0/lmax)) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberCompressiveForceLength "
-          << curveName
-          << ": k must be less than "
-          << -(1.0/lmax)
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForceLength "
+             << curveName
+             << ": k must be less than "
+             << -(1.0/lmax)
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(curviness>=0 && curviness <= 1) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberCompressiveForceLength "
-          << curveName
-          << ": curviness must be between 0.0 and 1.0"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberCompressiveForceLength "
+             << curveName
+             << ": curviness must be between 0.0 and 1.0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   std::string caller = curveName;
@@ -729,46 +727,45 @@ void  MuscleFunctionFactory::createFiberForceLengthCurve(
 {
   
   if( !(eIso > eZero) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceLength "
-          << curveName
-          << ": The following must hold: eIso  > eZero"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceLength "
+             << curveName
+             << ": The following must hold: eIso  > eZero"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(kIso > (1.0/(eIso-eZero))) ){ 
-    std::stringstream errMsg;
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceLength " 
-          << curveName
-          << ": kiso must be greater than 1/(eIso-eZero) ("
-          << (1.0/(eIso-eZero)) << ")"
-          << endl;
-    assert(0);
-    abort(); 
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceLength " 
+             << curveName
+             << ": kiso must be greater than 1/(eIso-eZero) ("
+             << (1.0/(eIso-eZero)) << ")"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(kLow > 0.0 && kLow < 1/(eIso-eZero)) ){
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceLength " 
-          << curveName
-          << ": kLow must be greater than 0 and less than"
-          << 1.0/(eIso-eZero)
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceLength " 
+             << curveName
+             << ": kLow must be greater than 0 and less than"
+             << 1.0/(eIso-eZero)
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(curviness>=0 && curviness <= 1) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createFiberForceLength "
-          << curveName
-          << ": curviness must be between 0.0 and 1.0"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createFiberForceLength "
+             << curveName
+             << ": curviness must be between 0.0 and 1.0"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   std::string callerName = curveName;
@@ -822,51 +819,50 @@ void MuscleFunctionFactory::
 {
   
   if( !(eIso>0) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createTendonForceLengthCurve " 
-          << curveName
-          << ": eIso must be greater than 0, but "
-          << eIso << " was entered"
-          << endl;
-    assert(0);
-    abort();
-
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createTendonForceLengthCurve " 
+             << curveName
+             << ": eIso must be greater than 0, but "
+             << eIso << " was entered"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }   
 
   if( !(fToe>0 && fToe < 1) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createTendonForceLengthCurve "
-          << curveName 
-          << ": fToe must be greater than 0 and less than 1, but "
-          << fToe
-          << " was entered"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createTendonForceLengthCurve "
+             << curveName 
+             << ": fToe must be greater than 0 and less than 1, but "
+             << fToe
+             << " was entered"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(kIso > (1/eIso)) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createTendonForceLengthCurve "
-          << curveName
-          << ": kIso must be greater than 1/eIso, ("
-          << (1/eIso) << "), but kIso (" 
-          << kIso << ") was entered"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createTendonForceLengthCurve "
+             << curveName
+             << ": kIso must be greater than 1/eIso, ("
+             << (1/eIso) << "), but kIso (" 
+             << kIso << ") was entered"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
 
   if( !(curviness>=0 && curviness <= 1) ){ 
-    cerr  << "MuscleFunctionFactory::"
-          << "createTendonForceLengthCurve "
-          << curveName
-          << " : curviness must be between 0.0 and 1.0, but "
-          << curviness << " was entered"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "MuscleFunctionFactory::"
+             << "createTendonForceLengthCurve "
+             << curveName
+             << " : curviness must be between 0.0 and 1.0, but "
+             << curviness << " was entered"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   std::string callerName = curveName;

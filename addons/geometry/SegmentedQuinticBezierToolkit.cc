@@ -42,6 +42,7 @@
 #include <fstream>
 #include <cmath>
 #include <sstream>
+#include <rbdl/rbdl_errors.h>
 
 //#include <cassert>
 using namespace RigidBodyDynamics::Addons::Geometry;
@@ -181,14 +182,13 @@ MatrixNd SegmentedQuinticBezierToolkit::
   "Error: double argument curviness must be between 0.0 and 1.0.");
   */
   if( !(curviness>=0 && curviness <= 1) ){
-  
-    cerr << "SegmentedQuinticBezierToolkit::"
-      <<"calcQuinticBezierCornerControlPoints"
-      <<"Error: double argument curviness must be between 0.0 and 1.0."
-      <<"curviness : " << curviness << " "
-      << endl;
-    assert (0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SegmentedQuinticBezierToolkit::"
+             << "calcQuinticBezierCornerControlPoints"
+             << "Error: double argument curviness must be between 0.0 and 1.0."
+             << "curviness : " << curviness << " "
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
 
@@ -238,28 +238,25 @@ MatrixNd SegmentedQuinticBezierToolkit::
   "parameters must be consistent with a C shaped corner.");
   */
   
-
-
   if( !((c > a) && (c > b)) ){
-    cerr  << "SegmentedQuinticBezierToolkit"
-      << "::calcQuinticBezierCornerControlPoints:"
-      << "The line segments at the end of the curve sections "
-      << "do not intersect within the domain " 
-      << "("<< x0 << "," << x1 << ") of the curve. "
-      << "and so there is a chance that curve will not"
-      << " be monotonic. There are 2 ways to fix this problem: " 
-      << endl
-      << "1. Add an intermediate point,"
-      << endl
-      << " 2. Space the domain points more widely "
-      << endl
-      << "Details: "
-      << endl << " a: " << a
-      << endl << " b: " << b
-      << endl << " c: " << c << endl;
-    assert (0);
-    abort();
-
+    ostringstream errormsg;
+    errormsg << "SegmentedQuinticBezierToolkit"
+             << "::calcQuinticBezierCornerControlPoints:"
+             << "The line segments at the end of the curve sections "
+             << "do not intersect within the domain " 
+             << "("<< x0 << "," << x1 << ") of the curve. "
+             << "and so there is a chance that curve will not"
+             << " be monotonic. There are 2 ways to fix this problem: " 
+             << endl
+             << "1. Add an intermediate point,"
+             << endl
+             << " 2. Space the domain points more widely "
+             << endl
+             << "Details: "
+             << endl << " a: " << a
+             << endl << " b: " << b
+             << endl << " c: " << c << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   /*
@@ -346,11 +343,11 @@ double  SegmentedQuinticBezierToolkit::
   "but %f was entered.",u);
   */
   if(!(u1 >= 0 && u1 <= 1)){
-    cerr << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveVal"
-      << "Error: double argument u must be between 0.0 and 1.0"
-      << "but " << u1 <<" was entered.";
-    assert (0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveVal"
+             << "Error: double argument u must be between 0.0 and 1.0"
+             << "but " << u1 <<" was entered.";
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
   
   /*
@@ -359,10 +356,10 @@ double  SegmentedQuinticBezierToolkit::
   "Error: vector argument pts must have a length of 6.");
   */
   if(!(pts.size() == 6) ){
-    cerr  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveVal:" 
-          << "Error: vector argument pts must have a length of 6.";
-    assert (0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveVal:" 
+             << "Error: vector argument pts must have a length of 6.";
+    throw RigidBodyDynamics::Errors::RBDLSizeMismatchError(errormsg.str());
   }
 
   double u2 = u1*u1;
@@ -490,44 +487,42 @@ double SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivDYDX(
   "Error: order must be less than, or equal to 6.");
   */
   if( !(u>=0 && u <= 1) ){
-    cerr << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:"
-         <<  "Error: double argument u must be between 0.0 and 1.0."
-         << endl;
-    assert(0);
-    abort();
-
+    ostringstream errormsg;
+    errormsg << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:"
+             <<  "Error: double argument u must be between 0.0 and 1.0."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(xpts.size()==6) ){
-    cerr  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
-          << "Error: vector argument xpts must have a length of 6."
-          << endl;
-    assert(0);
-    abort();
-
+    ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
+              << "Error: vector argument xpts must have a length of 6."
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLSizeMismatchError(errormsg.str());
   }
   if( !(ypts.size()==6) ){
-    cerr << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
-         << "Error: vector argument ypts must have a length of 6."
-         << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
+             << "Error: vector argument ypts must have a length of 6."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLSizeMismatchError(errormsg.str());
   }
 
   if( !(order >= 1) ){
-    cerr  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
-          << "Error: order must be greater than."
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
+              << "Error: order must be greater than."
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   if( !(order <= 6) ){
-    cerr  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
-          << "Error: order must be less than, or equal to 6."
-          << endl;
-    assert(0);
-    abort();   
+    ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
+              << "Error: order must be less than, or equal to 6."
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
   //std::string localCaller = caller;
   //localCaller.append(".calcQuinticBezierCurveDerivDYDX");
@@ -817,26 +812,26 @@ double SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU(
   "Error: order must be greater than, or equal to 1");
   */
   if( !(u>=0 && u <= 1) ){
-    cerr  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
-          << "Error: double argument u must be between 0.0 and 1.0."
-          << endl;
-    assert(0);
-    abort();   
+    ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
+              << "Error: double argument u must be between 0.0 and 1.0."
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
   if( !(pts.size()==6) ){ 
-    cerr << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
-         << "Error: vector argument pts must have a length of 6."
-         << endl;
-    assert(0);
-    abort();
+    std::ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
+              << "Error: vector argument pts must have a length of 6."
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLSizeMismatchError(errormsg.str());
   }
 
   if( !(order >= 1) ){
-    cerr  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
-          << "Error: order must be greater than, or equal to 1"
-          << endl;
-    assert(0);
-    abort();
+    std::ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcQuinticBezierCurveDerivU:" 
+              << "Error: order must be greater than, or equal to 1"
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   //Compute the Bezier point
@@ -987,12 +982,12 @@ double SegmentedQuinticBezierToolkit::calcU(double ax,
   "by the control points in bezierPtsX.");
   */
   if( !(ax >= minX && ax <= maxX) ){
-    cerr  << "SegmentedQuinticBezierToolkit::calcU:" 
-          << "Error: input ax was not in the domain of the "
-          << "Bezier curve specified by the control points in bezierPtsX."
-          << endl;
-    assert(0);
-    abort();
+    std::ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcU:" 
+              << "Error: input ax was not in the domain of the "
+              << "Bezier curve specified by the control points in bezierPtsX."
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   double u = ax/(maxX-minX);
@@ -1084,9 +1079,7 @@ double SegmentedQuinticBezierToolkit::calcU(double ax,
       << "  Curve range x(u): " << minX << "-" << maxX << endl
       << "  Desired x: " << ax << " closest u " << u << endl
       << "  Bezier points " << endl << bezierPtsX << endl;
-    cerr << errMsg.str();
-    assert(0);
-    abort();
+    throw RigidBodyDynamics::Errors::RBDLError(errMsg.str());
   } 
 
   return u;
@@ -1125,11 +1118,11 @@ int SegmentedQuinticBezierToolkit::calcIndex(double x,
   "Error: A value of x was used that is not within the Bezier curve set.");
   */
   if( !(flag_found == true)){
-    cerr  << "SegmentedQuinticBezierToolkit::calcIndex" 
-          << "Error: A value of x was used that is not"
-          << " within the Bezier curve set." << endl;
-    assert(0);
-    abort();
+	ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcIndex" 
+              << "Error: A value of x was used that is not"
+              << " within the Bezier curve set." << endl;
+    throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
   } 
   
 
@@ -1160,12 +1153,12 @@ int SegmentedQuinticBezierToolkit::calcIndex(double x,
   }
 
   if(!(flag_found == true)){
-    cerr  << "SegmentedQuinticBezierToolkit::calcIndex " 
-          << "Error: A value of x was used that is not "
-          << "within the Bezier curve set."
-          << endl;
-    assert(0);
-    abort();    
+    ostringstream errormsg;
+    errormsg  << "SegmentedQuinticBezierToolkit::calcIndex " 
+              << "Error: A value of x was used that is not "
+              << "within the Bezier curve set."
+              << endl;
+    throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
   }
 
   return idx;

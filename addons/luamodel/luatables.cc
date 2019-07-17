@@ -306,8 +306,9 @@ const char serialize_lua[] = {
 // Lua Helper Functions
 //
 void bail(lua_State *L, const char *msg){
-	std::cerr << msg << lua_tostring(L, -1) << endl;
-	abort();
+	std::ostringstream errormsg;
+	errormsg << msg << lua_tostring(L, -1) << endl;
+	throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
 }
 
 void stack_print (const char *file, int line, lua_State *L) {
@@ -461,8 +462,9 @@ LuaTable LuaTableNode::stackQueryTable() {
 	std::vector<LuaKey> key_stack = getKeyStack();
 
 	if (!query_key_stack (L, key_stack)) {
-		std::cerr << "Error: could not query table " << key << "." << std::endl;
-		abort();
+		std::ostringstream errormsg;
+		errormsg << "Error: could not query table " << key << "." << std::endl;
+		throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
 	}
 
 	return LuaTable::fromLuaState (L);
@@ -745,8 +747,7 @@ int LuaTable::length() {
 	pushRef();
 
 	if ((lua_gettop(L) == 0) || (lua_type (L, -1) != LUA_TTABLE)) {
-		cerr << "Error: cannot query table length. No table on stack!" << endl;
-		abort();
+		throw RigidBodyDynamics::Errors::RBDLError("Error: cannot query table length. No table on stack!\n");
 	}
 	size_t result = 0;
 
@@ -841,15 +842,13 @@ LuaTable LuaTable::fromLuaState (lua_State* L) {
 
 void LuaTable::addSearchPath(const char* path) {
 	if (luaStateRef->L == NULL) {
-		cerr << "Error: Cannot add search path: Lua state is not initialized!" << endl;
-		abort();
+		throw RigidBodyDynamics::Errors::RBDLError("Error: Cannot add search path: Lua state is not initialized!\n");
 	}
 
 	lua_getglobal(luaStateRef->L, "package");
 	lua_getfield (luaStateRef->L, -1, "path");
 	if (lua_type(luaStateRef->L, -1) != LUA_TSTRING) {
-		cerr << "Error: could not get package.path!" << endl;
-		abort();
+		throw RigidBodyDynamics::Errors::RBDLError("Error: could not get package.path!\n");
 	}
 
 	string package_path = lua_tostring (luaStateRef->L, -1);
@@ -884,8 +883,7 @@ std::string LuaTable::serialize() {
 		}
 		result = string("return ") + lua_tostring (L, -1);
 	} else {
-		cerr << "Cannot serialize global Lua state!" << endl;
-		abort();
+		throw RigidBodyDynamics::Errors::RBDLError("Cannot serialize global Lua state!");
 	}
 
 	lua_pop (L, lua_gettop(L) - current_top);
@@ -920,8 +918,7 @@ std::string LuaTable::orderedSerialize() {
 		}
 		result = string("return ") + lua_tostring (L, -1);
 	} else {
-		cerr << "Cannot serialize global Lua state!" << endl;
-		abort();
+		throw RigidBodyDynamics::Errors::RBDLError("Cannot serialize global Lua state!\n");
 	}
 
 	lua_pop (L, lua_gettop(L) - current_top);

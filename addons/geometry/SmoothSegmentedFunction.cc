@@ -39,6 +39,7 @@
 #include "SmoothSegmentedFunction.h"
 #include <fstream>
 #include <ostream>
+#include <rbdl/rbdl_errors.h>
 
 //=============================================================================
 // STATICS
@@ -152,13 +153,13 @@ void SmoothSegmentedFunction::
 {
 
   if(mX.rows() != 6 || mY.rows() != 6 || mX.cols() != mY.cols() ){
-    cerr<<"SmoothSegmentedFunction::updSmoothSegmentedFunction "
-         << _name.c_str()
-        <<": matrices mX and mY must have 6 rows, and the same"
-        <<" number of columns."
-        << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SmoothSegmentedFunction::updSmoothSegmentedFunction "
+             <<  _name.c_str()
+             << ": matrices mX and mY must have 6 rows, and the same"
+             << " number of columns."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLSizeMismatchError(errormsg.str());
   }
 
   _x0   =x0;
@@ -202,14 +203,14 @@ void SmoothSegmentedFunction::scale(double xScale, double yScale)
 {
 
   if( abs( xScale ) <= SQRTEPS){
-    cerr<<"SmoothSegmentedFunction::scale "
-         << _name.c_str()
-        <<": xScale must be greater than sqrt(eps). Setting xScale to such"
-        <<" a small value will cause the slope of the curve to approach "
-        <<" infinity, or become undefined."
-        << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SmoothSegmentedFunction::scale "
+             <<  _name.c_str()
+             << ": xScale must be greater than sqrt(eps). Setting xScale to such"
+             << " a small value will cause the slope of the curve to approach "
+             << " infinity, or become undefined."
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
   }
 
   _x0 *= xScale;
@@ -336,14 +337,13 @@ double SmoothSegmentedFunction::calcValue(
 {
   
   if( !(ax.size() == 1) ){
-    cerr<<"SmoothSegmentedFunction::calcValue " << _name.c_str() 
-        <<": Argument x must have only 1 element, as this function is "
-        << "designed only for 1D functions, but a function with "
-        << ax.size() << " elements was entered"
-        << endl;
-    assert(0);
-    abort();
-    
+    ostringstream errormsg;
+    errormsg << "SmoothSegmentedFunction::calcValue " << _name.c_str() 
+             << ": Argument x must have only 1 element, as this function is "
+             <<  "designed only for 1D functions, but a function with "
+             << ax.size() << " elements was entered"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLDofMismatchError(errormsg.str());
   }
 
   return calcValue(ax[0]); 
@@ -442,37 +442,36 @@ double SmoothSegmentedFunction::
 
   for(int i=0; i < (signed)derivComponents.size(); i++){
     if( !(derivComponents[i] == 0)){
-      cerr << "SmoothSegmentedFunction::calcDerivative " 
-        << _name.c_str()
-        <<": derivComponents can only be populated with 0's because "
-        << "SmoothSegmentedFunction is only valid for a 1D function,"
-        << " but derivComponents had a value of " 
-        << derivComponents[i] << " in it"
-        << endl;
-      assert(0);
-      abort();
-
+      ostringstream errormsg;
+      errormsg << "SmoothSegmentedFunction::calcDerivative " 
+               << _name.c_str()
+               << ": derivComponents can only be populated with 0's because "
+               << "SmoothSegmentedFunction is only valid for a 1D function,"
+               << " but derivComponents had a value of " 
+               << derivComponents[i] << " in it"
+               << endl;
+      throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
     }
   }
 
   if( !(derivComponents.size() <= 6)){
-    cerr  << "SmoothSegmentedFunction::calcDerivative " << _name.c_str()
-      << ": calcDerivative is only valid up to a 6th order derivative"
-      << " but derivComponents had a size of "
-      << derivComponents.size()
-      << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SmoothSegmentedFunction::calcDerivative " << _name.c_str()
+             << ": calcDerivative is only valid up to a 6th order derivative"
+             << " but derivComponents had a size of "
+             << derivComponents.size()
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLDofMismatchError(errormsg.str());
   }
 
   if( !(ax.size() == 1) ){
-    cerr  << "SmoothSegmentedFunction::calcValue " << _name.c_str()
-          << ": Argument x must have only 1 element, as this function is "
-          << "designed only for 1D functions, but ax had a size of "
-          << ax.size()
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SmoothSegmentedFunction::calcValue " << _name.c_str()
+             << ": Argument x must have only 1 element, as this function is "
+             << "designed only for 1D functions, but ax had a size of "
+             << ax.size()
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLDofMismatchError(errormsg.str());
   }
 
 
@@ -634,11 +633,11 @@ RigidBodyDynamics::Math::MatrixNd
   int pts = 1; //Number of points between each of the spline points used
           //to fit u(x), and also the integral spline
   if( !(maxOrder <= getMaxDerivativeOrder()) ){
-    cerr  << "SmoothSegmentedFunction::calcSampledCurve "
-          << "Derivative order past the maximum computed order requested"
-          << endl;
-    assert(0);
-    abort();
+    ostringstream errormsg;
+    errormsg << "SmoothSegmentedFunction::calcSampledCurve "
+             << "Derivative order past the maximum computed order requested"
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
   }
 
   double x0,x1,delta;
@@ -871,12 +870,12 @@ void SmoothSegmentedFunction::
 
   if(!datafile){
     datafile.close();
-    cerr << "SmoothSegmentedFunction::printMatrixToFile "
-         << _name.c_str() << ": Failed to open the file path: "
-         << fullpath.c_str()
-         << endl;
-    assert(0);
-    abort();    
+    ostringstream errormsg;
+    errormsg << "SmoothSegmentedFunction::printMatrixToFile "
+             << _name.c_str() << ": Failed to open the file path: "
+             << fullpath.c_str()
+             << endl;
+    throw RigidBodyDynamics::Errors::RBDLInvalidFileError(errormsg.str());    
   }
 
 

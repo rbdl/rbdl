@@ -27,12 +27,14 @@
 #define LUATABLES_H
 
 #include <iostream>
+#include <sstream>
 #include <assert.h>
 #include <cstdlib>
 #include <string>
 #include <vector>
 
 #include <rbdl/rbdl_config.h>
+#include <rbdl/rbdl_errors.h>
 
 // Forward declaration for Lua
 extern "C" {
@@ -130,8 +132,9 @@ struct RBDL_DLLAPI LuaTableNode {
 	template <typename T>
 	T get() {
 		if (!exists()) {
-			std::cerr << "Error: could not find value " << keyStackToString() << "." << std::endl;
-			abort();
+			std::ostringstream errormsg;
+			errormsg << "Error: could not find value " << keyStackToString() << "." << std::endl;
+			throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
 		}
 		return getDefault (T());
 	}
