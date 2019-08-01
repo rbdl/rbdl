@@ -308,7 +308,7 @@ const char serialize_lua[] = {
 void bail(lua_State *L, const char *msg){
 	std::ostringstream errormsg;
 	errormsg << msg << lua_tostring(L, -1) << endl;
-	throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
+	throw RigidBodyDynamics::Errors::RBDLFileParseError(errormsg.str());
 }
 
 void stack_print (const char *file, int line, lua_State *L) {
