@@ -38,13 +38,11 @@ ENDIF()
 # Find and use the system's Eigen3 library
 FIND_PACKAGE (Eigen3 3.0.0)
 
-IF (NOT EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
-	MESSAGE (WARNING "Could not find Eigen3 on your system. Install it or use the slower SimpleMath library by enabling RBDL_USE_SIMPLE_MATH.")
-ENDIF (NOT EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
+IF (NOT EIGEN3_FOUND)
+	MESSAGE (WARNING "Could not find Eigen3 on your system. Please install it!")
+ENDIF (NOT EIGEN3_FOUND)
 
-IF (EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
-	INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
-ENDIF (EIGEN3_FOUND AND NOT RBDL_USE_SIMPLE_MATH)
+INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
 
 # Options
 SET (RBDL_BUILD_STATIC_DEFAULT OFF)
@@ -55,7 +53,6 @@ ENDIF (MSVC)
 OPTION (RBDL_BUILD_STATIC "Build statically linked library (otherwise dynamiclly linked)" ${RBDL_BUILD_STATIC_DEFAULT})
 OPTION (RBDL_BUILD_TESTS "Build the test executables" OFF)
 OPTION (RBDL_ENABLE_LOGGING "Enable logging (warning: major impact on performance!)" OFF)
-OPTION (RBDL_USE_SIMPLE_MATH "Use slow math instead of the fast Eigen3 library (faster compilation)" OFF)
 OPTION (RBDL_STORE_VERSION "Enable storing of version information in the library (requires build from valid repository)" OFF)
 OPTION (RBDL_BUILD_ADDON_URDFREADER "Build the (experimental) urdf reader" OFF)
 OPTION (RBDL_BUILD_ADDON_BENCHMARK "Build the benchmarking tool" OFF)
@@ -189,13 +186,6 @@ FILE ( GLOB headers
 	)
 
 INSTALL ( FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rbdl )
-
-# Setup of SimpleMath install settings
-IF (RBDL_USE_SIMPLE_MATH)
-	INSTALL ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/SimpleMath"
-		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rbdl
-	)
-ENDIF (RBDL_USE_SIMPLE_MATH)
 
 # pkg-config
 CONFIGURE_FILE (

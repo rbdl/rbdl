@@ -67,17 +67,13 @@ RBDL_DLLAPI void rbdl_print_version() {
 #else
   std::cout << "  logging      : off" << std::endl;
 #endif
-#ifdef RBDL_USE_SIMPLE_MATH
-  std::cout << "  simplemath   : on (warning: reduces performance!)" << std::endl;
-#else
-  std::cout << "  simplemath   : off" << std::endl;
-#endif
 
 #ifdef RBDL_BUILD_ADDON_LUAMODEL
   std::cout << "  LuaModel     : on" << std::endl;
 #else
   std::cout << "  LuaModel     : off" << std::endl;
 #endif
+
 #ifdef RBDL_BUILD_ADDON_URDFREADER
   std::cout << "  URDFReader   : on" << std::endl;
 #else

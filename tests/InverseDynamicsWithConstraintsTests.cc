@@ -378,7 +378,6 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   cs[0].SetActuationMap(model, dofActuated);
 
-#ifndef RBDL_USE_SIMPLE_MATH
   //Test to see if this model is compatiable with the exact IDC operator
   bool isCompatible = isConstrainedSystemFullyActuated(
                         model,q,qd,cs[0]);
@@ -409,7 +408,7 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
   for(unsigned int i=0; i<lambdaFwd.rows();++i){
     CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
   }
-#endif
+
   //Check the relaxed method
   VectorNd tauIDCR(tauIDC.rows());
   VectorNd qddIDCR(tauIDC.rows());
@@ -458,12 +457,11 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   cs[1].SetActuationMap(model, dofActuated);
 
-#ifndef RBDL_USE_SIMPLE_MATH
   //Test to see if this model is compatiable with the exact IDC operator
   isCompatible = isConstrainedSystemFullyActuated(
                         model,q,qd,cs[1]);
   CHECK(isCompatible==false);
-#endif
+
   //Check the relaxed method
   qddTarget.setZero();
   InverseDynamicsConstraintsRelaxed(model,
@@ -509,7 +507,6 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
     auto tidcr = std::chrono::duration_cast<std::chrono::microseconds>(tidcr2-tidcr1);
 
 
-#ifndef RBDL_USE_SIMPLE_MATH
     auto tidc1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
       InverseDynamicsConstraints(model,
@@ -518,7 +515,7 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
     }
     auto tidc2   = std::chrono::high_resolution_clock::now();
     auto tidc = std::chrono::duration_cast<std::chrono::microseconds>(tidc2-tidc1);
-#endif
+
     auto tfd1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
       ForwardDynamicsConstraintsNullSpace(model,q,qd,tauIDC,cs[0],qddFwd);
@@ -528,10 +525,10 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
     std::cout << "Planar Biped Dof: " << model.dof_count << std::endl;
     std::cout << "Cost per evaluation : us, xfd " << std::endl;
-#ifndef RBDL_USE_SIMPLE_MATH
+
     std::cout << "IDC: " << double(tidc.count()) / double(iterations) << " "
                         << double(tidc.count())/double(tfd.count()) << std::endl;
-#endif
+
     std::cout << "IDCRelaxed: " << double(tidcr.count()) / double(iterations) << " "
                         << double(tidcr.count())/double(tfd.count()) << std::endl;
 
@@ -648,7 +645,7 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   VectorNd tauIDC = VectorNd::Zero(tau.size());
   VectorNd qddIDC = VectorNd::Zero(qdd.size());
   cs.SetActuationMap(model,dofActuated);
-#ifndef RBDL_USE_SIMPLE_MATH
+
   //Test to see if this model is compatiable with the exact IDC operator
   bool isCompatible = isConstrainedSystemFullyActuated(
                         model,q,qd,cs);
@@ -679,7 +676,6 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   for(unsigned int i=0; i<lambdaIdc.rows();++i){
     CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
   }
-#endif
 
   //Check the relaxed method
   VectorNd tauIDCR(tauIDC.rows());
@@ -724,7 +720,6 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
     auto tidcr = std::chrono::duration_cast<std::chrono::microseconds>(tidcr2-tidcr1);
 
 
-#ifndef RBDL_USE_SIMPLE_MATH
     auto tidc1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
       InverseDynamicsConstraints(model,
@@ -733,7 +728,7 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
     }
     auto tidc2   = std::chrono::high_resolution_clock::now();
     auto tidc = std::chrono::duration_cast<std::chrono::microseconds>(tidc2-tidc1);
-#endif
+
     auto tfd1 = std::chrono::high_resolution_clock::now();
     for(unsigned int i=0; i<iterations; ++i){
       ForwardDynamicsConstraintsNullSpace(model,q,qd,tauIDC,cs,qddFwd);
@@ -743,10 +738,10 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
 
     std::cout << "Spatial Biped Dof: " << model.dof_count << std::endl;
     std::cout << "Cost per evaluation : us, xfd " << std::endl;
-#ifndef RBDL_USE_SIMPLE_MATH
+
     std::cout << "IDC: " << double(tidc.count()) / double(iterations) << " "
                         << double(tidc.count())/double(tfd.count()) << std::endl;
-#endif
+
     std::cout << "IDCRelaxed: " << double(tidcr.count()) / double(iterations) << " "
                         << double(tidcr.count())/double(tfd.count()) << std::endl;
 
@@ -836,7 +831,7 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   //The IDC operator should be able to statisfy qdd=0 and return a tau
   //vector that matches the hand solution produced above.
   spa.cs.SetActuationMap(spa.model,actuationMap);
-#ifndef RBDL_USE_SIMPLE_MATH
+
   //Test to see if this model is compatiable with the exact IDC operator
   bool isCompatible = isConstrainedSystemFullyActuated(
                         spa.model,spa.q,spa.qd,spa.cs);
@@ -851,7 +846,6 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   for(unsigned int i=0; i<tauIdc.rows();++i){
     CHECK_CLOSE(spa.tau[i],tauIdc[i],TEST_PREC);
   }
-#endif
 
   InverseDynamicsConstraintsRelaxed(spa.model,spa.q,spa.qd,qddDesired,
                                     spa.cs, qddIdc,tauIdc);
@@ -972,7 +966,7 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   //vector that matches the hand solution produced above.
 
   dba.cs.SetActuationMap(dba.model,actuationMap);
-#ifndef RBDL_USE_SIMPLE_MATH  
+
   //Test to see if this model is compatiable with the exact IDC operator
   bool isCompatible = isConstrainedSystemFullyActuated(
                         dba.model,dba.q,dba.qd,dba.cs);
@@ -987,7 +981,7 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   for(unsigned int i=0; i<tauIdc.rows();++i){
     CHECK_CLOSE(dba.tau[i],tauIdc[i],TEST_PREC);
   }
-#endif
+
   InverseDynamicsConstraintsRelaxed(dba.model,dba.q,dba.qd,qddDesired,
                                           dba.cs, qddIdc,tauIdc);
 
@@ -1084,11 +1078,10 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
   actuation[model.qdot_size-1] = true;
   cs.SetActuationMap(model,actuation);
 
-#ifndef RBDL_USE_SIMPLE_MATH
   bool isCompatible =
       isConstrainedSystemFullyActuated(model,q,qd,cs);
   CHECK(isCompatible == false);
-#endif
+
   //pose 1
   InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
   for(unsigned int i=0; i<qddDesired.rows();++i){

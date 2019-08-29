@@ -27,11 +27,7 @@ namespace Math {
 // this has to be properly mapped.
 #define PTR_DATA_ROW_MAJOR 1
 
-#ifdef RBDL_USE_SIMPLE_MATH
-	typedef VectorNd VectorNdRef;
-	typedef MatrixNd MatrixNdRef;
-#else
-	typedef Eigen::Ref<Eigen::VectorXd> VectorNdRef;
+typedef Eigen::Ref<Eigen::VectorXd> VectorNdRef;
 
 #ifdef PTR_DATA_ROW_MAJOR
 	typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> MatrixNdRowMaj;
@@ -40,12 +36,9 @@ namespace Math {
 	typedef Eigen::Ref<Eigen::MatrixXd> MatrixNdRef;
 #endif
 
-#endif
 
 RBDL_DLLAPI inline VectorNdRef VectorFromPtr (double *ptr, unsigned int n) {
-#ifdef RBDL_USE_SIMPLE_MATH
-	return SimpleMath::Map<VectorNd> (ptr, n, 1);
-#elif defined EIGEN_CORE_H
+#ifdef EIGEN_CORE_H
 	return Eigen::Map<VectorNd> (ptr, n, 1);
 #else
 	std::ostringstream errormsg;
@@ -56,9 +49,7 @@ RBDL_DLLAPI inline VectorNdRef VectorFromPtr (double *ptr, unsigned int n) {
 }
 
 RBDL_DLLAPI inline MatrixNdRef MatrixFromPtr (double *ptr, unsigned int rows, unsigned int cols, bool row_major = true) {
-#ifdef RBDL_USE_SIMPLE_MATH
-	return SimpleMath::Map<MatrixNd> (ptr, rows, cols);
-#elif defined EIGEN_CORE_H
+#ifdef EIGEN_CORE_H
 #ifdef PTR_DATA_ROW_MAJOR
 	return Eigen::Map<MatrixNdRowMaj> (ptr, rows, cols);
 #else
@@ -796,32 +787,20 @@ void ForwardDynamicsPtr (
           + Ia * model.c[i]
           + model.U[i] * model.u[i] / model.d[i];
 
-#ifdef EIGEN_CORE_H
         model.IA[lambda].noalias()
           += model.X_lambda[i].toMatrixTranspose()
           * Ia * model.X_lambda[i].toMatrix();
         model.pA[lambda].noalias()
           += model.X_lambda[i].applyTranspose(pa);
-#else
-        model.IA[lambda]
-          += model.X_lambda[i].toMatrixTranspose()
-          * Ia * model.X_lambda[i].toMatrix();
 
-        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
         LOG << "pA[" << lambda << "] = "
           << model.pA[lambda].transpose() << std::endl;
       }
     } else if (model.mJoints[i].mDoFCount == 3
         && model.mJoints[i].mJointType != JointTypeCustom) {
       model.multdof3_U[i] = model.IA[i] * model.multdof3_S[i];
-#ifdef EIGEN_CORE_H
       model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose()
           * model.multdof3_U[i]).inverse().eval();
-#else
-      model.multdof3_Dinv[i] = (model.multdof3_S[i].transpose()
-          * model.multdof3_U[i]).inverse();
-#endif
       VectorNd tau_temp(Tau.block(q_index,0,3,1));
       model.multdof3_u[i] = tau_temp 
         - model.multdof3_S[i].transpose() * model.pA[i];
@@ -840,7 +819,7 @@ void ForwardDynamicsPtr (
           + model.multdof3_U[i]
           * model.multdof3_Dinv[i]
           * model.multdof3_u[i];
-#ifdef EIGEN_CORE_H
+
         model.IA[lambda].noalias()
           += model.X_lambda[i].toMatrixTranspose()
           * Ia
@@ -848,14 +827,7 @@ void ForwardDynamicsPtr (
 
         model.pA[lambda].noalias()
           += model.X_lambda[i].applyTranspose(pa);
-#else
-        model.IA[lambda]
-          += model.X_lambda[i].toMatrixTranspose()
-          * Ia
-          * model.X_lambda[i].toMatrix();
 
-        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
         LOG << "pA[" << lambda << "] = "
           << model.pA[lambda].transpose()
           << std::endl;
@@ -872,15 +844,10 @@ void ForwardDynamicsPtr (
       std::cout << "S*U: " << model.mCustomJoints[kI]->S.transpose()
             * model.mCustomJoints[kI]->U << std::endl;
       
-#ifdef EIGEN_CORE_H
       model.mCustomJoints[kI]->Dinv
         = (model.mCustomJoints[kI]->S.transpose()
             * model.mCustomJoints[kI]->U).inverse().eval();
-#else
-      model.mCustomJoints[kI]->Dinv
-        = (model.mCustomJoints[kI]->S.transpose()
-            * model.mCustomJoints[kI]->U).inverse();
-#endif
+
       VectorNd tau_temp(Tau.block(q_index,0,dofI,1));
       model.mCustomJoints[kI]->u = tau_temp
         - model.mCustomJoints[kI]->S.transpose() * model.pA[i];
@@ -901,18 +868,10 @@ void ForwardDynamicsPtr (
               * model.mCustomJoints[kI]->Dinv
               * model.mCustomJoints[kI]->u);
 
-#ifdef EIGEN_CORE_H
         model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose()
           * Ia
           * model.X_lambda[i].toMatrix();
         model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-#else
-        model.IA[lambda] += model.X_lambda[i].toMatrixTranspose()
-          * Ia
-          * model.X_lambda[i].toMatrix();
-        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
-        
 
         LOG << "pA[" << lambda << "] = "
           << model.pA[lambda].transpose()
@@ -1043,12 +1002,9 @@ RBDL_DLLAPI bool InverseKinematicsPtr (
       + dlambda*dlambda * MatrixNd::Identity(e.size(), e.size());
 
     VectorNd z (body_id.size() * 3);
-#ifndef RBDL_USE_SIMPLE_MATH
-    z = JJTe_lambda2_I.colPivHouseholderQr().solve (e);
-#else
+
     bool solve_successful = LinSolveGaussElimPivot (JJTe_lambda2_I, e, z);
     assert (solve_successful);
-#endif
 
     LOG << "z = " << z << std::endl;
 

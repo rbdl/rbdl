@@ -660,12 +660,9 @@ RBDL_DLLAPI bool InverseKinematics (
       + lambda*lambda * MatrixNd::Identity(e.size(), e.size());
 
     VectorNd z (body_id.size() * 3);
-#ifndef RBDL_USE_SIMPLE_MATH
-    z = JJTe_lambda2_I.colPivHouseholderQr().solve (e);
-#else
+
     bool solve_successful = LinSolveGaussElimPivot (JJTe_lambda2_I, e, z);
     assert (solve_successful);
-#endif
 
     LOG << "z = " << z << std::endl;
 
