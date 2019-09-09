@@ -156,7 +156,7 @@ class RBDL_DLLAPI Constraint {
 
     /**
       \brief In this function the matrix \f$G_{i}\f$ of this contraint is 
-      inserted into the system constraint Jacobian \f$G\f$ (GSysUpd). The 
+      inserted into the system constraint Jacobian \f$G\f$ (GSysOutput). The
       submatrix \f$G_{i}\f$ begins at rowInSystem, has sizeOfConstraint 
       number of rows, and fills the full number of columns in G.
 
@@ -165,10 +165,10 @@ class RBDL_DLLAPI Constraint {
       constraints might be included (in the future).
       @param Q: the vector of generalized positions.
       @param QDot: the vector of generalized velocities.
-      @param GSysUpd: a reference to the constraint Jacobian for the entire 
+      @param GSysOutput: a reference to the constraint Jacobian for the entire
           system. Insert the G sub-matrix for this constraint beginning and 
           rowInSystem, with a length sizeOfConstraint rows, and a width of
-          the full number of columns in GSysUpd.
+          the full number of columns in GSysOutput.
       @param cache: a ConstraintCache object which contains ample pre-allocated
           memory that can be used to reduce the memory footprint of each 
           Constraint implementation.
@@ -180,7 +180,7 @@ class RBDL_DLLAPI Constraint {
                                           const double time,
                                           const Math::VectorNd &Q,
                                           const Math::VectorNd &QDot,
-                                          Math::MatrixNd &GSysUpd,
+                                          Math::MatrixNd &GSysOutput,
                                           ConstraintCache &cache,
                                           bool updateKinematics=false) = 0;
 
@@ -198,9 +198,9 @@ class RBDL_DLLAPI Constraint {
       @param GSys: a reference to the constraint Jacobian for the entire 
           system. If \f$G\f$ is needed in this function do not re-evaluate it 
           but instead extract it from the system \f$G\f$.
-      @param gammaSysUpd: the system's gamma vector. Insert the gamma sub-vector
-          for this constraint beginning and rowInSystem and with a length of 
-          sizeOfConstraint rows.
+      @param gammaSysOutput the system's gamma vector. Insert the
+          gamma sub-vector for this constraint beginning and rowInSystem and
+          with a length of sizeOfConstraint rows.
       @param cache: a ConstraintCache object which contains ample pre-allocated
           memory that can be used to reduce the memory footprint of each 
           Constraint implementation.
@@ -213,7 +213,7 @@ class RBDL_DLLAPI Constraint {
                             const Math::VectorNd &Q,
                             const Math::VectorNd &QDot,
                             const Math::MatrixNd &GSys,
-                            Math::VectorNd &gammaSysUpd,
+                            Math::VectorNd &gammaSysOutput,
                             ConstraintCache &cache,
                             bool updateKinematics=false) = 0;
 
@@ -230,8 +230,8 @@ class RBDL_DLLAPI Constraint {
       @param time: the time which is included so that rheonomic
       constraints might be included (in the future).
       @param Q: the vector of generalized positions.
-      @param errSysUpd: the system's constraint position error vector. Insert 
-          the position error sub-vector for this constraint beginning and 
+      @param errSysOutput the system's constraint position error vector.
+          Insert the position error sub-vector for this constraint beginning and
           rowInSystem and with a length of sizeOfConstraint rows.
       @param cache: a ConstraintCache object which contains ample pre-allocated
           memory that can be used to reduce the memory footprint of each 
@@ -243,7 +243,7 @@ class RBDL_DLLAPI Constraint {
     virtual void calcPositionError( Model &model,
                                     const double time,
                                     const Math::VectorNd &Q,
-                                    Math::VectorNd &errSysUpd,
+                                    Math::VectorNd &errSysOutput,
                                     ConstraintCache &cache,
                                     bool updateKinematics=false) = 0;
 
@@ -266,7 +266,7 @@ class RBDL_DLLAPI Constraint {
           but instead extract it from the system \f$G\f$: this constraint's 
           sub-matrix begins at rowInSystem, has sizeOfConstraint rows, and
           the full number of columns of GSys.      
-      @param derrSysUpd: the system's constraint velocity error vector. 
+      @param derrSysOutput the system's constraint velocity error vector.
           Insert the velocity error sub-vector for this constraint beginning 
           and rowInSystem and with a length of sizeOfConstraint rows.
       @param cache: a ConstraintCache object which contains ample pre-allocated
@@ -281,7 +281,7 @@ class RBDL_DLLAPI Constraint {
                                     const Math::VectorNd &Q,
                                     const Math::VectorNd &QDot,
                                     const Math::MatrixNd &GSys,
-                                    Math::VectorNd &derrSysUpd,
+                                    Math::VectorNd &derrSysOutput,
                                     ConstraintCache &cache,
                                     bool updateKinematics=false) = 0;
 
@@ -311,22 +311,22 @@ class RBDL_DLLAPI Constraint {
           entire system. The Lagrange multipliers for this constraint begin 
           at rowInSystem and has sizeOfConstraint elements.
 
-      @param constraintBodiesUpd: contains the indices of the bodies that 
-              contain the local frames listed in constraintBodyFramesUpd.
+      @param constraintBodiesOutput contains the indices of the bodies
+              that contain the local frames listed in constraintBodyFramesOutput.
               If resolveAllInRootFrame is true, all of these indicies should
               be set to 0: in this case all of the wrenches are resolved in
               the root frame. 
 
-      @param constraintBodyFramesUpd: contains the local transformation from
-          the origin of each body frame listed in constraintBodiesUpd to the
+      @param constraintBodyFramesOutput contains the local transformation from
+          the origin of each body frame listed in constraintBodiesOutput to the
           frame in which the constraint wrench is applied. Note the \f$i^{th}\f$
           frame is located on the \f$i^{th}\f$ body.
           If resolveAllInRootFrame is true, all of these frames have 
           their origins resolved in the global frame and their orientation 
           set to match that tof the global frame.
 
-      @param constraintForcesUpd: contains the wrenches that the constraint
-          applies to the local frames listed in constraintBodyFramesUpd. 
+      @param constraintForcesOutput contains the wrenches that the constraint
+          applies to the local frames listed in constraintBodyFramesOutput.
           Note the \f$i^{th}\f$ force is resolved in the \f$i^{th}\f$ frame.If
           resolveAllInRootFrame is true, this wrench should be rotated into
           the coordinates of the root frame.
@@ -351,9 +351,9 @@ class RBDL_DLLAPI Constraint {
                  const Math::VectorNd &QDot,
                  const Math::MatrixNd &GSys,
                  const Math::VectorNd &LagrangeMultipliersSys,
-                 std::vector< unsigned int > &constraintBodiesUpd,
-                 std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
-                 std::vector< Math::SpatialVector > &constraintForcesUpd,
+                 std::vector< unsigned int > &constraintBodiesOutput,
+                 std::vector< Math::SpatialTransform > &constraintBodyFramesOutput,
+                 std::vector< Math::SpatialVector > &constraintForcesOutput,
                  ConstraintCache &cache,
                  bool resolveAllInRootFrame = false,
                  bool updateKinematics=false) = 0;
@@ -473,7 +473,7 @@ class RBDL_DLLAPI Constraint {
     }
 
     /**
-      @param bgParamsUpd: the Baumgarte stabilization coefficients for this
+      @param bgParamsUpd: (output) the Baumgarte stabilization coefficients for this
                         constraint. Note the velocity error coefficient is in
                         the 0 index and the position error coefficient is in 
                         the 1st index. 
@@ -499,17 +499,17 @@ class RBDL_DLLAPI Constraint {
     /**
       @param errPosSys : the position error vector of the system
       @param errVelSys : the velocity error vector of the system
-      @param gammaSysUpd: the gamma vector of the system
+      @param gammaSysOutput: the gamma vector of the system
     */
     void addInBaumgarteStabilizationForces(const Math::VectorNd &errPosSys,
                                            const Math::VectorNd &errVelSys,
-                                           Math::VectorNd &gammaSysUpd)
+                                           Math::VectorNd &gammaSysOutput)
     {
 
       //Here a for loop is used rather than a block operation
       //to be compatible with SimpleMath.
       for(unsigned int i=0; i<sizeOfConstraint;++i){
-        gammaSysUpd[rowInSystem+i] +=
+        gammaSysOutput[rowInSystem+i] +=
               -2.*baumgarteParameters[0]*errVelSys[rowInSystem+i]
              -(baumgarteParameters[1]*baumgarteParameters[1]
               )*errPosSys[rowInSystem+i];
