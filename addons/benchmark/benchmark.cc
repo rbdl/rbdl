@@ -221,7 +221,7 @@ double run_inverse_dynamics_constraints_benchmark (Model *model, ConstraintSet *
   constraint_set->SetActuationMap(*model, dofActuated);
 
   for (int i = 0; i < sample_count; i++) {
-    InverseDynamicsConstraints (*model, sample_data.q[i], sample_data.qdot[i], sample_data.qddot[i], *constraint_set, qddot, sample_data.tau[i]); 
+    InverseDynamicsConstraintsRelaxed (*model, sample_data.q[i], sample_data.qdot[i], sample_data.qddot[i], *constraint_set, qddot, sample_data.tau[i]); 
   }
 
   double duration = timer_stop (&tinfo);
