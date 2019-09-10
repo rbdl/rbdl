@@ -140,5 +140,3 @@ At each point in time
 
 DoF:  9
 (74, 19)
-/home/mjhmilla/.local/lib/python3.6/site-packages/scipy/signal/_arraytools.py:45: FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
-  b = a[a_slice]

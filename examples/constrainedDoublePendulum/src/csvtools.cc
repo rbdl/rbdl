@@ -39,7 +39,7 @@ std::vector<std::vector<double > > readMatrixFromFile(
         std::string line;
         std::string entry;
         int row = 0;
-        int col = 0;
+        //int col = 0;
         //int matrixRowNum = 0;
         int matrixColNum = 1;
 
@@ -107,14 +107,14 @@ void printMatrixToFile(
 
     std::ofstream datafile;
 	datafile.open(filename.c_str());
-    datafile << std::scientific;
-    datafile.precision(16);
-    if(header.length() > 1)
-        datafile << header << "\n";
-
-	for(int i = 0; i < dataMatrix.size(); i++){
-		for(int j = 0; j < dataMatrix[0].size(); j++){
-			if(j<dataMatrix[0].size()-1){
+  datafile << std::scientific;
+  datafile.precision(16);
+  if(header.length() > 1){
+      datafile << header << "\n";
+  }
+	for(unsigned int i = 0; i < dataMatrix.size(); i++){
+		for(unsigned int j = 0; j < dataMatrix[0].size(); j++){
+			if((j+1)<dataMatrix[0].size()){
 				datafile << dataMatrix[i][j] << ", ";
             }
 			else{
