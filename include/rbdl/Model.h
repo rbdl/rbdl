@@ -25,15 +25,18 @@
 // as members need to have a special allocater. This can be achieved with
 // the following macro.
 
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint)
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body)
-EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody)
+#ifdef EIGEN_CORE_H
+  EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Joint)
+  EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::Body)
+  EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(RigidBodyDynamics::FixedBody)
+#endif
 
 /** \brief Namespace for all structures of the RigidBodyDynamics library
 */
-namespace RigidBodyDynamics {
+namespace RigidBodyDynamics
+{
 
-/** \page modeling_page Model 
+/** \page modeling_page Model
  *
  * \section model_structure Model Structure
  *
@@ -43,10 +46,10 @@ namespace RigidBodyDynamics {
  * variables that describe the state of the rigid body system. Furthermore
  * it contains variables that are used as temporary variables in the
  * algorithms.
- * 
+ *
  * There are multiple ways of creating \link RigidBodyDynamics::Model Models\endlink for RBDL:
  *
- *   \li Loading models from Lua files using the \ref luamodel_introduction 
+ *   \li Loading models from Lua files using the \ref luamodel_introduction
  *       "LuaModel" addon
  *   \li Loading models from URDF (the Unified Robot Description Format) xml
  *       files or strings using the URDFReader addon
@@ -67,7 +70,7 @@ namespace RigidBodyDynamics {
  *
  * \link RigidBodyDynamics::Body Bodies \endlink are created by calling one
  * of its constructors. Usually they are created by specifying the mass,
- * center of mass and the inertia at the center of mass. 
+ * center of mass and the inertia at the center of mass.
  * \link RigidBodyDynamics::Joint Joints \endlink are similarly created and is
  * described in detail in \ref joint_description.
  *
@@ -75,7 +78,7 @@ namespace RigidBodyDynamics {
  * parent body by its id, the transformation from the parent origin to the
  * joint origin, the joint specification as an object, and the body itself.
  * These parameters are then fed to the function
- * RigidBodyDynamics::Model::AddBody() or 
+ * RigidBodyDynamics::Model::AddBody() or
  * RigidBodyDynamics::Model::AppendBody().
  *
  * To create a model with a floating base (a.k.a a model with a free-flyer
@@ -107,7 +110,7 @@ namespace RigidBodyDynamics {
  * storage of temporary values. It is designed for use of the Articulated
  * Rigid Body Algorithm (which is implemented in ForwardDynamics()) and
  * follows the numbering as described in Featherstones book.
- * 
+ *
  * Please note that body 0 is the root body and the moving bodies start at
  * index 1. This numbering scheme is very beneficial in terms of
  * readability of the code as the resulting code is very similar to the
@@ -124,7 +127,7 @@ struct RBDL_DLLAPI Model {
 
   /// \brief The id of the parents body
   std::vector<unsigned int> lambda;
-  /** \brief The index of the parent degree of freedom that is directly 
+  /** \brief The index of the parent degree of freedom that is directly
     influencing the current one*/
   std::vector<unsigned int> lambda_q;
   /// \brief Contains the ids of all the children of a given body
@@ -137,18 +140,18 @@ struct RBDL_DLLAPI Model {
    */
   unsigned int dof_count;
 
-  /** \brief The size of the \f$\mathbf{q}\f$-vector. 
+  /** \brief The size of the \f$\mathbf{q}\f$-vector.
    * For models without spherical joints the value is the same as
    * Model::dof_count, otherwise additional values for the w-component of the
-   * Quaternion is stored at the end of \f$\mathbf{q}\f$. 
+   * Quaternion is stored at the end of \f$\mathbf{q}\f$.
    *
    * \sa \ref joint_description for more details.
    */
   unsigned int q_size;
-  /** \brief The size of the 
+  /** \brief The size of the
    *
    * (\f$\mathbf{\dot{q}}, \mathbf{\ddot{q}}\f$,
-   * and \f$\mathbf{\tau}\f$-vector. 
+   * and \f$\mathbf{\tau}\f$-vector.
    *
    * \sa \ref joint_description for more details.
    */
@@ -185,7 +188,7 @@ struct RBDL_DLLAPI Model {
   /// \brief Transformations from the parent body to the frame of the joint.
   // It is expressed in the coordinate frame of the parent.
   std::vector<Math::SpatialTransform> X_T;
-  /// \brief The number of fixed joints that have been declared before 
+  /// \brief The number of fixed joints that have been declared before
   ///  each joint.
   std::vector<unsigned int> mFixedJointCount;
 
@@ -205,7 +208,7 @@ struct RBDL_DLLAPI Model {
 
   /// \brief The velocity dependent spatial acceleration
   std::vector<Math::SpatialVector> c;
-  /// \brief The spatial inertia of the bodies 
+  /// \brief The spatial inertia of the bodies
   std::vector<Math::SpatialMatrix> IA;
   /// \brief The spatial bias force
   std::vector<Math::SpatialVector> pA;
@@ -217,7 +220,7 @@ struct RBDL_DLLAPI Model {
   Math::VectorNd u;
   /// \brief Internal forces on the body (used only InverseDynamics())
   std::vector<Math::SpatialVector> f;
-  /// \brief The spatial inertia of body i (used only in 
+  /// \brief The spatial inertia of body i (used only in
   ///  CompositeRigidBodyAlgorithm())
   std::vector<Math::SpatialRigidBodyInertia> I;
   std::vector<Math::SpatialRigidBodyInertia> Ic;
@@ -246,7 +249,7 @@ struct RBDL_DLLAPI Model {
    * are fixed to a moving body. The value of max(unsigned int) is
    * determined via std::numeric_limits<unsigned int>::max() and the
    * default value of fixed_body_discriminator is max (unsigned int) / 2.
-   * 
+   *
    * On normal systems max (unsigned int) is 4294967294 which means there
    * could be a total of 2147483646 movable and / or fixed bodies.
    */
@@ -286,50 +289,50 @@ struct RBDL_DLLAPI Model {
    * \param parent_id   id of the parent body
    * \param joint_frame the transformation from the parent frame to the origin
    *                    of the joint frame (represents X_T in RBDA)
-   * \param joint       specification for the joint that describes the 
+   * \param joint       specification for the joint that describes the
    *                    connection
    * \param body        specification of the body itself
-   * \param body_name   human readable name for the body (can be used to 
+   * \param body_name   human readable name for the body (can be used to
    *                    retrieve its id with GetBodyId())
    *
    * \returns id of the added body
    */
   unsigned int AddBody (
-      const unsigned int parent_id,
-      const Math::SpatialTransform &joint_frame,
-      const Joint &joint,
-      const Body &body,
-      std::string body_name = "" 
-      );
+    const unsigned int parent_id,
+    const Math::SpatialTransform &joint_frame,
+    const Joint &joint,
+    const Body &body,
+    std::string body_name = ""
+  );
 
   unsigned int AddBodySphericalJoint (
-      const unsigned int parent_id,
-      const Math::SpatialTransform &joint_frame,
-      const Joint &joint,
-      const Body &body,
-      std::string body_name = "" 
-      );
+    const unsigned int parent_id,
+    const Math::SpatialTransform &joint_frame,
+    const Joint &joint,
+    const Body &body,
+    std::string body_name = ""
+  );
 
-  /** \brief Adds a Body to the model such that the previously added Body 
+  /** \brief Adds a Body to the model such that the previously added Body
    * is the Parent.
    *
    * This function is basically the same as Model::AddBody() however the
    * most recently added body (or body 0) is taken as parent.
    */
   unsigned int AppendBody (
-      const Math::SpatialTransform &joint_frame,
-      const Joint &joint,
-      const Body &body,
-      std::string body_name = "" 
-      );
+    const Math::SpatialTransform &joint_frame,
+    const Joint &joint,
+    const Body &body,
+    std::string body_name = ""
+  );
 
   unsigned int AddBodyCustomJoint (
-      const unsigned int parent_id,
-      const Math::SpatialTransform &joint_frame,
-      CustomJoint *custom_joint,
-      const Body &body,
-      std::string body_name = "" 
-      );
+    const unsigned int parent_id,
+    const Math::SpatialTransform &joint_frame,
+    CustomJoint *custom_joint,
+    const Body &body,
+    std::string body_name = ""
+  );
 
   /** \brief Returns the id of a body that was passed to AddBody()
    *
@@ -339,10 +342,11 @@ struct RBDL_DLLAPI Model {
    * \note Instead of querying this function repeatedly, it might be
    * advisable to query it once and reuse the returned id.
    *
-   * \returns the id of the body or \c std::numeric_limits\<unsigned 
+   * \returns the id of the body or \c std::numeric_limits\<unsigned
    *          int\>::max() if the id was not found.
    */
-  unsigned int GetBodyId (const char *body_name) const {
+  unsigned int GetBodyId (const char *body_name) const
+  {
     if (mBodyNameMap.count(body_name) == 0) {
       return std::numeric_limits<unsigned int>::max();
     }
@@ -351,13 +355,15 @@ struct RBDL_DLLAPI Model {
   }
 
   /** \brief Returns the name of a body for a given body id */
-  std::string GetBodyName (unsigned int body_id) const {
-    std::map<std::string, unsigned int>::const_iterator iter 
+  std::string GetBodyName (unsigned int body_id) const
+  {
+    std::map<std::string, unsigned int>::const_iterator iter
       = mBodyNameMap.begin();
 
     while (iter != mBodyNameMap.end()) {
-      if (iter->second == body_id)
+      if (iter->second == body_id) {
         return iter->first;
+      }
 
       iter++;
     }
@@ -367,22 +373,26 @@ struct RBDL_DLLAPI Model {
 
   /** \brief Checks whether the body is rigidly attached to another body.
   */
-  bool IsFixedBodyId (unsigned int body_id) {
-    if (body_id >= fixed_body_discriminator 
-        && body_id < std::numeric_limits<unsigned int>::max() 
+  bool IsFixedBodyId (unsigned int body_id)
+  {
+    if (body_id >= fixed_body_discriminator
+        && body_id < std::numeric_limits<unsigned int>::max()
         && body_id - fixed_body_discriminator < mFixedBodies.size()) {
       return true;
     }
     return false;
   }
 
-  bool IsBodyId (unsigned int id) {
-    if (id > 0 && id < mBodies.size())
+  bool IsBodyId (unsigned int id)
+  {
+    if (id > 0 && id < mBodies.size()) {
       return true;
-    if (id >= fixed_body_discriminator 
+    }
+    if (id >= fixed_body_discriminator
         && id < std::numeric_limits<unsigned int>::max()) {
-      if (id - fixed_body_discriminator < mFixedBodies.size())
+      if (id - fixed_body_discriminator < mFixedBodies.size()) {
         return true;
+      }
     }
     return false;
   }
@@ -394,12 +404,13 @@ struct RBDL_DLLAPI Model {
    * freedom. This function returns the id of the actual
    * non-virtual parent body.
    */
-  unsigned int GetParentBodyId (unsigned int id) {
+  unsigned int GetParentBodyId (unsigned int id)
+  {
     if (id >= fixed_body_discriminator) {
       return mFixedBodies[id - fixed_body_discriminator].mMovableParent;
     }
 
-    unsigned int parent_id = lambda[id]; 
+    unsigned int parent_id = lambda[id];
 
     while (mBodies[parent_id].mIsVirtual) {
       parent_id = lambda[parent_id];
@@ -408,10 +419,11 @@ struct RBDL_DLLAPI Model {
     return parent_id;
   }
 
-  /** Returns the joint frame transformtion, i.e. the second argument to 
+  /** Returns the joint frame transformtion, i.e. the second argument to
     Model::AddBody().
     */
-  Math::SpatialTransform GetJointFrame (unsigned int id) {
+  Math::SpatialTransform GetJointFrame (unsigned int id)
+  {
     if (id >= fixed_body_discriminator) {
       return mFixedBodies[id - fixed_body_discriminator].mParentTransform;
     }
@@ -424,15 +436,17 @@ struct RBDL_DLLAPI Model {
         parent_id = lambda[child_id];
       }
       return X_T[child_id];
-    } else
-      return X_T[id];	
+    } else {
+      return X_T[id];
+    }
   }
 
-  /** Sets the joint frame transformtion, i.e. the second argument to 
+  /** Sets the joint frame transformtion, i.e. the second argument to
   Model::AddBody().
     */
-  void SetJointFrame (unsigned int id, 
-      const Math::SpatialTransform &transform) {
+  void SetJointFrame (unsigned int id,
+                      const Math::SpatialTransform &transform)
+  {
     if (id >= fixed_body_discriminator) {
       throw Errors::RBDLError("Error: setting of parent transform not supported for fixed bodies!");
     }
@@ -455,14 +469,15 @@ struct RBDL_DLLAPI Model {
    *
    * See \ref joint_singularities for details.
    */
-  Math::Quaternion GetQuaternion (unsigned int i, 
-      const Math::VectorNd &Q) const {
+  Math::Quaternion GetQuaternion (unsigned int i,
+                                  const Math::VectorNd &Q) const
+  {
     assert (mJoints[i].mJointType == JointTypeSpherical);
     unsigned int q_index = mJoints[i].q_index;
-    return Math::Quaternion ( Q[q_index], 
-        Q[q_index + 1], 
-        Q[q_index + 2], 
-        Q[multdof3_w_index[i]]);
+    return Math::Quaternion ( Q[q_index],
+                              Q[q_index + 1],
+                              Q[q_index + 2],
+                              Q[multdof3_w_index[i]]);
   }
 
   /** Sets the quaternion for body i (only valid if body i is connected by
@@ -470,9 +485,10 @@ struct RBDL_DLLAPI Model {
    *
    * See \ref joint_singularities for details.
    */
-  void SetQuaternion (unsigned int i, 
-      const Math::Quaternion &quat, 
-      Math::VectorNd &Q) const {
+  void SetQuaternion (unsigned int i,
+                      const Math::Quaternion &quat,
+                      Math::VectorNd &Q) const
+  {
     assert (mJoints[i].mJointType == JointTypeSpherical);
     unsigned int q_index = mJoints[i].q_index;
 

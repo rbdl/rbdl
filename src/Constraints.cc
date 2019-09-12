@@ -10,10 +10,11 @@
 #include <string>
 #include <limits>
 #include <assert.h>
-  //The ConstraintCache input to each function contains all of the working
-  //memory necessary for this constraint. So nothing appears here.
+//The ConstraintCache input to each function contains all of the working
+//memory necessary for this constraint. So nothing appears here.
 
 #include "rbdl/rbdl_mathutils.h"
+#include "rbdl/rbdl_errors.h"
 #include "rbdl/Logging.h"
 
 #include "rbdl/Model.h"
@@ -24,7 +25,8 @@
 #include "rbdl/Dynamics.h"
 #include "rbdl/Kinematics.h"
 
-namespace RigidBodyDynamics {
+namespace RigidBodyDynamics
+{
 
 using namespace Math;
 
@@ -55,7 +57,7 @@ unsigned int ConstraintSet::AddContactConstraint (
   unsigned int rowsInG = insertAtRowInG+1;
 
   std::string nameStr;
-  if(constraint_name != NULL){
+  if(constraint_name != NULL) {
     nameStr = constraint_name;
   }
   //Go through all existing ContactConstraints,
@@ -69,22 +71,22 @@ unsigned int ConstraintSet::AddContactConstraint (
   // are all grouped together then the point Jacobian is only evaluated once.
   bool constraintAppended = false;
 
-  if(contactConstraints.size() > 0){
+  if(contactConstraints.size() > 0) {
     unsigned int i = unsigned(contactConstraints.size()-1);
-    if(contactConstraints[i]->getBodyIds()[0] == body_id){
+    if(contactConstraints[i]->getBodyIds()[0] == body_id) {
       Vector3d pointErr = body_point -
-          contactConstraints[i]->getBodyFrames()[0].r;
-      if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100){
+                          contactConstraints[i]->getBodyFrames()[0].r;
+      if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100) {
         constraintAppended = true;
         contactConstraints[i]->appendNormalVector(world_normal);
       }
     }
   }
 
-  if(constraintAppended == false){
+  if(constraintAppended == false) {
 
     ContactConstraint con = ContactConstraint(body_id,body_point, world_normal,
-                                              constraint_name,userDefinedId);
+                            constraint_name,userDefinedId);
 
     contactConstraints.push_back(std::make_shared<ContactConstraint>(con));
     unsigned int idx = unsigned(contactConstraints.size()-1);
@@ -112,14 +114,14 @@ unsigned int ConstraintSet::AddContactConstraint (
   v_plus[insertAtRowInG] = 0.;
 
   d_multdof3_u = std::vector<Math::Vector3d>( rowsInG,
-                                              Math::Vector3d::Zero());
+                 Math::Vector3d::Zero());
 
   //Set up access maps
-  if(nameStr.size() > 0){
+  if(nameStr.size() > 0) {
     std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
     iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
-                                name[name.size()-1],
-                                unsigned(constraints.size()-1)));
+                                 name[name.size()-1],
+                                 unsigned(constraints.size()-1)));
     //if(iter.second == false){
     //  std::cerr << "Error: optional name is not unique."
     //            << std::endl;
@@ -128,11 +130,11 @@ unsigned int ConstraintSet::AddContactConstraint (
     //}
 
   }
-  if(userDefinedId < std::numeric_limits<unsigned int>::max()){
+  if(userDefinedId < std::numeric_limits<unsigned int>::max()) {
     std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
     iter =userDefinedIdGroupMap.insert( std::pair<unsigned int, unsigned int>(
-                                    userDefinedId,
-                                    unsigned(constraints.size()-1)));
+                                          userDefinedId,
+                                          unsigned(constraints.size()-1)));
     //if(iter.second == false){
     //  std::cerr << "Error: optional userDefinedId is not unique."
     //            << std::endl;
@@ -143,12 +145,12 @@ unsigned int ConstraintSet::AddContactConstraint (
 
   std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
   iter = idGroupMap.insert(std::pair<unsigned int, unsigned int>(
-                                     unsigned(rowsInG-1),
-                                     unsigned(constraints.size()-1)));
-  if(iter.second == false){
+                             unsigned(rowsInG-1),
+                             unsigned(constraints.size()-1)));
+  if(iter.second == false) {
     std::cerr << "Error: Constraint row entry in system is not unique."
               << " (This should not be possible: contact the "
-                 "maintainer of this code.)"
+              "maintainer of this code.)"
               << std::endl;
     assert(0);
     abort();
@@ -160,7 +162,7 @@ unsigned int ConstraintSet::AddContactConstraint (
 
 //==============================================================================
 unsigned int ConstraintSet::AddLoopConstraint (
-  unsigned int idPredecessor, 
+  unsigned int idPredecessor,
   unsigned int idSuccessor,
   const Math::SpatialTransform &XPredecessor,
   const Math::SpatialTransform &XSuccessor,
@@ -180,10 +182,10 @@ unsigned int ConstraintSet::AddLoopConstraint (
   bool constraintAppended = false;
   unsigned int idx = unsigned(loopConstraints.size());
 
-  if(loopConstraints.size() > 0){
+  if(loopConstraints.size() > 0) {
     idx = idx-1;
     if(loopConstraints[idx]->getBodyIds()[0] == idPredecessor &&
-       loopConstraints[idx]->getBodyIds()[1] == idSuccessor){
+        loopConstraints[idx]->getBodyIds()[1] == idSuccessor) {
 
       bool framesNumericallyIdentical=true;
       SpatialTransform frameErrorPre, frameErrorSuc;
@@ -196,25 +198,25 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
       //Using this awkward element by element comparison to maintain
       //compatibility with SimpleMath.
-      for(unsigned int i=0; i<frameErrorPre.r.size();++i){
-        if(fabs(frameErrorPre.r[i]) > tol || fabs(frameErrorSuc.r[i]) > tol){
+      for(unsigned int i=0; i<frameErrorPre.r.size(); ++i) {
+        if(fabs(frameErrorPre.r[i]) > tol || fabs(frameErrorSuc.r[i]) > tol) {
           framesNumericallyIdentical=false;
         }
-        for(unsigned int j=0; j<frameErrorPre.E.cols(); ++j){
-          if(fabs(frameErrorPre.E(i,j))>tol || fabs(frameErrorSuc.E(i,j))>tol){
+        for(unsigned int j=0; j<frameErrorPre.E.cols(); ++j) {
+          if(fabs(frameErrorPre.E(i,j))>tol || fabs(frameErrorSuc.E(i,j))>tol) {
             framesNumericallyIdentical=false;
           }
         }
       }
 
-      if(framesNumericallyIdentical){
+      if(framesNumericallyIdentical) {
         constraintAppended = true;
         loopConstraints[idx]->appendConstraintAxis(constraintAxisInPredecessor);
       }
     }
   }
 
-  if(constraintAppended==false){
+  if(constraintAppended==false) {
 
     LoopConstraint loopCon( idPredecessor, idSuccessor,
                             XPredecessor,  XSuccessor,
@@ -259,11 +261,11 @@ unsigned int ConstraintSet::AddLoopConstraint (
   d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
 
   //Set up access maps
-  if(nameStr.size() > 0){
+  if(nameStr.size() > 0) {
     std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
     iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
-                                name[name.size()-1],
-                                unsigned(constraints.size()-1)));
+                                 name[name.size()-1],
+                                 unsigned(constraints.size()-1)));
     //if(iter.second == false){
     //  std::cerr << "Error: optional name is not unique."
     //            << std::endl;
@@ -273,11 +275,11 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   }
 
-  if(userDefinedId < std::numeric_limits<unsigned int>::max()){
+  if(userDefinedId < std::numeric_limits<unsigned int>::max()) {
     std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
     iter =userDefinedIdGroupMap.insert( std::pair<unsigned int, unsigned int>(
-                                    userDefinedId,
-                                    unsigned(constraints.size()-1)));
+                                          userDefinedId,
+                                          unsigned(constraints.size()-1)));
     //if(iter.second == false){
     //  std::cerr << "Error: optional userDefinedId is not unique."
     //            << std::endl;
@@ -288,15 +290,15 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
   iter = idGroupMap.insert(std::pair<unsigned int, unsigned int>(
-                                     unsigned(rowsInG-1),
-                                     unsigned(constraints.size()-1)));
-  if(iter.second == false){
-    std::cerr << "Error: Constraint row entry in system is not unique."
-              << " (This should not be possible: contact the "
-                 "maintainer of this code.)"
-              << std::endl;
-    assert(0);
-    abort();
+                             unsigned(rowsInG-1),
+                             unsigned(constraints.size()-1)));
+  if(iter.second == false) {
+    std::stringstream errormsg;
+    errormsg << "Error: Constraint row entry in system is not unique."
+             << " (This should not be possible: contact the "
+             "maintainer of this code.)"
+             << std::endl;
+    throw Errors::RBDLError(errormsg.str());
   }
 
   return rowsInG-1;
@@ -306,7 +308,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
 //==============================================================================
 unsigned int ConstraintSet::AddCustomConstraint(
-        std::shared_ptr<Constraint> customConstraint)
+  std::shared_ptr<Constraint> customConstraint)
 {
   unsigned int insertAtRowInG = unsigned(size());
   unsigned int rowsInG = insertAtRowInG+customConstraint->getConstraintSize();
@@ -317,7 +319,7 @@ unsigned int ConstraintSet::AddCustomConstraint(
 
   //Resize constraint set system variables
   std::string nameStr("");
-  if(customConstraint->getName() != NULL){
+  if(customConstraint->getName() != NULL) {
     nameStr = customConstraint->getName();
   }
 
@@ -328,7 +330,7 @@ unsigned int ConstraintSet::AddCustomConstraint(
   v_plus.conservativeResize ( rowsInG);
   d_multdof3_u = std::vector<Math::Vector3d>(rowsInG, Math::Vector3d::Zero());
 
-  for(unsigned int i=0; i<customConstraint->getConstraintSize();++i){
+  for(unsigned int i=0; i<customConstraint->getConstraintSize(); ++i) {
     //The list of names, constraint types, and ids must have the same
     //number of entries as G has rows.
     name.push_back (nameStr);
@@ -340,50 +342,42 @@ unsigned int ConstraintSet::AddCustomConstraint(
     force[    insertAtRowInG+i ] = 0.;
     impulse[  insertAtRowInG+i ] = 0.;
     v_plus[   insertAtRowInG+i ] = 0.;
-
   }
 
   //Set up access maps
-  if(nameStr.size() > 0){
+  if(nameStr.size() > 0) {
     std::pair< std::map<std::string, unsigned int>::iterator, bool > iter;
     iter = nameGroupMap.insert(std::pair<std::string, unsigned int>(
-                                  name[name.size()-1],
-                                  unsigned(constraints.size()-1)));
-    if(iter.second == false){
-      std::cerr << "Error: optional name is not unique."
-                << std::endl;
-      assert(0);
-      abort();
+                                 name[name.size()-1],
+                                 unsigned(constraints.size()-1)));
+    if(iter.second == false) {
+      throw Errors::RBDLError("Error: optional name is not unique.\n");
     }
 
   }
   if(customConstraint->getUserDefinedId()
-     < std::numeric_limits<unsigned int>::max()){
+      < std::numeric_limits<unsigned int>::max()) {
     std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
     iter =userDefinedIdGroupMap.insert( std::pair<unsigned int, unsigned int>(
-                                    customConstraint->getUserDefinedId(),
-                                    unsigned(constraints.size()-1)));
-    if(iter.second == false){
-      std::cerr << "Error: optional userDefinedId is not unique."
-                << std::endl;
-      assert(0);
-      abort();
+                                          customConstraint->getUserDefinedId(),
+                                          unsigned(constraints.size()-1)));
+    if(iter.second == false) {
+      throw Errors::RBDLError("Error: optional userDefinedId is not unique.\n");
     }
 
   }
 
   std::pair< std::map<unsigned int, unsigned int>::iterator, bool > iter;
   iter = idGroupMap.insert(std::pair<unsigned int, unsigned int>(
-                                     unsigned(rowsInG-1),
-                                     unsigned(constraints.size()-1)));
-  if(iter.second == false){
-    std::cerr << "Error: Constraint row entry into system is not unique."
-              << " (This should not be possible: contact the "
-                 "maintainer of this code.)"
-              << std::endl;
-    assert(0);
-    abort();
-
+                             unsigned(rowsInG-1),
+                             unsigned(constraints.size()-1)));
+  if(iter.second == false) {
+    std::stringstream errormsg;
+    errormsg << "Error: Constraint row entry into system is not unique."
+             << " (This should not be possible: contact the "
+             "maintainer of this code.)"
+             << std::endl;
+    throw Errors::RBDLError(errormsg.str());
   }
 
   return rowsInG-1;
@@ -392,14 +386,14 @@ unsigned int ConstraintSet::AddCustomConstraint(
 
 
 //==============================================================================
-bool ConstraintSet::Bind (const Model &model) {
+bool ConstraintSet::Bind (const Model &model)
+{
   assert (bound == false);
 
   if (bound) {
-    std::cerr << "Error: binding an already bound constraint set!" << std::endl;
-    abort();
+    throw Errors::RBDLError("Error: binding an already bound constraint set!\n");
   }
-  for(unsigned int i=0; i<constraints.size();++i){
+  for(unsigned int i=0; i<constraints.size(); ++i) {
     constraints[i]->bind(model);
   }
 
@@ -437,12 +431,18 @@ bool ConstraintSet::Bind (const Model &model) {
   x.conservativeResize (model.dof_count + n_constr);
   x.setZero();
 
+
+  S.conservativeResize(model.dof_count, model.dof_count);
+  S.setZero();
+  W.conservativeResize(model.dof_count, model.dof_count);
+  W.Identity(model.dof_count, model.dof_count);
+
   // HouseHolderQR crashes if matrix G has more rows than columns.
-#ifdef RBDL_USE_SIMPLE_MATH
+  #ifdef RBDL_USE_SIMPLE_MATH
   GT_qr = SimpleMath::HouseholderQR<Math::MatrixNd> (G.transpose());
-#else
+  #else
   GT_qr = Eigen::HouseholderQR<Math::MatrixNd> (G.transpose());
-#endif
+  #endif
   GT_qr_Q = MatrixNd::Zero (model.dof_count, model.dof_count);
   Y = MatrixNd::Zero (model.dof_count, G.rows());
   Z = MatrixNd::Zero (model.dof_count, model.dof_count - G.rows());
@@ -470,12 +470,12 @@ bool ConstraintSet::Bind (const Model &model) {
   d_u = VectorNd::Zero (model.mBodies.size());
 
   d_IA = std::vector<SpatialMatrix> (model.mBodies.size()
-    , SpatialMatrix::Identity());
+                                     , SpatialMatrix::Identity());
   d_U = std::vector<SpatialVector> (model.mBodies.size(),SpatialVector::Zero());
   d_d = VectorNd::Zero (model.mBodies.size());
 
   d_multdof3_u = std::vector<Math::Vector3d> (model.mBodies.size()
-    , Math::Vector3d::Zero());
+                 , Math::Vector3d::Zero());
 
   bound = true;
 
@@ -483,7 +483,82 @@ bool ConstraintSet::Bind (const Model &model) {
 }
 
 //==============================================================================
-void ConstraintSet::clear() {
+void ConstraintSet::SetActuationMap(const Model &model,
+                                    const std::vector<bool> &actuatedDofUpd)
+{
+
+  assert(actuatedDofUpd.size() == model.dof_count);
+
+  unsigned int n  = unsigned( int( model.dof_count ));
+  unsigned int nc = unsigned( int( name.size() ));
+  unsigned int na = 0; //actuated dofs
+  unsigned int nu = 0; //unactuated dofs
+
+  for(unsigned int i=0; i<actuatedDofUpd.size(); ++i) {
+    if(actuatedDofUpd[i]) {
+      ++na;
+    }
+  }
+  nu = n-na;
+
+  S.conservativeResize(na,model.dof_count);
+  S.setZero();
+  P.conservativeResize(n-na,model.dof_count);
+  P.setZero();
+  W.conservativeResize(na,na);
+  W.setZero();
+  Winv.conservativeResize(na,na);
+  Winv.setZero();
+  WinvSC.conservativeResize(na);
+  WinvSC.setZero();
+
+  u.resize(na);
+  v.resize(nu);
+
+  unsigned int j=0;
+  unsigned int k=0;
+  for(unsigned int i=0; i<model.dof_count; ++i) {
+    if(actuatedDofUpd[i]) {
+      S(j,i) = 1.;
+      ++j;
+    } else {
+      P(k,i) = 1.;
+      ++k;
+    }
+  }
+
+  unsigned int dim = n+n+nc+na;
+
+  //Null space method variable initialization
+  dim = na+nu;
+  F.conservativeResize(dim,dim);
+  F.setZero();
+
+  Ful.conservativeResize(na,na);
+  Ful.setZero();
+  Fur.conservativeResize(na,nu);
+  Fur.setZero();
+  Fll.conservativeResize(nu,na);
+  Fll.setZero();
+  Flr.conservativeResize(nu,nu);
+  Flr.setZero();
+
+  g.conservativeResize(n);
+
+  Ru.conservativeResize(nc,nc);
+  py.conservativeResize(nc);
+  pz.conservativeResize(n-nc);
+
+  GT.conservativeResize(n,nc);
+  GTu.conservativeResize(na,nc);
+  GTl.conservativeResize(nu,nc);
+
+  GPT.conservativeResize(nc,nu);
+
+}
+
+void ConstraintSet::clear()
+{
   force.setZero();
   impulse.setZero();
 
@@ -544,30 +619,35 @@ void ConstraintSet::clear() {
   QDDot_t.setZero();
   a.setZero();
   K.setZero();
-  for(unsigned int i=0; i<point_accel_0.size();++i){
+  for(unsigned int i=0; i<point_accel_0.size(); ++i) {
     point_accel_0[i].setZero();
   }
-  for(unsigned int i=0; i<f_t.size();++i){
+  for(unsigned int i=0; i<f_t.size(); ++i) {
     f_t[i].setZero();
   }
 
   QDDot_0.setZero();
 
   unsigned int i;
-  for (i = 0; i < f_t.size(); i++)
+  for (i = 0; i < f_t.size(); i++) {
     f_t[i].setZero();
+  }
 
-  for (i = 0; i < f_ext_constraints.size(); i++)
+  for (i = 0; i < f_ext_constraints.size(); i++) {
     f_ext_constraints[i].setZero();
+  }
 
-  for (i = 0; i < point_accel_0.size(); i++)
+  for (i = 0; i < point_accel_0.size(); i++) {
     point_accel_0[i].setZero();
+  }
 
-  for (i = 0; i < d_pA.size(); i++)
+  for (i = 0; i < d_pA.size(); i++) {
     d_pA[i].setZero();
+  }
 
-  for (i = 0; i < d_a.size(); i++)
+  for (i = 0; i < d_a.size(); i++) {
     d_a[i].setZero();
+  }
 
   d_u.setZero();
 }
@@ -576,16 +656,17 @@ void ConstraintSet::clear() {
 //==============================================================================
 RBDL_DLLAPI
 void SolveConstrainedSystemDirect (
-  Math::MatrixNd &H, 
-  const Math::MatrixNd &G, 
-  const Math::VectorNd &c, 
-  const Math::VectorNd &gamma, 
-  Math::VectorNd &lambda, 
-  Math::MatrixNd &A, 
+  Math::MatrixNd &H,
+  const Math::MatrixNd &G,
+  const Math::VectorNd &c,
+  const Math::VectorNd &gamma,
+  Math::VectorNd &lambda,
+  Math::MatrixNd &A,
   Math::VectorNd &b,
   Math::VectorNd &x,
   Math::LinearSolver &linear_solver
-  ) {
+)
+{
   // Build the system: Copy H
   A.block(0, 0, c.rows(), c.rows()) = H;
 
@@ -601,24 +682,24 @@ void SolveConstrainedSystemDirect (
   LOG << "b = " << std::endl << b << std::endl;
 
   switch (linear_solver) {
-    case (LinearSolverPartialPivLU) :
-#ifdef RBDL_USE_SIMPLE_MATH
-      // SimpleMath does not have a LU solver so just use its QR solver
-      x = A.householderQr().solve(b);
-#else
-      x = A.partialPivLu().solve(b);
-#endif
-      break;
-    case (LinearSolverColPivHouseholderQR) :
-      x = A.colPivHouseholderQr().solve(b);
-      break;
-    case (LinearSolverHouseholderQR) :
-      x = A.householderQr().solve(b);
-      break;
-    default:
-      LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
-      assert (0);
-      break;
+  case (LinearSolverPartialPivLU) :
+    #ifdef RBDL_USE_SIMPLE_MATH
+    // SimpleMath does not have a LU solver so just use its QR solver
+    x = A.householderQr().solve(b);
+    #else
+    x = A.partialPivLu().solve(b);
+    #endif
+    break;
+  case (LinearSolverColPivHouseholderQR) :
+    x = A.colPivHouseholderQr().solve(b);
+    break;
+  case (LinearSolverHouseholderQR) :
+    x = A.householderQr().solve(b);
+    break;
+  default:
+    LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
+    assert (0);
+    break;
   }
 
   LOG << "x = " << std::endl << x << std::endl;
@@ -627,17 +708,18 @@ void SolveConstrainedSystemDirect (
 //==============================================================================
 RBDL_DLLAPI
 void SolveConstrainedSystemRangeSpaceSparse (
-  Model &model, 
-  Math::MatrixNd &H, 
-  const Math::MatrixNd &G, 
-  const Math::VectorNd &c, 
-  const Math::VectorNd &gamma, 
-  Math::VectorNd &qddot, 
-  Math::VectorNd &lambda, 
-  Math::MatrixNd &K, 
+  Model &model,
+  Math::MatrixNd &H,
+  const Math::MatrixNd &G,
+  const Math::VectorNd &c,
+  const Math::VectorNd &gamma,
+  Math::VectorNd &qddot,
+  Math::VectorNd &lambda,
+  Math::MatrixNd &K,
   Math::VectorNd &a,
   Math::LinearSolver linear_solver
-  ) {
+)
+{
   SparseFactorizeLTL (model, H);
 
   MatrixNd Y (G.transpose());
@@ -665,37 +747,38 @@ void SolveConstrainedSystemRangeSpaceSparse (
 //==============================================================================
 RBDL_DLLAPI
 void SolveConstrainedSystemNullSpace (
-  Math::MatrixNd &H, 
-  const Math::MatrixNd &G, 
-  const Math::VectorNd &c, 
-  const Math::VectorNd &gamma, 
-  Math::VectorNd &qddot, 
+  Math::MatrixNd &H,
+  const Math::MatrixNd &G,
+  const Math::VectorNd &c,
+  const Math::VectorNd &gamma,
+  Math::VectorNd &qddot,
   Math::VectorNd &lambda,
   Math::MatrixNd &Y,
   Math::MatrixNd &Z,
   Math::VectorNd &qddot_y,
   Math::VectorNd &qddot_z,
   Math::LinearSolver &linear_solver
-  ) {
+)
+{
   switch (linear_solver) {
-    case (LinearSolverPartialPivLU) :
-#ifdef RBDL_USE_SIMPLE_MATH
-      // SimpleMath does not have a LU solver so just use its QR solver
-      qddot_y = (G * Y).householderQr().solve (gamma);
-#else
-      qddot_y = (G * Y).partialPivLu().solve (gamma);
-#endif
-      break;
-    case (LinearSolverColPivHouseholderQR) :
-      qddot_y = (G * Y).colPivHouseholderQr().solve (gamma);
-      break;
-    case (LinearSolverHouseholderQR) :
-      qddot_y = (G * Y).householderQr().solve (gamma);
-      break;
-    default:
-      LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
-      assert (0);
-      break;
+  case (LinearSolverPartialPivLU) :
+    #ifdef RBDL_USE_SIMPLE_MATH
+    // SimpleMath does not have a LU solver so just use its QR solver
+    qddot_y = (G * Y).householderQr().solve (gamma);
+    #else
+    qddot_y = (G * Y).partialPivLu().solve (gamma);
+    #endif
+    break;
+  case (LinearSolverColPivHouseholderQR) :
+    qddot_y = (G * Y).colPivHouseholderQr().solve (gamma);
+    break;
+  case (LinearSolverHouseholderQR) :
+    qddot_y = (G * Y).householderQr().solve (gamma);
+    break;
+  default:
+    LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
+    assert (0);
+    break;
   }
 
   qddot_z = (Z.transpose()*H*Z).llt().solve(Z.transpose()*(c - H*Y*qddot_y));
@@ -703,24 +786,24 @@ void SolveConstrainedSystemNullSpace (
   qddot = Y * qddot_y + Z * qddot_z;
 
   switch (linear_solver) {
-    case (LinearSolverPartialPivLU) :
-#ifdef RBDL_USE_SIMPLE_MATH
-      // SimpleMath does not have a LU solver so just use its QR solver
-      qddot_y = (G * Y).householderQr().solve (gamma);
-#else
-      lambda = (G * Y).partialPivLu().solve (Y.transpose() * (H * qddot - c));
-#endif
-      break;
-    case (LinearSolverColPivHouseholderQR) :
-      lambda = (G*Y).colPivHouseholderQr().solve (Y.transpose()*(H*qddot - c));
-      break;
-    case (LinearSolverHouseholderQR) :
-      lambda = (G * Y).householderQr().solve (Y.transpose() * (H * qddot - c));
-      break;
-    default:
-      LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
-      assert (0);
-      break;
+  case (LinearSolverPartialPivLU) :
+    #ifdef RBDL_USE_SIMPLE_MATH
+    // SimpleMath does not have a LU solver so just use its QR solver
+    qddot_y = (G * Y).householderQr().solve (gamma);
+    #else
+    lambda = (G * Y).partialPivLu().solve (Y.transpose() * (H * qddot - c));
+    #endif
+    break;
+  case (LinearSolverColPivHouseholderQR) :
+    lambda = (G*Y).colPivHouseholderQr().solve (Y.transpose()*(H*qddot - c));
+    break;
+  case (LinearSolverHouseholderQR) :
+    lambda = (G * Y).householderQr().solve (Y.transpose() * (H * qddot - c));
+    break;
+  default:
+    LOG << "Error: Invalid linear solver: " << linear_solver << std::endl;
+    assert (0);
+    break;
   }
 }
 
@@ -733,14 +816,15 @@ void CalcConstraintsPositionError (
   ConstraintSet &CS,
   Math::VectorNd& err,
   bool update_kinematics
-  ) {
+)
+{
   assert(err.size() == CS.size());
 
   if(update_kinematics) {
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
   }
 
-  for(unsigned int i=0; i<CS.constraints.size();++i){
+  for(unsigned int i=0; i<CS.constraints.size(); ++i) {
     CS.constraints[i]->calcPositionError(model,0,Q,err, CS.cache,
                                          update_kinematics);
   }
@@ -754,14 +838,15 @@ void CalcConstraintsJacobian (
   ConstraintSet &CS,
   Math::MatrixNd &G,
   bool update_kinematics
-  ) {
+)
+{
   if (update_kinematics) {
     UpdateKinematicsCustom (model, &Q, NULL, NULL);
   }
 
-  for(unsigned int i=0; i<CS.constraints.size();++i){
+  for(unsigned int i=0; i<CS.constraints.size(); ++i) {
     CS.constraints[i]->calcConstraintJacobian(model,0,Q,CS.cache.vecNZeros,G,
-                                               CS.cache,update_kinematics);
+        CS.cache,update_kinematics);
   }
 }
 
@@ -774,14 +859,15 @@ void CalcConstraintsVelocityError (
   ConstraintSet &CS,
   Math::VectorNd& err,
   bool update_kinematics
-  ) {
-  
+)
+{
+
 
   CalcConstraintsJacobian (model, Q, CS, CS.G, update_kinematics);
 
-  for(unsigned int i=0; i<CS.constraints.size();++i){
+  for(unsigned int i=0; i<CS.constraints.size(); ++i) {
     CS.constraints[i]->calcVelocityError(model,0,Q,QDot,CS.G,err,CS.cache,
-                                          update_kinematics);
+                                         update_kinematics);
   }
 
 }
@@ -795,7 +881,8 @@ void CalcConstrainedSystemVariables (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   std::vector<Math::SpatialVector> *f_ext
-  ) {
+)
+{
   // Compute C
   NonlinearEffects(model, Q, QDot, CS.C, f_ext);
   assert(CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
@@ -816,7 +903,7 @@ void CalcConstrainedSystemVariables (
   CalcConstraintsPositionError (model, Q, CS, CS.err, false);
 
   // Compute velocity error for Baugarte stabilization.
-  CalcConstraintsVelocityError (model, Q, QDot, CS, CS.errd, false);  
+  CalcConstraintsVelocityError (model, Q, QDot, CS, CS.errd, false);
   //CS.errd = CS.G * QDot;
 
   // Compute gamma
@@ -828,11 +915,11 @@ void CalcConstrainedSystemVariables (
   UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
 
 
-  for(unsigned int i=0; i<CS.constraints.size();++i){
+  for(unsigned int i=0; i<CS.constraints.size(); ++i) {
     CS.constraints[i]->calcGamma(model,0,Q,QDot,CS.G,CS.gamma,CS.cache);
-    if(CS.constraints[i]->isBaumgarteStabilizationEnabled()){
+    if(CS.constraints[i]->isBaumgarteStabilizationEnabled()) {
       CS.constraints[i]->addInBaumgarteStabilizationForces(
-                            CS.err,CS.errd,CS.gamma);
+        CS.err,CS.errd,CS.gamma);
     }
   }
 
@@ -849,28 +936,23 @@ bool CalcAssemblyQ (
   const Math::VectorNd &weights,
   double tolerance,
   unsigned int max_iter
-  ) {
+)
+{
 
   if(Q.size() != model.q_size) {
-    std::cerr << "Incorrect Q vector size." << std::endl;
-    assert(false);
-    abort();
+    throw Errors::RBDLDofMismatchError("Incorrect Q vector size.\n");
   }
   if(QInit.size() != model.q_size) {
-    std::cerr << "Incorrect QInit vector size." << std::endl;
-    assert(false);
-    abort();
+    throw Errors::RBDLDofMismatchError("Incorrect QInit vector size.\n");
   }
   if(weights.size() != model.dof_count) {
-    std::cerr << "Incorrect weights vector size." << std::endl;
-    assert(false);
-    abort();
+    throw Errors::RBDLDofMismatchError("Incorrect weights vector size.\n");
   }
 
   // Initialize variables.
   MatrixNd constraintJac (cs.size(), model.dof_count);
-  MatrixNd A = MatrixNd::Zero (cs.size() + model.dof_count, cs.size() 
-    + model.dof_count);
+  MatrixNd A = MatrixNd::Zero (cs.size() + model.dof_count, cs.size()
+                               + model.dof_count);
   VectorNd b = VectorNd::Zero (cs.size() + model.dof_count);
   VectorNd x = VectorNd::Zero (cs.size() + model.dof_count);
   VectorNd d = VectorNd::Zero (model.dof_count);
@@ -896,7 +978,7 @@ bool CalcAssemblyQ (
     constraintJac.setZero();
     CalcConstraintsJacobian (model, QInit, cs, constraintJac);
     A.block (model.dof_count, 0, cs.size(), model.dof_count) = constraintJac;
-    A.block (0, model.dof_count, model.dof_count, cs.size()) 
+    A.block (0, model.dof_count, model.dof_count, cs.size())
       = constraintJac.transpose();
     b.block (model.dof_count, 0, cs.size(), 1) = -e;
 
@@ -934,7 +1016,7 @@ bool CalcAssemblyQ (
     CalcConstraintsPositionError (model, QInit, cs, e);
 
     // Check if the error and the step are small enough to end.
-    if (e.norm() < tolerance && d.norm() < tolerance){
+    if (e.norm() < tolerance && d.norm() < tolerance) {
       Q = QInit;
       return true;
     }
@@ -954,32 +1036,25 @@ void CalcAssemblyQDot (
   ConstraintSet &cs,
   Math::VectorNd &QDot,
   const Math::VectorNd &weights
-  ) {
+)
+{
   if(QDot.size() != model.dof_count) {
-    std::cerr << "Incorrect QDot vector size." << std::endl;
-    assert(false);
-    abort();
+    throw Errors::RBDLDofMismatchError("Incorrect QDot vector size.\n");
   }
   if(Q.size() != model.q_size) {
-    std::cerr << "Incorrect Q vector size." << std::endl;
-    assert(false);
-    abort();
+    throw Errors::RBDLDofMismatchError("Incorrect Q vector size.\n");
   }
   if(QDotInit.size() != QDot.size()) {
-    std::cerr << "Incorrect QDotInit vector size." << std::endl;
-    assert(false);
-    abort();
+    throw Errors::RBDLDofMismatchError("Incorrect QDotInit vector size.\n");
   }
   if(weights.size() != QDot.size()) {
-    std::cerr << "Incorrect weight vector size." << std::endl;
-    assert(false);
-    abort();
+    throw Errors::RBDLDofMismatchError("Incorrect weight vector size.\n");
   }
 
   // Initialize variables.
   MatrixNd constraintJac = MatrixNd::Zero(cs.size(), model.dof_count);
-  MatrixNd A = MatrixNd::Zero(cs.size() + model.dof_count, cs.size() 
-    + model.dof_count);
+  MatrixNd A = MatrixNd::Zero(cs.size() + model.dof_count, cs.size()
+                              + model.dof_count);
   VectorNd b = VectorNd::Zero(cs.size() + model.dof_count);
   VectorNd x = VectorNd::Zero(cs.size() + model.dof_count);
 
@@ -990,7 +1065,7 @@ void CalcAssemblyQDot (
   }
   CalcConstraintsJacobian (model, Q, cs, constraintJac);
   A.block (model.dof_count, 0, cs.size(), model.dof_count) = constraintJac;
-  A.block (0, model.dof_count, model.dof_count, cs.size()) 
+  A.block (0, model.dof_count, model.dof_count, cs.size())
     = constraintJac.transpose();
 
   // Solve the sistem A*x = b.
@@ -1010,17 +1085,19 @@ void ForwardDynamicsConstraintsDirect (
   ConstraintSet &CS,
   VectorNd &QDDot,
   std::vector<Math::SpatialVector> *f_ext
-  ) {
+)
+{
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
   SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma
-    , CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
+                                , CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
 
   // Copy back QDDot
-  for (unsigned int i = 0; i < model.dof_count; i++)
+  for (unsigned int i = 0; i < model.dof_count; i++) {
     QDDot[i] = CS.x[i];
+  }
 
   // Copy back contact forces
   for (unsigned int i = 0; i < CS.size(); i++) {
@@ -1037,12 +1114,13 @@ void ForwardDynamicsConstraintsRangeSpaceSparse (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDot,
-  std::vector<Math::SpatialVector> *f_ext) {
+  std::vector<Math::SpatialVector> *f_ext)
+{
 
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
   SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C
-    , CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
+                                          , CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
 }
 
 //==============================================================================
@@ -1055,24 +1133,25 @@ void ForwardDynamicsConstraintsNullSpace (
   ConstraintSet &CS,
   VectorNd &QDDot,
   std::vector<Math::SpatialVector> *f_ext
-  ) {
+)
+{
 
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
   CS.GT_qr.compute (CS.G.transpose());
-#ifdef RBDL_USE_SIMPLE_MATH
+  #ifdef RBDL_USE_SIMPLE_MATH
   CS.GT_qr_Q = CS.GT_qr.householderQ();
-#else
+  #else
   CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
-#endif
+  #endif
 
   CS.Y = CS.GT_qr_Q.block (0,0,QDot.rows(), CS.G.rows());
   CS.Z = CS.GT_qr_Q.block (0,CS.G.rows(),QDot.rows(), QDot.rows() - CS.G.rows());
 
   SolveConstrainedSystemNullSpace (CS.H, CS.G, Tau - CS.C, CS.gamma, QDDot
-    , CS.force, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
+                                   , CS.force, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
 
 }
 
@@ -1084,7 +1163,8 @@ void ComputeConstraintImpulsesDirect (
   const Math::VectorNd &QDotMinus,
   ConstraintSet &CS,
   Math::VectorNd &QDotPlus
-  ) {
+)
+{
 
   // Compute H
   UpdateKinematicsCustom (model, &Q, NULL, NULL);
@@ -1094,13 +1174,14 @@ void ComputeConstraintImpulsesDirect (
   CalcConstraintsJacobian (model, Q, CS, CS.G, false);
 
   SolveConstrainedSystemDirect (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
-    , CS.impulse, CS.A, CS.b, CS.x, CS.linear_solver);
+                                , CS.impulse, CS.A, CS.b, CS.x, CS.linear_solver);
 
   // Copy back QDotPlus
-  for (unsigned int i = 0; i < model.dof_count; i++)
+  for (unsigned int i = 0; i < model.dof_count; i++) {
     QDotPlus[i] = CS.x[i];
+  }
 
-  // Copy back constraint impulses 
+  // Copy back constraint impulses
   for (unsigned int i = 0; i < CS.size(); i++) {
     CS.impulse[i] = CS.x[model.dof_count + i];
   }
@@ -1115,7 +1196,8 @@ void ComputeConstraintImpulsesRangeSpaceSparse (
   const Math::VectorNd &QDotMinus,
   ConstraintSet &CS,
   Math::VectorNd &QDotPlus
-  ) {
+)
+{
 
   // Compute H
   UpdateKinematicsCustom (model, &Q, NULL, NULL);
@@ -1125,7 +1207,7 @@ void ComputeConstraintImpulsesRangeSpaceSparse (
   CalcConstraintsJacobian (model, Q, CS, CS.G, false);
 
   SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, CS.H * QDotMinus
-    , CS.v_plus, QDotPlus, CS.impulse, CS.K, CS.a, CS.linear_solver);
+                                          , CS.v_plus, QDotPlus, CS.impulse, CS.K, CS.a, CS.linear_solver);
 
 }
 
@@ -1137,7 +1219,8 @@ void ComputeConstraintImpulsesNullSpace (
   const Math::VectorNd &QDotMinus,
   ConstraintSet &CS,
   Math::VectorNd &QDotPlus
-  ) {
+)
+{
 
   // Compute H
   UpdateKinematicsCustom (model, &Q, NULL, NULL);
@@ -1151,29 +1234,30 @@ void ComputeConstraintImpulsesNullSpace (
 
   CS.Y = CS.GT_qr_Q.block (0,0,QDotMinus.rows(), CS.G.rows());
   CS.Z = CS.GT_qr_Q.block (0,CS.G.rows(),QDotMinus.rows(), QDotMinus.rows()
-    - CS.G.rows());
+                           - CS.G.rows());
 
   SolveConstrainedSystemNullSpace (CS.H, CS.G, CS.H * QDotMinus, CS.v_plus
-    , QDotPlus, CS.impulse, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z
-    , CS.linear_solver);
+                                   , QDotPlus, CS.impulse, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z
+                                   , CS.linear_solver);
 }
 
 //==============================================================================
-/** @brief Compute only the effects of external forces on the generalized 
+/** @brief Compute only the effects of external forces on the generalized
     accelerations
-  
+
     This function is a reduced version of ForwardDynamics() which only
     computes the effects of the external forces on the generalized
     accelerations.
-  
+
  */
 RBDL_DLLAPI
 void ForwardDynamicsApplyConstraintForces (
-    Model &model,
-    const VectorNd &Tau,
-    ConstraintSet &CS,
-    VectorNd &QDDot
-    ) {
+  Model &model,
+  const VectorNd &Tau,
+  ConstraintSet &CS,
+  VectorNd &QDDot
+)
+{
   LOG << "-------- " << __func__ << " --------" << std::endl;
   assert (QDDot.size() == model.dof_count);
 
@@ -1184,8 +1268,8 @@ void ForwardDynamicsApplyConstraintForces (
     model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
     if (CS.f_ext_constraints[i] != SpatialVector::Zero()) {
-      LOG << "External force (" << i << ") = " 
-          << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i] 
+      LOG << "External force (" << i << ") = "
+          << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i]
           << std::endl;
       model.pA[i] -= model.X_base[i].toMatrixAdjoint()*CS.f_ext_constraints[i];
     }
@@ -1201,52 +1285,52 @@ void ForwardDynamicsApplyConstraintForces (
     if (model.mJoints[i].mDoFCount == 3
         && model.mJoints[i].mJointType != JointTypeCustom) {
       unsigned int lambda = model.lambda[i];
-      model.multdof3_u[i] = Vector3d (Tau[q_index], 
-          Tau[q_index + 1], 
-          Tau[q_index + 2]) 
-        - model.multdof3_S[i].transpose() * model.pA[i];
+      model.multdof3_u[i] = Vector3d (Tau[q_index],
+                                      Tau[q_index + 1],
+                                      Tau[q_index + 2])
+                            - model.multdof3_S[i].transpose() * model.pA[i];
 
       if (lambda != 0) {
-        SpatialMatrix Ia = model.IA[i] - (model.multdof3_U[i] 
-            * model.multdof3_Dinv[i] 
-            * model.multdof3_U[i].transpose());
+        SpatialMatrix Ia = model.IA[i] - (model.multdof3_U[i]
+                                          * model.multdof3_Dinv[i]
+                                          * model.multdof3_U[i].transpose());
 
-        SpatialVector pa = model.pA[i] + Ia * model.c[i] 
-          + model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_u[i];
+        SpatialVector pa = model.pA[i] + Ia * model.c[i]
+                           + model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_u[i];
 
-#ifdef EIGEN_CORE_H
-        model.IA[lambda].noalias() += (model.X_lambda[i].toMatrixTranspose() 
-            * Ia * model.X_lambda[i].toMatrix());
+        #ifdef EIGEN_CORE_H
+        model.IA[lambda].noalias() += (model.X_lambda[i].toMatrixTranspose()
+                                       * Ia * model.X_lambda[i].toMatrix());
         model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-#else
-        model.IA[lambda] += (model.X_lambda[i].toMatrixTranspose() 
-            * Ia * model.X_lambda[i].toMatrix());
+        #else
+        model.IA[lambda] += (model.X_lambda[i].toMatrixTranspose()
+                             * Ia * model.X_lambda[i].toMatrix());
         model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
-        LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose() 
-          << std::endl;
+        #endif
+        LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose()
+            << std::endl;
       }
     } else if (model.mJoints[i].mDoFCount == 1
-        && model.mJoints[i].mJointType != JointTypeCustom) {
+               && model.mJoints[i].mJointType != JointTypeCustom) {
       model.u[i] = Tau[q_index] - model.S[i].dot(model.pA[i]);
 
       unsigned int lambda = model.lambda[i];
       if (lambda != 0) {
-        SpatialMatrix Ia = model.IA[i] 
-          - model.U[i] * (model.U[i] / model.d[i]).transpose();
-        SpatialVector pa =  model.pA[i] + Ia * model.c[i] 
-          + model.U[i] * model.u[i] / model.d[i];
-#ifdef EIGEN_CORE_H
-        model.IA[lambda].noalias() += (model.X_lambda[i].toMatrixTranspose() 
-            * Ia * model.X_lambda[i].toMatrix());
+        SpatialMatrix Ia = model.IA[i]
+                           - model.U[i] * (model.U[i] / model.d[i]).transpose();
+        SpatialVector pa =  model.pA[i] + Ia * model.c[i]
+                            + model.U[i] * model.u[i] / model.d[i];
+        #ifdef EIGEN_CORE_H
+        model.IA[lambda].noalias() += (model.X_lambda[i].toMatrixTranspose()
+                                       * Ia * model.X_lambda[i].toMatrix());
         model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-#else
-        model.IA[lambda] += (model.X_lambda[i].toMatrixTranspose() 
-            * Ia * model.X_lambda[i].toMatrix());
+        #else
+        model.IA[lambda] += (model.X_lambda[i].toMatrixTranspose()
+                             * Ia * model.X_lambda[i].toMatrix());
         model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
-        LOG << "pA[" << lambda << "] = " 
-          << model.pA[lambda].transpose() << std::endl;
+        #endif
+        LOG << "pA[" << lambda << "] = "
+            << model.pA[lambda].transpose() << std::endl;
       }
     } else if(model.mJoints[i].mJointType == JointTypeCustom) {
 
@@ -1255,44 +1339,44 @@ void ForwardDynamicsApplyConstraintForces (
       unsigned int lambda = model.lambda[i];
       VectorNd tau_temp = VectorNd::Zero(dofI);
 
-      for(int z=0; z<dofI;++z){
+      for(int z=0; z<dofI; ++z) {
         tau_temp[z] = Tau[q_index+z];
       }
 
       model.mCustomJoints[kI]->u = tau_temp
-        - (model.mCustomJoints[kI]->S.transpose()
-            * model.pA[i]);
+                                   - (model.mCustomJoints[kI]->S.transpose()
+                                      * model.pA[i]);
 
       if (lambda != 0) {
         SpatialMatrix Ia = model.IA[i]
-          - (   model.mCustomJoints[kI]->U
-              * model.mCustomJoints[kI]->Dinv
-              * model.mCustomJoints[kI]->U.transpose());
+                           - (   model.mCustomJoints[kI]->U
+                                 * model.mCustomJoints[kI]->Dinv
+                                 * model.mCustomJoints[kI]->U.transpose());
 
         SpatialVector pa = model.pA[i] + Ia * model.c[i]
-          + (   model.mCustomJoints[kI]->U
-              * model.mCustomJoints[kI]->Dinv
-              * model.mCustomJoints[kI]->u);
-#ifdef EIGEN_CORE_H
+                           + (   model.mCustomJoints[kI]->U
+                                 * model.mCustomJoints[kI]->Dinv
+                                 * model.mCustomJoints[kI]->u);
+        #ifdef EIGEN_CORE_H
         model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose()
-          * Ia * model.X_lambda[i].toMatrix();
+                                      * Ia * model.X_lambda[i].toMatrix();
 
         model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-#else
+        #else
         model.IA[lambda] += model.X_lambda[i].toMatrixTranspose()
-          * Ia * model.X_lambda[i].toMatrix();
+                            * Ia * model.X_lambda[i].toMatrix();
 
         model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-#endif
+        #endif
         LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose()
-          << std::endl;
+            << std::endl;
       }
     }
   }
 
-  model.a[0] = SpatialVector (0., 0., 0., 
-                              -model.gravity[0], 
-                              -model.gravity[1], 
+  model.a[0] = SpatialVector (0., 0., 0.,
+                              -model.gravity[0],
+                              -model.gravity[1],
                               -model.gravity[2]);
 
   for (i = 1; i < model.mBodies.size(); i++) {
@@ -1305,30 +1389,30 @@ void ForwardDynamicsApplyConstraintForces (
 
     if (model.mJoints[i].mDoFCount == 3
         && model.mJoints[i].mJointType != JointTypeCustom) {
-      Vector3d qdd_temp = model.multdof3_Dinv[i] * 
-        (model.multdof3_u[i] 
-         - model.multdof3_U[i].transpose() * model.a[i]);
+      Vector3d qdd_temp = model.multdof3_Dinv[i] *
+                          (model.multdof3_u[i]
+                           - model.multdof3_U[i].transpose() * model.a[i]);
 
       QDDot[q_index] = qdd_temp[0];
       QDDot[q_index + 1] = qdd_temp[1];
       QDDot[q_index + 2] = qdd_temp[2];
       model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
     } else if (model.mJoints[i].mDoFCount == 1
-        && model.mJoints[i].mJointType != JointTypeCustom) {
+               && model.mJoints[i].mJointType != JointTypeCustom) {
       QDDot[q_index] = (1./model.d[i]) * (
-                            model.u[i] - model.U[i].dot(model.a[i]));
+                         model.u[i] - model.U[i].dot(model.a[i]));
       model.a[i] = model.a[i] + model.S[i] * QDDot[q_index];
-    } else if (model.mJoints[i].mJointType == JointTypeCustom){
+    } else if (model.mJoints[i].mJointType == JointTypeCustom) {
       unsigned int kI     = model.mJoints[i].custom_joint_index;
       unsigned int dofI   = model.mCustomJoints[kI]->mDoFCount;
       VectorNd qdd_temp = VectorNd::Zero(dofI);
 
-      qdd_temp = model.mCustomJoints[kI]->Dinv 
-        * (model.mCustomJoints[kI]->u
-            - model.mCustomJoints[kI]->U.transpose()
-            * model.a[i]);
+      qdd_temp = model.mCustomJoints[kI]->Dinv
+                 * (model.mCustomJoints[kI]->u
+                    - model.mCustomJoints[kI]->U.transpose()
+                    * model.a[i]);
 
-      for(int z=0; z<dofI;++z){
+      for(int z=0; z<dofI; ++z) {
         QDDot[q_index+z] = qdd_temp[z];
       }
 
@@ -1337,24 +1421,25 @@ void ForwardDynamicsApplyConstraintForces (
   }
 
   LOG << "QDDot = " << QDDot.transpose() << std::endl;
-} 
+}
 
 //==============================================================================
-/** @brief Computes the effect of external forces on the generalized 
+/** @brief Computes the effect of external forces on the generalized
             accelerations.
- 
+
     This function is essentially similar to ForwardDynamics() except that it
     tries to only perform computations of variables that change due to
     external forces defined in f_t.
  */
 RBDL_DLLAPI
 void ForwardDynamicsAccelerationDeltas (
-    Model &model,
-    ConstraintSet &CS,
-    VectorNd &QDDot_t,
-    const unsigned int body_id,
-    const std::vector<SpatialVector> &f_t
-    ) {
+  Model &model,
+  ConstraintSet &CS,
+  VectorNd &QDDot_t,
+  const unsigned int body_id,
+  const std::vector<SpatialVector> &f_t
+)
+{
   LOG << "-------- " << __func__ << " ------" << std::endl;
 
   assert (CS.d_pA.size() == model.mBodies.size());
@@ -1368,7 +1453,7 @@ void ForwardDynamicsAccelerationDeltas (
     CS.d_u[i] = 0.;
     CS.d_multdof3_u[i].setZero();
   }
-  for(unsigned int i=0; i<model.mCustomJoints.size();i++){
+  for(unsigned int i=0; i<model.mCustomJoints.size(); i++) {
     model.mCustomJoints[i]->d_u.setZero();
   }
 
@@ -1383,23 +1468,23 @@ void ForwardDynamicsAccelerationDeltas (
 
       unsigned int lambda = model.lambda[i];
       if (lambda != 0) {
-        CS.d_pA[lambda] =   CS.d_pA[lambda] 
-          + model.X_lambda[i].applyTranspose (
-              CS.d_pA[i] + (model.multdof3_U[i] 
-                * model.multdof3_Dinv[i] 
-                * CS.d_multdof3_u[i]));
+        CS.d_pA[lambda] =   CS.d_pA[lambda]
+                            + model.X_lambda[i].applyTranspose (
+                              CS.d_pA[i] + (model.multdof3_U[i]
+                                            * model.multdof3_Dinv[i]
+                                            * CS.d_multdof3_u[i]));
       }
     } else if(model.mJoints[i].mDoFCount == 1
-        && model.mJoints[i].mJointType != JointTypeCustom) {
+              && model.mJoints[i].mJointType != JointTypeCustom) {
       CS.d_u[i] = - model.S[i].dot(CS.d_pA[i]);
       unsigned int lambda = model.lambda[i];
 
       if (lambda != 0) {
-        CS.d_pA[lambda] = CS.d_pA[lambda] 
-          + model.X_lambda[i].applyTranspose (
-              CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
+        CS.d_pA[lambda] = CS.d_pA[lambda]
+                          + model.X_lambda[i].applyTranspose (
+                            CS.d_pA[i] + model.U[i] * CS.d_u[i] / model.d[i]);
       }
-    } else if (model.mJoints[i].mJointType == JointTypeCustom){
+    } else if (model.mJoints[i].mJointType == JointTypeCustom) {
 
       unsigned int kI     = model.mJoints[i].custom_joint_index;
       unsigned int dofI   = model.mCustomJoints[kI]->mDoFCount;
@@ -1411,10 +1496,10 @@ void ForwardDynamicsAccelerationDeltas (
         CS.d_pA[lambda] =
           CS.d_pA[lambda]
           + model.X_lambda[i].applyTranspose (
-              CS.d_pA[i] + (   model.mCustomJoints[kI]->U
-                * model.mCustomJoints[kI]->Dinv
-                * model.mCustomJoints[kI]->d_u)
-              );
+            CS.d_pA[i] + (   model.mCustomJoints[kI]->U
+                             * model.mCustomJoints[kI]->Dinv
+                             * model.mCustomJoints[kI]->d_u)
+          );
       }
     }
   }
@@ -1441,8 +1526,8 @@ void ForwardDynamicsAccelerationDeltas (
 
     if (model.mJoints[i].mDoFCount == 3
         && model.mJoints[i].mJointType != JointTypeCustom) {
-      Vector3d qdd_temp = model.multdof3_Dinv[i] 
-        * (CS.d_multdof3_u[i] - model.multdof3_U[i].transpose() * Xa);
+      Vector3d qdd_temp = model.multdof3_Dinv[i]
+                          * (CS.d_multdof3_u[i] - model.multdof3_U[i].transpose() * Xa);
 
       QDDot_t[q_index] = qdd_temp[0];
       QDDot_t[q_index + 1] = qdd_temp[1];
@@ -1450,20 +1535,20 @@ void ForwardDynamicsAccelerationDeltas (
       model.a[i] = model.a[i] + model.multdof3_S[i] * qdd_temp;
       CS.d_a[i] = Xa + model.multdof3_S[i] * qdd_temp;
     } else if (model.mJoints[i].mDoFCount == 1
-        && model.mJoints[i].mJointType != JointTypeCustom){
+               && model.mJoints[i].mJointType != JointTypeCustom) {
 
       QDDot_t[q_index] = (CS.d_u[i] - model.U[i].dot(Xa) ) / model.d[i];
       CS.d_a[i] = Xa + model.S[i] * QDDot_t[q_index];
-    } else if (model.mJoints[i].mJointType == JointTypeCustom){
+    } else if (model.mJoints[i].mJointType == JointTypeCustom) {
       unsigned int kI     = model.mJoints[i].custom_joint_index;
       unsigned int dofI   = model.mCustomJoints[kI]->mDoFCount;
       VectorNd qdd_temp = VectorNd::Zero(dofI);
 
       qdd_temp = model.mCustomJoints[kI]->Dinv
-        * (model.mCustomJoints[kI]->d_u
-            - model.mCustomJoints[kI]->U.transpose() * Xa);
+                 * (model.mCustomJoints[kI]->d_u
+                    - model.mCustomJoints[kI]->U.transpose() * Xa);
 
-      for(int z=0; z<dofI;++z){
+      for(int z=0; z<dofI; ++z) {
         QDDot_t[q_index+z] = qdd_temp[z];
       }
 
@@ -1476,9 +1561,11 @@ void ForwardDynamicsAccelerationDeltas (
   }
 }
 
-inline void set_zero (std::vector<SpatialVector> &spatial_values) {
-  for (unsigned int i = 0; i < spatial_values.size(); i++)
+inline void set_zero (std::vector<SpatialVector> &spatial_values)
+{
+  for (unsigned int i = 0; i < spatial_values.size(); i++) {
     spatial_values[i].setZero();
+  }
 }
 
 //==============================================================================
@@ -1490,7 +1577,8 @@ void ForwardDynamicsContactsKokkevis (
   const VectorNd &Tau,
   ConstraintSet &CS,
   VectorNd &QDDot
-  ) {
+)
+{
   LOG << "-------- " << __func__ << " ------" << std::endl;
 
   assert (CS.f_ext_constraints.size() == model.mBodies.size());
@@ -1504,18 +1592,18 @@ void ForwardDynamicsContactsKokkevis (
   assert (CS.a.size() == CS.size());
 
   if(CS.constraints.size() != CS.contactConstraints.size()) {
-    std::cerr << "Incompatible constraint types: all constraints" 
-              << " must be ContactConstraints for the Kokkevis method" 
-              << std::endl;
-    assert(false);
-    abort();
+    std::stringstream errormsg;
+    errormsg << "Incompatible constraint types: all constraints"
+             << " must be ContactConstraints for the Kokkevis method"
+             << std::endl;
+    throw Errors::RBDLError(errormsg.str());
   }
 
   Vector3d point_accel_t;
 
   unsigned int ci = 0; //constraint index:
-                       // the row index in the constraint Jacobian.
-  
+  // the row index in the constraint Jacobian.
+
   // The default acceleration only needs to be computed once
   {
     SUPPRESS_LOGGING;
@@ -1526,7 +1614,7 @@ void ForwardDynamicsContactsKokkevis (
   // we have to compute the standard accelerations first as we use them to
   // compute the effects of each test force
   unsigned int bi = 0;
-  for(bi =0; bi < CS.contactConstraints.size(); ++bi){
+  for(bi =0; bi < CS.contactConstraints.size(); ++bi) {
     {
       SUPPRESS_LOGGING;
       UpdateKinematicsCustom(model, NULL, NULL, &CS.QDDot_0);
@@ -1543,9 +1631,9 @@ void ForwardDynamicsContactsKokkevis (
     {
       SUPPRESS_LOGGING;
       CS.contactConstraints[bi]->calcPointAccelerations(
-                          model,Q,QDot,CS.QDDot_0,CS.point_accel_0,false);
+        model,Q,QDot,CS.QDDot_0,CS.point_accel_0,false);
       CS.contactConstraints[bi]->calcPointAccelerationError(
-                          CS.point_accel_0,CS.a);
+        CS.point_accel_0,CS.a);
     }
   }
 
@@ -1561,28 +1649,28 @@ void ForwardDynamicsContactsKokkevis (
     ci = CS.contactConstraints[bi]->getConstraintIndex();
 
     movable_body_id = GetMovableBodyId(model,
-                      CS.contactConstraints[bi]->getBodyIds()[0]);
+                                       CS.contactConstraints[bi]->getBodyIds()[0]);
 
     // assemble the test force
     LOG << "point_global = " << point_global.transpose() << std::endl;
 
     CS.contactConstraints[bi]->calcPointForceJacobian(
-          model,Q,CS.cache,CS.f_t,false);
+      model,Q,CS.cache,CS.f_t,false);
 
     for(unsigned int j = 0; j<CS.contactConstraints[bi]
-                                ->getConstraintNormalVectors().size(); ++j){
+        ->getConstraintNormalVectors().size(); ++j) {
 
       CS.f_ext_constraints[movable_body_id] = CS.f_t[ci+j];
 
       LOG << "f_t[" << movable_body_id << "] = " << CS.f_t[ci+j].transpose()
-        << std::endl;
+          << std::endl;
       {
         ForwardDynamicsAccelerationDeltas(model, CS, CS.QDDot_t
-          , movable_body_id, CS.f_ext_constraints);
+                                          , movable_body_id, CS.f_ext_constraints);
 
         LOG << "QDDot_0 = " << CS.QDDot_0.transpose() << std::endl;
         LOG << "QDDot_t = " << (CS.QDDot_t + CS.QDDot_0).transpose()
-          << std::endl;
+            << std::endl;
         LOG << "QDDot_t - QDDot_0 = " << (CS.QDDot_t).transpose() << std::endl;
       }
 
@@ -1598,24 +1686,24 @@ void ForwardDynamicsContactsKokkevis (
       for(unsigned int dj = 0;
           dj < CS.contactConstraints.size(); dj++) {
 
-          cj = CS.contactConstraints[dj]->getConstraintIndex();
-          {
-            SUPPRESS_LOGGING;
-            CS.contactConstraints[dj]->calcPointAccelerations(
-                  model,Q,QDot,CS.QDDot_t,point_accel_t,false);
-          }
+        cj = CS.contactConstraints[dj]->getConstraintIndex();
+        {
+          SUPPRESS_LOGGING;
+          CS.contactConstraints[dj]->calcPointAccelerations(
+            model,Q,QDot,CS.QDDot_t,point_accel_t,false);
+        }
 
-          LOG << "point_accel_0  = " << CS.point_accel_0[ci+j].transpose()
+        LOG << "point_accel_0  = " << CS.point_accel_0[ci+j].transpose()
             << std::endl;
-          LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
-          for(unsigned int k=0;
-              k < CS.contactConstraints[dj]
-                      ->getConstraintNormalVectors().size();++k){
+        LOG << "point_accel_t = " << point_accel_t.transpose() << std::endl;
+        for(unsigned int k=0;
+            k < CS.contactConstraints[dj]
+            ->getConstraintNormalVectors().size(); ++k) {
 
-            CS.K(ci+j,cj+k) = CS.contactConstraints[dj]
-                                  ->getConstraintNormalVectors()[k].dot(
-                                        point_accel_t - CS.point_accel_0[cj+k]);
-          }
+          CS.K(ci+j,cj+k) = CS.contactConstraints[dj]
+                            ->getConstraintNormalVectors()[k].dot(
+                              point_accel_t - CS.point_accel_0[cj+k]);
+        }
       }
     }
   }
@@ -1626,33 +1714,33 @@ void ForwardDynamicsContactsKokkevis (
   LOG << "K = " << std::endl << CS.K << std::endl;
   LOG << "a = " << std::endl << CS.a << std::endl;
 
-#ifndef RBDL_USE_SIMPLE_MATH
+  #ifndef RBDL_USE_SIMPLE_MATH
   switch (CS.linear_solver) {
-    case (LinearSolverPartialPivLU) :
-      CS.force = CS.K.partialPivLu().solve(CS.a);
-      break;
-    case (LinearSolverColPivHouseholderQR) :
-      CS.force = CS.K.colPivHouseholderQr().solve(CS.a);
-      break;
-    case (LinearSolverHouseholderQR) :
-      CS.force = CS.K.householderQr().solve(CS.a);
-      break;
-    default:
-      LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
-      assert (0);
-      break;
+  case (LinearSolverPartialPivLU) :
+    CS.force = CS.K.partialPivLu().solve(CS.a);
+    break;
+  case (LinearSolverColPivHouseholderQR) :
+    CS.force = CS.K.colPivHouseholderQr().solve(CS.a);
+    break;
+  case (LinearSolverHouseholderQR) :
+    CS.force = CS.K.householderQr().solve(CS.a);
+    break;
+  default:
+    LOG << "Error: Invalid linear solver: " << CS.linear_solver << std::endl;
+    assert (0);
+    break;
   }
-#else
+  #else
   bool solve_successful = LinSolveGaussElimPivot (CS.K, CS.a, CS.force);
   assert (solve_successful);
-#endif
+  #endif
 
   LOG << "f = " << CS.force.transpose() << std::endl;
 
 
-  for(bi=0; bi<CS.contactConstraints.size();++bi){
+  for(bi=0; bi<CS.contactConstraints.size(); ++bi) {
     unsigned int body_id =
-        CS.contactConstraints[bi]->getBodyIds()[0];
+      CS.contactConstraints[bi]->getBodyIds()[0];
     unsigned int movable_body_id = body_id;
 
     if (model.IsFixedBodyId(body_id)) {
@@ -1662,7 +1750,7 @@ void ForwardDynamicsContactsKokkevis (
     ci = CS.contactConstraints[bi]->getConstraintIndex();
 
     for(unsigned int k=0;
-        k<CS.contactConstraints[bi]->getConstraintSize();++k){
+        k<CS.contactConstraints[bi]->getConstraintSize(); ++k) {
       CS.f_ext_constraints[movable_body_id] -= CS.f_t[ci+k] * CS.force[ci+k];
       LOG << "f_ext[" << movable_body_id << "] = "
           << CS.f_ext_constraints[movable_body_id].transpose() << std::endl;
@@ -1680,27 +1768,295 @@ void ForwardDynamicsContactsKokkevis (
   LOG << "QDDot after applying f_ext: " << QDDot.transpose() << std::endl;
 }
 
+
 //==============================================================================
+
+#ifndef RBDL_USE_SIMPLE_MATH
+RBDL_DLLAPI
+bool isConstrainedSystemFullyActuated(
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  ConstraintSet &CS,
+  std::vector<Math::SpatialVector> *f_ext)
+{
+
+  LOG << "-------- " << __func__ << " ------" << std::endl;
+
+
+  assert (CS.S.cols()    == QDot.rows());
+
+  unsigned int n  = unsigned(    CS.H.rows());
+  unsigned int nc = unsigned( CS.name.size());
+  unsigned int na = unsigned(    CS.S.rows());
+  unsigned int nu = n-na;
+
+
+  CalcConstrainedSystemVariables(model,Q,QDot,VectorNd::Zero(QDot.rows()),CS,
+                                 f_ext);
+
+  CS.GPT = CS.G*CS.P.transpose();
+
+  CS.GPT_full_qr.compute(CS.GPT);
+  unsigned int r = unsigned(CS.GPT_full_qr.rank());
+
+  bool isCompatible = false;
+  if(r == (n-na)) {
+    isCompatible = true;
+  } else {
+    isCompatible = false;
+  }
+
+  return isCompatible;
+
+}
+#endif
+#ifndef RBDL_USE_SIMPLE_MATH
+
+RBDL_DLLAPI
+void InverseDynamicsConstraints(
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  const Math::VectorNd &QDDotDesired,
+  ConstraintSet &CS,
+  Math::VectorNd &QDDotOutput,
+  Math::VectorNd &TauOutput,
+  std::vector<Math::SpatialVector> *f_ext)
+{
+
+  LOG << "-------- " << __func__ << " ------" << std::endl;
+
+  assert (QDot.size()         == QDDotDesired.size());
+  assert (QDDotDesired.size() == QDot.size());
+  assert (QDDotOutput.size()  == QDot.size());
+  assert (TauOutput.size()    == CS.H.rows());
+
+  assert (CS.S.cols()     == QDDotDesired.rows());
+
+  unsigned int n  = unsigned(    CS.H.rows());
+  unsigned int nc = unsigned( CS.name.size());
+  unsigned int na = unsigned(    CS.S.rows());
+  unsigned int nu = n-na;
+
+  TauOutput.setZero();
+  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,f_ext);
+
+  // This implementation follows the projected KKT system described in
+  // Eqn. 5.20 of Henning Koch's thesis work. Note that this will fail
+  // for under actuated systems
+  //  [ SMS'      SMP'    SJ'    I][      u]   [ -SC    ]
+  //  [ PMS'      PMP'    PJ'     ][      v] = [ -PC    ]
+  //  [ JS'        JP'     0      ][-lambda]   [ -gamma ]
+  //  [ I                         ][   -tau]   [  v*     ]
+  //double alpha = 0.1;
+
+  CS.Ful = CS.S*CS.H*CS.S.transpose();
+  CS.Fur = CS.S*CS.H*CS.P.transpose();
+  CS.Fll = CS.P*CS.H*CS.S.transpose();
+  CS.Flr = CS.P*CS.H*CS.P.transpose();
+
+  CS.GTu = CS.S*(CS.G.transpose());
+  CS.GTl = CS.P*(CS.G.transpose());
+
+  //Exploiting the block triangular structure
+  //u:
+  //I u = S*qdd*
+  CS.u = CS.S*QDDotDesired;
+  // v
+  //(JP')v = -gamma - (JS')u
+  //Using GT
+
+  //This fails using SimpleMath and I'm not sure how to fix it
+  SolveLinearSystem( CS.GTl.transpose(),
+                     CS.gamma - CS.GTu.transpose()*CS.u,
+                     CS.v, CS.linear_solver);
+
+  // lambda
+  SolveLinearSystem(CS.GTl,
+                    -CS.P*CS.C
+                    - CS.Fll*CS.u
+                    - CS.Flr*CS.v,
+                    CS.force,
+                    CS.linear_solver);
+
+  for(unsigned int i=0; i<CS.force.rows(); ++i) {
+    CS.force[i] *= -1.0;
+  }
+
+  //Evaluating qdd
+  QDDotOutput = CS.S.transpose()*CS.u + CS.P.transpose()*CS.v;
+
+  //Evaluating tau
+  TauOutput = -CS.S.transpose()*( -CS.S*CS.C
+                                  -( CS.Ful*CS.u
+                                     +CS.Fur*CS.v
+                                     -CS.GTu*CS.force));
+
+
+
+
+}
+#endif
+
+RBDL_DLLAPI
+void InverseDynamicsConstraintsRelaxed(
+  Model &model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  const Math::VectorNd &QDDotControls,
+  ConstraintSet &CS,
+  Math::VectorNd &QDDotOutput,
+  Math::VectorNd &TauOutput,
+  std::vector<Math::SpatialVector> *f_ext)
+{
+  LOG << "-------- " << __func__ << " --------" << std::endl;
+
+  //Check that the input vectors and matricies are sized appropriately
+  assert(Q.size()               == model.q_size);
+  assert(QDot.size()            == model.qdot_size);
+  assert(QDDotControls.size()    == model.dof_count);
+  assert(CS.S.cols()            == model.dof_count);
+  assert(CS.W.rows()            == CS.W.cols());
+  assert(CS.W.rows()            == CS.S.rows());
+  assert(QDDotOutput.size()     == model.dof_count);
+
+  TauOutput.setZero();
+  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,f_ext);
+
+  unsigned int n  = unsigned(    CS.H.rows());
+  unsigned int nc = unsigned( CS.name.size());
+  unsigned int na = unsigned(    CS.S.rows());
+  unsigned int nu = n-na;
+
+
+  //MM: Update to Henning's formulation s.t. the relaxed IDC operator will
+  //    more closely satisfy QDDotControls if it is possible.
+  double diag = 0.;//100.*CS.H.maxCoeff();
+  double diagInv = 0.;
+  for(unsigned int i=0; i<CS.H.rows(); ++i) {
+    for(unsigned int j=0; j<CS.H.cols(); ++j) {
+      if(fabs(CS.H(i,j)) > diag) {
+        diag = fabs(CS.H(i,j));
+      }
+    }
+  }
+  diag = diag*100.;
+  diagInv = 1.0/diag;
+  for(unsigned int i=0; i<CS.W.rows(); ++i) {
+    CS.W(i,i)    = diag;
+    CS.Winv(i,i) = diagInv;
+  }
+
+  CS.WinvSC = CS.Winv * CS.S * CS.C;
+
+  CS.F.block(  0,  0, na, na) = CS.S*CS.H*CS.S.transpose() + CS.W;
+  CS.F.block(  0, na, na, nu) = CS.S*CS.H*CS.P.transpose();
+  CS.F.block( na,  0, nu, na) = CS.P*CS.H*CS.S.transpose();
+  CS.F.block( na, na, nu, nu) = CS.P*CS.H*CS.P.transpose();
+
+  CS.GT.block(  0, 0,na, nc) = CS.S*(CS.G.transpose());
+  CS.GT.block( na, 0,nu, nc) = CS.P*(CS.G.transpose());
+
+  CS.GT_qr.compute (CS.GT);
+  #ifdef RBDL_USE_SIMPLE_MATH
+  CS.GT_qr_Q = CS.GT_qr.householderQ();
+  #else
+  CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
+  #endif
+
+  //GT = [Y  Z] * [ R ]
+  //              [ 0 ]
+
+  CS.R  = CS.GT_qr_Q.transpose()*CS.GT;
+  CS.Ru = CS.R.block(0,0,nc,nc);
+
+  CS.Y = CS.GT_qr_Q.block( 0, 0,  n, nc    );
+  CS.Z = CS.GT_qr_Q.block( 0, nc, n, (n-nc));
+
+  //MM: Update to Henning's formulation s.t. the relaxed IDC operator will
+  //    exactly satisfy QDDotControls if it is possible.
+  //
+  //Modify QDDotControls so that SN is cancelled.
+  //
+  //    +SC - WS(qdd*)
+  //
+  // Add a term to cancel off SN
+  //
+  //    +SC - WS( qdd* + (S' W^-1 S)N )
+  //
+
+  CS.u = CS.S*CS.C - CS.W*(CS.S*(QDDotControls
+                                 +(CS.S.transpose()*CS.WinvSC)));
+
+  CS.v =  CS.P*CS.C;
+
+  for(unsigned int i=0; i<CS.S.rows(); ++i) {
+    CS.g[i] = CS.u[i];
+  }
+  unsigned int j=CS.S.rows();
+  for(unsigned int i=0; i<CS.P.rows(); ++i) {
+    CS.g[j] = CS.v[i];
+    ++j;
+  }
+
+  //nc x nc system
+  SolveLinearSystem(CS.Ru.transpose(), CS.gamma, CS.py, CS.linear_solver);
+
+  //(n-nc) x (n-nc) system
+  SolveLinearSystem(CS.Z.transpose()*CS.F*CS.Z,
+                    CS.Z.transpose()*(-CS.F*CS.Y*CS.py-CS.g),
+                    CS.pz,
+                    CS.linear_solver);
+
+  //nc x nc system
+  SolveLinearSystem(CS.Ru,
+                    CS.Y.transpose()*(CS.g + CS.F*CS.Y*CS.py + CS.F*CS.Z*CS.pz),
+                    CS.force, CS.linear_solver);
+
+  //Eqn. 32d, the equation for qdd, is in error. Instead
+  // p = Ypy + Zpz = [v,w]
+  // qdd = S'v + P'w
+  QDDotOutput = CS.Y*CS.py + CS.Z*CS.pz;
+  for(unsigned int i=0; i<CS.S.rows(); ++i) {
+    CS.u[i] = QDDotOutput[i];
+  }
+  j = CS.S.rows();
+  for(unsigned int i=0; i<CS.P.rows(); ++i) {
+    CS.v[i] = QDDotOutput[j];
+    ++j;
+  }
+
+  QDDotOutput = CS.S.transpose()*CS.u
+                +CS.P.transpose()*CS.v;
+
+  TauOutput = (CS.S.transpose()*CS.W*CS.S)*(
+                QDDotControls+(CS.S.transpose()*CS.WinvSC)
+                -QDDotOutput);
+
+
+
+}
+
 void SolveLinearSystem (
   const MatrixNd& A,
-  const VectorNd& b, 
+  const VectorNd& b,
   VectorNd& x,
   LinearSolver ls
-  ) {
+)
+{
   if(A.rows() != b.size() || A.cols() != x.size()) {
-    std::cerr << "Mismatching sizes." << std::endl;
-    assert(false);
-    abort();
+    throw Errors::RBDLSizeMismatchError("Mismatching sizes.\n");
   }
 
   // Solve the system A*x = b.
   switch (ls) {
   case (LinearSolverPartialPivLU) :
     #ifdef RBDL_USE_SIMPLE_MATH
-      // SimpleMath does not have a LU solver so just use its QR solver
-      x = A.householderQr().solve(b);
+    // SimpleMath does not have a LU solver so just use its QR solver
+    x = A.householderQr().solve(b);
     #else
-      x = A.partialPivLu().solve(b);
+    x = A.partialPivLu().solve(b);
     #endif
     break;
   case (LinearSolverColPivHouseholderQR) :
@@ -1710,20 +2066,20 @@ void SolveLinearSystem (
     x = A.householderQr().solve(b);
     break;
   default:
-    std::cerr << "Error: Invalid linear solver: " << ls << std::endl;
-    assert(false);
-    abort();
+    std::ostringstream errormsg;
+    errormsg << "Error: Invalid linear solver: " << ls << std::endl;
+    throw Errors::RBDLError(errormsg.str());
     break;
   }
 }
 
 //==============================================================================
-unsigned int GetMovableBodyId (Model& model, unsigned int id) {
+unsigned int GetMovableBodyId (Model& model, unsigned int id)
+{
   if(model.IsFixedBodyId(id)) {
     unsigned int fbody_id = id - model.fixed_body_discriminator;
     return model.mFixedBodies[fbody_id].mMovableParent;
-  }
-  else {
+  } else {
     return id;
   }
 }
@@ -1731,15 +2087,15 @@ unsigned int GetMovableBodyId (Model& model, unsigned int id) {
 //==============================================================================
 
 void ConstraintSet::calcForces(
-    unsigned int groupIndex,
-    Model& model,
-    const Math::VectorNd &Q,
-    const Math::VectorNd &QDot,
-    std::vector< unsigned int > &constraintBodyIdsUpd,
-    std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
-    std::vector< Math::SpatialVector > &constraintForcesUpd,
-    bool resolveAllInRootFrame,
-    bool updKin)
+  unsigned int groupIndex,
+  Model& model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  std::vector< unsigned int > &constraintBodyIdsUpd,
+  std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
+  std::vector< Math::SpatialVector > &constraintForcesUpd,
+  bool resolveAllInRootFrame,
+  bool updKin)
 {
   assert(groupIndex <= unsigned(constraints.size()-1));
 
@@ -1748,26 +2104,26 @@ void ConstraintSet::calcForces(
   }
 
   constraints[groupIndex]->calcConstraintForces(model,0.,Q,QDot,G,force,
-                                                constraintBodyIdsUpd,
-                                                constraintBodyFramesUpd,
-                                                constraintForcesUpd,
-                                                cache,
-                                                resolveAllInRootFrame,
-                                                updKin);
+      constraintBodyIdsUpd,
+      constraintBodyFramesUpd,
+      constraintForcesUpd,
+      cache,
+      resolveAllInRootFrame,
+      updKin);
 }
 
 //==============================================================================
 
 void ConstraintSet::calcImpulses(
-    unsigned int groupIndex,
-    Model& model,
-    const Math::VectorNd &Q,
-    const Math::VectorNd &QDot,
-    std::vector< unsigned int > &constraintBodyIdsUpd,
-    std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
-    std::vector< Math::SpatialVector > &constraintImpulsesUpd,
-    bool resolveAllInRootFrame,
-    bool updKin)
+  unsigned int groupIndex,
+  Model& model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  std::vector< unsigned int > &constraintBodyIdsUpd,
+  std::vector< Math::SpatialTransform > &constraintBodyFramesUpd,
+  std::vector< Math::SpatialVector > &constraintImpulsesUpd,
+  bool resolveAllInRootFrame,
+  bool updKin)
 {
   assert(groupIndex <= unsigned(constraints.size()-1));
 
@@ -1778,16 +2134,16 @@ void ConstraintSet::calcImpulses(
   //The transformation is identical to resolve the impulses
   //to the desired frame
   constraints[groupIndex]->calcConstraintForces(model,0.,Q,QDot,G,impulse,
-                                                constraintBodyIdsUpd,
-                                                constraintBodyFramesUpd,
-                                                constraintImpulsesUpd,
-                                                cache,
-                                                resolveAllInRootFrame,
-                                                updKin);
+      constraintBodyIdsUpd,
+      constraintBodyFramesUpd,
+      constraintImpulsesUpd,
+      cache,
+      resolveAllInRootFrame,
+      updKin);
 
   //But due to Martin's choice of signs on the Lagrange multipliers vs
   //impulses the signs are opposite
-  for(unsigned int i=0; i<constraintImpulsesUpd.size();++i){
+  for(unsigned int i=0; i<constraintImpulsesUpd.size(); ++i) {
     constraintImpulsesUpd[i] *= -1.0;
   }
 }
@@ -1795,11 +2151,11 @@ void ConstraintSet::calcImpulses(
 //==============================================================================
 
 void ConstraintSet::calcPositionError(
-    unsigned int groupIndex,
-    Model& model,
-    const Math::VectorNd &Q,
-    Math::VectorNd &posErrUpd,
-    bool updKin)
+  unsigned int groupIndex,
+  Model& model,
+  const Math::VectorNd &Q,
+  Math::VectorNd &posErrUpd,
+  bool updKin)
 {
   assert(groupIndex <= unsigned(constraints.size()-1));
 
@@ -1819,12 +2175,12 @@ void ConstraintSet::calcPositionError(
 //==============================================================================
 
 void ConstraintSet::calcVelocityError(
-    unsigned int groupIndex,
-    Model& model,
-    const Math::VectorNd &Q,
-    const Math::VectorNd &QDot,
-    Math::VectorNd &velErrUpd,
-    bool updKin)
+  unsigned int groupIndex,
+  Model& model,
+  const Math::VectorNd &Q,
+  const Math::VectorNd &QDot,
+  Math::VectorNd &velErrUpd,
+  bool updKin)
 {
   assert(groupIndex <= unsigned(constraints.size()-1));
 
@@ -1834,11 +2190,11 @@ void ConstraintSet::calcVelocityError(
 
   //Update the constraint Jacobian of this constraint
   constraints[groupIndex]->calcConstraintJacobian(model,0.,Q,QDot,G,cache,
-                                                  updKin);
+      updKin);
 
   //Update the velocity-level errors of this constraint
   constraints[groupIndex]->calcVelocityError(model,0.,Q,QDot,G,errd,cache,
-                                             updKin);
+      updKin);
 
   //Pick out the sub vector of velocity errors for this constraint from
   //the system error vector.
@@ -1848,19 +2204,19 @@ void ConstraintSet::calcVelocityError(
 //==============================================================================
 
 void ConstraintSet::calcBaumgarteStabilizationForces(
-    unsigned int groupIndex,
-    Model& model,
-    const Math::VectorNd &positionError,
-    const Math::VectorNd &velocityError,
-    Math::VectorNd &baumgarteForces)
+  unsigned int groupIndex,
+  Model& model,
+  const Math::VectorNd &positionError,
+  const Math::VectorNd &velocityError,
+  Math::VectorNd &baumgarteForces)
 {
   assert(groupIndex <= unsigned(constraints.size()-1));
   assert(positionError.rows() == constraints[groupIndex]->getConstraintSize());
   assert(velocityError.rows() == constraints[groupIndex]->getConstraintSize());
 
   constraints[groupIndex]->getBaumgarteStabilizationForces(positionError,
-                                                           velocityError,
-                                                           baumgarteForces);
+      velocityError,
+      baumgarteForces);
 
 }
 
