@@ -50,9 +50,12 @@ SpatialVector LuaTableNode::getDefault<SpatialVector>(
   if (stackQueryValue()) {
     LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
+	//! [Parse Failed]
     if (vector_table.length() != 6) {
       throw Errors::RBDLFileParseError("LuaModel Error: invalid 6d vector!");
     }
+	//! [Parse Failed]
+
     result[0] = vector_table[1];
     result[1] = vector_table[2];
     result[2] = vector_table[3];

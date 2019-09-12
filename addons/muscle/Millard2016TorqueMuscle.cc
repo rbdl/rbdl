@@ -1804,9 +1804,12 @@ calcBlendedCurveDerivative(
   }
   break;
 
+  //! [Missing Implementation]
   default: {
     throw RigidBodyDynamics::Errors::RBDLMissingImplementationError("3rd order derivatives not yet implemented\n");
   }
+  //! [Missing Implementation]
+
   };
   return output;
 }

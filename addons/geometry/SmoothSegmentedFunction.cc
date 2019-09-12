@@ -154,12 +154,14 @@ updSmoothSegmentedFunction(
 
   if(mX.rows() != 6 || mY.rows() != 6 || mX.cols() != mY.cols() ) {
     ostringstream errormsg;
+    //! [Size Mismatch]
     errormsg << "SmoothSegmentedFunction::updSmoothSegmentedFunction "
              <<  _name.c_str()
              << ": matrices mX and mY must have 6 rows, and the same"
              << " number of columns."
              << endl;
     throw RigidBodyDynamics::Errors::RBDLSizeMismatchError(errormsg.str());
+    //! [Size Mismatch]
   }
 
   _x0   =x0;
@@ -204,6 +206,7 @@ void SmoothSegmentedFunction::scale(double xScale, double yScale)
 
   if( abs( xScale ) <= SQRTEPS) {
     ostringstream errormsg;
+    //! [Invalid Parameter]
     errormsg << "SmoothSegmentedFunction::scale "
              <<  _name.c_str()
              << ": xScale must be greater than sqrt(eps). Setting xScale to such"
@@ -211,6 +214,7 @@ void SmoothSegmentedFunction::scale(double xScale, double yScale)
              << " infinity, or become undefined."
              << endl;
     throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
+    //! [Invalid Parameter]
   }
 
   _x0 *= xScale;
@@ -454,7 +458,7 @@ calcDerivative( const std::vector<int>& derivComponents,
       throw RigidBodyDynamics::Errors::RBDLInvalidParameterError(errormsg.str());
     }
   }
-
+  //! [Dof Mismatch]
   if( !(derivComponents.size() <= 6)) {
     ostringstream errormsg;
     errormsg << "SmoothSegmentedFunction::calcDerivative " << _name.c_str()
@@ -464,6 +468,7 @@ calcDerivative( const std::vector<int>& derivComponents,
              << endl;
     throw RigidBodyDynamics::Errors::RBDLDofMismatchError(errormsg.str());
   }
+  //! [Dof Mismatch]
 
   if( !(ax.size() == 1) ) {
     ostringstream errormsg;

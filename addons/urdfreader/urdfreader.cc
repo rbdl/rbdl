@@ -304,11 +304,13 @@ RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model,
                                    bool floating_base, bool verbose)
 {
   ifstream model_file (filename);
+  //! [Invalid File]
   if (!model_file) {
     ostringstream errormsg;
     errormsg << "Error opening file '" << filename << "'." << endl;
     throw Errors::RBDLInvalidFileError(errormsg.str());
   }
+  //! [Invalid File]
 
   // reserve memory for the contents of the file
   string model_xml_string;

@@ -766,9 +766,11 @@ EXCLUDE_SYMBOLS        =
 # the \include command).
 
 EXAMPLE_PATH           = doc \
+                         src \
+                         addons \
                          examples/luamodel \
                          examples/simple \
-                         examples/python
+                         examples/python \
 
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
