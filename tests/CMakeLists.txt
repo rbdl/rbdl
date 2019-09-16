@@ -10,6 +10,7 @@ INCLUDE_DIRECTORIES (${UNITTEST++_INCLUDE_DIR})
 SET ( TESTS_SRCS
   main.cc
   MathTests.cc
+  ErrorTests.cc
   SpatialAlgebraTests.cc
   MultiDofTests.cc
   KinematicsTests.cc
