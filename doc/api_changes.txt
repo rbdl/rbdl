@@ -1,3 +1,15 @@
+2.6.0 -> 3.0.0 (24. September 2019)
+
+- Replaced aborting behaviour with actual error handling by providing an error
+  base class and some more specific error types derived from it 
+  (contributed by Felix Richter) 
+- Removed SimpleMath library to reduce code complexety
+  (contributed by Felix Richter) 
+- Refactored the constraint system to be polymorphic
+  (contributed by Matthew J. Millard) 
+- Python Wrapper has been updated to support python3 and python2 and the
+  api has been extended to include the muscle addons functionality
+
 2.5.0 -> 2.6.0
 
 - Added support for closed-loop models by replacing Contacts API by a new

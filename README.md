@@ -4,91 +4,23 @@ Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
 Introduction
 ============
 
-RBDL is a highly efficient C++ library that contains some essential rigid
-body dynamics algorithms such as the Articulated Body Algorithm (ABA) for forward dynamics, Recursive Newton-Euler Algorithm (RNEA) for inverse dynamics and the Composite Rigid Body Algorithm (CRBA) for the efficient computation of the joint space inertia matrix. It further contains code for Jacobians, forward and inverse kinematics, handling of external
-constraints such as contacts and collisions, and closed-loop models.
+RBDL is a highly efficient C++ library that contains some essential rigid body dynamics algorithms
+such as the Articulated Body Algorithm (ABA) for forward dynamics, Recursive Newton-Euler
+Algorithm (RNEA) for inverse dynamics and the Composite Rigid Body Algorithm (CRBA) for the
+efficient computation of the joint space inertia matrix. It further contains code for Jacobians,
+forward and inverse kinematics, handling of external constraints such as contacts and collisions,
+and closed-loop models.
 
-The code is developed by Martin Felis <martin@fysx.org> at the research group [Optimization in Robotics and Biomechanics (ORB)](http://orb.iwr.uni-heidelberg.de) of the [Interdisciplinary Center for Scientific Computing (IWR)](http://www.iwr.uni-heidelberg.de) and [Institut of Computer Engineering](https://www.ziti.uni-heidelberg.de/ziti/en/) at [Heidelberg University](http://www.uni-heidelberg.de). The code closely follows the notation used in Roy Featherstone''s book "Rigid Body Dynamics Algorithm".
+The code was originally developed by Martin Felis <martin@fysx.org> at the research group
+[Optimization in Robotics and Biomechanics (ORB)](http://orb.iwr.uni-heidelberg.de) of the
+[Interdisciplinary Center for Scientific Computing (IWR)](http://www.iwr.uni-heidelberg.de) and
+[Institut of Computer Engineering](https://www.ziti.uni-heidelberg.de/ziti/en/) at [Heidelberg
+University](http://www.uni-heidelberg.de). The code closely follows the notation used in Roy
+Featherstone''s book "Rigid Body Dynamics Algorithm".
 
 This repository contains the version of RBDL that is maintained by the members
 of the ORB research group. 
 
-Recent Changes
-==============
-  * 02 May 2018: New version 2.6.0:
-    * Added support for closed-loop models by replacing Contacts API by a new
-      Constraints API. Loop constraints can be stabilized using Baumgarte
-      stabilization. Special thanks to Davide Corradi for this contribution!
-    * New constraint type CustomConstraint: a versatile interface to define
-      more general types of constraints (e.g. time dependent), contributed by
-      Matthew J. Millard.
-    * New joint type JointTypeHelical that can be used for screwing motions
-      (translations and simultaneous rotations), contributed by Stuart Anderson.
-    * Added support to specify external forces on bodies on constrained forward
-      dynamics and NonlinearEffects() (contributed by Matthew J. Millard)
-    * Changed Quaternion multiplication behaviour for a more standard
-      convention: multiplying q1 (1,0,0,0) with q2 (0,1,0,0) results now in
-      (0,0,1,0) instead of the previous (0,0,-1,0).
-    * Removed Model::SetFloatingBaseBody(). Use JointTypeFloatingBase instead.
-    * LuaModel: extended specification to support ConstraintSets.
-  * 28 April 2016: New version 2.5.0:
-    * Added an experimental Cython based Python wrapper of RBDL. The API is
-      very close to the C++ API. For a brief glimpse of the API see the file
-      python/test_wrapper.py.
-    * Matthew Millard added CustomJoints which allow to create different joint
-      types completely by user code. They are implemented as proxy joints for
-      which their behaviour is specified using virtual functions.
-    * Added CalcMInvTimesTau() that evaluates multiplication of the inverse of
-      the joint space inertia matrix with a vector in O(n) time.
-    * Added JointTypeFloatingBase which uses TX,TY,TZ and a spherical joint for
-      the floating base joint.
-    * Loading of floating base URDF models must now be specified as a third
-      parameter to URDFReadFromFile() and URDFReadFromString()
-    * Added the URDF code from Bullet3 which gets used when ROS is not found.
-      Otherwise use the URDF libraries found via Catkin.
-    * Added CalcPointVelocity6D, CalcPointAcceleration6D, and CalcPointJacobian6D
-      that compute both linear and angular quantities
-    * Removed Model::SetFloatingBase (body). Use a 6-DoF joint or
-      JointTypeFloatingBase instead.
-    * Fixed building issues when building DLL with MSVC++.
-  * 20 April 2016: New version 2.4.1:
-    * This is a bugfix release that maintains binary compatibility and only fixes
-    erroneous behaviour.
-    * critical: fixed termination criterion for InverseKinematics. The termination
-      criterion would be evaluated too early and thus report convergence too
-      early. This was reported independently by Kevin Stein, Yun Fei, and Davide
-      Corradi. Thanks for the reports!
-    * critical: fixed CompositeRigidBodyAlgorithm when using spherical joints
-      (thanks to Sébastien Barthélémy for reporting!)
-  * 23 February 2015: New version 2.4.0:
-    * Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
-      and ComputeContactImpulsesRangeSpaceSparse() 
-    * Added null-space method ForwardDynamicsContactsNullSpace()
-      and ComputeContactImpulsesNullSpace() 
-    * Renamed ForwardDynamicsContactsLagrangian() to
-      ForwardDynamicsContactsDirect() and
-      ComputeContactImpulsesLagrangian() to ComputeContactImpulsesDirect()
-    * Renamed ForwardDynamicsContacts() to ForwardDynamicsContactsKokkevis()
-    * Removed/Fixed CalcAngularMomentum(). The function produced wrong values. The
-      functionality has been integrated into CalcCenterOfMass().
-    * CalcPointJacobian() does not clear the argument of the result anymore.
-      Caller has to ensure that the matrix was set to zero before using this
-      function.
-    * Added optional workspace parameters for ForwardDynamicsLagrangian() to
-      optionally reduce memory allocations
-    * Added JointTypeTranslationXYZ, JointTypeEulerXYZ, and JointTypeEulerYXZ
-      which are equivalent to the emulated multidof joints but faster.
-    * Added optional parameter to CalcCenterOfMass to compute angular momentum.
-    * Added CalcBodySpatialJacobian()
-    * Added CalcContactJacobian()
-    * Added NonlinearEffects()
-    * Added solving of linear systems using standard Householder QR
-    * LuaModel: Added LuaModelReadFromLuaState()
-    * URDFReader: Fixed various issues and using faster joints for floating
-      base models
-    * Various performance improvements
-
-For a complete history see doc/api_changes.txt.
 
 Documentation
 =============
@@ -100,7 +32,8 @@ To create the documentation simply run
     doxygen Doxyfile
 ```
 
-which will generate the documentation in the subdirectory ./doc/html. The main page will then be located in ./doc/html/index.html.
+which will generate the documentation in the subdirectory ./doc/html. The main page will then
+be located in ./doc/html/index.html.
 
 
 Getting RBDL
@@ -116,7 +49,6 @@ The official rbdl-orb git repository can be cloned from
 
 Building and Installation
 =========================
-
 
 ## Linux: RBDL
 
@@ -135,10 +67,11 @@ Building and Installation
   sudo apt install cmake
 ```
 
-4. Install cmake-curses *(optional)*
-    If you are planning on taking advantage of the many addons and other build options we recommend that you use cmake-curses as it makes the build configuration process faster and less prone to error.
+4. Install Eigen3
+  RBDL uses Eigen3 for efficient computations ([http://eigen.tuxfamily.org](http://eigen.tuxfamily.org)). 
+
 ```
-  sudo apt install cmake-curses-gui
+  sudo apt install libeigen3-dev
 ```
 
 5. Install a c++ compiler
@@ -148,21 +81,17 @@ Building and Installation
   sudo apt-get install build-essential
 ```
 
-6. Install UnitTest++ *(optional)*
+6. Install cmake-curses *(optional)*
+    If you are planning on taking advantage of the many addons and other build options we recommend that you use cmake-curses as it makes the build configuration process faster and less prone to error.
+```
+  sudo apt install cmake-curses-gui
+```
+
+7. Install UnitTest++ *(optional)*
   Install UnitTest++ if you want to run RBDL's test code.
 ```
   sudo apt install libunittest++-dev  
 ```
-
-7. Install Eigen3 *(optional)*
-  Although RBDL comes with a simple, albeit slow math library (SimpleMath), much
-  better performance can be obtained by using Eigen3 ([http://eigen.tuxfamily.org](http://eigen.tuxfamily.org)). 
-
-```
-  sudo apt install libeigen3-dev
-```
-  
-
 
 8. Build RBDL using CMake
 ([http://www.cmake.org](http://www.cmake.org)). To compile the library in a separate directory in Release mode use:
@@ -212,11 +141,10 @@ at which point you will see full list of build options for RBDL. We recommend th
 1. luamodel addon: 
   -  If you'd like to load model files written in Lua to RBDL. Without this addon you will need to build models programmatically, or read them in using the URDF addon. To do so:
   - Install Lua51 
-   ```
+  ```
     sudo apt install lua5.1
     sudo apt install liblua5.1-0-dev
   ```
-  
   - Build RBDL with
   ```
     RBDL_BUILD_ADDON_LUAMODEL        ON
@@ -294,8 +222,9 @@ you can install it using setup.py. This is done automically when using
   export PYTHONPATH=$PYTHONPATH:<path-to-the-RBDL-build-directory>/python
   ```
     
+
 Resources to learn more
-========
+======================= 
 
 There are four main ways to learn about anything that appears in RBDL:
 
