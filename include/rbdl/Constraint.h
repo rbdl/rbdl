@@ -384,9 +384,9 @@ class RBDL_DLLAPI Constraint {
               retrieve this constraint from the set.              
     */
     Constraint(const char* name,
-               const unsigned int typeOfConstraint,
-               const unsigned int sizeOfConstraint,
-               const unsigned int userDefinedIdNumber):
+               unsigned int typeOfConstraint,
+               unsigned int sizeOfConstraint,
+               unsigned int userDefinedIdNumber):
                name(name),
                typeOfConstraint(typeOfConstraint),
                sizeOfConstraint(sizeOfConstraint),
@@ -708,7 +708,7 @@ class RBDL_DLLAPI Constraint {
     ///A user defined id which is unique to this constraint set
     unsigned int id;
     ///The type of this constraint
-    const unsigned int typeOfConstraint;
+    unsigned int typeOfConstraint;
 
     ///The number of rows that this constraint adds to G.
     unsigned int sizeOfConstraint;
