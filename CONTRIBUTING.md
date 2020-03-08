@@ -172,33 +172,11 @@ Please do not create new branches, i.e. do not run ```hg branch
 
 The following steps are advised when working on a new feature for RBDL:
 
-1. Clone the official repository.
-2. Switch to the ```dev``` branch.
-3. Create a bookmark that describes that feature preferably in a single
-   word.
-4. Commit all changes to this bookmark in the ```dev``` branch.
-5. Publish your work online and notify the RBDL maintainer(s).
-
-Here are the commands to perform steps 1.-4.:
-
-    # Step 1: clone official repository
-    hg clone https://bitbucket.org/rbdl/rbdl <newfeature> && cd <newfeature>
-
-    # Step 2: switch to the dev branch
-    hg update dev
-
-    # Step 3: create a bookmark
-    hg bookmark newfeature
-
-    # ...
-    # Make changes
-    # ...
-
-    # Step 4: commit changes
-    hg commit
-
-For step 5 the easiest would be to push your changes to a fork of the
-official repository on bitbucket and create a pull request.    
+1. Fork the official repository at https://github.com/rbdl/rbdl
+2. Create a new branch for your work that branches off the official dev
+   branch.
+3. Perform your changes in your branch.
+4. When ready perform a pull request against the dev branch.
 
 ## Debugging
 

@@ -32,13 +32,9 @@
  *
  * \section download Download
  *
- * You can download the most recent stable version as zip file from
- * here:<br>
- *   <a href="https://bitbucket.org/rbdl/rbdl/get/default.zip">https://bitbucket.org/rbdl/rbdl/get/default.zip</a>
- *
- * All development takes place on Bitbucket and you can follow RBDL's
- * development here:<br>
- *   <a href="https://bitbucket.org/rbdl/rbdl">https://bitbucket.org/rbdl/rbdl</a>
+ * All development takes place on GitHub and you can follow RBDL's
+ * development and obtain code here:<br>
+ *   <a href="https://github.com/rbdl/rbdl">https://github.com/rbdl/rbdl</a>
  *
  * \section recent_changes Recent Changes
  * <ul>
