@@ -1,5 +1,5 @@
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
+Copyright (c) 2011-2020 Martin Felis <martin@fysx.org>
 
 Introduction
 ============
@@ -111,21 +111,14 @@ which will generate the documentation in the subdirectory ./doc/html. The
 main page will then be located in ./doc/html/index.html.
 
 An online version of the generated documentation can be found at
-[http://rbdl.bitbucket.org](http://rbdl.bitbucket.org).
+[https://rbdl.github.io](https://rbdl.github.io).
 
 Getting RBDL
 ============
 
-The latest stable code can be obtained from
+The latest stable code can be obtained from the master branch at
 
-    https://bitbucket.org/rbdl/rbdl/get/default.zip
-
-The official mercurial repository can be cloned from
-
-    https://bitbucket.org/rbdl/rbdl
-
-(See [http://mercurial.selenic.com/](http://mercurial.selenic.com) for
-mercurial clients.)
+    https://github.com/rbdl/rbdl
 
 Building and Installation
 =========================
@@ -175,7 +168,7 @@ license which should allow you to use the software wherever you need.
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
-    Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
+    Copyright (c) 2011-2020 Martin Felis <martin@fysx.org>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
