@@ -31,6 +31,9 @@ To create the documentation simply run
 which will generate the documentation in the subdirectory ./doc/html. The main page will then
 be located in ./doc/html/index.html.
 
+An online version of the generated documentation can be found at
+[https://rbdl.github.io](https://rbdl.github.io).
+
 VCPKG package manager (for Windows, Linux and Mac)
 ==================================================
 As of 08-2021 `rbdl` is part of microsofts vcpkg, a tool to manage c++ dependencies on all major operating systems.
