@@ -268,11 +268,7 @@ bool ConstraintSet::Bind (const Model &model) {
   GSJ.conservativeResize (6, model.qdot_size);
 
   // HouseHolderQR crashes if matrix G has more rows than columns.
-#ifdef RBDL_USE_SIMPLE_MATH
-  GT_qr = SimpleMath::HouseholderQR<Math::MatrixNd> (G.transpose());
-#else
-  GT_qr = Eigen::HouseholderQR<Math::MatrixNd> (G.transpose());
-#endif
+  GT_qr.compute(G.transpose());
   GT_qr_Q = MatrixNd::Zero (model.dof_count, model.dof_count);
   Y = MatrixNd::Zero (model.dof_count, G.rows());
   Z = MatrixNd::Zero (model.dof_count, model.dof_count - G.rows());
@@ -1020,11 +1016,7 @@ void ForwardDynamicsConstraintsNullSpace (
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
   CS.GT_qr.compute (CS.G.transpose());
-#ifdef RBDL_USE_SIMPLE_MATH
-  CS.GT_qr_Q = CS.GT_qr.householderQ();
-#else
   CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
-#endif
 
   CS.Y = CS.GT_qr_Q.block (0,0,QDot.rows(), CS.G.rows());
   CS.Z = CS.GT_qr_Q.block (0,CS.G.rows(),QDot.rows(), QDot.rows() - CS.G.rows());
