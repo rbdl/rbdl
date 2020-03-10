@@ -1576,7 +1576,6 @@ void ForwardDynamicsContactsKokkevis (
   LOG << "K = " << std::endl << CS.K << std::endl;
   LOG << "a = " << std::endl << CS.a << std::endl;
 
-#ifndef RBDL_USE_SIMPLE_MATH
   switch (CS.linear_solver) {
     case (LinearSolverPartialPivLU) :
       CS.force = CS.K.partialPivLu().solve(CS.a);
@@ -1592,10 +1591,6 @@ void ForwardDynamicsContactsKokkevis (
       assert (0);
       break;
   }
-#else
-  bool solve_successful = LinSolveGaussElimPivot (CS.K, CS.a, CS.force);
-  assert (solve_successful);
-#endif
 
   LOG << "f = " << CS.force.transpose() << std::endl;
 
