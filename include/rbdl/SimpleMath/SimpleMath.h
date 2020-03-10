@@ -257,6 +257,17 @@ struct MatrixBase {
     return *this;
   }
 
+  template <typename OtherDerived>
+  inline void evalTo (OtherDerived& dest) const {
+     unsigned int in = rows(), jn = cols();
+
+     for (unsigned int i = 0; i < in; i++) {
+      for (unsigned int j = 0; j < jn; j++) {
+        dest(i,j) = this->operator()(i, j);
+      }
+    }
+  }
+
   void resize(unsigned int nrows, unsigned int ncols = 1) {
     static_assert(Rows == Dynamic, "Resize of fixed size matrices not allowed.");
 
