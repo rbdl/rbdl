@@ -142,10 +142,10 @@ string get_utc_time_string () {
   time(&current_time);
   timeinfo = gmtime(&current_time);
   char time_buf[80];
-  std::size_t time_len = strftime(&time_buf[0], 80, "%a %b %d %T %Y", timeinfo);
+  std::size_t UNUSED(time_len) = strftime(&time_buf[0], 80, "%a %b %d %T %Y", timeinfo);
+  assert(time_len <= 80 & "violating buffer size for utc time conversion");
   return time_buf;
 }
-
 double run_forward_dynamics_ABA_benchmark (Model *model, int sample_count) {
   SampleData sample_data;
   sample_data.fillRandom(model->dof_count, sample_count);
@@ -288,7 +288,7 @@ double run_contacts_lagrangian_benchmark (Model *model, ConstraintSet *constrain
 
   for (int i = 0; i < sample_count; i++) {
     timer_start (&tinfo);
-    ForwardDynamicsConstraintsDirect (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]);
+    ForwardDynamicsConstraintsDirect (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
     sample_data.durations[i] = timer_stop (&tinfo);
   }
 
@@ -305,7 +305,7 @@ double run_contacts_lagrangian_sparse_benchmark (Model *model, ConstraintSet *co
 
   for (int i = 0; i < sample_count; i++) {
     timer_start (&tinfo);
-    ForwardDynamicsConstraintsRangeSpaceSparse (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]);
+    ForwardDynamicsConstraintsRangeSpaceSparse (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
     sample_data.durations[i] = timer_stop (&tinfo);
   }
 
@@ -322,7 +322,7 @@ double run_contacts_null_space (Model *model, ConstraintSet *constraint_set, int
 
   for (int i = 0; i < sample_count; i++) {
     timer_start (&tinfo);
-    ForwardDynamicsConstraintsNullSpace (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]);
+    ForwardDynamicsConstraintsNullSpace (*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
     sample_data.durations[i] = timer_stop (&tinfo);
   }
 
@@ -339,7 +339,7 @@ double run_contacts_kokkevis_benchmark (Model *model, ConstraintSet *constraint_
 
   for (int i = 0; i < sample_count; i++) {
     timer_start (&tinfo);
-    ForwardDynamicsContactsKokkevis(*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]);
+    ForwardDynamicsContactsKokkevis(*model, sample_data.q[i], sample_data.qdot[i], sample_data.tau[i], *constraint_set, sample_data.qddot[i]); 
     sample_data.durations[i] = timer_stop (&tinfo);
   }
 
@@ -437,9 +437,9 @@ void contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
 
   model_name = "Human36";
   if (!json_output) {
-    cout << "= #DOF: " << setw(3) << model->dof_count << endl;
-    cout << "= #samples: " << sample_count << endl;
-    cout << "= No constraints (Articulated Body Algorithm):" << endl;
+  cout << "= #DOF: " << setw(3) << model->dof_count << endl;
+  cout << "= #samples: " << sample_count << endl;
+  cout << "= No constraints (Articulated Body Algorithm):" << endl;
     run_forward_dynamics_ABA_benchmark(model, sample_count);
   }
 
@@ -455,6 +455,7 @@ void contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     run_contacts_kokkevis_benchmark (model, &one_body_one_constraint, sample_count);
   }
 
+
   // two_bodies_one
   model_name = "Human36_2Bodies1Constraints";
   if (contacts_method == ConstraintsMethodDirect) {
@@ -466,6 +467,8 @@ void contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
   } else {
     run_contacts_kokkevis_benchmark (model, &two_bodies_one_constraint, sample_count);
   }
+
+
 
   // four_bodies_one
   model_name = "Human36_4Bodies1Constraints";
@@ -479,6 +482,7 @@ void contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     run_contacts_kokkevis_benchmark (model, &four_bodies_one_constraint, sample_count);
   }
 
+
   // one_body_four
   model_name = "Human36_1Bodies4Constraints";
   if (contacts_method == ConstraintsMethodDirect) {
@@ -490,6 +494,7 @@ void contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
   } else {
     run_contacts_kokkevis_benchmark (model, &one_body_four_constraints, sample_count);
   }
+
 
   // two_bodies_four
   model_name = "Human36_2Bodies4Constraints";
@@ -503,6 +508,8 @@ void contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     run_contacts_kokkevis_benchmark (model, &two_bodies_four_constraints, sample_count);
   }
 
+
+
   // four_bodies_four
   model_name = "Human36_4Bodies4Constraints";
   if (contacts_method == ConstraintsMethodDirect) {
@@ -515,7 +522,9 @@ void contacts_benchmark (int sample_count, ContactsMethod contacts_method) {
     run_contacts_kokkevis_benchmark (model, &four_bodies_four_constraints, sample_count);
   }
 
+
   delete model;
+
 }
 
 double run_single_inverse_kinematics_benchmark(Model *model, std::vector<InverseKinematicsConstraintSet> &CS, int sample_count){
@@ -536,7 +545,7 @@ double run_single_inverse_kinematics_benchmark(Model *model, std::vector<Inverse
   
 }
 
-double run_all_inverse_kinematics_benchmark (int sample_count){
+double run_all_inverse_kinematics_benchmark (unsigned int sample_count){
   
   //initialize the human model
   Model *model = new Model();
@@ -823,8 +832,8 @@ int main (int argc, char *argv[]) {
   }
 
   if (!json_output) {
-    rbdl_print_version();
-    cout << endl;
+  rbdl_print_version();
+  cout << endl;
   }
 
   if (benchmark_run_fd_aba) {
@@ -833,7 +842,6 @@ int main (int argc, char *argv[]) {
       ostringstream model_name_stream;
       model_name_stream << "planar_model_depth_" << depth;
       model_name = model_name_stream.str();
-
       model = new Model();
       model->gravity = Vector3d (0., -9.81, 0.);
 
@@ -972,7 +980,7 @@ int main (int argc, char *argv[]) {
     cout << "    \"runs\" : ";
     cout << "[" << endl;
 
-    for (int i; i < benchmark_runs.size(); i++) {
+    for (unsigned int i=0; i < benchmark_runs.size(); i++) {
       const BenchmarkRun& run = benchmark_runs[i];
 
       const char* indent = "            ";

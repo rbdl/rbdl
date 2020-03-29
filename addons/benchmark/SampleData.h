@@ -17,7 +17,7 @@ struct SampleData {
     tau = new RigidBodyDynamics::Math::VectorNd[count];
     durations = data.durations;
 
-    for (int si = 0; si < count; si++) {
+    for (unsigned int si = 0; si < count; si++) {
       q[si] = data.q[si];
       qdot[si] = data.qdot[si];
       qddot[si] = data.qddot[si];
@@ -74,7 +74,7 @@ struct SampleData {
     qddot = new RigidBodyDynamics::Math::VectorNd[count];
     tau = new RigidBodyDynamics::Math::VectorNd[count];
 
-    for (int si = 0; si < count; si++) {
+    for (unsigned int si = 0; si < count; si++) {
       q[si].resize (dof_count);
       qdot[si].resize (dof_count);
       qddot[si].resize (dof_count);

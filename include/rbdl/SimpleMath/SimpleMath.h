@@ -4,12 +4,12 @@
  *
  * This is a highly inefficient math library. It was conceived while he was
  * waiting for code to compile which used a highly efficient math library.
- * 
+ *
  * It is intended to be used as a fast compiling substitute for the
  * blazingly fast Eigen3
  * http://eigen.tuxfamily.org/index.php?title=Main_Page library and tries
  * to mimic its API to a certain extent.
- * 
+ *
  * Feel free to use it wherever you like (even claim it as yours!). However,
  * no guarantees are given that this code does what it says it would.
  *
@@ -18,11 +18,11 @@
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
  * arising from the use of this software.
- * 
+ *
  * Permission is granted to anyone to use this software for any purpose,
  * including commercial applications, and to alter it and redistribute it
  * freely, subject to the following restrictions:
- * 
+ *
  * 1. The origin of this software must not be misrepresented; you must not
  *    claim that you wrote the original software. If you use this software
  *    in a product, an acknowledgment in the product documentation would be
@@ -97,10 +97,8 @@ struct MatrixBase {
 
   Derived& operator=(const Derived& other) {
     if (static_cast<const void*>(this) != static_cast<const void*>(&other)) {
-      int i, j, in = other.rows(), jn = other.cols();
-
-      for (size_t i = 0; i < in; i++) {
-        for (size_t j = 0; j < jn; j++) {
+      for (size_t i = 0; i < other.rows(); i++) {
+        for (size_t j = 0; j < other.cols(); j++) {
           this->operator()(i,j) = other(i,j);
         }
       }
@@ -113,15 +111,12 @@ struct MatrixBase {
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Derived& operator=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
     if (static_cast<const void*>(this) != static_cast<const void*>(&other)) {
-      int i, j, in = other.rows(), jn = other.cols();
-
-      for (size_t i = 0; i < in; i++) {
-        for (size_t j = 0; j < jn; j++) {
+      for (size_t i = 0; i < other.rows(); i++) {
+        for (size_t j = 0; j < other.cols(); j++) {
           this->operator()(i,j) = other(i,j);
         }
       }
     }
-
     return *this;
   }
 
@@ -130,10 +125,8 @@ struct MatrixBase {
   //
   Matrix<ScalarType, Rows, Cols> operator*(const double& scalar) const {
     Matrix<ScalarType, Rows, Cols> result (rows(), cols());
-    int i, j, in = rows(), jn = cols();
-
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
         result (i,j) = operator()(i,j) * static_cast<ScalarType>(scalar);
         }
     }
@@ -142,10 +135,8 @@ struct MatrixBase {
 
   Matrix<ScalarType, Rows, Cols> operator*(const float& scalar) const {
     Matrix<ScalarType, Rows, Cols> result (rows(), cols());
-    int i, j, in = rows(), jn = cols();
-
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
         result (i,j) = operator()(i,j) * static_cast<ScalarType>(scalar);
       }
     }
@@ -157,15 +148,13 @@ struct MatrixBase {
   //
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   bool operator==(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) const {
-    int i, j, in = rows(), jn = cols();
-
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
+    for (size_t i = 0; i < other.rows(); i++) {
+      for (size_t j = 0; j < other.cols(); j++) {
         if (this->operator()(i,j) != other(i,j))
           return false;
       }
     }
-    
+
     return true;
   }
 
@@ -177,7 +166,7 @@ struct MatrixBase {
   CommaInitializer<Derived> operator<< (const value_type& value) {
     return CommaInitializer<Derived> (*(static_cast<Derived*>(this)), value);
   }
-  
+
   template <typename OtherDerived>
   Derived operator+(const OtherDerived& other) const {
     Derived result (*(static_cast<const Derived*>(this)));
@@ -203,16 +192,13 @@ struct MatrixBase {
   Matrix<ScalarType, Rows, OtherCols>
   operator*(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols> &other) const {
     Matrix<ScalarType, Rows, OtherCols> result(Matrix<ScalarType, Rows, OtherCols>::Zero(rows(), other.cols()));
-    int i, j, k, in = rows(), jn = other.cols(), kn = other.rows();
-
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
-        for (k = 0; k < kn; k++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < other.cols(); j++) {
+        for (size_t k = 0; k < other.rows(); k++) {
           result(i, j) += operator()(i, k) * other(k, j);
         }
       }
     }
-
     return result;
   }
 
@@ -220,12 +206,9 @@ struct MatrixBase {
   Derived operator*=(const MatrixBase<OtherDerived, typename OtherDerived:: value_type, OtherDerived::RowsAtCompileTime, OtherDerived::ColsAtCompileTime> &other) {
     Derived copy (*static_cast<const Derived*>(this));
     this->setZero();
-
-    int i, j, k, in = rows(), jn = other.cols(), kn = other.rows();
-
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
-        for (k = 0; k < kn; k++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < other.cols(); j++) {
+        for (size_t k = 0; k < other.rows(); k++) {
           this->operator()(i, j) += copy.operator()(i, k) * other(k, j);
         }
       }
@@ -235,10 +218,8 @@ struct MatrixBase {
 
   Matrix<ScalarType, Rows, Cols> operator-() const {
     Matrix<ScalarType, Rows, Cols> copy (*static_cast<const Derived*>(this));
-    int i, j, in = rows(), jn = cols();
-
-    for (int i = 0; i < in; i++) {
-      for (int j = 0; j < jn; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
         copy(i,j) *= static_cast<ScalarType>(-1.);
       }
     }
@@ -246,10 +227,8 @@ struct MatrixBase {
   }
 
   Derived operator*=(const ScalarType& s) {
-    int i, j, in = rows(), jn = cols();
-
-    for (int i = 0; i < in; i++) {
-      for (int j = 0; j < jn; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
         operator()(i,j) *= s;
       }
     }
@@ -259,10 +238,8 @@ struct MatrixBase {
 
   template <typename OtherDerived>
   inline void evalTo (OtherDerived& dest) const {
-     unsigned int in = rows(), jn = cols();
-
-     for (unsigned int i = 0; i < in; i++) {
-      for (unsigned int j = 0; j < jn; j++) {
+     for (unsigned int i = 0; i < rows(); i++) {
+      for (unsigned int j = 0; j < cols(); j++) {
         dest(i,j) = this->operator()(i, j);
       }
     }
@@ -297,10 +274,8 @@ struct MatrixBase {
   }
 
   void setZero() {
-    int nrows = rows();
-    int ncols = cols();
-    for (int i = 0; i < nrows; i++) {
-      for (int j = 0; j < ncols; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
         operator()(i,j) = static_cast<ScalarType>(0.0);
       }
     }
@@ -476,8 +451,8 @@ struct MatrixBase {
     if ( static_cast<const Derived*>(this)->cols() != 1
         || static_cast<const Derived*>(this)->rows() != 1) {
       std::cout << "Error trying to cast to scalar type. Dimensions are: "
-        << static_cast<const Derived*>(this)->rows() << ", "  
-        << static_cast<const Derived*>(this)->cols() << "."  
+        << static_cast<const Derived*>(this)->rows() << ", "
+        << static_cast<const Derived*>(this)->cols() << "."
         << std::endl;
     }
 #endif
@@ -490,7 +465,7 @@ struct MatrixBase {
   // Numerical functions
   //
 
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   ScalarType dot(const Derived& other) const {
     assert ((rows() == 1 || cols() == 1) && (other.rows() == 1 || other.cols() == 1));
 
@@ -504,7 +479,7 @@ struct MatrixBase {
     return result;
   }
 
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   ScalarType squaredNorm() const {
     ScalarType result = static_cast<ScalarType>(0.0);
 
@@ -519,12 +494,12 @@ struct MatrixBase {
     return result;
   }
 
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   ScalarType norm() const {
     return static_cast<ScalarType>(std::sqrt(squaredNorm()));
   }
-  
-  // TODO: separate functions for float or ScalarType matrices  
+
+  // TODO: separate functions for float or ScalarType matrices
   Derived normalized() const {
     Derived result (*this);
 
@@ -533,7 +508,7 @@ struct MatrixBase {
     return result / length;
   }
 
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   Derived normalize() {
     ScalarType length = norm();
 
@@ -544,7 +519,7 @@ struct MatrixBase {
 
   Derived cross(const Derived& other) const {
     assert(cols() * rows() == 3);
-    
+
     Derived result(rows(), cols());
     result[0] = operator[](1) * other[2] - operator[](2) * other[1];
     result[1] = operator[](2) * other[0] - operator[](0) * other[2];
@@ -574,17 +549,17 @@ struct MatrixBase {
         result(0,1) = -b * detinv;
         result(1,0) = -c * detinv;
         result(1,1) = d * detinv;
-       
+
         return result;
       } else if (rows() == 3) {
         // source:
         // https://stackoverflow.com/questions/983999/simple-3x3-matrix-inverse-code-c
-      
+
         // computes the inverse of a matrix m
         ScalarType det = operator()(0, 0) * (operator()(1, 1) * operator()(2, 2)
             - operator()(2, 1) * operator()(1, 2))
-            - operator()(0, 1) * (operator()(1, 0) * operator()(2, 2) 
-            - operator()(1, 2) * operator()(2, 0)) 
+            - operator()(0, 1) * (operator()(1, 0) * operator()(2, 2)
+            - operator()(1, 2) * operator()(2, 0))
             + operator()(0, 2) * (operator()(1, 0) * operator()(2, 1)
             - operator()(1, 1) * operator()(2, 0));
 
@@ -697,7 +672,8 @@ struct MatrixBase {
   //
   // Special Constructors
   //
-  static Derived Zero(int NumRows = (Rows == Dynamic) ? 1 : Rows, int NumCols = (Cols == Dynamic) ? 1 : Cols) {
+  static Derived Zero(size_t NumRows = (Rows == Dynamic) ? 1 : Rows,
+    size_t NumCols = (Cols == Dynamic) ? 1 : Cols) {
     Derived result (NumRows, NumCols);
 
     for (size_t i = 0; i < NumRows; i++) {
@@ -719,7 +695,7 @@ struct MatrixBase {
     return result;
   }
 
-  static Derived Constant(int NumRows, const ScalarType &value) {
+  static Derived Constant(size_t NumRows, const ScalarType &value) {
     Derived result (NumRows, 1);
 
     for (size_t i = 0; i < NumRows; i++) {
@@ -729,7 +705,7 @@ struct MatrixBase {
     return result;
   }
 
-  static Derived Constant(int NumRows, int NumCols, const ScalarType &value) {
+  static Derived Constant(size_t NumRows, size_t NumCols, const ScalarType &value) {
     Derived result (NumRows, NumCols);
 
     for (size_t i = 0; i < NumRows; i++) {
@@ -741,7 +717,7 @@ struct MatrixBase {
     return result;
   }
 
-  static Derived Random(int NumRows = (Rows == Dynamic) ? 1 : Rows, int NumCols = (Cols == Dynamic) ? 1 : Cols) {
+  static Derived Random(size_t NumRows = (Rows == Dynamic) ? 1 : Rows, size_t NumCols = (Cols == Dynamic) ? 1 : Cols) {
     Derived result (NumRows, NumCols);
 
     for (size_t i = 0; i < NumRows; i++) {
@@ -758,7 +734,7 @@ struct MatrixBase {
   // Block accessors
   //
   template <
-    int block_rows, 
+    int block_rows,
     int block_cols
     >
   Block<
@@ -773,7 +749,7 @@ struct MatrixBase {
   }
 
   template <
-    int block_rows, 
+    int block_rows,
     int block_cols
     >
   const Block<
@@ -843,11 +819,11 @@ struct Storage {
 
   inline size_t cols() const { return NumCols; }
 
-  void resize(int num_rows, int num_cols) {
+  void resize(int UNUSED(num_rows), int UNUSED(num_cols)) {
     // Resizing of fixed size matrices not allowed
 #ifndef NDEBUG
     if (num_rows != NumRows || num_cols != NumCols) {
-      std::cout << "Error: trying to resize fixed matrix from " 
+      std::cout << "Error: trying to resize fixed matrix from "
         << NumRows << ", " << NumCols << " to "
         << num_rows << ", " << num_cols << "." << std::endl;
     }
@@ -1008,28 +984,24 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
   template<typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Matrix(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols> &other) {
     mStorage.resize(other.rows(), other.cols());
-
-    int i, j, in = rows(), jn = cols();
-
-    for (size_t i = 0; i < in; i++) {
-      for (size_t j = 0; j < jn; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
         this->operator()(i, j) = other(i, j);
       }
     }
   }
 
-    Matrix (const Matrix& other) :
-            mStorage(other.rows(), other.cols()){
-                    memcpy (data(), other.data(), sizeof (ScalarType) * rows() * cols());
-            }
+  Matrix (const Matrix& other) :
+  mStorage(other.rows(), other.cols()){
+    memcpy (data(), other.data(), sizeof (ScalarType) * rows() * cols());
+  }
 
-
-    Matrix& operator=(const Matrix& other) {
-      if (&other != this) {
-          mStorage.resize(other.rows(), other.cols());
-          memcpy (data(), other.data(), sizeof (ScalarType) * rows() * cols());
-      }
-      return *this;
+  Matrix& operator=(const Matrix& other) {
+    if (&other != this) {
+      mStorage.resize(other.rows(), other.cols());
+      memcpy (data(), other.data(), sizeof (ScalarType) * rows() * cols());
+    }
+    return *this;
   }
 
   //
@@ -1250,11 +1222,8 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
   template <typename OtherDerived>
     Matrix& operator+=(const OtherDerived& other) {
       assert (rows() == other.rows() && cols() == other.cols() && "Error: matrix dimensions do not match!");
-
-      int i, j, in = rows(), jn = cols();
-
-      for (size_t i = 0; i < in; i++) {
-        for (size_t j = 0; j < jn; j++) {
+      for (size_t i = 0; i < rows(); i++) {
+        for (size_t j = 0; j < cols(); j++) {
           this->operator()(i,j) += other(i,j);
         }
       }
@@ -1264,11 +1233,8 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
   template <typename OtherDerived>
     Matrix& operator-=(const OtherDerived& other) {
       assert (rows() == other.rows() && cols() == other.cols() && "Error: matrix dimensions do not match!");
-
-      int i, j, in = rows(), jn = cols();
-
-      for (size_t i = 0; i < in; i++) {
-        for (size_t j = 0; j < jn; j++) {
+      for (size_t i = 0; i < rows(); i++) {
+        for (size_t j = 0; j < cols(); j++) {
             this->operator()(i,j) -= other(i,j);
         }
       }
@@ -1299,7 +1265,7 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
     return mStorage.rows();
   }
 };
-  
+
 
 //
 // CommaInitializer
@@ -1318,7 +1284,7 @@ struct CommaInitializer {
 
   public:
 
-  CommaInitializer(Derived &matrix, const value_type &value) : 
+  CommaInitializer(Derived &matrix, const value_type &value) :
     mParentMatrix(&matrix),
     mRowIndex(0),
     mColIndex(0),
@@ -1338,13 +1304,13 @@ struct CommaInitializer {
   }
 
   ~CommaInitializer() {
-    if (!mElementWasAdded 
+    if (!mElementWasAdded
         && (mColIndex + 1 < mParentMatrix->cols()
           || mRowIndex + 1 < mParentMatrix->rows())) {
-      std::cerr 
-        << "Error: too few elements passed to CommaInitializer Expected " 
+      std::cerr
+        << "Error: too few elements passed to CommaInitializer Expected "
         << mParentMatrix->rows() * mParentMatrix->cols()
-        << " but was given " 
+        << " but was given "
         << mRowIndex * mParentMatrix->cols() + mColIndex + 1 << std::endl;
       abort();
     }
@@ -1358,10 +1324,10 @@ struct CommaInitializer {
     }
 
     if (mRowIndex == mParentMatrix->rows() && mColIndex == 0) {
-      std::cerr 
-        << "Error: too many elements passed to CommaInitializer!Expected " 
+      std::cerr
+        << "Error: too many elements passed to CommaInitializer!Expected "
         << mParentMatrix->rows() * mParentMatrix->cols()
-        << " but was given " 
+        << " but was given "
         << mRowIndex *mParentMatrix->cols() + mColIndex + 1 << std::endl;
       abort();
     }
@@ -1409,10 +1375,8 @@ struct Transpose : public MatrixBase<Transpose<Derived, ScalarType, NumRows, Num
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Transpose& operator=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
     if (static_cast<const void*>(this) != static_cast<const void*>(&other)) {
-      int i, j, in = other.rows(), jn = other.cols();
-
-      for (size_t i = 0; i < in; i++) {
-        for (size_t j = 0; j < jn; j++) {
+      for (size_t i = 0; i < other.rows(); i++) {
+        for (size_t j = 0; j < other.cols(); j++) {
           this->operator()(i,j) = other(i,j);
         }
       }
@@ -1454,7 +1418,7 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
     row_index(row_index),
     col_index(col_index),
     nrows(NumRows), ncols(NumCols)
-  { 
+  {
     static_assert(NumRows != -1 && NumCols != -1, "Invalid block specifications: unknown number of rows and columns!");
   }
 
@@ -1464,7 +1428,7 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
     col_index(col_index),
     nrows (num_rows),
     ncols (num_cols)
-  { 
+  {
   }
 
   Block(const Block &other) :
@@ -1474,23 +1438,18 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
   { }
 
   Block& operator=(const Block &other) {
-    int i, j, in = rows(), jn = cols();
-
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
         this->operator()(i,j) = other(i,j);
       }
     }
-
     return *this;
   }
 
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Block& operator=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
-    int i, j, in = rows(), jn = cols();
-
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
         this->operator()(i,j) = other(i,j);
       }
     }
@@ -1502,11 +1461,9 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Matrix<ScalarType, NumRows, OtherCols> operator*(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) const {
     Matrix<ScalarType, NumRows, OtherCols> result (rows(), other.cols());
-
-    int i, j, k, in = rows(), jn = other.cols(), kn = other.rows();
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
-        for (k = 0; k < kn; k++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < other.cols(); j++) {
+        for (size_t k = 0; k < other.rows(); k++) {
           result (i,j) += operator()(i,k) * other(k,j);
         }
       }
@@ -1531,10 +1488,8 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Matrix<ScalarType, NumRows, OtherCols> operator+(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) const {
     Matrix<ScalarType, NumRows, OtherCols> result (rows(), other.cols());
-
-    int i, j, in = rows(), jn = other.cols();
-    for (i = 0; i < in; i++) {
-      for (j = 0; j < jn; j++) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < other.cols(); j++) {
         result (i,j) = operator()(i,j) + other(i,j);
       }
     }
@@ -1585,14 +1540,14 @@ public:
         compute();
     }
     LLT compute() {
-      for (int i = 0; i < mL.rows(); i++) {
-        for (int j = 0; j < mL.rows(); j++) {
+      for (unsigned int i = 0; i < mL.rows(); i++) {
+        for (unsigned int j = 0; j < mL.rows(); j++) {
           if (j > i) {
             mL(i,j) = 0.;
             continue;
           }
           double s = mL(i,j);
-          for (int k = 0; k < j; k++) {
+          for (unsigned int k = 0; k < j; k++) {
             s = s - mL(i,k) * mL(j,k);
           }
           if (i > j) {
@@ -1742,11 +1697,11 @@ public:
         }
 
         // eliminate i'th column of k'th row
-        for (int k = i+1; k < n; k++) {
+        for (k = i+1; k < n; k++) {
           mLU(k,i) = mLU(k,i) / mLU(i,i);
 
           // iterate over all columns
-          for (int j = i+1; j < n; j++) {
+          for (j = i+1; j < n; j++) {
             mLU(k,j) = mLU(k,j) - mLU(i,j) * mLU(k,i);
           }
         }
@@ -1808,16 +1763,16 @@ public:
       // Backsolve L^-1 * rhs
       ColumnVector result(n, 1);
 
-      for (int i = 0; i < n; i++) {
+      for (unsigned int i = 0; i < n; i++) {
         result[i] = rhs[mPermutations[i]];
-        for (int j = 0; j < i; j++) {
+        for (unsigned int j = 0; j < i; j++) {
           result[i] = result[i] - result[j] * mLU(i,j);
         }
       }
 
       // Solve U^-1 * result
       for (int i = n - 1; i >= 0; i--) {
-        for (int j = i + 1; j < n; j++) {
+        for (unsigned int j = i + 1; j < n; j++) {
           result[i] = result[i] - result[j] * mLU(i,j);
         }
 
@@ -1916,8 +1871,8 @@ public:
       ColumnVector y = mQ.transpose() * rhs;
       ColumnVector x = ColumnVector::Zero(mR.cols());
 
-      int ncols = mR.cols();
-      for (int i = ncols - 1; i >= 0; i--) {
+      unsigned int ncols = mR.cols();
+      for (unsigned int i = ncols - 1; i != 0; i--) {
         value_type z = y[i];
 
         for (unsigned int j = i + 1; j < ncols; j++) {
@@ -2224,7 +2179,7 @@ inline Matrix44f RotateMat44 (float rot_deg, float x, float y, float z) {
       x * x * (1.0f - c) + c,
       y * x * (1.0f - c) + z * s,
       x * z * (1.0f - c) - y * s,
-      0.f, 
+      0.f,
 
       x * y * (1.0f - c) - z * s,
       y * y * (1.0f - c) + c,
@@ -2410,7 +2365,7 @@ class Quaternion : public Vector4f {
           2*y*z - 2*w*x,
           1 - 2*x*x - 2*y*y,
           0.f,
-          
+
           0.f,
           0.f,
           0.f,
@@ -2449,7 +2404,7 @@ class Quaternion : public Vector4f {
     static Quaternion fromEulerZYX (const Vector3f &zyx_angles) {
       return Quaternion::fromAxisAngle (Vector3f (0., 0., 1.), zyx_angles[0])
         * Quaternion::fromAxisAngle (Vector3f (0., 1., 0.), zyx_angles[1])
-        * Quaternion::fromAxisAngle (Vector3f (1., 0., 0.), zyx_angles[2]); 
+        * Quaternion::fromAxisAngle (Vector3f (1., 0., 0.), zyx_angles[2]);
     }
 
     static Quaternion fromEulerYXZ (const Vector3f &yxz_angles) {
@@ -2459,11 +2414,11 @@ class Quaternion : public Vector4f {
     }
 
     static Quaternion fromEulerXYZ (const Vector3f &xyz_angles) {
-      return Quaternion::fromAxisAngle (Vector3f (0., 0., 01.), xyz_angles[2]) 
+      return Quaternion::fromAxisAngle (Vector3f (0., 0., 01.), xyz_angles[2])
         * Quaternion::fromAxisAngle (Vector3f (0., 1., 0.), xyz_angles[1])
         * Quaternion::fromAxisAngle (Vector3f (1., 0., 0.), xyz_angles[0]);
     }
- 
+
     Vector3f toEulerZYX () const {
       return Vector3f (1.0f, 2.0f, 3.0f
           );
@@ -2558,7 +2513,7 @@ inline std::ostream& operator<<(std::ostream& output, const MatrixBase<Derived, 
       if (j < matrix.cols() - 1)
         output << " ";
     }
-    
+
     if (matrix.rows() > 1 && i < matrix.rows() - 1)
       output << std::endl;
   }

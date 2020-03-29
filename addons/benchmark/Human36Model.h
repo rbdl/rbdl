@@ -2,7 +2,7 @@
 #define _HUMAN36MODEL_H
 
 namespace RigidBodyDynamics {
-class Model;
+struct Model;
 }
 
 void generate_human36model (RigidBodyDynamics::Model *model);
