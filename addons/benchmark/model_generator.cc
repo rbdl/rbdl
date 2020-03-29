@@ -34,7 +34,7 @@ void generate_planar_tree_recursive (Model *model,
 }
 
 void generate_planar_tree (Model *model, int depth) {
-  // we first add a single body that is hanging straight down from 
+  // we first add a single body that is hanging straight down from
   // (0, 0, 0). After that we generate the tree recursively such that each
   // call adds two children.
   //

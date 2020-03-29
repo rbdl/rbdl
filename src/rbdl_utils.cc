@@ -22,7 +22,7 @@ using namespace std;
 using namespace Math;
 
 string get_dof_name (const SpatialVector &joint_dof) {
-  if (joint_dof == SpatialVector (1., 0., 0., 0., 0., 0.)) 
+  if (joint_dof == SpatialVector (1., 0., 0., 0., 0., 0.))
     return "RX";
   else if (joint_dof == SpatialVector (0., 1., 0., 0., 0., 0.))
     return "RY";
@@ -139,7 +139,7 @@ RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model) {
   for (unsigned int body_id = 0; body_id < model.mBodies.size(); body_id++) {
     std::string body_name = model.GetBodyName (body_id);
 
-    if (body_name.size() == 0) 
+    if (body_name.size() == 0)
       continue;
 
     Vector3d position = CalcBodyToBaseCoordinates (model, Q, body_id, Vector3d (0., 0., 0.), false);
@@ -158,13 +158,13 @@ RBDL_DLLAPI void CalcCenterOfMass (
   double &mass,
   Math::Vector3d &com,
   Math::Vector3d *com_velocity,
-  Math::Vector3d *com_acceleration, 
+  Math::Vector3d *com_acceleration,
   Math::Vector3d *angular_momentum,
   Math::Vector3d *change_of_angular_momentum,
   bool update_kinematics) {
   // If we want to compute com_acceleration or change of angular momentum
   // we must have qddot provided.
-  assert( (com_acceleration == NULL && change_of_angular_momentum == NULL) 
+  assert( (com_acceleration == NULL && change_of_angular_momentum == NULL)
       || (qddot != NULL) );
 
   if (update_kinematics)
@@ -240,7 +240,7 @@ RBDL_DLLAPI void CalcZeroMomentPoint (
   const Math::VectorNd &qddot,
   Vector3d* zmp,
   const Math::Vector3d &normal,
-  const Math::Vector3d &point,
+  const Math::Vector3d &UNUSED(point),
   bool update_kinematics
 ) {
   if (zmp == NULL) {
@@ -310,13 +310,13 @@ RBDL_DLLAPI void CalcZeroMomentPoint (
 }
 
 RBDL_DLLAPI double CalcPotentialEnergy (
-    Model &model, 
-    const Math::VectorNd &q, 
+    Model &model,
+    const Math::VectorNd &q,
     bool update_kinematics) {
   double mass;
   Vector3d com;
   CalcCenterOfMass (
-      model, 
+      model,
       q,
       VectorNd::Zero (model.qdot_size),
       NULL,
@@ -335,9 +335,9 @@ RBDL_DLLAPI double CalcPotentialEnergy (
 }
 
 RBDL_DLLAPI double CalcKineticEnergy (
-    Model &model, 
-    const Math::VectorNd &q, 
-    const Math::VectorNd &qdot, 
+    Model &model,
+    const Math::VectorNd &q,
+    const Math::VectorNd &qdot,
     bool update_kinematics) {
   if (update_kinematics)
     UpdateKinematicsCustom (model, &q, &qdot, NULL);

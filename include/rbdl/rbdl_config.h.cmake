@@ -74,4 +74,12 @@
 #  define RBDL_LOCAL RBDL_DLLLOCAL
 # endif // RBDL_BUILD_STATIC
 
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#  define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
+
 #endif

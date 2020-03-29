@@ -2,6 +2,7 @@
 #include "rbdl/rbdl.h"
 #include <cassert>
 
+#include "Fixtures.h"
 #include "PendulumModels.h"
 
 using namespace std;
@@ -20,9 +21,6 @@ static double inRange(double angle) {
   }
   return angle;
 }
-
-
-
 
 
 struct FourBarLinkage {
@@ -45,7 +43,7 @@ struct FourBarLinkage {
     , idB5(0)
     , X_p(Xtrans(Vector3d(l2, 0., 0.)))
     , X_s(Xtrans(Vector3d(0., 0., 0.))) {
-    
+
     Body link1 = Body(m1, Vector3d(0.5 * l1, 0., 0.)
       , Vector3d(0., 0., m1 * l1 * l1 / 3.));
     Body link2 = Body(m2, Vector3d(0.5 * l2, 0., 0.)
@@ -127,7 +125,7 @@ struct FloatingFourBarLinkage {
     , idB5(0)
     , X_p(Xtrans(Vector3d(l2, 0., 0.)))
     , X_s(Xtrans(Vector3d(0., 0., 0.))) {
-    
+
     Body link1 = Body(m1, Vector3d(0.5 * l1, 0., 0.)
       , Vector3d(0., 0., m1 * l1 * l1 / 3.));
     Body link2 = Body(m2, Vector3d(0.5 * l2, 0., 0.)
@@ -214,7 +212,7 @@ struct SliderCrank3D {
     double crank_link2_mass = 1.;
     double crank_link2_radius = 0.2;
     double crank_link2_length = 3.;
-    double crank_link1_height = crank_link2_length - crank_link1_length 
+    double crank_link1_height = crank_link2_length - crank_link1_length
       + slider_height;
 
     Body slider(slider_mass, Vector3d::Zero(), Vector3d(1., 1., 1.));
@@ -225,9 +223,9 @@ struct SliderCrank3D {
     Body crankLink2(crank_link2_mass
       , Vector3d(0.5 * crank_link2_length, 0., 0.)
       , Vector3d(crank_link2_mass * crank_link2_radius * crank_link2_radius/2.
-      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
+      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius
       + crank_link2_length * crank_link2_length) / 12.
-      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
+      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius
       + crank_link2_length * crank_link2_length) / 12.));
 
     Joint joint_rev_z(JointTypeRevoluteZ);
@@ -238,7 +236,7 @@ struct SliderCrank3D {
       , SpatialTransform()
       , joint_prs_x, slider);
     unsigned int id_b1 = model.AddBody(0
-      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crank_link1_height)) 
+      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crank_link1_height))
       , joint_rev_z, crankLink1);
     id_s = model.AddBody(id_b1
       , Xroty(M_PI) * Xtrans(Vector3d(crank_link1_length, 0., 0.))
@@ -264,21 +262,24 @@ struct SliderCrank3D {
     qdd = VectorNd::Zero(model.dof_count);
     tau = VectorNd::Zero(model.dof_count);
 
-    Matrix3d rot_ps 
+    Matrix3d rot_ps
       = (CalcBodyWorldOrientation(model,q,id_p).transpose()*X_p.E).transpose()
       *  CalcBodyWorldOrientation(model,q,id_s).transpose()*X_s.E;
-    assert(rot_ps(0,0) - 1. < TEST_PREC);
-    assert(rot_ps(1,1) - 1. < TEST_PREC);
-    assert(rot_ps(2,2) - 1. < TEST_PREC);
-    assert(rot_ps(0,1) < TEST_PREC);
-    assert(rot_ps(0,2) < TEST_PREC);
-    assert(rot_ps(1,0) < TEST_PREC);
-    assert(rot_ps(1,2) < TEST_PREC);
-    assert(rot_ps(2,0) < TEST_PREC);
-    assert(rot_ps(2,1) < TEST_PREC);
-    assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
-      - CalcBodyToBaseCoordinates(model, q, id_s, X_s.r)).norm() < TEST_PREC);
 
+    CHECK_CLOSE(rot_ps(0,0), -1.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(1,1),  1.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(2,2), -1.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(0,1), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(0,2), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(1,0), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(1,2), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(2,0), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(2,1), 0.0, TEST_PREC);
+
+    CHECK_ARRAY_CLOSE(
+      CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
+      CalcBodyToBaseCoordinates(model, q, id_s, X_s.r),
+      3, TEST_PREC);
   }
 
   Model model;
@@ -315,7 +316,7 @@ struct SliderCrank3DSphericalJoint {
     double crank_link2_mass = 1.;
     double crank_link2_radius = 0.2;
     double crank_link2_length = 3.;
-    double crank_link1_height = crank_link2_length - crank_link1_length 
+    double crank_link1_height = crank_link2_length - crank_link1_length
       + slider_height;
 
     Body slider(slider_mass, Vector3d::Zero(), Vector3d(1., 1., 1.));
@@ -326,9 +327,9 @@ struct SliderCrank3DSphericalJoint {
     Body crankLink2(crank_link2_mass
       , Vector3d(0.5 * crank_link2_length, 0., 0.)
       , Vector3d(crank_link2_mass * crank_link2_radius * crank_link2_radius/2.
-      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
+      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius
       + crank_link2_length * crank_link2_length) / 12.
-      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius 
+      , crank_link2_mass * (3. * crank_link2_radius * crank_link2_radius
       + crank_link2_length * crank_link2_length) / 12.));
 
     Joint joint_rev_z(JointTypeRevoluteZ);
@@ -339,7 +340,7 @@ struct SliderCrank3DSphericalJoint {
       , SpatialTransform()
       , joint_prs_x, slider);
     unsigned int id_b1 = model.AddBody(0
-      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crank_link1_height)) 
+      , Xroty(-0.5*M_PI) * Xtrans(Vector3d(0., 0., crank_link1_height))
       , joint_rev_z, crankLink1);
     id_s = model.AddBody(id_b1
       , Xroty(M_PI) * Xtrans(Vector3d(crank_link1_length, 0., 0.))
@@ -348,13 +349,13 @@ struct SliderCrank3DSphericalJoint {
     X_p = Xtrans(Vector3d(0., 0., slider_height));
     X_s = SpatialTransform(roty(-0.5 * M_PI),Vector3d(crank_link2_length,0,0));
 
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
         SpatialVector(0,0,0,1,0,0), true, 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
         SpatialVector(0,0,0,0,1,0), true, 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
         SpatialVector(0,0,0,0,0,1), true, 0.1);
-    cs.AddLoopConstraint(id_p, id_s, X_p, X_s, 
+    cs.AddLoopConstraint(id_p, id_s, X_p, X_s,
         SpatialVector(0,0,1,0,0,0), true, 0.1);
 
     cs.Bind(model);
@@ -364,20 +365,23 @@ struct SliderCrank3DSphericalJoint {
     qdd = VectorNd::Zero(model.dof_count);
     tau = VectorNd::Zero(model.dof_count);
 
-    Matrix3d rot_ps 
+    Matrix3d rot_ps
       = (CalcBodyWorldOrientation(model,q,id_p).transpose()*X_p.E).transpose()
        * CalcBodyWorldOrientation(model,q,id_s).transpose()*X_s.E;
-    assert(rot_ps(0,0) - 1. < TEST_PREC);
-    assert(rot_ps(1,1) - 1. < TEST_PREC);
-    assert(rot_ps(2,2) - 1. < TEST_PREC);
-    assert(rot_ps(0,1) < TEST_PREC);
-    assert(rot_ps(0,2) < TEST_PREC);
-    assert(rot_ps(1,0) < TEST_PREC);
-    assert(rot_ps(1,2) < TEST_PREC);
-    assert(rot_ps(2,0) < TEST_PREC);
-    assert(rot_ps(2,1) < TEST_PREC);
-    assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
-      - CalcBodyToBaseCoordinates(model, q, id_s, X_s.r)).norm() < TEST_PREC);
+    CHECK_CLOSE(rot_ps(0,0), -1.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(1,1),  1.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(2,2), -1.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(0,1), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(0,2), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(1,0), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(1,2), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(2,0), 0.0, TEST_PREC);
+    CHECK_CLOSE(rot_ps(2,1), 0.0, TEST_PREC);
+
+    CHECK_ARRAY_CLOSE(
+      CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
+      CalcBodyToBaseCoordinates(model, q, id_s, X_s.r),
+      3, TEST_PREC);
 
   }
 
@@ -490,7 +494,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   q[3] = 0.;
   q[4] = 0.;
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -514,7 +518,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   q[3] = 0.;
   q[4] = 0.;
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -538,7 +542,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -568,7 +572,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintsVelocityErrors) {
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -613,12 +617,12 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
   assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
 
-  bool success;  
+  bool success;
 
   // Feasible initial guess.
   VectorNd qInit = VectorNd::Zero(q.size());
   qInit = qRef;
-  
+
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-12);
   CalcConstraintsPositionError(model, q, cs, err);
 
@@ -699,7 +703,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQDotAssembly) {
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   VectorNd qdInit = VectorNd::Zero(q.size());
@@ -739,7 +743,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   q[3] = 0.;
   q[4] = 0.;
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -782,7 +786,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -841,7 +845,7 @@ TEST_FIXTURE(FourBarLinkage, FourBarLinkageImpulse) {
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
   assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   cs.v_plus[0] = 1.;
@@ -928,7 +932,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintsVelocityErrors) {
   MatrixNd G(cs.size(), model.dof_count);
   VectorNd qWeights(q.size());
   VectorNd qInit(q.size());
-  bool success;
+  bool success = false;
 
   // Compute assembled configuration.
   qWeights[0] = 1.;
@@ -944,7 +948,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintsVelocityErrors) {
   qInit[4] = 0.1;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-  assert(success);
+  CHECK_EQUAL(success, true);
 
   // Some random velocity.
   qd[0] = -0.2;
@@ -1005,7 +1009,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQDot) {
   SpatialVector vel_p;
   SpatialVector vel_s;
 
-  bool success;
+  bool success = false;
 
   qWeights[0] = 1.;
   qWeights[1] = 1.;
@@ -1032,7 +1036,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQDot) {
   qdInit[4] = 0.1 * M_PI;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-  assert(success);
+  CHECK_EQUAL(success, true);
 
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
@@ -1054,7 +1058,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   SpatialVector acc_p;
   SpatialVector acc_s;
 
-  bool success;
+  bool success = false;
 
 #ifndef RBDL_USE_SIMPLE_MATH
   // The SimpleMath solver cannot solve the system close to a singular
@@ -1124,17 +1128,24 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   qdInit.setZero();
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-  assert(success);
+  CHECK_EQUAL(success, true);
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
-  Matrix3d rot_ps 
+  Matrix3d rot_ps
     = (CalcBodyWorldOrientation(model, q, id_p).transpose()*X_p.E).transpose()
     * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
-  assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
-    - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
-  assert(rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
-  assert((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
-    -CalcPointVelocity6D(model, q, qd, id_p, X_p.r)).norm() < TEST_PREC);
+
+  CHECK_CLOSE(rot_ps(0,1), rot_ps(0,1), TEST_PREC);
+
+  CHECK_ARRAY_CLOSE(
+    CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
+    CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
+    3, TEST_PREC);
+
+  CHECK_ARRAY_CLOSE(
+    CalcPointVelocity6D(model, q, qd, id_p, X_p.r),
+    CalcPointVelocity6D(model, q, qd, id_p, X_p.r),
+    3, TEST_PREC);
 
   // Test with non-zero q and qdot.
 
@@ -1173,7 +1184,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
   VectorNd errdDirect(cs.size());
   VectorNd errdSpaceSparse(cs.size());
   VectorNd errdNullSpace(cs.size());
-  
+
   VectorNd qWeights(q.size());
   qWeights[0] = 1.;
   qWeights[1] = 1.;
@@ -1189,23 +1200,23 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
   qInit[4] = 0.1;
 
   bool success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-  assert(success);
+  CHECK_EQUAL(success, true);
 
   cs.v_plus[0] = 1.;
   cs.v_plus[1] = 2.;
   cs.v_plus[2] = 3.;
   cs.v_plus[3] = 4.;
-  
+
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
-  
+
   CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
-  
+
   CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
@@ -1224,14 +1235,14 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
 
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
-  
+
   CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
-  
+
   CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
@@ -1363,7 +1374,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[6] = 0.;
   q[7] = 0.;
   assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1393,7 +1404,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[6] = 0.;
   q[7] = 0.;
   assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1423,7 +1434,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
   assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1462,7 +1473,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[7] = q[3] + q[4] - q[5] - q[6];
 
   assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1518,15 +1529,15 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQAssembly) {
   qRef[7] = qRef[3] + qRef[4] - qRef[5] - qRef[6];
 
   assert(qRef[3] + qRef[4] - qRef[5] - qRef[6] - qRef[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, qRef, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, qRef, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, qRef, idB5, X_s.r)).norm() < TEST_PREC);
 
-  bool success;  
+  bool success;
 
   // Feasible initial guess.
   VectorNd qInit = VectorNd::Zero(q.size());
   qInit = qRef;
-  
+
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-12);
   CalcConstraintsPositionError(model, q, cs, err);
 
@@ -1614,7 +1625,7 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQDotAssembly) {
   q[7] = q[3] + q[4] - q[5] - q[6];
 
   assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   VectorNd qdInit = VectorNd::Zero(q.size());
@@ -1662,7 +1673,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[6] = 0.;
   q[7] = 0.;
   assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1714,7 +1725,7 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[7] = q[3] + q[4] - q[5] - q[6];
 
   assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1771,7 +1782,7 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageImpulse) {
   q[7] = q[3] + q[4] - q[5] - q[6];
 
   assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   cs.v_plus[0] = 1.;
@@ -1863,7 +1874,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   MatrixNd G(cs.size(), model.dof_count);
   VectorNd qWeights(model.dof_count);
   VectorNd qInit(model.q_size);
-  bool success;
+  bool success = false;
 
   // Compute assembled configuration.
   qWeights[0] = 1.;
@@ -1878,7 +1889,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   model.SetQuaternion(id_s, quat, qInit);
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-  assert(success);
+  CHECK_EQUAL(success, true);
 
   // Some random velocity.
   qd[0] = -0.2;
@@ -1940,7 +1951,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   SpatialVector vel_p;
   SpatialVector vel_s;
 
-  bool success;
+  bool success = false;
 
   qWeights[0] = 1.;
   qWeights[1] = 1.;
@@ -1966,7 +1977,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   qdInit[4] = 0.1 * M_PI;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-  assert(success);
+  CHECK_EQUAL(success, true);
 
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
@@ -1990,7 +2001,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   SpatialVector acc_p;
   SpatialVector acc_s;
 
-  bool success;
+  bool success = false;
 
 #ifndef RBDL_USE_SIMPLE_MATH
   // The SimpleMath solver cannot solve the system close to a singular
@@ -2059,17 +2070,22 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   qdInit.setZero();
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-  assert(success);
+  CHECK_EQUAL(success, true);
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
-  Matrix3d rot_ps 
+  Matrix3d rot_ps
     = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
     * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
-  assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
-    - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
-  assert(rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
-  assert((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
-    -CalcPointVelocity6D(model, q, qd, id_p, X_p.r)).norm() < TEST_PREC);
+
+  CHECK_CLOSE(rot_ps(0,1), rot_ps(0,1), TEST_PREC);
+  CHECK_ARRAY_CLOSE(
+    CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
+    CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
+    3, TEST_PREC);
+  CHECK_ARRAY_CLOSE(
+    CalcPointVelocity6D(model, q, qd, id_p, X_p.r),
+    CalcPointVelocity6D(model, q, qd, id_p, X_p.r),
+    3, TEST_PREC);
 
   // Test with non-zero q and qdot.
 
@@ -2125,23 +2141,23 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   model.SetQuaternion(id_s, quat, qInit);
 
   bool success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-  assert(success);
+  CHECK_EQUAL(success, true);
 
   cs.v_plus[0] = 1.;
   cs.v_plus[1] = 2.;
   cs.v_plus[2] = 3.;
   cs.v_plus[3] = 4.;
-  
+
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
-  
+
   CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
-  
+
   CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
@@ -2160,14 +2176,14 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
 
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
-  
+
   CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
-  
+
   CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
@@ -2199,9 +2215,9 @@ TEST(ConstraintCorrectnessTest) {
   Vector3d r020 = CalcBodyToBaseCoordinates(
                     dbj.model,dbj.q,dbj.idB2,
                     Vector3d(0.,0.,0.),true);
-  Vector3d r030 = CalcBodyToBaseCoordinates(
-                    dbj.model,dbj.q,dbj.idB2,
-                    Vector3d(dbj.l2,0.,0.),true);
+  // Vector3d r030 = CalcBodyToBaseCoordinates(
+  //                   dbj.model,dbj.q,dbj.idB2,
+  //                   Vector3d(dbj.l2,0.,0.),true);
 
   SpatialVector v010 = CalcPointVelocity6D(
                         dbj.model,dbj.q,dbj.qd,dbj.idB1,
@@ -2209,9 +2225,9 @@ TEST(ConstraintCorrectnessTest) {
   SpatialVector v020 = CalcPointVelocity6D(
                         dbj.model,dbj.q,dbj.qd,dbj.idB2,
                         Vector3d(0.,0.,0.),true);
-  SpatialVector v030 = CalcPointVelocity6D(
-                        dbj.model,dbj.q,dbj.qd,dbj.idB2,
-                        Vector3d(dbj.l2,0.,0.),true);
+  // SpatialVector v030 = CalcPointVelocity6D(
+  //                       dbj.model,dbj.q,dbj.qd,dbj.idB2,
+  //                       Vector3d(dbj.l2,0.,0.),true);
 
   SpatialVector a010 = CalcPointAcceleration6D(
                         dbj.model,dbj.q,dbj.qd,dbj.qdd,

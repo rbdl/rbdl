@@ -17,10 +17,6 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-
-
-const double TEST_PREC = 1.0e-12;
-
 struct ScrewJoint1DofFixedBase {
   ScrewJoint1DofFixedBase() {
     using namespace RigidBodyDynamics;
@@ -77,7 +73,7 @@ TEST_FIXTURE ( ScrewJoint1DofFixedBase, UpdateKinematics ) {
 
   SpatialVector a0(model->a[roller]);
   SpatialVector v0(model->v[roller]);
-  
+
   q[0] = 1+2*epsilon;
   qdot[0] = 2;
   qddot[0] = 0;
@@ -86,7 +82,7 @@ TEST_FIXTURE ( ScrewJoint1DofFixedBase, UpdateKinematics ) {
 
   v0 = model->v[roller] - v0;
   v0 /= epsilon;
-  
+
   CHECK_ARRAY_CLOSE (a0.data(),v0.data(), 6, 1e-5); //finite diff vs. analytical derivative
 
 }
@@ -104,12 +100,12 @@ TEST_FIXTURE ( ScrewJoint1DofFixedBase, Jacobians ) {
   refPtBaseCoord = CalcBodyToBaseCoordinates(*model, q, roller, refPt);
 
   CHECK_ARRAY_EQUAL (Vector3d(1+cos(1), sin(1), 3).data(), refPtBaseCoord.data(), 3);
-  
+
   CalcPointJacobian(*model, q, roller, refPt, GrefPt);
 
   Gexpected(0,0) = 1 - sin(1);
   Gexpected(1,0) = cos(1);
   Gexpected(2,0) = 0;
-  
+
   CHECK_ARRAY_EQUAL (Gexpected.data(), GrefPt.data(), 3);
 }
