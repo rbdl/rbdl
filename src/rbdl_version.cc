@@ -56,8 +56,8 @@ RBDL_DLLAPI void rbdl_print_version() {
   std::cout << "RBDL version:" << std::endl
     << "  API version  : " << compile_version_string.str() << std::endl;
 
-  if (std::string("unknown") != RBDL_BUILD_REVISION) {
-    std::cout << "  revision     : " << RBDL_BUILD_REVISION 
+  if (std::string("unknown") != RBDL_BUILD_COMMIT) {
+    std::cout << "  commit       : " << RBDL_BUILD_COMMIT
       << " (branch: " << RBDL_BUILD_BRANCH << ")" << std::endl
       << "  build type   : " << RBDL_BUILD_TYPE << std::endl;
   }
@@ -84,7 +84,7 @@ RBDL_DLLAPI void rbdl_print_version() {
   std::cout << "  URDFReader   : off" << std::endl;
 #endif
 
-  std::string build_revision (RBDL_BUILD_REVISION);
+  std::string build_revision (RBDL_BUILD_COMMIT);
   if (build_revision == "unknown") {
     std::cout << std::endl << "Version information incomplete: to enable version information re-build" << std::endl << "library from valid repository and enable RBDL_STORE_VERSION." << std::endl;
   }
