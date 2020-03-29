@@ -89,7 +89,7 @@ RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
     }
   }
 
-  // warning: i is an unsigned int, therefore a for loop of the 
+  // warning: i is an unsigned int, therefore a for loop of the
   // form "for (i = n - 1; i >= 0; i--)" might end up in getting an invalid
   // value for i!
   i = n;
@@ -122,9 +122,9 @@ RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 }
 
 RBDL_DLLAPI void SpatialMatrixSetSubmatrix(
-    SpatialMatrix &dest, 
-    unsigned int row, 
-    unsigned int col, 
+    SpatialMatrix &dest,
+    unsigned int row,
+    unsigned int col,
     const Matrix3d &matrix) {
   assert (row < 2 && col < 2);
 
@@ -142,8 +142,8 @@ RBDL_DLLAPI void SpatialMatrixSetSubmatrix(
 }
 
 RBDL_DLLAPI bool SpatialMatrixCompareEpsilon (
-    const SpatialMatrix &matrix_a, 
-    const SpatialMatrix &matrix_b, 
+    const SpatialMatrix &matrix_a,
+    const SpatialMatrix &matrix_b,
     double epsilon) {
   assert (epsilon >= 0.);
   unsigned int i, j;
@@ -151,9 +151,9 @@ RBDL_DLLAPI bool SpatialMatrixCompareEpsilon (
   for (i = 0; i < 6; i++) {
     for (j = 0; j < 6; j++) {
       if (fabs(matrix_a(i,j) - matrix_b(i,j)) >= epsilon) {
-        std::cerr << "Expected:" 
+        std::cerr << "Expected:"
           << std::endl << matrix_a << std::endl
-          << "but was" << std::endl 
+          << "but was" << std::endl
           << matrix_b << std::endl;
         return false;
       }
@@ -164,17 +164,17 @@ RBDL_DLLAPI bool SpatialMatrixCompareEpsilon (
 }
 
 RBDL_DLLAPI bool SpatialVectorCompareEpsilon (
-    const SpatialVector &vector_a, 
-    const SpatialVector &vector_b, 
+    const SpatialVector &vector_a,
+    const SpatialVector &vector_b,
     double epsilon) {
   assert (epsilon >= 0.);
   unsigned int i;
 
   for (i = 0; i < 6; i++) {
     if (fabs(vector_a[i] - vector_b[i]) >= epsilon) {
-      std::cerr << "Expected:" 
+      std::cerr << "Expected:"
         << std::endl << vector_a << std::endl
-        << "but was" << std::endl 
+        << "but was" << std::endl
         << vector_b << std::endl;
       return false;
     }
@@ -184,8 +184,8 @@ RBDL_DLLAPI bool SpatialVectorCompareEpsilon (
 }
 
 RBDL_DLLAPI Matrix3d parallel_axis (
-    const Matrix3d &inertia, 
-    double mass, 
+    const Matrix3d &inertia,
+    double mass,
     const Vector3d &com) {
   Matrix3d com_cross = VectorCrossMatrix (com);
 
@@ -249,7 +249,7 @@ RBDL_DLLAPI SpatialMatrix Xrotz_mat (const double &zrot) {
 }
 
 RBDL_DLLAPI SpatialMatrix XtransRotZYXEuler (
-    const Vector3d &displacement, 
+    const Vector3d &displacement,
     const Vector3d &zyx_euler) {
   return Xrotz_mat(zyx_euler[0]) * Xroty_mat(zyx_euler[1]) * Xrotx_mat(zyx_euler[2]) * Xtrans_mat(displacement);
 }
@@ -281,15 +281,15 @@ RBDL_DLLAPI void SparseFactorizeLTL (Model &model, Math::MatrixNd &H) {
   }
 }
 
-RBDL_DLLAPI void SparseMultiplyHx (Model &model, Math::MatrixNd &L) {
+RBDL_DLLAPI void SparseMultiplyHx (Model& UNUSED(model), Math::MatrixNd& UNUSED(L)) {
   assert (0 && !"Not yet implemented!");
 }
 
-RBDL_DLLAPI void SparseMultiplyLx (Model &model, Math::MatrixNd &L) {
+RBDL_DLLAPI void SparseMultiplyLx (Model &UNUSED(model), Math::MatrixNd &UNUSED(L)) {
   assert (0 && !"Not yet implemented!");
 }
 
-RBDL_DLLAPI void SparseMultiplyLTx (Model &model, Math::MatrixNd &L) {
+RBDL_DLLAPI void SparseMultiplyLTx (Model &UNUSED(model), Math::MatrixNd &UNUSED(L)) {
   assert (0 && !"Not yet implemented!");
 }
 

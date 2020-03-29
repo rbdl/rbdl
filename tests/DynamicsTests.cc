@@ -116,7 +116,7 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain) {
   }
 
   //  cout << LogOutput.str() << endl;
-  
+
   CHECK_CLOSE (-5.88600000000000E+00, QDDot[0], TEST_PREC);
   CHECK_CLOSE ( 3.92400000000000E+00, QDDot[1], TEST_PREC);
 }
@@ -257,7 +257,7 @@ TEST (TestForwardDynamicsLagrangian) {
   Model model;
   Body base_body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
-  model.AddBody (0, SpatialTransform(), 
+  model.AddBody (0, SpatialTransform(),
       Joint (
         SpatialVector (0., 0., 0., 1., 0., 0.),
         SpatialVector (0., 0., 0., 0., 1., 0.),
@@ -272,7 +272,7 @@ TEST (TestForwardDynamicsLagrangian) {
   VectorNd Q = VectorNd::Zero (model.dof_count);
   VectorNd QDot = VectorNd::Zero (model.dof_count);
   VectorNd Tau = VectorNd::Zero (model.dof_count);
-  
+
   VectorNd QDDot_aba = VectorNd::Zero (model.dof_count);
   VectorNd QDDot_lagrangian = VectorNd::Zero (model.dof_count);
 
@@ -304,7 +304,7 @@ TEST (TestForwardDynamicsLagrangian) {
   CHECK_ARRAY_CLOSE (QDDot_aba.data(), QDDot_lagrangian.data(), QDDot_aba.size(), TEST_PREC);
 }
 
-/* 
+/*
  * A simple test for a model with 3 rotational dof. The reference value was
  * computed with Featherstones spatial_v1 code. This test was written
  * because my benchmark tool showed up inconsistencies, however this was
@@ -334,7 +334,7 @@ TEST (TestForwardDynamics3DoFModel) {
   VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
-  
+
   VectorNd QDDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd QDDot_ref = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
@@ -347,7 +347,7 @@ TEST (TestForwardDynamics3DoFModel) {
 //  cout << LogOutput.str() << endl;
 
   QDDot_ref[0] = 3.301932144386186;
-  
+
   CHECK_ARRAY_CLOSE (QDDot_ref.data(), QDDot.data(), QDDot.size(), TEST_PREC);
 }
 
@@ -382,7 +382,7 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
   VectorNd Q = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd QDot = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd Tau = VectorNd::Constant ((size_t) model.dof_count, 0.);
-  
+
   VectorNd QDDot_ab = VectorNd::Constant ((size_t) model.dof_count, 0.);
   VectorNd QDDot_lagrangian = VectorNd::Constant ((size_t) model.dof_count, 0.);
 
@@ -405,7 +405,7 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
   CHECK_ARRAY_CLOSE (QDDot_ab.data(), QDDot_lagrangian.data(), QDDot_ab.size(), TEST_PREC);
 }
 
-/* 
+/*
  * This is a test for a model where I detected incosistencies between the
  * Lagragian method and the ABA.
  */
@@ -413,19 +413,19 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
   Model *model = NULL;
 
   unsigned int hip_id,
-               upper_leg_right_id,
-               lower_leg_right_id,
+               // upper_leg_right_id,
+               // lower_leg_right_id,
                foot_right_id,
-               upper_leg_left_id,
-               lower_leg_left_id,
+               // upper_leg_left_id,
+               // lower_leg_left_id,
                foot_left_id;
-  Body hip_body,
-       upper_leg_right_body,
-       lower_leg_right_body,
-       foot_right_body,
-       upper_leg_left_body,
-       lower_leg_left_body,
-       foot_left_body;
+               Body hip_body,
+               upper_leg_right_body,
+               lower_leg_right_body,
+               foot_right_body,
+               upper_leg_left_body,
+               lower_leg_left_body,
+               foot_left_body;
 
   Joint joint_rot_z, joint_rot_y, joint_rot_x;
   Joint joint_trans_z, joint_trans_y, joint_trans_x;
@@ -475,11 +475,11 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 
   // add right upper leg
   temp_id = model->AddBody (hip_id, Xtrans (Vector3d(0., 0., 0.)), joint_rot_z, upper_leg_right_body);
-  upper_leg_right_id = temp_id;
+  // upper_leg_right_id = temp_id;
 
   // add the right lower leg (only one DOF)
   temp_id = model->AddBody (temp_id, Xtrans (Vector3d(0., -0.5, 0.)), joint_rot_z, lower_leg_right_body);
-  lower_leg_right_id = temp_id;
+  // lower_leg_right_id = temp_id;
 
   // add the right foot (1 DOF)
   temp_id = model->AddBody (temp_id, Xtrans (Vector3d(0., -0.5, 0.)), joint_rot_z, foot_right_body);
@@ -491,18 +491,18 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
 
   // add left upper leg
   temp_id = model->AddBody (hip_id, Xtrans (Vector3d(0., 0., 0.)), joint_rot_z, upper_leg_left_body);
-  upper_leg_left_id = temp_id;
+  // upper_leg_left_id = temp_id;
 
   // add the left lower leg (only one DOF)
   temp_id = model->AddBody (temp_id, Xtrans (Vector3d(0., -0.5, 0.)), joint_rot_z, lower_leg_left_body);
-  lower_leg_left_id = temp_id;
+  // lower_leg_left_id = temp_id;
 
   // add the left foot (1 DOF)
   temp_id = model->AddBody (temp_id, Xtrans (Vector3d(0., -0.5, 0.)), joint_rot_z, foot_left_body);
   foot_left_id = temp_id;
 
   LOG << "--- model created (" << model->dof_count << " DOF) ---" << endl;
-  
+
   // contact data
   CS_right.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
   CS_right.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
@@ -511,7 +511,7 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
   CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_left_x");
   CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_left_y");
   CS_left.AddContactConstraint(foot_left_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_left_z");
-  
+
   CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (1., 0., 0.), "foot_right_x");
   CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 1., 0.), "foot_right_y");
   CS_both.AddContactConstraint(foot_right_id, Vector3d (0., 0., 0.), Vector3d (0., 0., 1.), "foot_right_z");

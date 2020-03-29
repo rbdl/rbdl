@@ -18,6 +18,7 @@ Makefile
 tags
 *.log
 
+*.orig
 *.user
 
 src/rbdl_config.h
