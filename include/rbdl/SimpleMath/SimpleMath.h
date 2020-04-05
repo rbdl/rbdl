@@ -87,7 +87,7 @@ class ColPivHouseholderQR;
 template <typename Derived, typename ScalarType, int Rows, int Cols>
 struct MatrixBase {
   typedef MatrixBase<Derived, ScalarType, Rows, Cols> MatrixType;
-  typedef ScalarType value_type;
+  typedef ScalarType Scalar;
 
   enum {
     RowsAtCompileTime = Rows,
@@ -174,7 +174,7 @@ struct MatrixBase {
     return !(operator==(other));
   }
 
-  CommaInitializer<Derived> operator<< (const value_type& value) {
+  CommaInitializer<Derived> operator<< (const Scalar& value) {
     return CommaInitializer<Derived> (*(static_cast<Derived*>(this)), value);
   }
   
@@ -217,7 +217,7 @@ struct MatrixBase {
   }
 
   template <typename OtherDerived>
-  Derived operator*=(const MatrixBase<OtherDerived, typename OtherDerived:: value_type, OtherDerived::RowsAtCompileTime, OtherDerived::ColsAtCompileTime> &other) {
+  Derived operator*=(const MatrixBase<OtherDerived, typename OtherDerived:: Scalar, OtherDerived::RowsAtCompileTime, OtherDerived::ColsAtCompileTime> &other) {
     Derived copy (*static_cast<const Derived*>(this));
     this->setZero();
 
@@ -490,7 +490,7 @@ struct MatrixBase {
   // Numerical functions
   //
 
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   ScalarType dot(const Derived& other) const {
     assert ((rows() == 1 || cols() == 1) && (other.rows() == 1 || other.cols() == 1));
 
@@ -504,7 +504,7 @@ struct MatrixBase {
     return result;
   }
 
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   ScalarType squaredNorm() const {
     ScalarType result = static_cast<ScalarType>(0.0);
 
@@ -519,12 +519,12 @@ struct MatrixBase {
     return result;
   }
 
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   ScalarType norm() const {
     return static_cast<ScalarType>(std::sqrt(squaredNorm()));
   }
   
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   Derived normalized() const {
     Derived result (*this);
 
@@ -533,7 +533,7 @@ struct MatrixBase {
     return result / length;
   }
 
-  // TODO: separate functions for float or ScalarType matrices  
+  // TODO: separate functions for float or ScalarType matrices
   Derived normalize() {
     ScalarType length = norm();
 
@@ -583,8 +583,8 @@ struct MatrixBase {
         // computes the inverse of a matrix m
         ScalarType det = operator()(0, 0) * (operator()(1, 1) * operator()(2, 2)
             - operator()(2, 1) * operator()(1, 2))
-            - operator()(0, 1) * (operator()(1, 0) * operator()(2, 2) 
-            - operator()(1, 2) * operator()(2, 0)) 
+            - operator()(0, 1) * (operator()(1, 0) * operator()(2, 2)
+            - operator()(1, 2) * operator()(2, 0))
             + operator()(0, 2) * (operator()(1, 0) * operator()(2, 1)
             - operator()(1, 1) * operator()(2, 0));
 
@@ -706,7 +706,7 @@ struct MatrixBase {
 
     for (size_t i = 0; i < NumRows; i++) {
       for (size_t j = 0; j < NumCols; j++) {
-        result(i,j) = (static_cast<value_type>(rand()) / static_cast<value_type>(RAND_MAX)) * 2.0 - 1.0;
+        result(i,j) = (static_cast<Scalar>(rand()) / static_cast<Scalar>(RAND_MAX)) * 2.0 - 1.0;
       }
     }
 
@@ -1266,7 +1266,7 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
 //
 template <typename Derived>
 struct CommaInitializer {
-  typedef typename Derived::value_type value_type;
+  typedef typename Derived::Scalar Scalar;
 
   private:
     CommaInitializer() {}
@@ -1278,7 +1278,7 @@ struct CommaInitializer {
 
   public:
 
-  CommaInitializer(Derived &matrix, const value_type &value) : 
+  CommaInitializer(Derived &matrix, const Scalar &value) :
     mParentMatrix(&matrix),
     mRowIndex(0),
     mColIndex(0),
@@ -1310,7 +1310,7 @@ struct CommaInitializer {
     }
   }
 
-  CommaInitializer<Derived> operator, (const value_type &value) {
+  CommaInitializer<Derived> operator, (const Scalar &value) {
     mColIndex++;
     if (mColIndex >= mParentMatrix->cols()) {
       mRowIndex++;
@@ -1521,20 +1521,20 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
 template <typename Derived>
 class LLT {
 public:
-    typedef typename Derived::value_type value_type;
-    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef typename Derived::Scalar Scalar;
+    typedef MatrixBase<Derived, Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
 
     LLT() :
             mIsFactorized(false)
     {}
 
 private:
-    typedef Matrix<value_type> VectorXd;
-    typedef Matrix<value_type> MatrixXXd;
-    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<Scalar> VectorXd;
+    typedef Matrix<Scalar> MatrixXXd;
+    typedef Matrix<Scalar, Derived::RowsAtCompileTime, 1> ColumnVector;
 
     bool mIsFactorized;
-    Matrix<value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> mQ;
+    Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> mQ;
     Derived mL;
 
 public:
@@ -1628,16 +1628,16 @@ public:
 template <typename Derived>
 class PartialPivLU {
 public:
-    typedef typename Derived::value_type value_type;
-    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef typename Derived::Scalar Scalar;
+    typedef MatrixBase<Derived, Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
     PartialPivLU() :
             mIsFactorized(false)
     {}
 private:
-    typedef Matrix<value_type> VectorXd;
-    typedef Matrix<value_type> MatrixXXd;
-    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
-    typedef Matrix<value_type, 1, Derived::ColsAtCompileTime> RowVector;
+    typedef Matrix<Scalar> VectorXd;
+    typedef Matrix<Scalar> MatrixXXd;
+    typedef Matrix<Scalar, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<Scalar, 1, Derived::ColsAtCompileTime> RowVector;
     bool mIsFactorized;
     unsigned int *mPermutations = nullptr;
     Derived mLU;
@@ -1806,20 +1806,20 @@ public:
 template <typename Derived>
 class HouseholderQR {
 public:
-    typedef typename Derived::value_type value_type;
-    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef typename Derived::Scalar Scalar;
+    typedef MatrixBase<Derived, Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
 
     HouseholderQR() :
             mIsFactorized(false)
     {}
 
 private:
-    typedef Matrix<value_type> VectorXd;
-    typedef Matrix<value_type> MatrixXXd;
-    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<Scalar> VectorXd;
+    typedef Matrix<Scalar> MatrixXXd;
+    typedef Matrix<Scalar, Derived::RowsAtCompileTime, 1> ColumnVector;
 
     bool mIsFactorized;
-    Matrix<value_type, Derived::RowsAtCompileTime, Derived::RowsAtCompileTime> mQ;
+    Matrix<Scalar, Derived::RowsAtCompileTime, Derived::RowsAtCompileTime> mQ;
     Derived mR;
 
 public:
@@ -1840,7 +1840,7 @@ public:
             MatrixXXd current_block = mR.block(i,i, block_rows, block_cols);
             VectorXd column = current_block.block(0, 0, block_rows, 1);
 
-            value_type alpha = - column.norm();
+            Scalar alpha = - column.norm();
             if (current_block(0,0) < 0) {
                 alpha = - alpha;
             }
@@ -1878,13 +1878,13 @@ public:
 
       int ncols = mR.cols();
       for (int i = ncols - 1; i >= 0; i--) {
-        value_type z = y[i];
+        Scalar z = y[i];
 
         for (unsigned int j = i + 1; j < ncols; j++) {
           z = z - x[j] * mR(i,j);
         }
 
-        if (fabs(mR(i,i)) < std::numeric_limits<value_type>::epsilon() * 10) {
+        if (fabs(mR(i,i)) < std::numeric_limits<Scalar>::epsilon() * 10) {
           std::cerr << "HouseholderQR: Cannot back-substitute as diagonal element is near zero:" << fabs(mR(i,i))<< std::endl;
           abort();
         }
@@ -1911,7 +1911,7 @@ public:
 
         return result;
     }
-    Matrix<value_type> householderQ () const {
+    Matrix<Scalar> householderQ () const {
         return mQ;
     }
     Derived matrixR () const {
@@ -1922,21 +1922,21 @@ public:
 template <typename Derived>
 class ColPivHouseholderQR {
 public:
-    typedef typename Derived::value_type value_type;
-    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef typename Derived::Scalar Scalar;
+    typedef MatrixBase<Derived, Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
 
 
 private:
-    typedef Matrix<value_type> VectorXd;
-    typedef Matrix<value_type> MatrixXXd;
-    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<Scalar> VectorXd;
+    typedef Matrix<Scalar> MatrixXXd;
+    typedef Matrix<Scalar, Derived::RowsAtCompileTime, 1> ColumnVector;
 
     bool mIsFactorized;
-    Matrix<value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> mQ;
+    Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> mQ;
     Derived mR;
 
     unsigned int *mPermutations;
-    value_type mThreshold;
+    Scalar mThreshold;
     unsigned int mRank;
 
 public:
@@ -1971,7 +1971,7 @@ public:
     ColPivHouseholderQR(const MatrixType &matrix) :
             mIsFactorized(false),
             mQ(matrix.rows(), matrix.rows()),
-            mThreshold (std::numeric_limits<value_type>::epsilon() * matrix.cols()) {
+            mThreshold (std::numeric_limits<Scalar>::epsilon() * matrix.cols()) {
         mPermutations = new unsigned int [matrix.cols()];
         for (unsigned int i = 0; i < matrix.cols(); i++) {
             mPermutations[i] = i;
@@ -1982,7 +1982,7 @@ public:
         delete[] mPermutations;
     }
 
-    ColPivHouseholderQR& setThreshold (const value_type& threshold) {
+    ColPivHouseholderQR& setThreshold (const Scalar& threshold) {
         mThreshold = threshold;
 
         return *this;
@@ -1997,7 +1997,7 @@ public:
 
         // find and swap the column with the highest norm
         unsigned int col_index_norm_max = i;
-        value_type col_norm_max = VectorXd(mR.block(i,i, block_rows, 1)).squaredNorm();
+        Scalar col_norm_max = VectorXd(mR.block(i, i, block_rows, 1)).squaredNorm();
 
         for (unsigned int j = i + 1; j < mR.cols(); j++) {
           VectorXd column = mR.block(i, j, block_rows, 1);
@@ -2027,7 +2027,7 @@ public:
         MatrixXXd current_block = mR.block(i,i, block_rows, block_cols);
         VectorXd column = current_block.block(0, 0, block_rows, 1);
 
-        value_type alpha = - column.norm();
+        Scalar alpha = - column.norm();
         if (current_block(0,0) < 0) {
           alpha = - alpha;
         }
@@ -2038,7 +2038,7 @@ public:
         MatrixXXd Q (MatrixXXd::Identity(mR.rows(), mR.rows()));
 
         Q.block(i, i, block_rows, block_rows) = MatrixXXd (Q.block(i, i, block_rows, block_rows))
-          - (v * v.transpose()) / (v.squaredNorm() * static_cast<value_type>(0.5));
+          - (v * v.transpose()) / (v.squaredNorm() * static_cast<Scalar>(0.5));
 
         mR = Q * mR;
 
@@ -2064,13 +2064,13 @@ public:
     ColumnVector x = ColumnVector::Zero(mR.cols());
 
     for (int i = mR.cols() - 1; i >= 0; --i) {
-      value_type z = y[i];
+      Scalar z = y[i];
 
       for (unsigned int j = i + 1; j < mR.cols(); j++) {
         z = z - x[mPermutations[j]] * mR(i,j);
       }
 
-      if (fabs(mR(i,i)) < std::numeric_limits<value_type>::epsilon() * 10) {
+      if (fabs(mR(i,i)) < std::numeric_limits<Scalar>::epsilon() * 10) {
         std::cerr << "HouseholderQR: Cannot back-substitute as diagonal element is near zero:" << fabs(mR(i,i))<< std::endl;
         abort();
       }
@@ -2098,13 +2098,13 @@ public:
         return result;
     }
 
-    Matrix<value_type> householderQ () const {
+    Matrix<Scalar> householderQ () const {
         return mQ;
     }
     Derived matrixR () const {
         return mR;
     }
-    Matrix<value_type> matrixP () const {
+    Matrix<Scalar> matrixP () const {
         MatrixXXd P = MatrixXXd::Identity(mR.cols(), mR.cols());
         MatrixXXd identity = MatrixXXd::Identity(mR.cols(), mR.cols());
         for (unsigned int i = 0; i < mR.cols(); i++) {
@@ -2114,7 +2114,7 @@ public:
     }
 
     unsigned int rank() const {
-        value_type abs_threshold = fabs(mR(0,0)) * mThreshold;
+        Scalar abs_threshold = fabs(mR(0, 0)) * mThreshold;
 
         for (unsigned int i = 1; i < mR.cols(); i++) {
             if (fabs(mR(i,i)) < abs_threshold)
