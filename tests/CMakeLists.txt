@@ -8,32 +8,35 @@ FIND_PACKAGE (UnitTest++ REQUIRED)
 INCLUDE_DIRECTORIES (${UNITTEST++_INCLUDE_DIR})
 
 SET ( TESTS_SRCS
-  main.cc
   MathTests.cc
-  SpatialAlgebraTests.cc
-  MultiDofTests.cc
-  KinematicsTests.cc
-  BodyTests.cc
-  ModelTests.cc
-  FloatingBaseTests.cc
-  CalcVelocitiesTests.cc
-  CalcAccelerationsTests.cc
-  DynamicsTests.cc
-  InverseDynamicsTests.cc
-  CompositeRigidBodyTests.cc
-  ImpulsesTests.cc
-  TwolegModelTests.cc
-  ContactsTests.cc
-  UtilsTests.cc
-  SparseFactorizationTests.cc
-  CustomJointSingleBodyTests.cc
-  CustomJointMultiBodyTests.cc
-  CustomConstraintsTests.cc
-  InverseKinematicsTests.cc
-  LoopConstraintsTests.cc
-  ScrewJointTests.cc
-  ForwardDynamicsConstraintsExternalForces.cc
-  )
+)
+
+SET ( TESTS_OLD_SRCS
+#        MathTests.cc
+        SpatialAlgebraTests.cc
+        MultiDofTests.cc
+        KinematicsTests.cc
+        BodyTests.cc
+        ModelTests.cc
+        FloatingBaseTests.cc
+        CalcVelocitiesTests.cc
+        CalcAccelerationsTests.cc
+        DynamicsTests.cc
+        InverseDynamicsTests.cc
+        CompositeRigidBodyTests.cc
+        ImpulsesTests.cc
+        TwolegModelTests.cc
+        ContactsTests.cc
+        UtilsTests.cc
+        SparseFactorizationTests.cc
+        CustomJointSingleBodyTests.cc
+        CustomJointMultiBodyTests.cc
+        CustomConstraintsTests.cc
+        InverseKinematicsTests.cc
+        LoopConstraintsTests.cc
+        ScrewJointTests.cc
+        ForwardDynamicsConstraintsExternalForces.cc
+        rbdl_tests.h)
 
 INCLUDE_DIRECTORIES ( ../src/ )
 
@@ -45,7 +48,8 @@ SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
   CXX_EXTENSIONS OFF
   )
 
-ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} )
+ADD_EXECUTABLE ( rbdl_tests_old ${TESTS_OLD_SRCS} main_old.cc)
+ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} main.cc)
 
 SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
   LINKER_LANGUAGE CXX
@@ -55,15 +59,24 @@ SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
   CXX_EXTENSIONS OFF
   )
 
+SET_TARGET_PROPERTIES ( rbdl_tests_old PROPERTIES
+        LINKER_LANGUAGE CXX
+        OUTPUT_NAME runtests_old
+        )
+
 SET (RBDL_LIBRARY rbdl)
 IF (RBDL_BUILD_STATIC)
   SET (RBDL_LIBRARY rbdl-static)
 ENDIF (RBDL_BUILD_STATIC)
 
-TARGET_LINK_LIBRARIES ( rbdl_tests
+TARGET_LINK_LIBRARIES ( rbdl_tests_old
   ${UNITTEST++_LIBRARY}
   ${RBDL_LIBRARY}
   )
+
+TARGET_LINK_LIBRARIES ( rbdl_tests
+        ${RBDL_LIBRARY}
+        )
 
 OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)
 
