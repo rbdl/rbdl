@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include "rbdl/Logging.h"
 #include "rbdl/rbdl_math.h"
@@ -13,7 +13,16 @@ using namespace RigidBodyDynamics::Math;
 struct MathFixture {
 };
 
-TEST (GaussElimPivot) {
+TEST_CASE("CatchVectorApprox", "Math") {
+  VectorNd reference = VectorNd::Constant(10, 1.0);
+  VectorNd value = reference;
+
+  value[2] += 1.0e-14;
+
+  REQUIRE_THAT (value, IsApprox(reference));
+}
+
+TEST_CASE("GaussElimPivot", "Math") {
   ClearLogOutput();
 
   MatrixNd A;
@@ -37,7 +46,7 @@ TEST (GaussElimPivot) {
 
   LinSolveGaussElimPivot (A, b, x);
 
-  CHECK_ARRAY_CLOSE (test_result.data(), x.data(), 3, TEST_PREC);
+  REQUIRE_THAT (test_result, IsApprox(x).epsilon(TEST_PREC));
 
   A(0,0) = 0; A(0,1) = -2; A(0,2) = 1;
   A(1,0) = 1; A(1,1) =  1; A(1,2) = 5;
@@ -48,9 +57,14 @@ TEST (GaussElimPivot) {
   test_result[1] = 1;
   test_result[2] = 3;
 
-  CHECK_ARRAY_CLOSE (test_result.data(), x.data(), 3, TEST_PREC);
+  x[0] += 1.0e-13;
+
+  cout << x.transpose() << endl;
+
+  REQUIRE_THAT (test_result, IsApprox(x).epsilon(TEST_PREC));
 }
 
+/*
 TEST (Dynamic_1D_initialize_value) {
   VectorNd myvector_10 = VectorNd::Constant ((size_t) 10, 12.);
 
@@ -107,3 +121,5 @@ TEST (SpatialMatrix_Multiplication) {
 
   CHECK_ARRAY_CLOSE (correct_result.data(), test_result.data(), 6 * 6, TEST_PREC);
 }
+
+ */
