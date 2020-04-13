@@ -813,7 +813,7 @@ int main (int argc, char *argv[]) {
     }
 
     if (benchmark_run_nle) {
-      report_section("Nonlinear effects");
+      report_section("Nonlinear Effects");
       run_nle_benchmark (model, benchmark_sample_count);
     }
 

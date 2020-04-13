@@ -643,8 +643,8 @@ struct MatrixBase {
   ScalarType minCoeff() const {
     assert(rows() > 0 && cols() > 0);
     ScalarType result = operator()(0, 0);
-    unsigned int ni = rows();
-    unsigned int nj = cols();
+    const unsigned int ni = rows();
+    const unsigned int nj = cols();
     for (unsigned int i = 0; i < ni; i++) {
       for (unsigned int j = 0; j < nj; j++) {
         if (operator()(i, j) < result) {
@@ -658,8 +658,8 @@ struct MatrixBase {
   ScalarType maxCoeff() const {
     assert(rows() > 0 && cols() > 0);
     ScalarType result = operator()(0, 0);
-    unsigned int ni = rows();
-    unsigned int nj = cols();
+    const unsigned int ni = rows();
+    const unsigned int nj = cols();
     for (unsigned int i = 0; i < ni; i++) {
       for (unsigned int j = 0; j < nj; j++) {
         if (operator()(i, j) > result) {
