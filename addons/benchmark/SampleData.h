@@ -42,20 +42,24 @@ struct SampleData {
   void deleteData() {
     count = 0;
 
-    if (q)
+    if (q) {
       delete[] q;
+    }
     q = NULL;
 
-    if (qdot)
+    if (qdot) {
       delete[] qdot;
+    }
     qdot = NULL;
 
-    if (qddot)
+    if (qddot) {
       delete[] qddot;
+    }
     qddot = NULL;
 
-    if (tau)
+    if (tau) {
       delete[] tau;
+    }
     tau = NULL;
 
     durations.resize(0);
