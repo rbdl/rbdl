@@ -630,6 +630,46 @@ struct MatrixBase {
     return result / static_cast<ScalarType>(rows() * cols());
   }
 
+  ScalarType sum() const {
+    assert(rows() == 1 || cols() == 1);
+    ScalarType result = static_cast<ScalarType>(0.0);
+    for (unsigned int i = 0; i < rows(); i++) {
+      result += operator[](i);
+    }
+
+    return result;
+  }
+
+  ScalarType minCoeff() const {
+    assert(rows() > 0 && cols() > 0);
+    ScalarType result = operator()(0, 0);
+    const unsigned int ni = rows();
+    const unsigned int nj = cols();
+    for (unsigned int i = 0; i < ni; i++) {
+      for (unsigned int j = 0; j < nj; j++) {
+        if (operator()(i, j) < result) {
+          result = operator()(i, j);
+        }
+      }
+    }
+    return result;
+  }
+
+  ScalarType maxCoeff() const {
+    assert(rows() > 0 && cols() > 0);
+    ScalarType result = operator()(0, 0);
+    const unsigned int ni = rows();
+    const unsigned int nj = cols();
+    for (unsigned int i = 0; i < ni; i++) {
+      for (unsigned int j = 0; j < nj; j++) {
+        if (operator()(i, j) > result) {
+          result = operator()(i, j);
+        }
+      }
+    }
+    return result;
+  }
+
   const LLT<Derived> llt() const {
     return LLT<Derived>(*this);
   }
