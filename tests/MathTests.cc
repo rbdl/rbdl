@@ -10,16 +10,42 @@ const double TEST_PREC = 1.0e-14;
 using namespace std;
 using namespace RigidBodyDynamics::Math;
 
+using namespace Catch::Matchers::Floating;
+
 struct MathFixture {
 };
 
 TEST_CASE("CatchVectorApprox", "Math") {
-  VectorNd reference = VectorNd::Constant(10, 1.0);
+  // Checks that:
+  // - element wise relative error checks
+  // - l2/frobenius norm error checks
+  // give the expected results.
+
+  VectorNd reference = VectorNd::Constant(10, .0);
   VectorNd value = reference;
 
-  value[2] += 1.0e-14;
+  value[2] = reference[2] + 1.0e-13;
+  REQUIRE_THAT(value[2], !WithinRelMatcher(reference[2], 1.0e-14));
+  REQUIRE_THAT (value, !IsWithinRelElem(reference, 1.0e-14));
+  REQUIRE_THAT (value, !IsErrNormWithinRel(reference, 1.0e-16));
 
-  REQUIRE_THAT (value, IsApprox(reference));
+  value[2] = reference[2] + 1.0e-14;
+  REQUIRE_THAT(value[2], WithinRelMatcher(reference[2], 1.0e-14));
+  REQUIRE_THAT (value, IsWithinRelElem(reference, 1.0e-14));
+  REQUIRE_THAT (value, IsErrNormWithinRel(reference, 1.0e-14));
+
+  value = VectorNd::Constant(10, 1.0e14);
+  reference = value;
+
+  value[2] = 1.0e14 + 1.0;
+  REQUIRE_THAT(value[2], WithinRelMatcher(reference[2], 1.0e-14));
+  REQUIRE_THAT (value, IsWithinRelElem(reference, 1.0e-14));
+  REQUIRE_THAT (value, IsErrNormWithinRel(reference, 1.0e-14));
+
+  value[2] = 1.0e14 + 10.0;
+  REQUIRE_THAT(value[2], !WithinRelMatcher(reference[2], 1.0e-14));
+  REQUIRE_THAT (value, !IsWithinRelElem(reference, 1.0e-14));
+  REQUIRE_THAT (value, !IsErrNormWithinRel(reference, 1.0e-14));
 }
 
 TEST_CASE("GaussElimPivot", "Math") {
