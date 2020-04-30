@@ -18,7 +18,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
   PinJointCustomConstraint():RigidBodyDynamics::CustomConstraint(5){
   }
 
-  PinJointCustomConstraint(unsigned int x0y1z2):RigidBodyDynamics::CustomConstraint(5){
+  PinJointCustomConstraint(unsigned int x0y1z2):RigidBodyDynamics::CustomConstraint(5){    
     TuP.resize(mConstraintCount);
     for(unsigned int i=0; i<TuP.size(); ++i){
       TuP[i].setZero();
@@ -99,7 +99,7 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
                           const Math::VectorNd &Q,
                           const Math::VectorNd &QDot,
                           ConstraintSet &CS,
-                          const MatrixNd &UNUSED(Gblock),
+                          const MatrixNd &Gblock,
                           Math::VectorNd &gamma,
                           unsigned int gammaStartIndex)
   {
@@ -208,11 +208,11 @@ struct PinJointCustomConstraint : public RigidBodyDynamics::CustomConstraint
 
   }
 
-  virtual void CalcVelocityError( Model &UNUSED(model),
-                                  unsigned int UNUSED(custom_constraint_id),
-                                  const Math::VectorNd &UNUSED(Q),
+  virtual void CalcVelocityError( Model &model,
+                                  unsigned int custom_constraint_id,
+                                  const Math::VectorNd &Q,
                                   const Math::VectorNd &QDot,
-                                  ConstraintSet &UNUSED(CS),
+                                  ConstraintSet &CS,
                                   const Math::MatrixNd &Gblock,
                                   Math::VectorNd &errVel,
                                   unsigned int errStartIndex)
@@ -362,9 +362,9 @@ TEST_CASE (__FILE__"_CustomConstraintCorrectnessTest", "") {
   Vector3d r020 = CalcBodyToBaseCoordinates(
                     dbj.model,dbj.q,dbj.idB2,
                     Vector3d(0.,0.,0.),true);
-  // Vector3d r030 = CalcBodyToBaseCoordinates(
-  //                   dbj.model,dbj.q,dbj.idB2,
-  //                   Vector3d(dbj.l2,0.,0.),true);
+  Vector3d r030 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(dbj.l2,0.,0.),true);
 
   SpatialVector v010 = CalcPointVelocity6D(
                         dbj.model,dbj.q,dbj.qd,dbj.idB1,
@@ -372,9 +372,9 @@ TEST_CASE (__FILE__"_CustomConstraintCorrectnessTest", "") {
   SpatialVector v020 = CalcPointVelocity6D(
                         dbj.model,dbj.q,dbj.qd,dbj.idB2,
                         Vector3d(0.,0.,0.),true);
-  // SpatialVector v030 = CalcPointVelocity6D(
-  //                       dbj.model,dbj.q,dbj.qd,dbj.idB2,
-  //                       Vector3d(dbj.l2,0.,0.),true);
+  SpatialVector v030 = CalcPointVelocity6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.idB2,
+                        Vector3d(dbj.l2,0.,0.),true);
 
   SpatialVector a010 = CalcPointAcceleration6D(
                         dbj.model,dbj.q,dbj.qd,dbj.qdd,
@@ -486,10 +486,6 @@ TEST_CASE (__FILE__"_CustomConstraintCorrectnessTest", "") {
       REQUIRE_THAT (dba.cs.constraintAxis[i][j], IsClose(dbcc.cs.constraintAxis[i][j], TEST_PREC, TEST_PREC));
     }
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> Moved all tests into Catch2 framework
 
   SpatialVector a010c =
       CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,

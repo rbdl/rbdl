@@ -30,19 +30,19 @@ const int NUMBER_OF_BODIES = 3;
 //==============================================================================
 /*
 
-  The purpose of this test is to test that all of the code in RBDL
+  The purpose of this test is to test that all of the code in RBDL 
   related to a multibody mechanism that includes a custom joint functions.
   Specifically this test is for the multi-pass algorithms in rbdl ... namely
   the CompositeRigidBodyAlgorithm. However, because these tests have already
   been written for CustomJointSingleBodyTests.cc, we'll run them all on the
-  multibody models that we will be testing.
+  multibody models that we will be testing. 
 
-  We will be testing 3 models to get good coverage of the
+  We will be testing 3 models to get good coverage of the 
   CompositeRigidBodyAlgorithm:
 
   1. Rx   - multidof - custom
-  2. Rx   - custom   - multidof
-  3. custom - multidof - Rx
+  2. Rx   - custom   - multidof 
+  3. custom - multidof - Rx  
 
   As before, to test that the model works, we will create a model using
   standard RBDL versions (the reference model), and then we will create
@@ -104,7 +104,7 @@ struct CustomEulerZYXJoint : public CustomJoint {
   virtual void jcalc (Model &model,
                       unsigned int joint_id,
                       const Math::VectorNd &q,
-                      const Math::VectorNd &qdot)
+                      const Math::VectorNd &qdot) 
   {
     double q0 = q[model.mJoints[joint_id].q_index];
     double q1 = q[model.mJoints[joint_id].q_index + 1];
@@ -151,10 +151,10 @@ struct CustomEulerZYXJoint : public CustomJoint {
 
   virtual void jcalc_X_lambda_S ( Model &model,
                                   unsigned int joint_id,
-                                  const Math::VectorNd &q)
+                                  const Math::VectorNd &q) 
   {
 
-
+      
       double q0 = q[model.mJoints[joint_id].q_index];
       double q1 = q[model.mJoints[joint_id].q_index + 1];
       double q2 = q[model.mJoints[joint_id].q_index + 2];
@@ -166,15 +166,15 @@ struct CustomEulerZYXJoint : public CustomJoint {
       double s2 = sin (q2);
       double c2 = cos (q2);
 
-
-      model.X_lambda[joint_id] = SpatialTransform (
+      
+      model.X_lambda[joint_id] = SpatialTransform ( 
           Matrix3d(
                            c0 * c1,                s0 * c1,     -s1,
             c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
             c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
             ),
           Vector3d (0., 0., 0.)) * model.X_T[joint_id];
-
+      
       S.setZero();
       S(0,0) = -s1;
       S(0,2) = 1.;
@@ -197,7 +197,7 @@ struct CustomEulerZYXJoint : public CustomJoint {
 
 struct CustomJointMultiBodyFixture {
   CustomJointMultiBodyFixture () {
-
+     
     reference_model.resize(NUMBER_OF_MODELS);
     custom_model.resize(NUMBER_OF_MODELS);
 
@@ -493,7 +493,7 @@ struct CustomJointMultiBodyFixture {
 
 //==============================================================================
 //
-// Tests
+// Tests 
 //  UpdateKinematicsCustom
 //  Jacobians
 //  InverseDynamics
@@ -508,7 +508,8 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematics", "") 
   VectorNd test;
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    unsigned int dof = reference_model.at(idx).dof_count;
+
+    int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof ; i++) {
       q.at(idx)[i]      = i * 0.1;
       qdot.at(idx)[i]   = i * 0.15;
@@ -526,13 +527,14 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematics", "") 
                       qddot.at(idx));
 
 
-    // Matrix3d Eref = reference_model.at(idx).X_base[
-    //                   reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)
-    //                   ].E;
-    // Matrix3d Ecus = custom_model.at(idx).X_base[
-    //                   custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)
-    //                   ].E;
-    // Matrix3d Eerr = Eref-Ecus;
+    Matrix3d Eref = reference_model.at(idx).X_base[
+                      reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)
+                      ].E;
+    Matrix3d Ecus = custom_model.at(idx).X_base[
+                      custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)
+                      ].E;
+
+    Matrix3d Eerr = Eref-Ecus;
 
     REQUIRE_THAT (reference_model.at(idx).X_base[reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)].E,
       AllCloseMatrix(custom_model.at(idx).X_base[custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)].E, TEST_PREC, TEST_PREC)
@@ -548,14 +550,9 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematics", "") 
   }
 }
 
-<<<<<<< HEAD
-TEST_FIXTURE (CustomJointMultiBodyFixture, UpdateKinematicsCustom) {
-
-=======
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematicsCustom", "") {
->>>>>>> Moved all tests into Catch2 framework
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    unsigned int dof = reference_model.at(idx).dof_count;
+    int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]        = i * 9.133758561390194e-01;
       qdot.at(idx)[i]     = i * 6.323592462254095e-01;
@@ -597,31 +594,17 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematicsCustom"
                             &qdot.at(idx),
                             &qddot.at(idx));
 
-<<<<<<< HEAD
-    CHECK_ARRAY_CLOSE (
-      reference_model.at(idx).a[
-        reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)
-        ].data(),
-      custom_model.at(idx).a[
-        custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)
-        ].data(),
-      6,
-      TEST_PREC);
-  }
-
-
-=======
     REQUIRE_THAT (reference_model.at(idx).a[reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)],
       AllCloseVector(custom_model.at(idx).a[custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)], TEST_PREC, TEST_PREC)
     );
   }   
->>>>>>> Moved all tests into Catch2 framework
 }
 
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_Jacobians", "") {
 
   for(int idx = 0; idx < NUMBER_OF_MODELS; ++idx){
-    unsigned int dof = reference_model.at(idx).dof_count;
+    int dof = reference_model.at(idx).dof_count;
+
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]        = i * 9.133758561390194e-01;
       qdot.at(idx)[i]     = i * 6.323592462254095e-01;
@@ -656,18 +639,7 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_Jacobians", "") {
                               custom_body_id.at(idx).at(NUMBER_OF_BODIES-1),
                               Gcus);
 
-<<<<<<< HEAD
-    for(int i=0; i<6;++i){
-      for(unsigned int j = 0; j < dof; ++j){
-        CHECK_CLOSE (
-          Gref(i,j),
-          Gcus(i,j),
-          TEST_PREC);
-      }
-    }
-=======
     REQUIRE_THAT (Gref, AllCloseMatrix(Gcus, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
     //Check the 6d point Jacobian
     Vector3d point_position (1.1, 1.2, 2.1);
@@ -685,18 +657,7 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_Jacobians", "") {
                          point_position,
                          Gcus);
 
-<<<<<<< HEAD
-    for(int i=0; i<6;++i){
-      for(unsigned int j = 0; j < dof; ++j){
-        CHECK_CLOSE (
-          Gref(i,j),
-          Gcus(i,j),
-          TEST_PREC);
-      }
-    }
-=======
     REQUIRE_THAT (Gref, AllCloseMatrix(Gcus, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
     //Check the 3d point Jacobian
     MatrixNd GrefPt = MatrixNd::Constant (3,
@@ -718,24 +679,15 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_Jacobians", "") {
                        point_position,
                        GcusPt);
 
-<<<<<<< HEAD
-    for(int i=0; i<3;++i){
-      for(unsigned int j = 0; j < dof; ++j){
-        CHECK_CLOSE (
-          GrefPt(i,j),
-          GcusPt(i,j),
-          TEST_PREC);
-      }
-    }
-=======
     REQUIRE_THAT (GrefPt, AllCloseMatrix(GcusPt, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
   }
 }
 
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_InverseDynamics", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    unsigned int dof = reference_model.at(idx).dof_count;
+
+    int dof = reference_model.at(idx).dof_count;
+
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]        = i * 9.133758561390194e-01;
       qdot.at(idx)[i]     = i * 6.323592462254095e-01;
@@ -766,7 +718,9 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_InverseDynamics", "") {
 
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_CompositeRigidBodyAlgorithm", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    unsigned int dof = reference_model.at(idx).dof_count;
+
+    int dof = reference_model.at(idx).dof_count;
+
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]    = (i+0.1) * 9.133758561390194e-01;
       qdot.at(idx)[i] = (i+0.1) * 6.323592462254095e-01;
@@ -834,7 +788,9 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_CompositeRigidBodyAlgor
 
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_ForwardDynamics", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    unsigned int dof = reference_model.at(idx).dof_count;
+
+    int dof = reference_model.at(idx).dof_count;
+
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]       = (i+0.1) * 9.133758561390194e-01;
       qdot.at(idx)[i]    = (i+0.1) * 6.323592462254095e-01;
@@ -864,7 +820,9 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_ForwardDynamics", "") {
 
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_CalcMInvTimestau", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    unsigned int dof = reference_model.at(idx).dof_count;
+
+    int dof = reference_model.at(idx).dof_count;
+
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]    = (i+0.1) * 9.133758561390194e-01;
       tau.at(idx)[i]  = (i+0.1) * 9.754040499940952e-02;
@@ -894,7 +852,9 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_CalcMInvTimestau", "") 
 
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_ForwardDynamicsContactsKokkevis", ""){
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    unsigned int dof = reference_model.at(idx).dof_count;
+
+    int dof = reference_model.at(idx).dof_count;
+
     //Adding a 1 constraint to a system with 1 dof is
     //a no-no
     if(dof > 1){
@@ -918,13 +878,13 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_ForwardDynamicsContacts
 
 
       //Reference
-      constraint_set_ref.AddContactConstraint(
+      constraint_set_ref.AddContactConstraint(   
                           reference_body_id.at(idx).at(NUMBER_OF_BODIES-1),
                           contact_point,
                           Vector3d (1., 0., 0.),
                           "ground_x");
 
-      constraint_set_ref.AddContactConstraint(
+      constraint_set_ref.AddContactConstraint(   
                           reference_body_id.at(idx).at(NUMBER_OF_BODIES-1),
                           contact_point,
                           Vector3d (0., 1., 0.),
@@ -933,13 +893,13 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_ForwardDynamicsContacts
       constraint_set_ref.Bind (reference_model.at(idx));
 
       //Custom
-      constraint_set_cus.AddContactConstraint(
+      constraint_set_cus.AddContactConstraint(   
                           custom_body_id.at(idx).at(NUMBER_OF_BODIES-1),
                           contact_point,
                           Vector3d (1., 0., 0.),
                           "ground_x");
 
-      constraint_set_cus.AddContactConstraint(
+      constraint_set_cus.AddContactConstraint(   
                           custom_body_id.at(idx).at(NUMBER_OF_BODIES-1),
                           contact_point,
                           Vector3d (0., 1., 0.),

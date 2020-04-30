@@ -12,15 +12,16 @@ using namespace RigidBodyDynamics::Math;
 const double TEST_PREC = 1.0e-11;
 
 // Reduce an angle to the (-pi, pi] range.
-// static double inRange(double angle) {
-//   while(angle > M_PI) {
-//     angle -= 2. * M_PI;
-//   }
-//   while(angle <= -M_PI) {
-//     angle += 2. * M_PI;
-//   }
-//   return angle;
-// }
+static double inRange(double angle) {
+  while(angle > M_PI) {
+    angle -= 2. * M_PI;
+  }
+  while(angle <= -M_PI) {
+    angle += 2. * M_PI;
+  }
+  return angle;
+}
+
 
 TEST_CASE (__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest", "") {
   DoublePerpendicularPendulumAbsoluteCoordinates dba
@@ -80,9 +81,9 @@ TEST_CASE (__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest
   Vector3d r020 = CalcBodyToBaseCoordinates(
                     dbj.model,dbj.q,dbj.idB2,
                     Vector3d(0.,0.,0.),true);
-  // Vector3d r030 = CalcBodyToBaseCoordinates(
-  //                   dbj.model,dbj.q,dbj.idB2,
-  //                   Vector3d(dbj.l2,0.,0.),true);
+  Vector3d r030 = CalcBodyToBaseCoordinates(
+                    dbj.model,dbj.q,dbj.idB2,
+                    Vector3d(dbj.l2,0.,0.),true);
 
   SpatialVector v010 = CalcPointVelocity6D(
                         dbj.model,dbj.q,dbj.qd,dbj.idB1,
@@ -90,9 +91,9 @@ TEST_CASE (__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest
   SpatialVector v020 = CalcPointVelocity6D(
                         dbj.model,dbj.q,dbj.qd,dbj.idB2,
                         Vector3d(0.,0.,0.),true);
-  // SpatialVector v030 = CalcPointVelocity6D(
-  //                       dbj.model,dbj.q,dbj.qd,dbj.idB2,
-  //                       Vector3d(dbj.l2,0.,0.),true);
+  SpatialVector v030 = CalcPointVelocity6D(
+                        dbj.model,dbj.q,dbj.qd,dbj.idB2,
+                        Vector3d(dbj.l2,0.,0.),true);
 
   SpatialVector a010 = CalcPointAcceleration6D(
                         dbj.model,dbj.q,dbj.qd,dbj.qdd,
