@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 #include <iomanip>
@@ -38,7 +38,7 @@ Vector3d get_translation (const SpatialMatrix &m) {
 }
 
 /// \brief Checks the multiplication of a SpatialMatrix with a SpatialVector
-TEST(TestSpatialMatrixTimesSpatialVector) {
+TEST_CASE(__FILE__"_TestSpatialMatrixTimesSpatialVector", "") {
   SpatialMatrix s_matrix (
       1., 0., 0., 0., 0., 7.,
       0., 2., 0., 0., 8., 0.,
@@ -57,11 +57,12 @@ TEST(TestSpatialMatrixTimesSpatialVector) {
   SpatialVector test_result (
       43., 44., 45., 34., 35., 40.
       );
-  CHECK_EQUAL (test_result, result);
+  REQUIRE_THAT(test_result, AllCloseVector(result, 0., 0.));
 }
 
+
 /// \brief Checks the multiplication of a scalar with a SpatialVector
-TEST(TestScalarTimesSpatialVector) {
+TEST_CASE(__FILE__"_TestScalarTimesSpatialVector", "") {
   SpatialVector s_vector (
       1., 2., 3., 4., 5., 6.
       );
@@ -71,11 +72,12 @@ TEST(TestScalarTimesSpatialVector) {
 
   SpatialVector test_result(3., 6., 9., 12., 15., 18.);
 
-  CHECK_EQUAL (test_result, result);
+  REQUIRE_THAT (test_result, AllCloseVector(result, 0., 0.));
 }
 
+
 /// \brief Checks the multiplication of a scalar with a SpatialMatrix
-TEST(TestScalarTimesSpatialMatrix) {
+TEST_CASE(__FILE__"_TestScalarTimesSpatialMatrix", "") {
   SpatialMatrix s_matrix (
       1., 0., 0., 0., 0., 7.,
       0., 2., 0., 0., 8., 0.,
@@ -97,11 +99,12 @@ TEST(TestScalarTimesSpatialMatrix) {
       12., 0., 0., 0., 0., 18.
       );
 
-  CHECK_EQUAL (test_result, result);
+  REQUIRE_THAT (test_result, AllCloseMatrix(result, 0., 0.));
 }
 
+
 /// \brief Checks the multiplication of a scalar with a SpatialMatrix
-TEST(TestSpatialMatrixTimesSpatialMatrix) {
+TEST_CASE(__FILE__"_TestSpatialMatrixTimesSpatialMatrix", "") {
   SpatialMatrix s_matrix (
       1., 0., 0., 0., 0., 7.,
       0., 2., 0., 0., 8., 0.,
@@ -123,14 +126,14 @@ TEST(TestSpatialMatrixTimesSpatialMatrix) {
       28., 0., 0., 0., 0., 64.
       );
 
-  CHECK_EQUAL (test_result, result);
+  REQUIRE_THAT(test_result, AllCloseMatrix(result, 0., 0.));
 }
 
 /// \brief Checks the adjoint method
 //
 // This method computes a spatial force transformation from a spatial
 // motion transformation and vice versa
-TEST(TestSpatialMatrixTransformAdjoint) {
+TEST_CASE(__FILE__"_TestSpatialMatrixTransformAdjoint", "") {
   SpatialMatrix s_matrix (
       1.,  2.,  3.,  4.,  5.,  6.,
       7.,  8.,  9., 10., 11., 12.,
@@ -150,10 +153,10 @@ TEST(TestSpatialMatrixTransformAdjoint) {
       10., 11., 12., 28., 29., 30.,
       16., 17., 18., 34., 35., 36.);
 
-  CHECK_EQUAL (test_result_matrix, result);
+  REQUIRE_THAT (test_result_matrix, AllCloseMatrix(result, 0., 0.));
 }
 
-TEST(TestSpatialMatrixInverse) {
+TEST_CASE(__FILE__"_TestSpatialMatrixInverse", "") {
   SpatialMatrix s_matrix (
       0, 1, 2, 0, 1, 2,
       3, 4, 5, 3, 4, 5,
@@ -172,10 +175,10 @@ TEST(TestSpatialMatrixInverse) {
       2, 5, 8, 2, 5, 8
       );
 
-  CHECK_EQUAL (test_inv, spatial_inverse(s_matrix));
+  REQUIRE_THAT (test_inv, AllCloseMatrix(spatial_inverse(s_matrix), 0., 0.));
 }
 
-TEST(TestSpatialMatrixGetRotation) {
+TEST_CASE(__FILE__"_TestSpatialMatrixGetRotation", "") {
   SpatialMatrix spatial_transform (
       1.,  2.,  3.,  0.,  0.,  0.,
       4.,  5.,  6.,  0.,  0.,  0.,
@@ -193,10 +196,10 @@ TEST(TestSpatialMatrixGetRotation) {
       7., 8., 9.
       );
 
-  CHECK_EQUAL(test_result, rotation);
+  REQUIRE_THAT (test_result, AllCloseMatrix(rotation, 0., 0.));
 }
 
-TEST(TestSpatialMatrixGetTranslation) {
+TEST_CASE(__FILE__"_TestSpatialMatrixGetTranslation", "") {
   SpatialMatrix spatial_transform (
       0.,  0.,  0.,  0.,  0.,  0.,
       0.,  0.,  0.,  0.,  0.,  0.,
@@ -211,10 +214,10 @@ TEST(TestSpatialMatrixGetTranslation) {
       1., 2., 3.
       );
 
-  CHECK_EQUAL( test_result, translation);
+  REQUIRE_THAT (test_result, AllCloseMatrix(translation, 0., 0.));
 }
 
-TEST(TestSpatialVectorCross) {
+TEST_CASE(__FILE__"_TestSpatialVectorCross", "") {
   SpatialVector s_vec (1., 2., 3., 4., 5., 6.);
 
   SpatialMatrix test_cross (
@@ -227,15 +230,15 @@ TEST(TestSpatialVectorCross) {
       );
 
   SpatialMatrix s_vec_cross (crossm(s_vec));
-  CHECK_EQUAL (test_cross, s_vec_cross);
+  REQUIRE_THAT (test_cross, AllCloseMatrix(s_vec_cross, 0., 0.));
 
   SpatialMatrix s_vec_crossf (crossf(s_vec));
   SpatialMatrix test_crossf = -1. * crossm(s_vec).transpose();
 
-  CHECK_EQUAL (test_crossf, s_vec_crossf);
+  REQUIRE_THAT (test_crossf, AllCloseMatrix(s_vec_crossf, 0., 0.));
 }
 
-TEST(TestSpatialVectorCrossmCrossf) {
+TEST_CASE(__FILE__"_TestSpatialVectorCrossmCrossf", "") {
   SpatialVector s_vec (1., 2., 3., 4., 5., 6.);
   SpatialVector t_vec (9., 8., 7., 6., 5., 4.);
 
@@ -255,11 +258,10 @@ TEST(TestSpatialVectorCrossmCrossf) {
      cout << crossf_s_t << endl;
      */
 
-  CHECK_EQUAL (crossm_s_x_t, crossm_s_t);
-  CHECK_EQUAL (crossf_s_x_t, crossf_s_t);
+  REQUIRE_THAT (crossm_s_x_t, AllCloseVector(crossm_s_t, 0., 0.));
 }
 
-TEST(TestSpatialTransformApply) {
+TEST_CASE(__FILE__"_TestSpatialTransformApply", "") {
   Vector3d rot (1.1, 1.2, 1.3);
   Vector3d trans (1.1, 1.2, 1.3);
 
@@ -280,10 +282,10 @@ TEST(TestSpatialTransformApply) {
 
   // cout << (v_66_res - v_st_res).transpose() << endl;
 
-  CHECK_ARRAY_CLOSE (v_66_res.data(), v_st_res.data(), 6, TEST_PREC);
+  REQUIRE_THAT (v_66_res, AllCloseVector(v_st_res, TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformApplyTranspose) {
+TEST_CASE(__FILE__"_TestSpatialTransformApplyTranspose", "") {
   Vector3d rot (1.1, 1.2, 1.3);
   Vector3d trans (1.1, 1.2, 1.3);
 
@@ -304,10 +306,10 @@ TEST(TestSpatialTransformApplyTranspose) {
 
   // cout << (v_66_res - v_st_res).transpose() << endl;
 
-  CHECK_ARRAY_CLOSE (v_66_res.data(), v_st_res.data(), 6, TEST_PREC);
+  REQUIRE_THAT (v_66_res, AllCloseVector(v_st_res, TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformApplyAdjoint) {
+TEST_CASE(__FILE__"_TestSpatialTransformApplyAdjoint", "") {
   SpatialTransform X (
       Xrotz (0.5) *
       Xroty (0.9) *
@@ -321,10 +323,10 @@ TEST(TestSpatialTransformApplyAdjoint) {
   SpatialVector f_apply = X.applyAdjoint(f);
   SpatialVector f_matrix = X_adjoint * f;
 
-  CHECK_ARRAY_CLOSE (f_matrix.data(), f_apply.data(), 6, TEST_PREC);
+  REQUIRE_THAT (f_matrix, AllCloseVector(f_apply, TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformToMatrix) {
+TEST_CASE(__FILE__"_TestSpatialTransformToMatrix", "") {
   Vector3d rot (1.1, 1.2, 1.3);
   Vector3d trans (1.1, 1.2, 1.3);
 
@@ -338,10 +340,10 @@ TEST(TestSpatialTransformToMatrix) {
   //	SpatialMatrix X_diff = X_st.toMatrix() - X_matrix;
   //	cout << "Error: " << endl << X_diff << endl;
 
-  CHECK_ARRAY_CLOSE (X_matrix.data(), X_st.toMatrix().data(), 36, TEST_PREC);
+  REQUIRE_THAT (X_matrix, AllCloseMatrix(X_st.toMatrix(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformToMatrixAdjoint) {
+TEST_CASE(__FILE__"_TestSpatialTransformToMatrixAdjoint", "") {
   Vector3d rot (1.1, 1.2, 1.3);
   Vector3d trans (1.1, 1.2, 1.3);
 
@@ -355,10 +357,10 @@ TEST(TestSpatialTransformToMatrixAdjoint) {
   //	SpatialMatrix X_diff = X_st.toMatrixAdjoint() - spatial_adjoint(X_matrix);
   //	cout << "Error: " << endl << X_diff << endl;
 
-  CHECK_ARRAY_CLOSE (spatial_adjoint(X_matrix).data(), X_st.toMatrixAdjoint().data(), 36, TEST_PREC);
+  REQUIRE_THAT (spatial_adjoint(X_matrix), AllCloseMatrix(X_st.toMatrixAdjoint(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformToMatrixTranspose) {
+TEST_CASE(__FILE__"_TestSpatialTransformToMatrixTranspose", "") {
   Vector3d rot (1.1, 1.2, 1.3);
   Vector3d trans (1.1, 1.2, 1.3);
 
@@ -377,10 +379,10 @@ TEST(TestSpatialTransformToMatrixTranspose) {
   //	cout << "X_st: " << endl << X_st.toMatrixTranspose() << endl;
   //	cout << "X: " << endl << X_matrix_transposed() << endl;
 
-  CHECK_ARRAY_CLOSE (X_matrix_transposed.data(), X_st.toMatrixTranspose().data(), 36, TEST_PREC);
+  REQUIRE_THAT (X_matrix_transposed, AllCloseMatrix(X_st.toMatrixTranspose(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformMultiply) {
+TEST_CASE(__FILE__"_TestSpatialTransformMultiply", "") {
   Vector3d rot (1.1, 1.2, 1.3);
   Vector3d trans (1.1, 1.2, 1.3);
 
@@ -404,10 +406,10 @@ TEST(TestSpatialTransformMultiply) {
   //	SpatialMatrix X_diff = X_st_res.toMatrix() - X_matrix_res;
   //	cout << "Error: " << endl << X_diff << endl;
 
-  CHECK_ARRAY_CLOSE (X_matrix_res.data(), X_st_res.toMatrix().data(), 36, TEST_PREC);
+  REQUIRE_THAT (X_matrix_res, AllCloseMatrix(X_st_res.toMatrix(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformMultiplyEqual) {
+TEST_CASE(__FILE__"_TestSpatialTransformMultiplyEqual", "") {
   Vector3d rot (1.1, 1.2, 1.3);
   Vector3d trans (1.1, 1.2, 1.3);
 
@@ -432,33 +434,33 @@ TEST(TestSpatialTransformMultiplyEqual) {
   //	SpatialMatrix X_diff = X_st_res.toMatrix() - X_matrix_res;
   //	cout << "Error: " << endl << X_diff << endl;
 
-  CHECK_ARRAY_CLOSE (X_matrix_res.data(), X_st_res.toMatrix().data(), 36, TEST_PREC);
+  REQUIRE_THAT (X_matrix_res, AllCloseMatrix(X_st_res.toMatrix(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestXrotAxis) {
+TEST_CASE(__FILE__"_TestXrotAxis", "") {
   SpatialTransform X_rotX = Xrotx (M_PI * 0.15);
   SpatialTransform X_rotX_axis = Xrot (M_PI * 0.15, Vector3d (1., 0., 0.));
 
-  CHECK_ARRAY_CLOSE (X_rotX.toMatrix().data(), X_rotX_axis.toMatrix().data(), 36, TEST_PREC);
+  REQUIRE_THAT (X_rotX.toMatrix(), AllCloseMatrix(X_rotX_axis.toMatrix(), TEST_PREC, TEST_PREC));
 
   // all the other axes
   SpatialTransform X_rotX_90 = Xrotx (M_PI * 0.5);
   SpatialTransform X_rotX_90_axis = Xrot (M_PI * 0.5, Vector3d (1., 0., 0.));
 
-  CHECK_ARRAY_CLOSE (X_rotX_90.toMatrix().data(), X_rotX_90_axis.toMatrix().data(), 36, TEST_PREC);
+  REQUIRE_THAT (X_rotX_90.toMatrix(), AllCloseMatrix(X_rotX_90_axis.toMatrix(), TEST_PREC, TEST_PREC));
 
   SpatialTransform X_rotY_90 = Xroty (M_PI * 0.5);
   SpatialTransform X_rotY_90_axis = Xrot (M_PI * 0.5, Vector3d (0., 1., 0.));
 
-  CHECK_ARRAY_CLOSE (X_rotY_90.toMatrix().data(), X_rotY_90_axis.toMatrix().data(), 36, TEST_PREC);
+  REQUIRE_THAT (X_rotY_90.toMatrix(), AllCloseMatrix(X_rotY_90_axis.toMatrix(), TEST_PREC, TEST_PREC));
 
   SpatialTransform X_rotZ_90 = Xrotz (M_PI * 0.5);
   SpatialTransform X_rotZ_90_axis = Xrot (M_PI * 0.5, Vector3d (0., 0., 1.));
 
-  CHECK_ARRAY_CLOSE (X_rotZ_90.toMatrix().data(), X_rotZ_90_axis.toMatrix().data(), 36, TEST_PREC);
+  REQUIRE_THAT (X_rotZ_90.toMatrix(), AllCloseMatrix(X_rotZ_90_axis.toMatrix(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformApplySpatialRigidBodyInertiaAdd) {
+TEST_CASE(__FILE__"_TestSpatialTransformApplySpatialRigidBodyInertiaAdd", "") {
   SpatialRigidBodyInertia rbi (
       1.1,
       Vector3d (1.2, 1.3, 1.4),
@@ -477,15 +479,11 @@ TEST(TestSpatialTransformApplySpatialRigidBodyInertiaAdd) {
   // cout << "diff = " << endl << 
   //  	rbi_added.toMatrix() - rbi_matrix_added << endl;
 
-  CHECK_ARRAY_CLOSE (
-      rbi_matrix_added.data(),
-      rbi_added.toMatrix().data(),
-      36,
-      TEST_PREC
-      );
+
+  REQUIRE_THAT (rbi_matrix_added, AllCloseMatrix(rbi_added.toMatrix(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformApplySpatialRigidBodyInertiaFull) {
+TEST_CASE(__FILE__"_TestSpatialTransformApplySpatialRigidBodyInertiaFull", "") {
   SpatialRigidBodyInertia rbi (
       1.1,
       Vector3d (1.2, 1.3, 1.4),
@@ -505,15 +503,10 @@ TEST(TestSpatialTransformApplySpatialRigidBodyInertiaFull) {
   SpatialRigidBodyInertia rbi_transformed = X.apply (rbi);
   SpatialMatrix rbi_matrix_transformed = X.toMatrixAdjoint () * rbi.toMatrix() * X.inverse().toMatrix();
 
-  CHECK_ARRAY_CLOSE (
-      rbi_matrix_transformed.data(),
-      rbi_transformed.toMatrix().data(),
-      36,
-      TEST_PREC
-      );
+  REQUIRE_THAT (rbi_matrix_transformed, AllCloseMatrix(rbi_transformed.toMatrix(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialTransformApplyTransposeSpatialRigidBodyInertiaFull) {
+TEST_CASE(__FILE__"_TestSpatialTransformApplyTransposeSpatialRigidBodyInertiaFull", "") {
   SpatialRigidBodyInertia rbi (
       1.1,
       Vector3d (1.2, 1.3, 1.4),
@@ -533,15 +526,10 @@ TEST(TestSpatialTransformApplyTransposeSpatialRigidBodyInertiaFull) {
   SpatialRigidBodyInertia rbi_transformed = X.applyTranspose (rbi);
   SpatialMatrix rbi_matrix_transformed = X.toMatrixTranspose() * rbi.toMatrix() * X.toMatrix();
 
-  CHECK_ARRAY_CLOSE (
-      rbi_matrix_transformed.data(),
-      rbi_transformed.toMatrix().data(),
-      36,
-      TEST_PREC
-      );
+  REQUIRE_THAT (rbi_matrix_transformed, AllCloseMatrix(rbi_transformed.toMatrix(), TEST_PREC, TEST_PREC));
 }
 
-TEST(TestSpatialRigidBodyInertiaCreateFromMatrix) {
+TEST_CASE(__FILE__"_TestSpatialRigidBodyInertiaCreateFromMatrix", "") {
   double mass = 1.1;
   Vector3d com (0., 0., 0.);
   Matrix3d inertia (
@@ -556,18 +544,18 @@ TEST(TestSpatialRigidBodyInertiaCreateFromMatrix) {
   SpatialRigidBodyInertia rbi;
   rbi.createFromMatrix (spatial_inertia);
 
-  CHECK_EQUAL (mass, rbi.m);
-  CHECK_ARRAY_EQUAL (Vector3d(mass * com).data(), rbi.h.data(), 3);
+  REQUIRE_THAT (mass, IsClose(rbi.m, 0., 0.));
+  REQUIRE_THAT (Vector3d(mass * com), AllCloseVector(rbi.h, 0., 0.));
   Matrix3d rbi_I_matrix (
       rbi.Ixx, rbi.Iyx, rbi.Izx,
       rbi.Iyx, rbi.Iyy, rbi.Izy,
       rbi.Izx, rbi.Izy, rbi.Izz
       );
-  CHECK_ARRAY_EQUAL (inertia.data(), rbi_I_matrix.data(), 9);
+  REQUIRE_THAT (inertia, AllCloseMatrix(rbi_I_matrix, 0., 0.));
 }
 
 #ifdef USE_SLOW_SPATIAL_ALGEBRA
-TEST(TestSpatialLinSolve) {
+TEST_CASE(__FILE__"_TestSpatialLinSolve", "") {
   SpatialVector b (1, 2, 0, 1, 1, 1);
   SpatialMatrix A (
       1., 2., 3., 0., 0., 0.,
@@ -581,6 +569,6 @@ TEST(TestSpatialLinSolve) {
   SpatialVector x = SpatialLinSolve (A, b);
   SpatialVector x_test (3.5, -6.5, 3.5, 1, 1, 1);
 
-  CHECK_ARRAY_CLOSE (x_test.data(), x.data(), 6, TEST_PREC);
+  REQUIRE_THAT (x_test, AllCloseVector(x, TEST_PREC, TEST_PREC));
 }
 #endif

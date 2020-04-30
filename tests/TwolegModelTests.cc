@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 
@@ -181,7 +181,7 @@ Vector3d heel_point (0., 0., 0.);
 Vector3d medial_point (0., 0., 0.);
 
 void init_model (Model* model) {
-  assert (model);
+  REQUIRE (model);
   
   constraint_set_right = ConstraintSet();
   constraint_set_left = ConstraintSet();
@@ -272,7 +272,7 @@ void copy_values (T *dest, const T *src, size_t count) {
   memcpy (dest, src, count * sizeof (T));
 }
 
-TEST ( TestForwardDynamicsConstraintsDirectFootmodel ) {
+TEST_CASE (__FILE__"_TestForwardDynamicsConstraintsDirectFootmodel", "" ) {
   Model* model = new Model;
 
   init_model(model);
@@ -335,8 +335,8 @@ TEST ( TestForwardDynamicsConstraintsDirectFootmodel ) {
   contact_force[0] = constraint_set_left.force[0];
   contact_force[1] = constraint_set_left.force[1];
 
-  CHECK_EQUAL (body_id, foot_left_id);
-  CHECK_EQUAL (contact_point, heel_point);
+  REQUIRE (body_id == foot_left_id);
+  REQUIRE (contact_point == heel_point);
 
   //	cout << LogOutput.str() << endl;
   contact_accel_left = CalcPointAcceleration (*model, Q, QDot, QDDot, foot_left_id, heel_point);
@@ -344,12 +344,12 @@ TEST ( TestForwardDynamicsConstraintsDirectFootmodel ) {
   //	cout << contact_force << endl;
   //	cout << contact_accel_left << endl;
 
-  CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), contact_accel_left.data(), 3, TEST_PREC);
+  REQUIRE_THAT (Vector3d (0., 0., 0.), AllCloseVector(contact_accel_left, TEST_PREC, TEST_PREC));
 
   delete model;
 }
 
-TEST ( TestClearContactsInertiaMatrix ) {
+TEST_CASE (__FILE__"_TestClearContactsInertiaMatrix", "") {
   Model* model = new Model;
 
   init_model(model);
@@ -398,7 +398,7 @@ TEST ( TestClearContactsInertiaMatrix ) {
   ForwardDynamicsConstraintsDirect (*model, Q, QDot, Tau, constraint_set_right, QDDot_lag);
   ForwardDynamicsContactsKokkevis (*model, Q, QDot, Tau, constraint_set_right, QDDot_aba);
 
-  CHECK_ARRAY_CLOSE (QDDot_lag.data(), QDDot_aba.data(), QDDot.size(), TEST_PREC * QDDot_lag.norm());
+  REQUIRE_THAT (QDDot_lag, AllCloseVector(QDDot_aba, TEST_PREC * QDDot_lag.norm(), TEST_PREC * QDDot_lag.norm()));
 
   delete model;
 }
