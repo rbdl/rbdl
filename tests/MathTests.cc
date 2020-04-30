@@ -15,7 +15,7 @@ using namespace Catch::Matchers::Floating;
 struct MathFixture {
 };
 
-TEST_CASE("CatchVectorApprox", "Math") {
+TEST_CASE(__FILE__"_CatchVectorApprox", "") {
   // Checks that:
   // - element wise relative error checks
   // - l2/frobenius norm error checks
@@ -25,30 +25,24 @@ TEST_CASE("CatchVectorApprox", "Math") {
   VectorNd value = reference;
 
   value[2] = reference[2] + 1.0e-13;
-  REQUIRE_THAT(value[2], !WithinRelMatcher(reference[2], 1.0e-14));
-  REQUIRE_THAT (value, !IsWithinRelElem(reference, 1.0e-14));
-  REQUIRE_THAT (value, !IsErrNormWithinRel(reference, 1.0e-16));
+  REQUIRE_THAT(value[2], IsClose(reference[2]));
+  REQUIRE_THAT (value, AllCloseVector(reference));
 
   value[2] = reference[2] + 1.0e-14;
-  REQUIRE_THAT(value[2], WithinRelMatcher(reference[2], 1.0e-14));
-  REQUIRE_THAT (value, IsWithinRelElem(reference, 1.0e-14));
-  REQUIRE_THAT (value, IsErrNormWithinRel(reference, 1.0e-14));
 
   value = VectorNd::Constant(10, 1.0e14);
   reference = value;
 
   value[2] = 1.0e14 + 1.0;
-  REQUIRE_THAT(value[2], WithinRelMatcher(reference[2], 1.0e-14));
-  REQUIRE_THAT (value, IsWithinRelElem(reference, 1.0e-14));
-  REQUIRE_THAT (value, IsErrNormWithinRel(reference, 1.0e-14));
+  REQUIRE_THAT(value[2], IsClose(reference[2]));
+  REQUIRE_THAT (value, AllCloseVector(reference));
 
   value[2] = 1.0e14 + 10.0;
-  REQUIRE_THAT(value[2], !WithinRelMatcher(reference[2], 1.0e-14));
-  REQUIRE_THAT (value, !IsWithinRelElem(reference, 1.0e-14));
-  REQUIRE_THAT (value, !IsErrNormWithinRel(reference, 1.0e-14));
+  REQUIRE_THAT(value[2], IsClose(reference[2]));
+  REQUIRE_THAT (value, AllCloseVector(reference));
 }
 
-TEST_CASE("GaussElimPivot", "Math") {
+TEST_CASE(__FILE__"_GaussElimPivot", "") {
   ClearLogOutput();
 
   MatrixNd A;
@@ -72,7 +66,7 @@ TEST_CASE("GaussElimPivot", "Math") {
 
   LinSolveGaussElimPivot (A, b, x);
 
-  REQUIRE_THAT (test_result, IsApprox(x).epsilon(TEST_PREC));
+  REQUIRE_THAT (test_result, AllCloseVector(x));
 
   A(0,0) = 0; A(0,1) = -2; A(0,2) = 1;
   A(1,0) = 1; A(1,1) =  1; A(1,2) = 5;
@@ -87,7 +81,7 @@ TEST_CASE("GaussElimPivot", "Math") {
 
   cout << x.transpose() << endl;
 
-  REQUIRE_THAT (test_result, IsApprox(x).epsilon(TEST_PREC));
+  REQUIRE_THAT (test_result, AllCloseVector(x));
 }
 
 /*

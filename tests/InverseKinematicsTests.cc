@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 
@@ -34,7 +34,7 @@ void print_ik_set (const InverseKinematicsConstraintSet &cs) {
 }
 
 /// Checks whether a single point in a 3-link chain can be reached
-TEST_FIXTURE ( Human36, ChainSinglePointConstraint ) {
+TEST_CASE_METHOD (Human36, __FILE__"_ChainSinglePointConstraint", "") {
   q[HipRightRY] = 0.3;
   q[HipRightRX] = 0.3;
   q[HipRightRZ] = 0.3;
@@ -59,14 +59,13 @@ TEST_FIXTURE ( Human36, ChainSinglePointConstraint ) {
     print_ik_set (cs);
   }
 
-  CHECK (result);
+  REQUIRE (result);
 
-  CHECK_CLOSE (0., cs.error_norm, TEST_PREC);
+  REQUIRE_THAT (0., IsClose(cs.error_norm, TEST_PREC, TEST_PREC));
 }
 
 
-TEST_FIXTURE ( Human36, ManyPointConstraints ) {
-
+TEST_CASE_METHOD (Human36, __FILE__"_ManyPointConstraints", "") {
   randomizeStates();
 
   Vector3d local_point1 (1., 0., 0.);
@@ -95,9 +94,9 @@ TEST_FIXTURE ( Human36, ManyPointConstraints ) {
 
   bool result = InverseKinematics (*model, q, cs, qres);
 
-  CHECK (result);
+  REQUIRE (result);
 
-  CHECK_CLOSE (0., cs.error_norm, TEST_PREC);
+  REQUIRE_THAT (0., IsClose(cs.error_norm, TEST_PREC, TEST_PREC));
 
   UpdateKinematicsCustom (*model, &qres, NULL, NULL);  
   Vector3d result_position1 = CalcBodyToBaseCoordinates (*model, qres, body_id_emulated[BodyFootRight], local_point1);
@@ -106,16 +105,16 @@ TEST_FIXTURE ( Human36, ManyPointConstraints ) {
   Vector3d result_position4 = CalcBodyToBaseCoordinates (*model, qres, body_id_emulated[BodyHandLeft], local_point4);
   Vector3d result_position5 = CalcBodyToBaseCoordinates (*model, qres, body_id_emulated[BodyHead], local_point5);
 
-  CHECK_ARRAY_CLOSE (target_position1.data(), result_position1.data(), 3, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_position2.data(), result_position2.data(), 3, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_position3.data(), result_position3.data(), 3, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_position4.data(), result_position4.data(), 3, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_position5.data(), result_position5.data(), 3, TEST_PREC); 
+  REQUIRE_THAT (target_position1, AllCloseVector(result_position1, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_position2, AllCloseVector(result_position2, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_position3, AllCloseVector(result_position3, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_position4, AllCloseVector(result_position4, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_position5, AllCloseVector(result_position5, TEST_PREC, TEST_PREC)); 
 }
 
 /// Checks whether the end of a 3-link chain can aligned with a given
 // orientation.
-TEST_FIXTURE ( Human36, ChainSingleBodyOrientation ) {
+TEST_CASE_METHOD (Human36, __FILE__"_ChainSingleBodyOrientation", "") {
   q[HipRightRY] = 0.3;
   q[HipRightRX] = 0.3;
   q[HipRightRZ] = 0.3;
@@ -134,11 +133,10 @@ TEST_FIXTURE ( Human36, ChainSingleBodyOrientation ) {
 
   bool result = InverseKinematics (*model, q, cs, qres);
 
-  CHECK (result);
+  REQUIRE (result);
 }
 
-TEST_FIXTURE ( Human36, ManyBodyOrientations ) {
-
+TEST_CASE_METHOD (Human36, __FILE__"_ManyBodyOrientations", "") {
   randomizeStates();
 
   UpdateKinematicsCustom (*model, &q, NULL, NULL);
@@ -161,9 +159,9 @@ TEST_FIXTURE ( Human36, ManyBodyOrientations ) {
 
   bool result = InverseKinematics (*model, q, cs, qres);
 
-  CHECK (result);
+  REQUIRE (result);
 
-  CHECK_CLOSE (0., cs.error_norm, TEST_PREC);
+  REQUIRE_THAT (0., IsClose(cs.error_norm, TEST_PREC, TEST_PREC));
 
   UpdateKinematicsCustom (*model, &qres, NULL, NULL);  
   Matrix3d result_orientation1 = CalcBodyWorldOrientation (*model, qres, body_id_emulated[BodyFootRight], false);
@@ -172,14 +170,14 @@ TEST_FIXTURE ( Human36, ManyBodyOrientations ) {
   Matrix3d result_orientation4 = CalcBodyWorldOrientation (*model, qres, body_id_emulated[BodyHandLeft], false);
   Matrix3d result_orientation5 = CalcBodyWorldOrientation (*model, qres, body_id_emulated[BodyHead], false);
 
-  CHECK_ARRAY_CLOSE (target_orientation1.data(), result_orientation1.data(), 9, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_orientation2.data(), result_orientation2.data(), 9, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_orientation3.data(), result_orientation3.data(), 9, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_orientation4.data(), result_orientation4.data(), 9, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_orientation5.data(), result_orientation5.data(), 9, TEST_PREC); 
+  REQUIRE_THAT (target_orientation1, AllCloseMatrix(result_orientation1, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_orientation2, AllCloseMatrix(result_orientation2, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_orientation3, AllCloseMatrix(result_orientation3, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_orientation4, AllCloseMatrix(result_orientation4, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_orientation5, AllCloseMatrix(result_orientation5, TEST_PREC, TEST_PREC)); 
 }
 
-TEST_FIXTURE ( Human36, ChainSingleBodyFullConstraint ) {
+TEST_CASE_METHOD (Human36, __FILE__"_ChainSingleBodyFullConstraint", "") {
   q[HipRightRY] = 0.3;
   q[HipRightRX] = 0.3;
   q[HipRightRZ] = 0.3;
@@ -200,11 +198,10 @@ TEST_FIXTURE ( Human36, ChainSingleBodyFullConstraint ) {
 
   bool result = InverseKinematics (*model, q, cs, qres);
 
-  CHECK (result);
+  REQUIRE (result);
 }
 
-TEST_FIXTURE ( Human36, ManyBodyFullConstraints ) {
-
+TEST_CASE_METHOD ( Human36, __FILE__"_ManyBodyFullConstraints", "") {
   randomizeStates();
 
   Vector3d local_point1 (1., 0., 0.);
@@ -241,9 +238,9 @@ TEST_FIXTURE ( Human36, ManyBodyFullConstraints ) {
 
   bool result = InverseKinematics (*model, q, cs, qres);
 
-  CHECK (result);
+  REQUIRE (result);
 
-  CHECK_CLOSE (0., cs.error_norm, cs.step_tol);
+  REQUIRE_THAT (0., IsClose(cs.error_norm, cs.step_tol, cs.step_tol));
 
   UpdateKinematicsCustom (*model, &qres, NULL, NULL);  
   Matrix3d result_orientation1 = CalcBodyWorldOrientation (*model, qres, body_id_emulated[BodyFootRight], false);
@@ -258,15 +255,14 @@ TEST_FIXTURE ( Human36, ManyBodyFullConstraints ) {
   Vector3d result_position4 = CalcBodyToBaseCoordinates (*model, qres, body_id_emulated[BodyHandLeft], local_point4);
   Vector3d result_position5 = CalcBodyToBaseCoordinates (*model, qres, body_id_emulated[BodyHead], local_point5);
 
-  CHECK_ARRAY_CLOSE (target_position1.data(), result_position1.data(), 3, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_position2.data(), result_position2.data(), 3, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_position3.data(), result_position3.data(), 3, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_position4.data(), result_position4.data(), 3, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_position5.data(), result_position5.data(), 3, TEST_PREC);
-
-  CHECK_ARRAY_CLOSE (target_orientation1.data(), result_orientation1.data(), 9, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_orientation2.data(), result_orientation2.data(), 9, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_orientation3.data(), result_orientation3.data(), 9, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_orientation4.data(), result_orientation4.data(), 9, TEST_PREC); 
-  CHECK_ARRAY_CLOSE (target_orientation5.data(), result_orientation5.data(), 9, TEST_PREC); 
+  REQUIRE_THAT (target_position1, AllCloseVector(result_position1, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_position2, AllCloseVector(result_position2, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_position3, AllCloseVector(result_position3, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_position4, AllCloseVector(result_position4, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_position5, AllCloseVector(result_position5, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (target_orientation1, AllCloseMatrix(result_orientation1, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_orientation2, AllCloseMatrix(result_orientation2, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_orientation3, AllCloseMatrix(result_orientation3, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_orientation4, AllCloseMatrix(result_orientation4, TEST_PREC, TEST_PREC)); 
+  REQUIRE_THAT (target_orientation5, AllCloseMatrix(result_orientation5, TEST_PREC, TEST_PREC)); 
 }

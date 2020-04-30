@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 #include "rbdl/rbdl.h"
 #include <cassert>
 
@@ -22,8 +22,7 @@ const double TEST_PREC = 1.0e-11;
 //   return angle;
 // }
 
-
-TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
+TEST_CASE (__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest", "") {
   DoublePerpendicularPendulumAbsoluteCoordinates dba
     = DoublePerpendicularPendulumAbsoluteCoordinates();
   DoublePerpendicularPendulumJointCoordinates dbj
@@ -162,12 +161,12 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
 
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
-  for(unsigned int i=0; i<err.rows();++i){
-    CHECK_CLOSE(0,err[i],TEST_PREC);
-  }
-  for(unsigned int i=0; i<errd.rows();++i){
-    CHECK_CLOSE(0,errd[i],TEST_PREC);
-  }
+
+  VectorNd target1 = VectorNd::Zero(err.rows());
+  REQUIRE_THAT (target1, AllCloseVector(err, TEST_PREC, TEST_PREC));
+
+  VectorNd target2 = VectorNd::Zero(errd.rows());
+  REQUIRE_THAT (target2, AllCloseVector(errd, TEST_PREC, TEST_PREC));
 
   //Evaluate the accelerations of the constrained pendulum and
   //compare those to the joint-coordinate pendulum
@@ -187,11 +186,9 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
       CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
-  for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
-  }
+  REQUIRE_THAT (a010, AllCloseVector(a010c, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (a020, AllCloseVector(a020c, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (a030, AllCloseVector(a030c, TEST_PREC, TEST_PREC));
 
   ForwardDynamicsConstraintsNullSpace(
         dba.model,dba.q,dba.qd,
@@ -204,12 +201,9 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
   a030c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
-  for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
-  }
-
+  REQUIRE_THAT (a010, AllCloseVector(a010c, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (a020, AllCloseVector(a020c, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (a030, AllCloseVector(a030c, TEST_PREC, TEST_PREC));
 
   ForwardDynamicsConstraintsRangeSpaceSparse(
         dba.model,dba.q,dba.qd,
@@ -221,11 +215,7 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
   a030c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
-  for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
-  }
-
-
+  REQUIRE_THAT (a010, AllCloseVector(a010c, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (a020, AllCloseVector(a020c, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (a030, AllCloseVector(a030c, TEST_PREC, TEST_PREC));
 }

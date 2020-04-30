@@ -73,7 +73,7 @@ struct CustomEulerZYXJoint : public CustomJoint {
     const Math::VectorNd &q
     ) {
     // TODO
-    assert (false && "Not yet implemented!");
+    REQUIRE (false && "Not yet implemented!");
   }
 };
 

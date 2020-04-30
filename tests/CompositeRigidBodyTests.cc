@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 
@@ -26,7 +26,7 @@ struct CompositeRigidBodyFixture {
   Model *model;
 };
 
-TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsFloatingBase) {
+TEST_CASE_METHOD (CompositeRigidBodyFixture, __FILE__"_TestCompositeRigidBodyForwardDynamicsFloatingBase", "") {
   Body base_body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
   model->AddBody (0, SpatialTransform(), 
@@ -81,12 +81,12 @@ TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsFlo
 
   InverseDynamics (*model, Q, QDot, QDDot_zero, C);
 
-  CHECK (LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot_crba));
+  REQUIRE (LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot_crba));
 
-  CHECK_ARRAY_CLOSE (QDDot.data(), QDDot_crba.data(), QDDot.size(), TEST_PREC);
+  REQUIRE_THAT (QDDot, AllCloseVector(QDDot_crba, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoF) {
+TEST_CASE_METHOD (FloatingBase12DoF, __FILE__"_TestCRBAFloatingBase12DoF", "") {
   MatrixNd H = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
 
   VectorNd C = VectorNd::Constant ((size_t) model->dof_count, 0.);
@@ -139,12 +139,12 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoF) {
   // cout << LogOutput.str() << endl;
   InverseDynamics (*model, Q, QDot, QDDot_zero, C);
 
-  CHECK (LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot_crba));
+  REQUIRE (LinSolveGaussElimPivot (H, C * -1. + Tau, QDDot_crba));
 
-  CHECK_ARRAY_CLOSE (QDDot.data(), QDDot_crba.data(), QDDot.size(), TEST_PREC);
+  REQUIRE_THAT (QDDot, AllCloseVector(QDDot_crba, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
+TEST_CASE_METHOD (FloatingBase12DoF, __FILE__"_TestCRBAFloatingBase12DoFInverseDynamics", "") {
   MatrixNd H_crba = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
   MatrixNd H_id = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
 
@@ -163,7 +163,7 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 
   QDot.setZero();
 
-  assert (model->dof_count == 12);
+  REQUIRE (model->dof_count == 12);
 
   UpdateKinematicsCustom (*model, &Q, NULL, NULL);
   CompositeRigidBodyAlgorithm (*model, Q, H_crba, false);
@@ -194,10 +194,10 @@ TEST_FIXTURE(FloatingBase12DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
   //	cout << "H (crba) = " << endl << H_crba << endl;
   //	cout << "H (id) = " << endl << H_id << endl;
 
-  CHECK_ARRAY_CLOSE (H_crba.data(), H_id.data(), model->dof_count * model->dof_count, TEST_PREC);
+  REQUIRE_THAT (H_crba, AllCloseMatrix(H_id, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FixedBase6DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
+TEST_CASE_METHOD (FixedBase6DoF, __FILE__"_TestCRBAFloatingBase6DoFInverseDynamics", "") {
   MatrixNd H_crba = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
   MatrixNd H_id = MatrixNd::Zero ((size_t) model->dof_count, (size_t) model->dof_count);
 
@@ -210,7 +210,7 @@ TEST_FIXTURE(FixedBase6DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
 
   QDot.setZero();
 
-  assert (model->dof_count == 6);
+  REQUIRE (model->dof_count == 6);
 
   UpdateKinematicsCustom (*model, &Q, NULL, NULL);
   CompositeRigidBodyAlgorithm (*model, Q, H_crba, false);
@@ -239,10 +239,10 @@ TEST_FIXTURE(FixedBase6DoF, TestCRBAFloatingBase12DoFInverseDynamics) {
     H_id.block<6, 1>(0, i) = H_col;
   }
 
-  CHECK_ARRAY_CLOSE (H_crba.data(), H_id.data(), model->dof_count * model->dof_count, TEST_PREC);
+  REQUIRE_THAT (H_crba, AllCloseMatrix(H_id, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsSpherical) {
+TEST_CASE_METHOD (CompositeRigidBodyFixture, __FILE__"_TestCompositeRigidBodyForwardDynamicsSpherical", "") {
   Body base_body(1., Vector3d (0., 0., 0.), Vector3d (1., 2., 3.));
 
   model->AddBody(0, SpatialTransform(), Joint(JointTypeSpherical), base_body);
@@ -257,5 +257,5 @@ TEST_FIXTURE(CompositeRigidBodyFixture, TestCompositeRigidBodyForwardDynamicsSph
       0., 0., 3.
       );
 
-  CHECK_ARRAY_CLOSE (H_ref.data(), H.data(), 9, TEST_PREC);
+  REQUIRE_THAT (H_ref, AllCloseMatrix(H, TEST_PREC, TEST_PREC));
 }
