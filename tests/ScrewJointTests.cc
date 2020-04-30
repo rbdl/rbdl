@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 #include <cmath>
@@ -64,16 +64,16 @@ struct ScrewJoint1DofFixedBase {
 };
 
 
-TEST_FIXTURE ( ScrewJoint1DofFixedBase, UpdateKinematics ) {
+TEST_CASE_METHOD (ScrewJoint1DofFixedBase, __FILE__"_UpdateKinematics", "") {
   q[0] = 1;
   qdot[0] = 2;
   qddot[0] = 0;
 
   UpdateKinematics (*model, q, qdot, qddot);
 
-  CHECK_ARRAY_EQUAL (Xrot(1,Vector3d(0,0,1)).E.data(), model->X_base[roller].E.data(), 9);
-  CHECK_ARRAY_EQUAL (Vector3d(1.,0.,0.).data(), model->X_base[roller].r.data(), 3);
-  CHECK_ARRAY_EQUAL (SpatialVector(0.,0.,2.,cos(q[0])*2,-sin(q[0])*2.,0.).data(), model->v[roller].data(), 6);
+  REQUIRE_THAT (Xrot(1,Vector3d(0,0,1)).E, AllCloseMatrix(model->X_base[roller].E));
+  REQUIRE_THAT (Vector3d(1.,0.,0.), AllCloseVector(model->X_base[roller].r));
+  REQUIRE_THAT (SpatialVector(0.,0.,2.,cos(q[0])*2,-sin(q[0])*2.,0.), AllCloseVector(model->v[roller]));
 
   SpatialVector a0(model->a[roller]);
   SpatialVector v0(model->v[roller]);
@@ -87,11 +87,11 @@ TEST_FIXTURE ( ScrewJoint1DofFixedBase, UpdateKinematics ) {
   v0 = model->v[roller] - v0;
   v0 /= epsilon;
   
-  CHECK_ARRAY_CLOSE (a0.data(),v0.data(), 6, 1e-5); //finite diff vs. analytical derivative
+  REQUIRE_THAT (a0, AllCloseVector(v0, 1e-5, 1e-5)); //finite diff vs. analytical derivative
 
 }
 
-TEST_FIXTURE ( ScrewJoint1DofFixedBase, Jacobians ) {
+TEST_CASE_METHOD (ScrewJoint1DofFixedBase, __FILE__"_Jacobians", "") {
   q[0] = 1;
   qdot[0] = 0;
   qddot[0] = 9;
@@ -103,7 +103,7 @@ TEST_FIXTURE ( ScrewJoint1DofFixedBase, Jacobians ) {
 
   refPtBaseCoord = CalcBodyToBaseCoordinates(*model, q, roller, refPt);
 
-  CHECK_ARRAY_EQUAL (Vector3d(1+cos(1), sin(1), 3).data(), refPtBaseCoord.data(), 3);
+  REQUIRE_THAT (Vector3d(1+cos(1), sin(1), 3), AllCloseVector(refPtBaseCoord));
   
   CalcPointJacobian(*model, q, roller, refPt, GrefPt);
 
@@ -111,5 +111,5 @@ TEST_FIXTURE ( ScrewJoint1DofFixedBase, Jacobians ) {
   Gexpected(1,0) = cos(1);
   Gexpected(2,0) = 0;
   
-  CHECK_ARRAY_EQUAL (Gexpected.data(), GrefPt.data(), 3);
+  REQUIRE_THAT (Gexpected, AllCloseMatrix(GrefPt));
 }

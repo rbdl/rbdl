@@ -4,7 +4,7 @@
  */
 
 
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 
@@ -370,7 +370,7 @@ struct CustomJointSingleBodyFixture {
 //
 //==============================================================================
 
-TEST_FIXTURE ( CustomJointSingleBodyFixture, UpdateKinematics ) {
+TEST_CASE_METHOD (CustomJointSingleBodyFixture, __FILE__"_UpdateKinematics", "") {
 
   VectorNd test;
 
@@ -393,28 +393,13 @@ TEST_FIXTURE ( CustomJointSingleBodyFixture, UpdateKinematics ) {
                       qdot.at(idx),
                       qddot.at(idx));
 
-    CHECK_ARRAY_CLOSE (
-      reference_model.at(idx).X_base[reference_body_id.at(idx)].E.data(),
-        custom_model.at(idx).X_base[    custom_body_id.at(idx)].E.data(),
-      9,
-      TEST_PREC);
-
-    CHECK_ARRAY_CLOSE (
-      reference_model.at(idx).v[reference_body_id.at(idx)].data(),
-         custom_model.at(idx).v[   custom_body_id.at(idx)].data(),
-      6,
-      TEST_PREC);
-
-    CHECK_ARRAY_CLOSE (
-      reference_model.at(idx).a[reference_body_id.at(idx)].data(),
-         custom_model.at(idx).a[   custom_body_id.at(idx)].data(),
-      6,
-      TEST_PREC);
+    REQUIRE_THAT (reference_model.at(idx).X_base[reference_body_id.at(idx)].E, AllCloseMatrix(custom_model.at(idx).X_base[custom_body_id.at(idx)].E, TEST_PREC, TEST_PREC));
+    REQUIRE_THAT (reference_model.at(idx).v[reference_body_id.at(idx)], AllCloseVector(custom_model.at(idx).v[custom_body_id.at(idx)], TEST_PREC, TEST_PREC));
+    REQUIRE_THAT (reference_model.at(idx).a[reference_body_id.at(idx)], AllCloseVector(custom_model.at(idx).a[custom_body_id.at(idx)], TEST_PREC, TEST_PREC));
   }
 }
 
-TEST_FIXTURE (CustomJointSingleBodyFixture, UpdateKinematicsCustom) {
-  
+TEST_CASE_METHOD (CustomJointSingleBodyFixture, __FILE__"_UpdateKinematicsCustom", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
     int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
@@ -428,13 +413,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, UpdateKinematicsCustom) {
     UpdateKinematicsCustom (custom_model.at(idx),
                             &q.at(idx), NULL, NULL);
 
-
-    CHECK_ARRAY_CLOSE (
-      reference_model.at(idx).X_base[reference_body_id.at(idx)].E.data(),
-         custom_model.at(idx).X_base[   custom_body_id.at(idx)].E.data(),
-      9,
-      TEST_PREC);
-
+    REQUIRE_THAT (reference_model.at(idx).X_base[reference_body_id.at(idx)].E, AllCloseMatrix(custom_model.at(idx).X_base[custom_body_id.at(idx)].E, TEST_PREC, TEST_PREC));
 
     //velocity
     UpdateKinematicsCustom (reference_model.at(idx),
@@ -446,12 +425,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, UpdateKinematicsCustom) {
                             &qdot.at(idx), 
                             NULL);
 
-    CHECK_ARRAY_CLOSE (
-          reference_model.at(idx).v[reference_body_id.at(idx)].data(),
-             custom_model.at(idx).v[   custom_body_id.at(idx)].data(),
-          6,
-          TEST_PREC);
-
+    REQUIRE_THAT (reference_model.at(idx).v[reference_body_id.at(idx)], AllCloseVector(custom_model.at(idx).v[custom_body_id.at(idx)], TEST_PREC, TEST_PREC));
 
     //All
     UpdateKinematicsCustom (reference_model.at(idx),
@@ -464,18 +438,11 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, UpdateKinematicsCustom) {
                             &qdot.at(idx),
                             &qddot.at(idx));
 
-    CHECK_ARRAY_CLOSE (
-      reference_model.at(idx).a[reference_body_id.at(idx)].data(),
-         custom_model.at(idx).a[   custom_body_id.at(idx)].data(),
-      6,
-      TEST_PREC);
+    REQUIRE_THAT (reference_model.at(idx).a[reference_body_id.at(idx)], AllCloseVector(custom_model.at(idx).a[custom_body_id.at(idx)], TEST_PREC, TEST_PREC));
   }
-
-   
 }
 
-TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
-
+TEST_CASE_METHOD (CustomJointSingleBodyFixture, __FILE__"_Jacobians", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
     int dof = reference_model.at(idx).dof_count;
 
@@ -513,15 +480,8 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
                               custom_body_id.at(idx),
                               Gcus);
 
-    for(int i=0; i<6;++i){
-      for(int j=0; j<dof;++j){
-        CHECK_CLOSE (
-          Gref(i,j),
-          Gcus(i,j),
-          TEST_PREC);
-      }
-    }
-
+    REQUIRE_THAT (Gref, AllCloseMatrix(Gcus, TEST_PREC, TEST_PREC));
+    
     //Check the 6d point Jacobian
     Vector3d point_position (1.1, 1.2, 2.1);
 
@@ -537,16 +497,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
                          point_position,
                          Gcus);
 
-    for(int i=0; i<6;++i){
-      for(int j=0; j<dof;++j){
-        CHECK_CLOSE (
-          Gref(i,j),
-          Gcus(i,j),
-          TEST_PREC);
-      }
-    }
-
-
+    REQUIRE_THAT (Gref, AllCloseMatrix(Gcus, TEST_PREC, TEST_PREC));
 
     //Check the 3d point Jacobian
     MatrixNd GrefPt = MatrixNd::Constant (3,
@@ -555,8 +506,6 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
     MatrixNd GcusPt = MatrixNd::Constant (3,
                                           reference_model.at(idx).dof_count,
                                           0.);
-
-
 
     CalcPointJacobian (reference_model.at(idx),
                        q.at(idx),
@@ -570,20 +519,11 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
                        point_position,
                        GcusPt);
 
-    for(int i=0; i<3;++i){
-      for(int j=0; j<dof;++j){
-        CHECK_CLOSE (
-          GrefPt(i,j),
-          GcusPt(i,j),
-          TEST_PREC);
-      }
-    }
+    REQUIRE_THAT (GrefPt, AllCloseMatrix(GcusPt, TEST_PREC, TEST_PREC));
   }
-
 }
 
-TEST_FIXTURE (CustomJointSingleBodyFixture, InverseDynamics) {
-
+TEST_CASE_METHOD (CustomJointSingleBodyFixture, __FILE__"_InverseDynamics", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
 
     int dof = reference_model.at(idx).dof_count;
@@ -613,17 +553,12 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, InverseDynamics) {
 
     VectorNd tauErr = tauRef-tauCus;
 
-    CHECK_ARRAY_CLOSE (
-      tauRef.data(),
-      tauCus.data(),
-      tauRef.rows(),
-      TEST_PREC);
+    REQUIRE_THAT (tauRef, AllCloseVector(tauCus, TEST_PREC, TEST_PREC));
   }
 
 }
 
-TEST_FIXTURE (CustomJointSingleBodyFixture, CompositeRigidBodyAlgorithm) {
-
+TEST_CASE_METHOD (CustomJointSingleBodyFixture, __FILE__"_CompositeRigidBodyAlgorithm", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
 
     int dof = reference_model.at(idx).dof_count;
@@ -689,15 +624,11 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, CompositeRigidBodyAlgorithm) {
                             c_cus * -1. + tau.at(idx),
                             qddot_crba_cus);
 
-    CHECK_ARRAY_CLOSE(qddot_crba_ref.data(),
-                      qddot_crba_cus.data(),
-                      dof,
-                      TEST_PREC);
+    REQUIRE_THAT(qddot_crba_ref, AllCloseVector(qddot_crba_cus, TEST_PREC, TEST_PREC));
   }
 }
 
-TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamics) {
-
+TEST_CASE_METHOD (CustomJointSingleBodyFixture, __FILE__"_ForwardDynamics", "") {
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
 
     int dof = reference_model.at(idx).dof_count;
@@ -725,15 +656,11 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamics) {
                     tau.at(idx),
                     qddotCus);
 
-    CHECK_ARRAY_CLOSE ( qddotRef.data(),
-                        qddotCus.data(),
-                        dof,
-                        TEST_PREC);
+    REQUIRE_THAT ( qddotRef, AllCloseVector(qddotCus, TEST_PREC, TEST_PREC));
   }
-
 }
 
-TEST_FIXTURE (CustomJointSingleBodyFixture, CalcMInvTimestau) {
+TEST_CASE_METHOD (CustomJointSingleBodyFixture, __FILE__"_CalcMInvTimestau", "") {
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
 
@@ -763,16 +690,11 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, CalcMInvTimestau) {
                      qddot_minv_cus,
                      true);
     //check.
-    CHECK_ARRAY_CLOSE(qddot_minv_ref.data(),
-                      qddot_minv_cus.data(),
-                      dof,
-                      TEST_PREC);
+    REQUIRE_THAT(qddot_minv_ref, AllCloseVector(qddot_minv_cus, TEST_PREC, TEST_PREC));
   }
-
 }
 
-TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamicsContactsKokkevis){
-
+TEST_CASE_METHOD (CustomJointSingleBodyFixture, __FILE__"_ForwardDynamicsContactsKokkevis", ""){
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
 
     int dof = reference_model.at(idx).dof_count;
@@ -854,18 +776,8 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamicsContactsKokkevis){
       VectorNd qdot_plus_error = qdot_plus_ref - qdot_plus_cus;
       VectorNd qddot_error     = qddot_ref     - qddot_cus;
 
-      CHECK_ARRAY_CLOSE (qdot_plus_ref.data(),
-                         qdot_plus_cus.data(),
-                         dof,
-                         TEST_PREC);
-
-      CHECK_ARRAY_CLOSE (qddot_ref.data(),
-                         qddot_cus.data(),
-                         dof,
-                         TEST_PREC);
+      REQUIRE_THAT (qdot_plus_ref, AllCloseVector(qdot_plus_cus, TEST_PREC, TEST_PREC));
+      REQUIRE_THAT (qddot_ref, AllCloseVector(qddot_cus, TEST_PREC, TEST_PREC));
     }
   }
-
 }
-
-

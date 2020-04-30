@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 #include "rbdl/rbdl.h"
 #include "rbdl/Constraints.h"
 #include <cassert>
@@ -335,8 +335,7 @@ struct DoublePerpendicularPendulumCustomConstraint {
 
 
 
-TEST(CustomConstraintCorrectnessTest) {
-
+TEST_CASE (__FILE__"_CustomConstraintCorrectnessTest", "") {
   //Test to add:
   //  Jacobian vs. num Jacobian
   DoublePerpendicularPendulumCustomConstraint dbcc
@@ -430,8 +429,8 @@ TEST(CustomConstraintCorrectnessTest) {
   CalcConstraintsVelocityError(dbcc.model,dbcc.q,dbcc.qd,dbcc.cs,errd,true);
 
 
-  CHECK(err.norm()  >= qError);
-  CHECK(errd.norm() >= qDotError);
+  REQUIRE (err.norm() >= qError);
+  REQUIRE (errd.norm() >= qDotError);
 
   //Solve for the initial q and qdot terms that satisfy the constraints
   VectorNd qAsm,qDotAsm,w;
@@ -460,14 +459,9 @@ TEST(CustomConstraintCorrectnessTest) {
 
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
-  for(unsigned int i=0; i<err.rows();++i){
-    CHECK_CLOSE(0,err[i],TEST_PREC);
-  }
-  for(unsigned int i=0; i<errd.rows();++i){
-    CHECK_CLOSE(0,errd[i],TEST_PREC);
-  }
-
-
+  VectorNd target(dbcc.cs.size());
+  REQUIRE_THAT(target, AllCloseVector(err, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT(target, AllCloseVector(errd, TEST_PREC, TEST_PREC));
 
   //Evaluate the accelerations of the constrained pendulum and
   //compare those to the joint-coordinate pendulum
@@ -483,23 +477,15 @@ TEST(CustomConstraintCorrectnessTest) {
   ForwardDynamicsConstraintsDirect(dba.model, dba.q,  dba.qd,
                                    dba.tau,   dba.cs, dba.qdd);
 
-  for(unsigned int i = 0; i < dba.cs.G.rows(); ++i){
-    for(unsigned int j=0; j< dba.cs.G.cols();++j){
-      CHECK_CLOSE(dba.cs.G(i,j),dbcc.cs.G(i,j),TEST_PREC);
+  REQUIRE_THAT (dba.cs.G, AllCloseMatrix(dbcc.cs.G, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (dba.cs.gamma, AllCloseVector(dbcc.cs.gamma, TEST_PREC, TEST_PREC));
+
+  //REQUIRE_THAT (dba.cs.constraintAxis, AllCloseVector(dbcc.cs.constraintAxis, TEST_PREC, TEST_PREC)); //does not work
+  for(unsigned int i=0; i < dba.cs.constraintAxis.size(); ++i){
+    for(unsigned int j=0; j< dba.cs.constraintAxis[0].rows(); ++j){
+      REQUIRE_THAT (dba.cs.constraintAxis[i][j], IsClose(dbcc.cs.constraintAxis[i][j], TEST_PREC, TEST_PREC));
     }
   }
-
-  for(unsigned int i = 0; i < dba.cs.gamma.rows(); ++i){
-    CHECK_CLOSE(dba.cs.gamma[i],dbcc.cs.gamma[i],TEST_PREC);
-  }
-
-  for(unsigned int i =0; i < dba.cs.constraintAxis.size(); ++i){
-    for(unsigned int j=0; j< dba.cs.constraintAxis[0].rows();++j){
-      CHECK_CLOSE(dba.cs.constraintAxis[i][j],
-                  dbcc.cs.constraintAxis[i][j],TEST_PREC);
-    }
-  }
-  
 
   SpatialVector a010c =
       CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,
@@ -511,10 +497,7 @@ TEST(CustomConstraintCorrectnessTest) {
       CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,
                           dbcc.idB2,Vector3d(dbcc.l2,0.,0.),true);
 
-  for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
-  }
-
+  REQUIRE_THAT (a010, AllCloseVector(a010c, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (a020, AllCloseVector(a020c, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (a030, AllCloseVector(a030c, TEST_PREC, TEST_PREC));
 }

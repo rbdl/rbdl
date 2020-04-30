@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 
@@ -75,7 +75,7 @@ struct ImpulsesFixture {
   ConstraintSet constraint_set;
 };
 
-TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
+TEST_CASE_METHOD (ImpulsesFixture, __FILE__"_TestContactImpulse", "") {
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
@@ -109,10 +109,10 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulse) {
   }
 
   // cout << "Point Velocity = " << point_velocity << endl;
-  CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), point_velocity.data(), 3, TEST_PREC);
+  REQUIRE_THAT (Vector3d (0., 0., 0.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
+TEST_CASE_METHOD (ImpulsesFixture, __FILE__"_TestContactImpulseRotated", "") {
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 0.); 
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 0.); 
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 0.); 
@@ -152,10 +152,10 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotated) {
   }
 
   // cout << "Point Velocity = " << point_velocity << endl;
-  CHECK_ARRAY_CLOSE (Vector3d (0., 0., 0.).data(), point_velocity.data(), 3, TEST_PREC);
+  REQUIRE_THAT (Vector3d (0., 0., 0.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
+TEST_CASE_METHOD (ImpulsesFixture, __FILE__"_TestContactImpulseRotatedCollisionVelocity", "") {
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (1., 0., 0.), NULL, 1.); 
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 1., 0.), NULL, 2.); 
   constraint_set.AddContactConstraint(contact_body_id, contact_point, Vector3d (0., 0., 1.), NULL, 3.); 
@@ -197,10 +197,10 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRotatedCollisionVelocity) {
   }
 
   // cout << "Point Velocity = " << point_velocity << endl;
-  CHECK_ARRAY_CLOSE (Vector3d (1., 2., 3.).data(), point_velocity.data(), 3, TEST_PREC);
+  REQUIRE_THAT (Vector3d (1., 2., 3.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRangeSpaceSparse) {
+TEST_CASE_METHOD (ImpulsesFixture, __FILE__"_TestContactImpulseRangeSpaceSparse", "") {
   Q[0] = 0.2;
   Q[1] = -0.5;
   Q[2] = 0.1;
@@ -235,11 +235,11 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseRangeSpaceSparse) {
   Vector3d point_velocity_direct = CalcPointVelocity (*model, Q, qdot_post_direct, contact_body_id, contact_point, true);
   Vector3d point_velocity_rangespace = CalcPointVelocity (*model, Q, qdot_post_rangespace, contact_body_id, contact_point, true);
 
-  CHECK_ARRAY_CLOSE (qdot_post_direct.data(), qdot_post_rangespace.data(), qdot_post_direct.rows(), TEST_PREC);
-  CHECK_ARRAY_CLOSE (Vector3d (1., 2., 3.).data(), point_velocity_rangespace.data(), 3, TEST_PREC);
+  REQUIRE_THAT (qdot_post_direct, AllCloseVector(qdot_post_rangespace, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (Vector3d (1., 2., 3.), AllCloseVector(point_velocity_rangespace, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(ImpulsesFixture, TestContactImpulseNullSpace) {
+TEST_CASE_METHOD (ImpulsesFixture, __FILE__"_TestContactImpulseNullSpace", "") {
   Q[0] = 0.2;
   Q[1] = -0.5;
   Q[2] = 0.1;
@@ -274,6 +274,6 @@ TEST_FIXTURE(ImpulsesFixture, TestContactImpulseNullSpace) {
   Vector3d point_velocity_direct = CalcPointVelocity (*model, Q, qdot_post_direct, contact_body_id, contact_point, true);
   Vector3d point_velocity_nullspace = CalcPointVelocity (*model, Q, qdot_post_nullspace, contact_body_id, contact_point, true);
 
-  CHECK_ARRAY_CLOSE (qdot_post_direct.data(), qdot_post_nullspace.data(), qdot_post_direct.rows(), TEST_PREC);
-  CHECK_ARRAY_CLOSE (Vector3d (1., 2., 3.).data(), point_velocity_nullspace.data(), 3, TEST_PREC);
+  REQUIRE_THAT (qdot_post_direct, AllCloseVector(qdot_post_nullspace, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (Vector3d (1., 2., 3.), AllCloseVector(point_velocity_nullspace, TEST_PREC, TEST_PREC));
 }

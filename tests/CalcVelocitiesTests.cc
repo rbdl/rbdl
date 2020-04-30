@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 
@@ -58,21 +58,19 @@ struct ModelVelocitiesFixture {
   Vector3d point_position, point_velocity;
 };
 
-TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointSimple) {
+TEST_CASE_METHOD (ModelVelocitiesFixture, __FILE__"_TestCalcPointSimple", "") {
   ref_body_id = 1;
   QDot[0] = 1.;
   point_position = Vector3d (1., 0., 0.);
   point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
-  CHECK_CLOSE(0., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE(1., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE(0., point_velocity[2], TEST_PREC);
+  REQUIRE_THAT(Vector3d(0., 1., 0.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 
   LOG << "Point velocity = " << point_velocity << endl;
   //	cout << LogOutput.str() << endl;
 }
 
-TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseSimple) {
+TEST_CASE_METHOD (ModelVelocitiesFixture, __FILE__"_TestCalcPointRotatedBaseSimple", "") {
   // rotated first joint
 
   ref_body_id = 1;
@@ -81,14 +79,12 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseSimple) {
   point_position = Vector3d (1., 0., 0.);
   point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
-  CHECK_CLOSE(-1., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE( 0., point_velocity[2], TEST_PREC);
+  REQUIRE_THAT(Vector3d(-1., 0., 0.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 
   //	cout << LogOutput.str() << endl;
 }
 
-TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBodyB) {
+TEST_CASE_METHOD (ModelVelocitiesFixture, __FILE__"_TestCalcPointRotatingBodyB", "") {
   // rotating second joint, point at third body
 
   ref_body_id = 3;
@@ -98,12 +94,10 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBodyB) {
 
   //	cout << LogOutput.str() << endl;
 
-  CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
+  REQUIRE_THAT(Vector3d(0., 0., -1.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBaseXAxis) {
+TEST_CASE_METHOD (ModelVelocitiesFixture, __FILE__"_TestCalcPointRotatingBaseXAxis", "") {
   // also rotate the first joint and take a point that is
   // on the X direction
 
@@ -115,12 +109,10 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatingBaseXAxis) {
 
   //	cout << LogOutput.str() << endl;
 
-  CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE( 2., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
+  REQUIRE_THAT(Vector3d(0., 2., -1.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseXAxis) {
+TEST_CASE_METHOD (ModelVelocitiesFixture, __FILE__"_TestCalcPointRotatedBaseXAxis", "") {
   // perform the previous test with the first joint rotated by pi/2
   // upwards 
   ClearLogOutput();
@@ -135,12 +127,10 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointRotatedBaseXAxis) {
 
   //	cout << LogOutput.str() << endl;
 
-  CHECK_CLOSE(-2., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE( 0., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE(-1., point_velocity[2], TEST_PREC);
+  REQUIRE_THAT(Vector3d(-2., 0., -1.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointBodyOrigin) {
+TEST_CASE_METHOD (ModelVelocitiesFixture, __FILE__"_TestCalcPointBodyOrigin", "") {
   // Checks whether the computation is also correct for points at the origin
   // of a body
 
@@ -154,12 +144,10 @@ TEST_FIXTURE(ModelVelocitiesFixture, TestCalcPointBodyOrigin) {
 
   // cout << LogOutput.str() << endl;
 
-  CHECK_CLOSE( 0., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE( 1., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE( 0., point_velocity[2], TEST_PREC);
+  REQUIRE_THAT(Vector3d(0., 1., 0.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 }
 
-TEST ( FixedJointCalcPointVelocity ) {
+TEST_CASE (__FILE__"_FixedJointCalcPointVelocity", "") {
   // the standard modeling using a null body
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
   Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -182,11 +170,11 @@ TEST ( FixedJointCalcPointVelocity ) {
   // cout << LogOutput.str() << endl;
   Vector3d point1_velocity = CalcPointVelocity (model, Q, QDot, fixed_body_id, Vector3d (1., 0., 0.));
 
-  CHECK_ARRAY_CLOSE (Vector3d (0., 1., 0.).data(), point0_velocity.data(), 3, TEST_PREC);
-  CHECK_ARRAY_CLOSE (Vector3d (0., 2., 0.).data(), point1_velocity.data(), 3, TEST_PREC);
+  REQUIRE_THAT (Vector3d (0., 1., 0.), AllCloseVector(point0_velocity, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (Vector3d (0., 2., 0.), AllCloseVector(point1_velocity, TEST_PREC, TEST_PREC));
 }
 
-TEST ( FixedJointCalcPointVelocityRotated ) {
+TEST_CASE (__FILE__"_FixedJointCalcPointVelocityRotated", "") {
   // the standard modeling using a null body
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
   Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -210,6 +198,6 @@ TEST ( FixedJointCalcPointVelocityRotated ) {
   // cout << LogOutput.str() << endl;
   Vector3d point1_velocity = CalcPointVelocity (model, Q, QDot, fixed_body_id, Vector3d (1., 0., 0.));
 
-  CHECK_ARRAY_CLOSE (Vector3d (-1., 0., 0.).data(), point0_velocity.data(), 3, TEST_PREC);
-  CHECK_ARRAY_CLOSE (Vector3d (-2., 0., 0.).data(), point1_velocity.data(), 3, TEST_PREC);
+  REQUIRE_THAT (Vector3d (-1., 0., 0.), AllCloseVector(point0_velocity, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (Vector3d (-2., 0., 0.), AllCloseVector(point1_velocity, TEST_PREC, TEST_PREC));
 }

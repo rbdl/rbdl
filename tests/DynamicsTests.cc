@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 #include <limits>
@@ -30,7 +30,7 @@ struct DynamicsFixture {
   Model *model;
 };
 
-TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSingleChain) {
+TEST_CASE_METHOD (DynamicsFixture, __FILE__"_TestCalcDynamicSingleChain", "") {
   Body body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
   Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
@@ -53,10 +53,10 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSingleChain) {
     LOG << "a[" << i << "]     = " << model->a[i] << endl;
   }
 
-  CHECK_EQUAL (-4.905, QDDot[0]);
+  REQUIRE (-4.905 == QDDot[0]);
 }
 
-TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSpatialInertiaSingleChain) {
+TEST_CASE_METHOD (DynamicsFixture, __FILE__"_TestCalcDynamicSpatialInertiaSingleChain", "") {
   // This function checks the value for a non-trivial spatial inertia
   Body body(1., Vector3d (1.5, 1., 1.), Vector3d (1., 2., 3.));
 
@@ -82,10 +82,10 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSpatialInertiaSingleChain) {
     LOG << "a[" << i << "]     = " << model->a[i] << endl;
   }
 
-  CHECK_EQUAL (-2.3544, QDDot[0]);
+  REQUIRE (-2.3544 == QDDot[0]);
 }
 
-TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain) {
+TEST_CASE_METHOD (DynamicsFixture, __FILE__"_TestCalcDynamicDoubleChain", "") {
   Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
   Joint joint_a ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
@@ -117,11 +117,11 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain) {
 
   //  cout << LogOutput.str() << endl;
   
-  CHECK_CLOSE (-5.88600000000000E+00, QDDot[0], TEST_PREC);
-  CHECK_CLOSE ( 3.92400000000000E+00, QDDot[1], TEST_PREC);
+  REQUIRE_THAT (-5.88600000000000E+00, IsClose(QDDot[0], TEST_PREC, TEST_PREC));
+  REQUIRE_THAT ( 3.92400000000000E+00, IsClose(QDDot[1], TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(DynamicsFixture, TestCalcDynamicTripleChain) {
+TEST_CASE_METHOD (DynamicsFixture, __FILE__"_TestCalcDynamicTripleChain", "") {
   Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
   Joint joint_a ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
@@ -158,12 +158,10 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicTripleChain) {
 
   // cout << LogOutput.str() << endl;
 
-  CHECK_CLOSE (-6.03692307692308E+00, QDDot[0], TEST_PREC);
-  CHECK_CLOSE ( 3.77307692307692E+00, QDDot[1], TEST_PREC);
-  CHECK_CLOSE ( 1.50923076923077E+00, QDDot[2], TEST_PREC);
+  REQUIRE_THAT (Vector3d(-6.03692307692308E+00, 3.77307692307692E+00, 1.50923076923077E+00), AllCloseVector(QDDot, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain3D) {
+TEST_CASE_METHOD (DynamicsFixture, __FILE__"_TestCalcDynamicDoubleChain3D", "") {
   Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
   Joint joint_a ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
@@ -195,11 +193,11 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicDoubleChain3D) {
 
   // cout << LogOutput.str() << endl;
 
-  CHECK_CLOSE (-3.92400000000000E+00, QDDot[0], TEST_PREC);
-  CHECK_CLOSE ( 0.00000000000000E+00, QDDot[1], TEST_PREC);
+  REQUIRE_THAT (-3.92400000000000E+00, IsClose(QDDot[0], TEST_PREC, TEST_PREC));
+  REQUIRE_THAT ( 0.00000000000000E+00, IsClose(QDDot[1], TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSimpleTree3D) {
+TEST_CASE_METHOD (DynamicsFixture, __FILE__"_TestCalcDynamicSimpleTree3D", "") {
   Body body_a (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
   Joint joint_a ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
@@ -246,14 +244,16 @@ TEST_FIXTURE(DynamicsFixture, TestCalcDynamicSimpleTree3D) {
 
   // cout << LogOutput.str() << endl;
 
-  CHECK_CLOSE (-1.60319066147860E+00, QDDot[0], TEST_PREC);
-  CHECK_CLOSE (-5.34396887159533E-01, QDDot[1], TEST_PREC);
-  CHECK_CLOSE ( 4.10340466926070E+00, QDDot[2], TEST_PREC);
-  CHECK_CLOSE ( 2.67198443579767E-01, QDDot[3], TEST_PREC);
-  CHECK_CLOSE ( 5.30579766536965E+00, QDDot[4], TEST_PREC);
+  VectorNd target = VectorNd::Zero (5);
+  target[0] = -1.60319066147860E+00;
+  target[1] = -5.34396887159533E-01;
+  target[2] = 4.10340466926070E+00;
+  target[3] = 2.67198443579767E-01;
+  target[4] = 5.30579766536965E+00;
+  REQUIRE_THAT (target, AllCloseVector(QDDot, TEST_PREC, TEST_PREC));
 }
 
-TEST (TestForwardDynamicsLagrangian) {
+TEST_CASE (__FILE__"_TestForwardDynamicsLagrangian", "") {
   Model model;
   Body base_body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
@@ -300,8 +300,8 @@ TEST (TestForwardDynamicsLagrangian) {
   ForwardDynamics(model, Q, QDot, Tau, QDDot_aba);
   ForwardDynamicsLagrangian(model, Q, QDot, Tau, QDDot_lagrangian);
 
-  CHECK_EQUAL (QDDot_aba.size(), QDDot_lagrangian.size());
-  CHECK_ARRAY_CLOSE (QDDot_aba.data(), QDDot_lagrangian.data(), QDDot_aba.size(), TEST_PREC);
+  REQUIRE (QDDot_aba.size() == QDDot_lagrangian.size());
+  REQUIRE_THAT (QDDot_aba, AllCloseVector(QDDot_lagrangian, TEST_PREC, TEST_PREC));
 }
 
 /* 
@@ -311,7 +311,7 @@ TEST (TestForwardDynamicsLagrangian) {
  * due to the missing gravity term. But as the test now works, I just leave
  * it here.
  */
-TEST (TestForwardDynamics3DoFModel) {
+TEST_CASE (__FILE__"_TestForwardDynamics3DoFModel", "") {
   Model model;
 
   model.gravity = Vector3d (0., -9.81, 0.);
@@ -348,7 +348,7 @@ TEST (TestForwardDynamics3DoFModel) {
 
   QDDot_ref[0] = 3.301932144386186;
   
-  CHECK_ARRAY_CLOSE (QDDot_ref.data(), QDDot.data(), QDDot.size(), TEST_PREC);
+  REQUIRE_THAT (QDDot_ref, AllCloseVector(QDDot, TEST_PREC, TEST_PREC));
 }
 
 /*
@@ -359,7 +359,7 @@ TEST (TestForwardDynamics3DoFModel) {
  * Running the CRBA after the InverseDynamics calculation fixes this. This
  * test ensures that the error does not happen when calling ForwardLagrangian.
  */
-TEST (TestForwardDynamics3DoFModelLagrangian) {
+TEST_CASE (__FILE__"_TestForwardDynamics3DoFModelLagrangian", "") {
   Model model;
 
   model.gravity = Vector3d (0., -9.81, 0.);
@@ -402,14 +402,14 @@ TEST (TestForwardDynamics3DoFModelLagrangian) {
 //  cout << QDDot_lagrangian << endl;
 //  cout << LogOutput.str() << endl;
 
-  CHECK_ARRAY_CLOSE (QDDot_ab.data(), QDDot_lagrangian.data(), QDDot_ab.size(), TEST_PREC);
+  REQUIRE_THAT (QDDot_ab, AllCloseVector(QDDot_lagrangian, TEST_PREC, TEST_PREC));
 }
 
 /* 
  * This is a test for a model where I detected incosistencies between the
  * Lagragian method and the ABA.
  */
-TEST (TestForwardDynamicsTwoLegModelLagrangian) {
+TEST_CASE (__FILE__"_TestForwardDynamicsTwoLegModelLagrangian", "") {
   Model *model = NULL;
 
   unsigned int hip_id,
@@ -574,12 +574,12 @@ TEST (TestForwardDynamicsTwoLegModelLagrangian) {
   ClearLogOutput();
   ForwardDynamicsLagrangian (*model, Q, QDot, Tau, QDDot);
 
-  CHECK_ARRAY_CLOSE (QDDotABA.data(), QDDot.data(), QDDotABA.size(), TEST_PREC);
+  REQUIRE_THAT (QDDotABA, AllCloseVector(QDDot, TEST_PREC, TEST_PREC));
 
   delete model;
 }
 
-TEST_FIXTURE(FixedAndMovableJoint, TestForwardDynamicsFixedJoint) {
+TEST_CASE_METHOD (FixedAndMovableJoint, __FILE__"_TestForwardDynamicsFixedJoint", "") {
   Q_fixed[0] = 1.1;
   Q_fixed[1] = 2.2;
 
@@ -603,14 +603,14 @@ TEST_FIXTURE(FixedAndMovableJoint, TestForwardDynamicsFixedJoint) {
   C_fixed[1] = C_movable[2];
 
   VectorNd QDDot_fixed_emulate(2);
-  CHECK (LinSolveGaussElimPivot (H_fixed, C_fixed * -1. + Tau_fixed, QDDot_fixed_emulate));
+  REQUIRE (LinSolveGaussElimPivot (H_fixed, C_fixed * -1. + Tau_fixed, QDDot_fixed_emulate));
 
   ForwardDynamics (*model_fixed, Q_fixed, QDot_fixed, Tau_fixed, QDDot_fixed);
 
-  CHECK_ARRAY_CLOSE (QDDot_fixed_emulate.data(), QDDot_fixed.data(), 2, TEST_PREC);
+  REQUIRE_THAT (QDDot_fixed_emulate, AllCloseVector(QDDot_fixed, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FixedAndMovableJoint, TestInverseDynamicsFixedJoint) {
+TEST_CASE_METHOD (FixedAndMovableJoint, __FILE__"_TestInverseDynamicsFixedJoint", "") {
   Q_fixed[0] = 1.1;
   Q_fixed[1] = 2.2;
 
@@ -631,10 +631,10 @@ TEST_FIXTURE(FixedAndMovableJoint, TestInverseDynamicsFixedJoint) {
   Tau_2dof[0] = Tau[0];
   Tau_2dof[1] = Tau[2];
 
-  CHECK_ARRAY_CLOSE (Tau_2dof.data(), Tau_fixed.data(), 2, TEST_PREC);
+  REQUIRE_THAT (Tau_2dof, AllCloseVector(Tau_fixed, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE ( FloatingBase12DoF, TestForwardDynamicsLagrangianPrealloc ) {
+TEST_CASE_METHOD (FloatingBase12DoF, __FILE__"_TestForwardDynamicsLagrangianPrealloc", "") {
   for (unsigned int i = 0; i < model->dof_count; i++) {
     Q[i] = static_cast<double>(i + 1) * 0.1;
     QDot[i] = static_cast<double>(i + 1) * 1.1;
@@ -666,10 +666,10 @@ TEST_FIXTURE ( FloatingBase12DoF, TestForwardDynamicsLagrangianPrealloc ) {
       &C
       );
 
-  CHECK_ARRAY_EQUAL (QDDot.data(), QDDot_prealloc.data(), model->dof_count);
+  REQUIRE_THAT (QDDot, AllCloseVector(QDDot_prealloc));
 }
 
-TEST_FIXTURE ( FixedBase3DoF, SolveMInvTimesTau) {
+TEST_CASE_METHOD (FixedBase3DoF, __FILE__"_SolveMInvTimesTau", "") {
   for (unsigned int i = 0; i < model->dof_count; i++) {
     Q[i] = rand() / static_cast<double>(RAND_MAX);
     Tau[i] = rand() / static_cast<double>(RAND_MAX);
@@ -683,10 +683,10 @@ TEST_FIXTURE ( FixedBase3DoF, SolveMInvTimesTau) {
   VectorNd qddot_minv (Q);
   CalcMInvTimesTau (*model, Q, Tau, qddot_minv);
 
-  CHECK_ARRAY_CLOSE (qddot_solve_llt.data(), qddot_minv.data(), model->dof_count, TEST_PREC);
+  REQUIRE_THAT (qddot_solve_llt, AllCloseVector(qddot_minv, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE ( FixedBase3DoF, SolveMInvTimesTauReuse) {
+TEST_CASE_METHOD (FixedBase3DoF, __FILE__"_SolveMInvTimesTauReuse", "") {
   for (unsigned int i = 0; i < model->dof_count; i++) {
     Q[i] = rand() / static_cast<double>(RAND_MAX);
     Tau[i] = rand() / static_cast<double>(RAND_MAX);
@@ -710,11 +710,11 @@ TEST_FIXTURE ( FixedBase3DoF, SolveMInvTimesTauReuse) {
 
     CalcMInvTimesTau (*model, Q, Tau, qddot_minv, false);
 
-    CHECK_ARRAY_CLOSE (qddot_solve_llt.data(), qddot_minv.data(), model->dof_count, TEST_PREC);
+    REQUIRE_THAT (qddot_solve_llt, AllCloseVector(qddot_minv, TEST_PREC, TEST_PREC));
   }
 }
 
-TEST_FIXTURE ( FixedBase3DoF, SolveMInvTimesNonZeroQDotKinematicsUpdate) {
+TEST_CASE_METHOD (FixedBase3DoF, __FILE__"_SolveMInvTimesNonZeroQDotKinematicsUpdate", "") {
   for (unsigned int i = 0; i < model->dof_count; i++) {
     Q[i] = rand() / static_cast<double>(RAND_MAX);
     QDot[i] = rand() / static_cast<double>(RAND_MAX);
@@ -731,5 +731,5 @@ TEST_FIXTURE ( FixedBase3DoF, SolveMInvTimesNonZeroQDotKinematicsUpdate) {
   VectorNd qddot_minv (Q);
   CalcMInvTimesTau (*model, Q, Tau, qddot_minv);
 
-  CHECK_ARRAY_CLOSE (qddot_solve_llt.data(), qddot_minv.data(), model->dof_count, TEST_PREC);
+  REQUIRE_THAT (qddot_solve_llt, AllCloseVector(qddot_minv, TEST_PREC, TEST_PREC));
 }
