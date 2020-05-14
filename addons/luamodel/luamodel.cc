@@ -6,6 +6,7 @@
 #include <map>
 
 #include "luatables.h"
+#include "luatypes.h"
 
 extern "C"
 {
@@ -18,257 +19,7 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-template<>
-Vector3d LuaTableNode::getDefault<Vector3d>(const Vector3d &default_value)
-{
-  Vector3d result = default_value;
 
-  if (stackQueryValue()) {
-    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
-    if (vector_table.length() != 3) {
-      throw Errors::RBDLFileParseError("LuaModel Error: invalid 3d vector!");
-    }
-
-    result[0] = vector_table[1];
-    result[1] = vector_table[2];
-    result[2] = vector_table[3];
-  }
-
-  stackRestore();
-
-  return result;
-}
-
-template<>
-SpatialVector LuaTableNode::getDefault<SpatialVector>(
-  const SpatialVector &default_value
-)
-{
-  SpatialVector result = default_value;
-
-  if (stackQueryValue()) {
-    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
-	//! [Parse Failed]
-    if (vector_table.length() != 6) {
-      throw Errors::RBDLFileParseError("LuaModel Error: invalid 6d vector!");
-    }
-	//! [Parse Failed]
-
-    result[0] = vector_table[1];
-    result[1] = vector_table[2];
-    result[2] = vector_table[3];
-    result[3] = vector_table[4];
-    result[4] = vector_table[5];
-    result[5] = vector_table[6];
-  }
-
-  stackRestore();
-
-  return result;
-}
-
-template<>
-MatrixNd LuaTableNode::getDefault<MatrixNd>(const MatrixNd &default_value)
-{
-  MatrixNd result = default_value;
-
-  if (stackQueryValue()) {
-    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
-    result.resize( int(vector_table.length()),
-                   int(vector_table[1].length()));
-
-    for(int r=0; r<int(vector_table.length()); ++r) {
-      for(int c=0; c<int(vector_table[1].length()); ++c) {
-        result(r,c) = vector_table[r+1][c+1];
-      }
-    }
-  }
-  stackRestore();
-
-  return result;
-}
-
-template<>
-Matrix3d LuaTableNode::getDefault<Matrix3d>(const Matrix3d &default_value)
-{
-  Matrix3d result = default_value;
-
-  if (stackQueryValue()) {
-    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
-    if (vector_table.length() != 3) {
-      throw Errors::RBDLFileParseError("LuaModel Error: invalid 3d matrix!");
-    }
-
-    if (vector_table[1].length() != 3
-        || vector_table[2].length() != 3
-        || vector_table[3].length() != 3) {
-      throw Errors::RBDLFileParseError("LuaModel Error: invalid 3d matrix!");
-    }
-
-    result(0,0) = vector_table[1][1];
-    result(0,1) = vector_table[1][2];
-    result(0,2) = vector_table[1][3];
-
-    result(1,0) = vector_table[2][1];
-    result(1,1) = vector_table[2][2];
-    result(1,2) = vector_table[2][3];
-
-    result(2,0) = vector_table[3][1];
-    result(2,1) = vector_table[3][2];
-    result(2,2) = vector_table[3][3];
-  }
-
-  stackRestore();
-
-  return result;
-}
-
-template<>
-SpatialTransform LuaTableNode::getDefault<SpatialTransform>(
-  const SpatialTransform &default_value
-)
-{
-  SpatialTransform result = default_value;
-
-  if (stackQueryValue()) {
-    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
-    result.r = vector_table["r"].getDefault<Vector3d>(Vector3d::Zero(3));
-    result.E = vector_table["E"].getDefault<Matrix3d>(Matrix3d::Identity (3,3));
-  }
-
-  stackRestore();
-
-  return result;
-}
-
-template<>
-Joint LuaTableNode::getDefault<Joint>(const Joint &default_value)
-{
-  Joint result = default_value;
-
-  if (stackQueryValue()) {
-    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
-    int joint_dofs = vector_table.length();
-
-    if (joint_dofs == 1) {
-      string dof_string = vector_table[1].getDefault<std::string>("");
-      if (dof_string == "JointTypeSpherical") {
-        stackRestore();
-        return Joint(JointTypeSpherical);
-      } else if (dof_string == "JointTypeEulerZYX") {
-        stackRestore();
-        return Joint(JointTypeEulerZYX);
-      }
-      if (dof_string == "JointTypeEulerXYZ") {
-        stackRestore();
-        return Joint(JointTypeEulerXYZ);
-      }
-      if (dof_string == "JointTypeEulerYXZ") {
-        stackRestore();
-        return Joint(JointTypeEulerYXZ);
-      }
-      if (dof_string == "JointTypeTranslationXYZ") {
-        stackRestore();
-        return Joint(JointTypeTranslationXYZ);
-      }
-    }
-
-    if (joint_dofs > 0) {
-      if (vector_table[1].length() != 6) {
-        std::ostringstream errormsg;
-        errormsg << "LuaModel Error: invalid joint motion subspace description at " <<
-                 this->keyStackToString() << endl;
-        throw Errors::RBDLFileParseError(errormsg.str());
-      }
-    }
-
-    switch (joint_dofs) {
-    case 0:
-      result = Joint(JointTypeFixed);
-      break;
-    case 1:
-      result = Joint (vector_table[1].get<SpatialVector>());
-      break;
-    case 2:
-      result = Joint(
-                 vector_table[1].get<SpatialVector>(),
-                 vector_table[2].get<SpatialVector>()
-               );
-      break;
-    case 3:
-      result = Joint(
-                 vector_table[1].get<SpatialVector>(),
-                 vector_table[2].get<SpatialVector>(),
-                 vector_table[3].get<SpatialVector>()
-               );
-      break;
-    case 4:
-      result = Joint(
-                 vector_table[1].get<SpatialVector>(),
-                 vector_table[2].get<SpatialVector>(),
-                 vector_table[3].get<SpatialVector>(),
-                 vector_table[4].get<SpatialVector>()
-               );
-      break;
-    case 5:
-      result = Joint(
-                 vector_table[1].get<SpatialVector>(),
-                 vector_table[2].get<SpatialVector>(),
-                 vector_table[3].get<SpatialVector>(),
-                 vector_table[4].get<SpatialVector>(),
-                 vector_table[5].get<SpatialVector>()
-               );
-      break;
-    case 6:
-      result = Joint(
-                 vector_table[1].get<SpatialVector>(),
-                 vector_table[2].get<SpatialVector>(),
-                 vector_table[3].get<SpatialVector>(),
-                 vector_table[4].get<SpatialVector>(),
-                 vector_table[5].get<SpatialVector>(),
-                 vector_table[6].get<SpatialVector>()
-               );
-      break;
-    default:
-      throw Errors::RBDLFileParseError("Invalid number of DOFs for joint.");
-      break;
-    }
-  }
-
-  stackRestore();
-
-  return result;
-}
-
-template<>
-Body LuaTableNode::getDefault<Body>(const Body &default_value)
-{
-  Body result = default_value;
-
-  if (stackQueryValue()) {
-    LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
-
-    double mass = 0.;
-    Vector3d com (Vector3d::Zero(3));
-    Matrix3d inertia (Matrix3d::Identity(3,3));
-
-    mass = vector_table["mass"];
-    com = vector_table["com"].getDefault<Vector3d>(com);
-    inertia = vector_table["inertia"].getDefault<Matrix3d>(inertia);
-
-    result = Body (mass, com, inertia);
-  }
-
-  stackRestore();
-
-  return result;
-}
 
 namespace RigidBodyDynamics
 {
@@ -276,7 +27,10 @@ namespace RigidBodyDynamics
 namespace Addons
 {
 
+//==============================================================================
 bool LuaModelReadFromTable (LuaTable &model_table, Model *model, bool verbose);
+
+//==============================================================================
 bool LuaModelReadConstraintsFromTable (
   LuaTable &model_table,
   Model *model,
@@ -288,6 +42,7 @@ bool LuaModelReadConstraintsFromTable (
 typedef map<string, unsigned int> StringIntMap;
 StringIntMap body_table_id_map;
 
+//==============================================================================
 RBDL_DLLAPI
 bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose)
 {
@@ -298,6 +53,7 @@ bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose)
   return LuaModelReadFromTable (model_table, model, verbose);
 }
 
+//==============================================================================
 RBDL_DLLAPI
 bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose)
 {
@@ -310,7 +66,7 @@ bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose)
   return LuaModelReadFromTable (model_table, model, verbose);
 }
 
-
+//==============================================================================
 RBDL_DLLAPI
 std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename)
 {
@@ -338,6 +94,7 @@ std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename)
   return result;
 }
 
+//==============================================================================
 RBDL_DLLAPI
 bool LuaModelReadFromFileWithConstraints (
   const char* filename,
@@ -365,7 +122,7 @@ bool LuaModelReadFromFileWithConstraints (
   return modelLoaded && constraintsLoaded;
 }
 
-
+//==============================================================================
 bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose)
 {
   if (model_table["gravity"].exists()) {
@@ -415,6 +172,7 @@ bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose)
   return true;
 }
 
+//==============================================================================
 bool LuaModelReadConstraintsFromTable (
   LuaTable &model_table,
   Model *model,
@@ -724,6 +482,84 @@ bool LuaModelReadConstraintsFromTable (
   return true;
 }
 
+
+bool LuaModelReadPoints (
+      const char* filename,
+      RigidBodyDynamics::Model *model,
+      std::vector<Point>& updPointSet,
+      bool verbose)
+{
+
+  LuaTable luaTable       = LuaTable::fromFile (filename);
+  updPointSet.clear();
+  unsigned int pointCount = unsigned(int(luaTable["points"].length()));
+
+  if(pointCount > 0){
+    updPointSet.resize(pointCount);
+    Point point;
+
+    for (unsigned int i = 1; i <= pointCount; ++i) {
+
+      point = luaTable["points"][i];
+
+      point.body_id   = model->GetBodyId (point.body_name.c_str());
+      updPointSet[i-1]   = point;
+
+      if (verbose) {
+        cout  << "Point '"           << updPointSet[i-1].name
+              << "' (PointName = "   << updPointSet[i-1].name << ")"    << endl;
+        cout  << "  body        = "  << updPointSet[i-1].body_name
+              << " (id = "           << updPointSet[i-1].body_id << ")" << endl;
+        cout  << "  point_local  = '"       << updPointSet[i-1].point_local.transpose()
+                                     << endl;
+      }
+    }
+  }
+  return true;  
 }
 
+bool LuaModelReadMotionCaptureMarkers (
+      const char* filename,
+      RigidBodyDynamics::Model *model,
+      std::vector<Point>& updPointSet,
+      bool verbose)
+{
+
+  LuaTable luaTable       = LuaTable::fromFile (filename);
+  updPointSet.clear();
+
+  if(luaTable["frames"].exists()){
+    unsigned int frameCount = luaTable["frames"].length();
+    std::vector<LuaKey> marker_keys;
+    Point point;
+    std::string body_name;
+    unsigned int body_id;
+    for(unsigned int i=1; i<frameCount; ++i){
+      if(luaTable["frames"][i]["markers"].exists()){
+
+        body_name = luaTable["frames"][i]["name"].getDefault<string>("");
+        body_id = model->GetBodyId(body_name.c_str());
+        marker_keys = luaTable["frames"][i]["markers"].keys();
+
+        for(unsigned int j=0; j < marker_keys.size(); ++j){
+          if (marker_keys[j].type != LuaKey::String) {
+            throw Errors::RBDLFileParseError(
+                    "Invalid marker found: missing name!");
+          }
+          point.name      = marker_keys[j].string_value;
+          point.body_name = body_name;
+          point.body_id   = body_id;
+          point.point_local = luaTable["frames"][i]["markers"][point.name.c_str()]
+                              .getDefault<Vector3d>(Vector3d::Zero());
+          updPointSet.push_back(point);
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+
+}
 }
