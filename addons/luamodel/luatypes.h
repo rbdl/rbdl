@@ -348,7 +348,33 @@ LuaTableNode::getDefault<MotionCaptureMarker>(
     LuaTable marker_table = LuaTable::fromLuaState (luaTable->L);
 
     result.name         = marker_table["name"].get<std::string>();
-    result.point_local  = marker_table["point"];
+    result.point_local  = marker_table["point"]
+                            .getDefault<RigidBodyDynamics::Math::Vector3d>(
+                              result.point_local);
+  }
+
+  stackRestore();
+
+  return result;
+}
+
+//==============================================================================
+
+template<> LocalFrame
+LuaTableNode::getDefault<LocalFrame>(
+  const LocalFrame &default_value)
+{
+  LocalFrame result = default_value;
+
+  if (stackQueryValue()) {
+    LuaTable local_frame_table = LuaTable::fromLuaState (luaTable->L);
+
+    result.name      = local_frame_table["name"].get<std::string>();
+    result.body_name = local_frame_table["body"].get<std::string>();
+    result.r = local_frame_table["r"]
+                .getDefault<RigidBodyDynamics::Math::Vector3d>(result.r);
+    result.E = local_frame_table["E"]
+                .getDefault<RigidBodyDynamics::Math::Matrix3d>(result.E);
   }
 
   stackRestore();

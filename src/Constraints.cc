@@ -76,7 +76,9 @@ unsigned int ConstraintSet::AddContactConstraint (
     if(contactConstraints[i]->getBodyIds()[0] == body_id) {
       Vector3d pointErr = body_point -
                           contactConstraints[i]->getBodyFrames()[0].r;
-      if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100) {
+
+      if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100
+         && contactConstraints[i]->getUserDefinedId() == userDefinedId) {
         constraintAppended = true;
         contactConstraints[i]->appendNormalVector(world_normal);
       }
@@ -209,7 +211,8 @@ unsigned int ConstraintSet::AddLoopConstraint (
         }
       }
 
-      if(framesNumericallyIdentical) {
+      if(framesNumericallyIdentical
+         && loopConstraints[idx]->getUserDefinedId() == userDefinedId) {
         constraintAppended = true;
         loopConstraints[idx]->appendConstraintAxis(constraintAxisInPredecessor);
       }

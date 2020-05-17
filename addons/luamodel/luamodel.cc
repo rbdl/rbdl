@@ -33,7 +33,7 @@ bool LuaModelReadFromTable (LuaTable &model_table, Model *model, bool verbose);
 //==============================================================================
 bool LuaModelReadConstraintsFromTable (
   LuaTable &model_table,
-  Model *model,
+  const Model *model,
   std::vector<ConstraintSet>& constraint_sets,
   const std::vector<std::string>& constraint_set_names,
   bool verbose
@@ -54,16 +54,51 @@ bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose)
 }
 
 //==============================================================================
+bool LuaModelReadLocalFrames (
+      LuaTable &model_table,
+      const RigidBodyDynamics::Model *model,
+      std::vector<LocalFrame>& updLocalFramesSet,
+      bool verbose);
+
 RBDL_DLLAPI
-bool LuaModelReadFromFile (const char* filename, Model* model, bool verbose)
+bool LuaModelReadLocalFrames (
+      const char* filename,
+      const RigidBodyDynamics::Model *model,
+      std::vector<LocalFrame>& updLocalFramesSet,
+      bool verbose)
 {
-  if(!model) {
+  LuaTable model_table       = LuaTable::fromFile (filename);
+  return LuaModelReadLocalFrames(model_table,model,updLocalFramesSet,verbose);
+}
+
+//==============================================================================
+bool LuaModelReadPoints (
+      LuaTable &model_table,
+      const RigidBodyDynamics::Model *model,
+      std::vector<Point>& updPointSet,
+      bool verbose);
+
+RBDL_DLLAPI
+bool LuaModelReadPoints (
+      const char* filename,
+      const RigidBodyDynamics::Model *model,
+      std::vector<Point>& updPointSet,
+      bool verbose)
+{
+  LuaTable model_table       = LuaTable::fromFile (filename);
+  return LuaModelReadPoints(model_table,model,updPointSet,verbose);
+}
+
+//==============================================================================
+RBDL_DLLAPI
+bool LuaModelReadFromFile (const char* filename, Model* updModel, bool verbose)
+{
+  if(!updModel) {
     throw Errors::RBDLError("Model not provided.");
   }
 
   LuaTable model_table = LuaTable::fromFile (filename);
-
-  return LuaModelReadFromTable (model_table, model, verbose);
+  return LuaModelReadFromTable (model_table, updModel, verbose);
 }
 
 //==============================================================================
@@ -175,7 +210,7 @@ bool LuaModelReadFromTable (LuaTable &model_table, Model* model, bool verbose)
 //==============================================================================
 bool LuaModelReadConstraintsFromTable (
   LuaTable &model_table,
-  Model *model,
+  const Model *model,
   std::vector<ConstraintSet>& constraint_sets,
   const std::vector<std::string>& constraint_set_names,
   bool verbose
@@ -190,6 +225,13 @@ bool LuaModelReadConstraintsFromTable (
   MatrixNd axisSetsMatrix;
   SpatialVector axis;
   std::vector< SpatialVector > axisSets;
+
+  std::vector< Point > pointSet;
+  bool pointSetLoaded = LuaModelReadPoints(model_table,model,pointSet,verbose);
+
+  std::vector< LocalFrame > localFrameSet;
+  bool localFramesLoaded =
+      LuaModelReadLocalFrames(model_table,model,localFrameSet,verbose);
 
   for(size_t i = 0; i < constraint_set_names.size(); ++i) {
     conName = constraint_set_names[i];
@@ -226,31 +268,79 @@ bool LuaModelReadConstraintsFromTable (
         model_table["constraint_sets"][conName.c_str()]
         [ci + 1]["name"].getDefault<string>("");
 
+      bool enable_stabilization =
+        model_table["constraint_sets"][conName.c_str()][ci + 1]
+        ["enable_stabilization"].getDefault<bool>(false);
+      double stabilization_parameter = 0.1;
+
+      if (enable_stabilization) {
+        stabilization_parameter =
+          model_table["constraint_sets"][conName.c_str()][ci + 1]
+          ["stabilization_parameter"].getDefault<double>(0.1);
+        if (stabilization_parameter <= 0.0) {
+          std::stringstream errormsg;
+          errormsg  << "Invalid stabilization parameter: "
+                    << stabilization_parameter
+                    << " must be > 0.0" << std::endl;
+          throw Errors::RBDLFileParseError(errormsg.str());
+        }
+      }
+
+
       //========================================================================
       //Contact
       //========================================================================
       if(constraintType == "contact") {
-        if(!model_table["constraint_sets"][conName.c_str()]
-            [ci + 1]["body"].exists()) {
-          throw Errors::RBDLFileParseError("body not specified.\n");
-        }
 
-        unsigned int constraint_user_id=std::numeric_limits<unsigned int>::max();
-        if(model_table["constraint_sets"][conName.c_str()]
-            [ci + 1]["id"].exists()) {
+        unsigned int constraint_user_id =
+            std::numeric_limits<unsigned int>::max();
+
+        if(model_table["constraint_sets"][conName.c_str()][ci + 1]
+                      ["id"].exists()) {
           constraint_user_id = unsigned(int(
-                                          model_table["constraint_sets"][conName.c_str()]
-                                          [ci + 1]["id"].getDefault<double>(0.)));
+            model_table["constraint_sets"][conName.c_str()][ci + 1]
+                       ["id"].getDefault<double>(0.)));
         }
 
+        //Go get the body id and the local coordinates of the point:
+        //    If a named point is given, go through the point set
+        //    Otherwise look for the explicit fields
+        unsigned int bodyId;
+        Vector3d bodyPoint;
 
-        unsigned int bodyId = model->GetBodyId(model_table["constraint_sets"]
+        if(model_table["constraint_sets"][conName.c_str()][ci+1]
+           ["point_name"].exists()){
+          std::string pointName = model_table["constraint_sets"]
+              [conName.c_str()][ci+1]["point_name"].getDefault<string>("");
+          bool pointFound = false;
+          unsigned int pi=0;
+          while(pi < pointSet.size() && pointFound == false){
+            if(std::strcmp(pointSet[pi].name.c_str(),pointName.c_str())==0){
+              pointFound = true;
+              bodyId = pointSet[pi].body_id;
+              bodyPoint = pointSet[pi].point_local;
+            }
+          }
+          if(pointFound == false){
+            ostringstream errormsg;
+            errormsg << "Could not find a point with the name: " << pointName
+                     << " which is used in constraint set " << constraint_name
+                     << endl;
+            throw Errors::RBDLFileParseError(errormsg.str());
+          }
+        }else{
+          if(!model_table["constraint_sets"][conName.c_str()]
+              [ci + 1]["body"].exists()) {
+            throw Errors::RBDLFileParseError("body not specified.\n");
+          }
+          bodyId = model->GetBodyId(model_table["constraint_sets"]
                                                [conName.c_str()][ci + 1]["body"]
                                                .getDefault<string>("").c_str());
 
-        Vector3d bodyPoint = model_table["constraint_sets"]
-                             [conName.c_str()][ci + 1]
-                             ["point"].getDefault<Vector3d>(Vector3d::Zero());
+          bodyPoint = model_table["constraint_sets"]
+                               [conName.c_str()][ci + 1]
+                               ["point"].getDefault<Vector3d>(Vector3d::Zero());
+        }
 
         normalSets.resize(0);
         normalSetsMatrix.resize(1,1);
@@ -311,7 +401,6 @@ bool LuaModelReadConstraintsFromTable (
                                                   constraint_user_id);
         }
 
-
         if(verbose) {
           cout  << "  type = contact" << endl;
           cout  << "  name = " << constraint_name << std::endl;
@@ -331,37 +420,113 @@ bool LuaModelReadConstraintsFromTable (
         //Loop
         //========================================================================
       } else if(constraintType == "loop") {
-        if(!model_table["constraint_sets"][conName.c_str()]
-            [ci + 1]["predecessor_body"].exists()) {
-          throw Errors::RBDLFileParseError("predecessor_body not specified.\n");
+
+        unsigned int constraint_user_id=std::numeric_limits<unsigned int>::max();
+        if(model_table["constraint_sets"][conName.c_str()][ci + 1]
+            ["id"].exists()) {
+          constraint_user_id = unsigned(int(
+                                          model_table["constraint_sets"][conName.c_str()]
+                                          [ci + 1]["id"].getDefault<double>(0.)));
         }
-        if(!model_table["constraint_sets"][conName.c_str()]
-            [ci + 1]["successor_body"].exists()) {
-          throw Errors::RBDLFileParseError("successor_body not specified.\n");
+
+        //Get the local frames that this constraint will be applied to
+        // If named local frames have been given, use them
+        // Otherwise look for the individual fields
+        unsigned int idPredecessor;
+        unsigned int idSuccessor;
+        SpatialTransform Xp;
+        SpatialTransform Xs;
+
+        if(model_table["constraint_sets"]
+           [conName.c_str()][ci + 1]["predecessor_local_frame"].exists()){
+
+          std::string localFrameName = model_table["constraint_sets"]
+              [conName.c_str()][ci + 1]["predecessor_local_frame"]
+              .getDefault<string>("");
+          bool frameFound = false;
+          unsigned int fi=0;
+          while(fi < localFrameSet.size() && frameFound == false){
+            if(std::strcmp(localFrameSet[fi].name.c_str(),
+                           localFrameName.c_str())==0){
+              frameFound = true;
+              idPredecessor = localFrameSet[fi].body_id;
+              Xp.r = localFrameSet[fi].r;
+              Xp.E = localFrameSet[fi].E;
+            }
+          }
+          if(frameFound == false){
+            ostringstream errormsg;
+            errormsg << "Could not find a local frame with the name: "
+                     << localFrameName
+                     << " which is used in constraint set " << constraint_name
+                     << endl;
+            throw Errors::RBDLFileParseError(errormsg.str());
+          }
+        }else{
+          if(!model_table["constraint_sets"][conName.c_str()]
+              [ci + 1]["predecessor_body"].exists()) {
+            throw Errors::RBDLFileParseError("predecessor_body not specified.\n");
+          }
+
+          idPredecessor =
+            model->GetBodyId(model_table["constraint_sets"]
+                             [conName.c_str()][ci + 1]["predecessor_body"]
+                             .getDefault<string>("").c_str());
+          Xp = model_table["constraint_sets"][conName.c_str()]
+                [ci + 1]["predecessor_transform"]
+                .getDefault<SpatialTransform>(SpatialTransform());
         }
+
+        if(model_table["constraint_sets"]
+           [conName.c_str()][ci + 1]["successor_local_frame"].exists()){
+
+          std::string localFrameName = model_table["constraint_sets"]
+              [conName.c_str()][ci + 1]["successor_local_frame"]
+              .getDefault<string>("");
+          bool frameFound = false;
+          unsigned int fi=0;
+          while(fi < localFrameSet.size() && frameFound == false){
+            if(std::strcmp(localFrameSet[fi].name.c_str(),
+                           localFrameName.c_str())==0){
+              frameFound = true;
+              idSuccessor = localFrameSet[fi].body_id;
+              Xs.r = localFrameSet[fi].r;
+              Xs.E = localFrameSet[fi].E;
+            }
+            ++fi;
+          }
+          if(frameFound == false){
+            ostringstream errormsg;
+            errormsg << "Could not find a local frame with the name: "
+                     << localFrameName
+                     << " which is used in constraint set " << constraint_name
+                     << endl;
+            throw Errors::RBDLFileParseError(errormsg.str());
+          }
+
+        }else{
+
+          if(!model_table["constraint_sets"][conName.c_str()]
+              [ci + 1]["successor_body"].exists()) {
+            throw Errors::RBDLFileParseError("successor_body not specified.\n");
+          }
+
+          idSuccessor =
+            model->GetBodyId(model_table["constraint_sets"]
+                             [conName.c_str()][ci + 1]["successor_body"]
+                             .getDefault<string>("").c_str());
+
+
+          Xs =  model_table["constraint_sets"][conName.c_str()]
+                  [ci + 1]["successor_transform"]
+                  .getDefault<SpatialTransform>(SpatialTransform());
+        }
+
+
 
         // Add the loop constraint as a non-stablized constraint and compute
         // and set the actual stabilization cofficients for the Baumgarte
         // stabilization afterwards if enabled.
-        unsigned int constraint_id;
-
-        bool enable_stabilization =
-          model_table["constraint_sets"][conName.c_str()][ci + 1]
-          ["enable_stabilization"].getDefault<bool>(false);
-        double stabilization_parameter = 0.1;
-
-        if (enable_stabilization) {
-          stabilization_parameter =
-            model_table["constraint_sets"][conName.c_str()][ci + 1]
-            ["stabilization_parameter"].getDefault<double>(0.1);
-          if (stabilization_parameter <= 0.0) {
-            std::stringstream errormsg;
-            errormsg  << "Invalid stabilization parameter: "
-                      << stabilization_parameter
-                      << " must be > 0.0" << std::endl;
-            throw Errors::RBDLFileParseError(errormsg.str());
-          }
-        }
 
         axisSetsMatrix.resize(1,1);
         axisSets.resize(0);
@@ -406,34 +571,7 @@ bool LuaModelReadConstraintsFromTable (
           throw Errors::RBDLFileParseError(errormsg.str());
         }
 
-        unsigned int constraint_user_id=std::numeric_limits<unsigned int>::max();
-        if(model_table["constraint_sets"][conName.c_str()][ci + 1]
-            ["id"].exists()) {
-          constraint_user_id = unsigned(int(
-                                          model_table["constraint_sets"][conName.c_str()]
-                                          [ci + 1]["id"].getDefault<double>(0.)));
-        }
-
-        unsigned int idPredecessor =
-          model->GetBodyId(model_table["constraint_sets"]
-                           [conName.c_str()][ci + 1]["predecessor_body"]
-                           .getDefault<string>("").c_str());
-
-        unsigned int idSuccessor =
-          model->GetBodyId(model_table["constraint_sets"]
-                           [conName.c_str()][ci + 1]["successor_body"]
-                           .getDefault<string>("").c_str());
-
-        SpatialTransform Xp =
-          model_table["constraint_sets"][conName.c_str()]
-          [ci + 1]["predecessor_transform"]
-          .getDefault<SpatialTransform>(SpatialTransform());
-
-        SpatialTransform Xs =
-          model_table["constraint_sets"][conName.c_str()]
-          [ci + 1]["successor_transform"]
-          .getDefault<SpatialTransform>(SpatialTransform());
-
+        unsigned int constraint_id;
         for(unsigned int r=0; r<axisSets.size(); ++r) {
           constraint_id = constraint_sets[i].AddLoopConstraint(
                             idPredecessor
@@ -482,45 +620,11 @@ bool LuaModelReadConstraintsFromTable (
   return true;
 }
 
-
-bool LuaModelReadPoints (
-      const char* filename,
-      RigidBodyDynamics::Model *model,
-      std::vector<Point>& updPointSet,
-      bool verbose)
-{
-
-  LuaTable luaTable       = LuaTable::fromFile (filename);
-  updPointSet.clear();
-  unsigned int pointCount = unsigned(int(luaTable["points"].length()));
-
-  if(pointCount > 0){
-    updPointSet.resize(pointCount);
-    Point point;
-
-    for (unsigned int i = 1; i <= pointCount; ++i) {
-
-      point = luaTable["points"][i];
-
-      point.body_id   = model->GetBodyId (point.body_name.c_str());
-      updPointSet[i-1]   = point;
-
-      if (verbose) {
-        cout  << "Point '"           << updPointSet[i-1].name
-              << "' (PointName = "   << updPointSet[i-1].name << ")"    << endl;
-        cout  << "  body        = "  << updPointSet[i-1].body_name
-              << " (id = "           << updPointSet[i-1].body_id << ")" << endl;
-        cout  << "  point_local  = '"       << updPointSet[i-1].point_local.transpose()
-                                     << endl;
-      }
-    }
-  }
-  return true;  
-}
+//==============================================================================
 
 bool LuaModelReadMotionCaptureMarkers (
       const char* filename,
-      RigidBodyDynamics::Model *model,
+      const RigidBodyDynamics::Model *model,
       std::vector<Point>& updPointSet,
       bool verbose)
 {
@@ -557,6 +661,76 @@ bool LuaModelReadMotionCaptureMarkers (
     }
   }
 
+  return true;
+}
+//==============================================================================
+bool LuaModelReadLocalFrames (
+      LuaTable &model_table,
+      const RigidBodyDynamics::Model *model,
+      std::vector<LocalFrame>& updLocalFramesSet,
+      bool verbose)
+{
+  //LuaTable luaTable       = LuaTable::fromFile (filename);
+  updLocalFramesSet.clear();
+  unsigned int localFrameCount =
+      unsigned(int(model_table["local_frames"].length()));
+
+  if(localFrameCount > 0){
+    updLocalFramesSet.resize(localFrameCount);
+    LocalFrame localFrame;
+
+    for (unsigned int i = 1; i <= localFrameCount; ++i) {
+
+      localFrame = model_table["local_frames"][signed(i)];
+
+      localFrame.body_id     = model->GetBodyId (localFrame.body_name.c_str());
+      updLocalFramesSet[i-1] = localFrame;
+
+      if (verbose) {
+        cout  << "LocalFrame '" << updLocalFramesSet[i-1].name
+              << "' (name = "   << updLocalFramesSet[i-1].name << ")" << endl;
+        cout  << "  body        = " << updLocalFramesSet[i-1].body_name
+              << " (id = " << updLocalFramesSet[i-1].body_id << ")" << endl;
+        cout  << "  r  = '" << updLocalFramesSet[i-1].r.transpose() << endl;
+        cout  << "  E  = '" << updLocalFramesSet[i-1].E << endl;
+      }
+    }
+  }
+  return true;
+}
+
+//==============================================================================
+bool LuaModelReadPoints (
+      LuaTable &model_table,
+      const RigidBodyDynamics::Model *model,
+      std::vector<Point>& updPointSet,
+      bool verbose)
+{
+
+  updPointSet.clear();
+  unsigned int pointCount = unsigned(int(model_table["points"].length()));
+
+  if(pointCount > 0){
+    updPointSet.resize(pointCount);
+    Point point;
+
+    for (unsigned int i = 1; i <= pointCount; ++i) {
+
+      point = model_table["points"][i];
+
+      point.body_id   = model->GetBodyId (point.body_name.c_str());
+      updPointSet[i-1]   = point;
+
+      if (verbose) {
+        cout  << "Point '"           << updPointSet[i-1].name
+              << "' (PointName = "   << updPointSet[i-1].name << ")"    << endl;
+        cout  << "  body        = "  << updPointSet[i-1].body_name
+              << " (id = "           << updPointSet[i-1].body_id << ")" << endl;
+        cout  << "  point_local  = '"       << updPointSet[i-1].point_local.transpose()
+                                     << endl;
+      }
+    }
+  }
   return true;
 }
 

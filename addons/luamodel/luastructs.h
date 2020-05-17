@@ -80,6 +80,40 @@ struct MotionCaptureMarker {
   RigidBodyDynamics::Math::Vector3d point_local;
 };
 
+/**
+  A struct for a named body fixed frame.
 
+  @param name the name of the point
+  @param body_id the integer id of the body that this local frame is fixed to
+  @param body_name the name of the body that this local frame is fixed to
+  @param r the translation from the body's origin to the origin of the
+         local frame, in the coordinates of the body.
+  @param E the rotation matrix that transforms vectors from the
+         coordinates of the local frame to the coordinates of the body.
+*/
+struct LocalFrame {
+  LocalFrame() :
+    name ("unknown"),
+    body_id (std::numeric_limits<unsigned int>::signaling_NaN()),
+    body_name (""),
+    r ( std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN()),
+    E ( std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN(),
+        std::numeric_limits<double>::signaling_NaN())
+  { }
+  std::string name;
+  unsigned int body_id;
+  std::string body_name;
+  RigidBodyDynamics::Math::Vector3d r;
+  RigidBodyDynamics::Math::Matrix3d E;
+};
 /* LUASTRUCTS_H */
 #endif

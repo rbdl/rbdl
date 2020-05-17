@@ -716,6 +716,7 @@ struct RBDL_DLLAPI ConstraintSet {
     const char *constraintName = NULL,
     unsigned int userDefinedId = std::numeric_limits<unsigned int>::max());
 
+
   /** \brief Adds a loop constraint to the constraint set.
    
     This type of constraints ensures that the relative orientation and position,

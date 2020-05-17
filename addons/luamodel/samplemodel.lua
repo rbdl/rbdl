@@ -39,12 +39,25 @@ joints = {
 	fixed = {},
 }
 
+eye33 = {{1.0,0.0,0.,},
+	 			 {0.0,1.0,0.,},
+	 			 {0.0,0.0,1.,},}
+
+
 return {
+  --Named body fixed points. The names of the fields have been set for
+  --historical reasons. It would make more sense if this was named instead
+  -- local_points, with a field of 'r' rather than 'point'.
 points = {
 	{name = "Heel_Medial_L", 			body = "foot_right", point = {-0.080000, -0.042000, -0.091000,},},
 	{name = "Heel_Lateral_L", 		body = "foot_right", point = {-0.080000, 0.042000, -0.091000,},},
 	{name = "ForeFoot_Medial_L", 	body = "foot_right", point = {0.181788, -0.054000, -0.091000,},},
 	{name = "ForeFoot_Lateral_L", body = "foot_right", point = {0.181788, 0.054000, -0.091000,},},
+},
+--Named local frames
+local_frames = {
+  {name = "Pocket_L",   body="thigh_left",   r={0.,  0.2, 0.}, E=eye33, },
+  {name = "Pocket_R",   body="thigh_right",  r={0., -0.2, 0.}, E=eye33, },
 },
 frames = {
 	{

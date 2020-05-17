@@ -78,6 +78,12 @@ meshes = {
   },
 }
 
+eye33 = {
+  {1.,0.,0.,},
+  {0.,1.,0.,},
+  {0.,0.,1.,},
+}
+
 model = {
 
   gravity = {0, 0, 0},
@@ -133,61 +139,44 @@ model = {
 
   },
 
+  --Named body fixed points. The names of the fields have been set for
+  --historical reasons. It would make more sense if this was named instead
+  -- local_points, with a field of 'r' rather than 'point'.
+  points = {
+    {name = 'base_origin', body='base', point={0.,0.,0.},},
+  },
+
+  --Named local frames
+  local_frames = {
+    {name = 'l12_A',       body='l12',  r={l2,0.,0.}, E=eye33,},
+    {name = 'l22_B',       body='l22',  r={0.,0.,0.}, E=eye33,},
+  },
+
   constraint_sets = {
     individual_constraints = {
-      {
-        constraint_type = 'contact',
-        body = 'base',
-        point = {0, 0, 0},
-        normal = {1., 0., 0.},
-        name = 'contactBaseX',
-        id = 2,
+      { -- Contact Constraint: verbose syntax
+        -- Note: Contact Constraints do not have the 'enable_stablization' flag
+        --       exposed (it is currently ignored if present) because this 
+        --       type of constraint is very well numerically behaved and rarely
+        --       suffers from drift.
+        constraint_type = 'contact', name = 'contactBaseX', id = 2,
+        body = 'base', point = {0, 0, 0}, normal = {1., 0., 0.},
       }, 
-      {
-        constraint_type = 'contact',
-        body = 'base',
-        point = {0, 0, 0},
-        normal = {0., 1., 0.},
-        name = 'contactBaseY',
-        id = 3,
+      { -- Contact Constraint: contact syntax - makes use of named points
+        -- and passes a set of normals
+        constraint_type = 'contact', name = 'contactBaseYZ', id = 3,        
+        point_name = 'base_origin', normal_sets = {{0.,1.,0.,},{0.,0.,1.}},
       }, 
-      {
-        constraint_type = 'contact',
-        body = 'base',
-        point = {0, 0, 0},
-        normal = {0., 0., 1.},
-        name = 'contactBaseZ',
-        id = 4,
-      },                  
-      {
-        constraint_type = 'loop',
-        predecessor_body = 'l12',
-        successor_body = 'l22',
-        predecessor_transform = {
-          E = {
-            {1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1},
-          },
-          r = {l2, 0, 0},
-        },
-        successor_transform = {
-          E = {
-            {1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1},
-          },
-          r = {0, 0, 0},
-        },
+      { -- Loop Constraint: compact syntax - makes use of named local_frames        
+        constraint_type = 'loop', name = 'loopL12L22Tx', id = 1, 
+        predecessor_local_frame = 'l12_A',
+        successor_local_frame = 'l22_B',
         axis =  {0., 0., 0., 1., 0., 0.},
         stabilization_coefficient = 0.1,
-        name = 'loopL12L22Tx',
-        id = 1,
       },
-      {
-        constraint_type = 'loop',
+      { -- Loop Constraint: verbose syntax.
+        constraint_type = 'loop', name = 'loopL12L22Ty', id = 2,
         predecessor_body = 'l12',
-        successor_body = 'l22',
         predecessor_transform = {
           E = {
             {1, 0, 0},
@@ -196,6 +185,7 @@ model = {
           },
           r = {l2, 0, 0},
         },
+        successor_body = 'l22',
         successor_transform = {
           E = {
             {1, 0, 0},
@@ -206,49 +196,30 @@ model = {
         },
         axis = {0., 0., 0., 0., 1., 0.},      
         stabilization_coefficient = 0.1,
-        name = 'loopL12L22Ty',
-        id = 2,
+        enable_stabilization = true,
       },      
     },
     constraints_in_sets = {
-      {
-        constraint_type = 'contact',
-        body = 'base',
-        point = {0, 0, 0},
+      { -- Contact Constraint: compact syntax - use of named points and 
+        -- normal sets
+        constraint_type = 'contact',name = 'contactBaseXYZ',id = 2,
+        point_name = 'base_origin',
         normal_sets = {{1., 0., 0.},
                        {0., 1., 0.},
-                       {0., 0., 1.},},
-        name = 'contactBaseXYZ',
-        id = 2,
+                       {0., 0., 1.},},        
       },
-      {
-        constraint_type = 'loop',
-        predecessor_body = 'l12',
-        successor_body = 'l22',
-        predecessor_transform = {
-          E = {
-            {1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1},
-          },
-          r = {l2, 0, 0},
-        },
-        successor_transform = {
-          E = {
-            {1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1},
-          },
-          r = {0, 0, 0},
-        },
+      { -- Loop Constraint: compact syntax - use of named local_frames 
+        -- and normal sets
+        constraint_type = 'loop', name = 'loopL12L22TxTy', id = 1,
+        predecessor_local_frame = 'l12_A',
+        successor_local_frame = 'l22_B',              
         axis_sets = {{0., 0., 0., 1., 0., 0.},
                      {0., 0., 0., 0., 1., 0.},},
-        stabilization_coefficient = 0.1,
-        name = 'loopL12L22TxTy',
-        id = 1,
+        stabilization_coefficient = 0.1,        
+        enable_stabilization = false,
       },
     },
-  },
+  },  
 
 }
 
