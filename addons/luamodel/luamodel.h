@@ -4,6 +4,7 @@
 #include <rbdl/rbdl_config.h>
 #include <string>
 #include <vector>
+#include "luastructs.h"
 
 extern "C" {
   struct lua_State;
@@ -261,13 +262,68 @@ namespace Addons {
 RBDL_DLLAPI
 bool LuaModelReadFromFile (
   const char* filename,
-  Model* model,
+  Model* updModel,
   bool verbose = false);
 
 /** \brief Reads a model file and returns the names of all constraint sets.
  */
 RBDL_DLLAPI
 std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename);
+
+/**
+  This function will load named body-fixed motion capture markers that are
+  attached to each body
+
+  @param filename: name of the lua file
+  @param model: reference to the (loaded) multibody model.
+  @param pointSet: an empty std::vector of Point structure
+  @param verbose: information will be printed to the command window if this
+                  is set to true.
+
+*/
+RBDL_DLLAPI
+bool LuaModelReadMotionCaptureMarkers (
+      const char* filename,
+      const Model* model,
+      std::vector<Point> &markerSet,
+      bool verbose=false);
+
+/**
+  This function will load the point information from the lua
+  file into the std::vector of Point structures.
+
+  @param filename: name of the lua file
+  @param model: reference to the (loaded) multibody model.
+  @param pointSet: an empty std::vector of Point structurs
+  @param verbose: information will be printed to the command window if this
+                  is set to true.
+
+*/
+RBDL_DLLAPI
+bool LuaModelReadPoints (
+      const char* filename,
+      const Model* model,
+      std::vector<Point> &pointSet,
+      bool verbose=false);
+
+/**
+  This function will load the local frames from the lua
+  file into the std::vector of LocalFrame structures.
+
+  @param filename: name of the lua file
+  @param model: reference to the (loaded) multibody model.
+  @param localFrameSet: an empty std::vector of LocalFrame structurs
+  @param verbose: information will be printed to the command window if this
+                  is set to true.
+
+*/
+RBDL_DLLAPI
+bool LuaModelReadLocalFrames (
+      const char* filename,
+      const Model* model,
+      std::vector<LocalFrame> &updLocalFrameSet,
+      bool verbose=false);
+
 
 /** \brief Reads a model and constraint sets from a Lua file.
  *
@@ -308,6 +364,7 @@ bool LuaModelReadFromLuaState (
   lua_State* L,
   Model* model,
   bool verbose = false);
+
 
 /** @} */
 }
