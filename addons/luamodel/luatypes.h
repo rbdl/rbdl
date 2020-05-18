@@ -327,7 +327,9 @@ LuaTableNode::getDefault<Point>(
     LuaTable point_table = LuaTable::fromLuaState (luaTable->L);
 
     result.name         = point_table["name"].get<std::string>();
-    result.point_local  = point_table["point"];
+    result.point_local  = point_table["point"]
+                            .getDefault<RigidBodyDynamics::Math::Vector3d>(
+                              RigidBodyDynamics::Math::Vector3d::Zero());
     result.body_name    = point_table["body"].get<std::string>();
   }
 
@@ -347,10 +349,11 @@ LuaTableNode::getDefault<MotionCaptureMarker>(
   if (stackQueryValue()) {
     LuaTable marker_table = LuaTable::fromLuaState (luaTable->L);
 
-    result.name         = marker_table["name"].get<std::string>();
-    result.point_local  = marker_table["point"]
-                            .getDefault<RigidBodyDynamics::Math::Vector3d>(
-                              result.point_local);
+    result.name        = marker_table["name"].get<std::string>();
+    result.point_local = marker_table["point"]
+                          .getDefault<RigidBodyDynamics::Math::Vector3d>(
+                            RigidBodyDynamics::Math::Vector3d::Zero());
+    result.body_name   = marker_table["body"].get<std::string>();
   }
 
   stackRestore();
@@ -369,12 +372,15 @@ LuaTableNode::getDefault<LocalFrame>(
   if (stackQueryValue()) {
     LuaTable local_frame_table = LuaTable::fromLuaState (luaTable->L);
 
-    result.name      = local_frame_table["name"].get<std::string>();
-    result.body_name = local_frame_table["body"].get<std::string>();
+    result.name     = local_frame_table["name"].get<std::string>();
+    result.body_name= local_frame_table["body"].get<std::string>();
+
     result.r = local_frame_table["r"]
-                .getDefault<RigidBodyDynamics::Math::Vector3d>(result.r);
+                .getDefault<RigidBodyDynamics::Math::Vector3d>(
+                  RigidBodyDynamics::Math::Vector3d::Zero());
     result.E = local_frame_table["E"]
-                .getDefault<RigidBodyDynamics::Math::Matrix3d>(result.E);
+                .getDefault<RigidBodyDynamics::Math::Matrix3d>(
+                  RigidBodyDynamics::Math::Matrix3d::Identity());
   }
 
   stackRestore();

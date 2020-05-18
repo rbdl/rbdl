@@ -250,7 +250,7 @@ namespace Addons {
 /** \brief Reads a model from a Lua file.
  *
  * \param filename the name of the Lua file.
- * \param model a pointer to the output Model structure.
+ * \param upd_model a pointer to the output Model structure.
  * \param verbose specifies wether information on the model should be printed
  * (default: true).
  *
@@ -262,7 +262,7 @@ namespace Addons {
 RBDL_DLLAPI
 bool LuaModelReadFromFile (
   const char* filename,
-  Model* updModel,
+  Model* upd_model,
   bool verbose = false);
 
 /** \brief Reads a model file and returns the names of all constraint sets.
@@ -276,7 +276,7 @@ std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename);
 
   @param filename: name of the lua file
   @param model: reference to the (loaded) multibody model.
-  @param pointSet: an empty std::vector of Point structure
+  @param upd_marker_set: an empty std::vector of Point structure
   @param verbose: information will be printed to the command window if this
                   is set to true.
 
@@ -285,7 +285,7 @@ RBDL_DLLAPI
 bool LuaModelReadMotionCaptureMarkers (
       const char* filename,
       const Model* model,
-      std::vector<Point> &markerSet,
+      std::vector<Point> &upd_marker_set,
       bool verbose=false);
 
 /**
@@ -294,7 +294,7 @@ bool LuaModelReadMotionCaptureMarkers (
 
   @param filename: name of the lua file
   @param model: reference to the (loaded) multibody model.
-  @param pointSet: an empty std::vector of Point structurs
+  @param upd_point_set: an empty std::vector of Point structurs
   @param verbose: information will be printed to the command window if this
                   is set to true.
 
@@ -303,7 +303,7 @@ RBDL_DLLAPI
 bool LuaModelReadPoints (
       const char* filename,
       const Model* model,
-      std::vector<Point> &pointSet,
+      std::vector<Point> &upd_point_set,
       bool verbose=false);
 
 /**
@@ -312,7 +312,7 @@ bool LuaModelReadPoints (
 
   @param filename: name of the lua file
   @param model: reference to the (loaded) multibody model.
-  @param localFrameSet: an empty std::vector of LocalFrame structurs
+  @param upd_local_frame_set: an empty std::vector of LocalFrame structurs
   @param verbose: information will be printed to the command window if this
                   is set to true.
 
@@ -321,14 +321,14 @@ RBDL_DLLAPI
 bool LuaModelReadLocalFrames (
       const char* filename,
       const Model* model,
-      std::vector<LocalFrame> &updLocalFrameSet,
+      std::vector<LocalFrame> &upd_local_frame_set,
       bool verbose=false);
 
 
 /** \brief Reads a model and constraint sets from a Lua file.
  *
  * \param filename the name of the Lua file.
- * \param model a pointer to the output Model structure.
+ * \param upd_model a pointer to the output Model structure.
  * \param constraint_sets reference to a std::vector of ConstraintSet structures
  * in which to save the information read from the file.
  * \param constraint_set_names reference to a std::vector of std::string
@@ -345,7 +345,7 @@ bool LuaModelReadLocalFrames (
 RBDL_DLLAPI
 bool LuaModelReadFromFileWithConstraints (
   const char* filename,
-  Model* model,
+  Model* upd_model,
   std::vector<ConstraintSet>& constraint_sets,
   const std::vector<std::string>& constraint_set_names,
   bool verbose = false);
