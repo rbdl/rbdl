@@ -57,48 +57,48 @@ bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose)
 bool LuaModelReadLocalFrames (
       LuaTable &model_table,
       const RigidBodyDynamics::Model *model,
-      std::vector<LocalFrame>& updLocalFramesSet,
+      std::vector<LocalFrame>& upd_local_frame_set,
       bool verbose);
 
 RBDL_DLLAPI
 bool LuaModelReadLocalFrames (
       const char* filename,
       const RigidBodyDynamics::Model *model,
-      std::vector<LocalFrame>& updLocalFramesSet,
+      std::vector<LocalFrame>& upd_local_frame_set,
       bool verbose)
 {
   LuaTable model_table       = LuaTable::fromFile (filename);
-  return LuaModelReadLocalFrames(model_table,model,updLocalFramesSet,verbose);
+  return LuaModelReadLocalFrames(model_table,model,upd_local_frame_set,verbose);
 }
 
 //==============================================================================
 bool LuaModelReadPoints (
       LuaTable &model_table,
       const RigidBodyDynamics::Model *model,
-      std::vector<Point>& updPointSet,
+      std::vector<Point>& upd_point_set,
       bool verbose);
 
 RBDL_DLLAPI
 bool LuaModelReadPoints (
       const char* filename,
       const RigidBodyDynamics::Model *model,
-      std::vector<Point>& updPointSet,
+      std::vector<Point>& upd_point_set,
       bool verbose)
 {
   LuaTable model_table       = LuaTable::fromFile (filename);
-  return LuaModelReadPoints(model_table,model,updPointSet,verbose);
+  return LuaModelReadPoints(model_table,model,upd_point_set,verbose);
 }
 
 //==============================================================================
 RBDL_DLLAPI
-bool LuaModelReadFromFile (const char* filename, Model* updModel, bool verbose)
+bool LuaModelReadFromFile (const char* filename, Model* upd_model, bool verbose)
 {
-  //if(!updModel) {
+  //if(!upd_model) {
   //  throw Errors::RBDLError("Model not provided.");
   //}
 
   LuaTable model_table = LuaTable::fromFile (filename);
-  return LuaModelReadFromTable (model_table, updModel, verbose);
+  return LuaModelReadFromTable (model_table, upd_model, verbose);
 }
 
 //==============================================================================
@@ -625,12 +625,12 @@ bool LuaModelReadConstraintsFromTable (
 bool LuaModelReadMotionCaptureMarkers (
       const char* filename,
       const RigidBodyDynamics::Model *model,
-      std::vector<Point>& updPointSet,
+      std::vector<Point>& upd_point_set,
       bool verbose)
 {
 
   LuaTable luaTable       = LuaTable::fromFile (filename);
-  updPointSet.clear();
+  upd_point_set.clear();
 
   if(luaTable["frames"].exists()){
     unsigned int frameCount = luaTable["frames"].length();
@@ -655,7 +655,7 @@ bool LuaModelReadMotionCaptureMarkers (
           point.body_id   = body_id;
           point.point_local = luaTable["frames"][i]["markers"][point.name.c_str()]
                               .getDefault<Vector3d>(Vector3d::Zero());
-          updPointSet.push_back(point);
+          upd_point_set.push_back(point);
         }
       }
     }
@@ -667,16 +667,16 @@ bool LuaModelReadMotionCaptureMarkers (
 bool LuaModelReadLocalFrames (
       LuaTable &model_table,
       const RigidBodyDynamics::Model *model,
-      std::vector<LocalFrame>& updLocalFramesSet,
+      std::vector<LocalFrame>& upd_local_frame_set,
       bool verbose)
 {
   //LuaTable luaTable       = LuaTable::fromFile (filename);
-  updLocalFramesSet.clear();
+  upd_local_frame_set.clear();
   unsigned int localFrameCount =
       unsigned(int(model_table["local_frames"].length()));
 
   if(localFrameCount > 0){
-    updLocalFramesSet.resize(localFrameCount);
+    upd_local_frame_set.resize(localFrameCount);
     LocalFrame localFrame;
 
     for (unsigned int i = 1; i <= localFrameCount; ++i) {
@@ -684,15 +684,15 @@ bool LuaModelReadLocalFrames (
       localFrame = model_table["local_frames"][signed(i)];
 
       localFrame.body_id     = model->GetBodyId (localFrame.body_name.c_str());
-      updLocalFramesSet[i-1] = localFrame;
+      upd_local_frame_set[i-1] = localFrame;
 
       if (verbose) {
-        cout  << "LocalFrame '" << updLocalFramesSet[i-1].name
-              << "' (name = "   << updLocalFramesSet[i-1].name << ")" << endl;
-        cout  << "  body        = " << updLocalFramesSet[i-1].body_name
-              << " (id = " << updLocalFramesSet[i-1].body_id << ")" << endl;
-        cout  << "  r  = '" << updLocalFramesSet[i-1].r.transpose() << endl;
-        cout  << "  E  = '" << updLocalFramesSet[i-1].E << endl;
+        cout  << "LocalFrame '" << upd_local_frame_set[i-1].name
+              << "' (name = "   << upd_local_frame_set[i-1].name << ")" << endl;
+        cout  << "  body        = " << upd_local_frame_set[i-1].body_name
+              << " (id = " << upd_local_frame_set[i-1].body_id << ")" << endl;
+        cout  << "  r  = '" << upd_local_frame_set[i-1].r.transpose() << endl;
+        cout  << "  E  = '" << upd_local_frame_set[i-1].E << endl;
       }
     }
   }
@@ -703,15 +703,15 @@ bool LuaModelReadLocalFrames (
 bool LuaModelReadPoints (
       LuaTable &model_table,
       const RigidBodyDynamics::Model *model,
-      std::vector<Point>& updPointSet,
+      std::vector<Point>& upd_point_set,
       bool verbose)
 {
 
-  updPointSet.clear();
+  upd_point_set.clear();
   unsigned int pointCount = unsigned(int(model_table["points"].length()));
 
   if(pointCount > 0){
-    updPointSet.resize(pointCount);
+    upd_point_set.resize(pointCount);
     Point point;
 
     for (unsigned int i = 1; i <= pointCount; ++i) {
@@ -719,14 +719,14 @@ bool LuaModelReadPoints (
       point = model_table["points"][i];
 
       point.body_id   = model->GetBodyId (point.body_name.c_str());
-      updPointSet[i-1]   = point;
+      upd_point_set[i-1]   = point;
 
       if (verbose) {
-        cout  << "Point '"           << updPointSet[i-1].name
-              << "' (PointName = "   << updPointSet[i-1].name << ")"    << endl;
-        cout  << "  body        = "  << updPointSet[i-1].body_name
-              << " (id = "           << updPointSet[i-1].body_id << ")" << endl;
-        cout  << "  point_local  = '"       << updPointSet[i-1].point_local.transpose()
+        cout  << "Point '"           << upd_point_set[i-1].name
+              << "' (PointName = "   << upd_point_set[i-1].name << ")"    << endl;
+        cout  << "  body        = "  << upd_point_set[i-1].body_name
+              << " (id = "           << upd_point_set[i-1].body_id << ")" << endl;
+        cout  << "  point_local  = '"       << upd_point_set[i-1].point_local.transpose()
                                      << endl;
       }
     }
