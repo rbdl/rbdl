@@ -282,6 +282,11 @@ bool LuaModelReadFromFile (
 RBDL_DLLAPI
 std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename);
 
+RBDL_DLLAPI
+bool LuaModelGetConstraintSetPhases(const char* filename,
+    const std::vector<std::string> &constraint_set_names,
+    std::vector< unsigned int > &constraint_set_phases);
+
 /**
   This function will load named body-fixed motion capture markers that are
   attached to each body
@@ -297,7 +302,7 @@ RBDL_DLLAPI
 bool LuaModelReadMotionCaptureMarkers (
       const char* filename,
       const Model* model,
-      std::vector<Point> &upd_marker_set,
+      std::vector<MotionCaptureMarker> &upd_marker_set,
       bool verbose=false);
 
 /**
@@ -388,9 +393,27 @@ bool LuaModelReadFromLuaState (
 */
 RBDL_DLLAPI
 bool LuaModelReadHumanMetaData(
-  const std::string &filename,
+  const char* filename,
   HumanMetaData &human_meta_data,
   bool verbose = false);
+
+RBDL_DLLAPI
+bool LuaModelWriteModelHeaderEntries(const char* header_file_name,
+                              const RigidBodyDynamics::Model &model,
+                              bool append);
+RBDL_DLLAPI
+bool LuaModelAddHeaderGuards(const char* header_file_name);
+
+RBDL_DLLAPI
+bool LuaModelWritePointsHeaderEntries(const char* header_file_name,
+                                      const std::vector<Point> &point_set,
+                                      bool append);
+
+RBDL_DLLAPI
+bool LuaModelWriteMotionCaptureMarkerHeaderEntries(
+        const char* header_file_name,
+        const std::vector< MotionCaptureMarker > &marker_set,
+        bool append);
 
 #ifdef RBDL_BUILD_ADDON_MUSCLE
 
@@ -418,7 +441,7 @@ bool LuaModelReadHumanMetaData(
 */
 RBDL_DLLAPI
 bool LuaModelReadMillard2016TorqueMuscleSets(
-    const std::string &filename,
+          const char* filename,
           const RigidBodyDynamics::Model &model,
           const HumanMetaData &human_meta_data,
           std::vector <RigidBodyDynamics::Addons::

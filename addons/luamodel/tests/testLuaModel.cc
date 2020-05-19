@@ -48,7 +48,7 @@ TEST(LoadMotionCaptureMarkers)
   std::string modelFile = rbdlSourcePath;
   modelFile.append("/samplemodel.lua");
   bool modelLoaded = LuaModelReadFromFile(modelFile.c_str(), &model, false);
-  std::vector< Point > updMarkerSet;
+  std::vector< MotionCaptureMarker > updMarkerSet;
   bool markersLoaded = LuaModelReadMotionCaptureMarkers(modelFile.c_str(),
                                                &model, updMarkerSet,false);
   CHECK(updMarkerSet.size()==6);
@@ -389,6 +389,19 @@ TEST(LoadConstrainedLuaModel)
 
   CHECK(constraintSets[1].isBaumgarteStabilizationEnabled(groupIndex) == false);
 
+  std::vector<unsigned int> phasing;
+  bool constraintSetPhasingLoaded =
+      LuaModelGetConstraintSetPhases(modelFile.c_str(),constraintSetNames,
+                                     phasing);
+  CHECK(constraintSetPhasingLoaded);
+
+  CHECK(phasing[0]==0);
+  CHECK(phasing[1]==1);
+  CHECK(phasing[2]==1);
+  CHECK(phasing[3]==0);
+
+
+
 
 }
 
@@ -487,6 +500,52 @@ TEST(LoadMuscleTorqueGenerators)
 }
 
 #endif
+
+TEST(ModelHeaderGeneration)
+{
+  RigidBodyDynamics::Model model;
+  std::string modelFile = rbdlSourcePath;
+  modelFile.append("/complexmodel.lua");
+
+
+
+  bool modelLoaded = LuaModelReadFromFile( modelFile.c_str(),
+                                           &model,
+                                           false);
+  CHECK(modelLoaded);
+
+  std::vector< Point > pointSet;
+  bool pointsLoaded =
+      LuaModelReadPoints(modelFile.c_str(),&model,pointSet,false);
+  CHECK(pointsLoaded);
+
+  std::vector< MotionCaptureMarker > markerSet;
+  bool markersLoaded =
+    LuaModelReadMotionCaptureMarkers(modelFile.c_str(),&model,markerSet,false);
+  CHECK(markersLoaded);
+
+
+  //std::string headerFile = rbdlSourcePath;
+  //headerFile.append("/complexmodel.h");
+  std::string headerFile("complexmodel.h");
+
+  bool modelHeaderGenerated=
+      LuaModelWriteModelHeaderEntries(headerFile.c_str(),model,false);
+  CHECK(modelHeaderGenerated);
+
+  bool pointsHeaderGenerated=
+      LuaModelWritePointsHeaderEntries(headerFile.c_str(),pointSet,true);
+  CHECK(pointsHeaderGenerated);
+
+  bool markerHeaderGenerated= LuaModelWriteMotionCaptureMarkerHeaderEntries(
+        headerFile.c_str(),markerSet,true);
+  CHECK(markerHeaderGenerated);
+
+
+  bool headerGuardsAdded = LuaModelAddHeaderGuards(headerFile.c_str());
+  CHECK(headerGuardsAdded);
+
+}
 
 int main (int argc, char *argv[])
 {

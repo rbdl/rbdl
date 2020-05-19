@@ -151,7 +151,12 @@ model = {
     {name = 'l12_A',       body='l12',  r={l2,0.,0.}, E=eye33,},
     {name = 'l22_B',       body='l22',  r={0.,0.,0.}, E=eye33,},
   },
-
+  constraint_set_phases = {
+    "individual_constraints",
+    "constraints_in_sets",
+    "constraints_in_sets",
+    "individual_constraints",  
+  },
   constraint_sets = {
     individual_constraints = {
       { -- Contact Constraint: verbose syntax

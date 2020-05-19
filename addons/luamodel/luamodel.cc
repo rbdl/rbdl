@@ -3,6 +3,13 @@
 #include "luamodel.h"
 
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <stdlib.h>
+
+#include <iostream>
 #include <iomanip>
 #include <map>
 
@@ -31,6 +38,226 @@ namespace RigidBodyDynamics
 
 namespace Addons
 {
+
+//==============================================================================
+void appendEnumToFileStream(
+    std::ofstream &updFileStream,
+    const std::string &enumName,
+    const std::vector<std::string> &enumEntries,
+    unsigned int startingIndex,
+    const std::string &entryPrefix)
+{
+
+  updFileStream << "\n";
+  updFileStream << "enum " << enumName << "\n{\n";
+  unsigned int maxLineLength=0;
+  unsigned int numChars;
+  for(unsigned int i=0; i<enumEntries.size();++i){
+    if(maxLineLength < unsigned(enumEntries[i].size())){
+      maxLineLength = unsigned(enumEntries[i].size());
+    }
+  }
+  maxLineLength += unsigned(2+entryPrefix.size());
+  unsigned int startingIndexLength =
+      unsigned(int(std::to_string(startingIndex).size()));
+
+
+  for(unsigned int i=0; i<enumEntries.size();++i){
+    updFileStream << "  " << entryPrefix << enumEntries[i];
+    numChars = maxLineLength;
+    if(i==0){
+      numChars -= unsigned( startingIndexLength + 1);
+    }
+    for(unsigned int j=unsigned(int(entryPrefix.size()+enumEntries[i].size()));
+        j<numChars;++j){
+      updFileStream << " ";
+    }
+    if(i==0){
+      updFileStream << "=" << startingIndex;
+    }
+    if(i < (enumEntries.size()-1)){
+      updFileStream << ",";
+    }
+    updFileStream << "\n";
+  }
+  updFileStream << "};\n";
+}
+//==============================================================================
+void appendEnumNameIndexStructToFileStream(
+    std::ofstream &updFileStream,
+    const std::string &mapName,
+    const std::string &enumName,
+    const std::vector<std::string> &enumEntries,
+    const std::string &entryPrefix,
+    const std::vector< unsigned int> &indexEntries)
+{
+
+  updFileStream << "\n";
+  updFileStream << "struct " << mapName << "Entry {\n";
+  updFileStream << "  " << enumName << " id;\n";
+  updFileStream << "  const char* name;\n";
+  updFileStream << "  unsigned int index;\n";
+  updFileStream << "};\n\n";
+  updFileStream << "static const " << mapName << "Entry " << mapName << "[] = {\n";
+
+  unsigned int longLine=0;
+  unsigned int indexPadding =1;
+  unsigned int indexPaddingTemp=1;
+  for(unsigned int i=0;i<enumEntries.size();++i){
+    if(longLine < unsigned(int(enumEntries[i].size()))){
+      longLine = unsigned(int(enumEntries[i].size()));
+    }
+    if(indexEntries[i] > 9){
+      indexPaddingTemp = 1+
+          unsigned(int(std::floor( log10(double(indexEntries[i])))));
+      if(indexPaddingTemp > indexPadding){
+        indexPadding = indexPaddingTemp;
+      }
+    }
+
+  }
+  longLine += unsigned(entryPrefix.size()+2);
+  unsigned int numChars=0;
+
+  for(unsigned int i=0; i<enumEntries.size();++i){
+    updFileStream << "  { " << entryPrefix << enumEntries[i];
+    numChars=longLine;
+    for(unsigned int j=unsigned(int(enumEntries[i].size())); j<numChars;++j){
+      updFileStream << " ";
+    }
+    updFileStream << ", " << "\"" << entryPrefix << enumEntries[i] << "\"";
+
+    numChars= longLine;
+    for(unsigned int j=unsigned(int(enumEntries[i].size())); j<numChars;++j){
+      updFileStream << " ";
+    }
+    updFileStream << ",";
+
+    numChars = indexPadding;
+    if(indexEntries[i] > 9){
+      numChars-=unsigned(int(std::floor( log10(double(indexEntries[i])))));
+    }
+    numChars -= 1;
+    for(unsigned int j=0; j<numChars;++j){
+      updFileStream << " ";
+    }
+
+    updFileStream  << indexEntries[i];
+    updFileStream << " }";
+    if(i < (enumEntries.size()-1)){
+      updFileStream << ",";
+    }
+    updFileStream << "\n";
+  }
+  updFileStream << "};\n";
+
+}
+
+//==============================================================================
+
+void appendEnumStructToFileStream(
+    std::ofstream &updFileStream,
+    const std::string &mapName,
+    const std::vector < std::string > &enumTypeAndFieldNames,
+    const std::vector< std::vector<std::string> > &enumEntries,
+    const std::vector< std::string > &entryPrefix,
+    const std::vector< std::string > &indexTypeAndFieldName,
+    const std::vector< std::vector< unsigned int > > &indexEntries)
+{
+
+  updFileStream << "\n";
+  updFileStream << "struct " << mapName << "Entry {\n";
+  for(unsigned int i=0; i<enumTypeAndFieldNames.size(); ++i){
+    updFileStream << "  " << enumTypeAndFieldNames[i] << ";\n";
+  }
+  for(unsigned int i=0; i<indexTypeAndFieldName.size();++i){
+    updFileStream << "  " << indexTypeAndFieldName[i] <<";\n";
+  }
+  updFileStream << "};\n\n";
+  updFileStream << "static const " << mapName << "Entry " << mapName << "[] = {\n";
+
+  std::vector < unsigned int > enumNamePadding;
+  enumNamePadding.resize(enumTypeAndFieldNames.size());
+  unsigned int enumNamePaddingTemp =1;
+  for(unsigned int i=0; i<enumTypeAndFieldNames.size();++i){
+    enumNamePadding[i]=enumNamePaddingTemp;
+  }
+
+  std::vector < unsigned int > indexPadding;
+  indexPadding.resize( indexTypeAndFieldName.size() );
+  unsigned int indexPaddingTemp=1;
+  for(unsigned int j=0; j<indexTypeAndFieldName.size();++j){
+    indexPadding[j]=indexPaddingTemp;
+  }
+
+  for(unsigned int i=0;i<enumEntries.size();++i){
+    for(unsigned int j=0; j<enumEntries[0].size();++j){
+      if(enumNamePadding[j] < unsigned(int(enumEntries[i][j].size()))){
+        enumNamePadding[j] = unsigned(int(enumEntries[i][j].size()));
+      }
+    }
+    if(indexEntries.size()>0){
+      for(unsigned int j=0; j< indexEntries[0].size(); ++j){
+        if(indexEntries[i][j]>9){
+          indexPaddingTemp = 1+
+              unsigned(int(std::floor( log10(double(indexEntries[i][j])))));
+          if(indexPaddingTemp > indexPadding[j]){
+            indexPadding[j] = indexPaddingTemp;
+          }
+        }
+      }
+    }
+  }
+
+  for(unsigned int i=0; i<enumEntries[0].size();++i){
+    enumNamePadding[i]+=2;
+  }
+
+  unsigned int numChars=0;
+
+  for(unsigned int i=0; i<enumEntries.size();++i){
+
+    for(unsigned int j=0; j<enumEntries[i].size();++j){
+      if(j==0){
+        updFileStream << "  { " ;
+      }
+      updFileStream << entryPrefix[j] << enumEntries[i][j];
+      numChars=enumNamePadding[j];
+      for(unsigned int z=unsigned(int(enumEntries[i][j].size()));z<numChars;++z)
+      {
+        updFileStream << " ";
+      }
+      if(j < enumEntries[i].size()-1){
+        updFileStream << ",";
+      }
+    }
+
+    if(indexEntries.size()>0){
+      updFileStream << ",";
+      for(unsigned int j=0; j<indexEntries[i].size();++j){
+        numChars = indexPadding[j];
+        if(indexEntries[i][j] > 9){
+          numChars-=unsigned(int(std::floor( log10(double(indexEntries[i][j])))));
+        }
+        numChars -= 1;
+        for(unsigned int z=0; z<numChars;++z){
+          updFileStream << " ";
+        }
+
+        updFileStream  << indexEntries[i][j];
+        if(j < indexEntries[i].size()-1){
+          updFileStream   << ",";
+        }
+      }
+    }
+    updFileStream << " }";
+    if(i < (enumEntries.size()-1)){
+      updFileStream << ",";
+    }
+    updFileStream << "\n";
+  }
+  updFileStream << "};\n";
+}
 
 //==============================================================================
 bool LuaModelReadFromTable (LuaTable &model_table, Model *model, bool verbose);
@@ -134,6 +361,36 @@ std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename)
   }
 
   return result;
+}
+
+//==============================================================================
+RBDL_DLLAPI
+bool LuaModelGetConstraintSetPhases(const char* filename,
+    const std::vector<std::string> &constraint_set_names,
+    std::vector< unsigned int > &constraint_set_phases)
+{
+  LuaTable     luaTable = LuaTable::fromFile (filename);
+  unsigned int phases = luaTable["constraint_set_phases"].length();
+  constraint_set_phases.resize(phases);
+  bool found = false;
+  std::string phaseName;
+
+  for(unsigned int i=1; i<phases; ++i){
+    phaseName = luaTable["constraint_set_phases"][i].get<std::string>();
+    found = false;
+    for(unsigned int j=0; j<constraint_set_names.size();++j){
+      if(constraint_set_names[j] == phaseName){
+        constraint_set_phases[i-1] = j;
+        found=true;
+      }
+    }
+    if(found==false){
+      throw Errors::RBDLFileParseError(
+            "constraint_phases lists the constraint_set name " + phaseName
+            + " but this does not appear in the list of constraint_sets. ");
+    }
+  }
+  return true;
 }
 
 //==============================================================================
@@ -636,17 +893,17 @@ bool LuaModelReadConstraintsFromTable (
 bool LuaModelReadMotionCaptureMarkers (
       const char* filename,
       const RigidBodyDynamics::Model *model,
-      std::vector<Point>& upd_point_set,
+      std::vector<MotionCaptureMarker>& upd_marker_set,
       bool verbose)
 {
 
   LuaTable luaTable       = LuaTable::fromFile (filename);
-  upd_point_set.clear();
+  upd_marker_set.clear();
 
   if(luaTable["frames"].exists()){
     unsigned int frameCount = luaTable["frames"].length();
     std::vector<LuaKey> marker_keys;
-    Point point;
+    MotionCaptureMarker marker;
     std::string body_name;
     unsigned int body_id;
     for(unsigned int i=1; i<frameCount; ++i){
@@ -661,12 +918,12 @@ bool LuaModelReadMotionCaptureMarkers (
             throw Errors::RBDLFileParseError(
                     "Invalid marker found: missing name!");
           }
-          point.name      = marker_keys[j].string_value;
-          point.body_name = body_name;
-          point.body_id   = body_id;
-          point.point_local = luaTable["frames"][i]["markers"][point.name.c_str()]
+          marker.name      = marker_keys[j].string_value;
+          marker.body_name = body_name;
+          marker.body_id   = body_id;
+          marker.point_local = luaTable["frames"][i]["markers"][marker.name.c_str()]
                               .getDefault<Vector3d>(Vector3d::Zero());
-          upd_point_set.push_back(point);
+          upd_marker_set.push_back(marker);
         }
       }
     }
@@ -747,12 +1004,12 @@ bool LuaModelReadPoints (
 
 //==============================================================================
 bool LuaModelReadHumanMetaData(
-  const std::string &filename,
+  const char* filename,
   HumanMetaData &human_meta_data,
   bool verbose)
 {
 
-  LuaTable luaTable = LuaTable::fromFile (filename.c_str());
+  LuaTable luaTable = LuaTable::fromFile (filename);
   unsigned int subjectCount = luaTable["human_meta_data"].length();
 
   if(subjectCount != 1){
@@ -813,6 +1070,7 @@ std::vector<unsigned int> getQIndex(
   return qIndex;
 }
 
+//==============================================================================
 
 unsigned int getMillard2016TorqueMuscleTypeId(std::string name)
 {
@@ -840,8 +1098,9 @@ unsigned int getMillard2016TorqueMuscleTypeId(std::string name)
 
 }
 
+//==============================================================================
 bool LuaModelReadMillard2016TorqueMuscleSets(
-    const std::string &filename,
+    const char* filename,
     const RigidBodyDynamics::Model &model,
     const HumanMetaData &human_meta_data,
     std::vector <Millard2016TorqueMuscle> &updMtgSet,
@@ -850,7 +1109,7 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
 {
 
 
-  LuaTable     luaTable  = LuaTable::fromFile (filename.c_str());
+  LuaTable     luaTable  = LuaTable::fromFile (filename);
   unsigned int mtgCount  = luaTable["millard2016_torque_muscles"].length();
 
 
@@ -1024,6 +1283,300 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
   return true;
 }
 #endif
+//==============================================================================
+bool LuaModelAddHeaderGuards(const char* filename){
 
+  //Extract the file name and capitalize it to make a custom headerguard
+  std::string name;
+  std::string headerFileName(filename);
+  unsigned int idx0 = unsigned(int(headerFileName.find_last_of("/")));
+  if(idx0 == headerFileName.size()){
+    idx0 = unsigned(int(headerFileName.find_last_of("\\")));
+  }
+  if(idx0==headerFileName.size()){
+    idx0=0;
+  }else{
+    ++idx0;
+  }
+  unsigned int idx1 = unsigned(int(headerFileName.find_last_of(".")));
+  if(idx1 == headerFileName.size()){
+    idx1 = unsigned(int(headerFileName.size()));
+  }
+  name = headerFileName.substr(idx0, (idx1-idx0));
+
+  std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+
+  //Read in the entire header file
+  ifstream headerFileInput(headerFileName.c_str()); //taking file as inputstream
+  string headerFileText;
+  ostringstream ss;
+  if(headerFileInput) {
+    ss << headerFileInput.rdbuf(); // reading data
+    headerFileText = ss.str();
+  }
+  headerFileInput.close();
+
+  ofstream headerFileOut(headerFileName.c_str(),std::ofstream::out);
+  headerFileOut << "#ifndef " << name << "_MAP\n";
+  headerFileOut << "#define " << name << "_MAP\n";
+  headerFileOut << headerFileText << "//" << name << "_MAP\n" << "#endif\n";
+
+  headerFileOut.flush();
+  headerFileOut.close();
+
+  return true;
+
+}
+//==============================================================================
+bool LuaModelWriteModelHeaderEntries(const char* filename,
+                                     const RigidBodyDynamics::Model &model,
+                                     bool append){
+
+
+
+  std::vector< std::string > bodyNames;
+  std::vector< unsigned int> bodyIndex;
+  std::vector< std::string > qNames;
+  std::vector< std::string > qDotNames;
+
+  qNames.resize(model.q_size);
+  qDotNames.resize(model.qdot_size);
+
+
+  unsigned int q_index;
+  unsigned int idChild;
+  unsigned int dof;
+
+  std::ostringstream ss;
+
+  std::string jointType;
+  std::string axisType;
+  unsigned int axisIndex;
+  unsigned int ccid;
+  std::string childName;
+  bool newBody=false;
+
+  //Populate vectors that q, qdot, and tau
+  for(unsigned int idJoint=1;idJoint < model.mJoints.size();++idJoint){
+
+    //Get the first index in q associated with this joint
+    q_index   = model.mJoints[idJoint].q_index;
+
+    //Get the index of the child body to this joint.
+    idChild=idJoint;
+    while(idChild < model.mBodies.size() && model.mBodies[idChild].mIsVirtual){
+      ++idChild;
+    }
+
+
+    //Get the name of the child body associated with this index
+    for(map<string,unsigned int>::const_iterator it=model.mBodyNameMap.begin();
+        it != model.mBodyNameMap.end(); ++it){
+      if(it->second == idChild){
+        childName = it->first;
+      }
+    }
+    newBody=true;
+    for(unsigned int i=0; i<bodyIndex.size();++i){
+      if(bodyIndex[i]==idChild){
+        newBody=false;
+      }
+    }
+    if(newBody){
+      bodyNames.push_back(childName);
+      bodyIndex.push_back(idChild);
+    }
+
+    //Get the name of the joint type
+    jointType = JointMap[ model.mJoints[idJoint].mJointType].abbr;
+    if(jointType.length()>0){
+      jointType.append("_");
+    }
+    childName.append("_");
+    //If this is a canonical joint, go get the index of the spatial axis
+    if( model.mJoints[idJoint].mJointType==JointTypeCustom){
+      ccid = model.mJoints[idJoint].custom_joint_index;
+      dof = model.mCustomJoints[ccid]->mDoFCount;
+      for(unsigned int i=0; i<model.mCustomJoints[ccid]->mDoFCount;++i){
+        ss.str("");
+        ss  << childName << jointType <<   i ;
+        qNames[q_index+i] = ss.str();
+        ss.str("");
+        ss  << childName << jointType <<   i ;
+        qDotNames[q_index+i] = ss.str();
+      }
+    }else{
+      dof = model.mJoints[idJoint].mDoFCount;
+      axisIndex=6;
+      for(unsigned int j=0; j<6;++j){
+        if( fabs( fabs(model.mJoints[idJoint].mJointAxes[0][j])-1.)
+            < std::numeric_limits<double>::epsilon() ){
+          axisIndex=j;
+        }
+      }
+      if(axisIndex == 6){
+        axisType= std::to_string(axisIndex);
+      }else{
+        axisType = AxisMap[ axisIndex ].name;
+        if(model.mJoints[idJoint].mJointAxes[0][axisIndex] < 0.){
+          axisType.append("N");
+        }
+      }
+      for(unsigned int i=0; i<model.mJoints[idJoint].mDoFCount;++i){
+
+        if(model.mJoints[idJoint].mDoFCount > 1){
+          axisType = std::to_string(i);
+        }
+
+        ss.str("");
+        ss << childName << jointType <<  axisType ;
+        qNames[q_index+i] = ss.str();
+        ss.str("");
+        ss << childName << jointType <<  axisType ;
+        qDotNames[q_index+i] = ss.str();
+        ss.str("");
+      }
+      //If there is a quaternion joint the 4th component (w) is stored
+      //in a different location
+      if(model.multdof3_w_index[idJoint] > 0.){
+
+        ss.str("");
+        ss <<   childName << jointType <<  "w";
+        qNames[ model.multdof3_w_index[idJoint] ] = ss.str();
+      }
+
+    }
+
+
+  }
+
+  //Write the map file
+
+  std::vector<unsigned int> qIndex;
+  std::vector<unsigned int> qDotIndex;
+
+  qIndex.resize(qNames.size());
+  qDotIndex.resize(qDotNames.size());
+  for(unsigned int i=0; i<qNames.size();++i){
+    qIndex[i] = i;
+  }
+  for(unsigned int i=0; i<qDotNames.size();++i){
+    qDotIndex[i] = i;
+  }
+
+  std::ofstream headerFile;
+  if(append){
+    headerFile.open(filename, std::ofstream::app);
+  }else{
+    headerFile.open(filename, std::ofstream::out);
+  }
+
+  bodyNames.push_back("Last");
+  qNames.push_back("Last");
+  qDotNames.push_back("Last");
+
+  appendEnumToFileStream(headerFile,"BodyId",        bodyNames,0, "BodyId_");
+  appendEnumToFileStream(headerFile,"PositionId",    qNames,   0, "Q_"     );
+  appendEnumToFileStream(headerFile,"VelocityId",    qDotNames,0, "QDot_"  );
+  appendEnumToFileStream(headerFile,"AccelerationId",qDotNames,0, "QDDot_" );
+  appendEnumToFileStream(headerFile,"ForceId",       qDotNames,0, "Tau_"   );
+
+  bodyIndex.push_back(std::numeric_limits<unsigned int>::max());
+  qIndex.push_back(std::numeric_limits<unsigned int>::max());
+  qDotIndex.push_back(std::numeric_limits<unsigned int>::max());
+
+  appendEnumNameIndexStructToFileStream(headerFile,"BodyMap","BodyId",
+                                        bodyNames,"BodyId_",bodyIndex);
+  appendEnumNameIndexStructToFileStream(headerFile,"PositionMap","PositionId",
+                                        qNames,"Q_",qIndex);
+  appendEnumNameIndexStructToFileStream(headerFile,"VelocityMap","VelocityId",
+                                        qDotNames,"QDot_",qDotIndex);
+  appendEnumNameIndexStructToFileStream(headerFile,"AccelerationMap",
+                             "AccelerationId", qDotNames,"QDDot_",qDotIndex);
+  appendEnumNameIndexStructToFileStream(headerFile,"ForceMap","ForceId",
+                                        qDotNames,"Tau_",qDotIndex);
+
+  headerFile.flush();
+  headerFile.close();
+
+  return true;
+}
+//==============================================================================
+RBDL_DLLAPI
+bool LuaModelWritePointsHeaderEntries(const char* header_file_name,
+                                      const std::vector<Point> &point_set,
+                                      bool append)
+{
+
+  std::ofstream headerFile;
+  if(append){
+    headerFile.open(header_file_name,std::ofstream::app);
+  }else{
+    headerFile.open(header_file_name,std::ofstream::out);
+  }
+
+  std::vector< std::string > names;
+  std::vector< unsigned int > indices;
+
+  names.resize(point_set.size());
+  indices.resize(point_set.size());
+
+  for(unsigned int i=0;i<point_set.size();++i){
+    names[i]  = point_set[i].name;
+    indices[i]= i;
+  }
+
+  if(point_set.size()>0){
+    names.push_back("Last");
+    appendEnumToFileStream(headerFile,"PointId", names, 0, "Point_");
+    indices.push_back(std::numeric_limits<unsigned int>::max());
+    appendEnumNameIndexStructToFileStream(headerFile,"PointMap","PointId",
+                                            names,"Point_",indices);
+  }
+  headerFile.flush();
+  headerFile.close();
+
+  return true;
+}
+//==============================================================================
+RBDL_DLLAPI
+bool LuaModelWriteMotionCaptureMarkerHeaderEntries(
+        const char* header_file_name,
+        const std::vector< MotionCaptureMarker > &marker_set,
+        bool append)
+{
+  std::ofstream headerFile;
+  if(append){
+    headerFile.open(header_file_name,std::ofstream::app);
+  }else{
+    headerFile.open(header_file_name,std::ofstream::out);
+  }
+
+  std::vector< std::string > names;
+  std::vector< unsigned int > indices;
+
+  names.resize(marker_set.size());
+  indices.resize(marker_set.size());
+
+  for(unsigned int i=0;i<marker_set.size();++i){
+    names[i]  = marker_set[i].name;
+    indices[i]= i;
+  }
+
+  if(marker_set.size()>0){
+    names.push_back("Last");
+    appendEnumToFileStream(headerFile,"MarkerId", names, 0, "Marker_");
+    indices.push_back(std::numeric_limits<unsigned int>::max());
+    appendEnumNameIndexStructToFileStream(headerFile,"MotionCaptureMarkerMap",
+                                          "MarkerId",names,"Marker_",indices);
+  }
+  headerFile.flush();
+  headerFile.close();
+
+  return true;
+
+}
+
+//==============================================================================
 }
 }

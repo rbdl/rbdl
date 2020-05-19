@@ -202,6 +202,51 @@ enum JointType {
   JointTypeCustom, ///< User defined joints of varying size
 };
 
+struct JointMapEntry{
+  JointType id;
+  const char* name;
+  const char* abbr;
+};
+
+static const JointMapEntry JointMap[] = {
+  { JointTypeUndefined        , "Undefined"        , "UNDEFINED"},
+  { JointTypeRevolute         , "Revolute"         , "R"        },
+  { JointTypePrismatic        , "Prismatic"        , "T"        },
+  { JointTypeRevoluteX        , "RevoluteX"        , ""        },
+  { JointTypeRevoluteY        , "RevoluteY"        , ""        },
+  { JointTypeRevoluteZ        , "RevoluteZ"        , ""        },
+  { JointTypeSpherical        , "Spherical"        , "Sphere"  },
+  { JointTypeEulerZYX         , "EulerZYX"         , "EaZYX"   },
+  { JointTypeEulerXYZ         , "EulerXYZ"         , "EaXYZ"   },
+  { JointTypeEulerYXZ         , "EulerYXZ"         , "EaYXZ"   },
+  { JointTypeTranslationXYZ   , "TranslationXYZ"   , "TrXYZ"   },
+  { JointTypeFloatingBase     , "FloatingBase"     , "FloBas"  },
+  { JointTypeFixed            , "Fixed"            , "Fixed"   },
+  { JointTypeHelical          , "Helical"          , "Helic"   },
+  { JointType1DoF             , "1DoF"             , ""        },
+  { JointType2DoF             , "2DoF"             , ""        },
+  { JointType3DoF             , "3DoF"             , ""        },
+  { JointType4DoF             , "4DoF"             , ""        },
+  { JointType5DoF             , "5DoF"             , ""        },
+  { JointType6DoF             , "6DoF"             , ""        },
+  { JointTypeCustom           , "Custom"           , "Cus"     }
+};
+
+struct AxisMapEntry{
+  unsigned int id;
+  const char* name;
+};
+
+static const AxisMapEntry AxisMap[]={
+  {0, "Rx"},
+  {1, "Ry"},
+  {2, "Rz"},
+  {3, "Tx"},
+  {4, "Ty"},
+  {5, "Tz"}
+};
+
+
 /** \brief Describes a joint relative to the predecessor body.
  *
  * This class contains all information required for one single joint. This

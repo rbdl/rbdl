@@ -212,6 +212,11 @@ LuaTableNode::getDefault<RigidBodyDynamics::Joint>(
         return RigidBodyDynamics::Joint(
               RigidBodyDynamics::JointTypeTranslationXYZ);
       }
+      if (dof_string == "JointTypeFloatingBase") {
+        stackRestore();
+        return RigidBodyDynamics::Joint(
+              RigidBodyDynamics::JointTypeFloatingBase);
+      }
     }
 
     if (joint_dofs > 0) {
