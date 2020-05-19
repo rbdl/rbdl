@@ -26,6 +26,7 @@
 
 #include "luastructs.h"
 
+
 //==============================================================================
 template<>
 RigidBodyDynamics::Math::Vector3d
@@ -387,5 +388,142 @@ LuaTableNode::getDefault<LocalFrame>(
 
   return result;
 }
+//==============================================================================
+
+template<> HumanMetaData
+  LuaTableNode::getDefault<HumanMetaData>(
+                  const HumanMetaData &default_value)
+{
+  HumanMetaData result = default_value;
+
+  if (stackQueryValue()) {
+    LuaTable metadata_table = LuaTable::fromLuaState (luaTable->L);
+
+    result.gender =
+      metadata_table["gender"].get<std::string>();
+
+    result.age  	= metadata_table["age"];
+    result.height = metadata_table["height"];
+    result.mass   = metadata_table["weight"];
+    result.age_group  = metadata_table["age_group"].get<std::string>();    
+  }
+
+  stackRestore();
+  return result;
+}
+//==============================================================================
+#ifdef RBDL_BUILD_ADDON_MUSCLE
+template<> Millard2016TorqueMuscleInfo
+  LuaTableNode::getDefault<Millard2016TorqueMuscleInfo>(
+                    const Millard2016TorqueMuscleInfo &default_value)
+{
+  Millard2016TorqueMuscleInfo result = default_value;
+
+  if (stackQueryValue()) {
+    LuaTable mtg_table = LuaTable::fromLuaState (luaTable->L);
+
+    // First read mandatory fields
+    result.name     		= mtg_table["name"].get<std::string>();
+    result.angle_sign 	= mtg_table["angle_sign"].get<double>();
+    result.torque_sign 	= mtg_table["torque_sign"].get<double>();
+    result.body         = mtg_table["body"].get<std::string>();
+
+    if(mtg_table["joint_index"].exists()){
+      result.joint_index  =
+          unsigned(int(mtg_table["joint_index"].get<double>()));
+    }
+
+    //Optional parameters
+    if (mtg_table["q_scale"].exists()) {
+        result.q_scale = mtg_table["q_scale"].get<double>();
+    }
+    if (mtg_table["activation_index"].exists()) {
+        result.activation_index =
+            unsigned(int(mtg_table["activation_index"].get<double>()));
+    }
+    if (mtg_table["data_set"].exists()) {
+      result.data_set = mtg_table["data_set"].get<std::string>();
+    }
+    //if (mtg_table["angle_scale"].exists()) {
+    //    result.angle_scale = mtg_table["angle_scale"].get<double>();
+    //}
+    if (mtg_table["joint_angle_offset"].exists()) {
+        result.joint_angle_offset =
+          mtg_table["joint_angle_offset"].get<double>();
+    }
+    if (mtg_table["act_time"].exists()) {
+        result.activation_time_constant =
+          mtg_table["act_time"].get<double>();
+    }
+    if (mtg_table["deact_time"].exists()) {
+        result.deactivation_time_constant =
+          mtg_table["deact_time"].get<double>();
+    }
+
+    if (mtg_table["passive_element_damping_coeff"].exists()) {
+        result.passive_element_damping_coeff =
+          mtg_table["passive_element_damping_coeff"].get<double>();
+    }
+
+    if (mtg_table["passive_element_torque_scale"].exists()) {
+        result.passive_element_torque_scale =
+          mtg_table["passive_element_torque_scale"].get<double>();
+    }
+    if (mtg_table["passive_element_angle_offset"].exists()) {
+        result.passive_element_angle_offset =
+          mtg_table["passive_element_angle_offset"].get<double>();
+    }
+    //Optional passive-curve fitting coordinates
+    if (mtg_table["fit_passive_torque_scale"].exists()) {
+        result.fit_passive_torque_scale =
+          mtg_table["fit_passive_torque_scale"]
+            .get<RigidBodyDynamics::Math::Vector3d>();
+    }
+    if (mtg_table["fit_passive_torque_offset"].exists()) {
+        result.fit_passive_torque_offset =
+          mtg_table["fit_passive_torque_offset"]
+            .get<RigidBodyDynamics::Math::Vector3d>();
+    }
+
+    //Optional fitting parameters from the fitting routine
+    if (mtg_table["max_isometric_torque"].exists()) {
+        result.max_isometric_torque =
+          mtg_table["max_isometric_torque"].get<double>();
+    }
+    if (mtg_table["max_angular_velocity"].exists()) {
+        result.max_angular_velocity =
+          mtg_table["max_angular_velocity"].get<double>();
+    }
+    if (mtg_table["active_torque_angle_blending"].exists()) {
+        result.active_torque_angle_blending =
+          mtg_table["active_torque_angle_blending"].get<double>();
+    }
+    if (mtg_table["passive_torque_angle_blending"].exists()) {
+        result.passive_torque_angle_blending =
+          mtg_table["passive_torque_angle_blending"].get<double>();
+    }
+    if (mtg_table["torque_velocity_blending"].exists()) {
+        result.torque_velocity_blending =
+          mtg_table["torque_velocity_blending"].get<double>();
+    }
+    if (mtg_table["active_torque_angle_scale"].exists()) {
+        result.active_torque_angle_scale =
+          mtg_table["active_torque_angle_scale"].get<double>();
+    }
+    //if (mtg_table["passive_torque_angle_scale"].exists()) {
+    //    result.passive_torque_angle_scale =
+    //      mtg_table["passive_torque_angle_scale"].get<double>();
+    //}
+    //if (mtg_table["torque_velocity_scaling"].exists()) {
+    //    result.torque_velocity_scaling =
+    //      mtg_table["torque_velocity_scaling"].get<double>();
+    //}
+
+  }
+  stackRestore();
+  return result;
+}
+#endif
+
 /* LUASTRUCTS_H */
 #endif

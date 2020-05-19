@@ -27,15 +27,30 @@ IF (RBDL_BUILD_STATIC)
   ENDIF (NOT WIN32)
   SET_TARGET_PROPERTIES ( rbdl_luamodel-static PROPERTIES OUTPUT_NAME "rbdl_luamodel")
 
-  TARGET_LINK_LIBRARIES (rbdl_luamodel-static
-    rbdl-static
-    ${LUA_LIBRARIES}
+  
+  IF(RBDL_BUILD_ADDON_MUSCLE)
+    TARGET_LINK_LIBRARIES (rbdl_luamodel-static
+      rbdl_muscle-static         
+      rbdl-static
+      ${LUA_LIBRARIES} 
+    )
+    TARGET_LINK_LIBRARIES (rbdl_luamodel_util
+      rbdl_luamodel-static      
+      rbdl_muscle-static               
+      rbdl-static
     )
 
-  TARGET_LINK_LIBRARIES (rbdl_luamodel_util
-    rbdl_luamodel-static
-    rbdl-static
+  ELSE(RBDL_BUILD_ADDON_MUSCLE)
+    TARGET_LINK_LIBRARIES (rbdl_luamodel-static
+      rbdl-static
+      ${LUA_LIBRARIES}
     )
+    TARGET_LINK_LIBRARIES (rbdl_luamodel_util
+      rbdl_luamodel-static      
+      rbdl-static
+    )
+  ENDIF(RBDL_BUILD_ADDON_MUSCLE)
+
 
   INSTALL (TARGETS rbdl_luamodel-static rbdl_luamodel_util 
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -48,15 +63,29 @@ ELSE (RBDL_BUILD_STATIC)
     SOVERSION ${RBDL_SO_VERSION}
     )
 
-  TARGET_LINK_LIBRARIES (rbdl_luamodel
-    rbdl
-    ${LUA_LIBRARIES}
+  IF(RBDL_BUILD_ADDON_MUSCLE)
+    TARGET_LINK_LIBRARIES (rbdl_luamodel
+      rbdl_muscle          
+      rbdl
+      ${LUA_LIBRARIES}
     )
+    TARGET_LINK_LIBRARIES (rbdl_luamodel_util
+      rbdl_luamodel
+      rbdl_muscle            
+      rbdl
+    )
+  ELSE(RBDL_BUILD_ADDON_MUSCLE)
+    TARGET_LINK_LIBRARIES (rbdl_luamodel
+      rbdl
+      ${LUA_LIBRARIES}
+    )
+    TARGET_LINK_LIBRARIES (rbdl_luamodel_util
+      rbdl_luamodel
+      rbdl
+    )
+  ENDIF(RBDL_BUILD_ADDON_MUSCLE)  
 
-  TARGET_LINK_LIBRARIES (rbdl_luamodel_util
-    rbdl_luamodel
-    rbdl
-    )
+  
 
   INSTALL (TARGETS rbdl_luamodel rbdl_luamodel_util 
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

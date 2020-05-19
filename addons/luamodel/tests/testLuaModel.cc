@@ -17,9 +17,16 @@
 #include <vector>
 #include <cstring>
 
+#ifdef RBDL_BUILD_ADDON_MUSCLE
+#include "../muscle/Millard2016TorqueMuscle.h"
+#endif
+
+
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 using namespace RigidBodyDynamics::Addons;
+
+
 
 using namespace std;
 
@@ -384,6 +391,102 @@ TEST(LoadConstrainedLuaModel)
 
 
 }
+
+#ifdef RBDL_BUILD_ADDON_MUSCLE
+TEST(LoadMuscleTorqueGenerators)
+{
+  RigidBodyDynamics::Model model;
+  std::string modelFile = rbdlSourcePath;
+  modelFile.append("/samplemodelwithtorquemuscles.lua");
+
+
+
+  bool modelLoaded = LuaModelReadFromFile( modelFile.c_str(),
+                                           &model,
+                                           false);
+
+  CHECK(modelLoaded);
+
+  HumanMetaData humanData;
+  bool humanDataLoaded =
+      LuaModelReadHumanMetaData(modelFile.c_str(),humanData,false);
+  CHECK(humanDataLoaded);
+
+  CHECK(std::fabs(humanData.age - 35.0) < TEST_PREC);
+  CHECK(std::fabs(humanData.height - 1.73) < TEST_PREC);
+  CHECK(std::fabs(humanData.height - 1.73) < TEST_PREC);
+  CHECK(std::strcmp(humanData.age_group.c_str(),"Young18To25")==0);
+  CHECK(std::strcmp(humanData.gender.c_str(),"male")==0);
+
+
+  std::vector < Muscle::Millard2016TorqueMuscle > mtgSet;
+  std::vector< Millard2016TorqueMuscleInfo > mtgInfoSet;
+
+  bool torqueMusclesLoaded = LuaModelReadMillard2016TorqueMuscleSets(
+        modelFile.c_str(),model,humanData,mtgSet,mtgInfoSet,false);
+
+  CHECK(torqueMusclesLoaded);
+  CHECK(mtgSet.size() == 6);
+  CHECK(mtgInfoSet.size() == 6);
+
+  unsigned int i=0;
+
+  //Check that the data is being loaded as it is written in the file for the
+  //full right leg
+  i=0;
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"HipExtension_R")==0);
+  CHECK(std::fabs(mtgInfoSet[i].angle_sign  - (-1)) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].torque_sign - ( 1)) < TEST_PREC);
+  CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"thigh_right")== 0);
+  CHECK(mtgInfoSet[i].joint_index - 1 == 0);
+  CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
+  i=1;
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"HipFlexion_R")==0);
+  CHECK(std::fabs(mtgInfoSet[i].angle_sign  - (-1)) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].torque_sign - (-1)) < TEST_PREC);
+  CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"thigh_right")== 0);
+  CHECK(mtgInfoSet[i].joint_index - 1 == 0);
+  CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
+  i=2;
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"KneeExtension_R")==0);
+  CHECK(std::fabs(mtgInfoSet[i].angle_sign  - ( 1)) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].torque_sign - (-1)) < TEST_PREC);
+  CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"shank_right")== 0);
+  CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
+  i=3;
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"KneeFlexion_R")==0);
+  CHECK(std::fabs(mtgInfoSet[i].angle_sign  - ( 1)) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].torque_sign - ( 1)) < TEST_PREC);
+  CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"shank_right")== 0);
+  CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
+  i=4;
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"AnkleExtension_R")==0);
+  CHECK(std::fabs(mtgInfoSet[i].angle_sign  - (-1)) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].torque_sign - ( 1)) < TEST_PREC);
+  CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"foot_right")== 0);
+  CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
+  i=5;
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"AnkleFlexion_R")==0);
+  CHECK(std::fabs(mtgInfoSet[i].angle_sign  - (-1)) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].torque_sign - (-1)) < TEST_PREC);
+  CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"foot_right")== 0);
+  CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
+  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
+
+}
+
+#endif
 
 int main (int argc, char *argv[])
 {

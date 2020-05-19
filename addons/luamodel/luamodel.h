@@ -6,9 +6,21 @@
 #include <vector>
 #include "luastructs.h"
 
+#ifdef RBDL_BUILD_ADDON_MUSCLE
+namespace RigidBodyDynamics{
+  namespace Addons{
+    namespace Muscle{
+      class Millard2016TorqueMuscle;
+    }
+  }
+}
+#endif
+
 extern "C" {
   struct lua_State;
 };
+
+
 
 namespace RigidBodyDynamics {
 
@@ -365,7 +377,56 @@ bool LuaModelReadFromLuaState (
   Model* model,
   bool verbose = false);
 
+/**
+      This function will read in the data contained in the 'HumanMetaData'
+      table in the lua file.
 
+      @param filename: name of the lua file
+      @param human_meta_data: an empty HumanMetaData structure
+      @param verbose: information will be printed to the command window if this
+                      is set to true.
+*/
+RBDL_DLLAPI
+bool LuaModelReadHumanMetaData(
+  const std::string &filename,
+  HumanMetaData &human_meta_data,
+  bool verbose = false);
+
+#ifdef RBDL_BUILD_ADDON_MUSCLE
+
+/**
+  This function will read the information for each millard2016_torque_muscle
+  into the vector of Millard2016TorqueMuscleInfo structs and populate a 
+  corresponding vector of Millard2016TorqueMuscle objects. Note that the
+  struct Millard2016TorqueMuscleInfo contains information needed not just
+  to create an Millard2016TorqueMuscle object but also the information needed
+  to retrieve the correct q index, qdot index, and activation index from the
+  state vector to evaluate the joint torque and to update the generalized
+  torque vector. Please see the doxygen on Millard2016TorqueMuscle.h and
+  Millard2016TorqueMuscleInfo for more details.
+
+  \param filename the name of the Lua file.
+  \param model a pointer to the populated Model structure
+  \param human_meta_data: the meta data for this subject.
+  \param updMtgSet: an empty vector of Millard2016TorqueMuscle objects
+  \param updMtgSetInfo: an empty vector of Millard2016TorqueMuscleInfo structs
+  \param verbose specifies wether information on the model should be printed
+  (default: true).
+ 
+  \returns true if the model and constraint sets were read successfully.
+
+*/
+RBDL_DLLAPI
+bool LuaModelReadMillard2016TorqueMuscleSets(
+    const std::string &filename,
+          const RigidBodyDynamics::Model &model,
+          const HumanMetaData &human_meta_data,
+          std::vector <RigidBodyDynamics::Addons::
+                        Muscle::Millard2016TorqueMuscle> &updMtgSet,
+          std::vector <Millard2016TorqueMuscleInfo> &updMtgSetInfo,
+          bool verbose = false);
+
+#endif
 /** @} */
 }
 
