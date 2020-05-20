@@ -37,11 +37,11 @@ LoopConstraint::LoopConstraint(
       const Math::SpatialVector &constraintAxis,
       bool enableBaumgarteStabilization,
       double stabilizationTimeConstant,
-      const char *name,
+      const char *loopConstraintName,
       unsigned int userDefinedIdNumber,
       bool positionLevelConstraint,
       bool velocityLevelConstraint):
-        Constraint(name,
+        Constraint(loopConstraintName,
                    ConstraintTypeLoop,
                    unsigned(int(1)),
                    userDefinedIdNumber)

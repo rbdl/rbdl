@@ -126,7 +126,7 @@ public:
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintNormalVectors,
-      const char *name = NULL,
+      const char *contactConstraintName = NULL,
       unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
       bool enableBaumgarteStabilization=false,
       double stabilizationTimeConstant=0.1,      

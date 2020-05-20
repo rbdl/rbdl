@@ -586,6 +586,7 @@ bool LuaModelReadConstraintsFromTable (
               bodyId = pointSet[pi].body_id;
               bodyPoint = pointSet[pi].point_local;
             }
+            ++pi;
           }
           if(pointFound == false){
             ostringstream errormsg;
@@ -720,6 +721,7 @@ bool LuaModelReadConstraintsFromTable (
               Xp.r = localFrameSet[fi].r;
               Xp.E = localFrameSet[fi].E;
             }
+            ++fi;
           }
           if(frameFound == false){
             ostringstream errormsg;
@@ -1013,12 +1015,12 @@ bool LuaModelReadHumanMetaData(
   unsigned int subjectCount = luaTable["human_meta_data"].length();
 
   if(subjectCount != 1){
-    cerr  << "The lua file contains meta data for "
-          << subjectCount
-          << " but it should contain data for 1 subject"
-          << endl;
-    assert(0);
-    abort();          
+    ostringstream errormsg;
+    errormsg << "human_meta_data should contain data "
+             << "for only 1 subject but has data for "
+             << subjectCount << endl;
+
+    throw Errors::RBDLError(errormsg.str());
   }
 
   human_meta_data = luaTable["human_meta_data"][1];  
@@ -1029,13 +1031,13 @@ bool LuaModelReadHumanMetaData(
 //==============================================================================
 #ifdef RBDL_BUILD_ADDON_MUSCLE
 std::vector<unsigned int> getQIndex(
-                  const RigidBodyDynamics::Model &model,
+                  const RigidBodyDynamics::Model *model,
                   const char *childBodyName)
 {
 
-  unsigned int idChild = model.GetBodyId(childBodyName);
+  unsigned int idChild = model->GetBodyId(childBodyName);
   unsigned int idJoint=idChild;
-  while(idJoint > 1 && model.mBodies[idJoint-1].mIsVirtual){
+  while(idJoint > 1 && model->mBodies[idJoint-1].mIsVirtual){
     --idJoint;
   }
 
@@ -1047,24 +1049,24 @@ std::vector<unsigned int> getQIndex(
   unsigned int dof = 0;
 
   while(id <= idChild){
-    if(model.mJoints[id].mJointType == JointTypeCustom){
-      ccid = model.mJoints[id].custom_joint_index;
-      for(unsigned int i=0; i<model.mCustomJoints[ccid]->mDoFCount;++i){
-        qIndex.push_back(model.mJoints[id].q_index+i);
+    if(model->mJoints[id].mJointType == JointTypeCustom){
+      ccid = model->mJoints[id].custom_joint_index;
+      for(unsigned int i=0; i<model->mCustomJoints[ccid]->mDoFCount;++i){
+        qIndex.push_back(model->mJoints[id].q_index+i);
       }
-      dof = model.mCustomJoints[ccid]->mDoFCount;
+      dof = model->mCustomJoints[ccid]->mDoFCount;
     }else{
-      for(unsigned int i=0; i<model.mJoints[id].mDoFCount;++i){
-        qIndex.push_back(model.mJoints[id].q_index+i);
+      for(unsigned int i=0; i<model->mJoints[id].mDoFCount;++i){
+        qIndex.push_back(model->mJoints[id].q_index+i);
       }
-      dof = model.mJoints[id].mDoFCount;
+      dof = model->mJoints[id].mDoFCount;
     }
     id += dof;
   }
   //To get the extra index for the quaternion joints
   for(id=idJoint;id<=idChild;++id){
-    if(model.multdof3_w_index[id] > 0){
-      qIndex.push_back(model.multdof3_w_index[id]);
+    if(model->multdof3_w_index[id] > 0){
+      qIndex.push_back(model->multdof3_w_index[id]);
     }
   }
   return qIndex;
@@ -1101,7 +1103,7 @@ unsigned int getMillard2016TorqueMuscleTypeId(std::string name)
 //==============================================================================
 bool LuaModelReadMillard2016TorqueMuscleSets(
     const char* filename,
-    const RigidBodyDynamics::Model &model,
+    const RigidBodyDynamics::Model *model,
     const HumanMetaData &human_meta_data,
     std::vector <Millard2016TorqueMuscle> &updMtgSet,
     std::vector <Millard2016TorqueMuscleInfo> &updMtgSetInfo,
@@ -1578,5 +1580,306 @@ bool LuaModelWriteMotionCaptureMarkerHeaderEntries(
 }
 
 //==============================================================================
+RBDL_DLLAPI
+bool LuaModelWriteLocalFrameHeaderEntries(const char* header_file_name,
+                         const std::vector<LocalFrame> &local_frame_set,
+                         bool append)
+{
+  std::ofstream headerFile;
+  if(append){
+    headerFile.open(header_file_name,std::ofstream::app);
+  }else{
+    headerFile.open(header_file_name,std::ofstream::out);
+  }
+
+  std::vector< std::string > names;
+  std::vector< unsigned int > indices;
+
+  names.resize(local_frame_set.size());
+  indices.resize(local_frame_set.size());
+
+  for(unsigned int i=0;i<local_frame_set.size();++i){
+    names[i]  = local_frame_set[i].name;
+    indices[i]= i;
+  }
+
+  if(local_frame_set.size()>0){
+    names.push_back("Last");
+    appendEnumToFileStream(headerFile,"LocalFrameId", names, 0, "LocalFrame_");
+    indices.push_back(std::numeric_limits<unsigned int>::max());
+    appendEnumNameIndexStructToFileStream(headerFile,"LocalFrameMap",
+                                          "LocalFrameId",names,"LocalFrame_",
+                                          indices);
+  }
+  headerFile.flush();
+  headerFile.close();
+  return true;
+}
+
+//==============================================================================
+RBDL_DLLAPI
+bool LuaModelWriteConstraintSetPhaseHeaderEntries(const char* header_file_name,
+                         const std::vector< std::string > &constraint_set_names,
+                         const std::vector< unsigned int > &constraint_phases,
+                         bool append)
+{
+  std::ofstream headerFile;
+  if(append){
+    headerFile.open(header_file_name,std::ofstream::app);
+  }else{
+    headerFile.open(header_file_name,std::ofstream::out);
+  }
+
+  std::vector< std::string > phaseNames;
+  phaseNames.resize(constraint_phases.size()+1);
+
+  std::vector< std::string > enumTypeAndFieldNames;
+  std::vector< std::vector< std::string > > enumEntries;
+  std::vector< std::string > entryPrefix;
+
+  std::vector< std::string > indexTypeAndFieldNames;
+  std::vector< std::vector< unsigned int > > indexMatrix;
+
+  indexTypeAndFieldNames.resize(0);
+  indexMatrix.resize(0);
+
+  enumTypeAndFieldNames.resize(3);
+  enumEntries.resize(constraint_phases.size()+1);
+  enumTypeAndFieldNames[0] = "ConstraintSetPhaseId phase_id";
+  enumTypeAndFieldNames[1] = "const char* name";
+  enumTypeAndFieldNames[2] = "ConstraintSetId constraint_set_id";
+
+  entryPrefix.resize(3);
+  entryPrefix[0] = "";
+  entryPrefix[1] = "";
+  entryPrefix[2] = "CS_";
+  for(unsigned int i=0;i<constraint_phases.size();++i){
+    enumEntries[i].resize(3);
+
+    enumEntries[i][0] = "Phase_";
+    enumEntries[i][0].append(std::to_string(i));//conSetInfo[phases[i]].name;
+    enumEntries[i][0].append("_");
+    enumEntries[i][0].append(constraint_set_names[constraint_phases[i]]);
+    enumEntries[i][1] = "\"";
+    enumEntries[i][1].append( enumEntries[i][0] );
+    enumEntries[i][1].append("\"");
+    enumEntries[i][2] = constraint_set_names[constraint_phases[i]];
+
+    phaseNames[i] = enumEntries[i][0];
+  }
+  enumEntries[constraint_phases.size()].resize(3);
+  enumEntries[constraint_phases.size()][0]="Phase_Last";
+  enumEntries[constraint_phases.size()][1]="\"Phase_Last\"";
+  enumEntries[constraint_phases.size()][2]="Last";
+  phaseNames[ constraint_phases.size()]="Phase_Last";
+
+
+  if(constraint_phases.size()>0){
+    appendEnumToFileStream(headerFile,"ConstraintSetPhaseId", phaseNames, 0, "");
+
+    appendEnumStructToFileStream(  headerFile,
+                                   "ConstraintSetPhaseMap",
+                                   enumTypeAndFieldNames,
+                                   enumEntries,
+                                   entryPrefix,
+                                   indexTypeAndFieldNames,
+                                   indexMatrix);
+
+  }
+  headerFile.flush();
+  headerFile.close();
+  return true;
+}
+//==============================================================================
+RBDL_DLLAPI
+bool LuaModelWriteConstraintSetHeaderEntries(const char* header_file_name,
+       const std::vector< std::string > &constraint_set_names,
+       const std::vector<RigidBodyDynamics::ConstraintSet> &constraint_sets,
+       bool append)
+{
+
+  if(constraint_set_names.size()!=constraint_sets.size()){
+    ostringstream errormsg;
+    errormsg << "constraint_set_names (size: "
+             << constraint_set_names.size()
+             << ") and "
+             << "constraint_sets "
+             << "(size: "
+             << constraint_sets.size()
+             << ")"
+             <<" must have the same size but do not."
+             <<  endl;
+    throw Errors::RBDLError(errormsg.str());
+  }
+
+  std::ofstream headerFile;
+  if(append){
+    headerFile.open(header_file_name, std::ofstream::app);
+  }else{
+    headerFile.open(header_file_name, std::ofstream::out);
+  }
+
+  std::vector< std::string > conSetNames;
+  std::vector< unsigned int > conSetIndex;
+
+  std::vector< std::string > groupNames;
+
+  std::vector< std::string > conNames;
+  std::vector< std::string > conEnumPrefix;
+  std::vector< std::vector< std::string > > conEnumMatrix;
+  std::vector< std::string > conEnumVector;
+  std::vector< std::string > conEnumTypeAndFieldNames;
+
+  conEnumPrefix.push_back("C_");
+  conEnumPrefix.push_back("CS_");
+  conEnumPrefix.push_back("CG_");
+  conEnumVector.resize(3);
+  conEnumTypeAndFieldNames.push_back("ConstraintId constraint_id");
+  conEnumTypeAndFieldNames.push_back("ConstraintSetId constraint_set_id");
+  conEnumTypeAndFieldNames.push_back("ConstraintGroupId constraint_group_id");
+
+  std::vector< std::vector< unsigned int > > conIndexMatrix;
+  std::vector< unsigned int > conIndexVector;
+  std::vector< std::string > conIndexTypeAndFieldNames;
+  conIndexVector.resize(1);
+
+  conIndexTypeAndFieldNames.push_back("unsigned int constraint_set_item_id");
+
+  std::string conTypeName;
+  std::stringstream ss;
+
+
+
+  for(unsigned int i=0;i<constraint_set_names.size();++i){
+    conSetNames.push_back(constraint_set_names[i]);
+    conSetIndex.push_back(i);
+
+
+
+    for(unsigned int j = 0; j < constraint_sets[i].constraints.size();++j){
+      groupNames.push_back(
+            std::string(constraint_sets[i].constraints[j]->getName()) );
+    }
+
+
+    for(unsigned int j=0; j<constraint_sets[i].constraints.size();++j){
+      for(unsigned int k=0; k<constraint_sets[i].constraints[j]->getConstraintSize();++k){
+
+        ss.str("");
+        ss << constraint_set_names[i];
+        ss << "_" << std::string(constraint_sets[i].constraints[j]->getName());
+        ss << "_" << k;
+        conNames.push_back(ss.str());
+        conEnumVector[0] = ss.str();
+        conEnumVector[1] = constraint_set_names[i];
+        conEnumVector[2] =
+            std::string(constraint_sets[i].constraints[j]->getName());
+        conEnumMatrix.push_back(conEnumVector);
+        conIndexVector[0] = k;
+        conIndexMatrix.push_back(conIndexVector);
+      }
+
+    }
+  }
+
+  if(constraint_sets.size()>0){
+    conSetNames.push_back("Last");
+    appendEnumToFileStream(headerFile,"ConstraintSetId", conSetNames, 0, "CS_");
+
+    conSetIndex.push_back(std::numeric_limits<unsigned int>::max());
+    appendEnumNameIndexStructToFileStream(headerFile,"ConstraintSetMap",
+                                          "ConstraintSetId",
+                                          conSetNames,"CS_",conSetIndex);
+    groupNames.push_back("Last");
+    appendEnumToFileStream(headerFile,"ConstraintGroupId",groupNames,0,"CG_");
+
+    for(unsigned int k=0; k < conEnumVector.size();++k){
+      conEnumVector[k] = "Last";
+    }
+    conEnumMatrix.push_back(conEnumVector);
+    for(unsigned int k=0; k < conIndexVector.size();++k){
+      conIndexVector[k] = std::numeric_limits<unsigned int>::max();
+    }
+    conIndexMatrix.push_back(conIndexVector);
+
+    //Unique set of enums for every combination of constraint x set
+    conNames.push_back("Last");
+    appendEnumToFileStream(headerFile,"ConstraintId", conNames, 0, "C_");
+
+    //Table that has for every unique constraint, its set, and set index
+    //This table makes it possible for the human using this model to
+    //access a specific constraint using a human readable name.
+    appendEnumStructToFileStream(headerFile,"ConstraintMap",
+                                   conEnumTypeAndFieldNames,
+                                   conEnumMatrix, conEnumPrefix,
+                                   conIndexTypeAndFieldNames, conIndexMatrix);
+
+  }
+  headerFile.flush();
+  headerFile.close();
+
+  return true;
+}
+//==============================================================================
+#ifdef RBDL_BUILD_ADDON_MUSCLE
+RBDL_DLLAPI
+bool LuaModelWriteMillard2016TorqueMuscleHeaderEntries(
+    const char* header_file_name,
+    const std::vector<RigidBodyDynamics::Addons::Muscle
+                      ::Millard2016TorqueMuscle> &mtg_set,
+    const std::vector<Millard2016TorqueMuscleInfo > &mtg_set_info,
+    bool append)
+{
+
+  if(mtg_set.size()!=mtg_set_info.size()){
+    ostringstream errormsg;
+    errormsg << "mtg_set (size: "
+             << mtg_set.size()
+             << ") and "
+             << "mtg_set_info "
+             << "(size: "
+             << mtg_set_info.size()
+             << ")"
+             <<" must have the same size but do not."
+             <<  endl;
+    throw Errors::RBDLError(errormsg.str());
+  }
+
+  std::ofstream headerFile;
+  if(append){
+    headerFile.open(header_file_name,std::ofstream::app);
+  }else{
+    headerFile.open(header_file_name,std::ofstream::out);
+  }
+  std::vector< std::string > names;
+  std::vector< unsigned int > indices;
+
+  names.resize(mtg_set_info.size());
+  indices.resize(mtg_set_info.size());
+
+  for(unsigned int i=0;i<mtg_set_info.size();++i){
+    names[i] = mtg_set_info[i].name;
+    indices[i]= i;
+  }
+
+  if(mtg_set_info.size()>0){
+    names.push_back("Last");
+    appendEnumToFileStream(headerFile,"Millard2016TorqueMuscleId",
+                           names, 0, "MTG_");
+    indices.push_back(std::numeric_limits<unsigned int>::max());
+    appendEnumNameIndexStructToFileStream(
+          headerFile,"Millard2016TorqueMuscleMap",
+          "Millard2016TorqueMuscleId", names,"MTG_",indices);
+  }
+  headerFile.flush();
+  headerFile.close();
+
+  return true;
+}
+
+#endif
+
+//==============================================================================
+
 }
 }

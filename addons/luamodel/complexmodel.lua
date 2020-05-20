@@ -36,8 +36,9 @@ points = {
 },
 --Named local frames
 local_frames = {
-  {name = "Heel_Right",     body="foot_right",   r={-0.1,   0.0,  -0.15}, E=eye33, },
+  {name = "Heel_Right",     body="foot_right",  r={-0.1,   0.0,  -0.15}, E=eye33, },
   {name = "ForeFoot_Right", body="foot_right",  r={ 0.3,   0.0,  -0.15}, E=eye33, },
+  {name = "GroundFrame",    body="ROOT",        r={0.,0.,0.}, E=eye33,},
 },
 --subject data
 human_meta_data = {
@@ -57,6 +58,12 @@ millard2016_torque_muscles = {
   { name = "AnkleExtension_R", angle_sign = -1, torque_sign =  1, body ="foot_right" ,                 act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.0,},
   { name = "AnkleFlexion_R",   angle_sign = -1, torque_sign = -1, body ="foot_right" ,                 act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.0,},
 },
+constraint_set_phases = {
+  "left_foot",
+  "right_foot",
+  "right_foot",
+  "left_foot",  
+},
 constraint_sets = {
 	left_foot = {
 		{	constraint_type = 'contact', name = 'leftHeelMedialXYZ', id = 1,        
@@ -74,7 +81,7 @@ constraint_sets = {
 	right_foot = {
 		 {  constraint_type = 'loop', name = 'loopRightHeel', id = 2, 
         predecessor_local_frame = 'Heel_Right',
-        successor_local_frame = 'ROOT',
+        successor_local_frame = 'GroundFrame',
         axis_sets =  {{1., 0., 0., 0., 0., 0.},
                       {0., 1., 0., 0., 0., 0.},
                       {0., 0., 1., 0., 0., 0.},

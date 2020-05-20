@@ -33,12 +33,12 @@ ContactConstraint::ContactConstraint(
       const unsigned int bodyId,
       const Math::Vector3d &bodyPoint,
       const Math::Vector3d &groundConstraintUnitVector,
-      const char *name,
+      const char *contactConstraintName,
       unsigned int userDefinedIdNumber,
       bool enableBaumgarteStabilization,
       double stabilizationTimeConstant,      
       bool velocityLevelConstraint):
-        Constraint(name,
+        Constraint(contactConstraintName,
                    ConstraintTypeContact,
                    unsigned(int(1)),
                    userDefinedIdNumber)

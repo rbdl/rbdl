@@ -383,11 +383,11 @@ class RBDL_DLLAPI Constraint {
       @param userDefinedIdNumber: an integer that the user can set to rapidly
               retrieve this constraint from the set.              
     */
-    Constraint(const char* name,
+    Constraint(const char* nameOfConstraint,
                unsigned int typeOfConstraint,
                unsigned int sizeOfConstraint,
                unsigned int userDefinedIdNumber):
-               name(name),
+               name(nameOfConstraint),
                typeOfConstraint(typeOfConstraint),
                sizeOfConstraint(sizeOfConstraint),
                id(userDefinedIdNumber),
@@ -682,7 +682,7 @@ class RBDL_DLLAPI Constraint {
       @return the user defined name
     */
     const char* getName(){
-      return name;
+      return name.c_str();
     }
 
     /**
@@ -703,7 +703,7 @@ class RBDL_DLLAPI Constraint {
 
   protected:
     ///A user defined name which is unique to this constraint set
-    const char* name;
+    const std::string name;
 
     ///A user defined id which is unique to this constraint set
     unsigned int id;

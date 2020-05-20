@@ -145,7 +145,7 @@ public:
       const Math::SpatialVector &constraintAxisInPredessor,
       bool enableBaumgarteStabilization = false,
       double stabilizationTimeConstant = 0.1,
-      const char *name = NULL,
+      const char *loopConstraintName = NULL,
       unsigned int userDefinedId = std::numeric_limits<unsigned int>::max(),
       bool positionLevelConstraint=true,
       bool velocityLevelConstraint=true);

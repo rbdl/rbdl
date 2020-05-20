@@ -436,7 +436,7 @@ TEST(LoadMuscleTorqueGenerators)
   std::vector< Millard2016TorqueMuscleInfo > mtgInfoSet;
 
   bool torqueMusclesLoaded = LuaModelReadMillard2016TorqueMuscleSets(
-        modelFile.c_str(),model,humanData,mtgSet,mtgInfoSet,false);
+        modelFile.c_str(),&model,humanData,mtgSet,mtgInfoSet,false);
 
   CHECK(torqueMusclesLoaded);
   CHECK(mtgSet.size() == 6);
@@ -501,30 +501,75 @@ TEST(LoadMuscleTorqueGenerators)
 
 #endif
 
+//At the present time this is not much of a test: all of the code is run and
+//it is checked that each function returns true. The header has been manually
+//inspected but is otherwise not checked in this test for correctness. It could
+//be compared to a saved prototype header. This is a weak check, but better than
+//nothing I suppose.
 TEST(ModelHeaderGeneration)
 {
   RigidBodyDynamics::Model model;
   std::string modelFile = rbdlSourcePath;
   modelFile.append("/complexmodel.lua");
 
+  //Get the constraint set names
+  std::vector<std::string> constraintSetNames =
+    LuaModelGetConstraintSetNames(modelFile.c_str());
+  std::vector<RigidBodyDynamics::ConstraintSet> constraintSets;
 
+  //Get the constrained model
+  std::vector< ConstraintSet > conSet;
+  conSet.resize(constraintSetNames.size());
+  for(unsigned int i=0; i<conSet.size();++i){
+    conSet[i] = ConstraintSet();
+  }
+  bool constrainedModelLoaded = LuaModelReadFromFileWithConstraints(
+        modelFile.c_str(),&model, conSet,constraintSetNames,false);
+  CHECK(constrainedModelLoaded);
 
-  bool modelLoaded = LuaModelReadFromFile( modelFile.c_str(),
-                                           &model,
-                                           false);
-  CHECK(modelLoaded);
+  //Get the constraint set phase ordering
+  std::vector<unsigned int> phasing;
+  bool constraintSetPhasingLoaded =
+      LuaModelGetConstraintSetPhases(modelFile.c_str(),constraintSetNames,
+                                     phasing);
+  CHECK(constraintSetPhasingLoaded);
 
+  //Get the local points
   std::vector< Point > pointSet;
   bool pointsLoaded =
       LuaModelReadPoints(modelFile.c_str(),&model,pointSet,false);
   CHECK(pointsLoaded);
 
+  //Get the local motion capture markers
   std::vector< MotionCaptureMarker > markerSet;
   bool markersLoaded =
     LuaModelReadMotionCaptureMarkers(modelFile.c_str(),&model,markerSet,false);
   CHECK(markersLoaded);
 
+  //Get the local frames
+  std::vector< LocalFrame > localFrames;
+  bool localFramesLoaded =
+    LuaModelReadLocalFrames(modelFile.c_str(),&model,localFrames,false);
+  CHECK(localFramesLoaded);
 
+  //--------------------------------------------
+  #ifdef RBDL_BUILD_ADDON_MUSCLE
+
+  HumanMetaData participant_data;
+  bool participantDataLoaded = LuaModelReadHumanMetaData(modelFile.c_str(),
+                                participant_data,false);
+  CHECK(participantDataLoaded);
+
+  std::vector< Addons::Muscle::Millard2016TorqueMuscle > mtgSet;
+  std::vector< Millard2016TorqueMuscleInfo > mtgSetInfo;
+  bool mtgSetLoaded = LuaModelReadMillard2016TorqueMuscleSets(
+        modelFile.c_str(), &model, participant_data, mtgSet, mtgSetInfo, false);
+  CHECK(mtgSetLoaded);
+
+
+
+  #endif
+  //--------------------------------------------
   //std::string headerFile = rbdlSourcePath;
   //headerFile.append("/complexmodel.h");
   std::string headerFile("complexmodel.h");
@@ -541,6 +586,26 @@ TEST(ModelHeaderGeneration)
         headerFile.c_str(),markerSet,true);
   CHECK(markerHeaderGenerated);
 
+  bool localFrameHeaderGenerated = LuaModelWriteLocalFrameHeaderEntries(
+        headerFile.c_str(),localFrames,true);
+  CHECK(localFrameHeaderGenerated);
+
+  bool constraintSetHeaderGenerated = LuaModelWriteConstraintSetHeaderEntries(
+        headerFile.c_str(),constraintSetNames,conSet,true);
+
+  bool phasingHeaderGenerated = LuaModelWriteConstraintSetPhaseHeaderEntries(
+        headerFile.c_str(), constraintSetNames, phasing,true);
+  CHECK(phasingHeaderGenerated);
+
+  //--------------------------------------------
+  #ifdef RBDL_BUILD_ADDON_MUSCLE
+
+  bool mtgHeaderGenerated = LuaModelWriteMillard2016TorqueMuscleHeaderEntries(
+        headerFile.c_str(),mtgSet,mtgSetInfo,true);
+
+
+  #endif
+  //--------------------------------------------
 
   bool headerGuardsAdded = LuaModelAddHeaderGuards(headerFile.c_str());
   CHECK(headerGuardsAdded);
