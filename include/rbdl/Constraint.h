@@ -682,7 +682,7 @@ class RBDL_DLLAPI Constraint {
       @return the user defined name
     */
     const char* getName(){
-      return name.c_str();
+      return name;
     }
 
     /**
@@ -703,7 +703,7 @@ class RBDL_DLLAPI Constraint {
 
   protected:
     ///A user defined name which is unique to this constraint set
-    const std::string name;
+    const char* name;
 
     ///A user defined id which is unique to this constraint set
     unsigned int id;
