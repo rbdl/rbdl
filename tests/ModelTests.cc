@@ -61,7 +61,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
   Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
   unsigned int body_id = 0;
-  body_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
+  body_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
 
   CHECK_EQUAL (1u, body_id);
   CHECK_EQUAL (2u, model->lambda.size());
@@ -124,13 +124,13 @@ TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
   CHECK_EQUAL (3u, model->mBodies.size());
 }
 
-/** \brief Tests whether the joint and body information stored in the Model are computed correctly 
+/** \brief Tests whether the joint and body information stored in the Model are computed correctly
 */
 TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
   Body body;
   Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
-  model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
+  model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body);
 
   SpatialVector spatial_joint_axis(0., 0., 1., 0., 0., 0.);
   CHECK_EQUAL (spatial_joint_axis, joint.mJointAxes[0]);
@@ -142,7 +142,7 @@ TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
   Body body;
   Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
-  model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body, "mybody"); 
+  model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body, "mybody");
 
   unsigned int body_id = model->GetBodyId("mybody");
 
@@ -177,7 +177,6 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
       0., 0., 1., 0., 0., 0.
       );
 
-  CHECK (SpatialMatrixCompareEpsilon (test_matrix, model->X_J[1].toMatrix(), 1.0e-16));
   CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
   CHECK_EQUAL (test_joint_axis, model->S[1]);
 
@@ -186,16 +185,14 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 
   jcalc (*model, 1, Q, QDot);
 
-  test_matrix.set (
+  test_matrix <<
       0.,  1.,  0.,  0.,  0.,  0.,
       -1.,  0.,  0.,  0.,  0.,  0.,
       0.,  0.,  1.,  0.,  0.,  0.,
       0.,  0.,  0.,  0.,  1.,  0.,
       0.,  0.,  0., -1.,  0.,  0.,
-      0.,  0.,  0.,  0.,  0.,  1.
-      );
+      0.,  0.,  0.,  0.,  0.,  1.;
 
-  CHECK (SpatialMatrixCompareEpsilon (test_matrix, model->X_J[1].toMatrix(), 1.0e-16));
   CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
   CHECK_EQUAL (test_joint_axis, model->S[1]);
 }
@@ -203,7 +200,7 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
 TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
   Body body;
 
-  unsigned int body_id = model->AddBody (0, SpatialTransform(), 
+  unsigned int body_id = model->AddBody (0, SpatialTransform(),
       Joint (
         SpatialVector (0., 0., 0., 1., 0., 0.),
         SpatialVector (0., 0., 0., 0., 1., 0.),
@@ -253,8 +250,8 @@ TEST ( Model2DoFJoint ) {
   Model model_std;
   model_std.gravity = Vector3d (0., -9.81, 0.);
 
-  model_std.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
-  model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+  model_std.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body);
+  model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body);
 
   // using a model with a 2 DoF joint
   Joint joint_rot_zx (
@@ -296,13 +293,13 @@ TEST ( Model3DoFJoint ) {
 
   // in total we add two bodies to make sure that the transformations are
   // correct.
-  model_std.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
-  model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
-  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+  model_std.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body);
+  model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body);
+  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body);
 
-  model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
-  model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
-  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+  model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body);
+  model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body);
+  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body);
 
   // using a model with a 2 DoF joint
   Joint joint_rot_zyx (
@@ -356,9 +353,9 @@ TEST ( Model6DoFJoint ) {
       );
   body_id = model_std.AddBody (0, SpatialTransform(), joint_floating_base, body);
 
-  model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
-  model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
-  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+  model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body);
+  model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body);
+  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body);
 
   // using a model with a 2 DoF joint
   Joint joint_rot_zyx (
@@ -406,7 +403,7 @@ TEST ( ModelFixedJointQueryBodyId ) {
   CHECK_EQUAL (fixed_body_id, model.GetBodyId("fixed_body"));
 }
 
-/* 
+/*
  * Makes sure that when appending a body to a fixed joint the parent of the
  * newly added parent is actually the moving body that the fixed body is
  * attached to.
@@ -600,5 +597,36 @@ TEST (CalcBodyWorldOrientationFixedJoint) {
   Matrix3d E_movable = CalcBodyWorldOrientation (model_movable, q_movable, body_id_movable);
 
   CHECK_ARRAY_CLOSE (E_movable.data(), E_fixed.data(), 9, TEST_PREC);
+}
+
+TEST (TestAddFixedBodyToRoot) {
+  Model model;
+
+  Body body (1., Vector3d (1., 1., 1.), Vector3d (1., 1., 1.));
+  Joint joint_fixed (JointTypeFixed);
+
+  // Add a fixed body
+  unsigned int body_id_fixed = model.AppendBody (Xtrans(Vector3d (1., 0., 0.)), joint_fixed, body, "FixedBody");
+
+  // Add a second fixed body
+  unsigned int body_id_fixed2 = model.AppendBody (Xtrans(Vector3d (1., 0., 0.)), joint_fixed, body, "FixedBody2");
+
+  // Add a mobile boby
+  unsigned int movable_body = model.AppendBody (Xrotx (45 * M_PI / 180), JointTypeRevoluteX, body, "MovableBody");
+
+  CHECK_EQUAL ((unsigned int) 2, model.mBodies.size());
+  CHECK_EQUAL ((unsigned int) 2, model.mFixedBodies.size());
+
+  VectorNd q = VectorNd::Zero(model.q_size);
+
+  Vector3d base_coords = CalcBodyToBaseCoordinates(model, q, body_id_fixed, Vector3d::Zero());
+  CHECK_ARRAY_EQUAL(Vector3d (1., 0., 0.).data(), base_coords.data(), 3);
+
+  base_coords = CalcBodyToBaseCoordinates(model, q, body_id_fixed2, Vector3d::Zero());
+  CHECK_ARRAY_EQUAL(Vector3d (2., 0., 0.).data(), base_coords.data(), 3);
+
+  base_coords = CalcBodyToBaseCoordinates(model, q, movable_body, Vector3d::Zero());
+  CHECK_ARRAY_EQUAL(Vector3d (2., 0., 0.).data(), base_coords.data(), 3);
+
 }
 

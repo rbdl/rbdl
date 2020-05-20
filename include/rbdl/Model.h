@@ -177,7 +177,6 @@ struct RBDL_DLLAPI Model {
   std::vector<Math::SpatialVector> S;
 
   // Joint state variables
-  std::vector<Math::SpatialTransform> X_J;
   std::vector<Math::SpatialVector> v_J;
   std::vector<Math::SpatialVector> c_J;
 

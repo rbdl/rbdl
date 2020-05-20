@@ -97,11 +97,8 @@ struct RBDL_DLLAPI Body {
    * to create a composite body that has the inertial properties as if the
    * two bodies were joined by a fixed joint.
    *
-   * \note Both bodies have to have their inertial parameters expressed in
-   * the same orientation.
-   *
-   * \param transform The frame transformation from the origin of the
-   * original body to the origin of the added body
+   * \param transform The frame transformation from the current body to the
+   * other body.
    * \param other_body The other body that will be merged with *this.
    */
   void Join (const Math::SpatialTransform &transform, const Body &other_body) {

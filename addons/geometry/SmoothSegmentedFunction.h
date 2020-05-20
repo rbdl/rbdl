@@ -246,7 +246,19 @@ namespace RigidBodyDynamics {
      */
      double calcValue(double x) const;
 
-    
+     /**
+      This function solves for the x value of the curve given its y value.
+      Since a SmoothSegmentedFunction is not necessarily monotonic lower
+      and an upper bound on the argument must be specified so that the
+      desired root is found.
+
+      @param y: The range value of interest
+      @param xGuess: guess for the value of x
+      @return x: the value of x which corresponds to y = f(x) between
+                 xLowerBound, and xUpperBound
+     */
+     double calcInverseValue( double y,
+                              double xGuess) const;
 
      /**Calculates the value of the derivative of the curve this object 
      represents. 

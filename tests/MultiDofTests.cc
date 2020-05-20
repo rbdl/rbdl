@@ -22,9 +22,9 @@ struct SphericalJoint {
   SphericalJoint () {
     ClearLogOutput();
 
-    emulated_model.gravity = Vector3d (0., 0., -9.81); 
-    multdof3_model.gravity = Vector3d (0., 0., -9.81); 
-    eulerzyx_model.gravity = Vector3d (0., 0., -9.81); 
+    emulated_model.gravity = Vector3d (0., 0., -9.81);
+    multdof3_model.gravity = Vector3d (0., 0., -9.81);
+    eulerzyx_model.gravity = Vector3d (0., 0., -9.81);
 
     body = Body (1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
@@ -97,7 +97,7 @@ struct SphericalJoint {
 };
 
 void ConvertQAndQDotFromEmulated (
-    const Model &emulated_model, const VectorNd &q_emulated, const VectorNd &qdot_emulated,
+    const Model &UNUSED(emulated_model), const VectorNd &q_emulated, const VectorNd &qdot_emulated,
     const Model &multdof3_model, VectorNd *q_spherical, VectorNd *qdot_spherical) {
   for (unsigned int i = 1; i < multdof3_model.mJoints.size(); i++) {
     unsigned int q_index = multdof3_model.mJoints[i].q_index;
@@ -391,7 +391,7 @@ TEST_FIXTURE(SphericalJoint, TestCRBA ) {
     // compute ID (model, q, qdot, zero)
     VectorNd id_zero = VectorNd::Zero (multdof3_model.qdot_size);
     InverseDynamics (multdof3_model, sphQ, sphQDot, QDDot_zero, id_zero);
-  
+
     H_col = id_delta - id_zero;
     H_id.block(0, i, multdof3_model.qdot_size, 1) = H_col;
   }
@@ -445,7 +445,7 @@ TEST_FIXTURE(SphericalJoint, TestContactsLagrangian) {
   constraint_set_sph.AddContactConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
 
   constraint_set_sph.Bind(multdof3_model);
-  
+
   ForwardDynamicsConstraintsDirect (emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
   VectorNd emu_force_lagrangian = constraint_set_emu.force;
   ForwardDynamicsConstraintsDirect (multdof3_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
@@ -470,7 +470,7 @@ TEST_FIXTURE(SphericalJoint, TestContacts) {
   constraint_set_sph.AddContactConstraint (sph_child_id, Vector3d (0., 0., -1.), Vector3d (0., 0., 1.));
 
   constraint_set_sph.Bind(multdof3_model);
-  
+
   ForwardDynamicsContactsKokkevis (emulated_model, emuQ, emuQDot, emuTau, constraint_set_emu, emuQDDot);
   VectorNd emu_force_kokkevis = constraint_set_emu.force;
   ForwardDynamicsContactsKokkevis (multdof3_model, sphQ, sphQDot, sphTau, constraint_set_sph, sphQDDot);
@@ -624,7 +624,7 @@ TEST ( TestJointTypeTranslationZYX ) {
   VectorNd qddot_3dof (VectorNd::Zero (model_emulated.qdot_size));
   VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
 
-  for (int i = 0; i < q.size(); i++) {
+  for (unsigned int i = 0; i < q.size(); i++) {
     q[i] = 1.1 * (static_cast<double>(i + 1));
     qdot[i] = 0.1 * (static_cast<double>(i + 1));
     qddot_3dof[i] = 0.21 * (static_cast<double>(i + 1));
@@ -673,7 +673,7 @@ TEST ( TestJointTypeEulerXYZ ) {
   VectorNd qddot_3dof (VectorNd::Zero (model_emulated.qdot_size));
   VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
 
-  for (int i = 0; i < q.size(); i++) {
+  for (unsigned int i = 0; i < q.size(); i++) {
     q[i] = 1.1 * (static_cast<double>(i + 1));
     qdot[i] = 0.55* (static_cast<double>(i + 1));
     qddot_emulated[i] = 0.23 * (static_cast<double>(i + 1));
@@ -722,11 +722,11 @@ TEST ( TestJointTypeEulerYXZ ) {
   VectorNd qddot_3dof (VectorNd::Zero (model_emulated.qdot_size));
   VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
 
-  for (int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qddot_3dof[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+  for (unsigned int i = 0; i < q.size(); i++) {
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot_3dof[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   qddot_emulated = qddot_3dof;
@@ -758,12 +758,75 @@ TEST ( TestJointTypeEulerYXZ ) {
   CHECK_ARRAY_CLOSE (H_emulated.data(), H_3dof.data(), q.size() * q.size(), TEST_PREC);
 }
 
+TEST ( TestJointTypeEulerZXY ) {
+  Model model_emulated;
+  Model model_3dof;
+
+  Body body (1., Vector3d (1., 2., 1.), Matrix3d (1., 0., 0, 0., 1., 0., 0., 0., 1.));
+  Joint joint_emulated (
+      SpatialVector (0., 0., 1., 0., 0., 0.),
+      SpatialVector (1., 0., 0., 0., 0., 0.),
+      SpatialVector (0., 1., 0., 0., 0., 0.)
+      );
+  Joint joint_3dof (JointTypeEulerZXY);
+
+  model_emulated.AppendBody (SpatialTransform (), joint_emulated, body);
+  model_emulated.AppendBody (SpatialTransform (), joint_emulated, body);
+  model_3dof.AppendBody (SpatialTransform (), joint_3dof, body);
+  model_3dof.AppendBody (SpatialTransform (), joint_3dof, body);
+
+  VectorNd q (VectorNd::Zero (model_emulated.q_size));
+  VectorNd qdot (VectorNd::Zero (model_emulated.qdot_size));
+  VectorNd qddot_emulated (VectorNd::Zero (model_emulated.qdot_size));
+  VectorNd qddot_3dof (VectorNd::Zero (model_emulated.qdot_size));
+  VectorNd tau (VectorNd::Zero (model_emulated.qdot_size));
+
+  for (unsigned int i = 0; i < q.size(); i++) {
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot_3dof[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+  }
+
+  qddot_emulated = qddot_3dof;
+
+  UpdateKinematicsCustom (model_emulated, &q, &qdot, &qddot_emulated);
+  UpdateKinematicsCustom (model_3dof, &q, &qdot, &qddot_emulated);
+
+  CHECK_ARRAY_CLOSE (model_emulated.X_base[3].E.data(), model_3dof.X_base[1].E.data(), 9, TEST_PREC);
+  CHECK_ARRAY_CLOSE (model_emulated.v[3].data(), model_3dof.v[1].data(), 6, TEST_PREC);
+
+  VectorNd id_emulated (tau);
+  VectorNd id_3dof(tau);
+  InverseDynamics (model_emulated, q, qdot, qddot_emulated, id_emulated);
+  InverseDynamics (model_3dof, q, qdot, qddot_emulated, id_3dof);
+
+  CHECK_ARRAY_CLOSE (id_emulated.data(), id_3dof.data(), id_emulated.size(), TEST_PREC);
+
+  ForwardDynamicsLagrangian (model_emulated, q, qdot, tau, qddot_emulated);
+  ForwardDynamicsLagrangian (model_3dof, q, qdot, tau, qddot_3dof);
+
+  CHECK_ARRAY_CLOSE (qddot_emulated.data(), qddot_3dof.data(), qddot_emulated.size(), TEST_PREC);
+
+  MatrixNd H_emulated (MatrixNd::Zero (q.size(), q.size()));
+  MatrixNd H_3dof (MatrixNd::Zero (q.size(), q.size()));
+
+  for (unsigned int i = 0; i < q.size(); i++) {
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+  }
+
+  CompositeRigidBodyAlgorithm (model_emulated, q, H_emulated);
+  CompositeRigidBodyAlgorithm (model_3dof, q, H_3dof);
+
+  CHECK_ARRAY_CLOSE (H_emulated.data(), H_3dof.data(), q.size() * q.size(), TEST_PREC);
+}
+
 TEST_FIXTURE (Human36, TestUpdateKinematics) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qddot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd id_emulated (tau);
@@ -779,10 +842,10 @@ TEST_FIXTURE (Human36, TestUpdateKinematics) {
 
 TEST_FIXTURE (Human36, TestInverseDynamics) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qddot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd id_emulated (tau);
@@ -797,10 +860,10 @@ TEST_FIXTURE (Human36, TestInverseDynamics) {
 
 TEST_FIXTURE (Human36, TestNonlinearEffects) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qddot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd nle_emulated (tau);
@@ -815,9 +878,9 @@ TEST_FIXTURE (Human36, TestNonlinearEffects) {
 
 TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianKokkevis) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd qddot_lagrangian (qddot_emulated);
@@ -839,9 +902,9 @@ TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianKokkevis) {
 
 TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianSparse) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = -0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = -0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd qddot_lagrangian (qddot_emulated);
@@ -862,9 +925,9 @@ TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianSparse) {
 
 TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianNullSpace) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = -0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = -0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd qddot_lagrangian (qddot_emulated);
@@ -885,10 +948,10 @@ TEST_FIXTURE (Human36, TestContactsEmulatedLagrangianNullSpace) {
 
 TEST_FIXTURE (Human36, TestContactsEmulatedMultdofLagrangian) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qddot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qddot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   ForwardDynamicsConstraintsDirect (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
@@ -906,9 +969,9 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofLagrangian) {
 
 TEST_FIXTURE (Human36, TestContactsEmulatedMultdofSparse) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   ForwardDynamicsConstraintsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
@@ -931,9 +994,9 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofSparse) {
 
 TEST_FIXTURE (Human36, TestContactsEmulatedMultdofKokkevisSparse) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   ForwardDynamicsConstraintsRangeSpaceSparse (*model_emulated, q, qdot, tau, constraints_1B1C_emulated, qddot_emulated);
@@ -960,9 +1023,9 @@ TEST_FIXTURE (Human36, TestContactsEmulatedMultdofKokkevisSparse) {
 
 TEST_FIXTURE (Human36, TestContactsEmulatedMultdofKokkevisMultiple ) {
   for (unsigned int i = 0; i < q.size(); i++) {
-    q[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    qdot[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-    tau[i] = 0.5 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    q[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    qdot[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+    tau[i] = 0.4 * M_PI * static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
   }
 
   VectorNd qddot_kokkevis (qddot_emulated);

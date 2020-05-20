@@ -19,6 +19,7 @@ SET ( TESTS_SRCS
   CalcVelocitiesTests.cc
   CalcAccelerationsTests.cc
   DynamicsTests.cc
+  InverseDynamicsTests.cc
   CompositeRigidBodyTests.cc
   ImpulsesTests.cc
   TwolegModelTests.cc
@@ -28,6 +29,7 @@ SET ( TESTS_SRCS
   CustomJointSingleBodyTests.cc
   CustomJointMultiBodyTests.cc
   CustomConstraintsTests.cc
+  InverseKinematicsTests.cc
   LoopConstraintsTests.cc
   ScrewJointTests.cc
   ForwardDynamicsConstraintsExternalForces.cc
@@ -38,6 +40,9 @@ INCLUDE_DIRECTORIES ( ../src/ )
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
   LINKER_LANGUAGE CXX
   OUTPUT_NAME runtests
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF
   )
 
 ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} )
@@ -45,6 +50,9 @@ ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} )
 SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
   LINKER_LANGUAGE CXX
   OUTPUT_NAME runtests
+  CXX_STANDARD 11
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF
   )
 
 SET (RBDL_LIBRARY rbdl)

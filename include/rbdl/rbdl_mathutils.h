@@ -30,7 +30,7 @@ enum RBDL_DLLAPI LinearSolver {
   LinearSolverColPivHouseholderQR,
   LinearSolverHouseholderQR,
   LinearSolverLLT,
-  LinearSolverLast,
+  LinearSolverLast
 };
 
 extern RBDL_DLLAPI Vector3d Vector3dZero;
@@ -71,7 +71,7 @@ RBDL_DLLAPI inline MatrixNd MatrixFromPtr (unsigned int rows, unsigned int cols,
 /// \brief Solves a linear system using gaussian elimination with pivoting
 RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x);
 
-// \todo write test 
+// \todo write test
 RBDL_DLLAPI void SpatialMatrixSetSubmatrix(SpatialMatrix &dest, unsigned int row, unsigned int col, const Matrix3d &matrix);
 
 RBDL_DLLAPI bool SpatialMatrixCompareEpsilon (const SpatialMatrix &matrix_a,
@@ -121,7 +121,7 @@ RBDL_DLLAPI SpatialMatrix Xroty_mat (const double &yrot);
  */
 RBDL_DLLAPI SpatialMatrix Xrotx_mat (const double &xrot);
 
-/** \brief Creates a spatial transformation for given parameters 
+/** \brief Creates a spatial transformation for given parameters
  *
  * Creates a transformation to a coordinate system that is first rotated
  * and then translated.
@@ -172,7 +172,7 @@ RBDL_DLLAPI inline Matrix3d rotxdot (const double &x, const double &xdot) {
   return Matrix3d (
       0., 0., 0.,
       0., -s * xdot, c * xdot,
-      0., -c * xdot,-s * xdot 
+      0., -c * xdot,-s * xdot
       );
 }
 
@@ -183,7 +183,7 @@ RBDL_DLLAPI inline Matrix3d rotydot (const double &y, const double &ydot) {
   return Matrix3d (
       -s * ydot, 0., - c * ydot,
       0., 0., 0.,
-      c * ydot, 0., - s * ydot 
+      c * ydot, 0., - s * ydot
       );
 }
 
@@ -255,7 +255,7 @@ void SparseMultiplyLTx (Model &model, Math::MatrixNd &L);
 RBDL_DLLAPI
 void SparseSolveLx (Model &model, Math::MatrixNd &L, Math::VectorNd &x);
 RBDL_DLLAPI
-void SparseSolveLTx (Model &model, Math::MatrixNd &L, Math::VectorNd &x); 
+void SparseSolveLTx (Model &model, Math::MatrixNd &L, Math::VectorNd &x);
 
 } /* Math */
 

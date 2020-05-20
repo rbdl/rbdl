@@ -1,0 +1,43 @@
+language: cpp
+
+os: linux
+
+dist: trusty
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - cmake-data
+      - cmake
+      - libunittest++-dev
+      - libeigen3-dev
+
+jobs:
+  include:
+  - name: "SimpleMath - gcc"
+    env: CMAKE_DEFINES="-DRBDL_USE_SIMPLE_MATH=ON -DRBDL_BUILD_TESTS=ON -DRBDL_BUILD_ADDON_BENCHMARK=ON"
+    compiler: gcc
+  - name: "SimpleMath - clang"
+    env: CMAKE_DEFINES="-DRBDL_USE_SIMPLE_MATH=ON -DRBDL_BUILD_TESTS=ON -DRBDL_BUILD_ADDON_BENCHMARK=ON"
+    compiler: clang
+  - name: "EigenMath - gcc"
+    env: CMAKE_DEFINES="-DRBDL_USE_SIMPLE_MATH=OFF -DRBDL_BUILD_TESTS=ON -DRBDL_BUILD_ADDON_BENCHMARK=ON"
+    compiler: gcc
+  - name: "EigenMath - clang"
+    env: CMAKE_DEFINES="-DRBDL_USE_SIMPLE_MATH=OFF -DRBDL_BUILD_TESTS=ON -DRBDL_BUILD_ADDON_BENCHMARK=ON"
+    compiler: clang
+
+before_script:
+  - mkdir build
+  - cd build
+  - cmake -L -DCMAKE_CXX_FLAGS="-Wall -Wpedantic -Wextra -Werror" $CMAKE_DEFINES ..
+
+script:
+  # Compile RBDL
+  - make
+  # Run unit tests
+  - ./tests/runtests
+  # Run benchmarks
+  - ./addons/benchmark/benchmark

@@ -12,13 +12,16 @@
 
 #cmakedefine RBDL_USE_SIMPLE_MATH
 #cmakedefine RBDL_ENABLE_LOGGING
-#cmakedefine RBDL_BUILD_REVISION "@RBDL_BUILD_REVISION@"
+#cmakedefine RBDL_BUILD_COMMIT "@RBDL_BUILD_COMMIT@"
 #cmakedefine RBDL_BUILD_TYPE "@RBDL_BUILD_TYPE@"
 #cmakedefine RBDL_BUILD_BRANCH "@RBDL_BUILD_BRANCH@"
+#cmakedefine RBDL_BUILD_COMPILER_ID "@RBDL_BUILD_COMPILER_ID@"
+#cmakedefine RBDL_BUILD_COMPILER_VERSION "@RBDL_BUILD_COMPILER_VERSION@"
 #cmakedefine RBDL_BUILD_ADDON_LUAMODEL
 #cmakedefine RBDL_BUILD_ADDON_URDFREADER
 #cmakedefine RBDL_BUILD_STATIC
 #cmakedefine RBDL_USE_ROS_URDF_LIBRARY
+#cmakedefine RBDL_BUILD_ADDON_MUSCLE_FITTING
 
 /* compatibility defines */
 #ifdef _WIN32
@@ -70,5 +73,13 @@
 #  endif // RBDL_EXPORTS
 #  define RBDL_LOCAL RBDL_DLLLOCAL
 # endif // RBDL_BUILD_STATIC
+
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#  define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
 
 #endif

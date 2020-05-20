@@ -29,9 +29,9 @@ const int NUMBER_OF_MODELS = 2;
 //==============================================================================
 /*
 
-  The purpose of this test is to test that all of the code in RBDL 
+  The purpose of this test is to test that all of the code in RBDL
   related to a single CustomJoint functions. To do this we will implement
-  joints that already exist in RBDL but using the CustomJoint interface. The 
+  joints that already exist in RBDL but using the CustomJoint interface. The
   test will then numerically compare the results produced by the CustomJoint
   and the equivalent built-in joint in RBDL. The following algorithms will
   be tested:
@@ -49,32 +49,33 @@ const int NUMBER_OF_MODELS = 2;
 //==============================================================================
 /*
   As a note, below are the basic fields and functions that every CustomJoint
-  class member must provide. Refer to Featherstone's dynamics text if the field 
+  class member must provide. Refer to Featherstone's dynamics text if the field
   names below don't make sense to you.
 
    1. Extend from CustomJoint:
-      
-      struct CustomJointClass: public CustomJoint 
+
+      struct CustomJointClass: public CustomJoint
 
    2. Make a default constructor, and initialize member variables
-          mDoFCount 
+          mDoFCount
           S
           d_u
 
-      e.g. 
+      e.g.
 
       CustomJointClass()
 
-  3. Implement the method jcalc. This method must populate X_J, v_J, c_J, and S.
+  3. Implement the method jcalc. This method must populate X_lambda, v_J, c_J,
+     and S.
 
         virtual void jcalc
-          model.X_J[joint_id]
+          model.X_lambda[joint_id]
           model.v_J
           model.c_J
           model.mCustomJoints[joint.custom_joint_index]->S = S
 
   4. Implement the method jcalc_X_lambda_S. This method must populate X_lambda
-      and S.
+     and S.
 
         virtual void jcalc_X_lambda_S
           model.X_lambda
@@ -84,7 +85,7 @@ const int NUMBER_OF_MODELS = 2;
 //==============================================================================
 //Custom Joint Code
 //==============================================================================
-struct CustomJointTypeRevoluteX : public CustomJoint 
+struct CustomJointTypeRevoluteX : public CustomJoint
 {
   CustomJointTypeRevoluteX(){
     mDoFCount = 1;
@@ -98,7 +99,8 @@ struct CustomJointTypeRevoluteX : public CustomJoint
                       const Math::VectorNd &q,
                       const Math::VectorNd &qdot)
   {
-    model.X_J[joint_id] = Xrotx(q[model.mJoints[joint_id].q_index]);
+    model.X_lambda[joint_id] = Xrotx(q[model.mJoints[joint_id].q_index])
+      * model.X_T[joint_id];
     model.v_J[joint_id][0] = qdot[model.mJoints[joint_id].q_index];
   }
 
@@ -118,9 +120,9 @@ struct CustomJointTypeRevoluteX : public CustomJoint
 
 };
 
-struct CustomEulerZYXJoint : public CustomJoint 
+struct CustomEulerZYXJoint : public CustomJoint
 {
-  CustomEulerZYXJoint () 
+  CustomEulerZYXJoint ()
   {
     mDoFCount = 3;
     S = MatrixNd::Zero (6,3);
@@ -130,7 +132,7 @@ struct CustomEulerZYXJoint : public CustomJoint
   virtual void jcalc (Model &model,
                       unsigned int joint_id,
                       const Math::VectorNd &q,
-                      const Math::VectorNd &qdot) 
+                      const Math::VectorNd &qdot)
   {
     double q0 = q[model.mJoints[joint_id].q_index];
     double q1 = q[model.mJoints[joint_id].q_index + 1];
@@ -143,11 +145,13 @@ struct CustomEulerZYXJoint : public CustomJoint
     double s2 = sin (q2);
     double c2 = cos (q2);
 
-    model.X_J[joint_id].E = Matrix3d(
+    SpatialTransform X_J (Matrix3d(
                        c0 * c1,                s0 * c1,     -s1,
         c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
         c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
-        );
+        ),
+        Vector3d::Zero());
+    model.X_lambda[joint_id] = X_J * model.X_T[joint_id];
 
     S.setZero();
     S(0,0) = -s1;
@@ -175,8 +179,8 @@ struct CustomEulerZYXJoint : public CustomJoint
 
   virtual void jcalc_X_lambda_S ( Model &model,
                                   unsigned int joint_id,
-                                  const Math::VectorNd &q) 
-  {      
+                                  const Math::VectorNd &q)
+  {
       double q0 = q[model.mJoints[joint_id].q_index];
       double q1 = q[model.mJoints[joint_id].q_index + 1];
       double q2 = q[model.mJoints[joint_id].q_index + 2];
@@ -188,15 +192,15 @@ struct CustomEulerZYXJoint : public CustomJoint
       double s2 = sin (q2);
       double c2 = cos (q2);
 
-      
-      model.X_lambda[joint_id] = SpatialTransform ( 
+
+      model.X_lambda[joint_id] = SpatialTransform (
           Matrix3d(
             c0 * c1, s0 * c1, -s1,
             c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
             c0 * s1 * c2 + s0 * s2, s0 * s1 * c2 - c0 * s2, c1 * c2
             ),
           Vector3d (0., 0., 0.)) * model.X_T[joint_id];
-      
+
       S.setZero();
       S(0,0) = -s1;
       S(0,2) = 1.;
@@ -355,7 +359,7 @@ struct CustomJointSingleBodyFixture {
 
 //==============================================================================
 //
-// Tests 
+// Tests
 //    UpdateKinematicsCustom
 //    Jacobians
 //    InverseDynamics
@@ -371,8 +375,7 @@ TEST_FIXTURE ( CustomJointSingleBodyFixture, UpdateKinematics ) {
   VectorNd test;
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-
-    int dof = reference_model.at(idx).dof_count;
+    unsigned int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof ; i++) {
       q.at(idx)[i]      = i * 0.1;
       qdot.at(idx)[i]   = i * 0.15;
@@ -410,9 +413,9 @@ TEST_FIXTURE ( CustomJointSingleBodyFixture, UpdateKinematics ) {
 }
 
 TEST_FIXTURE (CustomJointSingleBodyFixture, UpdateKinematicsCustom) {
-  
+
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    int dof = reference_model.at(idx).dof_count;
+    unsigned int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]        = i * 9.133758561390194e-01;
       qdot.at(idx)[i]     = i * 6.323592462254095e-01;
@@ -435,11 +438,11 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, UpdateKinematicsCustom) {
     //velocity
     UpdateKinematicsCustom (reference_model.at(idx),
                             &q.at(idx),
-                            &qdot.at(idx), 
+                            &qdot.at(idx),
                             NULL);
     UpdateKinematicsCustom (custom_model.at(idx),
                             &q.at(idx),
-                            &qdot.at(idx), 
+                            &qdot.at(idx),
                             NULL);
 
     CHECK_ARRAY_CLOSE (
@@ -467,14 +470,13 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, UpdateKinematicsCustom) {
       TEST_PREC);
   }
 
-   
+
 }
 
 TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-    int dof = reference_model.at(idx).dof_count;
-
+    unsigned int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]        = i * 9.133758561390194e-01;
       qdot.at(idx)[i]     = i * 6.323592462254095e-01;
@@ -510,7 +512,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
                               Gcus);
 
     for(int i=0; i<6;++i){
-      for(int j=0; j<dof;++j){
+      for(unsigned int j = 0; j < dof; ++j){
         CHECK_CLOSE (
           Gref(i,j),
           Gcus(i,j),
@@ -534,7 +536,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
                          Gcus);
 
     for(int i=0; i<6;++i){
-      for(int j=0; j<dof;++j){
+      for(unsigned int j = 0; j < dof; ++j){
         CHECK_CLOSE (
           Gref(i,j),
           Gcus(i,j),
@@ -567,7 +569,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
                        GcusPt);
 
     for(int i=0; i<3;++i){
-      for(int j=0; j<dof;++j){
+      for(unsigned int j = 0; j < dof; ++j){
         CHECK_CLOSE (
           GrefPt(i,j),
           GcusPt(i,j),
@@ -581,9 +583,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, Jacobians) {
 TEST_FIXTURE (CustomJointSingleBodyFixture, InverseDynamics) {
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-
-    int dof = reference_model.at(idx).dof_count;
-
+    unsigned int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]        = i * 9.133758561390194e-01;
       qdot.at(idx)[i]     = i * 6.323592462254095e-01;
@@ -621,9 +621,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, InverseDynamics) {
 TEST_FIXTURE (CustomJointSingleBodyFixture, CompositeRigidBodyAlgorithm) {
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-
-    int dof = reference_model.at(idx).dof_count;
-
+    unsigned int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]      = (i+0.1) * 9.133758561390194e-01;
       qdot.at(idx)[i]    = (i+0.1) * 6.323592462254095e-01;
@@ -695,9 +693,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, CompositeRigidBodyAlgorithm) {
 TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamics) {
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-
-    int dof = reference_model.at(idx).dof_count;
-
+    unsigned int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]        = (i+0.1) * 9.133758561390194e-01;
       qdot.at(idx)[i]     = (i+0.1) * 6.323592462254095e-01;
@@ -732,9 +728,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamics) {
 TEST_FIXTURE (CustomJointSingleBodyFixture, CalcMInvTimestau) {
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-
-    int dof = reference_model.at(idx).dof_count;
-
+    unsigned int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
       q.at(idx)[i]      = (i+0.1) * 9.133758561390194e-01;
       tau.at(idx)[i]    = (i+0.1) * 9.754040499940952e-02;
@@ -770,9 +764,7 @@ TEST_FIXTURE (CustomJointSingleBodyFixture, CalcMInvTimestau) {
 TEST_FIXTURE (CustomJointSingleBodyFixture, ForwardDynamicsContactsKokkevis){
 
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
-
-    int dof = reference_model.at(idx).dof_count;
-
+    unsigned int dof = reference_model.at(idx).dof_count;
     //Adding a 1 constraint to a system with 1 dof is
     //a no-no
     if(dof > 1){

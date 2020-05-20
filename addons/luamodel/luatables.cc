@@ -34,9 +34,9 @@
 
 extern "C"
 {
-   #include <lua.h>
-   #include <lauxlib.h>
-   #include <lualib.h>
+   #include <lua5.1/lua.h>
+   #include <lua5.1/lauxlib.h>
+   #include <lua5.1/lualib.h>
 }
 
 #include <stdio.h>  /* defines FILENAME_MAX */

@@ -87,11 +87,9 @@ void UpdateKinematicsCustomPtr (Model &model,
 		for (i = 1; i < model.mBodies.size(); i++) {
 			unsigned int lambda = model.lambda[i];
 
-			VectorNd QDot_zero (VectorNd::Zero (model.q_size));
+			VectorNd QDot_zero (VectorNd::Zero (model.qdot_size));
 
 			jcalc (model, i, (Q), QDot_zero);
-
-			model.X_lambda[i] = model.X_J[i] * model.X_T[i];
 
 			if (lambda != 0) {
 				model.X_base[i] = model.X_lambda[i] * model.X_base[lambda];
@@ -103,7 +101,7 @@ void UpdateKinematicsCustomPtr (Model &model,
 
 	if (qdot_ptr) {
 		VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
-		VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
+		VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
 
 		for (i = 1; i < model.mBodies.size(); i++) {
 			unsigned int lambda = model.lambda[i];
@@ -122,7 +120,7 @@ void UpdateKinematicsCustomPtr (Model &model,
 	}
 
 	if (qddot_ptr) {
-		VectorNdRef QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
+		VectorNdRef QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.qdot_size);
 
 		for (i = 1; i < model.mBodies.size(); i++) {
 			unsigned int q_index = model.mJoints[i].q_index;
@@ -258,7 +256,7 @@ void CalcBodySpatialJacobianPtr (
 		UpdateKinematicsCustomPtr (model, q_ptr, NULL, NULL);
 	}
 
-	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.q_size);
+	MatrixNdRef G = MatrixFromPtr(const_cast<double*>(G_ptr), 6, model.qdot_size);
 
 	assert (G.rows() == 6 && G.cols() == model.qdot_size );
 
@@ -303,9 +301,9 @@ void InverseDynamicsPtr (
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
-	VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
-	VectorNdRef QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
-	VectorNdRef Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
+	VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
+	VectorNdRef QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.qdot_size);
+	VectorNdRef Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
 
 	// Reset the velocity of the root body
 	model.v[0].setZero();
@@ -367,8 +365,8 @@ void NonlinearEffectsPtr (
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
-	VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
-	VectorNdRef Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
+	VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
+	VectorNdRef Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
 
 	SpatialVector spatial_gravity (0., 0., 0., -model.gravity[0], -model.gravity[1], -model.gravity[2]);
 
@@ -505,9 +503,9 @@ void ForwardDynamicsPtr (
 	using namespace RigidBodyDynamics::Math;
 
 	VectorNdRef&& Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
-	VectorNdRef&& QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
-	VectorNdRef&& QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
-	VectorNdRef&& Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
+	VectorNdRef&& QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
+	VectorNdRef&& QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.qdot_size);
+	VectorNdRef&& Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
 
 	SpatialVector spatial_gravity (0., 0., 0., model.gravity[0], model.gravity[1], model.gravity[2]);
 
@@ -534,7 +532,6 @@ void ForwardDynamicsPtr (
 		model.v[i] = model.X_lambda[i].apply( model.v[lambda]) + model.v_J[i];
 
 		/*
-		LOG << "X_J (" << i << "):" << std::endl << X_J << std::endl;
 		LOG << "v_J (" << i << "):" << std::endl << v_J << std::endl;
 		LOG << "v_lambda" << i << ":" << std::endl << model.v.at(lambda) << std::endl;
 		LOG << "X_base (" << i << "):" << std::endl << model.X_base[i] << std::endl;
@@ -648,9 +645,9 @@ void ForwardDynamicsConstraintsDirectPtr (
   using namespace RigidBodyDynamics::Math;
 
   VectorNdRef&& Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
-  VectorNdRef&& QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
-  VectorNdRef&& QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
-  VectorNdRef&& Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
+  VectorNdRef&& QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
+  VectorNdRef&& QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.qdot_size);
+  VectorNdRef&& Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
 
   // create copy of non-const accelerations
   VectorNd QDDot_dummy = QDDot;
@@ -667,7 +664,7 @@ void ForwardDynamicsConstraintsDirectPtr (
     model, Q, QDot, Tau, CS, QDDot_dummy
   );
 
-  for (int i = 0; i < model.q_size; ++i) {
+  for (int i = 0; i < model.qdot_size; ++i) {
     QDDot[i] = QDDot_dummy[i];
   }
   LOG << "QDDot      = " << QDDot.transpose() << std::endl;

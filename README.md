@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rbdl/rbdl.svg?branch=master)](https://travis-ci.org/rbdl/rbdl)
+
 RBDL - Rigid Body Dynamics Library
 Copyright (c) 2011-2020 Martin Felis <martin@fysx.org>
 
@@ -69,9 +71,9 @@ Recent Changes
       (thanks to Sébastien Barthélémy for reporting!)
   * 23 February 2015: New version 2.4.0:
     * Added sparse range-space method ForwardDynamicsContactsRangeSpaceSparse()
-      and ComputeContactImpulsesRangeSpaceSparse() 
+      and ComputeContactImpulsesRangeSpaceSparse()
     * Added null-space method ForwardDynamicsContactsNullSpace()
-      and ComputeContactImpulsesNullSpace() 
+      and ComputeContactImpulsesNullSpace()
     * Renamed ForwardDynamicsContactsLagrangian() to
       ForwardDynamicsContactsDirect() and
       ComputeContactImpulsesLagrangian() to ComputeContactImpulsesDirect()
@@ -129,7 +131,7 @@ a separate directory in Release mode use:
 
     mkdir build
     cd build/
-    cmake -D CMAKE_BUILD_TYPE=Release ../ 
+    cmake -D CMAKE_BUILD_TYPE=Release ../
     make
 
 For optimal performance it is highly recommended to install the Eigen3
@@ -139,6 +141,14 @@ comes with a simple, albeit much slower math library (SimpleMath) that can
 be used by enabling `RBDL_USE_SIMPLE_MATH`, i.e.:
 
     cmake -D RBDL_USE_SIMPLE_MATH=TRUE ../
+
+Python Bindings
+===============
+
+RBDL can also build an experimental python wrapper that works with python 3 and python 2. To do this enable the
+the `RBDL_BUILD_PYTHON_WRAPPER` cmake options. This will build the wrapper for python 3, if you want to use python 2 instead
+you will also have to enable the `RBDL_USE_PYTHON_2` cmake option. The result of this is an extra python directory in the build
+directory. From within which you can install it using setup.py. This is done automically when using `make install`
 
 Citation
 ========
@@ -163,29 +173,29 @@ Licensing
 =========
 
 The library is published under the very permissive zlib free software
-license which should allow you to use the software wherever you need. 
+license which should allow you to use the software wherever you need.
 
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
     Copyright (c) 2011-2020 Martin Felis <martin@fysx.org>
-    
+
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
     arising from the use of this software.
-    
+
     Permission is granted to anyone to use this software for any purpose,
     including commercial applications, and to alter it and redistribute it
     freely, subject to the following restrictions:
-    
+
        1. The origin of this software must not be misrepresented; you must not
        claim that you wrote the original software. If you use this software
        in a product, an acknowledgment in the product documentation would be
        appreciated but is not required.
-    
+
        2. Altered source versions must be plainly marked as such, and must not
        be misrepresented as being the original software.
-    
+
        3. This notice may not be removed or altered from any source
        distribution.
 
