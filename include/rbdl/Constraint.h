@@ -386,14 +386,17 @@ class RBDL_DLLAPI Constraint {
     Constraint(const char* nameOfConstraint,
                unsigned int typeOfConstraint,
                unsigned int sizeOfConstraint,
-               unsigned int userDefinedIdNumber):
-               name(nameOfConstraint),
+               unsigned int userDefinedIdNumber):               
                typeOfConstraint(typeOfConstraint),
-               sizeOfConstraint(sizeOfConstraint),
                id(userDefinedIdNumber),
+               sizeOfConstraint(sizeOfConstraint),
                baumgarteParameters(1./0.1,1./0.1),
                baumgarteEnabled(false)
     {
+      name = "";
+      if(nameOfConstraint){
+        name = nameOfConstraint;
+      }
       positionConstraint.resize(sizeOfConstraint);
       velocityConstraint.resize(sizeOfConstraint);
       for(unsigned int i=0; i<sizeOfConstraint;++i){
@@ -682,7 +685,7 @@ class RBDL_DLLAPI Constraint {
       @return the user defined name
     */
     const char* getName(){
-      return name;
+      return name.c_str();
     }
 
     /**
@@ -703,7 +706,7 @@ class RBDL_DLLAPI Constraint {
 
   protected:
     ///A user defined name which is unique to this constraint set
-    const char* name;
+    std::string name;
 
     ///A user defined id which is unique to this constraint set
     unsigned int id;
