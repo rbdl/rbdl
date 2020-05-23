@@ -1106,7 +1106,7 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
     const RigidBodyDynamics::Model *model,
     const HumanMetaData &human_meta_data,
     std::vector <Millard2016TorqueMuscle> &updMtgSet,
-    std::vector <Millard2016TorqueMuscleInfo> &updMtgSetInfo,
+    std::vector <Millard2016TorqueMuscleConfig> &updMtgSetInfo,
     bool verbose)
 {
 
@@ -1117,8 +1117,8 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
 
   updMtgSet.resize(mtgCount);
   updMtgSetInfo.resize(mtgCount);
-  Millard2016TorqueMuscleInfo mtgInfo;
-  Millard2016TorqueMuscleInfo mtgInfoDefault;
+  Millard2016TorqueMuscleConfig mtgInfo;
+  Millard2016TorqueMuscleConfig mtgInfoDefault;
   unsigned int id;
 
   for(unsigned int i = 1; i <= mtgCount; ++i){
@@ -1220,6 +1220,21 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
                           updMtgSetInfo[i].name);
 
     //Parameters for manual adjustment
+    if (!std::isnan(updMtgSetInfo[i].max_isometric_torque_scale)) {
+        double fiso = updMtgSet[i].getMaximumActiveIsometricTorque();
+        double updFiso = fiso*updMtgSetInfo[i].max_isometric_torque_scale;
+        updMtgSet[i].setMaximumActiveIsometricTorque(updFiso);
+    }
+
+    if (!std::isnan(updMtgSetInfo[i].max_angular_velocity_scale)) {
+        double omegaMax =
+            updMtgSet[i].getMaximumConcentricJointAngularVelocity();
+        double updOmegaMax =
+            omegaMax*updMtgSetInfo[i].max_angular_velocity_scale;
+        updMtgSet[i].setMaximumConcentricJointAngularVelocity(updOmegaMax);
+    }
+
+
     if (!std::isnan(updMtgSetInfo[i].passive_element_damping_coeff)) {
         updMtgSet[i].setNormalizedDampingCoefficient(
                     updMtgSetInfo[i].passive_element_damping_coeff);
@@ -1827,7 +1842,7 @@ bool LuaModelWriteMillard2016TorqueMuscleHeaderEntries(
     const char* header_file_name,
     const std::vector<RigidBodyDynamics::Addons::Muscle
                       ::Millard2016TorqueMuscle> &mtg_set,
-    const std::vector<Millard2016TorqueMuscleInfo > &mtg_set_info,
+    const std::vector<Millard2016TorqueMuscleConfig > &mtg_set_info,
     bool append)
 {
 

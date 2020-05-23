@@ -402,20 +402,20 @@ bool LuaModelReadHumanMetaData(
 
 /**
   This function will read the information for each millard2016_torque_muscle
-  into the vector of Millard2016TorqueMuscleInfo structs and populate a 
+  into the vector of Millard2016TorqueMuscleConfig structs and populate a
   corresponding vector of Millard2016TorqueMuscle objects. Note that the
-  struct Millard2016TorqueMuscleInfo contains information needed not just
+  struct Millard2016TorqueMuscleConfig contains information needed not just
   to create an Millard2016TorqueMuscle object but also the information needed
   to retrieve the correct q index, qdot index, and activation index from the
   state vector to evaluate the joint torque and to update the generalized
   torque vector. Please see the doxygen on Millard2016TorqueMuscle.h and
-  Millard2016TorqueMuscleInfo for more details.
+  Millard2016TorqueMuscleConfig for more details.
 
   \param filename the name of the Lua file.
   \param model a pointer to the populated Model structure
   \param human_meta_data: the meta data for this subject.
   \param updMtgSet: an empty vector of Millard2016TorqueMuscle objects
-  \param updMtgSetInfo: an empty vector of Millard2016TorqueMuscleInfo structs
+  \param updMtgSetInfo: an empty vector of Millard2016TorqueMuscleConfig structs
   \param verbose specifies wether information on the model should be printed
   (default: true).
  
@@ -429,7 +429,7 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
           const HumanMetaData &human_meta_data,
           std::vector <RigidBodyDynamics::Addons::
                         Muscle::Millard2016TorqueMuscle> &updMtgSet,
-          std::vector <Millard2016TorqueMuscleInfo> &updMtgSetInfo,
+          std::vector <Millard2016TorqueMuscleConfig> &updMtgSetInfo,
           bool verbose = false);
 
 #endif
@@ -554,7 +554,7 @@ bool LuaModelWriteConstraintSetPhaseHeaderEntries(const char* header_file_name,
 
   @param header_file_name the name of the header file
   @param mtg_set the vector of populated Millard2016TorqueMuscle objects
-  @param mtg_set_info the vector of Millard2016TorqueMuscleInfo structures
+  @param mtg_set_info the vector of Millard2016TorqueMuscleConfig structures
   @param append false: any existing text will be discarded,
                 true: this text will be appended to the file
 */
@@ -563,7 +563,7 @@ bool LuaModelWriteMillard2016TorqueMuscleHeaderEntries(
     const char* header_file_name,
     const std::vector<RigidBodyDynamics::Addons::Muscle
                       ::Millard2016TorqueMuscle> &mtg_set,
-    const std::vector<Millard2016TorqueMuscleInfo > &mtg_set_info,
+    const std::vector<Millard2016TorqueMuscleConfig > &mtg_set_info,
     bool append);
 
 #endif

@@ -101,7 +101,9 @@ namespace RigidBodyDynamics {
             WristSupination               = 19,
             LumbarExtension               = 20,
             LumbarFlexion                 = 21,
-            Last                          = 22
+            UnitExtensor                  = 22,
+            UnitFlexor                    = 23,
+            Last                          = 24
           };
           const static char* names[];
           JointTorqueSet(){}
@@ -200,6 +202,8 @@ namespace RigidBodyDynamics {
             WristSupination             = JointTorqueSet::WristSupination     ,
             LumbarExtension             = JointTorqueSet::LumbarExtension,
             LumbarFlexion               = JointTorqueSet::LumbarFlexion,
+            UnitExtensor                = JointTorqueSet::UnitExtensor,
+            UnitFlexor                  = JointTorqueSet::UnitFlexor,
             LastJointTorque
           };
           const static char* GenderNames[];
@@ -1512,7 +1516,7 @@ namespace RigidBodyDynamics {
               //getAnderson2007ParameterMatrix();
               static double const Anderson2007Table3Mean[36][14];
               static double const Anderson2007Table3Std[36][14];
-              static double const GymnastWholeBody[22][12];
+              static double const GymnastWholeBody[24][12];
 
 
               void calcTorqueMuscleDataFeatures(

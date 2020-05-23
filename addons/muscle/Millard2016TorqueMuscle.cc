@@ -84,7 +84,9 @@ const char* JointTorqueSet::names[] = { "HipExtension",
                                         "WristPronation",
                                         "WristSupination",
                                         "LumbarExtension",
-                                        "LumbarFlexion"
+                                        "LumbarFlexion",
+                                        "UnitExtensor",
+                                        "UnitFlexor"
                                       };
 
 const char* Anderson2007::GenderNames[] = {"Male","Female"};
@@ -126,7 +128,9 @@ const char* Gymnast::JointTorqueNames[] = {
   "WristPronation",
   "WristSupination",
   "LumbarExtension",
-  "LumbarFlexion"
+  "LumbarFlexion",
+  "UnitExtensor",
+  "UnitFlexor"
 };
 
 /*************************************************************
@@ -266,7 +270,7 @@ double const Millard2016TorqueMuscle::Anderson2007Table3Std[36][14] = {
 
 
 
-double const Millard2016TorqueMuscle::GymnastWholeBody[22][12] = {
+double const Millard2016TorqueMuscle::GymnastWholeBody[24][12] = {
   {0,0,0,0,175.746, 9.02335,  1.06465,  1.05941,  1.1,     0.163849,  0.79158,   1.5708   },
   {0,1,0,0,157.293, 9.18043,  0.733038, 1.21999,  1.11905, 0.25,     -0.0888019,-0.515207 },
   {1,0,0,0,285.619, 19.2161,  0.942478, 0.509636, 1.13292, 0.115304,  2.00713,   2.70526  },
@@ -288,7 +292,9 @@ double const Millard2016TorqueMuscle::GymnastWholeBody[22][12] = {
   {5,9,0,0,31.4217, 18.02,    0.43,     1.47849,  1.34817, 0.196913,  0,         -0.523599},
   {5,8,0,0,23.8345, 21.77,   -1.14319,  2.56082,  1.31466, 0.2092,    0.349066,  0.872665 },
   {6,0,0,0,687.864, 7.98695,  1.5506,   1.14543,  1.1,     0.150907,  0.306223,  1.35342  },
-  {6,1,0,0,211.65, 19.2310,       0,   6.28319,  1.1,     0.150907,  0,        -0.785398 }
+  {6,1,0,0,211.65, 19.2310,       0,    6.28319,  1.1,     0.150907,  0,        -0.785398 },
+  {7,0,0,0,  1.,    1.,          0.,    1.,       1.1,     0.25,      0.,        1.       },
+  {7,1,0,0,  1.,    1.,          0.,    1.,       1.1,     0.25,      0.,       -1.       },
 };
 
 
@@ -311,6 +317,7 @@ const static struct JointSet {
               Elbow,
               Wrist,
               Lumbar,
+              Generic,
               Last
             };
   JointSet() {}
@@ -335,7 +342,7 @@ struct DirectionSet {
 } DirectionSet;
 
 
-const static int JointTorqueMap[22][3] = {
+const static int JointTorqueMap[24][3] = {
   {(int)JointTorqueSet::HipExtension, (int)JointSet::Hip, (int)DirectionSet::Extension          },
   {(int)JointTorqueSet::HipFlexion, (int)JointSet::Hip, (int)DirectionSet::Flexion            },
   {(int)JointTorqueSet::KneeExtension, (int)JointSet::Knee, (int)DirectionSet::Extension          },
@@ -357,7 +364,9 @@ const static int JointTorqueMap[22][3] = {
   {(int)JointTorqueSet::WristPronation, (int)JointSet::Wrist, (int)DirectionSet::Pronation          },
   {(int)JointTorqueSet::WristSupination, (int)JointSet::Wrist, (int)DirectionSet::Supination         },
   {(int)JointTorqueSet::LumbarExtension, (int)JointSet::Lumbar, (int)DirectionSet::Extension          },
-  {(int)JointTorqueSet::LumbarFlexion, (int)JointSet::Lumbar, (int)DirectionSet::Flexion            }
+  {(int)JointTorqueSet::LumbarFlexion, (int)JointSet::Lumbar, (int)DirectionSet::Flexion            },
+  {(int)JointTorqueSet::UnitExtensor, (int)JointSet::Generic, (int)DirectionSet::Extension            },
+  {(int)JointTorqueSet::UnitFlexor, (int)JointSet::Generic, (int)DirectionSet::Flexion            }
 };
 
 

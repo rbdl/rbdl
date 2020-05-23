@@ -28,7 +28,7 @@ joints = {
 		{ 0., 1., 0., 0., 0., 0.},
 		{ 1., 0., 0., 0., 0., 0.},
 	},
-	spherical_zyx = {
+	euler_zyx = {
 		{ 0., 0., 1., 0., 0., 0.},
 		{ 0., 1., 0., 0., 0., 0.},
 		{ 1., 0., 0., 0., 0., 0.},
@@ -75,7 +75,7 @@ frames = {
 		name = "thigh_right",
 		parent = "pelvis",
 		body = bodies.thigh_right,
-		joint = joints.spherical_zyx,
+		joint = joints.euler_zyx,
 		markers = {
 			RTHI = 	{ -0.007376, -0.000000, -0.243721,},
 			RKNE = 	{ -0.011611, -0.000000, -0.454494,},},		
@@ -96,7 +96,7 @@ frames = {
 		name = "thigh_left",
 		parent = "pelvis",
 		body = bodies.thigh_left,
-		joint = joints.spherical_zyx,
+		joint = joints.euler_zyx,
 	},
 	{
 		name = "shank_left",

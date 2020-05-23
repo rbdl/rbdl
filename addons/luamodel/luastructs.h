@@ -263,8 +263,8 @@ struct HumanMetaData {
 
 
 */
-struct Millard2016TorqueMuscleInfo {
-  Millard2016TorqueMuscleInfo() :
+struct Millard2016TorqueMuscleConfig {
+  Millard2016TorqueMuscleConfig() :
     name(""),
     angle_sign(std::numeric_limits<double>::signaling_NaN()),
     torque_sign(std::numeric_limits<double>::signaling_NaN()),
@@ -280,7 +280,9 @@ struct Millard2016TorqueMuscleInfo {
     activation_time_constant(0.015), //Thelen 2003, Adjustment of muscle ...
     deactivation_time_constant(0.05),//Thelen 2003, Adjustment of muscle ...
     max_isometric_torque(std::numeric_limits<double>::signaling_NaN()),
+    max_isometric_torque_scale(std::numeric_limits<double>::signaling_NaN()),
     max_angular_velocity(std::numeric_limits<double>::signaling_NaN()),
+    max_angular_velocity_scale(std::numeric_limits<double>::signaling_NaN()),
     passive_element_damping_coeff(std::numeric_limits<double>::signaling_NaN()),
     passive_element_torque_scale(std::numeric_limits<double>::signaling_NaN()),
     passive_element_angle_offset(std::numeric_limits<double>::signaling_NaN()),
@@ -314,6 +316,8 @@ struct Millard2016TorqueMuscleInfo {
   double        deactivation_time_constant;
   double        max_isometric_torque;
   double        max_angular_velocity;
+  double        max_isometric_torque_scale;
+  double        max_angular_velocity_scale;
   double        passive_element_damping_coeff;
   double        passive_element_torque_scale;
   double        passive_element_angle_offset;

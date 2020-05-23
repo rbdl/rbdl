@@ -28,7 +28,7 @@ joints = {
 		{ 0., 1., 0., 0., 0., 0.},
 		{ 1., 0., 0., 0., 0., 0.},
 	},
-	spherical_zyx = {
+	euler_zyx = {
 		{ 0., 0., 1., 0., 0., 0.},
 		{ 0., 1., 0., 0., 0., 0.},
 		{ 1., 0., 0., 0., 0., 0.},
@@ -70,12 +70,17 @@ human_meta_data = {
 --torque muscle models
 --The name must contain a name of one of the MTGs  listed in JointTorqueSet : line 60 of addons/muscle/Millard2016TorqueMuscle.cc
 millard2016_torque_muscles = {
-  { name = "HipExtension_R",   angle_sign = -1, torque_sign =  1, body ="thigh_right",  joint_index=1, act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.0,},
-  { name = "HipFlexion_R",     angle_sign = -1, torque_sign = -1, body ="thigh_right",  joint_index=1, act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.0,},
-  { name = "KneeExtension_R",  angle_sign =  1, torque_sign = -1, body ="shank_right",                 act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.0,},
-  { name = "KneeFlexion_R",    angle_sign =  1, torque_sign =  1, body ="shank_right",                 act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.0,},
-  { name = "AnkleExtension_R", angle_sign = -1, torque_sign =  1, body ="foot_right" ,                 act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.0,},
-  { name = "AnkleFlexion_R",   angle_sign = -1, torque_sign = -1, body ="foot_right" ,                 act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.0,},
+  { name = "HipExtension_R",   								angle_sign = -1, torque_sign =  1, body ="thigh_right",  joint_index=1, act_time = 0.05, deact_time = 0.05,},
+  { name = "HipFlexion_R",     								angle_sign = -1, torque_sign = -1, body ="thigh_right",  joint_index=1, act_time = 0.05, deact_time = 0.05,},
+  { name = "KneeExtension_R",  								angle_sign =  1, torque_sign = -1, body ="shank_right",                 act_time = 0.05, deact_time = 0.05,},
+  { name = "KneeFlexion_R",    								angle_sign =  1, torque_sign =  1, body ="shank_right",                 act_time = 0.05, deact_time = 0.05,},
+  { name = "AnkleExtension_R", 								angle_sign = -1, torque_sign =  1, body ="foot_right" ,                 act_time = 0.05, deact_time = 0.05,},
+  { name = "AnkleFlexion_R",   								angle_sign = -1, torque_sign = -1, body ="foot_right" ,                 act_time = 0.05, deact_time = 0.05,},
+  { name = "AnkleFlexion_R_FpeHalfScale",     angle_sign = -1, torque_sign = -1, body ="foot_right" ,       act_time = 0.05, deact_time = 0.05, passive_element_torque_scale = 0.5,},
+  { name = "AnkleFlexion_R_FisoHalfScale",    angle_sign = -1, torque_sign = -1, body ="foot_right" ,       act_time = 0.05, deact_time = 0.05, max_isometric_torque_scale = 0.5,},
+  { name = "AnkleFlexion_R_OmegaHalfScale",   angle_sign = -1, torque_sign = -1, body ="foot_right" ,       act_time = 0.05, deact_time = 0.05, max_angular_velocity_scale = 0.5,},
+  { name = "UnitExtensor_R",   								angle_sign = -1, torque_sign =  1, body ="thigh_right",  joint_index=2 },
+  { name = "UnitFlexor_R",     								angle_sign = -1, torque_sign = -1, body ="thigh_right",  joint_index=2 },
 },
 frames = {
 	{
@@ -93,7 +98,7 @@ frames = {
 		name = "thigh_right",
 		parent = "pelvis",
 		body = bodies.thigh_right,
-		joint = joints.spherical_zyx,
+		joint = joints.euler_zyx,
 		markers = {
 			RTHI = 	{ -0.007376, -0.000000, -0.243721,},
 			RKNE = 	{ -0.011611, -0.000000, -0.454494,},},		
@@ -114,7 +119,7 @@ frames = {
 		name = "thigh_left",
 		parent = "pelvis",
 		body = bodies.thigh_left,
-		joint = joints.spherical_zyx,
+		joint = joints.euler_zyx,
 	},
 	{
 		name = "shank_left",

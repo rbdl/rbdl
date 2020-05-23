@@ -433,14 +433,14 @@ TEST(LoadMuscleTorqueGenerators)
 
 
   std::vector < Muscle::Millard2016TorqueMuscle > mtgSet;
-  std::vector< Millard2016TorqueMuscleInfo > mtgInfoSet;
+  std::vector< Millard2016TorqueMuscleConfig > mtgInfoSet;
 
   bool torqueMusclesLoaded = LuaModelReadMillard2016TorqueMuscleSets(
         modelFile.c_str(),&model,humanData,mtgSet,mtgInfoSet,false);
 
   CHECK(torqueMusclesLoaded);
-  CHECK(mtgSet.size() == 6);
-  CHECK(mtgInfoSet.size() == 6);
+  CHECK(mtgSet.size() == 11);
+  CHECK(mtgInfoSet.size() == 11);
 
   unsigned int i=0;
 
@@ -454,7 +454,6 @@ TEST(LoadMuscleTorqueGenerators)
   CHECK(mtgInfoSet[i].joint_index - 1 == 0);
   CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
   CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
-  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
   i=1;
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"HipFlexion_R")==0);
   CHECK(std::fabs(mtgInfoSet[i].angle_sign  - (-1)) < TEST_PREC);
@@ -463,7 +462,6 @@ TEST(LoadMuscleTorqueGenerators)
   CHECK(mtgInfoSet[i].joint_index - 1 == 0);
   CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
   CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
-  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
   i=2;
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"KneeExtension_R")==0);
   CHECK(std::fabs(mtgInfoSet[i].angle_sign  - ( 1)) < TEST_PREC);
@@ -471,7 +469,6 @@ TEST(LoadMuscleTorqueGenerators)
   CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"shank_right")== 0);
   CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
   CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
-  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
   i=3;
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"KneeFlexion_R")==0);
   CHECK(std::fabs(mtgInfoSet[i].angle_sign  - ( 1)) < TEST_PREC);
@@ -479,7 +476,6 @@ TEST(LoadMuscleTorqueGenerators)
   CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"shank_right")== 0);
   CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
   CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
-  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
   i=4;
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"AnkleExtension_R")==0);
   CHECK(std::fabs(mtgInfoSet[i].angle_sign  - (-1)) < TEST_PREC);
@@ -487,7 +483,6 @@ TEST(LoadMuscleTorqueGenerators)
   CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"foot_right")== 0);
   CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
   CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
-  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
   i=5;
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),"AnkleFlexion_R")==0);
   CHECK(std::fabs(mtgInfoSet[i].angle_sign  - (-1)) < TEST_PREC);
@@ -495,7 +490,82 @@ TEST(LoadMuscleTorqueGenerators)
   CHECK(std::strcmp(mtgInfoSet[i].body.c_str(),"foot_right")== 0);
   CHECK(std::fabs(mtgInfoSet[i].activation_time_constant   - 0.05) < TEST_PREC);
   CHECK(std::fabs(mtgInfoSet[i].deactivation_time_constant - 0.05) < TEST_PREC);
-  CHECK(std::fabs(mtgInfoSet[i].passive_element_torque_scale) < TEST_PREC);
+  i=6;
+  //Check that the passive_element_torque_scale is working
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
+                    "AnkleFlexion_R_FpeHalfScale")==0);
+  unsigned int iRef = 5;
+  CHECK_CLOSE(mtgSet[i].getPassiveTorqueScale(), 0.5, TEST_PREC);
+  Muscle::TorqueMuscleInfo tmi, tmiRef;
+  mtgSet[i].calcTorqueMuscleInfo(1,0,0,tmi);
+  mtgSet[iRef].calcTorqueMuscleInfo(1,0,0,tmiRef);
+  CHECK(tmiRef.fiberPassiveTorqueAngleMultiplier > 0.);
+  CHECK_CLOSE(tmiRef.fiberPassiveTorqueAngleMultiplier,
+              tmi.fiberPassiveTorqueAngleMultiplier*2.0,
+              TEST_PREC);
+  i=7;
+  //Check that the max_isometric_torque_scale is working
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
+                    "AnkleFlexion_R_FisoHalfScale")==0);
+  CHECK_CLOSE(mtgSet[iRef].getMaximumActiveIsometricTorque(),
+              mtgSet[i].getMaximumActiveIsometricTorque()*2.0,
+              TEST_PREC);
+  i=8;
+  //Check that max_angular_velocity_scale is working
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
+                    "AnkleFlexion_R_OmegaHalfScale")==0);
+  CHECK_CLOSE(mtgSet[iRef].getMaximumConcentricJointAngularVelocity(),
+              mtgSet[i].getMaximumConcentricJointAngularVelocity()*2.0,
+              TEST_PREC);
+
+  i=9;
+  //UnitExtensor
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
+                    "UnitExtensor_R")==0);
+  mtgSet[i].calcTorqueMuscleInfo(0,0,1,tmi);
+  double angleSign = mtgInfoSet[i].angle_sign;
+  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, 1.0, TEST_PREC);
+
+  //This extensor gets a Gaussian shaped active force length curve
+  //with a standard deviation of 1 radian.
+  double angle = 1;
+  double width = 1;
+  double faRef = exp(-angle*angle/(2*width*width));
+  mtgSet[i].calcTorqueMuscleInfo(1*angleSign,0,1,tmi);
+  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, faRef, TEST_PREC);
+  //The UnitExtensors passive curve reaches a unit torque at 1 radian of flexion
+  CHECK_CLOSE(tmi.fiberPassiveTorqueAngleMultiplier, 1.0, TEST_PREC);
+
+  mtgSet[i].calcTorqueMuscleInfo(-1*angleSign,0,1,tmi);
+  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, faRef, TEST_PREC);
+  //The UnitExtensor has a maximum isometric torque of 1 Nm
+  CHECK_CLOSE(mtgSet[i].getMaximumActiveIsometricTorque(), 1., TEST_PREC);
+  //The UnitExtensor has a maximum angular velocity of 1 rad/sec
+  CHECK_CLOSE(mtgSet[i].getMaximumConcentricJointAngularVelocity(), 1., TEST_PREC);
+
+  i=10;
+  //UnitFlexor
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
+                    "UnitFlexor_R")==0);
+
+  mtgSet[i].calcTorqueMuscleInfo(0,0,1,tmi);
+  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, 1.0, TEST_PREC);
+
+  //This flexor gets a Gaussian shaped active force length curve
+  //with a standard deviation of 1 radian.
+  mtgSet[i].calcTorqueMuscleInfo(1*angleSign,0,1,tmi);
+  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, faRef, TEST_PREC);
+
+  mtgSet[i].calcTorqueMuscleInfo(-1*angleSign,0,1,tmi);
+  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, faRef, TEST_PREC);
+  //The UnitFlexor's passive curve reaches a unit torque at 1 radian of extension
+  CHECK_CLOSE(tmi.fiberPassiveTorqueAngleMultiplier, 1.0, TEST_PREC);
+
+  //The UnitExtensor has a maximum isometric torque of 1 Nm
+  CHECK_CLOSE(mtgSet[i].getMaximumActiveIsometricTorque(), 1., TEST_PREC);
+  //The UnitExtensor has a maximum angular velocity of 1 rad/sec
+  CHECK_CLOSE(mtgSet[i].getMaximumConcentricJointAngularVelocity(),
+               1.*angleSign, TEST_PREC);
 
 }
 
@@ -561,7 +631,7 @@ TEST(ModelHeaderGeneration)
   CHECK(participantDataLoaded);
 
   std::vector< Addons::Muscle::Millard2016TorqueMuscle > mtgSet;
-  std::vector< Millard2016TorqueMuscleInfo > mtgSetInfo;
+  std::vector< Millard2016TorqueMuscleConfig > mtgSetInfo;
   bool mtgSetLoaded = LuaModelReadMillard2016TorqueMuscleSets(
         modelFile.c_str(), &model, participant_data, mtgSet, mtgSetInfo, false);
   CHECK(mtgSetLoaded);

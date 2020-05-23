@@ -210,8 +210,8 @@ struct JointMapEntry{
 
 static const JointMapEntry JointMap[] = {
   { JointTypeUndefined        , "Undefined"        , "UNDEFINED"},
-  { JointTypeRevolute         , "Revolute"         , "R"        },
-  { JointTypePrismatic        , "Prismatic"        , "T"        },
+  { JointTypeRevolute         , "Revolute"         , ""        },
+  { JointTypePrismatic        , "Prismatic"        , ""        },
   { JointTypeRevoluteX        , "RevoluteX"        , ""        },
   { JointTypeRevoluteY        , "RevoluteY"        , ""        },
   { JointTypeRevoluteZ        , "RevoluteZ"        , ""        },

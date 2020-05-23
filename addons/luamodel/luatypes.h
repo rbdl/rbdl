@@ -418,11 +418,11 @@ template<> HumanMetaData
 }
 //==============================================================================
 #ifdef RBDL_BUILD_ADDON_MUSCLE
-template<> Millard2016TorqueMuscleInfo
-  LuaTableNode::getDefault<Millard2016TorqueMuscleInfo>(
-                    const Millard2016TorqueMuscleInfo &default_value)
+template<> Millard2016TorqueMuscleConfig
+  LuaTableNode::getDefault<Millard2016TorqueMuscleConfig>(
+                    const Millard2016TorqueMuscleConfig &default_value)
 {
-  Millard2016TorqueMuscleInfo result = default_value;
+  Millard2016TorqueMuscleConfig result = default_value;
 
   if (stackQueryValue()) {
     LuaTable mtg_table = LuaTable::fromLuaState (luaTable->L);
@@ -465,9 +465,14 @@ template<> Millard2016TorqueMuscleInfo
           mtg_table["deact_time"].get<double>();
     }
 
-    if (mtg_table["passive_element_damping_coeff"].exists()) {
-        result.passive_element_damping_coeff =
-          mtg_table["passive_element_damping_coeff"].get<double>();
+    //Parameters for manual tuning
+    if (mtg_table["max_isometric_torque_scale"].exists()) {
+        result.max_isometric_torque_scale =
+          mtg_table["max_isometric_torque_scale"].get<double>();
+    }
+    if (mtg_table["max_angular_velocity_scale"].exists()) {
+        result.max_angular_velocity_scale =
+          mtg_table["max_angular_velocity_scale"].get<double>();
     }
 
     if (mtg_table["passive_element_torque_scale"].exists()) {
@@ -478,6 +483,11 @@ template<> Millard2016TorqueMuscleInfo
         result.passive_element_angle_offset =
           mtg_table["passive_element_angle_offset"].get<double>();
     }
+    if (mtg_table["passive_element_damping_coeff"].exists()) {
+        result.passive_element_damping_coeff =
+          mtg_table["passive_element_damping_coeff"].get<double>();
+    }
+
     //Optional passive-curve fitting coordinates
     if (mtg_table["fit_passive_torque_scale"].exists()) {
         result.fit_passive_torque_scale =
