@@ -419,11 +419,15 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
   int gender                    = (int) subjectInfo.gender;
   int ageGroup                  = (int) subjectInfo.ageGroup;
 
+  mGender     = subjectInfo.gender;
+  mAgeGroup   = subjectInfo.ageGroup;
+
   int joint           = -1;
   int jointDirection  = -1;
 
   for(int i=0; i < JointTorqueSet::Last; ++i) {
     if(JointTorqueMap[i][0] == jointTorque) {
+      mJointTorque    = JointTorqueSet::item(i);
       joint           = JointTorqueMap[i][1];
       jointDirection  = JointTorqueMap[i][2];
     }
@@ -580,6 +584,8 @@ Millard2016TorqueMuscle::Millard2016TorqueMuscle(
     throw RigidBodyDynamics::Errors::RBDLError(errormsg.str());
   }
 
+  mGender = subjectInfo.gender;
+  mAgeGroup = subjectInfo.ageGroup;
 
 
   mMuscleCurvesAreDirty = true;
@@ -2511,3 +2517,21 @@ updInvertTorqueMuscleSummary(double jointTorque,
 }
 
 //==============================================================================
+DataSet::item Millard2016TorqueMuscle::getDataSet(){
+  return mDataSet;
+}
+GenderSet::item Millard2016TorqueMuscle::getGender(){
+  return mGender;
+}
+AgeGroupSet::item Millard2016TorqueMuscle::getAgeGroup(){
+  return mAgeGroup;
+}
+JointTorqueSet::item Millard2016TorqueMuscle::getJointTorque(){
+  return mJointTorque;
+}
+double Millard2016TorqueMuscle::getSubjectMass(){
+  return mSubjectMassInKg;
+}
+double Millard2016TorqueMuscle::getSubjectHeight(){
+  return mSubjectHeightInMeters;
+}

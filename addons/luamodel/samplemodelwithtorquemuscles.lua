@@ -81,6 +81,8 @@ millard2016_torque_muscles = {
   { name = "AnkleFlexion_R_OmegaHalfScale",   angle_sign = -1, torque_sign = -1, body ="foot_right" ,       act_time = 0.05, deact_time = 0.05, max_angular_velocity_scale = 0.5,},
   { name = "UnitExtensor_R",   								angle_sign = -1, torque_sign =  1, body ="thigh_right",  joint_index=2 },
   { name = "UnitFlexor_R",     								angle_sign = -1, torque_sign = -1, body ="thigh_right",  joint_index=2 },
+  { name = "KneeExtension_R_Anderson2007",   angle_sign = -1, torque_sign = -1, body ="foot_right" ,       act_time = 0.05, deact_time = 0.05, max_angular_velocity_scale = 0.5,
+    	data_set = "Anderson2007", age_group = "SeniorOver65", gender="female", active_torque_angle_scale = 2.0},  
 },
 frames = {
 	{

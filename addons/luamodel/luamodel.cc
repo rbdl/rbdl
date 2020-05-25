@@ -1173,10 +1173,14 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
   subjectInfo.heightInMeters  = human_meta_data.height;
   subjectInfo.massInKg        = human_meta_data.mass;
 
+
   DataSet::item mtgDataSet;
+  SubjectInformation mtgSubjectInfo;
 
   for(unsigned int i = 0; i < mtgCount; ++i){
-        
+    mtgSubjectInfo = subjectInfo;
+
+    //Get the data set for this MTG
     if(updMtgSetInfo[i].data_set == "Gymnast"){
       mtgDataSet = DataSet::Gymnast;
     }else if(updMtgSetInfo[i].data_set == "Anderson2007"){
@@ -1188,6 +1192,27 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
            << "which neither Gymnast nor Anderson2007.";
       assert(0);
       abort();
+    }
+
+    //Get the age group for this MTG
+    if(updMtgSetInfo[i].age_group == "Young18To25"){
+      mtgSubjectInfo.ageGroup = AgeGroupSet::Young18To25;
+    }else if(updMtgSetInfo[i].age_group == "Middle55To65"){
+      mtgSubjectInfo.ageGroup = AgeGroupSet::Middle55To65;
+    }else if(updMtgSetInfo[i].age_group == "SeniorOver65"){
+      mtgSubjectInfo.ageGroup = AgeGroupSet::SeniorOver65;
+    }else{
+      mtgSubjectInfo.ageGroup = subjectInfo.ageGroup;
+    }
+
+
+    //Get the gender for this MTG
+    if (updMtgSetInfo[i].gender == "male") {
+      mtgSubjectInfo.gender = GenderSet::Male;
+    }else if (updMtgSetInfo[i].gender == "female") {
+      mtgSubjectInfo.gender = GenderSet::Female;
+    }else {
+      mtgSubjectInfo.gender = subjectInfo.gender;
     }
 
     if(updMtgSetInfo[i].body != mtgInfoDefault.body){
@@ -1212,7 +1237,7 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
 
     updMtgSet[i] = Millard2016TorqueMuscle(
                           mtgDataSet,
-                          subjectInfo,
+                          mtgSubjectInfo,
                       int(getMillard2016TorqueMuscleTypeId(updMtgSetInfo[i].name)),
                           updMtgSetInfo[i].joint_angle_offset,
                           updMtgSetInfo[i].angle_sign,
@@ -1288,10 +1313,10 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
         updMtgSet[i].setTorqueAngularVelocityCurveBlendingVariable(
                     updMtgSetInfo[i].torque_velocity_blending);
     }
-    //if(!std::isnan(updMtgSetInfo[i].angle_torque_angle_scaling)) {
-    //    updMtgSet[i].setActiveTorqueAngleCurveAngleScaling(
-    //                updMtgSetInfo[i].angle_torque_angle_scaling);
-    //}
+    if(!std::isnan(updMtgSetInfo[i].active_torque_angle_scale)) {
+        updMtgSet[i].setActiveTorqueAngleCurveAngleScaling(
+                    updMtgSetInfo[i].active_torque_angle_scale);
+    }
 
 
     

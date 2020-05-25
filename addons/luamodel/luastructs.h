@@ -276,6 +276,8 @@ struct Millard2016TorqueMuscleConfig {
     qdot_index(0),
     force_index(0),
     data_set("Gymnast"),
+    age_group(""),
+    gender(""),
     joint_angle_offset(0.0),
     activation_time_constant(0.015), //Thelen 2003, Adjustment of muscle ...
     deactivation_time_constant(0.05),//Thelen 2003, Adjustment of muscle ...
@@ -310,6 +312,8 @@ struct Millard2016TorqueMuscleConfig {
   unsigned int  qdot_index;   //internal parameter
   unsigned int  force_index;  //internal parameter
   std::string   data_set;
+  std::string   age_group;
+  std::string   gender;
   //double        angle_scale;
   double        joint_angle_offset;
   double        activation_time_constant;

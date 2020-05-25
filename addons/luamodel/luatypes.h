@@ -439,6 +439,16 @@ template<> Millard2016TorqueMuscleConfig
     }
 
     //Optional parameters
+    if(mtg_table["data_set"].exists()){
+      result.data_set = mtg_table["data_set"].get<std::string>();
+    }
+    if(mtg_table["age_group"].exists()){
+      result.age_group = mtg_table["age_group"].get<std::string>();
+    }
+    if(mtg_table["gender"].exists()){
+      result.gender = mtg_table["gender"].get<std::string>();
+    }
+
     if (mtg_table["q_scale"].exists()) {
         result.q_scale = mtg_table["q_scale"].get<double>();
     }

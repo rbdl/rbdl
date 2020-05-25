@@ -1444,6 +1444,13 @@ namespace RigidBodyDynamics {
                 std::string getName();
                 void setName(std::string& name);
 
+                DataSet::item getDataSet();
+                GenderSet::item getGender();
+                AgeGroupSet::item getAgeGroup();
+                JointTorqueSet::item getJointTorque();
+                double getSubjectMass();
+                double getSubjectHeight();
+
             private:
 
               bool mMuscleCurvesAreDirty;
@@ -1476,6 +1483,9 @@ namespace RigidBodyDynamics {
               RigidBodyDynamics::Math::VectorNd mGymnastParams;
 
               DataSet::item mDataSet;
+              GenderSet::item mGender;
+              AgeGroupSet::item mAgeGroup;
+              JointTorqueSet::item mJointTorque;
 
               bool mUseTabularOmegaMax;
               bool mUseTabularMaxActiveIsometricTorque;

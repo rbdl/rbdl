@@ -439,8 +439,8 @@ TEST(LoadMuscleTorqueGenerators)
         modelFile.c_str(),&model,humanData,mtgSet,mtgInfoSet,false);
 
   CHECK(torqueMusclesLoaded);
-  CHECK(mtgSet.size() == 11);
-  CHECK(mtgInfoSet.size() == 11);
+  CHECK(mtgSet.size() == 12);
+  CHECK(mtgInfoSet.size() == 12);
 
   unsigned int i=0;
 
@@ -566,6 +566,32 @@ TEST(LoadMuscleTorqueGenerators)
   //The UnitExtensor has a maximum angular velocity of 1 rad/sec
   CHECK_CLOSE(mtgSet[i].getMaximumConcentricJointAngularVelocity(),
                1.*angleSign, TEST_PREC);
+
+  i=11;
+  CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
+                    "KneeExtension_R_Anderson2007")==0);
+  CHECK(std::strcmp( mtgInfoSet[i].data_set.c_str(),
+                     "Anderson2007") == 0);
+  CHECK(std::strcmp( mtgInfoSet[i].age_group.c_str(),
+                     "SeniorOver65") == 0);
+  CHECK(std::strcmp( mtgInfoSet[i].gender.c_str(),
+                     "female") == 0);
+
+  CHECK(mtgSet[i].getDataSet() == Muscle::DataSet::Anderson2007);
+  CHECK(mtgSet[i].getAgeGroup() == Muscle::AgeGroupSet::SeniorOver65);
+  CHECK(mtgSet[i].getGender() == Muscle::GenderSet::Female);
+  CHECK_CLOSE(mtgSet[i].getSubjectMass(), 81.68, TEST_PREC);
+  CHECK_CLOSE(mtgSet[i].getSubjectHeight(), 1.73, TEST_PREC);
+
+  CHECK_CLOSE(mtgSet[i].getActiveTorqueAngleCurveAngleScaling(),2.0,TEST_PREC);
+
+  mtgSet[i].calcTorqueMuscleInfo(0.,0.,0.,tmi);
+  mtgSet[i].setActiveTorqueAngleCurveAngleScaling(0.1);
+  mtgSet[i].calcTorqueMuscleInfo(0.,0.,0.,tmiRef);
+
+  CHECK(std::fabs( tmi.fiberActiveTorqueAngleMultiplier
+                  -tmiRef.fiberActiveTorqueAngleMultiplier) > TEST_PREC );
+
 
 }
 
