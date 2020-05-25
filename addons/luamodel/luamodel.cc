@@ -1370,20 +1370,16 @@ bool LuaModelAddHeaderGuards(const char* filename){
 
 }
 //==============================================================================
-bool LuaModelWriteModelHeaderEntries(const char* filename,
-                                     const RigidBodyDynamics::Model &model,
-                                     bool append){
+void LuaModelGetCoordinateNames(
+      const Model* model,
+      std::vector< std::string >& qNames,
+      std::vector< std::string >& qDotNames,
+      std::vector< std::string >& tauNames)
+{
 
-
-
-  std::vector< std::string > bodyNames;
-  std::vector< unsigned int> bodyIndex;
-  std::vector< std::string > qNames;
-  std::vector< std::string > qDotNames;
-
-  qNames.resize(model.q_size);
-  qDotNames.resize(model.qdot_size);
-
+  qNames.resize(model->q_size);
+  qDotNames.resize(model->qdot_size);
+  tauNames.resize(model->qdot_size);
 
   unsigned int q_index;
   unsigned int idChild;
@@ -1399,6 +1395,135 @@ bool LuaModelWriteModelHeaderEntries(const char* filename,
   bool newBody=false;
 
   //Populate vectors that q, qdot, and tau
+  for(unsigned int idJoint=1;idJoint < model->mJoints.size();++idJoint){
+
+    //Get the first index in q associated with this joint
+    q_index   = model->mJoints[idJoint].q_index;
+
+    //Get the index of the child body to this joint.
+    idChild=idJoint;
+    while(idChild < model->mBodies.size()
+          && model->mBodies[idChild].mIsVirtual){
+      ++idChild;
+    }
+
+
+    //Get the name of the child body associated with this index
+    for(map<string,unsigned int>::const_iterator it=model->mBodyNameMap.begin();
+        it != model->mBodyNameMap.end(); ++it){
+      if(it->second == idChild){
+        childName = it->first;
+      }
+    }
+
+    //Get the name of the joint type
+    jointType = JointMap[ model->mJoints[idJoint].mJointType].abbr;
+    if(jointType.length()>0){
+      jointType.append("_");
+    }
+    childName.append("_");
+    //If this is a canonical joint, go get the index of the spatial axis
+    if( model->mJoints[idJoint].mJointType==JointTypeCustom){
+      ccid = model->mJoints[idJoint].custom_joint_index;
+      dof = model->mCustomJoints[ccid]->mDoFCount;
+      for(unsigned int i=0; i<model->mCustomJoints[ccid]->mDoFCount;++i){
+        ss.str("");
+        ss  << childName << jointType <<   i ;
+        qNames[q_index+i] = std::string("Q_").append( ss.str());
+        qDotNames[q_index+i] = std::string("QDot_").append( ss.str());
+        tauNames[q_index+i] = std::string("Tau_").append( ss.str());
+      }
+    }else{
+      dof = model->mJoints[idJoint].mDoFCount;
+      axisIndex=6;
+      for(unsigned int j=0; j<6;++j){
+        if( fabs( fabs(model->mJoints[idJoint].mJointAxes[0][j])-1.)
+            < std::numeric_limits<double>::epsilon() ){
+          axisIndex=j;
+        }
+      }
+      if(axisIndex == 6){
+        axisType= std::to_string(axisIndex);
+      }else{
+        axisType = AxisMap[ axisIndex ].name;
+        if(model->mJoints[idJoint].mJointAxes[0][axisIndex] < 0.){
+          axisType.append("N");
+        }
+      }
+      for(unsigned int i=0; i<model->mJoints[idJoint].mDoFCount;++i){
+
+        if(model->mJoints[idJoint].mDoFCount > 1){
+          axisType = std::to_string(i);
+        }
+
+        ss.str("");
+        ss << childName << jointType <<  axisType ;
+        qNames[q_index+i] = std::string("Q_").append( ss.str());
+        qDotNames[q_index+i] = std::string("QDot_").append( ss.str());
+        tauNames[q_index+i] = std::string("Tau_").append( ss.str());
+      }
+      //If there is a quaternion joint the 4th component (w) is stored
+      //in a different location
+      if(model->multdof3_w_index[idJoint] > 0.){
+
+        ss.str("");
+        ss <<   childName << jointType <<  "w";
+        qNames[ model->multdof3_w_index[idJoint] ]
+            = std::string("Q_").append( ss.str());
+      }
+
+    }
+
+
+  }
+
+}
+
+//==============================================================================
+bool LuaModelWriteModelHeaderEntries(const char* filename,
+                                     const RigidBodyDynamics::Model &model,
+                                     bool append){
+
+
+
+  std::vector< std::string > bodyNames;
+  std::vector< unsigned int> bodyIndex;
+  std::vector< std::string > qNames;
+  std::vector< std::string > qDotNames;
+  std::vector< std::string > qDDotNames;
+  std::vector< std::string > tauNames;
+  std::string tempStr;
+  LuaModelGetCoordinateNames(&model, qNames,qDotNames, tauNames);
+
+  for(unsigned int i=0; i<qDotNames.size();++i){
+    tempStr = qDotNames[i];
+    tempStr.replace(0,1,"QD");
+    qDDotNames.push_back(tempStr);
+  }
+
+  std::string childName;
+  unsigned int q_index;
+  unsigned int idChild;
+
+/*
+  qNames.resize(model.q_size);
+  qDotNames.resize(model.qdot_size);
+
+
+
+  unsigned int dof;
+
+  std::ostringstream ss;
+
+  std::string jointType;
+  std::string axisType;
+  unsigned int axisIndex;
+  unsigned int ccid;
+
+*/
+  bool newBody=false;
+
+  //Populate vectors that q, qdot, and tau
   for(unsigned int idJoint=1;idJoint < model.mJoints.size();++idJoint){
 
     //Get the first index in q associated with this joint
@@ -1409,7 +1534,6 @@ bool LuaModelWriteModelHeaderEntries(const char* filename,
     while(idChild < model.mBodies.size() && model.mBodies[idChild].mIsVirtual){
       ++idChild;
     }
-
 
     //Get the name of the child body associated with this index
     for(map<string,unsigned int>::const_iterator it=model.mBodyNameMap.begin();
@@ -1428,67 +1552,6 @@ bool LuaModelWriteModelHeaderEntries(const char* filename,
       bodyNames.push_back(childName);
       bodyIndex.push_back(idChild);
     }
-
-    //Get the name of the joint type
-    jointType = JointMap[ model.mJoints[idJoint].mJointType].abbr;
-    if(jointType.length()>0){
-      jointType.append("_");
-    }
-    childName.append("_");
-    //If this is a canonical joint, go get the index of the spatial axis
-    if( model.mJoints[idJoint].mJointType==JointTypeCustom){
-      ccid = model.mJoints[idJoint].custom_joint_index;
-      dof = model.mCustomJoints[ccid]->mDoFCount;
-      for(unsigned int i=0; i<model.mCustomJoints[ccid]->mDoFCount;++i){
-        ss.str("");
-        ss  << childName << jointType <<   i ;
-        qNames[q_index+i] = ss.str();
-        ss.str("");
-        ss  << childName << jointType <<   i ;
-        qDotNames[q_index+i] = ss.str();
-      }
-    }else{
-      dof = model.mJoints[idJoint].mDoFCount;
-      axisIndex=6;
-      for(unsigned int j=0; j<6;++j){
-        if( fabs( fabs(model.mJoints[idJoint].mJointAxes[0][j])-1.)
-            < std::numeric_limits<double>::epsilon() ){
-          axisIndex=j;
-        }
-      }
-      if(axisIndex == 6){
-        axisType= std::to_string(axisIndex);
-      }else{
-        axisType = AxisMap[ axisIndex ].name;
-        if(model.mJoints[idJoint].mJointAxes[0][axisIndex] < 0.){
-          axisType.append("N");
-        }
-      }
-      for(unsigned int i=0; i<model.mJoints[idJoint].mDoFCount;++i){
-
-        if(model.mJoints[idJoint].mDoFCount > 1){
-          axisType = std::to_string(i);
-        }
-
-        ss.str("");
-        ss << childName << jointType <<  axisType ;
-        qNames[q_index+i] = ss.str();
-        ss.str("");
-        ss << childName << jointType <<  axisType ;
-        qDotNames[q_index+i] = ss.str();
-        ss.str("");
-      }
-      //If there is a quaternion joint the 4th component (w) is stored
-      //in a different location
-      if(model.multdof3_w_index[idJoint] > 0.){
-
-        ss.str("");
-        ss <<   childName << jointType <<  "w";
-        qNames[ model.multdof3_w_index[idJoint] ] = ss.str();
-      }
-
-    }
-
 
   }
 
@@ -1514,14 +1577,16 @@ bool LuaModelWriteModelHeaderEntries(const char* filename,
   }
 
   bodyNames.push_back("Last");
-  qNames.push_back("Last");
-  qDotNames.push_back("Last");
+  qNames.push_back("Q_Last");
+  qDotNames.push_back("QDot_Last");
+  qDDotNames.push_back("QDDot_Last");
+  tauNames.push_back("Tau_Last");
 
   appendEnumToFileStream(headerFile,"BodyId",        bodyNames,0, "BodyId_");
-  appendEnumToFileStream(headerFile,"PositionId",    qNames,   0, "Q_"     );
-  appendEnumToFileStream(headerFile,"VelocityId",    qDotNames,0, "QDot_"  );
-  appendEnumToFileStream(headerFile,"AccelerationId",qDotNames,0, "QDDot_" );
-  appendEnumToFileStream(headerFile,"ForceId",       qDotNames,0, "Tau_"   );
+  appendEnumToFileStream(headerFile,"PositionId",    qNames,   0, ""     );
+  appendEnumToFileStream(headerFile,"VelocityId",    qDotNames,0, ""  );
+  appendEnumToFileStream(headerFile,"AccelerationId",qDDotNames,0, "" );
+  appendEnumToFileStream(headerFile,"ForceId",       tauNames,0, ""   );
 
   bodyIndex.push_back(std::numeric_limits<unsigned int>::max());
   qIndex.push_back(std::numeric_limits<unsigned int>::max());
@@ -1530,13 +1595,13 @@ bool LuaModelWriteModelHeaderEntries(const char* filename,
   appendEnumNameIndexStructToFileStream(headerFile,"BodyMap","BodyId",
                                         bodyNames,"BodyId_",bodyIndex);
   appendEnumNameIndexStructToFileStream(headerFile,"PositionMap","PositionId",
-                                        qNames,"Q_",qIndex);
+                                        qNames,"",qIndex);
   appendEnumNameIndexStructToFileStream(headerFile,"VelocityMap","VelocityId",
-                                        qDotNames,"QDot_",qDotIndex);
+                                        qDotNames,"",qDotIndex);
   appendEnumNameIndexStructToFileStream(headerFile,"AccelerationMap",
-                             "AccelerationId", qDotNames,"QDDot_",qDotIndex);
+                             "AccelerationId", qDDotNames,"",qDotIndex);
   appendEnumNameIndexStructToFileStream(headerFile,"ForceMap","ForceId",
-                                        qDotNames,"Tau_",qDotIndex);
+                                        tauNames,"",qDotIndex);
 
   headerFile.flush();
   headerFile.close();

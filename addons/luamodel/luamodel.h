@@ -277,6 +277,13 @@ bool LuaModelReadFromFile (
   Model* upd_model,
   bool verbose = false);
 
+RBDL_DLLAPI
+void LuaModelGetCoordinateNames(
+      const Model* model,
+      std::vector< std::string >& updGeneralizedPositionNames,
+      std::vector< std::string >& updGeneralizedVelocityNames,
+      std::vector< std::string >& updGeneralizedForceNames);
+
 /** \brief Reads a model file and returns the names of all constraint sets.
  */
 RBDL_DLLAPI
