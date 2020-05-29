@@ -409,7 +409,8 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
     CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
   }
 
-  //Check the relaxed method
+  //Check the relaxed method: if you give it a valid qddot as a target
+  //this should be reached exactly
   VectorNd tauIDCR(tauIDC.rows());
   VectorNd qddIDCR(tauIDC.rows());
   InverseDynamicsConstraintsRelaxed(model,
@@ -417,11 +418,16 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
                              cs[0], qddIDCR,tauIDCR);
   lambdaIdc = cs[0].force;
 
-  //In this case the acceleration constraint is relaxed and so there
-  //is always some error between what is asked for and what is received.
-  for(unsigned int i=0; i<qddIDCR.rows();++i){
-    CHECK_CLOSE(qddIDCR[i], qddTarget[i],0.01);
+  //In the very least the non-actuated degrees of freedom should not
+  //have corresponding entries in tau that are exactly zero:
+  for(unsigned int i=0; i<tauIDCR.rows();++i){
+    if(dofActuated[i]==false){
+      CHECK_CLOSE(tauIDCR[i],0.,TEST_PREC);
+    }
   }
+
+  //The resulting solution will not necessarily meet qdd target but it
+  //should satisfy the equations of motion:
 
   ForwardDynamicsConstraintsDirect(model,q,qd,tauIDCR,cs[0],qddFwd);
   lambdaFwd = cs[0].force;
@@ -469,11 +475,9 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
                              cs[1], qddIDCR,tauIDCR);
   lambdaIdc = cs[1].force;
 
-  //In this case the acceleration constraint is relaxed and so there
-  //is always some error between what is asked for and what is received.
-  for(unsigned int i=0; i<qddIDC.rows();++i){
-    if(dofActuated[i]==true){
-      CHECK_CLOSE(qddIDCR[i], qddTarget[i],0.01);
+  for(unsigned int i=0; i<tauIDCR.size();++i){
+    if(dofActuated[i]==false){
+      CHECK_CLOSE(tauIDCR[i],0.,TEST_PREC);
     }
   }
 
@@ -685,12 +689,11 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
                              cs, qddIDCR,tauIDCR);
   lambdaIdc = cs.force;
 
-  //In this case the acceleration constraint is relaxed and so there
-  //is always some error between what is asked for and what is received.
-  for(unsigned int i=0; i<qddIDCR.rows();++i){
-    CHECK_CLOSE(qddIDCR[i], qddIDC[i],0.01);
+  for(unsigned int i=0; i<tauIDCR.rows();++i){
+    if(dofActuated[i]==false){
+      CHECK_CLOSE(tauIDCR[i],0.,TEST_PREC);
+    }
   }
-
 
   ForwardDynamicsConstraintsDirect(model,q,qd,tauIDCR,cs,qddFwd);
   lambdaFwd = cs.force;
@@ -850,14 +853,22 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   InverseDynamicsConstraintsRelaxed(spa.model,spa.q,spa.qd,qddDesired,
                                     spa.cs, qddIdc,tauIdc);
 
-  //For this simple single body system the desired qdd's are met exactly
-  //(thanks to the small updates I've made
-  for(unsigned int i=0; i<qddIdc.rows();++i){
-    CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
-  }
+
   for(unsigned int i=0; i<tauIdc.rows();++i){
-    CHECK_CLOSE(spa.tau[i],tauIdc[i],TEST_PREC);
+    if(actuationMap[i]==false){
+      CHECK_CLOSE(tauIdc[i],0.,TEST_PREC);
+    }
   }
+
+  VectorNd qddFwd=VectorNd::Zero(qddIdc.rows());
+  ForwardDynamicsConstraintsDirect(spa.model,spa.q,spa.qd,tauIdc,spa.cs,qddFwd);
+
+  //Check that the solution is physically consistent
+  VectorNd qddErr = qddIdc-qddFwd;
+  for(unsigned int i=0; i<qddIdc.rows();++i){
+    CHECK_CLOSE(qddIdc[i], qddFwd[i], TEST_PREC);
+  }
+
 }
 
 
@@ -985,11 +996,10 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   InverseDynamicsConstraintsRelaxed(dba.model,dba.q,dba.qd,qddDesired,
                                           dba.cs, qddIdc,tauIdc);
 
-  //The relaxed operator is not able to exactly satisfy the desired
-  //accelerations, though the error will be on the order of 1/10 for this system
-
-  for(unsigned int i=0; i<qddIdc.rows();++i){
-    CHECK_CLOSE(qddDesired[i],qddIdc[i],0.2);
+  for(unsigned int i=0; i<tauIdc.rows();++i){
+    if(actuationMap[i]==false){
+      CHECK_CLOSE(tauIdc[i],0.,TEST_PREC);
+    }
   }
 
   //Check if the result is physically consistent.
@@ -1084,8 +1094,11 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
 
   //pose 1
   InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
-  for(unsigned int i=0; i<qddDesired.rows();++i){
-    CHECK_CLOSE(qdd[i],qddDesired[i],0.01);
+
+  for(unsigned int i=0; i<tau.rows();++i){
+    if(actuation[i]==false){
+      CHECK_CLOSE(tau[i],0.,TEST_PREC);
+    }
   }
 
   //Check if the result is physically consistent.
@@ -1099,6 +1112,12 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
   InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
   for(unsigned int i=0; i<qddDesired.rows();++i){
     CHECK_CLOSE(qdd[i],qddDesired[i],0.01);
+  }
+
+  for(unsigned int i=0; i<tau.rows();++i){
+    if(actuation[i]==false){
+      CHECK_CLOSE(tau[i],0.,TEST_PREC);
+    }
   }
 
   //Check if the result is physically consistent.
@@ -1122,8 +1141,11 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
   //Add a non-zero desired acceleration in the actuation domain
   qddDesired[3] = 2.2;
   InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
-  for(unsigned int i=0; i<qddDesired.rows();++i){
-    CHECK_CLOSE(qdd[i],qddDesired[i],0.01);
+
+  for(unsigned int i=0; i<tau.rows();++i){
+    if(actuation[i]==false){
+      CHECK_CLOSE(tau[i],0.,TEST_PREC);
+    }
   }
 
   //Check if the result is physically consistent.

@@ -1932,26 +1932,35 @@ void InverseDynamicsConstraintsRelaxed(
   unsigned int na = unsigned(    CS.S.rows());
   unsigned int nu = n-na;
 
-
+  //MM 2020/5/29:
+  //  The updates I made to Henning's original formulation have
+  //  almost certainly made the sensitivity of the resulting qdd
+  //  w.r.t. the controls poorly scaled. At least this is a suspicion
+  //  of mine looking at how an OCP is behaving when using this operator.
+  //  Reverting to the original formulation.
   //MM: Update to Henning's formulation s.t. the relaxed IDC operator will
   //    more closely satisfy QDDotControls if it is possible.
-  double diag = 0.;//100.*CS.H.maxCoeff();
-  double diagInv = 0.;
-  for(unsigned int i=0; i<CS.H.rows(); ++i) {
-    for(unsigned int j=0; j<CS.H.cols(); ++j) {
-      if(fabs(CS.H(i,j)) > diag) {
-        diag = fabs(CS.H(i,j));
-      }
-    }
-  }
-  diag = diag*100.;
-  diagInv = 1.0/diag;
-  for(unsigned int i=0; i<CS.W.rows(); ++i) {
-    CS.W(i,i)    = diag;
-    CS.Winv(i,i) = diagInv;
-  }
+  //double diag = 0.;//100.*CS.H.maxCoeff();
+  //double diagInv = 0.;
+  //for(unsigned int i=0; i<CS.H.rows(); ++i) {
+  //  for(unsigned int j=0; j<CS.H.cols(); ++j) {
+  //    if(fabs(CS.H(i,j)) > diag) {
+  //      diag = fabs(CS.H(i,j));
+  //    }
+  //  }
+  //}
+  //diag = diag*100.;
+  //diagInv = 1.0/diag;
+  //for(unsigned int i=0; i<CS.W.rows(); ++i) {
+  //  CS.W(i,i)    = diag;
+  //  CS.Winv(i,i) = diagInv;
+  //}
 
+  CS.W = 100.0*CS.S*CS.H*CS.S.transpose();
+  CS.Winv = CS.W.inverse();
   CS.WinvSC = CS.Winv * CS.S * CS.C;
+
+  //CS.W = CS.S*CS.H*CS.S.transpose();
 
   CS.F.block(  0,  0, na, na) = CS.S*CS.H*CS.S.transpose() + CS.W;
   CS.F.block(  0, na, na, nu) = CS.S*CS.H*CS.P.transpose();
@@ -1991,7 +2000,7 @@ void InverseDynamicsConstraintsRelaxed(
 
   CS.u = CS.S*CS.C - CS.W*(CS.S*(QDDotControls
                                  +(CS.S.transpose()*CS.WinvSC)));
-
+  //CS.u =  CS.S*CS.C - CS.W*(CS.S*QDDotControls);
   CS.v =  CS.P*CS.C;
 
   for(unsigned int i=0; i<CS.S.rows(); ++i) {
@@ -2036,7 +2045,7 @@ void InverseDynamicsConstraintsRelaxed(
   TauOutput = (CS.S.transpose()*CS.W*CS.S)*(
                 QDDotControls+(CS.S.transpose()*CS.WinvSC)
                 -QDDotOutput);
-
+  //TauOutput =  CS.S.transpose()*CS.W*CS.S*(QDDotControls - QDDotOutput);
 
 
 }
