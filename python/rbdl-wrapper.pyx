@@ -1,4 +1,4 @@
-#cython: c_string_type=unicode, c_string_encoding=default, boundscheck=False, embedsignature=True 
+#cython: c_string_type=unicode, c_string_encoding=default, boundscheck=False, embedsignature=True
 
 import numpy as np
 cimport numpy as np
@@ -927,115 +927,40 @@ cdef class FixedBody:
                 for j in range (3):
                     (&(self.thisptr.mInertia.coeff(i,j)))[0] = value[i,j]
 
-#ctypedef enum JointType:
-#    JointTypeUndefined = 0
-#    JointTypeRevolute
-#    JointTypePrismatic
-#    JointTypeRevoluteX
-#    JointTypeRevoluteY
-#    JointTypeRevoluteZ
-#    JointTypeSpherical
-#    JointTypeEulerZYX
-#    JointTypeEulerXYZ
-#    JointTypeEulerYXZ
-#    JointTypeTranslationXYZ
-#    JointTypeFloatingBase
-#    JointTypeFixed
-#    JointTypeHelical
-#    JointType1DoF
-#    JointType2DoF
-#    JointType3DoF
-#    JointType4DoF
-#    JointType5DoF
-#    JointType6DoF
-#    JointTypeCustom
-
-
-class PJointType(Enum):
-    PJointTypeUndefined = 0
-    PJointTypeRevolute = 1
-    PJointTypePrismatic = 2
-    PJointTypeRevoluteX = 3
-    PJointTypeRevoluteY = 4
-    PJointTypeRevoluteZ = 5
-    PJointTypeSpherical = 6
-    PJointTypeEulerZYX = 7
-    PJointTypeEulerXYZ = 8
-    PJointTypeEulerYXZ = 9
-    PJointTypeTranslationXYZ = 10
-    PJointTypeFloatingBase = 11
-    PJointTypeFixed = 12
-    PJointTypeHelical = 13
-    PJointType1DoF = 14
-    PJointType2DoF = 15
-    PJointType3DoF = 16
-    PJointType4DoF = 17
-    PJointType5DoF = 18
-    PJointType6DoF = 19
-    PJointTypeCustom = 20
-
 
 cdef class Joint:
     cdef crbdl.Joint *thisptr
     cdef free_on_dealloc
 
-#    joint_type_map = {
-#            JointTypeUndefined: "JointTypeUndefined",
-#            JointTypeRevolute: "JointTypeRevolute",
-#            JointTypePrismatic: "JointTypePrismatic",
-#            JointTypeRevoluteX: "JointTypeRevoluteX",
-#            JointTypeRevoluteY: "JointTypeRevoluteY",
-#            JointTypeRevoluteZ: "JointTypeRevoluteZ",
-#            JointTypeSpherical: "JointTypeSpherical",
-#            JointTypeEulerZYX: "JointTypeEulerZYX",
-#            JointTypeEulerXYZ: "JointTypeEulerXYZ",
-#            JointTypeEulerYXZ: "JointTypeEulerYXZ",
-#            JointTypeTranslationXYZ: "JointTypeTranslationXYZ",
-#            JointTypeFloatingBase: "JointTypeFloatingBase",
-#            JointTypeFixed: "JointTypeFixed",
-#            JointTypeHelical: "JointTypeHelical", #1 DoF joint with both rotational and translational motion
-#            JointType1DoF: "JointType1DoF",
-#            JointType2DoF: "JointType2DoF",
-#            JointType3DoF: "JointType3DoF",
-#            JointType4DoF: "JointType4DoF",
-#            JointType5DoF: "JointType5DoF",
-#            JointType6DoF: "JointType6DoF",
-#            JointTypeCustom: "JointTypeCustom",
-#            }
-
-
     joint_type_map = {
-            PJointType.PJointTypeUndefined:       crbdl.JointTypeUndefined,
-            PJointType.PJointTypeRevolute:        crbdl.JointTypeRevolute,
-            PJointType.PJointTypePrismatic:       crbdl.JointTypePrismatic,
-            PJointType.PJointTypeRevoluteX:       crbdl.JointTypeRevoluteX,
-            PJointType.PJointTypeRevoluteY:       crbdl.JointTypeRevoluteY,
-            PJointType.PJointTypeRevoluteZ:       crbdl.JointTypeRevoluteZ,
-            PJointType.PJointTypeSpherical:       crbdl.JointTypeSpherical,
-            PJointType.PJointTypeEulerZYX:        crbdl.JointTypeEulerZYX,
-            PJointType.PJointTypeEulerXYZ:        crbdl.JointTypeEulerXYZ,
-            PJointType.PJointTypeEulerYXZ:        crbdl.JointTypeEulerYXZ,
-            PJointType.PJointTypeTranslationXYZ:  crbdl.JointTypeTranslationXYZ,
-            PJointType.PJointTypeFloatingBase:    crbdl.JointTypeFloatingBase,
-            PJointType.PJointTypeFixed:           crbdl.JointTypeFixed,
-            PJointType.PJointTypeHelical:         crbdl.JointTypeHelical, #1 DoF joint with both rotational and translational motion
-            PJointType.PJointType1DoF:            crbdl.JointType1DoF,
-            PJointType.PJointType2DoF:            crbdl.JointType2DoF,
-            PJointType.PJointType3DoF:            crbdl.JointType3DoF,
-            PJointType.PJointType4DoF:            crbdl.JointType4DoF,
-            PJointType.PJointType5DoF:            crbdl.JointType5DoF,
-            PJointType.PJointType6DoF:            crbdl.JointType6DoF,
-            PJointType.PJointTypeCustom:          crbdl.JointTypeCustom,
+             "JointTypeUndefined": crbdl.JointTypeUndefined,
+             "JointTypeRevolute": crbdl.JointTypeRevolute,
+             "JointTypePrismatic": crbdl.JointTypePrismatic,
+             "JointTypeRevoluteX": crbdl.JointTypeRevoluteX,
+             "JointTypeRevoluteY": crbdl.JointTypeRevoluteY,
+             "JointTypeRevoluteZ": crbdl.JointTypeRevoluteZ,
+             "JointTypeSpherical": crbdl.JointTypeSpherical,
+             "JointTypeEulerZYX": crbdl.JointTypeEulerZYX,
+             "JointTypeEulerXYZ": crbdl.JointTypeEulerXYZ,
+             "JointTypeEulerYXZ": crbdl.JointTypeEulerYXZ,
+             "JointTypeTranslationXYZ": crbdl.JointTypeTranslationXYZ,
+             "JointTypeFloatingBase": crbdl.JointTypeFloatingBase,
+             "JointTypeFixed": crbdl.JointTypeFixed,
+             "JointTypeHelical": crbdl.JointTypeHelical, #1 DoF joint with both rotational and translational motion
+             "JointType1DoF": crbdl.JointType1DoF,
+             "JointType2DoF": crbdl.JointType2DoF,
+             "JointType3DoF": crbdl.JointType3DoF,
+             "JointType4DoF": crbdl.JointType4DoF,
+             "JointType5DoF": crbdl.JointType5DoF,
+             "JointType6DoF": crbdl.JointType6DoF,
+             "JointTypeCustom": crbdl.JointTypeCustom
             }
 
-
     def _joint_type_from_str (self, joint_type_str):
-        if joint_type_str not in self.joint_type_map.values():
-            raise ValueError("Invalid JointType '" + str(joint_type_str) + "'!")
+        if joint_type_str not in self.joint_type_map.keys():
+            raise ValueError("Invalid JointType '" + joint_type_str + "'!")
         else:
-            for joint_type, joint_str in self.joint_type_map.iteritems():
-                if joint_str == joint_type_str:
-                    return joint_type
+            return self.joint_type_map[joint_type_str]
 
     def __cinit__(self, uintptr_t address=0, joint_type=-1, dof = -1, axes = None):
         if address == 0:
@@ -1075,16 +1000,15 @@ cdef class Joint:
                 self.thisptr = new crbdl.Joint()
               else:
                 
-               # joint_type = self._joint_type_from_str(joint_type)
-                
+                jtype = self._joint_type_from_str(joint_type)
                 
                 if dof != -1:
-                  self.thisptr = new crbdl.Joint(<crbdl.JointType> self.joint_type_map[joint_type], <int> dof)
+                  self.thisptr = new crbdl.Joint(<crbdl.JointType> jtype, <int> dof)
                 else:
-                  self.thisptr = new crbdl.Joint(<crbdl.JointType> self.joint_type_map[joint_type])
+                  self.thisptr = new crbdl.Joint(<crbdl.JointType> jtype)
                   
                   
-               # print self._joint_type_from_str(joint_type) 
+               # print (self._joint_type_from_str(joint_type) 
                # self.thisptr = new crbdl.Joint(self._joint_type_from_str(joint_type))
                # joint_type = self._joint_type_from_str(joint_type)
                # self.thisptr = new crbdl.Joint(<JointType> joint_type)
@@ -1322,7 +1246,7 @@ cdef public api int cy_call_jcalc(object self, crbdl.Model *model,
                                         crbdl.VectorNd qdot, 
                                         int *error):
       
-      print "has jcalc", (hasattr(self, "jcalc"))
+      #print ("has jcalc", (hasattr(self,) "jcalc"))
       if (hasattr(self, "jcalc")):
         error[0] = 0
         
@@ -1330,20 +1254,20 @@ cdef public api int cy_call_jcalc(object self, crbdl.Model *model,
         del c_model.thisptr
         c_model.thisptr = model
 #      # UpdateKinematics (c_model, VectorNdToNumpy(q), VectorNdToNumpy(qdot), qddot)
-#        print c_model.gravity
-#        print c_model.dof_count
-#        print c_model.mFixedJointCount
+#        print (c_model.gravity)
+#        print (c_model.dof_count)
+#        print (c_model.mFixedJointCount)
 #        dd = c_model.X_J
-#        print dd[joint_id]
+#        print (dd[joint_id])
         
-        
-#        print "lambda_py", c_model.thisptr._lambda[0]
-#        print "lambda_c", model._lambda[0]
+
+#        print ("lambda_py", c_model.thisptr._lambda[0])
+#        print ("lambda_c", model._lambda[0])
         
         self.jcalc(c_model, joint_id, VectorNdToNumpy (q), VectorNdToNumpy (qdot))
-#        print "after jcalc"
-#        print "lambda_py", c_model.thisptr._lambda[0]
- #       print "lambda_c", model._lambda[0]
+#        print ("after jcalc")
+#        print ("lambda_py", c_model.thispt)r._lambda[0])
+#        print ("lambda_c", model._lambda[0])
         
         c_model.thisptr = NULL
         del c_model
@@ -1357,14 +1281,14 @@ cdef public api int cy_call_jcalc_X_lambda_S(object self,
                                         crbdl.VectorNd q, 
                                         int *error):
                                           
-      print "has jcalc", (hasattr(self, "pyjcalc_X_lambda_S"))                                  
+      #print ("has jcalc", (hasattr(self,) "pyjcalc_X_lambda_S"))                                  
       if (hasattr(self, "pyjcalc_X_lambda_S")):
         error[0] = 0
         c_model = Model()
         c_model.thisptr = model
 #        qdot = np.zeros(model.dof_count)
 #        qddot = np.zeros(model.dof_count)
- #       crbdl.UpdateKinematics (c_model.thisptr[0], q, NumpyToVectorNd(qdot), NumpyToVectorNd(qddot))
+#        crbdl.UpdateKinematics (c_model.thisptr[0], q, NumpyToVectorNd(qdot), NumpyToVectorNd(qddot))
         getattr(self, "jcalc_X_lambda_S")(c_model, joint_id, VectorNdToNumpy (q));
       else:
         error[0] = 1 
@@ -1394,7 +1318,7 @@ cdef class Model:
             SpatialTransform joint_frame not None,
             Joint joint not None,
             Body body not None,
-            string body_name = ""):
+            string body_name = b""):
         return self.thisptr.AddBody (
                 parent_id,
                 joint_frame.thisptr[0],
@@ -1407,7 +1331,7 @@ cdef class Model:
             SpatialTransform joint_frame not None,
             Joint joint not None,
             Body body not None,
-            string body_name = ""):
+            string body_name = b""):
         return self.thisptr.AppendBody (
                 joint_frame.thisptr[0],
                 joint.thisptr[0],
@@ -1420,11 +1344,11 @@ cdef class Model:
                 SpatialTransform joint_frame not None,
                 CustomJoint custom_joint not None,
                 Body body not None,
-                string body_name = ""):
+                string body_name = b""):
         
-        print custom_joint.thisptr.mDoFCount
-        print custom_joint.S
-                
+        print (custom_joint.thisptr.mDoFCount)
+        print (custom_joint.S)
+
         return self.thisptr.AddBodyCustomJoint (
                 parent_id,
                 joint_frame.thisptr[0],
@@ -1522,10 +1446,10 @@ cdef class Model:
 #    property _lambda:
 #        def __get__ (self):
 #            vector_size = self.thisptr._lambda.size()
-#            print "vector_size",  vector_size
+#            print ("vector_size",  vector_size)
 #            ST = np.empty([vector_size], dtype=int)
 #            for k in range(vector_size):
-#              print "wrappergen ", self.thisptr._lambda[k]
+#              print ("wrappergen ", self.thisptr._lambda[k])
 #              ST[k] = self.thisptr._lambda[k]
 #            return ST
 
