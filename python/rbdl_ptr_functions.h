@@ -417,9 +417,9 @@ void InverseDynamicsPtr (
 
 
   VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
-  VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.q_size);
-  VectorNdRef QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.q_size);
-  VectorNdRef Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
+  VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
+  VectorNdRef QDDot = VectorFromPtr(const_cast<double*>(qddot_ptr), model.qdot_size);
+  VectorNdRef Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
 
   // Reset the velocity of the root body
   model.v[0].setZero();
@@ -494,6 +494,120 @@ void InverseDynamicsPtr (
                                  model.X_lambda[i].applyTranspose(model.f[i]);
     }
   }
+}
+
+// FIXME(yycho0108): {Matrix,Vector}NdRef conversions will fail.
+// Consider other options for specifying the correct function signature.
+void SolveLinearSystem (
+        const RigidBodyDynamics::Math::MatrixNd& A,
+        const RigidBodyDynamics::Math::VectorNd& b,
+        RigidBodyDynamics::Math::VectorNd& x,
+        RigidBodyDynamics::Math::LinearSolver ls
+        )
+{
+    if(A.rows() != b.size() || A.cols() != x.size()) {
+        throw Errors::RBDLSizeMismatchError("Mismatching sizes.\n");
+    }
+
+    // Solve the system A*x = b.
+    switch (ls) {
+        case RigidBodyDynamics::Math::LinearSolverPartialPivLU :
+            x = A.partialPivLu().solve(b);
+            break;
+        case RigidBodyDynamics::Math::LinearSolverColPivHouseholderQR :
+            x = A.colPivHouseholderQr().solve(b);
+            break;
+        case RigidBodyDynamics::Math::LinearSolverHouseholderQR :
+            x = A.householderQr().solve(b);
+            break;
+        default:
+            std::ostringstream errormsg;
+            errormsg << "Error: Invalid linear solver: " << ls << std::endl;
+            throw Errors::RBDLError(errormsg.str());
+            break;
+    }
+}
+
+RBDL_DLLAPI
+void InverseDynamicsConstraintsPtr (
+  Model &model,
+  const double *q_ptr,
+  const double *qdot_ptr,
+  const double *qddot_ptr,
+  ConstraintSet &CS,
+  const double *qddot_out_ptr,
+  const double *tau_ptr,
+  std::vector<Math::SpatialVector> *f_ext
+)
+{
+  LOG << "-------- " << __func__ << " ------" << std::endl;
+
+  using namespace RigidBodyDynamics::Math;
+
+  unsigned int n  = unsigned(    CS.H.rows());
+  unsigned int nc = unsigned( CS.name.size());
+  unsigned int na = unsigned(    CS.S.rows());
+  unsigned int nu = n-na;
+
+  VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+  VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
+  VectorNdRef QDDotDesired = VectorFromPtr(const_cast<double*>(qddot_ptr), model.qdot_size);
+  VectorNdRef QDDotOutput = VectorFromPtr(const_cast<double*>(qddot_out_ptr), model.qdot_size);
+  VectorNdRef TauOutput = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
+
+  TauOutput.setZero();
+  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,f_ext);
+
+  // This implementation follows the projected KKT system described in
+  // Eqn. 5.20 of Henning Koch's thesis work. Note that this will fail
+  // for under actuated systems
+  //  [ SMS'      SMP'    SJ'    I][      u]   [ -SC    ]
+  //  [ PMS'      PMP'    PJ'     ][      v] = [ -PC    ]
+  //  [ JS'        JP'     0      ][-lambda]   [ -gamma ]
+  //  [ I                         ][   -tau]   [  v*     ]
+  //double alpha = 0.1;
+
+  CS.Ful = CS.S*CS.H*CS.S.transpose();
+  CS.Fur = CS.S*CS.H*CS.P.transpose();
+  CS.Fll = CS.P*CS.H*CS.S.transpose();
+  CS.Flr = CS.P*CS.H*CS.P.transpose();
+
+  CS.GTu = CS.S*(CS.G.transpose());
+  CS.GTl = CS.P*(CS.G.transpose());
+
+  //Exploiting the block triangular structure
+  //u:
+  //I u = S*qdd*
+  CS.u = CS.S*QDDotDesired;
+  // v
+  //(JP')v = -gamma - (JS')u
+  //Using GT
+
+  //This fails using SimpleMath and I'm not sure how to fix it
+  SolveLinearSystem( CS.GTl.transpose(),
+                     CS.gamma - CS.GTu.transpose()*CS.u,
+                     CS.v, CS.linear_solver);
+
+  // lambda
+  SolveLinearSystem(CS.GTl,
+                    -CS.P*CS.C
+                    - CS.Fll*CS.u
+                    - CS.Flr*CS.v,
+                    CS.force,
+                    CS.linear_solver);
+
+  for(unsigned int i=0; i<CS.force.rows(); ++i) {
+    CS.force[i] *= -1.0;
+  }
+
+  //Evaluating qdd
+  QDDotOutput = CS.S.transpose()*CS.u + CS.P.transpose()*CS.v;
+
+  //Evaluating tau
+  TauOutput = -CS.S.transpose()*( -CS.S*CS.C
+                                  -( CS.Ful*CS.u
+                                     +CS.Fur*CS.v
+                                     -CS.GTu*CS.force));
 }
 
 

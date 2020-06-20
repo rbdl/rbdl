@@ -2397,6 +2397,47 @@ def InverseDynamics (Model model,
             )
             
     del f_ext
+
+def InverseDynamicsConstraints (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot,
+        ConstraintSet CS,
+        np.ndarray[double, ndim=1, mode="c"] qddot_out,
+        np.ndarray[double, ndim=1, mode="c"] tau,
+        np.ndarray[double, ndim=2, mode="c"] f_external = None):
+      
+    cdef vector[crbdl.SpatialVector] *f_ext = new vector[crbdl.SpatialVector]()
+    
+    if f_external is None:
+        
+        crbdl.InverseDynamicsConstraintsPtr (model.thisptr[0],
+            <double*>q.data,
+            <double*>qdot.data,
+            <double*>qddot.data,
+            CS.thisptr[0],
+            <double*>qddot_out.data,
+            <double*>tau.data,
+            NULL
+            )
+        
+    else:
+         
+        for ele in f_external: 
+            f_ext.push_back(NumpyToSpatialVector(ele))
+            
+        crbdl.InverseDynamicsConstraintsPtr (model.thisptr[0],
+            <double*>q.data,
+            <double*>qdot.data,
+            <double*>qddot.data,
+            CS.thisptr[0],
+            <double*>qddot_out.data,
+            <double*>tau.data,
+            f_ext
+            )
+            
+    del f_ext
+
             
 
 def NonlinearEffects (Model model,

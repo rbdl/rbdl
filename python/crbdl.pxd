@@ -615,6 +615,17 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             vector[SpatialVector] *f_ext
             )
 
+    cdef void InverseDynamicsConstraintsPtr(
+            Model &model,
+            const double* q_ptr,
+            const double* qdot_ptr,
+            const double* qddot_ptr,
+            ConstraintSet &CS,
+            double* qddot_out_ptr,
+            double* tau_ptr,
+            vector[SpatialVector] *f_ext
+            )
+
     cdef void NonlinearEffectsPtr (
             Model &model,
             const double* q_ptr,
