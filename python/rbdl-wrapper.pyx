@@ -1748,6 +1748,21 @@ cdef class ConstraintSet:
     def Bind (self, model):
         return self.thisptr.Bind ((<Model>model).thisptr[0])
 
+    def SetActuationMap(self,
+            Model model,
+            np.ndarray[bool, ndim=1, mode="c"] actuated_dof_upd):
+
+        # Populate the actuation map.
+        cdef vector[bool] actuationMap
+        for i in range(0, actuated_dof_upd.shape[0]):
+            actuationMap.push_back(<bool> actuated_dof_upd[i])
+
+        # Set the actuation map.
+        self.thisptr.SetActuationMap(
+                model.thisptr[0],
+                actuationMap
+                )
+
     def size (self):
         return self.thisptr.size()
 

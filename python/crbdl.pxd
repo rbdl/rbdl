@@ -533,6 +533,9 @@ cdef extern from "<rbdl/Constraints.h>" namespace "RigidBodyDynamics":
         # void SetSolver (Math::LinearSolver solver)
         bool Bind (const Model &model)
 
+        void SetActuationMap(const Model& model,
+                const vector[bool]& actuatedDof);
+
         size_t size()
         void clear()
         # Math::LinearSolver
