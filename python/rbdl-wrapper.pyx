@@ -2438,6 +2438,76 @@ def InverseDynamicsConstraints (Model model,
             
     del f_ext
 
+def InverseDynamicsConstraintsRelaxed (Model model,
+        np.ndarray[double, ndim=1, mode="c"] q,
+        np.ndarray[double, ndim=1, mode="c"] qdot,
+        np.ndarray[double, ndim=1, mode="c"] qddot,
+        ConstraintSet CS,
+        np.ndarray[double, ndim=1, mode="c"] qddot_out,
+        np.ndarray[double, ndim=1, mode="c"] tau,
+        np.ndarray[double, ndim=2, mode="c"] f_external = None):
+      
+    cdef vector[crbdl.SpatialVector] *f_ext = new vector[crbdl.SpatialVector]()
+    
+    if f_external is None:
+        
+        crbdl.InverseDynamicsConstraintsRelaxedPtr (model.thisptr[0],
+            <double*>q.data,
+            <double*>qdot.data,
+            <double*>qddot.data,
+            CS.thisptr[0],
+            <double*>qddot_out.data,
+            <double*>tau.data,
+            NULL
+            )
+        
+    else:
+         
+        for ele in f_external: 
+            f_ext.push_back(NumpyToSpatialVector(ele))
+            
+        crbdl.InverseDynamicsConstraintsRelaxedPtr (model.thisptr[0],
+            <double*>q.data,
+            <double*>qdot.data,
+            <double*>qddot.data,
+            CS.thisptr[0],
+            <double*>qddot_out.data,
+            <double*>tau.data,
+            f_ext
+            )
+            
+    del f_ext
+
+
+def isConstrainedSystemFullyActuated(Model model,
+    np.ndarray[double, ndim=1, mode="c"] q,
+    np.ndarray[double, ndim=1, mode="c"] qdot,
+    ConstraintSet CS,
+    np.ndarray[double, ndim=2, mode="c"] f_external = None):
+
+    cdef vector[crbdl.SpatialVector] *f_ext = new vector[crbdl.SpatialVector]()
+
+    if f_external is None:
+        v = crbdl.isConstrainedSystemFullyActuated(model.thisptr[0],
+                <double*>q.data,
+                <double*>qdot.data,
+                CS.thisptr[0],
+                NULL
+                )
+    else:
+        for ele in f_external: 
+            f_ext.push_back(NumpyToSpatialVector(ele))
+
+        v = crbdl.isConstrainedSystemFullyActuated(model.thisptr[0],
+                <double*>q.data,
+                <double*>qdot.data,
+                CS.thisptr[0],
+                f_ext
+                )
+
+    del f_ext
+
+    return v
             
 
 def NonlinearEffects (Model model,

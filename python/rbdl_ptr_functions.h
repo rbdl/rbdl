@@ -610,6 +610,180 @@ void InverseDynamicsConstraintsPtr (
                                      -CS.GTu*CS.force));
 }
 
+RBDL_DLLAPI
+void InverseDynamicsConstraintsRelaxedPtr(
+  Model &model,
+  const double *q_ptr,
+  const double *qdot_ptr,
+  const double *qddot_ptr,
+  ConstraintSet &CS,
+  const double *qddot_out_ptr,
+  const double *tau_ptr,
+  std::vector<Math::SpatialVector> *f_ext)
+{
+  LOG << "-------- " << __func__ << " --------" << std::endl;
+
+  using namespace RigidBodyDynamics::Math;
+  VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+  VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
+  VectorNdRef QDDotControls = VectorFromPtr(const_cast<double*>(qddot_ptr), model.qdot_size);
+  VectorNdRef QDDotOutput = VectorFromPtr(const_cast<double*>(qddot_out_ptr), model.qdot_size);
+  VectorNdRef TauOutput = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
+
+  TauOutput.setZero();
+  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,f_ext);
+
+  unsigned int n  = unsigned(    CS.H.rows());
+  unsigned int nc = unsigned( CS.name.size());
+  unsigned int na = unsigned(    CS.S.rows());
+  unsigned int nu = n-na;
+
+
+  //MM: Update to Henning's formulation s.t. the relaxed IDC operator will
+  //    more closely satisfy QDDotControls if it is possible.
+  double diag = 0.;//100.*CS.H.maxCoeff();
+  double diagInv = 0.;
+  for(unsigned int i=0; i<CS.H.rows(); ++i) {
+    for(unsigned int j=0; j<CS.H.cols(); ++j) {
+      if(fabs(CS.H(i,j)) > diag) {
+        diag = fabs(CS.H(i,j));
+      }
+    }
+  }
+  diag = diag*100.;
+  diagInv = 1.0/diag;
+  for(unsigned int i=0; i<CS.W.rows(); ++i) {
+    CS.W(i,i)    = diag;
+    CS.Winv(i,i) = diagInv;
+  }
+
+  CS.WinvSC = CS.Winv * CS.S * CS.C;
+
+  CS.F.block(  0,  0, na, na) = CS.S*CS.H*CS.S.transpose() + CS.W;
+  CS.F.block(  0, na, na, nu) = CS.S*CS.H*CS.P.transpose();
+  CS.F.block( na,  0, nu, na) = CS.P*CS.H*CS.S.transpose();
+  CS.F.block( na, na, nu, nu) = CS.P*CS.H*CS.P.transpose();
+
+  CS.GT.block(  0, 0,na, nc) = CS.S*(CS.G.transpose());
+  CS.GT.block( na, 0,nu, nc) = CS.P*(CS.G.transpose());
+
+  CS.GT_qr.compute (CS.GT);
+  CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
+
+  //GT = [Y  Z] * [ R ]
+  //              [ 0 ]
+
+  CS.R  = CS.GT_qr_Q.transpose()*CS.GT;
+  CS.Ru = CS.R.block(0,0,nc,nc);
+
+  CS.Y = CS.GT_qr_Q.block( 0, 0,  n, nc    );
+  CS.Z = CS.GT_qr_Q.block( 0, nc, n, (n-nc));
+
+  //MM: Update to Henning's formulation s.t. the relaxed IDC operator will
+  //    exactly satisfy QDDotControls if it is possible.
+  //
+  //Modify QDDotControls so that SN is cancelled.
+  //
+  //    +SC - WS(qdd*)
+  //
+  // Add a term to cancel off SN
+  //
+  //    +SC - WS( qdd* + (S' W^-1 S)N )
+  //
+
+  CS.u = CS.S*CS.C - CS.W*(CS.S*(QDDotControls
+                                 +(CS.S.transpose()*CS.WinvSC)));
+
+  CS.v =  CS.P*CS.C;
+
+  for(unsigned int i=0; i<CS.S.rows(); ++i) {
+    CS.g[i] = CS.u[i];
+  }
+  unsigned int j=CS.S.rows();
+  for(unsigned int i=0; i<CS.P.rows(); ++i) {
+    CS.g[j] = CS.v[i];
+    ++j;
+  }
+
+  //nc x nc system
+  SolveLinearSystem(CS.Ru.transpose(), CS.gamma, CS.py, CS.linear_solver);
+
+  //(n-nc) x (n-nc) system
+  SolveLinearSystem(CS.Z.transpose()*CS.F*CS.Z,
+                    CS.Z.transpose()*(-CS.F*CS.Y*CS.py-CS.g),
+                    CS.pz,
+                    CS.linear_solver);
+
+  //nc x nc system
+  SolveLinearSystem(CS.Ru,
+                    CS.Y.transpose()*(CS.g + CS.F*CS.Y*CS.py + CS.F*CS.Z*CS.pz),
+                    CS.force, CS.linear_solver);
+
+  //Eqn. 32d, the equation for qdd, is in error. Instead
+  // p = Ypy + Zpz = [v,w]
+  // qdd = S'v + P'w
+  QDDotOutput = CS.Y*CS.py + CS.Z*CS.pz;
+  for(unsigned int i=0; i<CS.S.rows(); ++i) {
+    CS.u[i] = QDDotOutput[i];
+  }
+  j = CS.S.rows();
+  for(unsigned int i=0; i<CS.P.rows(); ++i) {
+    CS.v[i] = QDDotOutput[j];
+    ++j;
+  }
+
+  QDDotOutput = CS.S.transpose()*CS.u
+                +CS.P.transpose()*CS.v;
+
+  TauOutput = (CS.S.transpose()*CS.W*CS.S)*(
+                QDDotControls+(CS.S.transpose()*CS.WinvSC)
+                -QDDotOutput);
+
+
+
+}
+
+RBDL_DLLAPI
+bool isConstrainedSystemFullyActuated (
+        Model &model,
+        const double* q_ptr,
+        const double* qdot_ptr,
+        ConstraintSet& CS,
+        std::vector<Math::SpatialVector> *f_ext){
+  LOG << "-------- " << __func__ << " ------" << std::endl;
+
+  using namespace RigidBodyDynamics::Math;
+
+  unsigned int n  = unsigned(    CS.H.rows());
+  unsigned int nc = unsigned( CS.name.size());
+  unsigned int na = unsigned(    CS.S.rows());
+  unsigned int nu = n-na;
+
+  VectorNdRef Q = VectorFromPtr(const_cast<double*>(q_ptr), model.q_size);
+  VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
+
+  CalcConstrainedSystemVariables(model,Q,QDot,VectorNd::Zero(QDot.rows()),CS,
+                                 f_ext);
+
+  CS.GPT = CS.G*CS.P.transpose();
+
+  CS.GPT_full_qr.compute(CS.GPT);
+  unsigned int r = unsigned(CS.GPT_full_qr.rank());
+
+  bool isCompatible = false;
+  if(r == (n-na)) {
+    isCompatible = true;
+  } else {
+    isCompatible = false;
+  }
+
+  return isCompatible;
+
+}
+
+
+
+
 
 
 RBDL_DLLAPI
