@@ -15,7 +15,7 @@ described in Featherstone's book and to a lesser extent general multibody
 dynamics and kinematics computations. A person who is familiar with
 Featherstone's book should have an easy time to understand the code and
 therefore the variable naming conventions used in the book should when
-possible used in the code, e.g.: 
+possible used in the code, e.g.:
 
  - the joint space inertia matrix is denoted with H
  - the coriolis forces are denoted with C
@@ -28,7 +28,7 @@ programming patterns.
 
 This is what RBDL aims to be:
 
-* RBDL aims to be lean 
+* RBDL aims to be lean
 * RBDL aims to be easily integrated into other projects
 * RBDL aims to be suitable as a foundation for sophisticated dynamics packages
 * RBDL gives you access to its internals and provides only a thin abstraction layer over the actual computation
@@ -48,7 +48,7 @@ architecture.
 RBDL is published under the very permissive zlib license that gives you a
 lot of freedom in the use of full library or parts of it. The core part
 of the library is solely using this license but addons may use different
-licenses. 
+licenses.
 
 There is no formal contributor license agreement for this project. Instead
 when you submit patches or create a pull request it is assumed that you
@@ -88,7 +88,7 @@ of ```SpatialVector```s in the ```Model``` structure.
 ### Examples
 
     struct Model {
-      std::vector<SpatialVector> v;          // ok, v is an  
+      std::vector<SpatialVector> v;          // ok, v is an
       std::vector<SpatialVector> S;          // ok, S is commonly used in a reference algorithm
       std::vector<double> u;                 // ok
       std::vector<Vector3d> multdof3_u;      // ok, 3-dof specialization of Model::u
@@ -153,20 +153,6 @@ small tests that check single features are preferred over large tests that
 test multiple things simultaneously.
 
 Bugfixes ideally come with a test case that reproduce the bug.
-
-## Branching and Bookmarks
-
-RBDL uses Mercurial (https://mercurial-scm.org) as version control system.
-The branching concept of mercurial is different than in git. Git's
-branching concept is captured in mercurial using bookmarks
-(https://www.mercurial-scm.org/wiki/Bookmarks).
-
-The ```default``` branch is reserved for releases. Bugfixes and
-contributions happen in the ```dev``` branch but should have a bookmark
-assigned to them.
-
-Please do not create new branches, i.e. do not run ```hg branch
-<branchname>```.
 
 ### Working on a new feature
 
