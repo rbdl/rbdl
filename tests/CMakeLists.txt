@@ -1,12 +1,5 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 
-# Needed for UnitTest++
-LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../CMake )
-
-# Look for unittest++
-FIND_PACKAGE (UnitTest++ REQUIRED)
-INCLUDE_DIRECTORIES (${UNITTEST++_INCLUDE_DIR})
-
 SET ( TESTS_SRCS
         MathTests.cc
         SpatialAlgebraTests.cc
