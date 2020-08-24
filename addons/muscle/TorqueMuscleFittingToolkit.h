@@ -4,7 +4,7 @@
 
 #include <vector>
 #include <rbdl/rbdl_math.h>
-#include "coin/IpTNLP.hpp"
+#include "IpTNLP.hpp"
 #include "Millard2016TorqueMuscle.h"
 
 namespace RigidBodyDynamics {

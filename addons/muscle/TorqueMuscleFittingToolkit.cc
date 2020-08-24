@@ -1,6 +1,6 @@
 #include "TorqueMuscleFittingToolkit.h"
 
-#include "coin/IpIpoptApplication.hpp"
+#include "IpIpoptApplication.hpp"
 
 using namespace Ipopt;
 static double EPSILON = std::numeric_limits<double>::epsilon();
