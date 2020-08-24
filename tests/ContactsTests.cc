@@ -100,17 +100,10 @@ struct FixedBase6DoF9DoF {
   ConstraintSet constraint_set;
 };
 
-<<<<<<< HEAD
-//
-// ForwardDynamicsConstraintsDirect
-//
-TEST ( TestForwardDynamicsConstraintsDirectSimple ) {
-=======
 // 
 // ForwardDynamicsConstraintsDirect 
 // 
 TEST_CASE (__FILE__"_TestForwardDynamicsConstraintsDirectSimple", "") {
->>>>>>> Moved all tests into Catch2 framework
   Model model;
   model.gravity = Vector3d  (0., -9.81, 0.);
   Body base_body (1., Vector3d (0., 0., 0.), Vector3d (1., 1., 1.));
@@ -226,13 +219,8 @@ TEST_CASE (__FILE__"_TestForwardDynamicsConstraintsDirectMoving", "") {
 
 //
 // ForwardDynamicsContacts
-<<<<<<< HEAD
-//
-TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContact) {
-=======
 // 
 TEST_CASE_METHOD (FixedBase6DoF, __FILE__"_ForwardDynamicsContactsSingleContact", "") {
->>>>>>> Moved all tests into Catch2 framework
   contact_normal.set (0., 1., 0.);
   constraint_set.AddContactConstraint (contact_body_id, contact_point, contact_normal);
   ConstraintSet constraint_set_lagrangian = constraint_set.Copy();
@@ -303,13 +291,8 @@ TEST_CASE_METHOD (FixedBase6DoF, __FILE__"_ForwardDynamicsContactsSingleContactR
 //   - ForwardDynamcsContactsOpt
 // for the example model in FixedBase6DoF and a moving state (i.e. a
 // nonzero QDot)
-<<<<<<< HEAD
-//
-TEST_FIXTURE (FixedBase6DoF, ForwardDynamicsContactsSingleContactRotatedMoving) {
-=======
 // 
 TEST_CASE_METHOD (FixedBase6DoF, __FILE__"_ForwardDynamicsContactsSingleContactRotatedMoving", "") {
->>>>>>> Moved all tests into Catch2 framework
   Q[0] = 0.6;
   Q[3] =   M_PI * 0.6;
   Q[4] = 0.1;

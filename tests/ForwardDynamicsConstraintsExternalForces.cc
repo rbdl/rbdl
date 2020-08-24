@@ -12,15 +12,15 @@ using namespace RigidBodyDynamics::Math;
 const double TEST_PREC = 1.0e-11;
 
 // Reduce an angle to the (-pi, pi] range.
-// static double inRange(double angle) {
-//   while(angle > M_PI) {
-//     angle -= 2. * M_PI;
-//   }
-//   while(angle <= -M_PI) {
-//     angle += 2. * M_PI;
-//   }
-//   return angle;
-// }
+static double inRange(double angle) {
+  while(angle > M_PI) {
+    angle -= 2. * M_PI;
+  }
+  while(angle <= -M_PI) {
+    angle += 2. * M_PI;
+  }
+  return angle;
+}
 
 TEST_CASE (__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest", "") {
   DoublePerpendicularPendulumAbsoluteCoordinates dba

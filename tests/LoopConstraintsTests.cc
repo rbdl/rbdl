@@ -265,8 +265,7 @@ struct SliderCrank3D {
     Matrix3d rot_ps
       = (CalcBodyWorldOrientation(model,q,id_p).transpose()*X_p.E).transpose()
       *  CalcBodyWorldOrientation(model,q,id_s).transpose()*X_s.E;
-<<<<<<< HEAD
-=======
+
     REQUIRE (rot_ps(0,0) - 1. < TEST_PREC);
     REQUIRE (rot_ps(1,1) - 1. < TEST_PREC);
     REQUIRE (rot_ps(2,2) - 1. < TEST_PREC);
@@ -278,22 +277,6 @@ struct SliderCrank3D {
     REQUIRE (rot_ps(2,1) < TEST_PREC);
     REQUIRE ((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
       - CalcBodyToBaseCoordinates(model, q, id_s, X_s.r)).norm() < TEST_PREC);
->>>>>>> Moved all tests into Catch2 framework
-
-    CHECK_CLOSE(rot_ps(0,0), -1.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(1,1),  1.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(2,2), -1.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(0,1), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(0,2), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(1,0), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(1,2), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(2,0), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(2,1), 0.0, TEST_PREC);
-
-    CHECK_ARRAY_CLOSE(
-      CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
-      CalcBodyToBaseCoordinates(model, q, id_s, X_s.r),
-      3, TEST_PREC);
   }
 
   Model model;
@@ -382,22 +365,7 @@ struct SliderCrank3DSphericalJoint {
     Matrix3d rot_ps
       = (CalcBodyWorldOrientation(model,q,id_p).transpose()*X_p.E).transpose()
        * CalcBodyWorldOrientation(model,q,id_s).transpose()*X_s.E;
-<<<<<<< HEAD
-    CHECK_CLOSE(rot_ps(0,0), -1.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(1,1),  1.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(2,2), -1.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(0,1), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(0,2), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(1,0), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(1,2), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(2,0), 0.0, TEST_PREC);
-    CHECK_CLOSE(rot_ps(2,1), 0.0, TEST_PREC);
 
-    CHECK_ARRAY_CLOSE(
-      CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
-      CalcBodyToBaseCoordinates(model, q, id_s, X_s.r),
-      3, TEST_PREC);
-=======
     REQUIRE (rot_ps(0,0) - 1. < TEST_PREC);
     REQUIRE (rot_ps(1,1) - 1. < TEST_PREC);
     REQUIRE (rot_ps(2,2) - 1. < TEST_PREC);
@@ -409,7 +377,6 @@ struct SliderCrank3DSphericalJoint {
     REQUIRE (rot_ps(2,1) < TEST_PREC);
     REQUIRE ((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
       - CalcBodyToBaseCoordinates(model, q, id_s, X_s.r)).norm() < TEST_PREC);
->>>>>>> Moved all tests into Catch2 framework
 
   }
 
@@ -513,13 +480,8 @@ TEST_CASE_METHOD (FourBarLinkage, __FILE__"_TestFourBarLinkageConstraintJacobian
   q[2] = 0.;
   q[3] = 0.;
   q[4] = 0.;
-<<<<<<< HEAD
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
   REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -542,13 +504,8 @@ TEST_CASE_METHOD (FourBarLinkage, __FILE__"_TestFourBarLinkageConstraintJacobian
   q[2] = 0.5 * M_PI;
   q[3] = 0.;
   q[4] = 0.;
-<<<<<<< HEAD
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
   REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -571,13 +528,8 @@ TEST_CASE_METHOD (FourBarLinkage, __FILE__"_TestFourBarLinkageConstraintJacobian
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-<<<<<<< HEAD
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
   REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -606,13 +558,9 @@ TEST_CASE_METHOD (FourBarLinkage, __FILE__"_TestFourBarLinkageConstraintsVelocit
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-<<<<<<< HEAD
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -738,13 +686,9 @@ TEST_CASE_METHOD (FourBarLinkage, __FILE__"_TestFourBarLinkageQDotAssembly", "")
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-<<<<<<< HEAD
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   VectorNd qdInit = VectorNd::Zero(q.size());
@@ -782,13 +726,8 @@ TEST_CASE_METHOD (FourBarLinkage, __FILE__"_TestFourBarLinkageForwardDynamics", 
   q[2] = 0.;
   q[3] = 0.;
   q[4] = 0.;
-<<<<<<< HEAD
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
   REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -828,13 +767,9 @@ TEST_CASE_METHOD (FourBarLinkage, __FILE__"_TestFourBarLinkageForwardDynamics", 
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-<<<<<<< HEAD
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -890,13 +825,8 @@ TEST_CASE_METHOD (FourBarLinkage, __FILE__"_FourBarLinkageImpulse", "") {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-<<<<<<< HEAD
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
   REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   cs.v_plus[0] = 1.;
@@ -999,11 +929,7 @@ TEST_CASE_METHOD (SliderCrank3D, __FILE__"_TestSliderCrank3DConstraintsVelocityE
   qInit[4] = 0.1;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-<<<<<<< HEAD
-  CHECK_EQUAL(success, true);
-=======
   REQUIRE (success);
->>>>>>> Moved all tests into Catch2 framework
 
   // Some random velocity.
   qd[0] = -0.2;
@@ -1091,11 +1017,8 @@ TEST_CASE_METHOD (SliderCrank3D, __FILE__"_TestSliderCrank3DAssemblyQDot", "") {
   qdInit[4] = 0.1 * M_PI;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-<<<<<<< HEAD
-  CHECK_EQUAL(success, true);
-=======
+
   REQUIRE (success);
->>>>>>> Moved all tests into Catch2 framework
 
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
@@ -1187,36 +1110,21 @@ TEST_CASE_METHOD (SliderCrank3D, __FILE__"_TestSliderCrank3DForwardDynamics", ""
   qdInit.setZero();
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-<<<<<<< HEAD
-  CHECK_EQUAL(success, true);
-=======
+
   REQUIRE (success);
->>>>>>> Moved all tests into Catch2 framework
+
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
   Matrix3d rot_ps
     = (CalcBodyWorldOrientation(model, q, id_p).transpose()*X_p.E).transpose()
     * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
-<<<<<<< HEAD
 
-  CHECK_CLOSE(rot_ps(0,1), rot_ps(0,1), TEST_PREC);
-
-  CHECK_ARRAY_CLOSE(
-    CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
-    CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
-    3, TEST_PREC);
-
-  CHECK_ARRAY_CLOSE(
-    CalcPointVelocity6D(model, q, qd, id_p, X_p.r),
-    CalcPointVelocity6D(model, q, qd, id_p, X_p.r),
-    3, TEST_PREC);
-=======
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
   REQUIRE (rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
   REQUIRE ((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
     -CalcPointVelocity6D(model, q, qd, id_p, X_p.r)).norm() < TEST_PREC);
->>>>>>> Moved all tests into Catch2 framework
+
 
   // Test with non-zero q and qdot.
 
@@ -1271,11 +1179,8 @@ TEST_CASE_METHOD (SliderCrank3D, __FILE__"_TestSliderCrank3DImpulse", "") {
   qInit[4] = 0.1;
 
   bool success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-<<<<<<< HEAD
-  CHECK_EQUAL(success, true);
-=======
+
   REQUIRE (success);
->>>>>>> Moved all tests into Catch2 framework
 
   cs.v_plus[0] = 1.;
   cs.v_plus[1] = 2.;
@@ -1284,25 +1189,15 @@ TEST_CASE_METHOD (SliderCrank3D, __FILE__"_TestSliderCrank3DImpulse", "") {
 
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
-<<<<<<< HEAD
-
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
-=======
   
   REQUIRE_THAT (cs.v_plus, AllCloseVector(errdDirect, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
-<<<<<<< HEAD
-
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
-=======
   
   REQUIRE_THAT (cs.v_plus, AllCloseVector(errdSpaceSparse, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
@@ -1320,25 +1215,16 @@ TEST_CASE_METHOD (SliderCrank3D, __FILE__"_TestSliderCrank3DImpulse", "") {
 
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
-<<<<<<< HEAD
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
-=======
   
   REQUIRE_THAT (cs.v_plus, AllCloseVector(errdDirect, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
-<<<<<<< HEAD
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
-=======
-  
   REQUIRE_THAT(cs.v_plus, AllCloseVector(errdSpaceSparse, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
@@ -1454,13 +1340,8 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageCo
   q[5] = 0.;
   q[6] = 0.;
   q[7] = 0.;
-<<<<<<< HEAD
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
   REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1489,13 +1370,9 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageCo
   q[5] = 0.5 * M_PI;
   q[6] = 0.;
   q[7] = 0.;
-<<<<<<< HEAD
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1524,13 +1401,9 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageCo
   q[5] = M_PI - q[3];
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
-<<<<<<< HEAD
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1566,13 +1439,9 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageCo
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
 
-<<<<<<< HEAD
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1627,13 +1496,9 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageQA
   qRef[6] = -qRef[4];
   qRef[7] = qRef[3] + qRef[4] - qRef[5] - qRef[6];
 
-<<<<<<< HEAD
-  assert(qRef[3] + qRef[4] - qRef[5] - qRef[6] - qRef[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, qRef, idB2, X_p.r)
-=======
+
   REQUIRE (qRef[3] + qRef[4] - qRef[5] - qRef[6] - qRef[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, qRef, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, qRef, idB5, X_s.r)).norm() < TEST_PREC);
 
   bool success;
@@ -1724,13 +1589,9 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageQD
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
 
-<<<<<<< HEAD
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   VectorNd qdInit = VectorNd::Zero(q.size());
@@ -1774,13 +1635,9 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageFo
   q[5] = 0.;
   q[6] = 0.;
   q[7] = 0.;
-<<<<<<< HEAD
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1829,13 +1686,9 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageFo
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
 
-<<<<<<< HEAD
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
+
   REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1889,13 +1742,8 @@ TEST_CASE_METHOD (FloatingFourBarLinkage, __FILE__"_TestFloatingFourBarLinkageIm
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
 
-<<<<<<< HEAD
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-=======
   REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
->>>>>>> Moved all tests into Catch2 framework
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   cs.v_plus[0] = 1.;
@@ -1999,11 +1847,8 @@ TEST_CASE_METHOD (SliderCrank3DSphericalJoint, __FILE__"_TestSliderCrank3DSpheri
   model.SetQuaternion(id_s, quat, qInit);
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-<<<<<<< HEAD
-  CHECK_EQUAL(success, true);
-=======
+
   REQUIRE (success);
->>>>>>> Moved all tests into Catch2 framework
 
   // Some random velocity.
   qd[0] = -0.2;
@@ -2089,11 +1934,7 @@ TEST_CASE_METHOD (SliderCrank3DSphericalJoint, __FILE__"_TestSliderCrank3DSpheri
   qdInit[4] = 0.1 * M_PI;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-<<<<<<< HEAD
-  CHECK_EQUAL(success, true);
-=======
   REQUIRE (success);
->>>>>>> Moved all tests into Catch2 framework
 
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
@@ -2185,34 +2026,20 @@ TEST_CASE_METHOD (SliderCrank3DSphericalJoint, __FILE__"_TestSliderCrank3DSpheri
   qdInit.setZero();
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-<<<<<<< HEAD
-  CHECK_EQUAL(success, true);
-=======
+
   REQUIRE (success);
->>>>>>> Moved all tests into Catch2 framework
+
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
   Matrix3d rot_ps
     = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
     * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
-<<<<<<< HEAD
 
-  CHECK_CLOSE(rot_ps(0,1), rot_ps(0,1), TEST_PREC);
-  CHECK_ARRAY_CLOSE(
-    CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
-    CalcBodyToBaseCoordinates(model, q, id_p, X_p.r),
-    3, TEST_PREC);
-  CHECK_ARRAY_CLOSE(
-    CalcPointVelocity6D(model, q, qd, id_p, X_p.r),
-    CalcPointVelocity6D(model, q, qd, id_p, X_p.r),
-    3, TEST_PREC);
-=======
   REQUIRE ((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
   REQUIRE (rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
   REQUIRE ((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
     -CalcPointVelocity6D(model, q, qd, id_p, X_p.r)).norm() < TEST_PREC);
->>>>>>> Moved all tests into Catch2 framework
 
   // Test with non-zero q and qdot.
 
@@ -2267,11 +2094,8 @@ TEST_CASE_METHOD (SliderCrank3DSphericalJoint, __FILE__"_TestSliderCrank3DSpheri
   model.SetQuaternion(id_s, quat, qInit);
 
   bool success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-<<<<<<< HEAD
-  CHECK_EQUAL(success, true);
-=======
+
   REQUIRE (success);
->>>>>>> Moved all tests into Catch2 framework
 
   cs.v_plus[0] = 1.;
   cs.v_plus[1] = 2.;
@@ -2280,25 +2104,15 @@ TEST_CASE_METHOD (SliderCrank3DSphericalJoint, __FILE__"_TestSliderCrank3DSpheri
 
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
-<<<<<<< HEAD
-
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
-=======
   
   REQUIRE_THAT (cs.v_plus, AllCloseVector(errdDirect, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
-<<<<<<< HEAD
-
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
-=======
   
   REQUIRE_THAT (cs.v_plus, AllCloseVector(errdSpaceSparse, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
@@ -2316,25 +2130,15 @@ TEST_CASE_METHOD (SliderCrank3DSphericalJoint, __FILE__"_TestSliderCrank3DSpheri
 
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
-<<<<<<< HEAD
-
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
-=======
   
   REQUIRE_THAT (cs.v_plus, AllCloseVector(errdDirect, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
-<<<<<<< HEAD
-
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
-=======
   
   REQUIRE_THAT (cs.v_plus, AllCloseVector(errdSpaceSparse, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);

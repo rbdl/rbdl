@@ -8,12 +8,6 @@
 
 extern "C"
 {
-<<<<<<< HEAD
-=======
-//#include <lua5.1/lua.h>
-//#include <lua5.1/lauxlib.h>
-//#include <lua5.1/lualib.h>
->>>>>>> Moved all tests into Catch2 framework
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>

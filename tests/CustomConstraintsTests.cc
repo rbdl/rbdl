@@ -486,10 +486,6 @@ TEST_CASE (__FILE__"_CustomConstraintCorrectnessTest", "") {
       REQUIRE_THAT (dba.cs.constraintAxis[i][j], IsClose(dbcc.cs.constraintAxis[i][j], TEST_PREC, TEST_PREC));
     }
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> Moved all tests into Catch2 framework
 
   SpatialVector a010c =
       CalcPointAcceleration6D(dbcc.model,dbcc.q,dbcc.qd,dbcc.qdd,

@@ -99,7 +99,7 @@ TEST_CASE_METHOD (FloatingBaseFixture, __FILE__"_TestCalcDynamicFloatingBaseDoub
 
   //	std::cout << LogOutput.str() << std::endl;
 
-  Eigen::RowVectorXd target(7); 
+  VectorNd target(7); 
   target << 0., -9.81, 0., 0., 0., 0., 0.;
 
   REQUIRE_THAT (target, AllCloseVector(QDDot, TEST_PREC, TEST_PREC));

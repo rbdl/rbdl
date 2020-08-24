@@ -614,13 +614,8 @@ TEST_CASE (__FILE__"_TestAddFixedBodyToRoot", "") {
   // Add a mobile boby
   unsigned int movable_body = model.AppendBody (Xrotx (45 * M_PI / 180), JointTypeRevoluteX, body, "MovableBody");
 
-<<<<<<< HEAD
-  CHECK_EQUAL ((unsigned int) 2, model.mBodies.size());
-  CHECK_EQUAL ((unsigned int) 2, model.mFixedBodies.size());
-=======
   REQUIRE (2 == model.mBodies.size());
   REQUIRE (2 == model.mFixedBodies.size());
->>>>>>> Moved all tests into Catch2 framework
 
   VectorNd q = VectorNd::Zero(model.q_size);
 

@@ -538,6 +538,10 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematics", "") 
       AllCloseMatrix(custom_model.at(idx).X_base[custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)].E, TEST_PREC, TEST_PREC)
     );
 
+    REQUIRE_THAT (reference_model.at(idx).X_base[reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)].E,
+      AllCloseMatrix(custom_model.at(idx).X_base[custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)].E, TEST_PREC, TEST_PREC)
+    );
+
     REQUIRE_THAT (reference_model.at(idx).v[reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)],
       AllCloseVector(custom_model.at(idx).v[custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)], TEST_PREC, TEST_PREC)
     );
@@ -548,12 +552,7 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematics", "") 
   }
 }
 
-<<<<<<< HEAD
-TEST_FIXTURE (CustomJointMultiBodyFixture, UpdateKinematicsCustom) {
-
-=======
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematicsCustom", "") {
->>>>>>> Moved all tests into Catch2 framework
   for(int idx =0; idx < NUMBER_OF_MODELS; ++idx){
     unsigned int dof = reference_model.at(idx).dof_count;
     for (unsigned int i = 0; i < dof; i++) {
@@ -597,25 +596,10 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_UpdateKinematicsCustom"
                             &qdot.at(idx),
                             &qddot.at(idx));
 
-<<<<<<< HEAD
-    CHECK_ARRAY_CLOSE (
-      reference_model.at(idx).a[
-        reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)
-        ].data(),
-      custom_model.at(idx).a[
-        custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)
-        ].data(),
-      6,
-      TEST_PREC);
-  }
-
-
-=======
     REQUIRE_THAT (reference_model.at(idx).a[reference_body_id.at(idx).at(NUMBER_OF_BODIES-1)],
       AllCloseVector(custom_model.at(idx).a[custom_body_id.at(idx).at(NUMBER_OF_BODIES-1)], TEST_PREC, TEST_PREC)
     );
   }   
->>>>>>> Moved all tests into Catch2 framework
 }
 
 TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_Jacobians", "") {
@@ -656,18 +640,7 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_Jacobians", "") {
                               custom_body_id.at(idx).at(NUMBER_OF_BODIES-1),
                               Gcus);
 
-<<<<<<< HEAD
-    for(int i=0; i<6;++i){
-      for(unsigned int j = 0; j < dof; ++j){
-        CHECK_CLOSE (
-          Gref(i,j),
-          Gcus(i,j),
-          TEST_PREC);
-      }
-    }
-=======
     REQUIRE_THAT (Gref, AllCloseMatrix(Gcus, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
     //Check the 6d point Jacobian
     Vector3d point_position (1.1, 1.2, 2.1);
@@ -685,18 +658,7 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_Jacobians", "") {
                          point_position,
                          Gcus);
 
-<<<<<<< HEAD
-    for(int i=0; i<6;++i){
-      for(unsigned int j = 0; j < dof; ++j){
-        CHECK_CLOSE (
-          Gref(i,j),
-          Gcus(i,j),
-          TEST_PREC);
-      }
-    }
-=======
     REQUIRE_THAT (Gref, AllCloseMatrix(Gcus, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 
     //Check the 3d point Jacobian
     MatrixNd GrefPt = MatrixNd::Constant (3,
@@ -718,18 +680,7 @@ TEST_CASE_METHOD (CustomJointMultiBodyFixture, __FILE__"_Jacobians", "") {
                        point_position,
                        GcusPt);
 
-<<<<<<< HEAD
-    for(int i=0; i<3;++i){
-      for(unsigned int j = 0; j < dof; ++j){
-        CHECK_CLOSE (
-          GrefPt(i,j),
-          GcusPt(i,j),
-          TEST_PREC);
-      }
-    }
-=======
     REQUIRE_THAT (GrefPt, AllCloseMatrix(GcusPt, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
   }
 }
 

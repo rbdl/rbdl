@@ -116,15 +116,9 @@ TEST_CASE_METHOD (DynamicsFixture, __FILE__"_TestCalcDynamicDoubleChain", "") {
   }
 
   //  cout << LogOutput.str() << endl;
-<<<<<<< HEAD
 
-  CHECK_CLOSE (-5.88600000000000E+00, QDDot[0], TEST_PREC);
-  CHECK_CLOSE ( 3.92400000000000E+00, QDDot[1], TEST_PREC);
-=======
-  
   REQUIRE_THAT (-5.88600000000000E+00, IsClose(QDDot[0], TEST_PREC, TEST_PREC));
   REQUIRE_THAT ( 3.92400000000000E+00, IsClose(QDDot[1], TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 }
 
 TEST_CASE_METHOD (DynamicsFixture, __FILE__"_TestCalcDynamicTripleChain", "") {
@@ -353,13 +347,8 @@ TEST_CASE (__FILE__"_TestForwardDynamics3DoFModel", "") {
 //  cout << LogOutput.str() << endl;
 
   QDDot_ref[0] = 3.301932144386186;
-<<<<<<< HEAD
 
-  CHECK_ARRAY_CLOSE (QDDot_ref.data(), QDDot.data(), QDDot.size(), TEST_PREC);
-=======
-  
   REQUIRE_THAT (QDDot_ref, AllCloseVector(QDDot, TEST_PREC, TEST_PREC));
->>>>>>> Moved all tests into Catch2 framework
 }
 
 /*
