@@ -1,5 +1,5 @@
 RBDL - Rigid Body Dynamics Library
-Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
+Copyright (c) 2011-2020 Martin Felis <martin@fysx.org>
 
 Introduction
 ============
@@ -35,7 +35,6 @@ To create the documentation simply run
 which will generate the documentation in the subdirectory ./doc/html. The main page will then
 be located in ./doc/html/index.html.
 
-
 Getting RBDL
 ============
 
@@ -45,7 +44,6 @@ The official rbdl-orb git repository can be cloned from
 ```
 
 (See [https://git-scm.com/downloads/guis/](https://git-scm.com/downloads/guis/) for git clients.)
-
 
 Building and Installation
 =========================
@@ -131,7 +129,7 @@ at which point you will see full list of build options for RBDL. We recommend th
 ## Linux: RBDL's examples
 
 1. Install Boost *(optional)*
-  Boost is needed to run many of the example simulations that come with RBDL.  
+  Boost is needed to run many of the example simulations that come with RBDL.
   ```
   sudo apt install libboost-all-dev
   ```    
@@ -220,8 +218,7 @@ you can install it using setup.py. This is done automically when using
   Update your .bashrc file so that python can find the python version of rbdl. To do this you need to add the path to 'rbdl-build/python' to the PYTHONPATH which can be done by adding the following line to your .bashrc file.
   ```
   export PYTHONPATH=$PYTHONPATH:<path-to-the-RBDL-build-directory>/python
-  ```
-    
+  ``` 
 
 Resources to learn more
 ======================= 
@@ -275,7 +272,7 @@ The library is published under the very permissive zlib free software license wh
 This is the full license text (zlib license):
 
     RBDL - Rigid Body Dynamics Library
-    Copyright (c) 2011-2018 Martin Felis <martin@fysx.org>
+    Copyright (c) 2011-2020 Martin Felis <martin@fysx.org>
     
     This software is provided 'as-is', without any express or implied
     warranty. In no event will the authors be held liable for any damages
@@ -298,7 +295,6 @@ This is the full license text (zlib license):
 
 Acknowledgements
 ================
-
 
 Work on this library was originally funded by the [Heidelberg Graduate School of Mathematical and Computational Methods for the Sciences (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the European FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and [Koroibot](http://koroibot.eu) (grant number 611909).
 

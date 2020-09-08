@@ -15,7 +15,7 @@ described in Featherstone's book and to a lesser extent general multibody
 dynamics and kinematics computations. A person who is familiar with
 Featherstone's book should have an easy time to understand the code and
 therefore the variable naming conventions used in the book should when
-possible used in the code, e.g.: 
+possible used in the code, e.g.:
 
  - the joint space inertia matrix is denoted with H
  - the coriolis forces are denoted with C
@@ -28,7 +28,7 @@ programming patterns.
 
 This is what RBDL aims to be:
 
-* RBDL aims to be lean 
+* RBDL aims to be lean
 * RBDL aims to be easily integrated into other projects
 * RBDL aims to be suitable as a foundation for sophisticated dynamics packages
 * RBDL gives you access to its internals and provides only a thin abstraction layer over the actual computation
@@ -48,7 +48,7 @@ architecture.
 RBDL is published under the very permissive zlib license that gives you a
 lot of freedom in the use of full library or parts of it. The core part
 of the library is solely using this license but addons may use different
-licenses. 
+licenses.
 
 There is no formal contributor license agreement for this project. Instead
 when you submit patches or create a pull request it is assumed that you
@@ -88,7 +88,7 @@ of ```SpatialVector```s in the ```Model``` structure.
 ### Examples
 
     struct Model {
-      std::vector<SpatialVector> v;          // ok, v is an  
+      std::vector<SpatialVector> v;          // ok, v is an
       std::vector<SpatialVector> S;          // ok, S is commonly used in a reference algorithm
       std::vector<double> u;                 // ok
       std::vector<Vector3d> multdof3_u;      // ok, 3-dof specialization of Model::u
@@ -158,51 +158,15 @@ test multiple things simultaneously.
 
 Bugfixes ideally come with a test case that reproduce the bug.
 
-## Branching and Bookmarks
-
-RBDL uses Mercurial (https://mercurial-scm.org) as version control system.
-The branching concept of mercurial is different than in git. Git's
-branching concept is captured in mercurial using bookmarks
-(https://www.mercurial-scm.org/wiki/Bookmarks).
-
-The ```default``` branch is reserved for releases. Bugfixes and
-contributions happen in the ```dev``` branch but should have a bookmark
-assigned to them.
-
-Please do not create new branches, i.e. do not run ```hg branch
-<branchname>```.
-
 ### Working on a new feature
 
 The following steps are advised when working on a new feature for RBDL:
 
-1. Clone the official repository.
-2. Switch to the ```dev``` branch.
-3. Create a bookmark that describes that feature preferably in a single
-   word.
-4. Commit all changes to this bookmark in the ```dev``` branch.
-5. Publish your work online and notify the RBDL maintainer(s).
-
-Here are the commands to perform steps 1.-4.:
-
-    # Step 1: clone official repository
-    hg clone https://bitbucket.org/rbdl/rbdl <newfeature> && cd <newfeature>
-
-    # Step 2: switch to the dev branch
-    hg update dev
-
-    # Step 3: create a bookmark
-    hg bookmark newfeature
-
-    # ...
-    # Make changes
-    # ...
-
-    # Step 4: commit changes
-    hg commit
-
-For step 5 the easiest would be to push your changes to a fork of the
-official repository on bitbucket and create a pull request.    
+1. Fork the official repository at https://github.com/rbdl/rbdl
+2. Create a new branch for your work that branches off the official dev
+   branch.
+3. Perform your changes in your branch.
+4. When ready perform a pull request against the dev branch.
 
 ## Debugging
 
