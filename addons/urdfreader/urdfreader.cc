@@ -17,16 +17,28 @@
   typedef const urdf::LinkConstSharedPtr ConstLinkPtr;
   typedef urdf::JointSharedPtr JointPtr;
   typedef urdf::ModelInterfaceSharedPtr ModelPtr;
+  typedef urdf::Joint UrdfJointType;
 
+  #define LINKMAP links_
+  #define JOINTMAP joints_
+  #define PARENT_TRANSFORM parent_to_joint_origin_transform
+  #define RPY getRPY
 #else
-  #include <urdf/urdfdom_headers/urdf_model/include/urdf_model/model.h>
-  #include <urdf/urdfdom/urdf_parser/include/urdf_parser/urdf_parser.h>
+  #include <urdf/model.h>
+  #include <urdf/link.h>
+  #include <urdf/joint.h>
 
-  typedef my_shared_ptr<urdf::Link> LinkPtr;
-  typedef const my_shared_ptr<const urdf::Link> ConstLinkPtr;
-  typedef my_shared_ptr<urdf::Joint> JointPtr;
-  typedef my_shared_ptr<urdf::ModelInterface> ModelPtr;
 
+  typedef urdf::Link* LinkPtr;
+  typedef urdf::Link* ConstLinkPtr;
+  typedef urdf::Joint* JointPtr;
+  typedef std::shared_ptr<urdf::UrdfModel> ModelPtr;
+  typedef urdf::JointType UrdfJointType;
+
+  #define LINKMAP link_map
+  #define JOINTMAP joint_map
+  #define PARENT_TRANSFORM parent_to_joint_transform
+  #define RPY getRpy
 #endif
 
 using namespace std;
@@ -50,10 +62,10 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
   LinkPtr urdf_root_link;
 
   URDFLinkMap link_map;
-  link_map = urdf_model->links_;
+  link_map = urdf_model->LINKMAP;
 
   URDFJointMap joint_map;
-  joint_map = urdf_model->joints_;
+  joint_map = urdf_model->JOINTMAP;
 
   vector<string> joint_names;
 
@@ -67,7 +79,7 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
   link_stack.push(link_map[(urdf_model->getRoot()->name)]);
 
   // add the root body
-  ConstLinkPtr &root = urdf_model->getRoot();
+  ConstLinkPtr root = urdf_model->getRoot();
   Vector3d root_inertial_rpy;
   Vector3d root_inertial_position;
   Matrix3d root_inertial_inertia;
@@ -93,7 +105,7 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
     root_inertial_inertia(2, 1) = root->inertial->iyz;
     root_inertial_inertia(2, 2) = root->inertial->izz;
 
-    root->inertial->origin.rotation.getRPY(root_inertial_rpy[0],
+    root->inertial->origin.rotation.RPY(root_inertial_rpy[0],
                                            root_inertial_rpy[1], 
                                            root_inertial_rpy[2]);
 
@@ -183,16 +195,16 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
 
     // create the joint
     Joint rbdl_joint;
-    if (urdf_joint->type == urdf::Joint::REVOLUTE ||
-        urdf_joint->type == urdf::Joint::CONTINUOUS) {
+    if (urdf_joint->type == UrdfJointType::REVOLUTE ||
+        urdf_joint->type == UrdfJointType::CONTINUOUS) {
       rbdl_joint = Joint(SpatialVector(urdf_joint->axis.x, urdf_joint->axis.y,
                                        urdf_joint->axis.z, 0., 0., 0.));
-    } else if (urdf_joint->type == urdf::Joint::PRISMATIC) {
+    } else if (urdf_joint->type == UrdfJointType::PRISMATIC) {
       rbdl_joint = Joint(SpatialVector(0., 0., 0., urdf_joint->axis.x,
                                        urdf_joint->axis.y, urdf_joint->axis.z));
-    } else if (urdf_joint->type == urdf::Joint::FIXED) {
+    } else if (urdf_joint->type == UrdfJointType::FIXED) {
       rbdl_joint = Joint(JointTypeFixed);
-    } else if (urdf_joint->type == urdf::Joint::FLOATING) {
+    } else if (urdf_joint->type == UrdfJointType::FLOATING) {
       // todo: what order of DoF should be used?
       rbdl_joint = Joint(
                      SpatialVector(0., 0., 0., 1., 0., 0.),
@@ -201,7 +213,7 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
                      SpatialVector(1., 0., 0., 0., 0., 0.),
                      SpatialVector(0., 1., 0., 0., 0., 0.),
                      SpatialVector(0., 0., 1., 0., 0., 0.));
-    } else if (urdf_joint->type == urdf::Joint::PLANAR) {
+    } else if (urdf_joint->type == UrdfJointType::PLANAR) {
       // todo: which two directions should be used that are perpendicular
       // to the specified axis?
       cerr << "Error while processing joint '" << urdf_joint->name <<
@@ -212,12 +224,12 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
     // compute the joint transformation
     Vector3d joint_rpy;
     Vector3d joint_translation;
-    urdf_joint->parent_to_joint_origin_transform.rotation.getRPY(joint_rpy[0],
+    urdf_joint->PARENT_TRANSFORM.rotation.RPY(joint_rpy[0],
         joint_rpy[1], joint_rpy[2]);
     joint_translation.set(
-      urdf_joint->parent_to_joint_origin_transform.position.x,
-      urdf_joint->parent_to_joint_origin_transform.position.y,
-      urdf_joint->parent_to_joint_origin_transform.position.z);
+      urdf_joint->PARENT_TRANSFORM.position.x,
+      urdf_joint->PARENT_TRANSFORM.position.y,
+      urdf_joint->PARENT_TRANSFORM.position.z);
     SpatialTransform rbdl_joint_frame =
       Xrot(joint_rpy[0], Vector3d(1., 0., 0.)) * Xrot(joint_rpy[1], Vector3d(0., 1.,
           0.)) * Xrot(joint_rpy[2], Vector3d(0., 0.,
@@ -237,7 +249,7 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
         urdf_child->inertial->origin.position.x,
         urdf_child->inertial->origin.position.y,
         urdf_child->inertial->origin.position.z);
-      urdf_child->inertial->origin.rotation.getRPY(link_inertial_rpy[0],
+      urdf_child->inertial->origin.rotation.RPY(link_inertial_rpy[0],
           link_inertial_rpy[1], link_inertial_rpy[2]);
 
       link_inertial_inertia(0, 0) = urdf_child->inertial->ixx;
@@ -278,7 +290,7 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
       cout << "  body name   : " << urdf_child->name << endl;
     }
 
-    if (urdf_joint->type == urdf::Joint::FLOATING) {
+    if (urdf_joint->type == UrdfJointType::FLOATING) {
       Matrix3d zero_matrix = Matrix3d::Zero();
       Body null_body(0., Vector3d::Zero(3), zero_matrix);
       Joint joint_txtytz(JointTypeTranslationXYZ);
@@ -326,7 +338,11 @@ RBDL_DLLAPI bool URDFReadFromString(const char *model_xml_string, Model *model,
 {
   assert(model);
 
+#ifdef RBDL_USE_ROS_URDF_LIBRARY
   ModelPtr urdf_model = urdf::parseURDF(model_xml_string);
+#else
+  ModelPtr urdf_model = urdf::UrdfModel::fromUrdfStr(model_xml_string);
+#endif
 
   if (!construct_model(model, urdf_model, floating_base, verbose)) {
     cerr << "Error constructing model from urdf file." << endl;
