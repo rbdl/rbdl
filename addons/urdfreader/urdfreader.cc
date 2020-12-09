@@ -28,10 +28,9 @@
   #include <urdf/link.h>
   #include <urdf/joint.h>
 
-
-  typedef urdf::Link* LinkPtr;
-  typedef urdf::Link* ConstLinkPtr;
-  typedef urdf::Joint* JointPtr;
+  typedef std::shared_ptr<urdf::Link> LinkPtr;
+  typedef std::shared_ptr<urdf::Link> ConstLinkPtr;
+  typedef std::shared_ptr<urdf::Joint> JointPtr;
   typedef std::shared_ptr<urdf::UrdfModel> ModelPtr;
   typedef urdf::JointType UrdfJointType;
 
@@ -85,27 +84,34 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
   Matrix3d root_inertial_inertia;
   double root_inertial_mass;
 
+#ifdef RBDL_USE_ROS_URDF_LIBRARY
   if (root->inertial) {
-    root_inertial_mass = root->inertial->mass;
+    auto I = root->inertial;
+#else
+  if (root->inertial.has_value()) {
+    auto I = root->inertial.value();
+
+#endif
+    root_inertial_mass = I->mass;
 
     root_inertial_position.set(
-      root->inertial->origin.position.x,
-      root->inertial->origin.position.y,
-      root->inertial->origin.position.z);
+      I->origin.position.x,
+      I->origin.position.y,
+      I->origin.position.z);
 
-    root_inertial_inertia(0, 0) = root->inertial->ixx;
-    root_inertial_inertia(0, 1) = root->inertial->ixy;
-    root_inertial_inertia(0, 2) = root->inertial->ixz;
+    root_inertial_inertia(0, 0) = I->ixx;
+    root_inertial_inertia(0, 1) = I->ixy;
+    root_inertial_inertia(0, 2) = I->ixz;
 
-    root_inertial_inertia(1, 0) = root->inertial->ixy;
-    root_inertial_inertia(1, 1) = root->inertial->iyy;
-    root_inertial_inertia(1, 2) = root->inertial->iyz;
+    root_inertial_inertia(1, 0) = I->ixy;
+    root_inertial_inertia(1, 1) = I->iyy;
+    root_inertial_inertia(1, 2) = I->iyz;
 
-    root_inertial_inertia(2, 0) = root->inertial->ixz;
-    root_inertial_inertia(2, 1) = root->inertial->iyz;
-    root_inertial_inertia(2, 2) = root->inertial->izz;
+    root_inertial_inertia(2, 0) = I->ixz;
+    root_inertial_inertia(2, 1) = I->iyz;
+    root_inertial_inertia(2, 2) = I->izz;
 
-    root->inertial->origin.rotation.RPY(root_inertial_rpy[0],
+    I->origin.rotation.RPY(root_inertial_rpy[0],
                                            root_inertial_rpy[1], 
                                            root_inertial_rpy[2]);
 
@@ -242,27 +248,33 @@ bool construct_model(Model *rbdl_model, ModelPtr urdf_model, bool floating_base,
     double link_inertial_mass = 0.;
 
     // but only if we actually have inertial data
+#ifdef RBDL_USE_ROS_URDF_LIBRARY
     if (urdf_child->inertial) {
-      link_inertial_mass = urdf_child->inertial->mass;
+      auto I_child = root->inertial;
+#else
+    if (urdf_child->inertial.has_value()) {
+      auto I_child = root->inertial.value();
+#endif
+      link_inertial_mass = I_child->mass;
 
       link_inertial_position.set(
-        urdf_child->inertial->origin.position.x,
-        urdf_child->inertial->origin.position.y,
-        urdf_child->inertial->origin.position.z);
-      urdf_child->inertial->origin.rotation.RPY(link_inertial_rpy[0],
+        I_child->origin.position.x,
+        I_child->origin.position.y,
+        I_child->origin.position.z);
+      I_child->origin.rotation.RPY(link_inertial_rpy[0],
           link_inertial_rpy[1], link_inertial_rpy[2]);
 
-      link_inertial_inertia(0, 0) = urdf_child->inertial->ixx;
-      link_inertial_inertia(0, 1) = urdf_child->inertial->ixy;
-      link_inertial_inertia(0, 2) = urdf_child->inertial->ixz;
+      link_inertial_inertia(0, 0) = I_child->ixx;
+      link_inertial_inertia(0, 1) = I_child->ixy;
+      link_inertial_inertia(0, 2) = I_child->ixz;
 
-      link_inertial_inertia(1, 0) = urdf_child->inertial->ixy;
-      link_inertial_inertia(1, 1) = urdf_child->inertial->iyy;
-      link_inertial_inertia(1, 2) = urdf_child->inertial->iyz;
+      link_inertial_inertia(1, 0) = I_child->ixy;
+      link_inertial_inertia(1, 1) = I_child->iyy;
+      link_inertial_inertia(1, 2) = I_child->iyz;
 
-      link_inertial_inertia(2, 0) = urdf_child->inertial->ixz;
-      link_inertial_inertia(2, 1) = urdf_child->inertial->iyz;
-      link_inertial_inertia(2, 2) = urdf_child->inertial->izz;
+      link_inertial_inertia(2, 0) = I_child->ixz;
+      link_inertial_inertia(2, 1) = I_child->iyz;
+      link_inertial_inertia(2, 2) = I_child->izz;
 
       if (link_inertial_rpy != Vector3d(0., 0., 0.)) {
         cerr << "Error while processing body '" << urdf_child->name <<
