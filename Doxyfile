@@ -675,7 +675,8 @@ INPUT                  = ./src \
                          addons/muscle/Millard2016TorqueMuscle.h \
                          addons/muscle/MuscleFunctionFactory.h \
                          addons/muscle/TorqueMuscleFunctionFactory.h \                         
-                         addons/muscle/TorqueMuscleFittingToolkit.h \                         
+                         addons/muscle/TorqueMuscleFittingToolkit.h \                        
+                         addons/balance/BalanceToolkit.h \ 
                          ./include/rbdl
 
 # This tag can be used to specify the character encoding of the source files 
