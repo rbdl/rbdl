@@ -9,10 +9,10 @@
 #ifndef BALANCETOOLKIT_H_
 #define BALANCETOOLKIT_H_
 
+
 #include <rbdl/rbdl_math.h>
 #include <rbdl/Model.h>
-
-
+#include <limits>
 
 namespace RigidBodyDynamics {
   namespace Addons {
@@ -135,26 +135,29 @@ class BalanceToolkit
       Math::Vector3d  u      ;
       /** Vertical direction vector */
       Math::Vector3d  k      ;
+      /** Vector to the COM*/
+      Math::Vector3d r0C0    ;
       /** Vector to the COM ground projection*/
       Math::Vector3d r0G0    ;
+      /** Whole body angular momentum about the center of mass*/
+      Math::Matrix3d HC0     ;
+      /** Whole body moment of inertia the center of mass*/
+      Math::Matrix3d IC0     ;
       /** Average angular velocity of the center of mass in the n direction*/
-      Math::Vector3d w0C0n   ;
-      /** Average angular velocity of the center of mass*/      
       Math::Vector3d w0C0    ;
+      /** Whole body angular momentum about the center of mass*/
+      Math::Matrix3d HG0     ;
+      /** Whole body moment of inertia about the center of mass ground
+       * projection*/
+      Math::Matrix3d IG0     ;
       /** Average angular velocity about the center-of-mass ground projection*/      
       Math::Vector3d w0G0    ;
       /** Height of the center-of-mass*/      
       double h               ;
-      /** Pre-contact velocity of the center of mass in the u-direction*/
-      Math::Vector3d v0C0u   ;
-      /** Pre-contact velocity of the center of mass in the k-direction*/    
-      Math::Vector3d v0C0k   ;
-      /** Post-contact angular velocity of the whole body about the COM ground 
-      projection*/          
       Math::Vector3d w0C0plus;      
       /** Whole body moment of inertia about the center of mass in the 
       n direction*/
-      double J               ;
+      double IC0n            ;
       /** Partial derivative of the FPE constraint equation  
       (Eqn. 45 of Millard et al.) f w.r.t. phi */
       double Df_Dphi         ;
@@ -224,6 +227,49 @@ class BalanceToolkit
       double l               ;
       /** The post-contact system energy of the FPE model*/
       double E               ;
+
+      FootPlacementEstimatorInfo():
+        f(std::numeric_limits<double>::signaling_NaN()),
+        phi(std::numeric_limits<double>::signaling_NaN()),
+        r0F0( Math::Vector3dZero ),
+        projectionError(std::numeric_limits<double>::signaling_NaN()),
+        n( Math::Vector3dZero ),
+        u( Math::Vector3dZero ),
+        k( Math::Vector3dZero ),
+        r0C0( Math::Vector3dZero ),
+        r0G0( Math::Vector3dZero ),
+        HC0( Math::Matrix3dZero ),
+        IC0( Math::Matrix3dZero ),
+        w0C0( Math::Vector3dZero ),
+        HG0( Math::Matrix3dZero ),
+        IG0( Math::Matrix3dZero ),
+        w0G0( Math::Vector3dZero ),      
+        h(std::numeric_limits<double>::signaling_NaN()),
+        w0C0plus(Math::Vector3dZero),
+        I(std::numeric_limits<double>::signaling_NaN()),
+        Df_Dphi(std::numeric_limits<double>::signaling_NaN()),
+        Df_Dw0C0n(std::numeric_limits<double>::signaling_NaN()),
+        Df_Dh(std::numeric_limits<double>::signaling_NaN()),
+        Df_Dv0C0u(std::numeric_limits<double>::signaling_NaN()),
+        Df_Dv0C0k(std::numeric_limits<double>::signaling_NaN()),
+        Df_DJ(std::numeric_limits<double>::signaling_NaN()),
+        Df_Dm(std::numeric_limits<double>::signaling_NaN()),
+        Df_Dg(std::numeric_limits<double>::signaling_NaN()),
+        Ds_Dl(std::numeric_limits<double>::signaling_NaN()),
+        Ds_DJ(std::numeric_limits<double>::signaling_NaN()),
+        Ds_DE(std::numeric_limits<double>::signaling_NaN()),
+        Ds_Dv0C0u(std::numeric_limits<double>::signaling_NaN()),
+        Ds_Dv0C0k(std::numeric_limits<double>::signaling_NaN()),
+        Ds_Dw0C0n(std::numeric_limits<double>::signaling_NaN()),
+        Dphi_Dl(std::numeric_limits<double>::signaling_NaN()),
+        Dphi_DJ(std::numeric_limits<double>::signaling_NaN()),
+        Dphi_DE(std::numeric_limits<double>::signaling_NaN()),
+        Dphi_Dv0C0u(std::numeric_limits<double>::signaling_NaN()),
+        Dphi_Dv0C0k(std::numeric_limits<double>::signaling_NaN()),
+        Dphi_Dw0C0n(std::numeric_limits<double>::signaling_NaN()),
+        l(std::numeric_limits<double>::signaling_NaN()),
+        E(std::numeric_limits<double>::signaling_NaN()){};
+
     };
 
               
@@ -241,8 +287,8 @@ class BalanceToolkit
       Math::Vector3d& pointOnGroundPlane,
       Math::Vector3d& groundPlaneNormal,
       FootPlacementEstimatorInfo& fpeInfo,
-      bool flag_evaluateDerivatives=false,
-      bool flag_verbose=false);
+      bool evaluate_derivatives=false,
+      bool update_kinematics=false);
 
 };
 
