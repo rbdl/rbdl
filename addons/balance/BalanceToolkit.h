@@ -138,26 +138,34 @@ class BalanceToolkit
       /** Vector to the COM*/
       Math::Vector3d r0C0    ;
       /** Vector to the COM ground projection*/
-      Math::Vector3d r0G0    ;
+      Math::Vector3d v0C0    ;
+      /** Vector to the COM ground projection*/
+      Math::Vector3d r0P0    ;
       /** Whole body angular momentum about the center of mass*/
-      Math::Matrix3d HC0     ;
+      Math::Vector3d HC0     ;
       /** Whole body moment of inertia the center of mass*/
-      Math::Matrix3d IC0     ;
+      Math::Matrix3d JC0     ;
       /** Average angular velocity of the center of mass in the n direction*/
       Math::Vector3d w0C0    ;
       /** Whole body angular momentum about the center of mass*/
-      Math::Matrix3d HG0     ;
+      Math::Vector3d HP0     ;
       /** Whole body moment of inertia about the center of mass ground
        * projection*/
-      Math::Matrix3d IG0     ;
+      Math::Matrix3d JP0     ;
       /** Average angular velocity about the center-of-mass ground projection*/      
-      Math::Vector3d w0G0    ;
+      Math::Vector3d w0P0    ;
       /** Height of the center-of-mass*/      
       double h               ;
       Math::Vector3d w0C0plus;      
       /** Whole body moment of inertia about the center of mass in the 
       n direction*/
-      double IC0n            ;
+      double nJC0n            ;
+      /**Velocity of the COM in the u direction*/
+      double v0C0u;
+      /**Velocity of the COM in the k direction*/
+      double v0C0k;
+      /** Whole body angular velocity in the n direction*/
+      double w0C0n;
       /** Partial derivative of the FPE constraint equation  
       (Eqn. 45 of Millard et al.) f w.r.t. phi */
       double Df_Dphi         ;
@@ -179,7 +187,7 @@ class BalanceToolkit
       /** Partial derivative of the FPE constraint equation  
       (Eqn. 45 of Millard et al.) f w.r.t. the whole 
       body moment of inertia about the center of mass in the n direction*/                        
-      double Df_DJ           ;
+      double Df_DnJC0n           ;
       /** Partial derivative of the FPE constraint equation  
       (Eqn. 45 of Millard et al.) f w.r.t. the total system mass*/
       double Df_Dm           ;
@@ -190,7 +198,7 @@ class BalanceToolkit
       distance l between the COM and the FPE.*/            
       double Ds_Dl           ;
       /** The sensitivity of the FPE step length w.r.t. small changes in J.*/                  
-      double Ds_DJ           ;
+      double Ds_DnJC0n        ;
       /** The sensitivity of the FPE step length w.r.t. small changes in E,
       the peak potential energy obtained by the system as it comes to balance
       over its foot after contact.*/                       
@@ -209,7 +217,7 @@ class BalanceToolkit
       double Dphi_Dl         ;
       /** The sensitivity of the FPE angle phi w.r.t. small changes in J, the 
       moment of inertia of the body about the COM in the n direction*/            
-      double Dphi_DJ         ;
+      double Dphi_DnJC0n         ;
       /** The sensitivity of the FPE angle phi w.r.t. small changes in E, the
       post-contact sytem energy*/                  
       double Dphi_DE         ;
@@ -237,38 +245,42 @@ class BalanceToolkit
         u( Math::Vector3dZero ),
         k( Math::Vector3dZero ),
         r0C0( Math::Vector3dZero ),
-        r0G0( Math::Vector3dZero ),
-        HC0( Math::Matrix3dZero ),
-        IC0( Math::Matrix3dZero ),
+        v0C0( Math::Vector3dZero ),
+        r0P0( Math::Vector3dZero ),
+        HC0( Math::Vector3dZero ),
+        JC0( Math::Matrix3dZero ),
         w0C0( Math::Vector3dZero ),
-        HG0( Math::Matrix3dZero ),
-        IG0( Math::Matrix3dZero ),
-        w0G0( Math::Vector3dZero ),      
+        HP0( Math::Vector3dZero ),
+        JP0( Math::Matrix3dZero ),
+        w0P0( Math::Vector3dZero ),
         h(std::numeric_limits<double>::signaling_NaN()),
-        w0C0plus(Math::Vector3dZero),
-        I(std::numeric_limits<double>::signaling_NaN()),
+        nJC0n(std::numeric_limits<double>::signaling_NaN()),
+        v0C0u(std::numeric_limits<double>::signaling_NaN()),
+        v0C0k(std::numeric_limits<double>::signaling_NaN()),
+        w0C0n(std::numeric_limits<double>::signaling_NaN()),
+        w0C0nPlus(std::numeric_limits<double>::signaling_NaN()),
         Df_Dphi(std::numeric_limits<double>::signaling_NaN()),
         Df_Dw0C0n(std::numeric_limits<double>::signaling_NaN()),
         Df_Dh(std::numeric_limits<double>::signaling_NaN()),
         Df_Dv0C0u(std::numeric_limits<double>::signaling_NaN()),
         Df_Dv0C0k(std::numeric_limits<double>::signaling_NaN()),
-        Df_DJ(std::numeric_limits<double>::signaling_NaN()),
+        Df_DnJC0n(std::numeric_limits<double>::signaling_NaN()),
         Df_Dm(std::numeric_limits<double>::signaling_NaN()),
         Df_Dg(std::numeric_limits<double>::signaling_NaN()),
         Ds_Dl(std::numeric_limits<double>::signaling_NaN()),
-        Ds_DJ(std::numeric_limits<double>::signaling_NaN()),
+        Ds_DnJC0n(std::numeric_limits<double>::signaling_NaN()),
         Ds_DE(std::numeric_limits<double>::signaling_NaN()),
         Ds_Dv0C0u(std::numeric_limits<double>::signaling_NaN()),
         Ds_Dv0C0k(std::numeric_limits<double>::signaling_NaN()),
         Ds_Dw0C0n(std::numeric_limits<double>::signaling_NaN()),
         Dphi_Dl(std::numeric_limits<double>::signaling_NaN()),
-        Dphi_DJ(std::numeric_limits<double>::signaling_NaN()),
+        Dphi_DnJC0n(std::numeric_limits<double>::signaling_NaN()),
         Dphi_DE(std::numeric_limits<double>::signaling_NaN()),
         Dphi_Dv0C0u(std::numeric_limits<double>::signaling_NaN()),
         Dphi_Dv0C0k(std::numeric_limits<double>::signaling_NaN()),
         Dphi_Dw0C0n(std::numeric_limits<double>::signaling_NaN()),
         l(std::numeric_limits<double>::signaling_NaN()),
-        E(std::numeric_limits<double>::signaling_NaN()){};
+        E(std::numeric_limits<double>::signaling_NaN()){}
 
     };
 
@@ -280,15 +292,15 @@ class BalanceToolkit
       Millard M, McPhee J, Kubica E. Foot placement and balance in 3D. 
       Journal of computational and nonlinear dynamics. 2012 Apr 1;7(2).
     */
-    void CalculateFootPlacementEstimator(
+    static void CalculateFootPlacementEstimator(
       Model &model,
-      Math::VectorNd& q,
-      Math::VectorNd& qdot,
-      Math::Vector3d& pointOnGroundPlane,
-      Math::Vector3d& groundPlaneNormal,
-      FootPlacementEstimatorInfo& fpeInfo,
-      bool evaluate_derivatives=false,
-      bool update_kinematics=false);
+      Math::VectorNd &q,
+      Math::VectorNd &qdot,
+      Math::Vector3d &pointOnGroundPlane,
+      Math::Vector3d &groundPlaneNormal,
+      FootPlacementEstimatorInfo &fpeInfo,
+      bool evaluate_derivatives,
+      bool update_kinematics);
 
 };
 
