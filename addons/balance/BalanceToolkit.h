@@ -111,6 +111,12 @@ class BalanceToolkit
       /** Numerical 3DFPE constraint error (Eqn. 45 of Millard et al.)
       */
       double f               ;
+      /** Number of Newton iterations required to polish the Eqn. 45 to
+        tolerance. Note: the the static variables TOLERANCE and
+        MAX_NEWTON_ITERATIONS at the top of BalanceToolkit.cc set the limits
+        for the Newton method.
+      */
+      unsigned int iterations;
       /** The foot contact angle: the angle between the gravity vector and the 
           vector between the CoM and the contact location (See Fig. 6)
       */
@@ -156,16 +162,23 @@ class BalanceToolkit
       Math::Vector3d w0P0    ;
       /** Height of the center-of-mass*/      
       double h               ;
-      Math::Vector3d w0C0plus;      
       /** Whole body moment of inertia about the center of mass in the 
       n direction*/
       double nJC0n            ;
-      /**Velocity of the COM in the u direction*/
+      /** Velocity of the COM in the u direction*/
       double v0C0u;
-      /**Velocity of the COM in the k direction*/
+      /** Velocity of the COM in the k direction*/
       double v0C0k;
       /** Whole body angular velocity in the n direction*/
       double w0C0n;
+      /** Post-contact whole body angular velocity in the n direction about
+      the foot placement estimator location*/      
+      double w0F0nPlus;
+      /** The leg length of the FPE model: the distance from the COM to the
+      FPE*/
+      double l               ;
+      /** The post-contact system energy of the FPE model*/
+      double E               ;
       /** Partial derivative of the FPE constraint equation  
       (Eqn. 45 of Millard et al.) f w.r.t. phi */
       double Df_Dphi         ;
@@ -230,14 +243,11 @@ class BalanceToolkit
       /** The sensitivity of the FPE angle phi w.r.t. small changes in the
       whole body angular velocity about the center of mass in the n direction.*/
       double Dphi_Dw0C0n     ; 
-      /** The leg length of the FPE model: the distance from the COM to the 
-      FPE*/
-      double l               ;
-      /** The post-contact system energy of the FPE model*/
-      double E               ;
+
 
       FootPlacementEstimatorInfo():
         f(std::numeric_limits<double>::signaling_NaN()),
+        iterations(std::numeric_limits<unsigned int>::signaling_NaN()),
         phi(std::numeric_limits<double>::signaling_NaN()),
         r0F0( Math::Vector3dZero ),
         projectionError(std::numeric_limits<double>::signaling_NaN()),
@@ -258,7 +268,9 @@ class BalanceToolkit
         v0C0u(std::numeric_limits<double>::signaling_NaN()),
         v0C0k(std::numeric_limits<double>::signaling_NaN()),
         w0C0n(std::numeric_limits<double>::signaling_NaN()),
-        w0C0nPlus(std::numeric_limits<double>::signaling_NaN()),
+        w0F0nPlus(std::numeric_limits<double>::signaling_NaN()),
+        l(std::numeric_limits<double>::signaling_NaN()),
+        E(std::numeric_limits<double>::signaling_NaN()),
         Df_Dphi(std::numeric_limits<double>::signaling_NaN()),
         Df_Dw0C0n(std::numeric_limits<double>::signaling_NaN()),
         Df_Dh(std::numeric_limits<double>::signaling_NaN()),
@@ -278,9 +290,7 @@ class BalanceToolkit
         Dphi_DE(std::numeric_limits<double>::signaling_NaN()),
         Dphi_Dv0C0u(std::numeric_limits<double>::signaling_NaN()),
         Dphi_Dv0C0k(std::numeric_limits<double>::signaling_NaN()),
-        Dphi_Dw0C0n(std::numeric_limits<double>::signaling_NaN()),
-        l(std::numeric_limits<double>::signaling_NaN()),
-        E(std::numeric_limits<double>::signaling_NaN()){}
+        Dphi_Dw0C0n(std::numeric_limits<double>::signaling_NaN()){}
 
     };
 

@@ -25,9 +25,10 @@ using namespace RigidBodyDynamics::Math;
 using namespace RigidBodyDynamics;
 using namespace std;
 
-static double   TEST_PREC_BIG    = std::numeric_limits<double>::epsilon()*1e4;
+static double   TEST_PREC_BIG    = std::numeric_limits<double>::epsilon()*1e6;
+static double   TEST_PREC_MEDIUM = std::numeric_limits<double>::epsilon()*1e4;
 static double   TEST_PREC_SMALL  = std::numeric_limits<double>::epsilon()*1e1;
-
+static double   TEST_TOLERANCE   = std::numeric_limits<double>::epsilon()*1e2;
 
 // @author Millard 
 // @date 13 January 2020
@@ -201,15 +202,54 @@ TEST(NumericalTestFootPlacementEstimator){
     
   //Compare the numerical solution to the one produced from the matlab 
   //implementation made for Sloot et al. (calc3DFootPlacementEstimatorInfo.m)
-  CHECK_ARRAY_CLOSE(   fpeInfo.k.data(),     k.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.r0C0.data(),  r0C0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.v0C0.data(),  v0C0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE( fpeInfo.HC0.data(),   HC0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.JC0.data(),  JC0.data(),    9, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.w0C0.data(),w0C0.data(),    3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.r0P0.data(),r0P0.data(),    3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE( fpeInfo.HP0.data(), HP0.data(),    3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(   fpeInfo.n.data(),   n.data(),    3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.k.data(),      k.data(),  3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.r0C0.data(),r0C0.data(),  3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.v0C0.data(),v0C0.data(),  3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.HC0.data(),  HC0.data(),  3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.JC0.data(),  JC0.data(),  9, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.w0C0.data(),w0C0.data(),  3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.r0P0.data(),r0P0.data(),  3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.HP0.data(),  HP0.data(),  3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.n.data(),      n.data(),  3, TEST_PREC_SMALL);
+
+  CHECK( fabs(fpeInfo.h - h ) <= TEST_PREC_SMALL );
+  CHECK( fabs(fpeInfo.v0C0u - v0C0u ) <= TEST_PREC_SMALL );
+  CHECK( fabs(fpeInfo.v0C0k - v0C0k ) <= TEST_PREC_SMALL );
+  CHECK( fabs(fpeInfo.nJC0n - J     ) <= TEST_PREC_SMALL );
+
+
+  CHECK( fabs(fpeInfo.f)        <= TEST_TOLERANCE       );
+  CHECK( fabs(fpeInfo.phi-phi ) <= TEST_TOLERANCE*10.0  );
+  CHECK( fabs(fpeInfo.projectionError-projectionError) <= TEST_PREC_SMALL );
+  CHECK( fabs(fpeInfo.E - E) < TEST_TOLERANCE*10.0);
+
+  CHECK_ARRAY_CLOSE(fpeInfo.r0F0.data(), r0F0.data(), 3, TEST_PREC_MEDIUM );
+
+
+  //Derivative check
+
+  CHECK( fabs( fpeInfo.Df_Dphi     - Df_Dphi    ) <= TEST_PREC_BIG);
+  CHECK( fabs( fpeInfo.Df_Dw0C0n   - Df_Dw0C0n  ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Df_Dh       - Df_Dh      ) <= TEST_PREC_BIG);
+  CHECK( fabs( fpeInfo.Df_Dv0C0u   - Df_Dv0C0u  ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Df_Dv0C0k   - Df_Dv0C0k  ) <= TEST_PREC_BIG);
+  CHECK( fabs( fpeInfo.Df_DnJC0n   - Df_DJ      ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Df_Dm       - Df_Dm      ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Df_Dg       - Df_Dg      ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_Dl       - Ds_Dl      ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_DnJC0n   - Ds_DJ      ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_DE       - Ds_DE      ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_Dv0C0u   - Ds_Dv0C0u  ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_Dv0C0k   - Ds_Dv0C0k  ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_Dw0C0n   - Ds_Dw0C0n  ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_Dl     - Dphi_Dl    ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_DnJC0n - Dphi_DJ    ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_DE     - Dphi_DE    ) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_Dv0C0u - Dphi_Dv0C0u) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_Dv0C0k - Dphi_Dv0C0k) <= TEST_PREC_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_Dw0C0n - Dphi_Dw0C0n) <= TEST_PREC_MEDIUM);
+
+
 }
 
 int main (int argc, char *argv[])
