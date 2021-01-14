@@ -111,10 +111,8 @@ class BalanceToolkit
       /** Numerical 3DFPE constraint error (Eqn. 45 of Millard et al.)
       */
       double f               ;
-      /** Number of Newton iterations required to polish the Eqn. 45 to
-        tolerance. Note: the the static variables TOLERANCE and
-        MAX_NEWTON_ITERATIONS at the top of BalanceToolkit.cc set the limits
-        for the Newton method.
+      /** Number of iterations used by the root solving method to numerically
+          solve Eqn. 45 of Millard et al.
       */
       unsigned int iterations;
       /** The foot contact angle: the angle between the gravity vector and the 
@@ -297,10 +295,60 @@ class BalanceToolkit
               
 
     /**
+      @author Matthew Millard
+      @date 14 January 2020
 
+      This function implements the 3D FPE described in Millard et al. and
+      the sensitivity analysis described in the supplementary material of
+      Sloot et al.
 
       Millard M, McPhee J, Kubica E. Foot placement and balance in 3D. 
       Journal of computational and nonlinear dynamics. 2012 Apr 1;7(2).
+
+      Sloot LH, Millard M, Werner C, Mombaur K. Slow but Steady: Similar
+      Sit-to-Stand Balance at Seat-Off in Older vs. Younger Adults. Frontiers
+      in sports and active living. 2020;2.
+
+      @param model
+        The multibody model
+      @param q
+        The generalized coordinates of the model
+      @param qdot
+        The generalized velocities of the model
+      @param pointOnGroundPlane
+        The coordinates of a point on the ground plane in the coordinates of
+        the base frame.
+      @param groundPlaneNormal
+        The normal direction of the plane, in the coordinates of the base frame.
+        Note that the current version of the FPE assumes that the normal opposes
+        the gravity vector of the model. Under these assumptions the 3D FPE can
+        be evaluated for a flat plane, or a succession of flat planes
+        (like stairs).
+      @param fpeInfo
+        The struct that contains the FPE location, the numerical accuracy of
+        the solution, the state and parameters of the projected model,
+        the projection error, and all of the derivatives of the FPE which can
+        be used to estimate the accuracy of the FPE for a non-idealized
+        solution.
+      @param smallAngularVelocity (rad/s)
+        The definition of the n vector requires a non-zero value for the angular
+        momentum about the center-of-mass ground projection point. This results
+        in a numerically undefined quantity if the model is at rest. Instead we
+        let this vector go to zero before that, and set phi to point straight
+        down. Which brings us to the next point: this implementation is not
+        continuous as the system's angular velocity about point P crosses this
+        small angular velocity.
+      @param evaluate_derivatives
+        The calculations to perform the sensitivity analysis on the solution of
+        the FPE are lengthy scalar equations. Unless you need the derivatives
+        set this option to false to save yourself a bit of computation.
+      @param update_kinematics
+        Use this to indicate if the model's kinematic transforms need to be
+        updated or not
+
+      @note It is possible to derive the FPE constraint equation for assuming
+            that the ground plane is tilted.
+
     */
     static void CalculateFootPlacementEstimator(
       Model &model,
@@ -309,6 +357,7 @@ class BalanceToolkit
       Math::Vector3d &pointOnGroundPlane,
       Math::Vector3d &groundPlaneNormal,
       FootPlacementEstimatorInfo &fpeInfo,
+      double smallAngularVelocity,
       bool evaluate_derivatives,
       bool update_kinematics);
 

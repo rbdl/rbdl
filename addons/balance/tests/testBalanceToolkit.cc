@@ -25,10 +25,12 @@ using namespace RigidBodyDynamics::Math;
 using namespace RigidBodyDynamics;
 using namespace std;
 
-static double   TEST_PREC_BIG    = std::numeric_limits<double>::epsilon()*1e6;
-static double   TEST_PREC_MEDIUM = std::numeric_limits<double>::epsilon()*1e4;
-static double   TEST_PREC_SMALL  = std::numeric_limits<double>::epsilon()*1e1;
-static double   TEST_TOLERANCE   = std::numeric_limits<double>::epsilon()*1e2;
+
+static double   TEST_PREC_NEAR_EPS  = std::numeric_limits<double>::epsilon()*1e1;
+
+static double   TOLERANCE        = (M_PI*0.25)*pow(2,-15);
+static double   TOLERANCE_MEDIUM = TOLERANCE*10;
+static double   TOLERANCE_BIG    = TOLERANCE*1000;
 
 // @author Millard 
 // @date 13 January 2020
@@ -156,7 +158,8 @@ TEST(NumericalTestFootPlacementEstimator){
   double E            =  5.915445196560693e+02;
 
   RigidBodyDynamics::Model model;
-  model.gravity = Vector3d(0.,0.,-9.81);
+  double g = 9.81;
+  model.gravity = Vector3d(0.,0.,-g);
 
 
   Body body1 = Body( mass,Vector3d(0., 0., 0.),JC0);
@@ -196,58 +199,157 @@ TEST(NumericalTestFootPlacementEstimator){
   bool evaluate_derivatives = true;
   bool update_kinematics = true;
   BalanceToolkit::FootPlacementEstimatorInfo fpeInfo;
+  double omegaSmall = 1e-6;
 
   BalanceToolkit::CalculateFootPlacementEstimator(model,q,qd,pointOnGroundPlane,
-    groundPlaneNormal,fpeInfo,evaluate_derivatives,update_kinematics);
+    groundPlaneNormal,fpeInfo,omegaSmall,evaluate_derivatives,update_kinematics);
     
   //Compare the numerical solution to the one produced from the matlab 
   //implementation made for Sloot et al. (calc3DFootPlacementEstimatorInfo.m)
-  CHECK_ARRAY_CLOSE(fpeInfo.k.data(),      k.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.r0C0.data(),r0C0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.v0C0.data(),v0C0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.HC0.data(),  HC0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.JC0.data(),  JC0.data(),  9, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.w0C0.data(),w0C0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.r0P0.data(),r0P0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.HP0.data(),  HP0.data(),  3, TEST_PREC_SMALL);
-  CHECK_ARRAY_CLOSE(fpeInfo.n.data(),      n.data(),  3, TEST_PREC_SMALL);
+  CHECK_ARRAY_CLOSE(fpeInfo.k.data(),      k.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(fpeInfo.r0C0.data(),r0C0.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(fpeInfo.v0C0.data(),v0C0.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(fpeInfo.HC0.data(),  HC0.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(fpeInfo.JC0.data(),  JC0.data(),  9, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(fpeInfo.w0C0.data(),w0C0.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(fpeInfo.r0P0.data(),r0P0.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(fpeInfo.HP0.data(),  HP0.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(fpeInfo.n.data(),      n.data(),  3, TEST_PREC_NEAR_EPS);
 
-  CHECK( fabs(fpeInfo.h - h ) <= TEST_PREC_SMALL );
-  CHECK( fabs(fpeInfo.v0C0u - v0C0u ) <= TEST_PREC_SMALL );
-  CHECK( fabs(fpeInfo.v0C0k - v0C0k ) <= TEST_PREC_SMALL );
-  CHECK( fabs(fpeInfo.nJC0n - J     ) <= TEST_PREC_SMALL );
+  CHECK( fabs(fpeInfo.h - h ) <= TEST_PREC_NEAR_EPS );
+  CHECK( fabs(fpeInfo.v0C0u - v0C0u ) <= TEST_PREC_NEAR_EPS );
+  CHECK( fabs(fpeInfo.v0C0k - v0C0k ) <= TEST_PREC_NEAR_EPS );
+  CHECK( fabs(fpeInfo.nJC0n - J     ) <= TEST_PREC_NEAR_EPS );
 
 
-  CHECK( fabs(fpeInfo.f)        <= TEST_TOLERANCE       );
-  CHECK( fabs(fpeInfo.phi-phi ) <= TEST_TOLERANCE*10.0  );
-  CHECK( fabs(fpeInfo.projectionError-projectionError) <= TEST_PREC_SMALL );
-  CHECK( fabs(fpeInfo.E - E) < TEST_TOLERANCE*10.0);
+  CHECK( fabs(fpeInfo.f)        <= TOLERANCE*(mass*g)   );
+  CHECK( fabs(fpeInfo.phi-phi ) <= TOLERANCE            );
+  CHECK( fabs(fpeInfo.projectionError-projectionError) <= TEST_PREC_NEAR_EPS );
+  CHECK( fabs(fpeInfo.E - E) < TOLERANCE*(mass*g));
 
-  CHECK_ARRAY_CLOSE(fpeInfo.r0F0.data(), r0F0.data(), 3, TEST_PREC_MEDIUM );
+  CHECK_ARRAY_CLOSE(fpeInfo.r0F0.data(), r0F0.data(), 3, TOLERANCE_MEDIUM );
 
 
   //Derivative check
+  CHECK( fabs( fpeInfo.Df_Dphi     - Df_Dphi    ) <= TOLERANCE_BIG);
+  CHECK( fabs( fpeInfo.Df_Dw0C0n   - Df_Dw0C0n  ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Df_Dh       - Df_Dh      ) <= TOLERANCE_BIG);
+  CHECK( fabs( fpeInfo.Df_Dv0C0u   - Df_Dv0C0u  ) <= TOLERANCE_BIG);
+  CHECK( fabs( fpeInfo.Df_Dv0C0k   - Df_Dv0C0k  ) <= TOLERANCE_BIG);
+  CHECK( fabs( fpeInfo.Df_DnJC0n   - Df_DJ      ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Df_Dm       - Df_Dm      ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Df_Dg       - Df_Dg      ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_Dl       - Ds_Dl      ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_DnJC0n   - Ds_DJ      ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_DE       - Ds_DE      ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_Dv0C0u   - Ds_Dv0C0u  ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_Dv0C0k   - Ds_Dv0C0k  ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Ds_Dw0C0n   - Ds_Dw0C0n  ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_Dl     - Dphi_Dl    ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_DnJC0n - Dphi_DJ    ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_DE     - Dphi_DE    ) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_Dv0C0u - Dphi_Dv0C0u) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_Dv0C0k - Dphi_Dv0C0k) <= TOLERANCE_MEDIUM);
+  CHECK( fabs( fpeInfo.Dphi_Dw0C0n - Dphi_Dw0C0n) <= TOLERANCE_MEDIUM);
 
-  CHECK( fabs( fpeInfo.Df_Dphi     - Df_Dphi    ) <= TEST_PREC_BIG);
-  CHECK( fabs( fpeInfo.Df_Dw0C0n   - Df_Dw0C0n  ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Df_Dh       - Df_Dh      ) <= TEST_PREC_BIG);
-  CHECK( fabs( fpeInfo.Df_Dv0C0u   - Df_Dv0C0u  ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Df_Dv0C0k   - Df_Dv0C0k  ) <= TEST_PREC_BIG);
-  CHECK( fabs( fpeInfo.Df_DnJC0n   - Df_DJ      ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Df_Dm       - Df_Dm      ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Df_Dg       - Df_Dg      ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_Dl       - Ds_Dl      ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_DnJC0n   - Ds_DJ      ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_DE       - Ds_DE      ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_Dv0C0u   - Ds_Dv0C0u  ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_Dv0C0k   - Ds_Dv0C0k  ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_Dw0C0n   - Ds_Dw0C0n  ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_Dl     - Dphi_Dl    ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_DnJC0n - Dphi_DJ    ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_DE     - Dphi_DE    ) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_Dv0C0u - Dphi_Dv0C0u) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_Dv0C0k - Dphi_Dv0C0k) <= TEST_PREC_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_Dw0C0n - Dphi_Dw0C0n) <= TEST_PREC_MEDIUM);
+
+}
+
+TEST(InertiaCalculations){
+
+  //Approach:
+  //Make a system that consists of two bodies with the mass and inertia
+  //consistent with two identical cylinders. Place and orient them in
+  //space, end-to-end. The inertia JC0 returned by CalcFootPlacementEstimator
+  //should be consistent with the equivalent single cylinder.
+
+  double Tx = 23.0/22.;
+  double Ty = 1.0/9.0 ;
+  double Tz = 6.0/11.0;
+
+  double Rx = M_PI/6.;
+  double Ry = M_PI/12.;
+  double Rz = M_PI/24.;
+
+  double mass0 = M_PI;
+  double mass1 = mass0*0.5;
+  double h0 = 3.0;
+  double h1 = h0*0.5;
+  double r  = 0.75;
+
+  double Ixx0 = (1./12.)*mass0*(3.*r*r +h0*h0);
+  double Iyy0 = (1./12.)*mass0*(3.*r*r +h0*h0);
+  double Izz0 = (1./2. )*mass0*(r*r);
+
+  double Ixx1 = (1./12.)*(mass1)*(3.*r*r +h1*h1);
+  double Iyy1 = (1./12.)*(mass1)*(3.*r*r +h1*h1);
+  double Izz1 = (1./2. )*(mass1)*(r*r);
+
+
+  Matrix3d I0 = Matrix3d(Ixx0,    0,    0,
+                            0, Iyy0,    0,
+                            0,    0, Izz0);
+
+  Matrix3d I1 = Matrix3d(Ixx1,    0,    0,
+                            0, Iyy1,    0,
+                            0,    0, Izz1);
+
+  Body cylinderUpper = Body( mass1,Vector3d(0., 0., h1*0.5),I1);
+  Body cylinderLower = Body( mass1,Vector3d(0., 0.,-h1*0.5),I1);
+
+  RigidBodyDynamics::Model model;
+  model.gravity = Vector3d(0.,0.,-9.81);
+  Joint jointFloatingBase = Joint(
+    SpatialVector( 0., 0., 0., 1., 0., 0.),
+    SpatialVector( 0., 0., 0., 0., 1., 0.),
+    SpatialVector( 0., 0., 0., 0., 0., 1.),
+    SpatialVector( 1., 0., 0., 0., 0., 0.),
+    SpatialVector( 0., 1., 0., 0., 0., 0.),
+    SpatialVector( 0., 0., 1., 0., 0., 0.));
+
+  unsigned int idB1 = model.AddBody(0,Xtrans(Vector3d(0., 0, 0. )),
+                        jointFloatingBase, cylinderUpper, "cylinderUpper");
+  unsigned int idB2 = model.AddBody(0,Xtrans(Vector3d(0., 0, 0. )),
+                        jointFloatingBase, cylinderLower, "cylinderLower");
+
+  VectorNd q  = VectorNd::Zero(model.dof_count);
+  VectorNd qd = VectorNd::Zero(model.dof_count);
+
+
+  q[0]  = Tx;
+  q[1]  = Ty;
+  q[2]  = Tz;
+  q[3]  = Rx;
+  q[4]  = Ry;
+  q[5]  = Rz;
+
+  q[6]  = Tx;
+  q[7]  = Ty;
+  q[8]  = Tz;
+  q[9]  = Rx;
+  q[10] = Ry;
+  q[11] = Rz;
+
+  //By construction this is the center of mass of the two cylinder system
+  Vector3d r0C0 = Vector3d(Tx,Ty,Tz);
+
+  Vector3d pointOnGroundPlane  = Vector3d(0.,0.,0.);
+  Vector3d groundPlaneNormal   = Vector3d(0.,0.,1.);
+
+
+  bool evaluate_derivatives = true;
+  bool update_kinematics    = true;
+
+  BalanceToolkit::FootPlacementEstimatorInfo fpeInfo;
+  double omegaSmall = 1e-6;
+  BalanceToolkit::CalculateFootPlacementEstimator(model,q,qd,pointOnGroundPlane,
+    groundPlaneNormal,fpeInfo,omegaSmall,evaluate_derivatives,update_kinematics);
+
+  Matrix3d I0Test =
+      model.X_base[idB1].E*fpeInfo.JC0*model.X_base[idB1].E.transpose();
+
+  CHECK_ARRAY_CLOSE(I0Test.data(),            I0.data(),  9, TEST_PREC_NEAR_EPS);
+  CHECK_ARRAY_CLOSE(  r0C0.data(),  fpeInfo.r0C0.data(),  3, TEST_PREC_NEAR_EPS);
 
 
 }

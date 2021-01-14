@@ -25,15 +25,32 @@ using namespace std;
 using namespace RigidBodyDynamics::Math;
 using namespace RigidBodyDynamics::Utils;
 
-static double       TOLERANCE  = std::numeric_limits<double>::epsilon()*1e2;
-static unsigned int MAX_BISECTION_ITERATIONS    = 5;
-static unsigned int MAX_NEWTON_ITERATIONS       = 12;
-static double MAX_NEWTON_STEP_SIZE = M_PI*0.125;
-
+static unsigned int MAX_ITERATIONS              = 15;
 
 //=============================================================================
 // FUNCTIONS
 //=============================================================================
+/*
+  Developer notes:
+
+  This implementation has opted for simplicity:
+
+  - MAX_ITERATIONS interations of the bisection method are applied every time to
+    solve the root of Eqn. 45 of Millard et al. This will result in a
+    value of phi that is accurate to 2^-15 or 3.05 e-5
+
+  - No addtional polishing is done
+
+  While it is possible to polish this root to higher precision using
+  Newton's method this introduces an extra complication: for values of
+  phi that approach zero, Newton's method converges (in this case) slowly
+  as Df_Dphi gets big near zero, which results in step sizes. This means
+  either many Newton iterations need to be permitted, or phi->0 needs to
+  be a special case.
+
+  This code is method is complicated enough already without nearly doubling
+  the size of the implementation to squeeze out a little more accuracy.
+*/
 void BalanceToolkit::CalculateFootPlacementEstimator(
       Model &model,
       Math::VectorNd &q,
@@ -41,6 +58,7 @@ void BalanceToolkit::CalculateFootPlacementEstimator(
       Math::Vector3d &pointOnGroundPlane,
       Math::Vector3d &groundPlaneNormal,
       FootPlacementEstimatorInfo &fpeInfo,      
+      double smallAngularVelocity,
       bool evaluate_derivatives,
       bool update_kinematics)
 {
@@ -129,12 +147,16 @@ void BalanceToolkit::CalculateFootPlacementEstimator(
   fpeInfo.HP0   = fpeInfo.HC0 + rPC0x * (m * fpeInfo.v0C0);
   fpeInfo.w0P0  = fpeInfo.JP0.householderQr().solve (fpeInfo.HP0);
 
-  //Form the remaining direction vectors of the u-v-k frame
+  Vector3d HP0small = fpeInfo.JP0 * Vector3d(smallAngularVelocity,
+                                             smallAngularVelocity,
+                                             smallAngularVelocity);
+
+  //Form the remaining direction vectors of the u-v-k frame.
+  //As HP0 -> 0 the magnitude of n and u tend to zero.
   fpeInfo.n = fpeInfo.HP0 - (fpeInfo.HP0.dot(fpeInfo.k))*fpeInfo.k;
-  fpeInfo.n.normalize();
+  fpeInfo.n = fpeInfo.n / max(fpeInfo.n.norm(),HP0small.norm());
   fpeInfo.u = fpeInfo.n.cross(fpeInfo.k);
 
-  assert( fabs(fpeInfo.u.norm()-1) < TOLERANCE);
 
   //Project the 3D state onto the u-k plane
   fpeInfo.nJC0n = fpeInfo.n.dot(fpeInfo.JC0*fpeInfo.n);
@@ -144,37 +166,40 @@ void BalanceToolkit::CalculateFootPlacementEstimator(
   fpeInfo.h     = fpeInfo.k.dot(fpeInfo.r0C0-pointOnGroundPlane);
 
   fpeInfo.projectionError = fabs(fpeInfo.k.dot(fpeInfo.HP0))
-                            /max(fpeInfo.HP0.norm(),TOLERANCE);
+                            /max(fpeInfo.HP0.norm(),HP0small.norm());
 
-  fpeInfo.f = TOLERANCE*10;
-  fpeInfo.iterations = 0;
+
+
 
   //----------------------------------------------------------------------------
-  //I. Bisection method initialization
+  //I. Bisection method
   //----------------------------------------------------------------------------
-  //Do not touch: these values will allow the bisection method to find solutions
-  //              of phi within [0,M_PI*0.5].
-    phiBest     = M_PI * 0.25;
+  //Do not touch: these values will allow the bisection method to test extreme
+  //              solutions [0,M_PI/2], the lower bound test at zero is
+  //              important as the Newton iteration converges slowly for
+  //              phi ~= 0, with small velocities.
+  phiBest     = M_PI * 0.25;
+  delta       = 0.5*phiBest;
 
-    //Use the bisection method to get close to the solution
-    cosphi    = cos(phiBest);
-    cos2phi   = cosphi*cosphi;
-    sinphi    = sin(phiBest);
-    h2        = fpeInfo.h*fpeInfo.h;
+  //Use the bisection method to get close to the solution
+  cosphi    = cos(phiBest);
+  cos2phi   = cosphi*cosphi;
+  sinphi    = sin(phiBest);
+  h2        = fpeInfo.h*fpeInfo.h;
 
-    //numerator of Eqn. 45 of Millard et al.
-    t0        =(cos2phi*fpeInfo.w0C0n*fpeInfo.nJC0n
-                + cosphi*fpeInfo.h*m*(
-                    sinphi*fpeInfo.v0C0k + cosphi*fpeInfo.v0C0u));
+  //numerator of Eqn. 45 of Millard et al.
+  t0        =(cos2phi*fpeInfo.w0C0n*fpeInfo.nJC0n
+              + cosphi*fpeInfo.h*m*(
+                  sinphi*fpeInfo.v0C0k + cosphi*fpeInfo.v0C0u));
 
-    //Eqn. 45 of Millard et al., but note here the residual is assigned to f
-    // and will not be 0 until the final solution.
-    fBest     = (t0*t0) / (cos2phi*fpeInfo.nJC0n+h2*m)
-                +2*(cosphi-1)*cosphi*g*fpeInfo.h*m;
+  //Eqn. 45 of Millard et al., but note here the residual is assigned to f
+  // and will not be 0 until the final solution.
+  fBest     = (t0*t0) / (cos2phi*fpeInfo.nJC0n+h2*m)
+              +2*(cosphi-1)*cosphi*g*fpeInfo.h*m;
 
-    delta = phiBest*0.5;
 
-  for(size_t i=0; i<MAX_BISECTION_ITERATIONS; ++i){
+
+  for(size_t i=0; i<MAX_ITERATIONS; ++i){
     //Evaluate to the left of the current solution
     phiLeft   = phiBest - delta;
     cosphi    = cos(phiLeft);
@@ -211,31 +236,41 @@ void BalanceToolkit::CalculateFootPlacementEstimator(
     delta = delta*0.5;
   }
 
-   fpeInfo.f = fBest;
-   fpeInfo.phi = phiBest;
+  //Final solution
+  fpeInfo.f   = fBest;
+  fpeInfo.phi = phiBest;
+  fpeInfo.iterations = MAX_ITERATIONS;
 
-  //----------------------------------------------------------------------------
-  //II. Newton method: polish the root to tolerance
-  //----------------------------------------------------------------------------
-  fpeInfo.iterations = 0;
+  //Evaluate fpe related quantities which are not derivatives
+  cosphi    = cos(fpeInfo.phi);
+  cos2phi   = cosphi*cosphi;
+  sinphi    = sin(fpeInfo.phi);
+  h2        = fpeInfo.h*fpeInfo.h;
+  tanphi       = tan(fpeInfo.phi);
 
-  while( (fabs(fpeInfo.f) > TOLERANCE)
-        && (fpeInfo.iterations < MAX_NEWTON_ITERATIONS) ){
+  fpeInfo.r0F0 = fpeInfo.r0P0 + (fpeInfo.h * tanphi)*fpeInfo.u;
+  fpeInfo.l    = fpeInfo.h/cos(fpeInfo.phi);
+  fpeInfo.E    = m*g*fpeInfo.l;
 
-    //Use the bisection method to get close to the solution
-    cosphi    = cos(fpeInfo.phi);
-    cos2phi   = cosphi*cosphi;
-    sinphi    = sin(fpeInfo.phi);
-    h2        = fpeInfo.h*fpeInfo.h;
+  fpeInfo.w0F0nPlus =  (cosphi*fpeInfo.h*m*(
+                          sinphi*fpeInfo.v0C0k+cosphi*fpeInfo.v0C0u)
+                        + fpeInfo.nJC0n*cos2phi*fpeInfo.w0C0n
+                        )/(h2*m+fpeInfo.nJC0n*cos2phi);
 
-    //numerator of Eqn. 45 of Millard et al.
-    t0        =(cos2phi*fpeInfo.w0C0n*fpeInfo.nJC0n
-               + cosphi*fpeInfo.h*m*(
-                   sinphi*fpeInfo.v0C0k + cosphi*fpeInfo.v0C0u));
 
-    //Eqn. 45 of Millard et al.
-    fpeInfo.f = (t0*t0) / (cos2phi*fpeInfo.nJC0n+h2*m)
-               +2*(cosphi-1)*cosphi*g*fpeInfo.h*m;
+  // MMillard 14 January 2020
+  // The expressions are big, and have been derived and simplified using Maxima.
+  // To make these run a bit faster I'm using memory that exists in the struct
+  // fpeInfo wherever possible. In addition I've replaced all occurances of
+  // pow(x,2.0) with simply x*x, which is faster. These things don't make the
+  // huge equations any easier to read, but I think that's fine: these equations
+  // are already so big that I have to use a symbolic mathematics package.
+  if(evaluate_derivatives){
+    double dh_dl;
+    double Ds_Dphi;
+    double Dl_DE;
+    double Dl_Dphi;
+    double Dphi_Dl;
 
     //Partial derivative of f w.r.t. phi (derived and simplified using Maxima)
     t0 = (cos2phi*fpeInfo.w0C0n*fpeInfo.nJC0n + cosphi*fpeInfo.h*m*(
@@ -255,48 +290,6 @@ void BalanceToolkit::CalculateFootPlacementEstimator(
          )/(cos2phi*fpeInfo.nJC0n+h2*m)
        -2*cosphi*g*fpeInfo.h*m*sinphi
        -2*(cosphi-1)*g*fpeInfo.h*m*sinphi;
-
-    //Only update the solution if we haven't met the desired tolerance. Why?
-    //This keeps the values for phi, f, and Df_Dphi consistent
-    if(fabs(fpeInfo.f) > TOLERANCE ){
-      delta = -fpeInfo.f / fpeInfo.Df_Dphi;
-
-      //If the step size is too large, limit it. This is necessary to keep
-      //the Newton method in a region that is not wildly nonlinear.
-      if( fabs(delta) > MAX_NEWTON_STEP_SIZE){
-        delta = copysign(MAX_NEWTON_STEP_SIZE,delta);
-      }
-
-      fpeInfo.phi = fpeInfo.phi + delta;
-      fpeInfo.iterations = fpeInfo.iterations+1;
-    }
-  }
-
-  assert( fabs(fpeInfo.f) <= TOLERANCE);
-  assert( fabs(fpeInfo.phi) >= -TOLERANCE);
-  tanphi       = tan(fpeInfo.phi);
-  fpeInfo.r0F0 = fpeInfo.r0P0 + (fpeInfo.h * tanphi)*fpeInfo.u;
-  fpeInfo.l    = fpeInfo.h/cos(fpeInfo.phi);
-  fpeInfo.E    = m*g*fpeInfo.l;
-
-  fpeInfo.w0F0nPlus =  (cosphi*fpeInfo.h*m*(
-                          sinphi*fpeInfo.v0C0k+cosphi*fpeInfo.v0C0u)
-                        + fpeInfo.nJC0n*cos2phi*fpeInfo.w0C0n
-                        )/(h2*m+fpeInfo.nJC0n*cos2phi);
-
-  // MMillard 14 January 2020
-  // The expressions are big, and have been derived and simplified using Maxima.
-  // To make these run a bit faster I'm using memory that exists in the struct
-  // fpeInfo wherever possible. In addition I've replaced all occurances of
-  // pow(x,2.0) with simply x*x, which is faster. These things don't make the
-  // huge equations any easier to read, but I think that's fine: these equations
-  // are already so big that I have to use a symbolic mathematics package.
-  if(evaluate_derivatives){
-    double dh_dl;
-    double Ds_Dphi;
-    double Dl_DE;
-    double Dl_Dphi;
-    double Dphi_Dl;
 
 
     t0 = (cosphi*fpeInfo.h*m*
