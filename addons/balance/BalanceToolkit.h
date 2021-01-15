@@ -18,10 +18,6 @@ namespace RigidBodyDynamics {
   namespace Addons {
     namespace Balance{
 
-class BalanceToolkit
-{
-  public:
-
   /**
     This struct contains the location of the balance restoring step location 
     evaluated by the 3DFPE algorithm described by Millard et al. and all
@@ -61,19 +57,15 @@ class BalanceToolkit
     Single Point/Body Descriptors 
 
       e  : unit vector
-      rm : rotation matrix
+      E : rotation matrix
       K  : a frame: consists of a point in space and a rotation matrix
       J  : inertia
       H  : angular momentum
 
-      (specific to this code)
+    Direction Vectors (lower case)
       u : vector in the direction of a balancing step (See Fig. 6 of Millard et al.)
       v : vertical vector
-      n : vector normal to the the plane
-      P : the projection frame: centered at the CoM ground projection and 
-          with a u, k direction vectors that are perpendicular to the 
-          horizontal component of the angular momentum vector (when taken)
-          about the CoM ground projection.
+      k : vector normal to the the plane
 
     Two-Point Descriptors:
       r: position
@@ -82,24 +74,34 @@ class BalanceToolkit
 
     Point
       C: the whole-body-center of mass (COM)
-      G: the projection plane origin: the ground projection of the COM      
+      P: the projection plane origin: the ground projection of the COM      
       0: the origin of the lab/inertial frame
       S: the contact surface frame origin
       
     Frames
       0: the lab/inertial frame
       S: the contact surface frame origin
+      i: Body fixed frame
 
-
-    (optional) Operator
-    x:  Cross-product matrix. For example r0C0 is the vector, r0C0x is the
-        cross-product matrix of r0C0.
-    p:  projection
+    Operations:
+    x    :  Cross-product matrix. For example r0C0 is the vector, r0C0x is the
+            cross-product matrix of r0C0.
+    u/v/x:  Dot product. For example w0C0n is an angular velocity from the
+            base frame (0) to the point (C) in coordinates of the base frame (0)
+            in the (n) direction.
+  
+    N.B. The ascii name convention should have something extra to distinguish
+         operators, maybe an underscore: w0C0_n instead of w0C0n
 
     Examples:
       r0F0 : (r) position vector 
              (0) from the base frame origin
-             (C) to the foot placement estimator location
+             (F) to the foot placement estimator location
+             (0) resolved in the coordinates of the base frame
+
+      r0P0 : (r) position vector 
+             (0) from the base frame origin
+             (P) to the foot placement estimator location
              (0) resolved in the coordinates of the base frame
 
       JC0 :  (J) inertia matrix
@@ -291,6 +293,12 @@ class BalanceToolkit
         Dphi_Dw0C0n(std::numeric_limits<double>::signaling_NaN()){}
 
     };
+
+class BalanceToolkit
+{
+  public:
+
+
 
               
 

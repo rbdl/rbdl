@@ -198,7 +198,7 @@ TEST(NumericalTestFootPlacementEstimator){
 
   bool evaluate_derivatives = true;
   bool update_kinematics = true;
-  BalanceToolkit::FootPlacementEstimatorInfo fpeInfo;
+  FootPlacementEstimatorInfo fpeInfo;
   double omegaSmall = 1e-6;
 
   BalanceToolkit::CalculateFootPlacementEstimator(model,q,qd,pointOnGroundPlane,
@@ -340,7 +340,7 @@ TEST(InertiaCalculations){
   bool evaluate_derivatives = true;
   bool update_kinematics    = true;
 
-  BalanceToolkit::FootPlacementEstimatorInfo fpeInfo;
+  FootPlacementEstimatorInfo fpeInfo;
   double omegaSmall = 1e-6;
   BalanceToolkit::CalculateFootPlacementEstimator(model,q,qd,pointOnGroundPlane,
     groundPlaneNormal,fpeInfo,omegaSmall,evaluate_derivatives,update_kinematics);
