@@ -142,6 +142,13 @@ be used by enabling `RBDL_USE_SIMPLE_MATH`, i.e.:
 
     cmake -D RBDL_USE_SIMPLE_MATH=TRUE ../
 
+VCPKG package manager (for Windows, Linux and Mac)
+==================================================
+
+Install vcpkg by making a local clone from its GitHub repo [https://github.com/Microsoft/vcpkg](https://github.com/Microsoft/vcpkg). Then run the vcpkg-bootstrapper script to set it up. For detailed installation instructions, see [Install vcpkg](https://docs.microsoft.com/en-us/cpp/build/install-vcpkg). To integrate vcpkg with your Visual Studio or Visual Studio Code development environment, see [Integrate vcpkg](https://docs.microsoft.com/en-us/cpp/build/integrate-vcpkg). Then, to use vcpkg to install or update a library, see [Manage libraries with vcpkg](https://docs.microsoft.com/en-us/cpp/build/manage-libraries-with-vcpkg). For more information about vcpkg commands, see [vcpkg command-line reference](https://docs.microsoft.com/en-us/cpp/build/vcpkg-command-line-reference).
+
+👀 RBDL is available in VCPKG since [2020-11 release](https://github.com/microsoft/vcpkg/releases/tag/2020.11)
+
 Python Bindings
 ===============
 
