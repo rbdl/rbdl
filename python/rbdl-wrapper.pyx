@@ -1068,7 +1068,7 @@ cdef class Joint:
 
     property mJointType:
         def __get__ (self):
-            for key, joint in self.joint_type_map.iteritems():
+            for key, joint in self.joint_type_map.items():
                 if joint == self.thisptr.mJointType:
                     return key
         
@@ -1961,30 +1961,30 @@ def InverseKinematics (Model model,
           
   cdef vector[unsigned int] body_id
   cdef vector[crbdl.Vector3d] body_point
-  cdef vector[crbdl.Vector3d] target_pos	
+  cdef vector[crbdl.Vector3d] target_pos    
   cdef crbdl.Vector3d buf
   
-	
+    
   for i in range( body_ids.shape[0]):
-    body_id.push_back(<unsigned int> body_ids[i])		
+    body_id.push_back(<unsigned int> body_ids[i])        
   for i in range( body_point_position.shape[0]):
     buf = NumpyToVector3d(body_point_position[i])
-    body_point.push_back(buf)		
+    body_point.push_back(buf)        
   for i in range( target_pos_position.shape[0]):
     buf = NumpyToVector3d(target_pos_position[i])
-    target_pos.push_back(buf)						
+    target_pos.push_back(buf)                        
   
   return crbdl.InverseKinematicsPtr (model.thisptr[0],
-						<double*> qinit.data,
-						body_id,
-						body_point,
-						target_pos,
-						<double*> qres.data,
-						<double> step_tol,
-						<double> lambda_,
-						<unsigned int> max_iter
-						)
-						
+                        <double*> qinit.data,
+                        body_id,
+                        body_point,
+                        target_pos,
+                        <double*> qres.data,
+                        <double> step_tol,
+                        <double> lambda_,
+                        <unsigned int> max_iter
+                        )
+                        
 
 class ConstraintType(IntEnum):
     ConstraintTypePosition = 0
@@ -2027,7 +2027,7 @@ cdef class InverseKinematicsConstraintSet:
                 body_id,
                 NumpyToVector3d(body_point),
                 NumpyToVector3d(target_pos),
-				weight
+                weight
                 )
     
     def AddPointConstraintXY (self,
@@ -2092,8 +2092,8 @@ cdef class InverseKinematicsConstraintSet:
             NumpyToVector3d(body_point),
             NumpyToVector3d(target_pos),
             NumpyToMatrix3d(target_orientation),
-			weight
-			)
+            weight
+            )
 
     def ClearConstraints (self):
         return self.thisptr.ClearConstraints()
@@ -2226,14 +2226,14 @@ def InverseKinematicsCS (Model model,
     np.ndarray[double, ndim=1, mode="c"] qinit, 
     InverseKinematicsConstraintSet CS,
     np.ndarray[double, ndim=1, mode="c"] qres):
-          					
+                              
   
     return crbdl.InverseKinematicsCSPtr (model.thisptr[0],
         <double*> qinit.data,
-				CS.thisptr[0],
-				<double*> qres.data,
-				)
-						
+                CS.thisptr[0],
+                <double*> qres.data,
+                )
+                        
 
        
 

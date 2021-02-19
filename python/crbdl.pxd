@@ -634,39 +634,39 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             )
     
     cdef bool InverseKinematicsPtr (
-						Model &model,
-						const double *qinit_ptr,
-						const vector[unsigned int] body_id,
-						const vector[Vector3d] body_point,
-						const vector[Vector3d] target_pos,
-						const double *qres_ptr,
-						double step_tol,
-						double lambda_,
-						unsigned int max_iter
-						)
+            Model &model,
+            const double *qinit_ptr,
+            const vector[unsigned int] body_id,
+            const vector[Vector3d] body_point,
+            const vector[Vector3d] target_pos,
+            const double *qres_ptr,
+            double step_tol,
+            double lambda_,
+            unsigned int max_iter
+            )
     
     cdef bool InverseKinematicsCSPtr (
-        Model &model,
-        const double *qinit_ptr,
-        InverseKinematicsConstraintSet &CS,
-        const double *qres_ptr)  
+           Model &model,
+           const double *qinit_ptr,
+           InverseKinematicsConstraintSet &CS,
+           const double *qres_ptr)  
     
     cdef void ForwardDynamicsConstraintsDirectPtr (
-        Model &model,
-        const double* q_ptr,
-        const double* qdot_ptr,
-        const double* tau_ptr,
-        ConstraintSet &CS,
-        double* qddot_ptr,
-        vector[SpatialVector] *f_ext
-        )
+           Model &model,
+           const double* q_ptr,
+           const double* qdot_ptr,
+           const double* tau_ptr,
+           ConstraintSet &CS,
+           double* qddot_ptr,
+           vector[SpatialVector] *f_ext
+           )
 
 cdef extern from "rbdl_loadmodel.cc":
     cdef bool rbdl_loadmodel (
-            const char* filename,
-            Model* model,
-            bool floating_base,
-            bool verbose)
+           const char* filename,
+           Model* model,
+           bool floating_base,
+           bool verbose)
      
         
         

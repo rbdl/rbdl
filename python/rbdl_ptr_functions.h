@@ -529,7 +529,7 @@ void NonlinearEffectsPtr (
     if (model.lambda[i] == 0) {
       model.v[i] = model.v_J[i];
       model.a[i] = model.X_lambda[i].apply(spatial_gravity);
-    }	else {
+    }  else {
       model.v[i] = model.X_lambda[i].apply(model.v[model.lambda[i]]) + model.v_J[i];
       model.c[i] = model.c_J[i] + crossm(model.v[i],model.v_J[i]);
       model.a[i] = model.X_lambda[i].apply(model.a[model.lambda[i]]) + model.c[i];
@@ -1021,8 +1021,8 @@ RBDL_DLLAPI bool InverseKinematicsPtr (
   assert (body_id.size() == target_pos.size());
 
 //  for (unsigned int k = 0; k < body_id.size(); k++) {
-//			assert(model.IsBodyId (body_id[k]));
-//	}
+//      assert(model.IsBodyId (body_id[k]));
+//  }
 
 
   VectorNdRef&& Qinit = VectorFromPtr(const_cast<double*>(qinit_ptr),
