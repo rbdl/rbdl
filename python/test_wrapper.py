@@ -18,7 +18,7 @@ class JointTests (unittest.TestCase):
 
         axis = np.asarray([[1., 0., 0., 0., 0., 0.]])
         joint_rot_x = rbdl.Joint.fromJointAxes (axis)
-        joint_rot_x_type = rbdl.Joint.fromJointType (rbdl.PJointType.PJointTypeRevoluteX)
+        joint_rot_x_type = rbdl.Joint.fromJointType ("JointTypeRevoluteX")
         
         assert_equal (joint_rot_x.getJointAxis(0), axis[0])
         assert_equal (joint_rot_x_type.getJointAxis(0), axis[0])
@@ -37,7 +37,7 @@ class JointTests (unittest.TestCase):
             ])
             
         joint = rbdl.Joint.fromJointAxes (axis)
-        joint2 = rbdl.Joint.fromJointType (rbdl.PJointType.PJointTypeFloatingBase)
+        joint2 = rbdl.Joint.fromJointType ("JointTypeFloatingBase")
 
         
         for i in range (axis.shape[0]):
@@ -53,7 +53,7 @@ class SampleModel3R (unittest.TestCase):
     def setUp(self):
       
         self.model = rbdl.Model()
-        joint_rot_y = rbdl.Joint.fromJointType (rbdl.PJointType.PJointTypeRevoluteY)
+        joint_rot_y = rbdl.Joint.fromJointType ("JointTypeRevoluteY")
         self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), np.eye(3) *
                 0.05)
         self.xtrans = rbdl.SpatialTransform()
@@ -67,6 +67,31 @@ class SampleModel3R (unittest.TestCase):
         self.qdot = np.zeros (self.model.qdot_size)
         self.qddot = np.zeros (self.model.qdot_size)
         self.tau = np.zeros (self.model.qdot_size)
+
+    def test_AccessToModelParameters (self):
+        """
+        Checks whether vital model parameters can be accessed that are 
+        stored in the "Model" class.
+        """    
+        rbdl.UpdateKinematics (self.model, self.q, self.qdot, self.qddot)
+        
+        assert_equal (self.model.mBodies[2].mMass, self.body.mMass)
+        assert_equal (self.model.mBodies[2].mCenterOfMass, 
+                                        self.body.mCenterOfMass)
+        assert_equal (self.model.mBodies[2].mInertia, 
+                                        self.body.mInertia )
+                                        
+        assert_equal (self.model.X_T[1].E, rbdl.SpatialTransform().E )
+        assert_equal (self.model.X_T[1].r, rbdl.SpatialTransform().r )
+        assert_equal (self.model.X_T[2].E, self.xtrans.E )
+        assert_equal (self.model.X_T[2].r, self.xtrans.r )
+        
+        assert_almost_equal (self.model.X_base[0].E, np.identity(3) )
+        assert_almost_equal (self.model.X_base[3].r, 
+                                        self.xtrans.r + self.xtrans.r )
+        
+        assert_equal (self.model.mJoints[2].mJointType, 
+                                                "JointTypeRevoluteY")
 
     def test_CoordinateTransformBodyBase (self):
         """
@@ -328,7 +353,7 @@ class SampleModel3R (unittest.TestCase):
         with CalcPointVelocity. """
 
         self.model = rbdl.Model()
-        joint_trans_xyz = rbdl.Joint.fromJointType (rbdl.PJointType.PJointTypeTranslationXYZ)
+        joint_trans_xyz = rbdl.Joint.fromJointType ("JointTypeTranslationXYZ")
 
         self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(),
                 joint_trans_xyz, self.body)
@@ -405,13 +430,14 @@ class SampleModel3R (unittest.TestCase):
         assert_almost_equal (target_positions[0], res_point2)
         assert_almost_equal (ori_matrix, res_ori)
 
+
 class FloatingBaseModel (unittest.TestCase):
     """ Model with a floating base
     """
     def setUp(self):
       
         self.model = rbdl.Model()
-        joint_rot_y = rbdl.Joint.fromJointType (rbdl.PJointType.PJointTypeFloatingBase)
+        joint_rot_y = rbdl.Joint.fromJointType ("JointTypeFloatingBase")
         self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), np.eye(3) *
                 0.05)
         self.xtrans = rbdl.SpatialTransform()
@@ -763,7 +789,6 @@ class ConstraintSetTests (unittest.TestCase):
         assert_equal(0,gId)
         gId = self.cs.getGroupIndexByAssignedId(0)
         assert_equal(0,gId)
-
         gId = self.cs.getGroupIndexByName("LoopLink1Link2")
         assert_equal(1,gId)
         gId = self.cs.getGroupIndexById(11)

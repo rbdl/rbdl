@@ -1068,8 +1068,10 @@ cdef class Joint:
 
     property mJointType:
         def __get__ (self):
-            return self.joint_type_map[self.thisptr.mJointType]
-
+            for key, joint in self.joint_type_map.iteritems():
+                if joint == self.thisptr.mJointType:
+                    return key
+        
 # was NOT WRITABLE originally - had to be changed because of CustomJoint
     property q_index:
         def __get__ (self):
@@ -1520,15 +1522,12 @@ cdef class Model:
 
 cdef class ConstraintSet
 
-%VectorWrapperClassDefinitions(PARENT=ConstraintSet)%
 
 cdef class ConstraintSet:
     cdef crbdl.ConstraintSet *thisptr
-    %VectorWrapperMemberDefinitions (PARENT=ConstraintSet)%
 
     def __cinit__(self):
         self.thisptr = new crbdl.ConstraintSet()
-        %VectorWrapperCInitCode (PARENT=ConstraintSet)%
 
     def __dealloc__(self):
         del self.thisptr
@@ -1760,17 +1759,6 @@ cdef class ConstraintSet:
         def __get__ (self):
             return self.thisptr.bound
 
-#    %VectorWrapperAddProperty (TYPE=string, MEMBER=name, PARENT=ConstraintSet)%
-
-#    %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=point, PARENT=ConstraintSet)%
-#    %VectorWrapperAddProperty (TYPE=Vector3d, MEMBER=normal, PARENT=ConstraintSet)%
-
-#    property acceleration:
-#        def __get__(self):
-#            return VectorNd.fromPointer (<uintptr_t> &(self.thisptr.acceleration)).toNumpy()
-#        def __set__(self, values):
-#            vec = VectorNd.fromPythonArray (values)
-#            self.thisptr.acceleration = <crbdl.VectorNd> (vec.thisptr[0])
 
 ##############################
 #
