@@ -3,7 +3,7 @@
 # PYTHON_NUMPY_2_FOUND
 # will be set by this script
 
-cmake_minimum_required(VERSION 2.6)
+#cmake_minimum_required(VERSION 2.6)
 
 set(PYTHON_EXECUTABLE "python2")
 
