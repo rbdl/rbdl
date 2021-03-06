@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # 
 # RBDL - Rigid Body Dynamics Library
 # Copyright (c) 2011-2015 Martin Felis <martin@fysx.org>
