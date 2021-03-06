@@ -8,7 +8,6 @@ pipeline {
         dir(path: 'build') {
           sh 'make -j 8'
         }
-
       }
     }
 
@@ -19,7 +18,10 @@ pipeline {
           sh './addons/geometry/tests/runGeometryTests'
           sh './addons/muscle/tests/runMuscleTests'
         }
-
+        dir(path: 'build/python') {
+          sh './test_rbdlmuscle.py -v'
+          sh './test_wrapper.py -v'
+        }
       }
     }
 

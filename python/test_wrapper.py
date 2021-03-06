@@ -832,11 +832,11 @@ class ConstraintSetTests (unittest.TestCase):
         gId1 = 1
 
         csListBodyIds = np.ndarray([2], dtype=np.uintc )
-        csListX = np.ndarray([6,6,2],dtype=np.float)
-        csListF = np.ndarray([6,2],dtype=np.float)
+        csListX = np.ndarray([6,6,2],dtype=float)
+        csListF = np.ndarray([6,2],dtype=float)
 
-        csListXTest = np.ndarray([6,6,2],dtype=np.float)
-        csListFTest = np.ndarray([6,2],dtype=np.float)
+        csListXTest = np.ndarray([6,6,2],dtype=float)
+        csListFTest = np.ndarray([6,2],dtype=float)
 
         csListXTest.fill(0.)
         csListFTest.fill(0.)
@@ -863,8 +863,8 @@ class ConstraintSetTests (unittest.TestCase):
         assert_almost_equal(csListF, csListFTest) 
 
         csListBodyIds = np.ndarray([2], dtype=np.uintc )
-        csListX = np.ndarray([6,6,2],dtype=np.float)
-        csListF = np.ndarray([6,2],dtype=np.float)
+        csListX = np.ndarray([6,6,2],dtype=float)
+        csListF = np.ndarray([6,2],dtype=float)
 
         self.cs.calcForces( gId1,self.model,self.q,self.qd,
                             csListBodyIds,csListX,csListF,False,False)
@@ -908,8 +908,8 @@ class ConstraintSetTests (unittest.TestCase):
 
         self.q[0] = 1.0
 
-        posErr = np.ndarray([5],dtype=np.float)
-        posErrTest=np.ndarray([5],dtype=np.float)
+        posErr = np.ndarray([5],dtype=float)
+        posErrTest=np.ndarray([5],dtype=float)
 
         self.cs.calcPositionError(0,self.model,self.q,posErr,True)
 
@@ -929,8 +929,8 @@ class ConstraintSetTests (unittest.TestCase):
         self.qd[0] = -1.0
         self.qd[6] = -1.0
 
-        velErr = np.ndarray([5],dtype=np.float)
-        velErrTest=np.ndarray([5],dtype=np.float)
+        velErr = np.ndarray([5],dtype=float)
+        velErrTest=np.ndarray([5],dtype=float)
 
         self.cs.calcVelocityError(0,self.model,self.q,self.qd,velErr,True)
 
@@ -947,10 +947,10 @@ class ConstraintSetTests (unittest.TestCase):
         self.cs.disableBaumgarteStabilization(0)
         assert_equal(self.cs.isBaumgarteStabilizationEnabled(0), False)
 
-        bgCoeff=np.ndarray([2],dtype=np.float)
+        bgCoeff=np.ndarray([2],dtype=float)
         self.cs.getBaumgarteStabilizationCoefficients(0, bgCoeff)
 
-        bgCoeffTest=np.ndarray([2],dtype=np.float)
+        bgCoeffTest=np.ndarray([2],dtype=float)
         bgCoeffTest[0]=10.
         bgCoeffTest[1]=10.
         assert_almost_equal(bgCoeff,bgCoeffTest)
@@ -965,11 +965,11 @@ class ConstraintSetTests (unittest.TestCase):
         self.q[0] = 1.
         self.qd[1] = 2.
         
-        bgStabForceTest=np.ndarray([5],dtype=np.float)
-        bgStabForce=np.ndarray([5],dtype=np.float)
+        bgStabForceTest=np.ndarray([5],dtype=float)
+        bgStabForce=np.ndarray([5],dtype=float)
 
-        posErr = np.ndarray([5],dtype=np.float)
-        velErr = np.ndarray([5],dtype=np.float)
+        posErr = np.ndarray([5],dtype=float)
+        velErr = np.ndarray([5],dtype=float)
         self.cs.calcPositionError(0,self.model,self.q,posErr,True)
         self.cs.calcVelocityError(0,self.model,self.q,self.qd,velErr,True)
         self.cs.calcBaumgarteStabilizationForces(0,self.model,posErr,velErr,bgStabForce)
