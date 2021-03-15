@@ -45,6 +45,12 @@ The official rbdl-orb git repository can be cloned from
 
 (See [https://git-scm.com/downloads/guis/](https://git-scm.com/downloads/guis/) for git clients.)
 
+To make sure all submodules are correctly downloaded, clone the repository recursively!
+
+```
+git clone --recurive https://github.com/ORB-HD/rbdl-orb
+```
+
 Building and Installation
 =========================
 
@@ -147,7 +153,18 @@ at which point you will see full list of build options for RBDL. We recommend th
   ```
     RBDL_BUILD_ADDON_LUAMODEL        ON
   ```
-2. muscle addon
+2. urdf addon
+  - If you'd like to load model files written in URDF to RBDL. This addon uses the URDF_Parser library which is included as a submodule. You will need to have cloned the repository recursively!
+  If you missed doing that you can intialize the submodules after the fact with:
+  ```
+  git submodule init
+  git submodule update
+  ```
+  - Budil RBDL with
+  ```
+  RBDL_BUILD_ADDON_URDFREADER        ON
+  ```
+3. muscle addon
   - If you'd like to include muscles in your RBDL muscles, such as those in Millard et al., then build RBDL with
   ```
     RBDL_BUILD_ADDON_GEOMETRY ON
@@ -156,7 +173,7 @@ at which point you will see full list of build options for RBDL. We recommend th
   - The geometry addon is a dependency which cmake will automatically include
   - Millard M, Emonds AL, Harant M, Mombaur K. A reduced muscle model and planar musculoskeletal model fit for the simulation of whole-body movements. Journal of biomechanics. 2019 Apr 10. 
    
-3. muscle addong: muscle fitting option
+4. muscle addong: muscle fitting option
   - If you'd like to make use of the muscle fitting algorithms detailed in Millard et al. 
   - Install Ipopt. One of the easier ways to do this is to follow these instructions from [Ipopt's online documentation](https://www.coin-or.org/Ipopt/documentation/node12.html#SECTION00042300000000000000) which guides you through the process. Instructions to build the code appear in the README located in the Ipopt folder
   - Configure RBDL's cmake file with these flags set to 'On'
