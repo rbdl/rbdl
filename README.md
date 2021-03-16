@@ -14,9 +14,9 @@ and closed-loop models.
 The code was originally developed by Martin Felis <martin@fysx.org> at the research group
 [Optimization in Robotics and Biomechanics (ORB)](http://orb.iwr.uni-heidelberg.de) of the
 [Interdisciplinary Center for Scientific Computing (IWR)](http://www.iwr.uni-heidelberg.de) and
-[Institut of Computer Engineering](https://www.ziti.uni-heidelberg.de/ziti/en/) at [Heidelberg
+[Institute of Computer Engineering](https://www.ziti.uni-heidelberg.de/ziti/en/) at [Heidelberg
 University](http://www.uni-heidelberg.de). The code closely follows the notation used in Roy
-Featherstone''s book "Rigid Body Dynamics Algorithm".
+Featherstone's book "Rigid Body Dynamics Algorithm".
 
 This repository contains the version of RBDL that is maintained by the members
 of the ORB research group. 
@@ -155,12 +155,12 @@ at which point you will see full list of build options for RBDL. We recommend th
   ```
 2. urdf addon
   - If you'd like to load model files written in URDF to RBDL. This addon uses the URDF_Parser library which is included as a submodule. You will need to have cloned the repository recursively!
-  If you missed doing that you can intialize the submodules after the fact with:
+  If you missed doing that you can intialize the submodules (from a terminal within the source directory) after the fact with:
   ```
   git submodule init
   git submodule update
   ```
-  - Budil RBDL with
+  - Build RBDL with
   ```
   RBDL_BUILD_ADDON_URDFREADER        ON
   ```
@@ -173,7 +173,7 @@ at which point you will see full list of build options for RBDL. We recommend th
   - The geometry addon is a dependency which cmake will automatically include
   - Millard M, Emonds AL, Harant M, Mombaur K. A reduced muscle model and planar musculoskeletal model fit for the simulation of whole-body movements. Journal of biomechanics. 2019 Apr 10. 
    
-4. muscle addong: muscle fitting option
+4. muscle addon: muscle fitting option
   - If you'd like to make use of the muscle fitting algorithms detailed in Millard et al. 
   - Install Ipopt. One of the easier ways to do this is to follow these instructions from [Ipopt's online documentation](https://www.coin-or.org/Ipopt/documentation/node12.html#SECTION00042300000000000000) which guides you through the process. Instructions to build the code appear in the README located in the Ipopt folder
   - Configure RBDL's cmake file with these flags set to 'On'
@@ -208,7 +208,7 @@ python 2. To do this enable the the `RBDL_BUILD_PYTHON_WRAPPER` cmake options.
 This will build the wrapper for python 3, if you want to use python 2 instead
 you will also have to enable the `RBDL_USE_PYTHON_2` cmake option. The result 
 of this is an extra python directory in the build directory. From within which 
-you can install it using setup.py. This is done automically when using 
+you can install it using setup.py. This is done automatically when using 
 `make install`
 
 ## Linux: Python wrapper dependencies 
@@ -252,7 +252,7 @@ There are four main ways to learn about anything that appears in RBDL:
 2. The Doxygen documentation   
   - The Doxygen for methods and components that were developed recently are 
   covered in great detail (e.g. the Millard2016TorqueMuscle class in the muscle addon).
-  - Doxygen for more well established methods are more sparsley documented.
+  - Doxygen for more well established methods are more sparsely documented.
 3. The test code; 
   - A minimalistic example of every command and modeling component can be found 
   in the test code (e.g. in rbdl/tests, addons/geometry/tests, addons/muscle/tests, etc).
