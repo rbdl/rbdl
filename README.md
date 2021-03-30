@@ -97,7 +97,18 @@ Building and Installation
   sudo apt install libunittest++-dev  
 ```
 
-8. Build RBDL using CMake
+8. Install Catch2 *(optional)*
+  Install Catch2 if you wand to run the URDF_Parser test code.
+  
+  At the moment most linux distributions do not have catch2 in their repositories yet. So the recommended install approach is to build it from source.
+  ```
+  $ git clone https://github.com/catchorg/Catch2.git
+  $ cd Catch2
+  $ cmake -Bbuild -H. -DBUILD_TESTING=OFF
+  $ sudo cmake --build build/ --target install 
+  ```
+
+9. Build RBDL using CMake
 ([http://www.cmake.org](http://www.cmake.org)). To compile the library in a separate directory in Release mode use:
 ```
   mkdir /rbdl-build
