@@ -51,6 +51,22 @@ To make sure all submodules are correctly downloaded, clone the repository recur
 git clone --recurive https://github.com/ORB-HD/rbdl-orb
 ```
 
+Upgrading from an older version of RBDL
+=======================================
+
+For convenience there is a script to upgrade to the newest RBDL repository version.
+
+```
+./upgrade.sh
+```
+
+It pulls the latest commits from master and also checks out the correct version of all sub repositories. Manual upgrading requires doing the following:
+
+```
+git pull origin master
+git submodule update --init
+```
+
 Building and Installation
 =========================
 
@@ -102,7 +118,7 @@ Building and Installation
   
   At the moment most linux distributions do not have catch2 in their repositories yet. So the recommended install approach is to build it from source.
   ```
-  $ git clone https://github.com/catchorg/Catch2.git
+  $ git clone --branch v2.x https://github.com/catchorg/Catch2.git
   $ cd Catch2
   $ cmake -Bbuild -H. -DBUILD_TESTING=OFF
   $ sudo cmake --build build/ --target install 
