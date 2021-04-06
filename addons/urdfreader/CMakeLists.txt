@@ -84,6 +84,16 @@ ELSE (RBDL_BUILD_STATIC)
 		)
 ENDIF (RBDL_BUILD_STATIC)
 
+IF (RUN_AUTOMATIC_TESTS)
+  IF (URDF_BUILD_TEST)
+  ADD_CUSTOM_COMMAND (TARGET rbdl_urdfreader
+    POST_BUILD
+    COMMAND ./thirdparty/urdfparser/test_library
+    COMMENT "Running automated tests..."
+    )
+  ENDIF(URDF_BUILD_TEST)
+ENDIF(RUN_AUTOMATIC_TESTS)
+
 FILE ( GLOB headers
 	"${CMAKE_CURRENT_SOURCE_DIR}/*.h"
 	)
