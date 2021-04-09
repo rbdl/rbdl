@@ -1,8 +1,9 @@
-#include <UnitTest++.h>
 #include "rbdl/rbdl.h"
 #include "rbdl/Constraint.h"
 #include "rbdl/Constraints.h"
 #include <cassert>
+
+#include "rbdl_tests.h"
 
 #include "PendulumModels.h"
 
@@ -480,7 +481,7 @@ public:
 
 
 
-TEST(CustomConstraintCorrectnessTest) {
+TEST_CASE(__FILE__"_CustomConstraintCorrectnessTest", "") {
 
   //Test to add:
   //  Jacobian vs. num Jacobian
@@ -614,10 +615,10 @@ TEST(CustomConstraintCorrectnessTest) {
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
   for(unsigned int i=0; i<err.rows();++i){
-    CHECK_CLOSE(0,err[i],TEST_PREC);
+    CHECK_THAT(0,IsClose(err[i],TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<errd.rows();++i){
-    CHECK_CLOSE(0,errd[i],TEST_PREC);
+    CHECK_THAT(0,IsClose(errd[i],TEST_PREC, TEST_PREC));
   }
 
 
@@ -638,12 +639,12 @@ TEST(CustomConstraintCorrectnessTest) {
 
   for(unsigned int i = 0; i < dba.cs.G.rows(); ++i){
     for(unsigned int j=0; j< dba.cs.G.cols();++j){
-      CHECK_CLOSE(dba.cs.G(i,j),dbcc.cs.G(i,j),TEST_PREC);
+      CHECK_THAT(dba.cs.G(i,j),IsClose(dbcc.cs.G(i,j),TEST_PREC, TEST_PREC));
     }
   }
 
   for(unsigned int i = 0; i < dba.cs.gamma.rows(); ++i){
-    CHECK_CLOSE(dba.cs.gamma[i],dbcc.cs.gamma[i],TEST_PREC);
+    CHECK_THAT(dba.cs.gamma[i],IsClose(dbcc.cs.gamma[i],TEST_PREC, TEST_PREC));
   }
 
   //This test cannot be performed with the updated Constraint interface
@@ -690,13 +691,15 @@ TEST(CustomConstraintCorrectnessTest) {
       CHECK( (forcesDba.size()    - forcesDbcc.size()    ) == 0);
 
       for(unsigned int k=0; k < bodyIdDba.size();++k){
-        CHECK_ARRAY_CLOSE( bodyFramesDba[k].r.data(),
-                            bodyFramesDbcc[k].r.data(), 3, TEST_PREC);
-        CHECK_ARRAY_CLOSE(bodyFramesDba[k].E.data(),
-                          bodyFramesDbcc[k].E.data(),
-                          9,TEST_PREC);
-        CHECK_ARRAY_CLOSE( forcesDba[k].data(),
-                          forcesDbcc[k].data(),6,TEST_PREC);
+        CHECK_THAT( bodyFramesDba[k].r,
+                    AllCloseVector(bodyFramesDbcc[k].r, TEST_PREC, TEST_PREC)
+        );
+        CHECK_THAT(bodyFramesDba[k].E,
+                   AllCloseMatrix(bodyFramesDbcc[k].E, TEST_PREC, TEST_PREC)
+        );
+        CHECK_THAT( forcesDba[k],
+                    AllCloseVector(forcesDbcc[k], TEST_PREC, TEST_PREC)
+        );
       }
     }
   }
@@ -713,9 +716,8 @@ TEST(CustomConstraintCorrectnessTest) {
                           dbcc.idB2,Vector3d(dbcc.l2,0.,0.),true);
 
   for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+    CHECK_THAT(a010[i],IsClose(a010c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a020[i],IsClose(a020c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
-
 }

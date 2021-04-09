@@ -1,11 +1,7 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 
-# Needed for UnitTest++
-LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../CMake )
-
-# Look for unittest++
-FIND_PACKAGE (UnitTest++ REQUIRED)
-INCLUDE_DIRECTORIES (${UNITTEST++_INCLUDE_DIR})
+# Look for catch2
+FIND_PACKAGE(Catch2 REQUIRED)
 
 SET ( TESTS_SRCS
   main.cc
@@ -37,7 +33,7 @@ SET ( TESTS_SRCS
   InverseDynamicsWithConstraintsTests.cc  
   )
 
-INCLUDE_DIRECTORIES ( ../src/ )
+INCLUDE_DIRECTORIES ( ${CMAKE_SOURCE_DIR}/include/ )
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
   LINKER_LANGUAGE CXX
@@ -48,7 +44,6 @@ ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} )
 
 SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
   LINKER_LANGUAGE CXX
-  OUTPUT_NAME runtests
   )
 
 SET (RBDL_LIBRARY rbdl)
@@ -57,7 +52,7 @@ IF (RBDL_BUILD_STATIC)
 ENDIF (RBDL_BUILD_STATIC)
 
 TARGET_LINK_LIBRARIES ( rbdl_tests
-  ${UNITTEST++_LIBRARY}
+  Catch2::Catch2
   ${RBDL_LIBRARY}
   )
 
@@ -66,7 +61,7 @@ OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)
 IF (RUN_AUTOMATIC_TESTS)
   ADD_CUSTOM_COMMAND (TARGET rbdl_tests
     POST_BUILD
-    COMMAND ./runtests
+    COMMAND ./rbdl_tests
     COMMENT "Running automated tests..."
     )
 ENDIF (RUN_AUTOMATIC_TESTS)

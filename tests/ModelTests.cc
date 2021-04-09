@@ -1,5 +1,3 @@
-#include <UnitTest++.h>
-
 #include <iostream>
 
 #include "Fixtures.h"
@@ -9,6 +7,8 @@
 #include "rbdl/Model.h"
 #include "rbdl/Kinematics.h"
 #include "rbdl/Dynamics.h"
+
+#include "rbdl_tests.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -28,117 +28,122 @@ struct ModelFixture {
   Model *model;
 };
 
-TEST_FIXTURE(ModelFixture, TestInit) {
-  CHECK_EQUAL (1u, model->lambda.size());
-  CHECK_EQUAL (1u, model->mu.size());
-  CHECK_EQUAL (0u, model->dof_count);
+TEST_CASE_METHOD(ModelFixture,
+                 __FILE__"_TestInit", "") {
+  CHECK (1u == model->lambda.size());
+  CHECK (1u == model->mu.size());
+  CHECK (0u == model->dof_count);
 
-  CHECK_EQUAL (0u, model->q_size);
-  CHECK_EQUAL (0u, model->qdot_size);
+  CHECK (0u == model->q_size);
+  CHECK (0u == model->qdot_size);
 
-  CHECK_EQUAL (1u, model->v.size());
-  CHECK_EQUAL (1u, model->a.size());
+  CHECK (1u == model->v.size());
+  CHECK (1u == model->a.size());
 
-  CHECK_EQUAL (1u, model->mJoints.size());
-  CHECK_EQUAL (1u, model->S.size());
+  CHECK (1u == model->mJoints.size());
+  CHECK (1u == model->S.size());
 
-  CHECK_EQUAL (1u, model->c.size());
-  CHECK_EQUAL (1u, model->IA.size());
-  CHECK_EQUAL (1u, model->pA.size());
-  CHECK_EQUAL (1u, model->U.size());
-  CHECK_EQUAL (1u, model->d.size());
-  CHECK_EQUAL (1u, model->u.size());
-  CHECK_EQUAL (1u, model->Ic.size());
-  CHECK_EQUAL (1u, model->I.size());
+  CHECK (1u == model->c.size());
+  CHECK (1u == model->IA.size());
+  CHECK (1u == model->pA.size());
+  CHECK (1u == model->U.size());
+  CHECK (1u == model->d.size());
+  CHECK (1u == model->u.size());
+  CHECK (1u == model->Ic.size());
+  CHECK (1u == model->I.size());
 
-  CHECK_EQUAL (1u, model->X_lambda.size());
-  CHECK_EQUAL (1u, model->X_base.size());
-  CHECK_EQUAL (1u, model->mBodies.size());
+  CHECK (1u == model->X_lambda.size());
+  CHECK (1u == model->X_base.size());
+  CHECK (1u == model->mBodies.size());
 }
 
-TEST_FIXTURE(ModelFixture, TestAddBodyDimensions) {
+TEST_CASE_METHOD(ModelFixture,
+                 __FILE__"_TestAddBodyDimensions", "") {
   Body body;
   Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
   unsigned int body_id = 0;
   body_id = model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
-  CHECK_EQUAL (1u, body_id);
-  CHECK_EQUAL (2u, model->lambda.size());
-  CHECK_EQUAL (2u, model->mu.size());
-  CHECK_EQUAL (1u, model->dof_count);
+  CHECK (1u == body_id);
+  CHECK (2u == model->lambda.size());
+  CHECK (2u == model->mu.size());
+  CHECK (1u == model->dof_count);
 
-  CHECK_EQUAL (2u, model->v.size());
-  CHECK_EQUAL (2u, model->a.size());
+  CHECK (2u == model->v.size());
+  CHECK (2u == model->a.size());
 
-  CHECK_EQUAL (2u, model->mJoints.size());
-  CHECK_EQUAL (2u, model->S.size());
+  CHECK (2u == model->mJoints.size());
+  CHECK (2u == model->S.size());
 
-  CHECK_EQUAL (2u, model->c.size());
-  CHECK_EQUAL (2u, model->IA.size());
-  CHECK_EQUAL (2u, model->pA.size());
-  CHECK_EQUAL (2u, model->U.size());
-  CHECK_EQUAL (2u, model->d.size());
-  CHECK_EQUAL (2u, model->u.size());
-  CHECK_EQUAL (2u, model->Ic.size());
-  CHECK_EQUAL (2u, model->I.size());
+  CHECK (2u == model->c.size());
+  CHECK (2u == model->IA.size());
+  CHECK (2u == model->pA.size());
+  CHECK (2u == model->U.size());
+  CHECK (2u == model->d.size());
+  CHECK (2u == model->u.size());
+  CHECK (2u == model->Ic.size());
+  CHECK (2u == model->I.size());
 
   SpatialVector spatial_zero;
   spatial_zero.setZero();
 
-  CHECK_EQUAL (2u, model->X_lambda.size());
-  CHECK_EQUAL (2u, model->X_base.size());
-  CHECK_EQUAL (2u, model->mBodies.size());
+  CHECK (2u == model->X_lambda.size());
+  CHECK (2u == model->X_base.size());
+  CHECK (2u == model->mBodies.size());
 }
 
-TEST_FIXTURE(ModelFixture, TestFloatingBodyDimensions) {
+TEST_CASE_METHOD(ModelFixture,
+                 __FILE__"_TestFloatingBodyDimensions", "") {
   Body body;
   Joint float_base_joint (JointTypeFloatingBase);
 
   model->AppendBody (SpatialTransform(), float_base_joint, body);
 
-  CHECK_EQUAL (3u, model->lambda.size());
-  CHECK_EQUAL (3u, model->mu.size());
-  CHECK_EQUAL (6u, model->dof_count);
-  CHECK_EQUAL (7u, model->q_size);
-  CHECK_EQUAL (6u, model->qdot_size);
+  CHECK (3u == model->lambda.size());
+  CHECK (3u == model->mu.size());
+  CHECK (6u == model->dof_count);
+  CHECK (7u == model->q_size);
+  CHECK (6u == model->qdot_size);
 
-  CHECK_EQUAL (3u, model->v.size());
-  CHECK_EQUAL (3u, model->a.size());
+  CHECK (3u == model->v.size());
+  CHECK (3u == model->a.size());
 
-  CHECK_EQUAL (3u, model->mJoints.size());
-  CHECK_EQUAL (3u, model->S.size());
+  CHECK (3u == model->mJoints.size());
+  CHECK (3u == model->S.size());
 
-  CHECK_EQUAL (3u, model->c.size());
-  CHECK_EQUAL (3u, model->IA.size());
-  CHECK_EQUAL (3u, model->pA.size());
-  CHECK_EQUAL (3u, model->U.size());
-  CHECK_EQUAL (3u, model->d.size());
-  CHECK_EQUAL (3u, model->u.size());
+  CHECK (3u == model->c.size());
+  CHECK (3u == model->IA.size());
+  CHECK (3u == model->pA.size());
+  CHECK (3u == model->U.size());
+  CHECK (3u == model->d.size());
+  CHECK (3u == model->u.size());
 
   SpatialVector spatial_zero;
   spatial_zero.setZero();
 
-  CHECK_EQUAL (3u, model->X_lambda.size());
-  CHECK_EQUAL (3u, model->X_base.size());
-  CHECK_EQUAL (3u, model->mBodies.size());
+  CHECK (3u == model->X_lambda.size());
+  CHECK (3u == model->X_base.size());
+  CHECK (3u == model->mBodies.size());
 }
 
-/** \brief Tests whether the joint and body information stored in the Model are computed correctly 
+/** \brief Tests whether the joint and body information stored in the Model are computed correctly
 */
-TEST_FIXTURE(ModelFixture, TestAddBodySpatialValues) {
+TEST_CASE_METHOD(ModelFixture,
+                 __FILE__"_TestAddBodySpatialValues", "") {
   Body body;
   Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
   model->AddBody(0, Xtrans(Vector3d(0., 0., 0.)), joint, body); 
 
   SpatialVector spatial_joint_axis(0., 0., 1., 0., 0., 0.);
-  CHECK_EQUAL (spatial_joint_axis, joint.mJointAxes[0]);
+  CHECK (spatial_joint_axis == joint.mJointAxes[0]);
 
   // \Todo: Dynamic properties
 }
 
-TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
+TEST_CASE_METHOD(ModelFixture,
+                 __FILE__"_TestAddBodyTestBodyName", "") {
   Body body;
   Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
@@ -146,11 +151,12 @@ TEST_FIXTURE(ModelFixture, TestAddBodyTestBodyName) {
 
   unsigned int body_id = model->GetBodyId("mybody");
 
-  CHECK_EQUAL (1u, body_id);
-  CHECK_EQUAL (std::numeric_limits<unsigned int>::max(), model->GetBodyId("unknownbody"));
+  CHECK (1u == body_id);
+  CHECK(std::numeric_limits<unsigned int>::max() == model->GetBodyId("unknown"));
 }
 
-TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
+TEST_CASE_METHOD(ModelFixture,
+                 __FILE__"_TestjcalcSimple", "") {
   Body body;
   Joint joint ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
@@ -177,9 +183,10 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
       0., 0., 1., 0., 0., 0.
       );
 
-  CHECK (SpatialMatrixCompareEpsilon (test_matrix, model->X_J[1].toMatrix(), 1.0e-16));
+  CHECK (SpatialMatrixCompareEpsilon (test_matrix,
+                                      model->X_J[1].toMatrix(), 1.0e-16));
   CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
-  CHECK_EQUAL (test_joint_axis, model->S[1]);
+  CHECK (test_joint_axis == model->S[1]);
 
   Q[0] = M_PI * 0.5;
   QDot[0] = 1.;
@@ -195,12 +202,14 @@ TEST_FIXTURE(ModelFixture, TestjcalcSimple) {
       0.,  0.,  0.,  0.,  0.,  1.
       );
 
-  CHECK (SpatialMatrixCompareEpsilon (test_matrix, model->X_J[1].toMatrix(), 1.0e-16));
+  CHECK (SpatialMatrixCompareEpsilon (test_matrix,
+                                      model->X_J[1].toMatrix(), 1.0e-16));
   CHECK (SpatialVectorCompareEpsilon (test_vector, model->v_J[1], 1.0e-16));
-  CHECK_EQUAL (test_joint_axis, model->S[1]);
+  CHECK (test_joint_axis == model->S[1]);
 }
 
-TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
+TEST_CASE_METHOD ( ModelFixture,
+                   __FILE__"_TestTransformBaseToLocal", "" ) {
   Body body;
 
   unsigned int body_id = model->AddBody (0, SpatialTransform(), 
@@ -224,10 +233,14 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
   Vector3d base_coords_back;
 
   UpdateKinematics (*model, q, qdot, qddot);
-  body_coords = CalcBaseToBodyCoordinates (*model, q, body_id, base_coords, false);
-  base_coords_back = CalcBodyToBaseCoordinates (*model, q, body_id, body_coords, false);
+  body_coords = CalcBaseToBodyCoordinates (*model, q, body_id,
+                                           base_coords, false);
+  base_coords_back = CalcBodyToBaseCoordinates (*model, q, body_id,
+                                                body_coords, false);
 
-  CHECK_ARRAY_CLOSE (base_coords.data(), base_coords_back.data(), 3, TEST_PREC);
+  CHECK_THAT (base_coords,
+              AllCloseVector(base_coords_back, TEST_PREC, TEST_PREC)
+  );
 
   q[0] = 1.;
   q[1] = 0.2;
@@ -237,13 +250,17 @@ TEST_FIXTURE ( ModelFixture, TestTransformBaseToLocal ) {
   q[5] = -0.23;
 
   UpdateKinematics (*model, q, qdot, qddot);
-  body_coords = CalcBaseToBodyCoordinates (*model, q, body_id, base_coords, false);
-  base_coords_back = CalcBodyToBaseCoordinates (*model, q, body_id, body_coords, false);
+  body_coords = CalcBaseToBodyCoordinates (*model, q, body_id,
+                                           base_coords, false);
+  base_coords_back = CalcBodyToBaseCoordinates (*model, q, body_id,
+                                                body_coords, false);
 
-  CHECK_ARRAY_CLOSE (base_coords.data(), base_coords_back.data(), 3, TEST_PREC);
+  CHECK_THAT (base_coords,
+              AllCloseVector(base_coords_back, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST ( Model2DoFJoint ) {
+TEST_CASE ( __FILE__"_Model2DoFJoint", "" ) {
   // the standard modeling using a null body
   Body null_body;
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -277,10 +294,12 @@ TEST ( Model2DoFJoint ) {
   ForwardDynamics (model_std, Q, QDot, Tau, QDDot_std);
   ForwardDynamics (model_2, Q, QDot, Tau, QDDot_2);
 
-  CHECK_ARRAY_CLOSE (QDDot_std.data(), QDDot_2.data(), model_std.dof_count, TEST_PREC);
+  CHECK_THAT (QDDot_std,
+              AllCloseVector(QDDot_2, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST ( Model3DoFJoint ) {
+TEST_CASE ( __FILE__"_Model3DoFJoint", "" ) {
   // the standard modeling using a null body
   Body null_body;
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -298,11 +317,11 @@ TEST ( Model3DoFJoint ) {
   // correct.
   model_std.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
   model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
-  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x,body);
 
-  model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
+  model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)),joint_rot_z,null_body);
   model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
-  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x,body);
 
   // using a model with a 2 DoF joint
   Joint joint_rot_zyx (
@@ -316,8 +335,9 @@ TEST ( Model3DoFJoint ) {
 
   // in total we add two bodies to make sure that the transformations are
   // correct.
-  body_id = model_2.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx, body);
-  body_id = model_2.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx, body);
+  body_id = model_2.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx,body);
+  body_id = model_2.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx,
+                            body);
 
   VectorNd Q = VectorNd::Zero(model_std.dof_count);
   VectorNd QDot = VectorNd::Zero(model_std.dof_count);
@@ -329,10 +349,12 @@ TEST ( Model3DoFJoint ) {
   ForwardDynamics (model_std, Q, QDot, Tau, QDDot_std);
   ForwardDynamics (model_2, Q, QDot, Tau, QDDot_2);
 
-  CHECK_ARRAY_CLOSE (QDDot_std.data(), QDDot_2.data(), model_std.dof_count, TEST_PREC);
+  CHECK_THAT (QDDot_std,
+              AllCloseVector(QDDot_2, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST ( Model6DoFJoint ) {
+TEST_CASE ( __FILE__"_Model6DoFJoint", "" ) {
   // the standard modeling using a null body
   Body null_body;
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -356,9 +378,9 @@ TEST ( Model6DoFJoint ) {
       );
   body_id = model_std.AddBody (0, SpatialTransform(), joint_floating_base, body);
 
-  model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_z, null_body); 
+  model_std.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)),joint_rot_z,null_body);
   model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_y, null_body); 
-  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x, body); 
+  body_id = model_std.AppendBody(Xtrans(Vector3d(0., 0., 0.)), joint_rot_x,body);
 
   // using a model with a 2 DoF joint
   Joint joint_rot_zyx (
@@ -372,8 +394,10 @@ TEST ( Model6DoFJoint ) {
 
   // in total we add two bodies to make sure that the transformations are
   // correct.
-  body_id = model_2.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_floating_base, body);
-  body_id = model_2.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx, body);
+  body_id = model_2.AddBody(0, Xtrans(Vector3d(1., 0., 0.)), joint_floating_base,
+                            body);
+  body_id = model_2.AddBody(body_id, Xtrans(Vector3d(1., 0., 0.)), joint_rot_zyx,
+                            body);
 
   VectorNd Q = VectorNd::Zero(model_std.dof_count);
   VectorNd QDot = VectorNd::Zero(model_std.dof_count);
@@ -387,10 +411,12 @@ TEST ( Model6DoFJoint ) {
   ForwardDynamics (model_std, Q, QDot, Tau, QDDot_std);
   ForwardDynamics (model_2, Q, QDot, Tau, QDDot_2);
 
-  CHECK_ARRAY_CLOSE (QDDot_std.data(), QDDot_2.data(), model_std.dof_count, TEST_PREC);
+  CHECK_THAT (QDDot_std,
+              AllCloseVector(QDDot_2, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST ( ModelFixedJointQueryBodyId ) {
+TEST_CASE ( __FILE__"_ModelFixedJointQueryBodyId", "" ) {
   // the standard modeling using a null body
   Body null_body;
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -401,9 +427,11 @@ TEST ( ModelFixedJointQueryBodyId ) {
   Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
   model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
-  unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
+  unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)),
+                                                 Joint(JointTypeFixed),
+                                                 fixed_body, "fixed_body");
 
-  CHECK_EQUAL (fixed_body_id, model.GetBodyId("fixed_body"));
+  CHECK (fixed_body_id == model.GetBodyId("fixed_body"));
 }
 
 /* 
@@ -411,7 +439,7 @@ TEST ( ModelFixedJointQueryBodyId ) {
  * newly added parent is actually the moving body that the fixed body is
  * attached to.
  */
-TEST ( ModelAppendToFixedBody ) {
+TEST_CASE ( __FILE__"_ModelAppendToFixedBody", "" ) {
   Body null_body;
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
   Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -420,16 +448,18 @@ TEST ( ModelAppendToFixedBody ) {
 
   Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
-  unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
-  //	unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
-  unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
+  unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)),
+                                             joint_rot_z, body);
+  unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)),
+                                                    joint_rot_z, body,
+                                                    "appended_body");
 
-  CHECK_EQUAL (movable_body + 1, appended_body_id);
-  CHECK_EQUAL (movable_body, model.lambda[appended_body_id]);
+  CHECK (movable_body + 1 == appended_body_id);
+  CHECK (movable_body == model.lambda[appended_body_id]);
 }
 
 // Adds a fixed body to another fixed body.
-TEST ( ModelAppendFixedToFixedBody ) {
+TEST_CASE ( __FILE__"_ModelAppendFixedToFixedBody", "" ) {
   Body null_body;
 
   double movable_mass = 1.1;
@@ -447,27 +477,44 @@ TEST ( ModelAppendFixedToFixedBody ) {
 
   Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
-  unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
-  unsigned int fixed_body_id = model.AppendBody (Xtrans(fixed_displacement), Joint(JointTypeFixed), fixed_body, "fixed_body");
-  unsigned int fixed_body_2_id = model.AppendBody (Xtrans(fixed_displacement), Joint(JointTypeFixed), fixed_body, "fixed_body_2");
-  unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
+  unsigned int movable_body = model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)),
+                                             joint_rot_z, body);
+  unsigned int fixed_body_id = model.AppendBody (Xtrans(fixed_displacement),
+                                                 Joint(JointTypeFixed),
+                                                 fixed_body, "fixed_body");
+  unsigned int fixed_body_2_id = model.AppendBody (Xtrans(fixed_displacement),
+                                                   Joint(JointTypeFixed),
+                                                   fixed_body, "fixed_body_2");
+  unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)),
+                                                    joint_rot_z, body,
+                                                    "appended_body");
 
-  CHECK_EQUAL (movable_body + 1, appended_body_id);
-  CHECK_EQUAL (movable_body, model.lambda[appended_body_id]);
-  CHECK_EQUAL (movable_mass + fixed_mass * 2., model.mBodies[movable_body].mMass);
+  CHECK (movable_body + 1 == appended_body_id);
+  CHECK (movable_body == model.lambda[appended_body_id]);
+  CHECK (movable_mass + fixed_mass * 2 == model.mBodies[movable_body].mMass);
 
-  CHECK_EQUAL (movable_body, model.mFixedBodies[fixed_body_id - model.fixed_body_discriminator].mMovableParent);
-  CHECK_EQUAL (movable_body, model.mFixedBodies[fixed_body_2_id - model.fixed_body_discriminator].mMovableParent);
+  CHECK (movable_body == model.mFixedBodies[fixed_body_id
+                                            - model.fixed_body_discriminator]
+                              .mMovableParent);
+  CHECK (movable_body == model.mFixedBodies[fixed_body_2_id
+                                            - model.fixed_body_discriminator]
+                              .mMovableParent);
 
   double new_mass = 3.5;
-  Vector3d new_com = (1. / new_mass) * (movable_mass * movable_com + fixed_mass * (fixed_com + fixed_displacement) + fixed_mass * (fixed_com + fixed_displacement * 2.));
+  Vector3d new_com = (1. / new_mass) * (movable_mass * movable_com + fixed_mass
+                                        * (fixed_com + fixed_displacement)
+                                        + fixed_mass
+                                        * (fixed_com + fixed_displacement * 2.));
 
-  CHECK_ARRAY_CLOSE (new_com.data(), model.mBodies[movable_body].mCenterOfMass.data(), 3, TEST_PREC);
+  CHECK_THAT (new_com,
+              AllCloseVector(model.mBodies[movable_body].mCenterOfMass,
+                             TEST_PREC, TEST_PREC)
+  );
 }
 
 // Ensures that the transformations of the movable parent and fixed joint
 // frame is in proper order
-TEST ( ModelFixedJointRotationOrderTranslationRotation ) {
+TEST_CASE ( __FILE__"_ModelFixedJointRotationOrderTranslationRotation", "" ) {
   // the standard modeling using a null body
   Body null_body;
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -486,14 +533,17 @@ TEST ( ModelFixedJointRotationOrderTranslationRotation ) {
 
   VectorNd Q (VectorNd::Zero(model.dof_count));
   Q[0] = 45 * M_PI / 180.;
-  Vector3d point = CalcBodyToBaseCoordinates (model, Q, body_after_fixed, Vector3d (0., 1., 0.));
+  Vector3d point = CalcBodyToBaseCoordinates (model, Q, body_after_fixed,
+                                              Vector3d (0., 1., 0.));
 
-  CHECK_ARRAY_CLOSE (Vector3d (0., 1., 0.).data(), point.data(), 3, TEST_PREC);
+  CHECK_THAT (Vector3d (0., 1., 0.),
+              AllCloseVector(point, TEST_PREC, TEST_PREC)
+  );
 }
 
 // Ensures that the transformations of the movable parent and fixed joint
 // frame is in proper order
-TEST ( ModelFixedJointRotationOrderRotationTranslation ) {
+TEST_CASE ( __FILE__"_ModelFixedJointRotationOrderRotationTranslation", "" ) {
   // the standard modeling using a null body
   Body null_body;
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -512,12 +562,15 @@ TEST ( ModelFixedJointRotationOrderRotationTranslation ) {
 
   VectorNd Q (VectorNd::Zero(model.dof_count));
   Q[0] = 45 * M_PI / 180.;
-  Vector3d point = CalcBodyToBaseCoordinates (model, Q, body_after_fixed, Vector3d (0., 1., 0.));
+  Vector3d point = CalcBodyToBaseCoordinates (model, Q, body_after_fixed,
+                                              Vector3d (0., 1., 0.));
 
-  CHECK_ARRAY_CLOSE (Vector3d (-1., 2., 0.).data(), point.data(), 3, TEST_PREC);
+  CHECK_THAT (Vector3d (-1., 2., 0.),
+              AllCloseVector(point, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST ( ModelGetBodyName ) {
+TEST_CASE ( __FILE__"_ModelGetBodyName", "" ) {
   Body null_body;
   Body body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
   Body fixed_body(1., Vector3d (1., 0.4, 0.4), Vector3d (1., 1., 1.));
@@ -527,41 +580,58 @@ TEST ( ModelGetBodyName ) {
   Joint joint_rot_z ( SpatialVector (0., 0., 1., 0., 0., 0.));
 
   model.AddBody (0, Xtrans(Vector3d(0., 0., 0.)), joint_rot_z, body);
-  unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), Joint(JointTypeFixed), fixed_body, "fixed_body");
-  unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)), joint_rot_z, body, "appended_body");
+  unsigned int fixed_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)),
+                                                 Joint(JointTypeFixed),
+                                                 fixed_body, "fixed_body");
+  unsigned int appended_body_id = model.AppendBody (Xtrans(Vector3d(0., 1., 0.)),
+                                                    joint_rot_z,
+                                                    body, "appended_body");
 
-  CHECK_EQUAL (string("fixed_body"), model.GetBodyName(fixed_body_id));
-  CHECK_EQUAL (string("appended_body"), model.GetBodyName(appended_body_id));
-  CHECK_EQUAL (string(""), model.GetBodyName(123));
+  CHECK (string("fixed_body") == model.GetBodyName(fixed_body_id));
+  CHECK (string("appended_body") == model.GetBodyName(appended_body_id));
+  CHECK (string("") == model.GetBodyName(123));
 }
 
-TEST_FIXTURE ( RotZRotZYXFixed, ModelGetParentBodyId ) {
-  CHECK_EQUAL (0u, model->GetParentBodyId(0));
-  CHECK_EQUAL (0u, model->GetParentBodyId(body_a_id));
-  CHECK_EQUAL (body_a_id, model->GetParentBodyId(body_b_id));
+TEST_CASE_METHOD ( RotZRotZYXFixed,
+                   __FILE__"_ModelGetParentBodyId", "" ) {
+  CHECK (0u == model->GetParentBodyId(0));
+  CHECK (0u == model->GetParentBodyId(body_a_id));
+  CHECK (body_a_id == model->GetParentBodyId(body_b_id));
 }
 
-TEST_FIXTURE(RotZRotZYXFixed, ModelGetParentIdFixed) {
-  CHECK_EQUAL (body_b_id, model->GetParentBodyId(body_fixed_id));
+TEST_CASE_METHOD(RotZRotZYXFixed,
+                 __FILE__"_ModelGetParentIdFixed", "") {
+  CHECK (body_b_id == model->GetParentBodyId(body_fixed_id));
 }
 
-TEST_FIXTURE(RotZRotZYXFixed, ModelGetJointFrame) {
+TEST_CASE_METHOD(RotZRotZYXFixed,
+                 __FILE__"_ModelGetJointFrame", "") {
   SpatialTransform transform_a = model->GetJointFrame (body_a_id);
   SpatialTransform transform_b = model->GetJointFrame (body_b_id);
   SpatialTransform transform_root = model->GetJointFrame (0);
 
-  CHECK_ARRAY_EQUAL (fixture_transform_a.r.data(), transform_a.r.data(), 3);
-  CHECK_ARRAY_EQUAL (fixture_transform_b.r.data(), transform_b.r.data(), 3);
-  CHECK_ARRAY_EQUAL (Vector3d(0., 0., 0.).data(), transform_root.r.data(), 3);
+  CHECK_THAT (fixture_transform_a.r,
+              AllCloseVector(transform_a.r, 0., 0. )
+  );
+  CHECK_THAT (fixture_transform_b.r,
+              AllCloseVector(transform_b.r, 0., 0. )
+  );
+  CHECK_THAT (Vector3d(0., 0., 0.),
+              AllCloseVector(transform_root.r, 0., 0. )
+  );
 }
 
-TEST_FIXTURE(RotZRotZYXFixed, ModelGetJointFrameFixed) {
+TEST_CASE_METHOD(RotZRotZYXFixed,
+                 __FILE__"_ModelGetJointFrameFixed", "") {
   SpatialTransform transform_fixed = model->GetJointFrame (body_fixed_id);
 
-  CHECK_ARRAY_EQUAL (fixture_transform_fixed.r.data(), transform_fixed.r.data(), 3);
+  CHECK_THAT (fixture_transform_fixed.r,
+              AllCloseVector(transform_fixed.r, 0., 0.)
+  );
 }
 
-TEST_FIXTURE(RotZRotZYXFixed, ModelSetJointFrame) {
+TEST_CASE_METHOD(RotZRotZYXFixed,
+                 __FILE__"_ModelSetJointFrame", "") {
   SpatialTransform new_transform_a = Xtrans (Vector3d(-1., -2., -3.));
   SpatialTransform new_transform_b = Xtrans (Vector3d(-4., -5., -6.));
   SpatialTransform new_transform_root = Xtrans (Vector3d(-99, -99., -99.));
@@ -574,12 +644,18 @@ TEST_FIXTURE(RotZRotZYXFixed, ModelSetJointFrame) {
   SpatialTransform transform_b = model->GetJointFrame (body_b_id);
   SpatialTransform transform_root = model->GetJointFrame (0);
 
-  CHECK_ARRAY_EQUAL (new_transform_a.r.data(), transform_a.r.data(), 3);
-  CHECK_ARRAY_EQUAL (new_transform_b.r.data(), transform_b.r.data(), 3);
-  CHECK_ARRAY_EQUAL (Vector3d(0., 0., 0.).data(), transform_root.r.data(), 3);
+  CHECK_THAT (new_transform_a.r,
+              AllCloseVector(transform_a.r, 0., 0. )
+  );
+  CHECK_THAT (new_transform_b.r,
+              AllCloseVector(transform_b.r, 0., 0. )
+  );
+  CHECK_THAT (Vector3d(0., 0., 0.),
+              AllCloseVector(transform_root.r, 0., 0. )
+  );
 }
 
-TEST (CalcBodyWorldOrientationFixedJoint) {
+TEST_CASE (__FILE__"_CalcBodyWorldOrientationFixedJoint", "") {
   Model model_fixed;
   Model model_movable;
 
@@ -588,17 +664,23 @@ TEST (CalcBodyWorldOrientationFixedJoint) {
   Joint joint_rot_x = (SpatialVector (1., 0., 0., 0., 0., 0.));
 
   model_fixed.AppendBody (Xrotx (45 * M_PI / 180), joint_rot_x, body);
-  unsigned int body_id_fixed = model_fixed.AppendBody (Xroty (45 * M_PI / 180), joint_fixed, body);
+  unsigned int body_id_fixed = model_fixed.AppendBody (Xroty (45 * M_PI / 180),
+                                                       joint_fixed, body);
 
   model_movable.AppendBody (Xrotx (45 * M_PI / 180), joint_rot_x, body);
-  unsigned int body_id_movable = model_movable.AppendBody (Xroty (45 * M_PI / 180), joint_rot_x, body);
+  unsigned int body_id_movable = model_movable.AppendBody (Xroty (45 * M_PI/180),
+                                                           joint_rot_x, body);
 
   VectorNd q_fixed (VectorNd::Zero (model_fixed.q_size));
   VectorNd q_movable (VectorNd::Zero (model_movable.q_size));
 
-  Matrix3d E_fixed = CalcBodyWorldOrientation (model_fixed, q_fixed, body_id_fixed);
-  Matrix3d E_movable = CalcBodyWorldOrientation (model_movable, q_movable, body_id_movable);
+  Matrix3d E_fixed = CalcBodyWorldOrientation (model_fixed, q_fixed,
+                                               body_id_fixed);
+  Matrix3d E_movable = CalcBodyWorldOrientation (model_movable, q_movable,
+                                                 body_id_movable);
 
-  CHECK_ARRAY_CLOSE (E_movable.data(), E_fixed.data(), 9, TEST_PREC);
+  CHECK_THAT (E_movable,
+              AllCloseMatrix(E_fixed, TEST_PREC, TEST_PREC)
+  );
 }
 

@@ -1,9 +1,10 @@
-#include <UnitTest++.h>
-
 #include "rbdl/Logging.h"
 #include "rbdl/rbdl_math.h"
 #include "rbdl/rbdl_mathutils.h"
+
 #include <iostream>
+
+#include "rbdl_tests.h"
 
 const double TEST_PREC = 1.0e-14;
 
@@ -13,7 +14,7 @@ using namespace RigidBodyDynamics::Math;
 struct MathFixture {
 };
 
-TEST (GaussElimPivot) {
+TEST_CASE (__FILE__"_GaussElimPivot", "") {
   ClearLogOutput();
 
   MatrixNd A;
@@ -37,7 +38,7 @@ TEST (GaussElimPivot) {
 
   LinSolveGaussElimPivot (A, b, x);
 
-  CHECK_ARRAY_CLOSE (test_result.data(), x.data(), 3, TEST_PREC);
+  CHECK_THAT (test_result, AllCloseVector(x, TEST_PREC, TEST_PREC));
 
   A(0,0) = 0; A(0,1) = -2; A(0,2) = 1;
   A(1,0) = 1; A(1,1) =  1; A(1,2) = 5;
@@ -48,33 +49,31 @@ TEST (GaussElimPivot) {
   test_result[1] = 1;
   test_result[2] = 3;
 
-  CHECK_ARRAY_CLOSE (test_result.data(), x.data(), 3, TEST_PREC);
+  CHECK_THAT (test_result, AllCloseVector(x, TEST_PREC, TEST_PREC));
 }
 
-TEST (Dynamic_1D_initialize_value) {
+TEST_CASE (__FILE__"_Dynamic_1D_initialize_value", "") {
   VectorNd myvector_10 = VectorNd::Constant ((size_t) 10, 12.);
 
-  double *test_values = new double[10];
+  VectorNd test_values = VectorNd(10);
   for (unsigned int i = 0; i < 10; i++)
     test_values[i] = 12.;
 
-  CHECK_ARRAY_EQUAL (test_values, myvector_10.data(), 10);
-  delete[] test_values;
+  CHECK_THAT (test_values, AllCloseVector(myvector_10, TEST_PREC, TEST_PREC));
 }
 
-TEST (Dynamic_2D_initialize_value) {
+TEST_CASE (__FILE__"_Dynamic_2D_initialize_value", "") {
   MatrixNd mymatrix_10x10 = MatrixNd::Constant (10, 10, 12.);
 
-  double *test_values = new double[10 * 10];
+  MatrixNd test_values = MatrixNd(10,10);
   for (unsigned int i = 0; i < 10; i++)
     for (unsigned int j = 0; j < 10; j++)
-      test_values[i*10 + j] = 12.;
+      test_values(i,j) = 12.;
 
-  CHECK_ARRAY_EQUAL (test_values, mymatrix_10x10.data(), 10*10);
-  delete[] test_values;
+  CHECK_THAT (test_values, AllCloseMatrix(mymatrix_10x10, TEST_PREC, TEST_PREC));
 }
 
-TEST (SpatialMatrix_Multiplication) {
+TEST_CASE (__FILE__"_SpatialMatrix_Multiplication", "") {
   SpatialMatrix X_1 (
       1.,  2.,  3.,  4.,  5.,  6.,
       11., 12., 13., 14., 15., 16.,
@@ -99,11 +98,11 @@ TEST (SpatialMatrix_Multiplication) {
 
   SpatialMatrix test_result = X_1 * X_2;
 
-  CHECK_ARRAY_CLOSE (correct_result.data(), test_result.data(), 6 * 6, TEST_PREC);
+  CHECK_THAT (correct_result, AllCloseMatrix(test_result, TEST_PREC, TEST_PREC));
 
   // check the *= operator:
   test_result = X_1;
   test_result *= X_2;
 
-  CHECK_ARRAY_CLOSE (correct_result.data(), test_result.data(), 6 * 6, TEST_PREC);
+  CHECK_THAT (correct_result, AllCloseMatrix(test_result, TEST_PREC, TEST_PREC));
 }

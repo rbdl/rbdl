@@ -1,4 +1,6 @@
-#include <UnitTest++.h>
+#define CATCH_CONFIG_RUNNER
+#include "catch2/catch.hpp"
+
 #include <iostream>
 #include <string>
 
@@ -11,9 +13,11 @@ int main (int argc, char *argv[])
   if (argc > 1) {
     std::string arg (argv[1]);
 
-    if (arg == "-v" || arg == "--version")
+    if (arg == "-v" || arg == "--version") {
       rbdl_print_version();
+      return 0;
+    }
   }
 
-  return UnitTest::RunAllTests ();
+  return Catch::Session().run(argc, argv);
 }

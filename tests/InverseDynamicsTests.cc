@@ -1,11 +1,11 @@
-#include <UnitTest++.h>
-
 #include <iostream>
 
 #include "rbdl/Logging.h"
 
 #include "rbdl/Model.h"
 #include "rbdl/Dynamics.h"
+
+#include "rbdl_tests.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -26,7 +26,8 @@ struct InverseDynamicsFixture {
 };
 
 #ifndef USE_SLOW_SPATIAL_ALGEBRA
-TEST_FIXTURE(InverseDynamicsFixture, TestInverseForwardDynamicsFloatingBase) {
+TEST_CASE_METHOD(InverseDynamicsFixture,
+                 __FILE__"_TestInverseForwardDynamicsFloatingBase", "") {
   Body base_body(1., Vector3d (1., 0., 0.), Vector3d (1., 1., 1.));
 
   model->AddBody (0, SpatialTransform(), 
@@ -71,6 +72,8 @@ TEST_FIXTURE(InverseDynamicsFixture, TestInverseForwardDynamicsFloatingBase) {
   ForwardDynamics(*model, Q, QDot, Tau, QDDot);
   InverseDynamics(*model, Q, QDot, QDDot, TauInv);
 
-  CHECK_ARRAY_CLOSE (Tau.data(), TauInv.data(), Tau.size(), TEST_PREC);
+  CHECK_THAT (Tau,
+              AllCloseVector(TauInv, TEST_PREC, TEST_PREC)
+  );
 }
 #endif

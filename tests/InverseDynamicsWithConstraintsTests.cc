@@ -1,11 +1,11 @@
-#include <UnitTest++.h>
 #include "rbdl/rbdl.h"
 #include "PendulumModels.h"
-#include <cassert>
 
 #include <chrono>
 #include <thread>
 #include <iostream>
+
+#include "rbdl_tests.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -14,9 +14,6 @@ using namespace RigidBodyDynamics::Math;
 const double TEST_PREC = 1.0e-11;
 
 const bool flag_printTimingData = false;
-
-
-
 
 void calcCuboidInertia(double mass,
                        double xLength,
@@ -47,7 +44,8 @@ struct PlanarBipedFloatingBase {
 
     Body segment = Body(segmentMass,
                         Vector3d(0, 0., -0.5 * segmentLength),
-                        Vector3d(0.,segmentMass*segmentLength*segmentLength/3.,0.));
+                        Vector3d(0.,segmentMass*segmentLength*segmentLength
+                                    /3.,0.));
     Body pelvis  = Body(pelvisMass, Vector3d(0, 0., 0.),
                         Vector3d(0.,pelvisMass*pelvisWidth*pelvisWidth/3.,0.));
 
@@ -301,7 +299,8 @@ struct SpatialBipedFloatingBase {
 };
 
 
-TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
+TEST_CASE_METHOD(PlanarBipedFloatingBase,
+                 __FILE__"_TestCorrectness", "") {
 
   //1. Make the simple biped
   //2. Assemble it to a specific q and qdot.
@@ -391,7 +390,7 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   //In this case the target qdd should be reachable exactly.
   for(unsigned int i=0; i<qddIDC.rows();++i){
-    CHECK_CLOSE(qddIDC[i], qddTarget[i],TEST_PREC);
+    CHECK_THAT(qddIDC[i], IsClose(qddTarget[i],TEST_PREC, TEST_PREC));
   }
 
 
@@ -403,10 +402,10 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
   qddErr = qddIDC-qddFwd;
   lambdaErr=lambdaIdc-lambdaFwd;
   for(unsigned int i=0; i<q.rows();++i){
-    CHECK_CLOSE(qddIDC[i], qddFwd[i], TEST_PREC);
+    CHECK_THAT(qddIDC[i], IsClose(qddFwd[i], TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<lambdaFwd.rows();++i){
-    CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
+    CHECK_THAT(lambdaIdc[i], IsClose(lambdaFwd[i], TEST_PREC, TEST_PREC));
   }
 
   //Check the relaxed method: if you give it a valid qddot as a target
@@ -422,7 +421,7 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
   //have corresponding entries in tau that are exactly zero:
   for(unsigned int i=0; i<tauIDCR.rows();++i){
     if(dofActuated[i]==false){
-      CHECK_CLOSE(tauIDCR[i],0.,TEST_PREC);
+      CHECK_THAT(tauIDCR[i],IsClose(0.,TEST_PREC, TEST_PREC));
     }
   }
 
@@ -434,10 +433,10 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   lambdaErr=lambdaIdc-lambdaFwd;
   for(unsigned int i=0; i<q.rows();++i){
-    CHECK_CLOSE(qddIDCR[i], qddFwd[i], TEST_PREC);
+    CHECK_THAT(qddIDCR[i], IsClose(qddFwd[i], TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<lambdaFwd.rows();++i){
-    CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
+    CHECK_THAT(lambdaIdc[i], IsClose(lambdaFwd[i], TEST_PREC, TEST_PREC));
   }
 
 
@@ -477,7 +476,7 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   for(unsigned int i=0; i<tauIDCR.size();++i){
     if(dofActuated[i]==false){
-      CHECK_CLOSE(tauIDCR[i],0.,TEST_PREC);
+      CHECK_THAT(tauIDCR[i],IsClose(0.,TEST_PREC, TEST_PREC));
     }
   }
 
@@ -486,10 +485,10 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 
   lambdaErr=lambdaIdc-lambdaFwd;
   for(unsigned int i=0; i<q.rows();++i){
-    CHECK_CLOSE(qddIDCR[i], qddFwd[i], TEST_PREC);
+    CHECK_THAT(qddIDCR[i], IsClose(qddFwd[i], TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<lambdaFwd.rows();++i){
-    CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
+    CHECK_THAT(lambdaIdc[i], IsClose(lambdaFwd[i], TEST_PREC, TEST_PREC));
   }
 
 
@@ -543,7 +542,8 @@ TEST_FIXTURE(PlanarBipedFloatingBase, TestCorrectness) {
 }
 
 
-TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
+TEST_CASE_METHOD(SpatialBipedFloatingBase,
+                 __FILE__"_TestCorrectness2", "") {
 
   //1. Make the simple spatial biped
   //2. Assemble it to a specific q and qdot.
@@ -664,7 +664,7 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
 
   //In this case the target qdd should be reachable exactly.
   for(unsigned int i=0; i<qddIDC.rows();++i){
-    CHECK_CLOSE(qddIDC[i], qddTarget[i],TEST_PREC);
+    CHECK_THAT(qddIDC[i], IsClose(qddTarget[i],TEST_PREC, TEST_PREC));
   }
 
 
@@ -675,10 +675,10 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   qddErr = qddIDC-qddFwd;
   lambdaErr= lambdaIdc-lambdaFwd;
   for(unsigned int i=0; i<q.rows();++i){
-    CHECK_CLOSE(qddIDC[i], qddFwd[i], TEST_PREC);
+    CHECK_THAT(qddIDC[i], IsClose(qddFwd[i], TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<lambdaIdc.rows();++i){
-    CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
+    CHECK_THAT(lambdaIdc[i], IsClose(lambdaFwd[i], TEST_PREC, TEST_PREC));
   }
 
   //Check the relaxed method
@@ -691,7 +691,7 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
 
   for(unsigned int i=0; i<tauIDCR.rows();++i){
     if(dofActuated[i]==false){
-      CHECK_CLOSE(tauIDCR[i],0.,TEST_PREC);
+      CHECK_THAT(tauIDCR[i],IsClose(0.,TEST_PREC, TEST_PREC));
     }
   }
 
@@ -702,10 +702,10 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
   qddErr = qddIDCR-qddFwd;
   lambdaErr= lambdaIdc-lambdaFwd;
   for(unsigned int i=0; i<q.rows();++i){
-    CHECK_CLOSE(qddIDCR[i], qddFwd[i], TEST_PREC);
+    CHECK_THAT(qddIDCR[i], IsClose(qddFwd[i], TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<lambdaIdc.rows();++i){
-    CHECK_CLOSE(lambdaIdc[i], lambdaFwd[i], TEST_PREC);
+    CHECK_THAT(lambdaIdc[i], IsClose(lambdaFwd[i], TEST_PREC, TEST_PREC));
   }
 
 
@@ -755,7 +755,7 @@ TEST_FIXTURE(SpatialBipedFloatingBase, TestCorrectness) {
 }
 
 
-TEST(CorrectnessTestWithSinglePlanarPendulum){
+TEST_CASE(__FILE__"_CorrectnessTestWithSinglePlanarPendulum", ""){
 
   //With loop constraints
   SinglePendulumAbsoluteCoordinates spa
@@ -808,16 +808,16 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   CalcConstraintsVelocityError(spa.model,spa.q,spa.qd,spa.cs,errd,true);
 
   for(unsigned int i=0; i<err.rows();++i){
-    CHECK_CLOSE(0, err[i], TEST_PREC);
+    CHECK_THAT(0, IsClose(err[i], TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<errd.rows();++i){
-    CHECK_CLOSE(0, errd[i], TEST_PREC);
+    CHECK_THAT(0, IsClose(errd[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsDirect(spa.model,spa.q, spa.qd, spa.tau,spa.cs,
                                    spa.qdd);
   for(unsigned int i=0; i<spa.qdd.rows();++i){
-    CHECK_CLOSE(0., spa.qdd[i], TEST_PREC);
+    CHECK_THAT(0., IsClose(spa.qdd[i], TEST_PREC, TEST_PREC));
   }
 
   std::vector< bool > actuationMap;
@@ -844,10 +844,10 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
                                           spa.cs, qddIdc,tauIdc);
 
   for(unsigned int i=0; i<qddIdc.rows();++i){
-    CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
+    CHECK_THAT(0.,IsClose(qddIdc[i],TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<tauIdc.rows();++i){
-    CHECK_CLOSE(spa.tau[i],tauIdc[i],TEST_PREC);
+    CHECK_THAT(spa.tau[i],IsClose(tauIdc[i],TEST_PREC, TEST_PREC));
   }
 
   InverseDynamicsConstraintsRelaxed(spa.model,spa.q,spa.qd,qddDesired,
@@ -856,7 +856,7 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
 
   for(unsigned int i=0; i<tauIdc.rows();++i){
     if(actuationMap[i]==false){
-      CHECK_CLOSE(tauIdc[i],0.,TEST_PREC);
+      CHECK_THAT(tauIdc[i],IsClose(0.,TEST_PREC, TEST_PREC));
     }
   }
 
@@ -866,14 +866,14 @@ TEST(CorrectnessTestWithSinglePlanarPendulum){
   //Check that the solution is physically consistent
   VectorNd qddErr = qddIdc-qddFwd;
   for(unsigned int i=0; i<qddIdc.rows();++i){
-    CHECK_CLOSE(qddIdc[i], qddFwd[i], TEST_PREC);
+    CHECK_THAT(qddIdc[i], IsClose(qddFwd[i], TEST_PREC, TEST_PREC));
   }
 
 }
 
 
 
-TEST(CorrectnessTestWithDoublePerpendicularPendulum){
+TEST_CASE(__FILE__"_CorrectnessTestWithDoublePerpendicularPendulum", ""){
 
   //With loop constraints
   DoublePerpendicularPendulumAbsoluteCoordinates dba
@@ -949,16 +949,16 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   CalcConstraintsVelocityError(dba.model,dba.q,dba.qd,dba.cs,errd,true);
 
   for(unsigned int i=0; i<err.rows();++i){
-    CHECK_CLOSE(0, err[i], TEST_PREC);
+    CHECK_THAT(0, IsClose(err[i], TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<errd.rows();++i){
-    CHECK_CLOSE(0, errd[i], TEST_PREC);
+    CHECK_THAT(0, IsClose(errd[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsDirect(dba.model,dba.q, dba.qd, dba.tau,dba.cs,
                                    dba.qdd);
   for(unsigned int i=0; i<dba.qdd.rows();++i){
-    CHECK_CLOSE(0., dba.qdd[i], TEST_PREC);
+    CHECK_THAT(0., IsClose(dba.qdd[i], TEST_PREC, TEST_PREC));
   }
 
   std::vector< bool > actuationMap;
@@ -987,10 +987,10 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
                                           dba.cs, qddIdc,tauIdc);
 
   for(unsigned int i=0; i<qddIdc.rows();++i){
-    CHECK_CLOSE(0.,qddIdc[i],TEST_PREC);
+    CHECK_THAT(0.,IsClose(qddIdc[i],TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<tauIdc.rows();++i){
-    CHECK_CLOSE(dba.tau[i],tauIdc[i],TEST_PREC);
+    CHECK_THAT(dba.tau[i],IsClose(tauIdc[i],TEST_PREC, TEST_PREC));
   }
 
   InverseDynamicsConstraintsRelaxed(dba.model,dba.q,dba.qd,qddDesired,
@@ -998,7 +998,7 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
 
   for(unsigned int i=0; i<tauIdc.rows();++i){
     if(actuationMap[i]==false){
-      CHECK_CLOSE(tauIdc[i],0.,TEST_PREC);
+      CHECK_THAT(tauIdc[i],IsClose(0.,TEST_PREC, TEST_PREC));
     }
   }
 
@@ -1007,12 +1007,12 @@ TEST(CorrectnessTestWithDoublePerpendicularPendulum){
   ForwardDynamicsConstraintsDirect(dba.model,dba.q,dba.qd, tauIdc, dba.cs, qddCheck);
 
   for(unsigned int i=0; i<qddIdc.rows();++i){
-    CHECK_CLOSE(qddCheck[i],qddIdc[i],TEST_PREC);
+    CHECK_THAT(qddCheck[i],IsClose(qddIdc[i],TEST_PREC, TEST_PREC));
   }
 
 }
 
-TEST(CorrectnessTestWithUnderactuatedCartPendulum){
+TEST_CASE(__FILE__"_CorrectnessTestWithUnderactuatedCartPendulum", ""){
   //This model is not compatible with InverseDynamicsConstraints
   //which is valuable: all other models tested have been.
   //This model is identical to the one presented in Sec. 3 of Henning's thesis
@@ -1097,33 +1097,33 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
 
   for(unsigned int i=0; i<tau.rows();++i){
     if(actuation[i]==false){
-      CHECK_CLOSE(tau[i],0.,TEST_PREC);
+      CHECK_THAT(tau[i],IsClose(0.,TEST_PREC, TEST_PREC));
     }
   }
 
   //Check if the result is physically consistent.
   ForwardDynamicsConstraintsDirect(model,q,qd, tau, cs, qddFwd);
   for(unsigned int i=0; i<qddFwd.rows();++i){
-    CHECK_CLOSE(qdd[i],qddFwd[i],TEST_PREC);
+    CHECK_THAT(qdd[i],IsClose(qddFwd[i],TEST_PREC, TEST_PREC));
   }
 
   //pose 2
   q[3] = M_PI*0.5;
   InverseDynamicsConstraintsRelaxed(model,q,qd,qddDesired,cs,qdd,tau);
   for(unsigned int i=0; i<qddDesired.rows();++i){
-    CHECK_CLOSE(qdd[i],qddDesired[i],0.01);
+    CHECK_THAT(qdd[i],IsClose(qddDesired[i],TEST_PREC, 0.01));
   }
 
   for(unsigned int i=0; i<tau.rows();++i){
     if(actuation[i]==false){
-      CHECK_CLOSE(tau[i],0.,TEST_PREC);
+      CHECK_THAT(tau[i],IsClose(0.,TEST_PREC, TEST_PREC));
     }
   }
 
   //Check if the result is physically consistent.
   ForwardDynamicsConstraintsDirect(model,q,qd, tau, cs, qddFwd);
   for(unsigned int i=0; i<qddFwd.rows();++i){
-    CHECK_CLOSE(qdd[i],qddFwd[i],TEST_PREC);
+    CHECK_THAT(qdd[i],IsClose(qddFwd[i],TEST_PREC, TEST_PREC));
   }
 
   //pose 2 and some movement
@@ -1144,14 +1144,14 @@ TEST(CorrectnessTestWithUnderactuatedCartPendulum){
 
   for(unsigned int i=0; i<tau.rows();++i){
     if(actuation[i]==false){
-      CHECK_CLOSE(tau[i],0.,TEST_PREC);
+      CHECK_THAT(tau[i],IsClose(0.,TEST_PREC, TEST_PREC));
     }
   }
 
   //Check if the result is physically consistent.
   ForwardDynamicsConstraintsDirect(model,q,qd, tau, cs, qddFwd);
   for(unsigned int i=0; i<qddFwd.rows();++i){
-    CHECK_CLOSE(qdd[i],qddFwd[i],TEST_PREC);
+    CHECK_THAT(qdd[i],IsClose(qddFwd[i],TEST_PREC, TEST_PREC));
   }
 
 

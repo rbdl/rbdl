@@ -1,6 +1,6 @@
-#include <UnitTest++.h>
 #include "rbdl/rbdl.h"
-#include <cassert>
+
+#include "rbdl_tests.h"
 
 #include "PendulumModels.h"
 
@@ -20,10 +20,6 @@ static double inRange(double angle) {
   }
   return angle;
 }
-
-
-
-
 
 struct FourBarLinkage {
 
@@ -277,16 +273,16 @@ struct SliderCrank3D {
     Matrix3d rot_ps 
       = (CalcBodyWorldOrientation(model,q,id_p).transpose()*X_p.E).transpose()
       *  CalcBodyWorldOrientation(model,q,id_s).transpose()*X_s.E;
-    assert(rot_ps(0,0) - 1. < TEST_PREC);
-    assert(rot_ps(1,1) - 1. < TEST_PREC);
-    assert(rot_ps(2,2) - 1. < TEST_PREC);
-    assert(rot_ps(0,1) < TEST_PREC);
-    assert(rot_ps(0,2) < TEST_PREC);
-    assert(rot_ps(1,0) < TEST_PREC);
-    assert(rot_ps(1,2) < TEST_PREC);
-    assert(rot_ps(2,0) < TEST_PREC);
-    assert(rot_ps(2,1) < TEST_PREC);
-    assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
+    REQUIRE (rot_ps(0,0) - 1. < TEST_PREC);
+    REQUIRE (rot_ps(1,1) - 1. < TEST_PREC);
+    REQUIRE (rot_ps(2,2) - 1. < TEST_PREC);
+    REQUIRE (rot_ps(0,1) < TEST_PREC);
+    REQUIRE (rot_ps(0,2) < TEST_PREC);
+    REQUIRE (rot_ps(1,0) < TEST_PREC);
+    REQUIRE (rot_ps(1,2) < TEST_PREC);
+    REQUIRE (rot_ps(2,0) < TEST_PREC);
+    REQUIRE (rot_ps(2,1) < TEST_PREC);
+    REQUIRE ((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
       - CalcBodyToBaseCoordinates(model, q, id_s, X_s.r)).norm() < TEST_PREC);
 
   }
@@ -381,16 +377,16 @@ struct SliderCrank3DSphericalJoint {
     Matrix3d rot_ps 
       = (CalcBodyWorldOrientation(model,q,id_p).transpose()*X_p.E).transpose()
        * CalcBodyWorldOrientation(model,q,id_s).transpose()*X_s.E;
-    assert(rot_ps(0,0) - 1. < TEST_PREC);
-    assert(rot_ps(1,1) - 1. < TEST_PREC);
-    assert(rot_ps(2,2) - 1. < TEST_PREC);
-    assert(rot_ps(0,1) < TEST_PREC);
-    assert(rot_ps(0,2) < TEST_PREC);
-    assert(rot_ps(1,0) < TEST_PREC);
-    assert(rot_ps(1,2) < TEST_PREC);
-    assert(rot_ps(2,0) < TEST_PREC);
-    assert(rot_ps(2,1) < TEST_PREC);
-    assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
+    REQUIRE (rot_ps(0,0) - 1. < TEST_PREC);
+    REQUIRE (rot_ps(1,1) - 1. < TEST_PREC);
+    REQUIRE (rot_ps(2,2) - 1. < TEST_PREC);
+    REQUIRE (rot_ps(0,1) < TEST_PREC);
+    REQUIRE (rot_ps(0,2) < TEST_PREC);
+    REQUIRE (rot_ps(1,0) < TEST_PREC);
+    REQUIRE (rot_ps(1,2) < TEST_PREC);
+    REQUIRE (rot_ps(2,0) < TEST_PREC);
+    REQUIRE (rot_ps(2,1) < TEST_PREC);
+    REQUIRE ((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
       - CalcBodyToBaseCoordinates(model, q, id_s, X_s.r)).norm() < TEST_PREC);
 
   }
@@ -411,7 +407,7 @@ struct SliderCrank3DSphericalJoint {
 };
 
 
-TEST( TestExtendedConstraintFunctionsLoop ){
+TEST_CASE( __FILE__"_TestExtendedConstraintFunctionsLoop", ""){
 
   //With loop constraints
   DoublePerpendicularPendulumAbsoluteCoordinates dba
@@ -501,92 +497,98 @@ TEST( TestExtendedConstraintFunctionsLoop ){
 
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
-  CHECK_CLOSE(r010xErr,err[0],TEST_PREC);
+  CHECK_THAT(r010xErr,IsClose(err[0], TEST_PREC, TEST_PREC));
   for(unsigned int j=1; j<5;++j){
-    CHECK_CLOSE(0,err[j],TEST_PREC);
+    CHECK_THAT(0, IsClose(err[j], TEST_PREC, TEST_PREC));
   }
 
-  CHECK_CLOSE(-r010xErr*cos(dbj.q[0]),err[5+0],TEST_PREC);
-  CHECK_CLOSE( r010xErr*sin(dbj.q[0]),err[5+1],TEST_PREC);
+  CHECK_THAT(-r010xErr*cos(dbj.q[0]),IsClose(err[5+0],TEST_PREC, TEST_PREC));
+  CHECK_THAT( r010xErr*sin(dbj.q[0]),IsClose(err[5+1],TEST_PREC, TEST_PREC));
   for(unsigned int j=2; j<5;++j){
-    CHECK_CLOSE(0,err[5+j],TEST_PREC);
+    CHECK_THAT(0, IsClose(err[5+j],TEST_PREC, TEST_PREC));
   }
 
-  CHECK_CLOSE(dr010xErr,errd[0],TEST_PREC);
+  CHECK_THAT(dr010xErr,IsClose(errd[0],TEST_PREC, TEST_PREC));
   for(unsigned int j=1; j<5;++j){
-    CHECK_CLOSE(0,errd[j],TEST_PREC);
+    CHECK_THAT(0,IsClose(errd[j],TEST_PREC, TEST_PREC));
   }
 
-  CHECK_CLOSE(      -dr010xErr*cos(dbj.q[0]), errd[5+0], TEST_PREC);
-  CHECK_CLOSE(       dr010xErr*sin(dbj.q[0]), errd[5+1], TEST_PREC);
-  CHECK_CLOSE(                            0., errd[5+2], TEST_PREC);
-  CHECK_CLOSE(                            0., errd[5+3], TEST_PREC);
+  CHECK_THAT(-dr010xErr*cos(dbj.q[0]), IsClose(errd[5+0], TEST_PREC, TEST_PREC));
+  CHECK_THAT( dr010xErr*sin(dbj.q[0]), IsClose(errd[5+1], TEST_PREC, TEST_PREC));
+  CHECK_THAT(                      0., IsClose(errd[5+2], TEST_PREC, TEST_PREC));
+  CHECK_THAT(                      0., IsClose(errd[5+3], TEST_PREC, TEST_PREC));
 
   //MM: this term comes from transforming the T axis into the inertial
   //    frame using the spatial operator (e.g. see the function
   //    calcConstraintJacobian). Specifically, this comes from the cross
   //    product terms that come from the linear spatial transformation.
-  CHECK_CLOSE( dr010xErr*dba.l1*cos(dbj.q[0]),errd[5+4], TEST_PREC);
+  CHECK_THAT( dr010xErr*dba.l1*cos(dbj.q[0]),
+              IsClose(errd[5+4], TEST_PREC, TEST_PREC));
 
   VectorNd errGroup0,derrGroup0,errGroup1,derrGroup1;
   dba.cs.calcPositionError(0,dba.model,qErr,errGroup0,true);
   dba.cs.calcVelocityError(0,dba.model,dba.q,qdErr,derrGroup0,true);
 
-  CHECK_CLOSE(r010xErr,errGroup0[0],TEST_PREC);
+  CHECK_THAT(r010xErr,IsClose(errGroup0[0],TEST_PREC, TEST_PREC));
   for(unsigned int j=1; j<5;++j){
-    CHECK_CLOSE(0,errGroup0[j],TEST_PREC);
+    CHECK_THAT(0,IsClose(errGroup0[j],TEST_PREC, TEST_PREC));
   }
-  CHECK_CLOSE(dr010xErr,derrGroup0[0],TEST_PREC);
+  CHECK_THAT(dr010xErr,IsClose(derrGroup0[0],TEST_PREC, TEST_PREC));
   for(unsigned int j=1; j<5;++j){
-    CHECK_CLOSE(0,derrGroup0[j],TEST_PREC);
+    CHECK_THAT(0,IsClose(derrGroup0[j],TEST_PREC, TEST_PREC));
   }
 
   dba.cs.calcPositionError(1,dba.model,qErr,errGroup1,true);
   dba.cs.calcVelocityError(1,dba.model,dba.q,qdErr,derrGroup1,true);
 
-  CHECK_CLOSE(-r010xErr*cos(dbj.q[0]),errGroup1[0],TEST_PREC);
-  CHECK_CLOSE( r010xErr*sin(dbj.q[0]),errGroup1[1],TEST_PREC);
+  CHECK_THAT(-r010xErr*cos(dbj.q[0]),IsClose(errGroup1[0],TEST_PREC, TEST_PREC));
+  CHECK_THAT( r010xErr*sin(dbj.q[0]),IsClose(errGroup1[1],TEST_PREC, TEST_PREC));
   for(unsigned int j=2; j<5;++j){
-    CHECK_CLOSE(0,errGroup1[j],TEST_PREC);
+    CHECK_THAT(0,IsClose(errGroup1[j],TEST_PREC, TEST_PREC));
   }
-  CHECK_CLOSE(      -dr010xErr*cos(dbj.q[0]), derrGroup1[0], TEST_PREC);
-  CHECK_CLOSE(       dr010xErr*sin(dbj.q[0]), derrGroup1[1], TEST_PREC);
-  CHECK_CLOSE(                            0., derrGroup1[2], TEST_PREC);
-  CHECK_CLOSE(                            0., derrGroup1[3], TEST_PREC);
-  CHECK_CLOSE( dr010xErr*dba.l1*cos(dbj.q[0]), derrGroup1[4], TEST_PREC);
+  CHECK_THAT(-dr010xErr*cos(dbj.q[0]),
+             IsClose(derrGroup1[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT( dr010xErr*sin(dbj.q[0]),
+              IsClose(derrGroup1[1], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(derrGroup1[2], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(derrGroup1[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(dr010xErr*dba.l1*cos(dbj.q[0]),
+             IsClose(derrGroup1[4], TEST_PREC, TEST_PREC));
 
   // Test Baumgarte related functions
   //    calcBaumgarteStabilizationForces
   //    isBaumgarteStabilizationEnabled
   //    getBaumgarteStabilizationCoefficients
 
-  CHECK_EQUAL(dba.cs.isBaumgarteStabilizationEnabled(0), false);
+  CHECK(dba.cs.isBaumgarteStabilizationEnabled(0) == false );
   dba.cs.enableBaumgarteStabilization(0);
-  CHECK_EQUAL(dba.cs.isBaumgarteStabilizationEnabled(0), true);
+  CHECK(dba.cs.isBaumgarteStabilizationEnabled(0) == true);
   dba.cs.disableBaumgarteStabilization(0);
-  CHECK_EQUAL(dba.cs.isBaumgarteStabilizationEnabled(0), false);
+  CHECK(dba.cs.isBaumgarteStabilizationEnabled(0) == false);
 
   Vector2d bgCoeff;
   VectorNd bgForces;
   dba.cs.getBaumgarteStabilizationCoefficients(0,bgCoeff);
-  CHECK_CLOSE(bgCoeff[0],10.,TEST_PREC);
-  CHECK_CLOSE(bgCoeff[1],10.,TEST_PREC);
-  dba.cs.calcBaumgarteStabilizationForces(0,dba.model,errGroup0,derrGroup0,bgForces);
+  CHECK_THAT(bgCoeff[0],IsClose(10.,TEST_PREC, TEST_PREC));
+  CHECK_THAT(bgCoeff[1],IsClose(10.,TEST_PREC, TEST_PREC));
+  dba.cs.calcBaumgarteStabilizationForces(0,dba.model,errGroup0,derrGroup0,
+                                          bgForces);
 
   double bgStab = 0.;
   for(unsigned int i=0; i<5;++i){
     bgStab = -2.0*bgCoeff[0]*errd[i] - bgCoeff[1]*bgCoeff[1]*err[i];
-    CHECK_CLOSE(bgStab,bgForces[i],TEST_PREC);
+    CHECK_THAT(bgStab,IsClose(bgForces[i],TEST_PREC, TEST_PREC));
   }
 
-  dba.cs.calcBaumgarteStabilizationForces(1,dba.model,errGroup1,derrGroup1,bgForces);
+  dba.cs.calcBaumgarteStabilizationForces(1,dba.model,errGroup1,derrGroup1,
+                                          bgForces);
   for(unsigned int i=0; i<5;++i){
     bgStab = -2.0*bgCoeff[0]*errd[i+5] - bgCoeff[1]*bgCoeff[1]*err[i+5];
-    CHECK_CLOSE(bgStab,bgForces[i],TEST_PREC);
+    CHECK_THAT(bgStab,IsClose(bgForces[i],TEST_PREC, TEST_PREC));
   }
 
-  CHECK_EQUAL(dba.cs.getGroupSize(0),5);
-  CHECK_EQUAL(dba.cs.getGroupType(0),ConstraintTypeLoop);
+  CHECK(dba.cs.getGroupSize(0) == 5);
+  CHECK(dba.cs.getGroupType(0) == ConstraintTypeLoop);
 
   //Test the function calcForces
   //Evaluate the model at the dynamics level. First remove the error
@@ -594,15 +596,15 @@ TEST( TestExtendedConstraintFunctionsLoop ){
   CalcConstraintsVelocityError(dba.model,dba.q,dba.qd,dba.cs,errd,true);
 
   for(unsigned int i=0; i < err.rows();++i){
-    CHECK_CLOSE(err[i],0.,TEST_PREC);
-    CHECK_CLOSE(errd[i],0.,TEST_PREC);
+    CHECK_THAT(err[i],IsClose(0.,TEST_PREC, TEST_PREC));
+    CHECK_THAT(errd[i],IsClose(0.,TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsDirect(dba.model,dba.q, dba.qd,
                                    dba.tau, dba.cs, dba.qdd);
 
   for(unsigned int i=0; i<dba.qdd.size();++i){
-    CHECK_CLOSE(dba.qdd[i],0.,TEST_PREC);
+    CHECK_THAT(dba.qdd[i],IsClose(0.,TEST_PREC, TEST_PREC));
   }
 
   unsigned int idxRyLink1 = dba.cs.getGroupIndexByName("RyLink1");
@@ -669,36 +671,40 @@ TEST( TestExtendedConstraintFunctionsLoop ){
   Matrix3d eye = Matrix3dIdentity;
   //Check the local transformations
   Vector3d rp = CalcBodyToBaseCoordinates(dba.model,dba.q,dba.idB1,dba.X_p2.r);
-  CHECK_ARRAY_CLOSE(bodyFrames[0].r, rp, 3, TEST_PREC);
+  CHECK_THAT(bodyFrames[0].r,
+             AllCloseVector(rp, TEST_PREC, TEST_PREC)
+  );
   for(unsigned int i=0; i<3;++i){
     for(unsigned int j=0; j<3;++j){
-      CHECK_CLOSE(bodyFrames[0].E(i,j),eye(i,j),TEST_PREC);
+      CHECK_THAT(bodyFrames[0].E(i,j),IsClose(eye(i,j),TEST_PREC, TEST_PREC));
     }
   }
 
   Vector3d rs = CalcBodyToBaseCoordinates(dba.model,dba.q,dba.idB2,dba.X_s2.r);
-  CHECK_ARRAY_CLOSE(bodyFrames[1].r, rs, 3, TEST_PREC);
+  CHECK_THAT(bodyFrames[1].r,
+             AllCloseVector(rs, TEST_PREC, TEST_PREC)
+  );
   for(unsigned int i=0; i<3;++i){
     for(unsigned int j=0; j<3;++j){
-      CHECK_CLOSE(bodyFrames[1].E(i,j),eye(i,j),TEST_PREC);
+      CHECK_THAT(bodyFrames[1].E(i,j),IsClose(eye(i,j),TEST_PREC, TEST_PREC));
     }
   }
 
   //Check the reported forces
 
-  CHECK_CLOSE(fp0[0], conForces[0][0],TEST_PREC);
-  CHECK_CLOSE(fp0[1], conForces[0][1],TEST_PREC);
-  CHECK_CLOSE(fp0[2], conForces[0][2],TEST_PREC);
-  CHECK_CLOSE(fp0[3], conForces[0][3],TEST_PREC);
-  CHECK_CLOSE(fp0[4], conForces[0][4],TEST_PREC);
-  CHECK_CLOSE(fp0[5], conForces[0][5],TEST_PREC);
+  CHECK_THAT(fp0[0], IsClose(conForces[0][0],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fp0[1], IsClose(conForces[0][1],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fp0[2], IsClose(conForces[0][2],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fp0[3], IsClose(conForces[0][3],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fp0[4], IsClose(conForces[0][4],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fp0[5], IsClose(conForces[0][5],TEST_PREC, TEST_PREC));
 
-  CHECK_CLOSE(fs0[0], conForces[1][0],TEST_PREC);
-  CHECK_CLOSE(fs0[1], conForces[1][1],TEST_PREC);
-  CHECK_CLOSE(fs0[2], conForces[1][2],TEST_PREC);
-  CHECK_CLOSE(fs0[3], conForces[1][3],TEST_PREC);
-  CHECK_CLOSE(fs0[4], conForces[1][4],TEST_PREC);
-  CHECK_CLOSE(fs0[5], conForces[1][5],TEST_PREC);
+  CHECK_THAT(fs0[0], IsClose(conForces[1][0],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fs0[1], IsClose(conForces[1][1],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fs0[2], IsClose(conForces[1][2],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fs0[3], IsClose(conForces[1][3],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fs0[4], IsClose(conForces[1][4],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fs0[5], IsClose(conForces[1][5],TEST_PREC, TEST_PREC));
 
 
   //Run the tests when the wrenches are resolved in the frame of root
@@ -712,32 +718,36 @@ TEST( TestExtendedConstraintFunctionsLoop ){
   CHECK(bodyIds[1]==dba.idB2);
 
   //Check the local transformations
-  CHECK_ARRAY_CLOSE(bodyFrames[0].r, dba.X_p2.r, 3, TEST_PREC);
+  CHECK_THAT(bodyFrames[0].r,
+             AllCloseVector(dba.X_p2.r, TEST_PREC, TEST_PREC)
+  );
   for(unsigned int i=0; i<3;++i){
     for(unsigned int j=0; j<3;++j){
-      CHECK_CLOSE(bodyFrames[0].E(i,j),eye(i,j),TEST_PREC);
+      CHECK_THAT(bodyFrames[0].E(i,j),IsClose(eye(i,j),TEST_PREC, TEST_PREC));
     }
   }
-  CHECK_ARRAY_CLOSE(bodyFrames[1].r, dba.X_s2.r, 3, TEST_PREC);
+  CHECK_THAT(bodyFrames[1].r,
+             AllCloseVector(dba.X_s2.r, TEST_PREC, TEST_PREC)
+  );
   for(unsigned int i=0; i<3;++i){
     for(unsigned int j=0; j<3;++j){
-      CHECK_CLOSE(bodyFrames[1].E(i,j),eye(i,j),TEST_PREC);
+      CHECK_THAT(bodyFrames[1].E(i,j),IsClose(eye(i,j),TEST_PREC, TEST_PREC));
     }
   }
 
-  CHECK_CLOSE(fpP[0], conForces[0][0],TEST_PREC);
-  CHECK_CLOSE(fpP[1], conForces[0][1],TEST_PREC);
-  CHECK_CLOSE(fpP[2], conForces[0][2],TEST_PREC);
-  CHECK_CLOSE(fpP[3], conForces[0][3],TEST_PREC);
-  CHECK_CLOSE(fpP[4], conForces[0][4],TEST_PREC);
-  CHECK_CLOSE(fpP[5], conForces[0][5],TEST_PREC);
+  CHECK_THAT(fpP[0], IsClose(conForces[0][0],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fpP[1], IsClose(conForces[0][1],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fpP[2], IsClose(conForces[0][2],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fpP[3], IsClose(conForces[0][3],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fpP[4], IsClose(conForces[0][4],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fpP[5], IsClose(conForces[0][5],TEST_PREC, TEST_PREC));
 
-  CHECK_CLOSE(fsS[0], conForces[1][0],TEST_PREC);
-  CHECK_CLOSE(fsS[1], conForces[1][1],TEST_PREC);
-  CHECK_CLOSE(fsS[2], conForces[1][2],TEST_PREC);
-  CHECK_CLOSE(fsS[3], conForces[1][3],TEST_PREC);
-  CHECK_CLOSE(fsS[4], conForces[1][4],TEST_PREC);
-  CHECK_CLOSE(fsS[5], conForces[1][5],TEST_PREC);
+  CHECK_THAT(fsS[0], IsClose(conForces[1][0],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fsS[1], IsClose(conForces[1][1],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fsS[2], IsClose(conForces[1][2],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fsS[3], IsClose(conForces[1][3],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fsS[4], IsClose(conForces[1][4],TEST_PREC, TEST_PREC));
+  CHECK_THAT(fsS[5], IsClose(conForces[1][5],TEST_PREC, TEST_PREC));
 
 
 
@@ -745,7 +755,8 @@ TEST( TestExtendedConstraintFunctionsLoop ){
 
 }
 
-TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
+TEST_CASE_METHOD(FourBarLinkage,
+                 __FILE__"_TestFourBarLinkageConstraintErrors", "") {
   VectorNd err = VectorNd::Zero(cs.size());
   Vector3d pos1;
   Vector3d pos2;
@@ -771,9 +782,9 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
 
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_CLOSE(0., err[0], TEST_PREC);
-  CHECK_CLOSE(0., err[1], TEST_PREC);
-  CHECK_CLOSE(0., err[2], TEST_PREC);
+  CHECK_THAT(0., IsClose(err[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[1], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[2], TEST_PREC, TEST_PREC));
 
   // Test in non-zero position.
   q[0] = M_PI * 3 / 4;
@@ -788,14 +799,14 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
   rot_p = CalcBodyWorldOrientation(model, q, idB2).transpose() * X_p.E;
   posErr = rot_p.transpose() * (pos2 - pos1);
 
-  assert(std::fabs(posErr[1]) < TEST_PREC);
-  assert(std::fabs(posErr[2]) < TEST_PREC);
+  REQUIRE (std::fabs(posErr[1]) < TEST_PREC);
+  REQUIRE (std::fabs(posErr[2]) < TEST_PREC);
 
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_CLOSE(posErr[0], err[0], TEST_PREC);
-  CHECK_CLOSE(0., err[1], TEST_PREC);
-  CHECK_CLOSE(angleErr, err[2], TEST_PREC);
+  CHECK_THAT(posErr[0], IsClose(err[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[1], TEST_PREC, TEST_PREC));
+  CHECK_THAT(angleErr, IsClose(err[2], TEST_PREC, TEST_PREC));
 
   // Test in non-zero position.
   q[0] = 0.;
@@ -812,9 +823,9 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
 
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_CLOSE(posErr[0], err[0], TEST_PREC);
-  CHECK_CLOSE(posErr[1], err[1], TEST_PREC);
-  CHECK_CLOSE(angleErr, err[2], TEST_PREC);
+  CHECK_THAT(posErr[0], IsClose(err[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(posErr[1], IsClose(err[1], TEST_PREC, TEST_PREC));
+  CHECK_THAT(angleErr, IsClose(err[2], TEST_PREC, TEST_PREC));
 
   // Test in non-zero position.
   q[0] = 0.8;
@@ -831,12 +842,13 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintErrors) {
 
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_CLOSE(posErr[0], err[0], TEST_PREC);
-  CHECK_CLOSE(posErr[1], err[1], TEST_PREC);
-  CHECK_CLOSE(angleErr, err[2], TEST_PREC);
+  CHECK_THAT(posErr[0], IsClose(err[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(posErr[1], IsClose(err[1], TEST_PREC, TEST_PREC));
+  CHECK_THAT(angleErr, IsClose(err[2], TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
+TEST_CASE_METHOD(FourBarLinkage,
+                 __FILE__"_TestFourBarLinkageConstraintJacobian", "") {
   MatrixNd G(MatrixNd::Zero(cs.size(), q.size()));
   VectorNd err(VectorNd::Zero(cs.size()));
   VectorNd errRef(VectorNd::Zero(cs.size()));
@@ -847,8 +859,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   q[2] = 0.;
   q[3] = 0.;
   q[4] = 0.;
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -856,14 +868,16 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   qd[2] = -1.;
   qd[3] = -1.;
   qd[4] = 0.;
-  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+  REQUIRE ((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Both arms of the 4-bar laying on the y-axis
   q[0] = 0.5 * M_PI;
@@ -871,8 +885,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   q[2] = 0.5 * M_PI;
   q[3] = 0.;
   q[4] = 0.;
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -880,14 +894,16 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   qd[2] = -1.;
   qd[3] = -1.;
   qd[4] = 0.;
-  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+  REQUIRE ((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Arms symmetric wrt y axis.
   q[0] = M_PI * 3 / 4;
@@ -895,8 +911,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -904,17 +920,20 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintJacobian) {
   qd[2] = -2.;
   qd[3] = +1.;
   qd[4] = -1.;
-  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+  REQUIRE ((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintsVelocityErrors) {
+TEST_CASE_METHOD(FourBarLinkage,
+                 __FILE__"_TestFourBarLinkageConstraintsVelocityErrors", "") {
   VectorNd errd(VectorNd::Zero(cs.size()));
   VectorNd errdRef(VectorNd::Zero(cs.size()));
   MatrixNd G(cs.size(), model.dof_count);
@@ -925,8 +944,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintsVelocityErrors) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -937,7 +956,9 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintsVelocityErrors) {
 
   CalcConstraintsVelocityError(model, q, qd, cs, errd);
 
-  CHECK_ARRAY_CLOSE(errdRef, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(errdRef,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 
   // Invalid velocities.
   qd[0] = -1.;
@@ -949,10 +970,13 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageConstraintsVelocityErrors) {
   CalcConstraintsVelocityError(model, q, qd, cs, errd);
   CalcConstraintsJacobian(model, q, cs, G);
   errdRef = G * qd;
-  CHECK_ARRAY_CLOSE(errdRef, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(errdRef,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
+TEST_CASE_METHOD(FourBarLinkage,
+                 __FILE__"_TestFourBarLinkageQAssembly", "") {
   VectorNd weights(q.size());
   VectorNd err(cs.size());
   VectorNd errRef(VectorNd::Zero(cs.size()));
@@ -969,7 +993,7 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   qRef[2] = M_PI - qRef[0];
   qRef[3] = -qRef[1];
   qRef[4] = qRef[0] + qRef[1] - qRef[2] - qRef[3];
-  assert(qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
+  REQUIRE (qRef[0] + qRef[1] - qRef[2] - qRef[3] - qRef[4] == 0.);
 
   bool success;  
 
@@ -980,12 +1004,18 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-12);
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(inRange(q[0] + q[1]), inRange(q[2] + q[3] + q[4]), TEST_PREC);
-  CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
-  CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r),
+             AllCloseVector(
+               CalcBodyToBaseCoordinates(model, q, idB5, X_s.r),
+               TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(inRange(q[0] + q[1]),
+             IsClose(inRange(q[2] + q[3] + q[4]), TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[0], IsClose(q[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[2], IsClose(q[2], TEST_PREC, TEST_PREC));
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Perturbed initial guess.
   qInit[0] = qRef[0];
@@ -998,12 +1028,17 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(inRange(q[0] + q[1]), inRange(q[2] + q[3] + q[4]), TEST_PREC);
-  CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
-  CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r),
+             AllCloseVector(
+               CalcBodyToBaseCoordinates(model, q, idB5, X_s.r),
+               TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(inRange(q[0] + q[1]), IsClose(inRange(q[2] + q[3] + q[4]), TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[0], IsClose(q[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[2], IsClose(q[2], TEST_PREC, TEST_PREC));
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Perturbed initial guess.
   qInit[0] = qRef[0] - 0.2;
@@ -1016,12 +1051,18 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(inRange(q[0] + q[1]), inRange(q[2] + q[3] + q[4]), TEST_PREC);
-  CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
-  CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r),
+             AllCloseVector(
+               CalcBodyToBaseCoordinates(model, q, idB5, X_s.r),
+               TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(inRange(q[0] + q[1]),
+             IsClose(inRange(q[2] + q[3] + q[4]), TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[0], IsClose(q[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[2], IsClose(q[2], TEST_PREC, TEST_PREC));
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Perturbed initial guess.
   qInit[0] = qRef[0] + 0.01;
@@ -1034,15 +1075,22 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQAssembly) {
   CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(inRange(q[0] + q[1]), inRange(q[2] + q[3] + q[4]), TEST_PREC);
-  CHECK_CLOSE(qInit[0], q[0], TEST_PREC);
-  CHECK_CLOSE(qInit[2], q[2], TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r),
+             AllCloseVector(
+               CalcBodyToBaseCoordinates(model, q, idB5, X_s.r),
+               TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(inRange(q[0] + q[1]),
+             IsClose(inRange(q[2] + q[3] + q[4]), TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[0], IsClose(q[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[2], IsClose(q[2], TEST_PREC, TEST_PREC));
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQDotAssembly) {
+TEST_CASE_METHOD(FourBarLinkage,
+                 __FILE__"_TestFourBarLinkageQDotAssembly", "") {
   VectorNd weights(q.size());
 
   weights[0] = 1.;
@@ -1056,8 +1104,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQDotAssembly) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   VectorNd qdInit = VectorNd::Zero(q.size());
@@ -1074,14 +1122,20 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageQDotAssembly) {
   CalcConstraintsJacobian(model, q, cs, G);
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
-    , CalcPointVelocity6D(model, q, qd, idB5, X_s.r), 6, TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
-  CHECK_CLOSE(qdInit[0], qd[0], TEST_PREC);
-  CHECK_CLOSE(qdInit[2], qd[2], TEST_PREC);
+  CHECK_THAT(CalcPointVelocity6D(model, q, qd, idB2, X_p.r),
+             AllCloseVector(
+               CalcPointVelocity6D(model, q, qd, idB5, X_s.r),
+               TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(qdInit[0], IsClose(qd[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qdInit[2], IsClose(qd[2], TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
+TEST_CASE_METHOD(FourBarLinkage,
+                 __FILE__"_TestFourBarLinkageForwardDynamics", "") {
   VectorNd qddDirect;
   VectorNd qddNullSpace;
 
@@ -1092,8 +1146,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   q[2] = 0.;
   q[3] = 0.;
   q[4] = 0.;
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1101,8 +1155,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   qd[2] = 0.;
   qd[3] = 0.;
   qd[4] = 0.;
-  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
-  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+  REQUIRE (qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+  REQUIRE ((CalcPointVelocity(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   tau[0] = 1.;
@@ -1114,18 +1168,20 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qddDirect);
 
-  CHECK_ARRAY_CLOSE
-    (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r)
-    , CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r)
-    , 6, TEST_PREC);
+  CHECK_THAT (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r),
+              AllCloseVector(
+                CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r),
+                TEST_PREC, TEST_PREC)
+  );
 
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
-  CHECK_ARRAY_CLOSE
-    (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r)
-    , CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r)
-    , 6, TEST_PREC);
+  CHECK_THAT(CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r),
+             AllCloseVector(
+               CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r),
+               TEST_PREC, TEST_PREC)
+  );
 
   // Configuration 2.
 
@@ -1134,8 +1190,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = -1.;
@@ -1143,8 +1199,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   qd[2] = -2.;
   qd[3] = +1.;
   qd[4] = -1.;
-  assert(qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
-  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+  REQUIRE (qd[0] + qd[1] - qd[2] - qd[3] - qd[4] == 0.);
+  REQUIRE ((CalcPointVelocity(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   tau[0] = 1.;
@@ -1156,18 +1212,20 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qddDirect);
 
-  CHECK_ARRAY_CLOSE
-    (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r)
-    , CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r)
-    , 6, TEST_PREC);
+  CHECK_THAT (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r),
+              AllCloseVector(
+                CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r),
+                TEST_PREC, TEST_PREC)
+  );
 
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
-  CHECK_ARRAY_CLOSE
-    (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r)
-    , CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r)
-    , 6, TEST_PREC);
+  CHECK_THAT (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r),
+              AllCloseVector(
+                CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r),
+                TEST_PREC, TEST_PREC)
+  );
 
   // Note:
   // The Range Space Sparse method can't be used because the H matrix has a 0
@@ -1182,7 +1240,8 @@ TEST_FIXTURE(FourBarLinkage, TestFourBarLinkageForwardDynamics) {
   // in a singular configuration.
 }
 
-TEST_FIXTURE(FourBarLinkage, FourBarLinkageImpulse) {
+TEST_CASE_METHOD(FourBarLinkage,
+                 __FILE__"_FourBarLinkageImpulse", "") {
   VectorNd qdPlusDirect(qd.size());
   VectorNd qdPlusRangeSpaceSparse(qd.size());
   VectorNd qdPlusNullSpace(qd.size());
@@ -1193,8 +1252,8 @@ TEST_FIXTURE(FourBarLinkage, FourBarLinkageImpulse) {
   q[2] = M_PI - q[0];
   q[3] = -q[1];
   q[4] = q[0] + q[1] - q[2] - q[3];
-  assert(q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[0] + q[1] - q[2] - q[3] - q[4] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   cs.v_plus[0] = 1.;
@@ -1204,7 +1263,9 @@ TEST_FIXTURE(FourBarLinkage, FourBarLinkageImpulse) {
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd);
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 
   cs.v_plus[0] = 0.;
   cs.v_plus[1] = 0.;
@@ -1217,12 +1278,13 @@ TEST_FIXTURE(FourBarLinkage, FourBarLinkageImpulse) {
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd);
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 }
 
-
-
-TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
+TEST_CASE_METHOD(SliderCrank3D,
+                 __FILE__"_TestSliderCrank3DConstraintErrors", "") {
   VectorNd err(VectorNd::Zero(cs.size()));
   VectorNd errRef(VectorNd::Zero(cs.size()));
   Vector3d pos_p;
@@ -1234,7 +1296,9 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
 
   // Test in zero position.
   CalcConstraintsPositionError(model, q, cs, err);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Test in another configurations.
 
@@ -1258,10 +1322,13 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintErrors) {
   errRef.block<3,1>(0,0) = pos_s - pos_p;
   errRef[3] = rotationVec[2];
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintJacobian) {
+TEST_CASE_METHOD(SliderCrank3D,
+                 __FILE__"_TestSliderCrank3DConstraintJacobian", "") {
   MatrixNd G(MatrixNd::Zero(cs.size(), q.size()));
 
   // Test in zero position.
@@ -1272,10 +1339,13 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintJacobian) {
   VectorNd errRef(VectorNd::Zero(cs.size()));
   VectorNd err = G * qd;
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintsVelocityErrors) {
+TEST_CASE_METHOD(SliderCrank3D,
+                 __FILE__"_TestSliderCrank3DConstraintsVelocityErrors", "") {
   VectorNd errd(VectorNd::Zero(cs.size()));
   VectorNd errdRef(VectorNd::Zero(cs.size()));
   MatrixNd G(cs.size(), model.dof_count);
@@ -1297,7 +1367,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintsVelocityErrors) {
   qInit[4] = 0.1;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-  assert(success);
+  REQUIRE (success);
 
   // Some random velocity.
   qd[0] = -0.2;
@@ -1310,10 +1380,13 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DConstraintsVelocityErrors) {
   CalcConstraintsJacobian(model, q, cs, G);
   errdRef = G * qd;
 
-  CHECK_ARRAY_CLOSE(errdRef, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(errdRef,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQ) {
+TEST_CASE_METHOD(SliderCrank3D,
+                 __FILE__"_TestSliderCrank3DAssemblyQ", "") {
   VectorNd weights(q.size());
   VectorNd qInit(q.size());
 
@@ -1345,11 +1418,14 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQ) {
   rot_ps = rot_p.transpose() * rot_s;
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(pos_p, pos_s, 3, TEST_PREC);
-  CHECK_CLOSE(0., rot_ps(0,1) - rot_ps(1,0), TEST_PREC);
+  CHECK_THAT(pos_p,
+             AllCloseVector(pos_s, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(0., IsClose(rot_ps(0,1) - rot_ps(1,0), TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQDot) {
+TEST_CASE_METHOD(SliderCrank3D,
+                 __FILE__"_TestSliderCrank3DAssemblyQDot", "") {
   VectorNd qWeights(q.size());
   VectorNd qdWeights(q.size());
   VectorNd qInit(q.size());
@@ -1385,7 +1461,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQDot) {
   qdInit[4] = 0.1 * M_PI;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-  assert(success);
+  REQUIRE (success);
 
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
@@ -1393,12 +1469,13 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DAssemblyQDot) {
   vel_s = CalcPointVelocity6D(model, q, qd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(vel_p[i], vel_s[i], TEST_PREC);
+    CHECK_THAT(vel_p[i], IsClose(vel_s[i], TEST_PREC, TEST_PREC));
   }
-  CHECK_CLOSE(qdInit[0], qd[0], TEST_PREC);
+  CHECK_THAT(qdInit[0], IsClose(qd[0], TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
+TEST_CASE_METHOD(SliderCrank3D,
+                 __FILE__"_TestSliderCrank3DForwardDynamics", "") {
   VectorNd qWeights(q.size());
   VectorNd qdWeights(q.size());
   VectorNd qInit(q.size());
@@ -1421,7 +1498,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qdd);
@@ -1430,7 +1507,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsRangeSpaceSparse(model, q, qd, tau, cs, qdd);
@@ -1439,7 +1516,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   // Compute non-zero assembly q and qdot;
@@ -1471,16 +1548,16 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   qdInit.setZero();
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-  assert(success);
+  REQUIRE (success);
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
   Matrix3d rot_ps 
     = (CalcBodyWorldOrientation(model, q, id_p).transpose()*X_p.E).transpose()
     * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
-  assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
-  assert(rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
-  assert((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
+  REQUIRE (rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
+  REQUIRE ((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
     -CalcPointVelocity6D(model, q, qd, id_p, X_p.r)).norm() < TEST_PREC);
 
   // Test with non-zero q and qdot.
@@ -1491,7 +1568,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qdd);
@@ -1500,7 +1577,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsRangeSpaceSparse(model, q, qd, tau, cs, qdd);
@@ -1509,11 +1586,12 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DForwardDynamics) {
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 }
 
-TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
+TEST_CASE_METHOD(SliderCrank3D,
+                 __FILE__"_TestSliderCrank3DImpulse", "") {
   VectorNd qdPlusDirect(qd.size());
   VectorNd qdPlusRangeSpaceSparse(qd.size());
   VectorNd qdPlusNullSpace(qd.size());
@@ -1536,7 +1614,7 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
   qInit[4] = 0.1;
 
   bool success = CalcAssemblyQ(model, qInit, cs, q, qWeights, TEST_PREC);
-  assert(success);
+  REQUIRE (success);
 
   cs.v_plus[0] = 1.;
   cs.v_plus[1] = 2.;
@@ -1546,19 +1624,25 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
   
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdDirect, TEST_PREC, TEST_PREC)
+  );
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
   
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdSpaceSparse, TEST_PREC, TEST_PREC)
+  );
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdNullSpace, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdNullSpace, TEST_PREC, TEST_PREC)
+  );
 
   cs.v_plus[0] = 0.;
   cs.v_plus[1] = 0.;
@@ -1572,23 +1656,29 @@ TEST_FIXTURE(SliderCrank3D, TestSliderCrank3DImpulse) {
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
   
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdDirect, TEST_PREC, TEST_PREC)
+  );
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
   
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdSpaceSparse, TEST_PREC, TEST_PREC)
+  );
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdNullSpace, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdNullSpace, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage
-  , TestFloatingFourBarLinkageConstraintErrors) {
+TEST_CASE_METHOD(FloatingFourBarLinkage,
+                 __FILE__"_TestFloatingFourBarLinkageConstraintErrors", "") {
 
   VectorNd err = VectorNd::Zero(cs.size());
   Vector3d pos0;
@@ -1610,12 +1700,12 @@ TEST_FIXTURE(FloatingFourBarLinkage
 
   CalcConstraintsPositionError(model, q, cs, err,true);
 
-  CHECK_CLOSE(0., err[0], TEST_PREC);
-  CHECK_CLOSE(0., err[1], TEST_PREC);
-  CHECK_CLOSE(0., err[2], TEST_PREC);
-  CHECK_CLOSE(0., err[3], TEST_PREC);
-  CHECK_CLOSE(0., err[4], TEST_PREC);
-  CHECK_CLOSE(0., err[5], TEST_PREC);
+  CHECK_THAT(0., IsClose(err[0], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[1], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[2], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[4], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[5], TEST_PREC, TEST_PREC));
 
   // Test in non-zero position.
   q[0] = 1.;
@@ -1634,15 +1724,17 @@ TEST_FIXTURE(FloatingFourBarLinkage
   rot_p = CalcBodyWorldOrientation(model, q, idB2).transpose() * X_p.E;
   posErr = rot_p.transpose() * (pos2 - pos1);
 
-  assert(std::fabs(posErr[1]) < TEST_PREC);
-  assert(std::fabs(posErr[2]) < TEST_PREC);
+  REQUIRE (std::fabs(posErr[1]) < TEST_PREC);
+  REQUIRE (std::fabs(posErr[2]) < TEST_PREC);
 
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_ARRAY_CLOSE(Vector3d(1.,2.,3.), pos0, 3, TEST_PREC);
-  CHECK_CLOSE(posErr[0], err[3], TEST_PREC);
-  CHECK_CLOSE(0., err[4], TEST_PREC);
-  CHECK_CLOSE(angleErr, err[5], TEST_PREC);
+  CHECK_THAT(Vector3d(1.,2.,3.),
+             AllCloseVector(pos0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(posErr[0], IsClose(err[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(0., IsClose(err[4], TEST_PREC, TEST_PREC));
+  CHECK_THAT(angleErr, IsClose(err[5], TEST_PREC, TEST_PREC));
 
   // Test in non-zero position.
   q[0] = 1.;
@@ -1663,10 +1755,12 @@ TEST_FIXTURE(FloatingFourBarLinkage
 
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_ARRAY_CLOSE(Vector3d(1.,2.,3.), pos0, 3, TEST_PREC);
-  CHECK_CLOSE(posErr[0], err[3], TEST_PREC);
-  CHECK_CLOSE(posErr[1], err[4], TEST_PREC);
-  CHECK_CLOSE(angleErr, err[5], TEST_PREC);
+  CHECK_THAT(Vector3d(1.,2.,3.),
+             AllCloseVector(pos0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(posErr[0], IsClose(err[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(posErr[1], IsClose(err[4], TEST_PREC, TEST_PREC));
+  CHECK_THAT(angleErr, IsClose(err[5], TEST_PREC, TEST_PREC));
 
   // Test in non-zero position.
   q[0] = 1.;
@@ -1687,14 +1781,16 @@ TEST_FIXTURE(FloatingFourBarLinkage
 
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_ARRAY_CLOSE(Vector3d(1.,2.,3.), pos0, 3, TEST_PREC);
-  CHECK_CLOSE(posErr[0], err[3], TEST_PREC);
-  CHECK_CLOSE(posErr[1], err[4], TEST_PREC);
-  CHECK_CLOSE(angleErr, err[5], TEST_PREC);
+  CHECK_THAT(Vector3d(1.,2.,3.),
+             AllCloseVector(pos0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(posErr[0], IsClose(err[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(posErr[1], IsClose(err[4], TEST_PREC, TEST_PREC));
+  CHECK_THAT(angleErr, IsClose(err[5], TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage
-  , TestFloatingFourBarLinkageConstraintJacobian) {
+TEST_CASE_METHOD(FloatingFourBarLinkage,
+                 __FILE__"_TestFloatingFourBarLinkageConstraintJacobian", "") {
 
   MatrixNd G(MatrixNd::Zero(cs.size(), q.size()));
   VectorNd err(VectorNd::Zero(cs.size()));
@@ -1709,8 +1805,8 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[5] = 0.;
   q[6] = 0.;
   q[7] = 0.;
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1721,14 +1817,16 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qd[5] = -1.;
   qd[6] = -1.;
   qd[7] = 0.;
-  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+  REQUIRE ((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Both arms of the 4-bar laying on the y-axis
   q[0] = 0.;
@@ -1739,8 +1837,8 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[5] = 0.5 * M_PI;
   q[6] = 0.;
   q[7] = 0.;
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1751,14 +1849,16 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qd[5] = -1.;
   qd[6] = -1.;
   qd[7] = 0.;
-  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+  REQUIRE ((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Arms symmetric wrt y axis.
   q[0] = 1.;
@@ -1769,8 +1869,8 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[5] = M_PI - q[3];
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1781,19 +1881,22 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qd[5] = -2.;
   qd[6] = +1.;
   qd[7] = -1.;
-  assert((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
+  REQUIRE ((CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity6D(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   CalcConstraintsJacobian(model, q, cs, G);
 
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage
-  , TestFloatingFourBarLinkageConstraintsVelocityErrors) {
-
+TEST_CASE_METHOD(FloatingFourBarLinkage,
+                 __FILE__"_TestFloatingFourBarLinkageConstraintsVelocityErrors",
+                 "")
+{
   VectorNd errd(VectorNd::Zero(cs.size()));
   VectorNd errdRef(VectorNd::Zero(cs.size()));
   MatrixNd G(cs.size(), model.dof_count);
@@ -1808,8 +1911,8 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
 
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -1822,7 +1925,9 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qd[7] = -1.;
 
   CalcConstraintsVelocityError(model, q, qd, cs, errd);
-  CHECK_ARRAY_CLOSE(errdRef, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(errdRef,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 
   // Invalid velocities.
   qd[0] = -1.;
@@ -1837,10 +1942,13 @@ TEST_FIXTURE(FloatingFourBarLinkage
   CalcConstraintsVelocityError(model, q, qd, cs, errd,true);
   CalcConstraintsJacobian(model, q, cs, G, true);
   errdRef = G * qd;
-  CHECK_ARRAY_CLOSE(errdRef, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(errdRef,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQAssembly) {
+TEST_CASE_METHOD(FloatingFourBarLinkage,
+                 __FILE__"_TestFloatingFourBarLinkageQAssembly", "") {
   VectorNd weights(q.size());
   VectorNd err(cs.size());
   VectorNd errRef(VectorNd::Zero(cs.size()));
@@ -1864,8 +1972,8 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQAssembly) {
   qRef[6] = -qRef[4];
   qRef[7] = qRef[3] + qRef[4] - qRef[5] - qRef[6];
 
-  assert(qRef[3] + qRef[4] - qRef[5] - qRef[6] - qRef[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, qRef, idB2, X_p.r) 
+  REQUIRE (qRef[3] + qRef[4] - qRef[5] - qRef[6] - qRef[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, qRef, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, qRef, idB5, X_s.r)).norm() < TEST_PREC);
 
   bool success;  
@@ -1877,12 +1985,17 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQAssembly) {
   success = CalcAssemblyQ(model, qInit, cs, q, weights, 1.e-12);
   CalcConstraintsPositionError(model, q, cs, err);
 
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(inRange(q[3] + q[4]), inRange(q[5] + q[6] + q[7]), TEST_PREC);
-  CHECK_CLOSE(qInit[3], q[3], TEST_PREC);
-  CHECK_CLOSE(qInit[5], q[5], TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r),
+             AllCloseVector(CalcBodyToBaseCoordinates(model, q, idB5, X_s.r),
+                            TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(inRange(q[3] + q[4]), IsClose(inRange(q[5] + q[6] + q[7]),
+                                           TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[3], IsClose(q[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[5], IsClose(q[5], TEST_PREC, TEST_PREC));
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Perturbed initial guess.
   qInit[3] = qRef[3];
@@ -1895,12 +2008,17 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQAssembly) {
   CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(inRange(q[3] + q[4]), inRange(q[5] + q[6] + q[7]), TEST_PREC);
-  CHECK_CLOSE(qInit[3], q[3], TEST_PREC);
-  CHECK_CLOSE(qInit[5], q[5], TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r),
+             AllCloseVector(CalcBodyToBaseCoordinates(model, q, idB5, X_s.r),
+                            TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(inRange(q[3] + q[4]), IsClose(inRange(q[5] + q[6] + q[7]),
+                                           TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[3], IsClose(q[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[5], IsClose(q[5], TEST_PREC, TEST_PREC));
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Perturbed initial guess.
   qInit[3] = qRef[3] - 0.2;
@@ -1913,12 +2031,17 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQAssembly) {
   CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(inRange(q[3] + q[4]), inRange(q[5] + q[6] + q[7]), TEST_PREC);
-  CHECK_CLOSE(qInit[3], q[3], TEST_PREC);
-  CHECK_CLOSE(qInit[5], q[5], TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r),
+             AllCloseVector(CalcBodyToBaseCoordinates(model, q, idB5, X_s.r),
+                            TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(inRange(q[3] + q[4]), IsClose(inRange(q[5] + q[6] + q[7]),
+                                           TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[3], IsClose(q[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[5], IsClose(q[5], TEST_PREC, TEST_PREC));
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Perturbed initial guess.
   qInit[3] = qRef[3] + 0.01;
@@ -1931,15 +2054,21 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQAssembly) {
   CalcConstraintsPositionError(model, q, cs, err);
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
-    , CalcBodyToBaseCoordinates(model, q, idB5, X_s.r), 3, TEST_PREC);
-  CHECK_CLOSE(inRange(q[3] + q[4]), inRange(q[5] + q[6] + q[7]), TEST_PREC);
-  CHECK_CLOSE(qInit[3], q[3], TEST_PREC);
-  CHECK_CLOSE(qInit[5], q[5], TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(CalcBodyToBaseCoordinates(model, q, idB2, X_p.r),
+             AllCloseVector(CalcBodyToBaseCoordinates(model, q, idB5, X_s.r),
+                            TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(inRange(q[3] + q[4]), IsClose(inRange(q[5] + q[6] + q[7]),
+                                           TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[3], IsClose(q[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qInit[5], IsClose(q[5], TEST_PREC, TEST_PREC));
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQDotAssembly) {
+TEST_CASE_METHOD(FloatingFourBarLinkage,
+                 __FILE__"_TestFloatingFourBarLinkageQDotAssembly", "") {
   VectorNd weights(q.size());
 
   weights[0] = 0.;
@@ -1960,8 +2089,8 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQDotAssembly) {
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
 
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   VectorNd qdInit = VectorNd::Zero(q.size());
@@ -1981,16 +2110,19 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageQDotAssembly) {
   CalcConstraintsJacobian(model, q, cs, G);
   err = G * qd;
 
-  CHECK_ARRAY_CLOSE(CalcPointVelocity6D(model, q, qd, idB2, X_p.r)
-    , CalcPointVelocity6D(model, q, qd, idB5, X_s.r), 6, TEST_PREC);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
-  CHECK_CLOSE(qdInit[3], qd[3], TEST_PREC);
-  CHECK_CLOSE(qdInit[5], qd[5], TEST_PREC);
+  CHECK_THAT(CalcPointVelocity6D(model, q, qd, idB2, X_p.r),
+             AllCloseVector(CalcPointVelocity6D(model, q, qd, idB5, X_s.r),
+                            TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(qdInit[3], IsClose(qd[3], TEST_PREC, TEST_PREC));
+  CHECK_THAT(qdInit[5], IsClose(qd[5], TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage
-  , TestFloatingFourBarLinkageForwardDynamics) {
-
+TEST_CASE_METHOD(FloatingFourBarLinkage,
+                 __FILE__"_TestFloatingFourBarLinkageForwardDynamics", "") {
   VectorNd qddDirect;
   VectorNd qddNullSpace;
 
@@ -2004,8 +2136,8 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[5] = 0.;
   q[6] = 0.;
   q[7] = 0.;
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -2016,8 +2148,8 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qd[5] = 0.;
   qd[6] = 0.;
   qd[7] = 0.;
-  assert(qd[3] + qd[4] - qd[5] - qd[6] - qd[7] == 0.);
-  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+  REQUIRE (qd[3] + qd[4] - qd[5] - qd[6] - qd[7] == 0.);
+  REQUIRE ((CalcPointVelocity(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   tau[0] = 0.;
@@ -2032,18 +2164,20 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qddDirect);
 
-  CHECK_ARRAY_CLOSE
-    (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r)
-    , CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r)
-    , 6, TEST_PREC);
+  CHECK_THAT (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r),
+              AllCloseVector(
+                CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r),
+                TEST_PREC, TEST_PREC)
+  );
 
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
-  CHECK_ARRAY_CLOSE
-    (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r)
-    , CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r)
-    , 6, TEST_PREC);
+  CHECK_THAT (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r),
+              AllCloseVector(
+                CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r),
+                TEST_PREC, TEST_PREC)
+  );
 
   // Configuration 2.
   q[0] = 1.;
@@ -2055,8 +2189,8 @@ TEST_FIXTURE(FloatingFourBarLinkage
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
 
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   qd[0] = 0.;
@@ -2067,8 +2201,8 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qd[5] = -2.;
   qd[6] = +1.;
   qd[7] = -1.;
-  assert(qd[3] + qd[4] - qd[5] - qd[6] - qd[7] == 0.);
-  assert((CalcPointVelocity(model, q, qd, idB2, X_p.r)
+  REQUIRE (qd[3] + qd[4] - qd[5] - qd[6] - qd[7] == 0.);
+  REQUIRE ((CalcPointVelocity(model, q, qd, idB2, X_p.r)
     - CalcPointVelocity(model, q, qd, idB5, X_s.r)).norm() < TEST_PREC);
 
   tau[0] = 0.;
@@ -2083,21 +2217,24 @@ TEST_FIXTURE(FloatingFourBarLinkage
   qddDirect = VectorNd::Zero(q.size());
   ForwardDynamicsConstraintsDirect(model, q, qd, tau, cs, qddDirect);
 
-  CHECK_ARRAY_CLOSE
-    (CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r)
-    , CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r)
-    , 6, TEST_PREC);
+  CHECK_THAT(CalcPointAcceleration6D(model, q, qd, qddDirect, idB2, X_p.r),
+             AllCloseVector(
+               CalcPointAcceleration6D(model, q, qd, qddDirect, idB5, X_s.r),
+               TEST_PREC, TEST_PREC)
+  );
 
   qddNullSpace = VectorNd::Zero(q.size());
   ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qddNullSpace);
 
-  CHECK_ARRAY_CLOSE
-    (CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r)
-    , CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r)
-    , 6, TEST_PREC);
+  CHECK_THAT(CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB2, X_p.r),
+             AllCloseVector(
+               CalcPointAcceleration6D(model, q, qd, qddNullSpace, idB5, X_s.r),
+               TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageImpulse) {
+TEST_CASE_METHOD(FloatingFourBarLinkage,
+                 __FILE__"_TestFloatingFourBarLinkageImpulse", "") {
   VectorNd qdPlusDirect(qd.size());
   VectorNd qdPlusRangeSpaceSparse(qd.size());
   VectorNd qdPlusNullSpace(qd.size());
@@ -2112,8 +2249,8 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageImpulse) {
   q[6] = -q[4];
   q[7] = q[3] + q[4] - q[5] - q[6];
 
-  assert(q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
-  assert((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r) 
+  REQUIRE (q[3] + q[4] - q[5] - q[6] - q[7] == 0.);
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, idB2, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, idB5, X_s.r)).norm() < TEST_PREC);
 
   cs.v_plus[0] = 1.;
@@ -2126,7 +2263,9 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageImpulse) {
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd,true);
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 
   cs.v_plus[0] = 0.;
   cs.v_plus[1] = 0.;
@@ -2142,11 +2281,14 @@ TEST_FIXTURE(FloatingFourBarLinkage, TestFloatingFourBarLinkageImpulse) {
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errd);
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint
-  , TestSliderCrank3DSphericalJointConstraintErrors) {
+TEST_CASE_METHOD(SliderCrank3DSphericalJoint,
+                 __FILE__"_TestSliderCrank3DSphericalJointConstraintErrors", "")
+{
   VectorNd err(VectorNd::Zero(cs.size()));
   VectorNd errRef(VectorNd::Zero(cs.size()));
   Vector3d pos_p;
@@ -2158,7 +2300,9 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
 
   // Test in zero position.
   CalcConstraintsPositionError(model, q, cs, err);
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 
   // Test in another configuration.
   Quaternion quat = Quaternion::fromZYXAngles(Vector3d(-0.25*M_PI,0.01,0.01));
@@ -2180,11 +2324,14 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   errRef.block<3,1>(0,0) = pos_s - pos_p;
   errRef[3] = rotationVec[2];
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint
-  , TestSliderCrank3DSphericalJointConstraintJacobian) {
+TEST_CASE_METHOD(SliderCrank3DSphericalJoint,
+                 __FILE__"_TestSliderCrank3DSphericalJointConstraintJacobian","")
+{
   MatrixNd G(MatrixNd::Zero(cs.size(), model.dof_count));
 
   // Test in zero position.
@@ -2195,11 +2342,14 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   VectorNd errRef(VectorNd::Zero(cs.size()));
   VectorNd err = G * qd;
 
-  CHECK_ARRAY_CLOSE(errRef, err, cs.size(), TEST_PREC);
+  CHECK_THAT(errRef,
+             AllCloseVector(err, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint
-  , TestSliderCrank3DSphericalJointConstraintsVelocityErrors) {
+TEST_CASE_METHOD(SliderCrank3DSphericalJoint,
+            __FILE__"_TestSliderCrank3DSphericalJointConstraintsVelocityErrors",
+                 "") {
   VectorNd errd(VectorNd::Zero(cs.size()));
   VectorNd errdRef(VectorNd::Zero(cs.size()));
   MatrixNd G(cs.size(), model.dof_count);
@@ -2220,7 +2370,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   model.SetQuaternion(id_s, quat, qInit);
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-  assert(success);
+  REQUIRE (success);
 
   // Some random velocity.
   qd[0] = -0.2;
@@ -2233,11 +2383,13 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   CalcConstraintsJacobian(model, q, cs, G);
   errdRef = G * qd;
 
-  CHECK_ARRAY_CLOSE(errdRef, errd, cs.size(), TEST_PREC);
+  CHECK_THAT(errdRef,
+             AllCloseVector(errd, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint
-  , TestSliderCrank3DSphericalJointAssemblyQ) {
+TEST_CASE_METHOD(SliderCrank3DSphericalJoint,
+                 __FILE__"_TestSliderCrank3DSphericalJointAssemblyQ", "") {
   VectorNd weights(model.dof_count);
   VectorNd qInit(model.q_size);
 
@@ -2268,12 +2420,14 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   rot_ps = rot_p.transpose() * rot_s;
 
   CHECK(success);
-  CHECK_ARRAY_CLOSE(pos_p, pos_s, 3, TEST_PREC);
-  CHECK_CLOSE(0., rot_ps(0,1) - rot_ps(1,0), TEST_PREC);
+  CHECK_THAT(pos_p,
+             AllCloseVector(pos_s, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(0., IsClose(rot_ps(0,1) - rot_ps(1,0), TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint
-  , TestSliderCrank3DSphericalJointAssemblyQDot) {
+TEST_CASE_METHOD(SliderCrank3DSphericalJoint,
+                 __FILE__"_TestSliderCrank3DSphericalJointAssemblyQDot", "") {
   VectorNd qWeights(model.dof_count);
   VectorNd qdWeights(model.dof_count);
   VectorNd qInit(model.q_size);
@@ -2308,7 +2462,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   qdInit[4] = 0.1 * M_PI;
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-  assert(success);
+  REQUIRE (success);
 
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
@@ -2316,13 +2470,13 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   vel_s = CalcPointVelocity6D(model, q, qd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(vel_p[i], vel_s[i], TEST_PREC);
+    CHECK_THAT(vel_p[i], IsClose(vel_s[i], TEST_PREC, TEST_PREC));
   }
-  CHECK_CLOSE(qdInit[0], qd[0], TEST_PREC);
+  CHECK_THAT(qdInit[0], IsClose(qd[0], TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint
-  , TestSliderCrank3DSphericalJointForwardDynamics) {
+TEST_CASE_METHOD(SliderCrank3DSphericalJoint,
+                 __FILE__"_TestSliderCrank3DSphericalJointForwardDynamics", "") {
 
   VectorNd qWeights(model.dof_count);
   VectorNd qdWeights(model.dof_count);
@@ -2346,7 +2500,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qdd);
@@ -2355,7 +2509,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsRangeSpaceSparse(model, q, qd, tau, cs, qdd);
@@ -2364,7 +2518,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   // Compute non-zero assembly q and qdot;
@@ -2395,16 +2549,16 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   qdInit.setZero();
 
   success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-  assert(success);
+  REQUIRE (success);
   CalcAssemblyQDot(model, q, qdInit, cs, qd, qdWeights);
 
   Matrix3d rot_ps 
     = (CalcBodyWorldOrientation(model, q, id_p).transpose() * X_p.E).transpose()
     * CalcBodyWorldOrientation(model, q, id_s).transpose() * X_s.E;
-  assert((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
+  REQUIRE ((CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)
     - CalcBodyToBaseCoordinates(model, q, id_p, X_p.r)).norm() < TEST_PREC);
-  assert(rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
-  assert((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
+  REQUIRE (rot_ps(0,1) - rot_ps(0,1) < TEST_PREC);
+  REQUIRE ((CalcPointVelocity6D(model, q, qd, id_p, X_p.r)
     -CalcPointVelocity6D(model, q, qd, id_p, X_p.r)).norm() < TEST_PREC);
 
   // Test with non-zero q and qdot.
@@ -2415,7 +2569,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsNullSpace(model, q, qd, tau, cs, qdd);
@@ -2424,7 +2578,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsRangeSpaceSparse(model, q, qd, tau, cs, qdd);
@@ -2433,12 +2587,12 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   acc_s = CalcPointAcceleration6D(model, q, qd, qdd, id_s, X_s.r);
 
   for(size_t i = 2; i < 6; ++i) {
-    CHECK_CLOSE(acc_p[i], acc_s[i], TEST_PREC);
+    CHECK_THAT(acc_p[i], IsClose(acc_s[i], TEST_PREC, TEST_PREC));
   }
 }
 
-TEST_FIXTURE(SliderCrank3DSphericalJoint
-  , TestSliderCrank3DSphericalJointImpulse) {
+TEST_CASE_METHOD(SliderCrank3DSphericalJoint,
+                 __FILE__"_TestSliderCrank3DSphericalJointImpulse", "") {
 
   VectorNd qdPlusDirect(model.dof_count);
   VectorNd qdPlusRangeSpaceSparse(model.dof_count);
@@ -2461,7 +2615,7 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   model.SetQuaternion(id_s, quat, qInit);
 
   bool success = CalcAssemblyQ(model, qInit, cs, q, qWeights, 1e-14, 800);
-  assert(success);
+  REQUIRE (success);
 
   cs.v_plus[0] = 1.;
   cs.v_plus[1] = 2.;
@@ -2471,19 +2625,25 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
   
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdDirect, TEST_PREC, TEST_PREC)
+  );
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
   
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdSpaceSparse, TEST_PREC, TEST_PREC)
+  );
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdNullSpace, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdNullSpace, TEST_PREC, TEST_PREC)
+  );
 
   cs.v_plus[0] = 0.;
   cs.v_plus[1] = 0.;
@@ -2497,22 +2657,28 @@ TEST_FIXTURE(SliderCrank3DSphericalJoint
   ComputeConstraintImpulsesDirect(model, q, qd, cs, qdPlusDirect);
   CalcConstraintsVelocityError(model, q, qdPlusDirect, cs, errdDirect);
   
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdDirect, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdDirect, TEST_PREC, TEST_PREC)
+  );
 
   ComputeConstraintImpulsesRangeSpaceSparse(model, q, qd, cs
     , qdPlusRangeSpaceSparse);
   CalcConstraintsVelocityError(model, q, qdPlusRangeSpaceSparse, cs
     , errdSpaceSparse);
   
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdSpaceSparse, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdSpaceSparse, TEST_PREC, TEST_PREC)
+  );
 
   ComputeConstraintImpulsesNullSpace(model, q, qd, cs, qdPlusNullSpace);
   CalcConstraintsVelocityError(model, q, qdPlusNullSpace, cs, errdNullSpace);
 
-  CHECK_ARRAY_CLOSE(cs.v_plus, errdNullSpace, cs.size(), TEST_PREC);
+  CHECK_THAT(cs.v_plus,
+             AllCloseVector(errdNullSpace, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST(ConstraintCorrectnessTest) {
+TEST_CASE(__FILE__"_ConstraintCorrectnessTest", "") {
   DoublePerpendicularPendulumAbsoluteCoordinates dba
     = DoublePerpendicularPendulumAbsoluteCoordinates();
   DoublePerpendicularPendulumJointCoordinates dbj
@@ -2617,10 +2783,10 @@ TEST(ConstraintCorrectnessTest) {
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
   for(unsigned int i=0; i<err.rows();++i){
-    CHECK_CLOSE(0,err[i],TEST_PREC);
+    CHECK_THAT(0,IsClose(err[i],TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<errd.rows();++i){
-    CHECK_CLOSE(0,errd[i],TEST_PREC);
+    CHECK_THAT(0,IsClose(errd[i],TEST_PREC, TEST_PREC));
   }
 
   //Evaluate the accelerations of the constrained pendulum and
@@ -2641,9 +2807,9 @@ TEST(ConstraintCorrectnessTest) {
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
   for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+    CHECK_THAT(a010[i],IsClose(a010c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a020[i],IsClose(a020c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
 
   /*
@@ -2657,9 +2823,9 @@ TEST(ConstraintCorrectnessTest) {
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
   for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+    CHECK_THAT(a010[i],IsClose(a010c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a020[i],IsClose(a020c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
 
   bool here=true;
@@ -2674,9 +2840,9 @@ TEST(ConstraintCorrectnessTest) {
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
   for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+    CHECK_THAT(a010[i],IsClose(a010c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a020[i],IsClose(a020c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
   */
 }

@@ -1,7 +1,6 @@
-#include <UnitTest++.h>
 #include "rbdl/rbdl.h"
 #include <cassert>
-
+#include "rbdl_tests.h"
 
 #include "PendulumModels.h"
 
@@ -24,7 +23,9 @@ static double inRange(double angle) {
 
 
 
-TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
+TEST_CASE(__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest",
+          "")
+{
   DoublePerpendicularPendulumAbsoluteCoordinates dba
     = DoublePerpendicularPendulumAbsoluteCoordinates();
   DoublePerpendicularPendulumJointCoordinates dbj
@@ -164,10 +165,10 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
   //The constraint errors at the position and velocity level
   //must be zero before the accelerations can be tested.
   for(unsigned int i=0; i<err.rows();++i){
-    CHECK_CLOSE(0,err[i],TEST_PREC);
+    CHECK_THAT(0,IsClose(err[i],TEST_PREC, TEST_PREC));
   }
   for(unsigned int i=0; i<errd.rows();++i){
-    CHECK_CLOSE(0,errd[i],TEST_PREC);
+    CHECK_THAT(0,IsClose(errd[i],TEST_PREC, TEST_PREC));
   }
 
   //Evaluate the accelerations of the constrained pendulum and
@@ -189,9 +190,9 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
   for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+    CHECK_THAT(a010[i],IsClose(a010c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a020[i],IsClose(a020c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
 
   ForwardDynamicsConstraintsNullSpace(
@@ -206,9 +207,9 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
   for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+    CHECK_THAT(a010[i],IsClose(a010c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a020[i],IsClose(a020c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
 
 
@@ -223,10 +224,9 @@ TEST(ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest) {
                           dba.idB2,Vector3d(dba.l2,0.,0.),true);
 
   for(unsigned int i=0; i<6;++i){
-    CHECK_CLOSE(a010[i],a010c[i],TEST_PREC);
-    CHECK_CLOSE(a020[i],a020c[i],TEST_PREC);
-    CHECK_CLOSE(a030[i],a030c[i],TEST_PREC);
+    CHECK_THAT(a010[i],IsClose(a010c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a020[i],IsClose(a020c[i],TEST_PREC, TEST_PREC));
+    CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
-
 
 }

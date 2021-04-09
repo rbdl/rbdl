@@ -1,14 +1,14 @@
-#include <UnitTest++.h>
-
 #include "rbdl/Logging.h"
 #include "rbdl/rbdl_errors.h"
 #include <iostream>
 #include <exception>
 
+#include "rbdl_tests.h"
+
 using namespace RigidBodyDynamics::Errors;
 
 // Test if each error type can be catched by Base Class
-TEST ( BaseClassCatch )
+TEST_CASE ( __FILE__"_BaseClassCatch", "" )
 {
   //RBDLError
   try {
@@ -76,7 +76,7 @@ TEST ( BaseClassCatch )
 
 // Tests to check catching each error type
 
-TEST ( RBDLInvalidParameterErrorTest )
+TEST_CASE (__FILE__"_RBDLInvalidParameterErrorTest", "" )
 {
   try {
     throw RBDLInvalidParameterError("Test RBDLInvalidParameterError");
@@ -87,7 +87,7 @@ TEST ( RBDLInvalidParameterErrorTest )
   }
 }
 
-TEST ( RBDLSizeMismatchErrorTest )
+TEST_CASE (__FILE__"_RBDLSizeMismatchErrorTest", "" )
 {
   try {
     throw RBDLSizeMismatchError("Test RBDLSizeMismatchError");
@@ -98,7 +98,7 @@ TEST ( RBDLSizeMismatchErrorTest )
   }
 }
 
-TEST ( RBDLDofMismatchErrorTest )
+TEST_CASE (__FILE__"_RBDLDofMismatchErrorTest", "" )
 {
   try {
     throw RBDLDofMismatchError("Test RBDLDofMismatchError");
@@ -109,7 +109,7 @@ TEST ( RBDLDofMismatchErrorTest )
   }
 }
 
-TEST ( RBDLMissingImplementationErrorTest )
+TEST_CASE (__FILE__"_RBDLMissingImplementationErrorTest", "")
 {
   try {
     throw RBDLMissingImplementationError("Test RBDLMissingImplementationError");
@@ -120,7 +120,7 @@ TEST ( RBDLMissingImplementationErrorTest )
   }
 }
 
-TEST ( RBDLInvalidFileErrorTest )
+TEST_CASE (__FILE__"_RBDLInvalidFileErrorTest", "")
 {
   try {
     throw RBDLInvalidFileError("Test RBDLInvalidFileError");
@@ -131,7 +131,7 @@ TEST ( RBDLInvalidFileErrorTest )
   }
 }
 
-TEST ( RBDLFileParseErrorTest )
+TEST_CASE (__FILE__"_RBDLFileParseErrorTest", "" )
 {
   try {
     throw RBDLFileParseError("Test RBDLFileParseError");
