@@ -14,7 +14,7 @@ pipeline {
     stage('Test RBDL') {
       steps {
         dir(path: 'build') {
-          sh './tests/runtests'
+          sh './tests/rbdl_tests -r junit > results_rbdl.xml'
           sh './addons/geometry/tests/runGeometryTests'
           sh './addons/muscle/tests/runMuscleTests'
         }
@@ -22,6 +22,12 @@ pipeline {
           sh './test_rbdlmuscle.py -v'
           sh './test_wrapper.py -v'
         }
+      }
+    }
+
+    post {
+      always {
+        junit 'build/results_rbdl.xml'
       }
     }
 
