@@ -46,10 +46,9 @@ that define the various characteristic curves required in a muscle model
 //==============================================================================
 // INCLUDES
 //==============================================================================
-
+#define CATCH_CONFIG_MAIN
 #include "geometry.h"
 #include "numericalTestFunctions.h"
-#include <UnitTest++.h>
 #include <rbdl/rbdl_math.h>
 #include <ctime>
 #include <string>
@@ -58,11 +57,11 @@ that define the various characteristic curves required in a muscle model
 #include <cassert>
 #include <fstream>
 
+#include "rbdl_tests.h"
+
 using namespace RigidBodyDynamics::Addons::Geometry;
 
 using namespace std;
-
-
 
 
 /**
@@ -318,13 +317,13 @@ void testSegmentedQuinticBezierDerivatives(
 
 
    
-TEST(QuinticBezierToolKitDerivatives)
+TEST_CASE(__FILE__"_QuinticBezierToolKitDerivatives", "")
 {
     int maximumNumberOfToleranceViolations = 10;
     testSegmentedQuinticBezierDerivatives(10);
 }
 
-TEST(SmoothSegmentedFunctionProperties)
+TEST_CASE(__FILE__"_SmoothSegmentedFunctionProperties", "")
 {
   //1. Make a fake monotonic curve
   RigidBodyDynamics::Math::VectorNd x(5);
@@ -390,7 +389,7 @@ TEST(SmoothSegmentedFunctionProperties)
 
 }
 
-TEST(ShiftScale)
+TEST_CASE(__FILE__"_ShiftScale", "")
 {
   //1. Make a curve
   RigidBodyDynamics::Math::VectorNd xV(5);
@@ -478,8 +477,8 @@ TEST(ShiftScale)
 
 }
 
-TEST(CalcFunctionInverseValue){
-
+TEST_CASE(__FILE__"_CalcFunctionInverseValue", "")
+{
   //1. Make a curve with multiple maxima
   unsigned int n = 10;
   RigidBodyDynamics::Math::VectorNd xV(n);
@@ -542,11 +541,4 @@ TEST(CalcFunctionInverseValue){
    err    = curve.calcValue(x0)-y0;
    CHECK( abs(err) < TOL_SMALL);
    CHECK( abs(x0-xGuess) < 0.1);
-
-
-}
-
-int main (int argc, char *argv[])
-{
-    return UnitTest::RunAllTests ();
 }

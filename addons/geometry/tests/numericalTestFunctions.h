@@ -48,7 +48,6 @@ that define the various characteristic curves required in a muscle model
 //==============================================================================
 
 #include "../geometry.h"
-#include <UnitTest++.h>
 #include <rbdl/rbdl_math.h>
 #include <ctime>
 #include <string>
