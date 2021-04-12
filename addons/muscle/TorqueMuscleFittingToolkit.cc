@@ -115,7 +115,7 @@ void TorqueMuscleFittingToolkit::
                           tvLambda,
                           *mutableTqMcl);
 
-    SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
+    SmartPtr<IpoptApplication> app = new IpoptApplication(false);
 
     app->RethrowNonIpoptException(true);
     double solnTol = SQRTEPSILON;
