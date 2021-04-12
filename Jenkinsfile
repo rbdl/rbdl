@@ -17,7 +17,7 @@ pipeline {
         dir(path: 'build') {
           sh './tests/rbdl_tests -r junit > results_rbdl.xml'
           sh './addons/geometry/tests/geometry_tests -r junit > results_geometry.xml'
-          sh './addons/muscle/tests/muscle_tests -r junit > results_muscle.xml'
+          sh './addons/muscle/tests/muscle_tests -r junit -o ./results_muscle.xml'
           sh './addons/luamodel/tests/luamodel_tests -r junit > results_luamodel.xml'
         }
         dir(path: 'build/python') {
