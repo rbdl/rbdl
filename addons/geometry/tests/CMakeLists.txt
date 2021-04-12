@@ -55,7 +55,7 @@ OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)
 IF (RUN_AUTOMATIC_TESTS)
 ADD_CUSTOM_COMMAND (TARGET rbdl_geometry_tests
 	POST_BUILD
-	COMMAND ./geomtery_tests
+	COMMAND ./geometry_tests
 	COMMENT "Running automated addon geometry tests..."
 	)
 ENDIF (RUN_AUTOMATIC_TESTS)

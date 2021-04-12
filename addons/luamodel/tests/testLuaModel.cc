@@ -8,8 +8,7 @@
 //==============================================================================
 // INCLUDES
 //==============================================================================
-#include <UnitTest++.h>
-
+#define CATCH_CONFIG_MAIN
 #include "luamodel.h"
 #include "luatables.h"
 #include <rbdl/rbdl.h>
@@ -17,24 +16,23 @@
 #include <vector>
 #include <cstring>
 
+#include "rbdl_tests.h"
+
 #ifdef RBDL_BUILD_ADDON_MUSCLE
 #include "../muscle/Millard2016TorqueMuscle.h"
 #endif
-
 
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 using namespace RigidBodyDynamics::Addons;
 
-
-
 using namespace std;
 
 const double TEST_PREC = 1.0e-11;
 
-std::string rbdlSourcePath;
+std::string rbdlSourcePath = RBDL_LUAMODEL_SOURCE_DIR;
    
-TEST(LoadLuaModel)
+TEST_CASE(__FILE__"_LoadLuaModel", "")
 {
   Model model;
   std::string modelFile = rbdlSourcePath;
@@ -42,7 +40,7 @@ TEST(LoadLuaModel)
   bool modelLoaded = LuaModelReadFromFile(modelFile.c_str(), &model, false);
   CHECK(modelLoaded);
 }
-TEST(LoadMotionCaptureMarkers)
+TEST_CASE(__FILE__"_LoadMotionCaptureMarkers", "")
 {
   Model model;
   std::string modelFile = rbdlSourcePath;
@@ -57,44 +55,77 @@ TEST(LoadMotionCaptureMarkers)
     bool flag_found = false;
     if(std::strcmp(updMarkerSet[i].name.c_str(),"LASI")==0){
       CHECK( updMarkerSet[i].body_id == model.GetBodyId("pelvis"));
-      CHECK_CLOSE(updMarkerSet[i].point_local[0], 0.047794,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[1], 0.200000,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[2], 0.070908,TEST_PREC);
+      CHECK_THAT(updMarkerSet[i].point_local[0],
+                 IsClose(0.047794,TEST_PREC, TEST_PREC));
+      CHECK_THAT(updMarkerSet[i].point_local[1],
+                 IsClose(0.200000,TEST_PREC, TEST_PREC));
+      CHECK_THAT(updMarkerSet[i].point_local[2],
+                 IsClose(0.070908,TEST_PREC, TEST_PREC));
       flag_found = true;
     }
     if(std::strcmp(updMarkerSet[i].name.c_str(),"RASI")==0){
       CHECK( updMarkerSet[i].body_id == model.GetBodyId("pelvis"));
-      CHECK_CLOSE(updMarkerSet[i].point_local[0], 0.047794,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[1],-0.200000,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[2], 0.070908,TEST_PREC);
+      CHECK_THAT(updMarkerSet[i].point_local[0],
+                 IsClose(0.047794,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[1],
+                 IsClose(-0.200000,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[2],
+                 IsClose(0.070908,TEST_PREC, TEST_PREC)
+      );
       flag_found = true;
     }
     if(std::strcmp(updMarkerSet[i].name.c_str(),"LPSI")==0){
       CHECK( updMarkerSet[i].body_id == model.GetBodyId("pelvis"));
-      CHECK_CLOSE(updMarkerSet[i].point_local[0],-0.106106,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[1], 0.200000,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[2], 0.070908,TEST_PREC);
+      CHECK_THAT(updMarkerSet[i].point_local[0],
+                 IsClose(-0.106106,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[1],
+                 IsClose(0.200000,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[2],
+                 IsClose(0.070908,TEST_PREC, TEST_PREC)
+      );
       flag_found = true;
     }
     if(std::strcmp(updMarkerSet[i].name.c_str(),"RPSI")==0){
       CHECK( updMarkerSet[i].body_id == model.GetBodyId("pelvis"));
-      CHECK_CLOSE(updMarkerSet[i].point_local[0],-0.106106,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[1],-0.200000,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[2], 0.070908,TEST_PREC);
+      CHECK_THAT(updMarkerSet[i].point_local[0],
+                 IsClose(-0.106106,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[1],
+                 IsClose(-0.200000,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[2],
+                 IsClose(0.070908,TEST_PREC, TEST_PREC)
+      );
       flag_found = true;
     }
     if(std::strcmp(updMarkerSet[i].name.c_str(),"RTHI")==0){
       CHECK( updMarkerSet[i].body_id == model.GetBodyId("thigh_right"));
-      CHECK_CLOSE(updMarkerSet[i].point_local[0],-0.007376,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[1], 0.000000,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[2],-0.243721,TEST_PREC);
+      CHECK_THAT(updMarkerSet[i].point_local[0],
+                 IsClose(-0.007376,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[1],
+                 IsClose(0.000000,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[2],
+                 IsClose(-0.243721,TEST_PREC, TEST_PREC)
+      );
       flag_found = true;
     }
     if(std::strcmp(updMarkerSet[i].name.c_str(),"RKNE")==0){
       CHECK( updMarkerSet[i].body_id == model.GetBodyId("thigh_right"));
-      CHECK_CLOSE(updMarkerSet[i].point_local[0],-0.011611,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[1], 0.000000,TEST_PREC);
-      CHECK_CLOSE(updMarkerSet[i].point_local[2],-0.454494,TEST_PREC);
+      CHECK_THAT(updMarkerSet[i].point_local[0],
+                 IsClose(-0.011611,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[1],
+                 IsClose(0.000000,TEST_PREC, TEST_PREC)
+      );
+      CHECK_THAT(updMarkerSet[i].point_local[2],
+                 IsClose(-0.454494,TEST_PREC, TEST_PREC)
+      );
       flag_found = true;
     }
     CHECK(flag_found);
@@ -102,7 +133,7 @@ TEST(LoadMotionCaptureMarkers)
 
 
 }
-TEST(LoadLocalFrames)
+TEST_CASE(__FILE__"_LoadLocalFrames", "")
 {
   Model model;
   std::string modelFile = rbdlSourcePath;
@@ -120,44 +151,92 @@ TEST(LoadLocalFrames)
   CHECK(std::strcmp("Pocket_L",updLocalFrameSet[0].name.c_str())==0);
   CHECK(updLocalFrameSet[0].body_id == thighLeftId);
 
-  CHECK_CLOSE(updLocalFrameSet[0].r[0], 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[0].r[1], 0.2, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[0].r[2], 0.0, TEST_PREC);
+  CHECK_THAT(updLocalFrameSet[0].r[0],
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[0].r[1],
+             IsClose(0.2, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[0].r[2],
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(updLocalFrameSet[0].E(0,0), 1.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[0].E(0,1), 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[0].E(0,2), 0.0, TEST_PREC);
+  CHECK_THAT(updLocalFrameSet[0].E(0,0),
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[0].E(0,1),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[0].E(0,2),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(updLocalFrameSet[0].E(1,0), 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[0].E(1,1), 1.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[0].E(1,2), 0.0, TEST_PREC);
+  CHECK_THAT(updLocalFrameSet[0].E(1,0),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[0].E(1,1),
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[0].E(1,2),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(updLocalFrameSet[0].E(2,0), 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[0].E(2,1), 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[0].E(2,2), 1.0, TEST_PREC);
+  CHECK_THAT(updLocalFrameSet[0].E(2,0),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[0].E(2,1),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[0].E(2,2),
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
 
 
   CHECK(std::strcmp("Pocket_R",updLocalFrameSet[1].name.c_str())==0);
   CHECK(updLocalFrameSet[1].body_id == thighRightId);
-  CHECK_CLOSE(updLocalFrameSet[1].r[0], 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[1].r[1],-0.2, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[1].r[2], 0.0, TEST_PREC);
+  CHECK_THAT(updLocalFrameSet[1].r[0],
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[1].r[1],
+             IsClose(-0.2, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[1].r[2],
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(updLocalFrameSet[1].E(0,0), 1.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[1].E(0,1), 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[1].E(0,2), 0.0, TEST_PREC);
+  CHECK_THAT(updLocalFrameSet[1].E(0,0),
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[1].E(0,1),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[1].E(0,2),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(updLocalFrameSet[1].E(1,0), 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[1].E(1,1), 1.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[1].E(1,2), 0.0, TEST_PREC);
+  CHECK_THAT(updLocalFrameSet[1].E(1,0),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[1].E(1,1),
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[1].E(1,2),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(updLocalFrameSet[1].E(2,0), 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[1].E(2,1), 0.0, TEST_PREC);
-  CHECK_CLOSE(updLocalFrameSet[1].E(2,2), 1.0, TEST_PREC);
+  CHECK_THAT(updLocalFrameSet[1].E(2,0),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[1].E(2,1),
+             IsClose(0.0, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updLocalFrameSet[1].E(2,2),
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
 
 
 }
-TEST(LoadPoints)
+TEST_CASE(__FILE__"_LoadPoints", "")
 {
   Model model;
   std::string modelFile = rbdlSourcePath;
@@ -180,24 +259,48 @@ TEST(LoadPoints)
   CHECK( updPointSet[2].body_id == bodyId );
   CHECK( updPointSet[3].body_id == bodyId );
 
-  CHECK_CLOSE(updPointSet[0].point_local[0], -0.080, TEST_PREC);
-  CHECK_CLOSE(updPointSet[0].point_local[1], -0.042, TEST_PREC);
-  CHECK_CLOSE(updPointSet[0].point_local[2], -0.091, TEST_PREC);
+  CHECK_THAT(updPointSet[0].point_local[0],
+             IsClose(-0.080, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updPointSet[0].point_local[1],
+             IsClose(-0.042, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updPointSet[0].point_local[2],
+             IsClose(-0.091, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(updPointSet[1].point_local[0], -0.080, TEST_PREC);
-  CHECK_CLOSE(updPointSet[1].point_local[1],  0.042, TEST_PREC);
-  CHECK_CLOSE(updPointSet[1].point_local[2], -0.091, TEST_PREC);
+  CHECK_THAT(updPointSet[1].point_local[0],
+             IsClose(-0.080, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updPointSet[1].point_local[1],
+             IsClose(0.042, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updPointSet[1].point_local[2],
+             IsClose(-0.091, TEST_PREC, TEST_PREC)
+  );
   
-  CHECK_CLOSE(updPointSet[2].point_local[0],  0.181788, TEST_PREC);
-  CHECK_CLOSE(updPointSet[2].point_local[1], -0.054000, TEST_PREC);
-  CHECK_CLOSE(updPointSet[2].point_local[2], -0.091000, TEST_PREC);
+  CHECK_THAT(updPointSet[2].point_local[0],
+             IsClose(0.181788, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updPointSet[2].point_local[1],
+             IsClose(-0.054000, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updPointSet[2].point_local[2],
+             IsClose(-0.091000, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(updPointSet[3].point_local[0],  0.181788, TEST_PREC);
-  CHECK_CLOSE(updPointSet[3].point_local[1],  0.054000, TEST_PREC);
-  CHECK_CLOSE(updPointSet[3].point_local[2], -0.091000, TEST_PREC);
+  CHECK_THAT(updPointSet[3].point_local[0],
+             IsClose(0.181788, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updPointSet[3].point_local[1],
+             IsClose(0.054000, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(updPointSet[3].point_local[2],
+             IsClose(-0.091000, TEST_PREC, TEST_PREC)
+  );
 }
 
-TEST(LoadConstrainedLuaModel)
+TEST_CASE(__FILE__"_LoadConstrainedLuaModel", "")
 {
   RigidBodyDynamics::Model model;
   std::string modelFile = rbdlSourcePath;
@@ -247,9 +350,15 @@ TEST(LoadConstrainedLuaModel)
 
   // (all contact constraints between the same pair of bodies are grouped)
   CHECK(normalVectors.size()==1);
-  CHECK_CLOSE(normalVectors[0][0], 1., TEST_PREC);
-  CHECK_CLOSE(normalVectors[0][1], 0., TEST_PREC);
-  CHECK_CLOSE(normalVectors[0][2], 0., TEST_PREC);
+  CHECK_THAT(normalVectors[0][0],
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[0][1],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[0][2],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
 
   //MM 17/5/2020
   //Contract constraints currently do not have the Baumgarte stabilization
@@ -268,13 +377,25 @@ TEST(LoadConstrainedLuaModel)
         constraintSets[0].contactConstraints[1]->getConstraintNormalVectors();
   CHECK(normalVectors.size()==2);
 
-  CHECK_CLOSE(normalVectors[0][0], 0., TEST_PREC);
-  CHECK_CLOSE(normalVectors[0][1], 1., TEST_PREC);
-  CHECK_CLOSE(normalVectors[0][2], 0., TEST_PREC);
+  CHECK_THAT(normalVectors[0][0],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[0][1],
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[0][2],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(normalVectors[1][0], 0., TEST_PREC);
-  CHECK_CLOSE(normalVectors[1][1], 0., TEST_PREC);
-  CHECK_CLOSE(normalVectors[1][2], 1., TEST_PREC);
+  CHECK_THAT(normalVectors[1][0],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[1][1],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[1][2],
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
 
   //MM 17/5/2020
   //Contract constraints currently do not have the Baumgarte stabilization
@@ -302,12 +423,24 @@ TEST(LoadConstrainedLuaModel)
   std::vector< SpatialVector > axis =
     constraintSets[0].loopConstraints[0]->getConstraintAxes();
   CHECK(axis.size()==1);
-  CHECK_CLOSE( axis[0][0], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][1], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][2], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][3], 1., TEST_PREC);
-  CHECK_CLOSE( axis[0][4], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][5], 0., TEST_PREC);
+  CHECK_THAT( axis[0][0],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][1],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][2],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][3],
+              IsClose(1., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][4],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][5],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
 
   // Loop Constraint Y
   groupIndex = constraintSets[0].getGroupIndexByName("loopL12L22Ty");
@@ -319,12 +452,24 @@ TEST(LoadConstrainedLuaModel)
   axis =constraintSets[0].loopConstraints[1]->getConstraintAxes();
   CHECK(axis.size()==1);
 
-  CHECK_CLOSE( axis[0][0], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][1], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][2], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][3], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][4], 1., TEST_PREC);
-  CHECK_CLOSE( axis[0][5], 0., TEST_PREC);
+  CHECK_THAT( axis[0][0],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][1],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][2],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][3],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][4],
+              IsClose(1., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][5],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
 
   //Loop constraints often require stabilization so the Baumgarte
   //stabilization parameters are exposed
@@ -345,17 +490,35 @@ TEST(LoadConstrainedLuaModel)
   normalVectors =
       constraintSets[1].contactConstraints[0]->getConstraintNormalVectors();
   CHECK(normalVectors.size()==3);
-  CHECK_CLOSE(normalVectors[0][0], 1., TEST_PREC);
-  CHECK_CLOSE(normalVectors[0][1], 0., TEST_PREC);
-  CHECK_CLOSE(normalVectors[0][2], 0., TEST_PREC);
+  CHECK_THAT(normalVectors[0][0],
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[0][1],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[0][2],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(normalVectors[1][0], 0., TEST_PREC);
-  CHECK_CLOSE(normalVectors[1][1], 1., TEST_PREC);
-  CHECK_CLOSE(normalVectors[1][2], 0., TEST_PREC);
+  CHECK_THAT(normalVectors[1][0],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[1][1],
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[1][2],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(normalVectors[2][0], 0., TEST_PREC);
-  CHECK_CLOSE(normalVectors[2][1], 0., TEST_PREC);
-  CHECK_CLOSE(normalVectors[2][2], 1., TEST_PREC);
+  CHECK_THAT(normalVectors[2][0],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[2][1],
+             IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(normalVectors[2][2],
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
 
   CHECK(constraintSets[1].isBaumgarteStabilizationEnabled(groupIndex) == false);
 
@@ -373,19 +536,43 @@ TEST(LoadConstrainedLuaModel)
   axis =
     constraintSets[1].loopConstraints[0]->getConstraintAxes();
   CHECK(axis.size()==2);
-  CHECK_CLOSE( axis[0][0], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][1], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][2], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][3], 1., TEST_PREC);
-  CHECK_CLOSE( axis[0][4], 0., TEST_PREC);
-  CHECK_CLOSE( axis[0][5], 0., TEST_PREC);
+  CHECK_THAT( axis[0][0],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][1],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][2],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][3],
+              IsClose(1., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][4],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[0][5],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE( axis[1][0], 0., TEST_PREC);
-  CHECK_CLOSE( axis[1][1], 0., TEST_PREC);
-  CHECK_CLOSE( axis[1][2], 0., TEST_PREC);
-  CHECK_CLOSE( axis[1][3], 0., TEST_PREC);
-  CHECK_CLOSE( axis[1][4], 1., TEST_PREC);
-  CHECK_CLOSE( axis[1][5], 0., TEST_PREC);
+  CHECK_THAT( axis[1][0],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[1][1],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[1][2],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[1][3],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[1][4],
+              IsClose(1., TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT( axis[1][5],
+              IsClose(0., TEST_PREC, TEST_PREC)
+  );
 
   CHECK(constraintSets[1].isBaumgarteStabilizationEnabled(groupIndex) == false);
 
@@ -400,13 +587,10 @@ TEST(LoadConstrainedLuaModel)
   CHECK(phasing[2]==1);
   CHECK(phasing[3]==0);
 
-
-
-
 }
 
 #ifdef RBDL_BUILD_ADDON_MUSCLE
-TEST(LoadMuscleTorqueGenerators)
+TEST_CASE(__FILE__"_LoadMuscleTorqueGenerators", "")
 {
   RigidBodyDynamics::Model model;
   std::string modelFile = rbdlSourcePath;
@@ -495,28 +679,33 @@ TEST(LoadMuscleTorqueGenerators)
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
                     "AnkleFlexion_R_FpeHalfScale")==0);
   unsigned int iRef = 5;
-  CHECK_CLOSE(mtgSet[i].getPassiveTorqueScale(), 0.5, TEST_PREC);
+  CHECK_THAT(mtgSet[i].getPassiveTorqueScale(),
+             IsClose(0.5, TEST_PREC, TEST_PREC)
+  );
   Muscle::TorqueMuscleInfo tmi, tmiRef;
   mtgSet[i].calcTorqueMuscleInfo(1,0,0,tmi);
   mtgSet[iRef].calcTorqueMuscleInfo(1,0,0,tmiRef);
   CHECK(tmiRef.fiberPassiveTorqueAngleMultiplier > 0.);
-  CHECK_CLOSE(tmiRef.fiberPassiveTorqueAngleMultiplier,
-              tmi.fiberPassiveTorqueAngleMultiplier*2.0,
-              TEST_PREC);
+  CHECK_THAT(tmiRef.fiberPassiveTorqueAngleMultiplier,
+             IsClose(tmi.fiberPassiveTorqueAngleMultiplier*2.0,
+                     TEST_PREC, TEST_PREC)
+  );
   i=7;
   //Check that the max_isometric_torque_scale is working
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
                     "AnkleFlexion_R_FisoHalfScale")==0);
-  CHECK_CLOSE(mtgSet[iRef].getMaximumActiveIsometricTorque(),
-              mtgSet[i].getMaximumActiveIsometricTorque()*2.0,
-              TEST_PREC);
+  CHECK_THAT(mtgSet[iRef].getMaximumActiveIsometricTorque(),
+             IsClose(mtgSet[i].getMaximumActiveIsometricTorque()*2.0,
+                     TEST_PREC, TEST_PREC)
+  );
   i=8;
   //Check that max_angular_velocity_scale is working
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
                     "AnkleFlexion_R_OmegaHalfScale")==0);
-  CHECK_CLOSE(mtgSet[iRef].getMaximumConcentricJointAngularVelocity(),
-              mtgSet[i].getMaximumConcentricJointAngularVelocity()*2.0,
-              TEST_PREC);
+  CHECK_THAT(mtgSet[iRef].getMaximumConcentricJointAngularVelocity(),
+             IsClose(mtgSet[i].getMaximumConcentricJointAngularVelocity()*2.0,
+                     TEST_PREC, TEST_PREC)
+  );
 
   i=9;
   //UnitExtensor
@@ -524,7 +713,9 @@ TEST(LoadMuscleTorqueGenerators)
                     "UnitExtensor_R")==0);
   mtgSet[i].calcTorqueMuscleInfo(0,0,1,tmi);
   double angleSign = mtgInfoSet[i].angle_sign;
-  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, 1.0, TEST_PREC);
+  CHECK_THAT(tmi.fiberActiveTorqueAngleMultiplier,
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
 
   //This extensor gets a Gaussian shaped active force length curve
   //with a standard deviation of 1 radian.
@@ -532,16 +723,26 @@ TEST(LoadMuscleTorqueGenerators)
   double width = 1;
   double faRef = exp(-angle*angle/(2*width*width));
   mtgSet[i].calcTorqueMuscleInfo(1*angleSign,0,1,tmi);
-  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, faRef, TEST_PREC);
+  CHECK_THAT(tmi.fiberActiveTorqueAngleMultiplier,
+             IsClose(faRef, TEST_PREC, TEST_PREC)
+  );
   //The UnitExtensors passive curve reaches a unit torque at 1 radian of flexion
-  CHECK_CLOSE(tmi.fiberPassiveTorqueAngleMultiplier, 1.0, TEST_PREC);
+  CHECK_THAT(tmi.fiberPassiveTorqueAngleMultiplier,
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
 
   mtgSet[i].calcTorqueMuscleInfo(-1*angleSign,0,1,tmi);
-  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, faRef, TEST_PREC);
+  CHECK_THAT(tmi.fiberActiveTorqueAngleMultiplier,
+             IsClose(faRef, TEST_PREC, TEST_PREC)
+  );
   //The UnitExtensor has a maximum isometric torque of 1 Nm
-  CHECK_CLOSE(mtgSet[i].getMaximumActiveIsometricTorque(), 1., TEST_PREC);
+  CHECK_THAT(mtgSet[i].getMaximumActiveIsometricTorque(),
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
   //The UnitExtensor has a maximum angular velocity of 1 rad/sec
-  CHECK_CLOSE(mtgSet[i].getMaximumConcentricJointAngularVelocity(), 1., TEST_PREC);
+  CHECK_THAT(mtgSet[i].getMaximumConcentricJointAngularVelocity(),
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
 
   i=10;
   //UnitFlexor
@@ -549,23 +750,34 @@ TEST(LoadMuscleTorqueGenerators)
                     "UnitFlexor_R")==0);
 
   mtgSet[i].calcTorqueMuscleInfo(0,0,1,tmi);
-  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, 1.0, TEST_PREC);
+  CHECK_THAT(tmi.fiberActiveTorqueAngleMultiplier,
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
 
   //This flexor gets a Gaussian shaped active force length curve
   //with a standard deviation of 1 radian.
   mtgSet[i].calcTorqueMuscleInfo(1*angleSign,0,1,tmi);
-  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, faRef, TEST_PREC);
+  CHECK_THAT(tmi.fiberActiveTorqueAngleMultiplier,
+             IsClose(faRef, TEST_PREC, TEST_PREC)
+  );
 
   mtgSet[i].calcTorqueMuscleInfo(-1*angleSign,0,1,tmi);
-  CHECK_CLOSE(tmi.fiberActiveTorqueAngleMultiplier, faRef, TEST_PREC);
+  CHECK_THAT(tmi.fiberActiveTorqueAngleMultiplier,
+             IsClose(faRef, TEST_PREC, TEST_PREC)
+  );
   //The UnitFlexor's passive curve reaches a unit torque at 1 radian of extension
-  CHECK_CLOSE(tmi.fiberPassiveTorqueAngleMultiplier, 1.0, TEST_PREC);
+  CHECK_THAT(tmi.fiberPassiveTorqueAngleMultiplier,
+             IsClose(1.0, TEST_PREC, TEST_PREC)
+  );
 
   //The UnitExtensor has a maximum isometric torque of 1 Nm
-  CHECK_CLOSE(mtgSet[i].getMaximumActiveIsometricTorque(), 1., TEST_PREC);
+  CHECK_THAT(mtgSet[i].getMaximumActiveIsometricTorque(),
+             IsClose(1., TEST_PREC, TEST_PREC)
+  );
   //The UnitExtensor has a maximum angular velocity of 1 rad/sec
-  CHECK_CLOSE(mtgSet[i].getMaximumConcentricJointAngularVelocity(),
-               1.*angleSign, TEST_PREC);
+  CHECK_THAT(mtgSet[i].getMaximumConcentricJointAngularVelocity(),
+             IsClose(1.*angleSign, TEST_PREC, TEST_PREC)
+  );
 
   i=11;
   CHECK(std::strcmp(mtgInfoSet[i].name.c_str(),
@@ -580,10 +792,16 @@ TEST(LoadMuscleTorqueGenerators)
   CHECK(mtgSet[i].getDataSet() == Muscle::DataSet::Anderson2007);
   CHECK(mtgSet[i].getAgeGroup() == Muscle::AgeGroupSet::SeniorOver65);
   CHECK(mtgSet[i].getGender() == Muscle::GenderSet::Female);
-  CHECK_CLOSE(mtgSet[i].getSubjectMass(), 81.68, TEST_PREC);
-  CHECK_CLOSE(mtgSet[i].getSubjectHeight(), 1.73, TEST_PREC);
+  CHECK_THAT(mtgSet[i].getSubjectMass(),
+             IsClose(81.68, TEST_PREC, TEST_PREC)
+  );
+  CHECK_THAT(mtgSet[i].getSubjectHeight(),
+             IsClose(1.73, TEST_PREC, TEST_PREC)
+  );
 
-  CHECK_CLOSE(mtgSet[i].getActiveTorqueAngleCurveAngleScaling(),2.0,TEST_PREC);
+  CHECK_THAT(mtgSet[i].getActiveTorqueAngleCurveAngleScaling(),
+             IsClose(2.0,TEST_PREC, TEST_PREC)
+  );
 
   mtgSet[i].calcTorqueMuscleInfo(0.,0.,0.,tmi);
   mtgSet[i].setActiveTorqueAngleCurveAngleScaling(0.1);
@@ -591,7 +809,6 @@ TEST(LoadMuscleTorqueGenerators)
 
   CHECK(std::fabs( tmi.fiberActiveTorqueAngleMultiplier
                   -tmiRef.fiberActiveTorqueAngleMultiplier) > TEST_PREC );
-
 
 }
 
@@ -602,7 +819,7 @@ TEST(LoadMuscleTorqueGenerators)
 //inspected but is otherwise not checked in this test for correctness. It could
 //be compared to a saved prototype header. This is a weak check, but better than
 //nothing I suppose.
-TEST(ModelHeaderGeneration)
+TEST_CASE(__FILE__"_ModelHeaderGeneration", "")
 {
   RigidBodyDynamics::Model model;
   std::string modelFile = rbdlSourcePath;
@@ -707,19 +924,3 @@ TEST(ModelHeaderGeneration)
   CHECK(headerGuardsAdded);
 
 }
-
-int main (int argc, char *argv[])
-{
-    if(argc < 2){
-      std::cerr << "The path to the rbdl/addons/luamodel directory must be "
-                << "passed as an argument" << std::endl;
-      assert(0);
-      abort();                
-    }
-
-    //cout << argv[1] << endl;
-    rbdlSourcePath.assign(argv[1]);
-    return UnitTest::RunAllTests ();
-}
-
-
