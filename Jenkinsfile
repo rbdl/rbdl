@@ -1,5 +1,6 @@
 pipeline {
   agent any
+
   stages {
     stage('Build RBDL') {
       steps {
@@ -25,15 +26,14 @@ pipeline {
         }
       }
     }
+  }
 
-    post {
-      always {
-        junit 'build/results_rbdl.xml'
-        junit 'build/results_geometry.xml'
-        junit 'build/results_muscle.xml'
-        junit 'build/results_luamodel.xml'
-      }
+  post {
+    always {
+      junit 'build/results_rbdl.xml'
+      junit 'build/results_geometry.xml'
+      junit 'build/results_muscle.xml'
+      junit 'build/results_luamodel.xml'
     }
-
   }
 }
