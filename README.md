@@ -107,14 +107,8 @@ Building and Installation
   sudo apt install cmake-curses-gui
 ```
 
-7. Install UnitTest++ *(optional)*
-  Install UnitTest++ if you want to run RBDL's test code.
-```
-  sudo apt install libunittest++-dev  
-```
-
-8. Install Catch2 *(optional)*
-  Install Catch2 if you wand to run the URDF_Parser test code.
+7. Install Catch2 *(optional)*
+  Install Catch2 if you want to run RBDL's test code.
   
   At the moment most linux distributions do not have catch2 in their repositories yet. So the recommended install approach is to build it from source.
   ```
@@ -124,7 +118,7 @@ Building and Installation
   $ sudo cmake --build build/ --target install 
   ```
 
-9. Build RBDL using CMake
+8. Build RBDL using CMake
 ([http://www.cmake.org](http://www.cmake.org)). To compile the library in a separate directory in Release mode use:
 ```
   mkdir /rbdl-build
