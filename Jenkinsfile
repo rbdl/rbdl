@@ -15,8 +15,9 @@ pipeline {
       steps {
         dir(path: 'build') {
           sh './tests/rbdl_tests -r junit > results_rbdl.xml'
-          sh './addons/geometry/tests/runGeometryTests'
-          sh './addons/muscle/tests/runMuscleTests'
+          sh './addons/geometry/tests/geometry_tests -r junit > results_geometry.xml'
+          sh './addons/muscle/tests/muscle_tests -r junit > results_muscle.xml'
+          sh './addons/luamodel/tests/luamodel_tests -r junit > results_luamodel.xml'
         }
         dir(path: 'build/python') {
           sh './test_rbdlmuscle.py -v'
@@ -28,6 +29,9 @@ pipeline {
     post {
       always {
         junit 'build/results_rbdl.xml'
+        junit 'build/results_geometry.xml'
+        junit 'build/results_muscle.xml'
+        junit 'build/results_luamodel.xml'
       }
     }
 
