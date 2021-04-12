@@ -51,14 +51,14 @@ that define the various characteristic curves required in a muscle model
 #include "../MuscleFunctionFactory.h"
 #include "../../geometry/tests/numericalTestFunctions.h"
 
-
-#include <UnitTest++.h>
 #include <rbdl/rbdl_math.h>
 #include <ctime>
 #include <string>
 #include <stdio.h>
 #include <exception>
 #include <cassert>
+
+#include "rbdl_tests.h"
 
 using namespace RigidBodyDynamics::Addons::Geometry;
 using namespace RigidBodyDynamics::Addons::Muscle;
@@ -79,7 +79,7 @@ static double TOL_SMALL      = 1e-12;
 
 
 
-TEST(tendonCurve)
+TEST_CASE(__FILE__"_tendonCurve", "")
 {
     //cout <<"**************************************************"<<endl;
     //cout <<"TENDON CURVE TESTING            "<<endl;
@@ -144,7 +144,7 @@ TEST(tendonCurve)
 
 }
 
-TEST(activeForceLengthCurve)
+TEST_CASE(__FILE__"_activeForceLengthCurve", "")
 {
     //cout << endl;
     //cout << endl;
@@ -221,7 +221,7 @@ TEST(activeForceLengthCurve)
 }
 
 
-TEST(ForceVelocityCurve)
+TEST_CASE(__FILE__"_ForceVelocityCurve", "")
 {
     //cout <<"**************************************************"<<endl;
     //cout <<"FIBER FORCE VELOCITY CURVE TESTING       "<<endl;
@@ -301,7 +301,7 @@ TEST(ForceVelocityCurve)
 
 }
 
-TEST(ForceVelocityInverseCurve)
+TEST_CASE(__FILE__"_ForceVelocityInverseCurve", "")
 {
     //cout <<"**************************************************"<<endl;
     //cout <<"FIBER FORCE VELOCITY INVERSE CURVE TESTING     "<<endl;
@@ -418,7 +418,7 @@ TEST(ForceVelocityInverseCurve)
 
 }
 
-TEST(passiveForceLengthCurve)
+TEST_CASE(__FILE__"_passiveForceLengthCurve", "")
 {
     double e0f   = 0.6;
     double kisof    = 8.389863790885878;
@@ -481,7 +481,7 @@ TEST(passiveForceLengthCurve)
     }
 }
 
-TEST(compressiveForceLengthCurve)
+TEST_CASE(__FILE__"_compressiveForceLengthCurve", "")
 {
 ///////////////////////////////////////
 //FIBER COMPRESSIVE FORCE LENGTH
@@ -561,7 +561,7 @@ TEST(compressiveForceLengthCurve)
 
 }
 
-TEST(compressivePhiCurve)
+TEST_CASE(__FILE__"_compressivePhiCurve", "")
 {
     //cout <<"**************************************************"<<endl;
     //cout <<"FIBER COMPRESSIVE FORCE PHI CURVE TESTING   "<<endl;
@@ -625,7 +625,7 @@ TEST(compressivePhiCurve)
 
 }
 
-TEST(compressiveCosPhiCurve)
+TEST_CASE(__FILE__"_compressiveCosPhiCurve", "")
 {
     //cout <<"**************************************************"<<endl;
     //cout <<"FIBER COMPRESSIVE FORCE COSPHI CURVE TESTING   "<<endl;

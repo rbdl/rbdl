@@ -114,15 +114,13 @@ double const TorqueMuscleFittingHardTestCase[100][4] =
 // INCLUDES
 //==============================================================================
 
-
-
+#define CATCH_CONFIG_MAIN
 #include "../Millard2016TorqueMuscle.h"
 #ifdef RBDL_BUILD_ADDON_MUSCLE_FITTING
   #include "../TorqueMuscleFittingToolkit.h"
 #endif
 #include "../csvtools.h"
 #include "../../geometry/tests/numericalTestFunctions.h"
-#include <UnitTest++.h>
 #include <rbdl/rbdl_math.h>
 #include <ctime>
 #include <string>
@@ -133,6 +131,7 @@ double const TorqueMuscleFittingHardTestCase[100][4] =
 #include <cassert>
 #include <vector>
 
+#include "rbdl_tests.h"
 
 using namespace RigidBodyDynamics::Addons::Muscle;
 using namespace RigidBodyDynamics::Addons::Geometry;
@@ -149,7 +148,7 @@ using namespace std;
 */
 
 
-TEST(ConstructorRegularCallCheck)
+TEST_CASE(__FILE__"_ConstructorRegularCallCheck", "")
 {
 
 
@@ -181,8 +180,7 @@ TEST(ConstructorRegularCallCheck)
 
 
 
-TEST(calcJointTorqueCorrectnessTests){
-
+TEST_CASE(__FILE__"_calcJointTorqueCorrectnessTests", ""){
 
     double jointAngleOffset     = 0;    
     double signOfJointAngle     = 1;
@@ -272,7 +270,7 @@ TEST(calcJointTorqueCorrectnessTests){
     CHECK(fabs(taAngleScaling-tq.getActiveTorqueAngleCurveAngleScaling()) <TOL);
 }
 
-TEST(dampingTermTests){
+TEST_CASE(__FILE__"_dampingTermTests", ""){
 
   double err = 0.;
   double jointAngleOffset     = 0;
@@ -327,7 +325,7 @@ TEST(dampingTermTests){
 
 }
 
-TEST(simpleFittingFunctionTests){
+TEST_CASE(__FILE__"_simpleFittingFunctionTests", ""){
   double err = 0.;
 
   double jointAngleOffset     = 0;
@@ -459,7 +457,7 @@ TEST(simpleFittingFunctionTests){
 
 }
 
-TEST(calcTorqueMuscleInfoCorrectnessTests){
+TEST_CASE(__FILE__"_calcTorqueMuscleInfoCorrectnessTests", ""){
 
   double jointAngleOffset     = 0;
   double signOfJointAngle     = 1;
@@ -660,7 +658,7 @@ TEST(calcTorqueMuscleInfoCorrectnessTests){
 
 }
 
-TEST(calcTorqueMuscleInfoFittingVariableCorrectnessTests){
+TEST_CASE(__FILE__"_calcTorqueMuscleInfoFittingVariableCorrectnessTests", ""){
 
   double jointAngleOffset     = 0;
   double signOfJointAngle     = 1;
@@ -1324,7 +1322,7 @@ TEST(calcTorqueMuscleInfoFittingVariableCorrectnessTests){
 
 #ifdef RBDL_BUILD_ADDON_MUSCLE_FITTING
 
-TEST(fittingEasyTest){
+TEST_CASE(__FILE__"_fittingEasyTest", ""){
 
   double jointAngleOffset     = 0;
   double signOfJointAngle     = 1;
@@ -1478,7 +1476,7 @@ TEST(fittingEasyTest){
 
 }
 
-TEST(fittingHardTest)
+TEST_CASE(__FILE__"_fittingHardTest", "")
 {
 
   std::string name("hardTest");
@@ -1538,7 +1536,7 @@ TEST(fittingHardTest)
 #endif
 
 
-TEST(exampleUsage){
+TEST_CASE(__FILE__"_exampleUsage", ""){
 
 
   bool printCurves = false;
@@ -1706,11 +1704,3 @@ TEST(exampleUsage){
 
 
 }
-
-
-
-int main (int argc, char *argv[])
-{
-    return UnitTest::RunAllTests ();
-}
-

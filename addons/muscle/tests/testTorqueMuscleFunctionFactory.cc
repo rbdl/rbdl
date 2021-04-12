@@ -51,14 +51,14 @@ that define the various characteristic curves required in a muscle model
 #include "../../geometry/geometry.h"
 #include "../../geometry/tests/numericalTestFunctions.h"
 
-
-#include <UnitTest++.h>
 #include <rbdl/rbdl_math.h>
 #include <ctime>
 #include <string>
 #include <stdio.h>
 #include <exception>
 #include <cassert>
+
+#include "rbdl_tests.h"
 
 using namespace RigidBodyDynamics::Addons::Geometry;
 using namespace RigidBodyDynamics::Addons::Muscle;
@@ -75,7 +75,7 @@ static double TOL_BIG           = 1e-6;
 static double TOL_SMALL         = 1e-12;
 */
 
-TEST(Anderson2007ActiveTorqueAngleCurve)
+TEST_CASE(__FILE__"_Anderson2007ActiveTorqueAngleCurve", "")
 {
     double subjectWeight    = 75.0*9.81;
     double subjectHeight    = 1.75;
@@ -156,7 +156,7 @@ TEST(Anderson2007ActiveTorqueAngleCurve)
 
 }   
 
-TEST(Anderson2007PassiveTorqueAngleCurve)
+TEST_CASE(__FILE__"_Anderson2007PassiveTorqueAngleCurve", "")
 {
     double subjectWeight    = 75.0*9.81;
     double subjectHeight    = 1.75;
@@ -280,7 +280,7 @@ TEST(Anderson2007PassiveTorqueAngleCurve)
 
 }
 
-TEST(Anderson2007ActiveTorqueVelocityCurve)
+TEST_CASE(__FILE__"_Anderson2007ActiveTorqueVelocityCurve", "")
 {
     double subjectWeight    = 75.0*9.81;
     double subjectHeight    = 1.75;
@@ -376,7 +376,7 @@ TEST(Anderson2007ActiveTorqueVelocityCurve)
 
 }
 //==============================================================================
-TEST(TorqueAngularVelocityCurve)
+TEST_CASE(__FILE__"_TorqueAngularVelocityCurve", "")
 {
     SmoothSegmentedFunction tv = SmoothSegmentedFunction();
     SmoothSegmentedFunction tvX = SmoothSegmentedFunction();
@@ -485,7 +485,7 @@ TEST(TorqueAngularVelocityCurve)
 }
 
 //==============================================================================
-TEST(PassiveTorqueAngleCurve)
+TEST_CASE(__FILE__"_PassiveTorqueAngleCurve", "")
 {
   SmoothSegmentedFunction tp     = SmoothSegmentedFunction();
   SmoothSegmentedFunction tpX    = SmoothSegmentedFunction();
@@ -583,7 +583,7 @@ TEST(PassiveTorqueAngleCurve)
 }
 
 //==============================================================================
-TEST(ActiveTorqueAngleCurve)
+TEST_CASE(__FILE__"_ActiveTorqueAngleCurve", "")
 {
   SmoothSegmentedFunction ta     = SmoothSegmentedFunction();
   SmoothSegmentedFunction taX    = SmoothSegmentedFunction();
@@ -683,7 +683,7 @@ TEST(ActiveTorqueAngleCurve)
 }
 
 //==============================================================================
-TEST(TendonTorqueAngleCurve)
+TEST_CASE(__FILE__"_TendonTorqueAngleCurve", "")
 {
   SmoothSegmentedFunction tt     = SmoothSegmentedFunction();
   SmoothSegmentedFunction ttX    = SmoothSegmentedFunction();
@@ -774,7 +774,7 @@ TEST(TendonTorqueAngleCurve)
 }
 
 //==============================================================================
-TEST(DampingBlendingCurve)
+TEST_CASE(__FILE__"_DampingBlendingCurve", "")
 {
   SmoothSegmentedFunction negOne     = SmoothSegmentedFunction();
   SmoothSegmentedFunction posOne     = SmoothSegmentedFunction();
