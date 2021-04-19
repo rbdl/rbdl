@@ -67,6 +67,13 @@ OPTION (RBDL_USE_PYTHON_2 "Use python 2 instead of python 3" OFF)
 SET (RBDL_BUILD_COMPILER_ID ${CMAKE_CXX_COMPILER_ID})
 SET (RBDL_BUILD_COMPILER_VERSION ${CMAKE_CXX_COMPILER_VERSION})
 
+# on unix systems add /usr/local/include to include dirs
+# this was added since macos homebrew installs many things there but macos
+# does not automatically search their, and on linux systems this does not hurt
+IF (NOT WIN32)
+  INCLUDE_DIRECTORIES(/usr/local/include)
+ENDIF (NOT WIN32)
+
 # Addons
 IF (RBDL_BUILD_ADDON_URDFREADER)
   ADD_SUBDIRECTORY ( addons/urdfreader )
