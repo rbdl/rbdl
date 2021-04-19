@@ -2,6 +2,12 @@ CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 
 # Look for catch2
 FIND_PACKAGE(Catch2 REQUIRED)
+# on unix systems add /usr/local/include to include dirs
+# this was added since macos homebrew installs many things there but macos
+# does not automatically search their, and on linux systems this does not hurt
+IF (NOT WIN32)
+  INCLUDE_DIRECTORIES(/usr/local/include)
+ENDIF (NOT WIN32)
 
 SET ( TESTS_SRCS
   main.cc

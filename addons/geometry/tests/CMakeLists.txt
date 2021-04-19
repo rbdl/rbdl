@@ -27,6 +27,12 @@ SET ( GEOMETRY_TESTS_SRCS
 
 INCLUDE_DIRECTORIES ( ../ )
 INCLUDE_DIRECTORIES (${CMAKE_SOURCE_DIR}/tests)
+# on unix systems add /usr/local/include to include dirs
+# this was added since macos homebrew installs many things there but macos
+# does not automatically search their, and on linux systems this does not hurt
+IF (NOT WIN32)
+  INCLUDE_DIRECTORIES(/usr/local/include)
+ENDIF (NOT WIN32)
 
 
 SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES

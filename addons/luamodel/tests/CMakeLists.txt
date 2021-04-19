@@ -18,6 +18,12 @@ INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR}/include
                      ${LUA_INCLUDE_DIR}
                      ${CMAKE_SOURCE_DIR}/tests
                      ../)
+# on unix systems add /usr/local/include to include dirs
+# this was added since macos homebrew installs many things there but macos
+# does not automatically search their, and on linux systems this does not hurt
+IF (NOT WIN32)
+  INCLUDE_DIRECTORIES(/usr/local/include)
+ENDIF (NOT WIN32)
 
 SET ( LUAMODEL_TESTS_SRCS
 	testLuaModel.cc
