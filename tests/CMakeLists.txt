@@ -1,39 +1,31 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 
-# Needed for UnitTest++
-LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../CMake )
-
-# Look for unittest++
-FIND_PACKAGE (UnitTest++ REQUIRED)
-INCLUDE_DIRECTORIES (${UNITTEST++_INCLUDE_DIR})
-
 SET ( TESTS_SRCS
-  main.cc
-  MathTests.cc
-  SpatialAlgebraTests.cc
-  MultiDofTests.cc
-  KinematicsTests.cc
-  BodyTests.cc
-  ModelTests.cc
-  FloatingBaseTests.cc
-  CalcVelocitiesTests.cc
-  CalcAccelerationsTests.cc
-  DynamicsTests.cc
-  InverseDynamicsTests.cc
-  CompositeRigidBodyTests.cc
-  ImpulsesTests.cc
-  TwolegModelTests.cc
-  ContactsTests.cc
-  UtilsTests.cc
-  SparseFactorizationTests.cc
-  CustomJointSingleBodyTests.cc
-  CustomJointMultiBodyTests.cc
-  CustomConstraintsTests.cc
-  InverseKinematicsTests.cc
-  LoopConstraintsTests.cc
-  ScrewJointTests.cc
-  ForwardDynamicsConstraintsExternalForces.cc
-  )
+        MathTests.cc
+        SpatialAlgebraTests.cc
+        MultiDofTests.cc
+        KinematicsTests.cc
+        BodyTests.cc
+        ModelTests.cc
+        FloatingBaseTests.cc
+        CalcVelocitiesTests.cc
+        CalcAccelerationsTests.cc
+        DynamicsTests.cc
+        InverseDynamicsTests.cc
+        CompositeRigidBodyTests.cc
+        ImpulsesTests.cc
+        TwolegModelTests.cc
+        ContactsTests.cc
+        UtilsTests.cc
+        SparseFactorizationTests.cc
+        CustomJointSingleBodyTests.cc
+        CustomJointMultiBodyTests.cc
+        CustomConstraintsTests.cc
+        InverseKinematicsTests.cc
+        LoopConstraintsTests.cc
+        ScrewJointTests.cc
+        ForwardDynamicsConstraintsExternalForces.cc
+)
 
 INCLUDE_DIRECTORIES ( ../src/ )
 
@@ -45,7 +37,7 @@ SET_TARGET_PROPERTIES ( ${PROJECT_EXECUTABLES} PROPERTIES
   CXX_EXTENSIONS OFF
   )
 
-ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} )
+ADD_EXECUTABLE ( rbdl_tests ${TESTS_SRCS} main.cc)
 
 SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
   LINKER_LANGUAGE CXX
@@ -55,15 +47,16 @@ SET_TARGET_PROPERTIES ( rbdl_tests PROPERTIES
   CXX_EXTENSIONS OFF
   )
 
+
 SET (RBDL_LIBRARY rbdl)
 IF (RBDL_BUILD_STATIC)
   SET (RBDL_LIBRARY rbdl-static)
 ENDIF (RBDL_BUILD_STATIC)
 
+
 TARGET_LINK_LIBRARIES ( rbdl_tests
-  ${UNITTEST++_LIBRARY}
-  ${RBDL_LIBRARY}
-  )
+        ${RBDL_LIBRARY}
+        )
 
 OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)
 

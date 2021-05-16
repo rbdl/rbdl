@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 
@@ -16,7 +16,7 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-TEST_FIXTURE(FloatingBase12DoF, TestKineticEnergy) {
+TEST_CASE_METHOD (FloatingBase12DoF, __FILE__"_TestKineticEnergy", "") {
   VectorNd q = VectorNd::Zero(model->q_size);
   VectorNd qdot = VectorNd::Zero(model->q_size);
 
@@ -31,10 +31,10 @@ TEST_FIXTURE(FloatingBase12DoF, TestKineticEnergy) {
   double kinetic_energy_ref = 0.5 * qdot.transpose() * H * qdot;
   double kinetic_energy = Utils::CalcKineticEnergy (*model, q, qdot);
 
-  CHECK_EQUAL (kinetic_energy_ref, kinetic_energy);
+  REQUIRE (kinetic_energy_ref == kinetic_energy);
 }
 
-TEST(TestPotentialEnergy) {
+TEST_CASE (__FILE__"_TestPotentialEnergy", "") {
   Model model;
   Matrix3d inertia = Matrix3d::Zero(3,3);
   Body body (0.5, Vector3d (0., 0., 0.), inertia);
@@ -48,14 +48,14 @@ TEST(TestPotentialEnergy) {
 
   VectorNd q = VectorNd::Zero(model.q_size);
   double potential_energy_zero = Utils::CalcPotentialEnergy (model, q);
-  CHECK_EQUAL (0., potential_energy_zero);
+  REQUIRE (0. == potential_energy_zero);
 
   q[1] = 1.;
   double potential_energy_lifted = Utils::CalcPotentialEnergy (model, q);
-  CHECK_EQUAL (4.905, potential_energy_lifted);
+  REQUIRE (4.905 == potential_energy_lifted);
 }
 
-TEST(TestCOMSimple) {
+TEST_CASE (__FILE__"_TestCOMSimple", "") {
   Model model;
   Matrix3d inertia = Matrix3d::Zero(3,3);
   Body body (123., Vector3d (0., 0., 0.), inertia);
@@ -75,22 +75,22 @@ TEST(TestCOMSimple) {
   Vector3d com_velocity;
   Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, &com_velocity);
 
-  CHECK_EQUAL (123., mass);
-  CHECK_EQUAL (Vector3d (0., 0., 0.), com);
-  CHECK_EQUAL (Vector3d (0., 0., 0.), com_velocity);
+  REQUIRE (123. == mass);
+  REQUIRE (Vector3d (0., 0., 0.) == com);
+  REQUIRE (Vector3d (0., 0., 0.) == com_velocity);
 
   q[1] = 1.;
   Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, &com_velocity);
-  CHECK_EQUAL (Vector3d (0., 1., 0.), com);
-  CHECK_EQUAL (Vector3d (0., 0., 0.), com_velocity);
+  REQUIRE (Vector3d (0., 1., 0.) == com);
+  REQUIRE (Vector3d (0., 0., 0.) == com_velocity);
 
   qdot[1] = 1.;
   Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, &com_velocity);
-  CHECK_EQUAL (Vector3d (0., 1., 0.), com);
-  CHECK_EQUAL (Vector3d (0., 1., 0.), com_velocity);
+  REQUIRE (Vector3d (0., 1., 0.) == com);
+  REQUIRE (Vector3d (0., 1., 0.) == com_velocity);
 }
 
-TEST(TestAngularMomentumSimple) {
+TEST_CASE (__FILE__"_TestAngularMomentumSimple", "") {
   Model model;
   Matrix3d inertia = Matrix3d::Zero(3,3);
   inertia(0,0) = 1.1;
@@ -115,25 +115,25 @@ TEST(TestAngularMomentumSimple) {
 
   qdot << 1., 0., 0.;
   Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
-  CHECK_EQUAL (Vector3d (1.1, 0., 0.), angular_momentum);
+  REQUIRE (Vector3d (1.1, 0., 0.) == angular_momentum);
 
   qdot << 0., 1., 0.;
   Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
-  CHECK_EQUAL (Vector3d (0., 2.2, 0.), angular_momentum);
+  REQUIRE (Vector3d (0., 2.2, 0.) == angular_momentum);
 
   qdot << 0., 0., 1.;
   Utils::CalcCenterOfMass (model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
-  CHECK_EQUAL (Vector3d (0., 0., 3.3), angular_momentum);
+  REQUIRE (Vector3d (0., 0., 3.3) == angular_momentum);
 }
 
-TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
+TEST_CASE_METHOD (TwoArms12DoF, __FILE__"_TestAngularMomentumSimple2", "") {
   double mass;
   Vector3d com;
   Vector3d angular_momentum;
 
   Utils::CalcCenterOfMass (*model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
 
-  CHECK_EQUAL (Vector3d (0., 0., 0.), angular_momentum);
+  REQUIRE (Vector3d (0., 0., 0.) == angular_momentum);
 
   qdot[0] = 1.;
   qdot[1] = 2.;
@@ -142,7 +142,7 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
   Utils::CalcCenterOfMass (*model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
 
   // only a rough guess from test calculation
-  CHECK_ARRAY_CLOSE (Vector3d (3.3, 2.54, 1.5).data(), angular_momentum.data(), 3, 1.0e-1);
+  REQUIRE_THAT (Vector3d (3.3, 2.54, 1.5), AllCloseVector(angular_momentum, 1.0e-1, 1.0e-1));
 
   qdot[3] = -qdot[0];
   qdot[4] = -qdot[1];
@@ -151,9 +151,9 @@ TEST_FIXTURE (TwoArms12DoF, TestAngularMomentumSimple) {
   ClearLogOutput();
   Utils::CalcCenterOfMass (*model, q, qdot, NULL, mass, com, NULL, NULL, &angular_momentum);
 
-  CHECK (angular_momentum[0] == 0);
-  CHECK (angular_momentum[1] < 0);
-  CHECK (angular_momentum[2] == 0.);
+  REQUIRE (angular_momentum[0] == 0);
+  REQUIRE (angular_momentum[1] < 0);
+  REQUIRE (angular_momentum[2] == 0.);
 }
 
 template <typename T>
@@ -183,36 +183,24 @@ void TestCoMComputation (
     NULL, NULL
   );
 
-  CHECK_CLOSE (mass_expected, mass_actual, 1e-7);
+  REQUIRE_THAT (mass_expected, IsClose(mass_actual, 1e-7, 1e-7));
 
   return;
 }
 
-TEST_FIXTURE(
-  LinearInvertedPendulumModel,
-  TestCoMComputationLinearInvertedPendulumModel
-) {
+TEST_CASE_METHOD (LinearInvertedPendulumModel, __FILE__"_TestCoMComputationLinearInvertedPendulumModel", "") {
   TestCoMComputation (*this);
 }
 
-TEST_FIXTURE(
-  FixedJoint2DoF,
-  TestCoMComputationFixedJoint2DoF
-) {
+TEST_CASE_METHOD (FixedJoint2DoF, __FILE__"_TestCoMComputationFixedJoint2DoF", "") {
   TestCoMComputation (*this);
 }
 
-TEST_FIXTURE(
-  FixedBase6DoF12DoFFloatingBase,
-  TestCoMComputationFixedBase6DoF12DoFFloatingBase
-) {
+TEST_CASE_METHOD (FixedBase6DoF12DoFFloatingBase, __FILE__"_TestCoMComputationFixedBase6DoF12DoFFloatingBase", "") {
   TestCoMComputation (*this);
 }
 
-TEST_FIXTURE(
-  Human36,
-  TestCoMComputationHuman36
-) {
+TEST_CASE_METHOD (Human36, __FILE__"_TestCoMComputationHuman36", "") {
   TestCoMComputation (*this);
 }
 
@@ -261,30 +249,21 @@ void TestCoMAccelerationUsingFD (
   ch_ang_mom_fd = (ch_ang_mom_fd - ang_mom) / EPS;
 
   // check CoM acceleration
-  CHECK_ARRAY_CLOSE (com_acc_nom.data(), com_acc_fd.data(), 3, TOL);
-  CHECK_ARRAY_CLOSE (ch_ang_mom_nom.data(), ch_ang_mom_fd.data(), 3, TOL);
+  REQUIRE_THAT (com_acc_nom, AllCloseVector(com_acc_fd, TOL, TOL));
+  REQUIRE_THAT (ch_ang_mom_nom, AllCloseVector(ch_ang_mom_fd, TOL, TOL));
 
   return;
 }
 
-TEST_FIXTURE(
-  LinearInvertedPendulumModel,
-  TestCoMAccelerationUsingFDLinearInvertedPendulumModel
-) {
+TEST_CASE_METHOD (LinearInvertedPendulumModel, __FILE__"_TestCoMAccelerationUsingFDLinearInvertedPendulumModel", "") {
   TestCoMAccelerationUsingFD (*this, 1e-8);
 }
 
-TEST_FIXTURE(
-  FixedJoint2DoF,
-  TestCoMAccelerationUsingFDFixedJoint2DoF
-) {
+TEST_CASE_METHOD (FixedJoint2DoF, __FILE__"_TestCoMAccelerationUsingFDFixedJoint2DoF", "") {
   TestCoMAccelerationUsingFD (*this, 1e-7);
 }
 
-TEST_FIXTURE(
-  FixedBase6DoF12DoFFloatingBase,
-  TestCoMAccelerationUsingFDFixedBase6DoF12DoFFloatingBase
-) {
+TEST_CASE_METHOD (FixedBase6DoF12DoFFloatingBase, __FILE__"_TestCoMAccelerationUsingFDFixedBase6DoF12DoFFloatingBase", "") {
   TestCoMAccelerationUsingFD (*this, 1e-6);
 }
 
@@ -321,15 +300,12 @@ void TestZMPComputationForNotMovingSystem(
   com = com - distance * obj.contact_normal;
 
   // check ZMP against CoM
-  CHECK_ARRAY_CLOSE (com.data(), zmp.data(), 3, TOL);
+  REQUIRE_THAT (com, AllCloseVector(zmp, TOL, TOL));
 
   return;
 }
 
-TEST_FIXTURE(
-  LinearInvertedPendulumModel,
-  TestZMPComputationForNotMovingSystemLinearInvertedPendulumModel
-) {
+TEST_CASE_METHOD (LinearInvertedPendulumModel, __FILE__"_TestZMPComputationForNotMovingSystemLinearInvertedPendulumModel", "") {
   TestZMPComputationForNotMovingSystem (*this, 1e-8);
 }
 
@@ -365,14 +341,11 @@ void TestZMPComputationAgainstTableCartModel(
   );
 
   // check ZMP against CoM
-  CHECK_ARRAY_CLOSE (com.data(), zmp.data(), 3, TOL);
+  REQUIRE_THAT (com, AllCloseVector(zmp, TOL, TOL));
 
   return;
 }
 
-TEST_FIXTURE(
-  LinearInvertedPendulumModel,
-  TestZMPComputationAgainstTableCartModelLinearInvertedPendulumModel
-) {
+TEST_CASE_METHOD (LinearInvertedPendulumModel, __FILE__"_TestZMPComputationAgainstTableCartModelLinearInvertedPendulumModel", "") {
   TestZMPComputationAgainstTableCartModel (*this, 1e-8);
 }

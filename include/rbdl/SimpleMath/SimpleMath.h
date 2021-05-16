@@ -498,7 +498,7 @@ struct MatrixBase {
   ScalarType norm() const {
     return static_cast<ScalarType>(std::sqrt(squaredNorm()));
   }
-
+  
   // TODO: separate functions for float or ScalarType matrices
   Derived normalized() const {
     Derived result (*this);
@@ -1992,7 +1992,7 @@ public:
 
         // find and swap the column with the highest norm
         unsigned int col_index_norm_max = i;
-        value_type col_norm_max = VectorXd(mR.block(i,i, block_rows, 1)).squaredNorm();
+        value_type col_norm_max = VectorXd(mR.block(i, i, block_rows, 1)).squaredNorm();
 
         for (unsigned int j = i + 1; j < mR.cols(); j++) {
           VectorXd column = mR.block(i, j, block_rows, 1);
@@ -2109,7 +2109,7 @@ public:
     }
 
     unsigned int rank() const {
-        value_type abs_threshold = fabs(mR(0,0)) * mThreshold;
+        value_type abs_threshold = fabs(mR(0, 0)) * mThreshold;
 
         for (unsigned int i = 1; i < mR.cols(); i++) {
             if (fabs(mR(i,i)) < abs_threshold)

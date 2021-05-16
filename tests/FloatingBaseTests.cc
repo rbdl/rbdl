@@ -1,4 +1,4 @@
-#include <UnitTest++.h>
+#include "rbdl_tests.h"
 
 #include <iostream>
 
@@ -34,7 +34,7 @@ struct FloatingBaseFixture {
   VectorNd q, qdot, qddot, tau;
 };
 
-TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
+TEST_CASE_METHOD (FloatingBaseFixture, __FILE__"_TestCalcPointTransformation", "") {
   base_body_id = model->AddBody (0, SpatialTransform(), 
       Joint (
         SpatialVector (0., 0., 0., 1., 0., 0.),
@@ -57,10 +57,10 @@ TEST_FIXTURE ( FloatingBaseFixture, TestCalcPointTransformation ) {
   Vector3d test_point;
 
   test_point = CalcBaseToBodyCoordinates (*model, q, base_body_id, Vector3d (0., 0., 0.), false);
-  CHECK_ARRAY_CLOSE (Vector3d (0., -1., 0.).data(), test_point.data(), 3, TEST_PREC);
+  REQUIRE_THAT (Vector3d (0., -1., 0.), AllCloseVector(test_point, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
+TEST_CASE_METHOD (FloatingBaseFixture, __FILE__"_TestCalcDynamicFloatingBaseDoubleImplicit", "") {
   // floating base
   base_body_id = model->AddBody (0, SpatialTransform(), 
       Joint (
@@ -88,6 +88,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
   ForwardDynamics(*model, Q, QDot, Tau, QDDot);
 
   unsigned int i;
+  
   for (i = 0; i < QDDot.size(); i++) {
     LOG << "QDDot[" << i << "] = " << QDDot[i] << endl;
   }
@@ -98,13 +99,10 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 
   //	std::cout << LogOutput.str() << std::endl;
 
-  CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-  CHECK_CLOSE (-9.8100, QDDot[1], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[4], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
+  VectorNd target(7); 
+  target << 0., -9.81, 0., 0., 0., 0., 0.;
+
+  REQUIRE_THAT (target, AllCloseVector(QDDot, TEST_PREC, TEST_PREC));
 
   // We rotate the base... let's see what happens...
   Q[3] = 0.8;
@@ -120,13 +118,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 
   //	std::cout << LogOutput.str() << std::endl;
 
-  CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-  CHECK_CLOSE (-9.8100, QDDot[1], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[3], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[4], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[6], TEST_PREC);
+  REQUIRE_THAT (target, AllCloseVector(QDDot, TEST_PREC, TEST_PREC));
 
   // We apply a torqe let's see what happens...
   Q[3] = 0.;
@@ -149,16 +141,12 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcDynamicFloatingBaseDoubleImplicit) {
 
   //	std::cout << LogOutput.str() << std::endl;
 
-  CHECK_CLOSE ( 0.0000, QDDot[0], TEST_PREC);
-  CHECK_CLOSE (-8.8100, QDDot[1], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[2], TEST_PREC);
-  CHECK_CLOSE (-1.0000, QDDot[3], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[4], TEST_PREC);
-  CHECK_CLOSE ( 0.0000, QDDot[5], TEST_PREC);
-  CHECK_CLOSE ( 2.0000, QDDot[6], TEST_PREC);
+  target << 0., -8.81, 0., -1., 0., 0., 2.;
+
+  REQUIRE_THAT (target, AllCloseVector(QDDot, TEST_PREC, TEST_PREC));
 }
 
-TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
+TEST_CASE_METHOD (FloatingBaseFixture, __FILE__"_TestCalcPointVelocityFloatingBaseSimple", "") {
   // floating base
   base_body_id = model->AddBody (0, SpatialTransform(), 
       Joint (
@@ -185,9 +173,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 
   point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
-  CHECK_CLOSE(1., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE(0., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE(0., point_velocity[2], TEST_PREC);
+  REQUIRE_THAT (Vector3d (1., 0., 0.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 
   LOG << "Point velocity = " << point_velocity << endl;
   //	cout << LogOutput.str() << endl;
@@ -200,9 +186,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 
   point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
-  CHECK_CLOSE(0., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE(1., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE(0., point_velocity[2], TEST_PREC);
+  REQUIRE_THAT (Vector3d (0., 1., 0.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
 
   LOG << "Point velocity = " << point_velocity << endl;
   //	cout << LogOutput.str() << endl;
@@ -215,15 +199,13 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityFloatingBaseSimple) {
 
   point_velocity = CalcPointVelocity(*model, Q, QDot, ref_body_id, point_position);
 
-  CHECK_CLOSE(-1., point_velocity[0], TEST_PREC);
-  CHECK_CLOSE(0., point_velocity[1], TEST_PREC);
-  CHECK_CLOSE(0., point_velocity[2], TEST_PREC);
-
+  REQUIRE_THAT (Vector3d (-1., 0., 0.), AllCloseVector(point_velocity, TEST_PREC, TEST_PREC));
+  
   LOG << "Point velocity = " << point_velocity << endl;
   //	cout << LogOutput.str() << endl;
 }
 
-TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
+TEST_CASE_METHOD (FloatingBaseFixture, __FILE__"_TestCalcPointVelocityCustom", "") {
   // floating base
   base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
   base_body_id = model->AddBody (0, SpatialTransform(), 
@@ -274,7 +256,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
       1.093894197498446e+00
       );
 
-  CHECK_ARRAY_CLOSE (point_base_velocity_reference.data(), point_base_velocity.data(), 3, TEST_PREC);
+  REQUIRE_THAT (point_base_velocity_reference, AllCloseVector(point_base_velocity, TEST_PREC, TEST_PREC));
 }
 
 /** \brief Compares computation of acceleration values for zero qddot
@@ -286,7 +268,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointVelocityCustom) {
  * Here we omit the term of the generalized acceleration by setting qddot
  * to zero.
  */
-TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
+TEST_CASE_METHOD (FloatingBaseFixture, __FILE__"_TestCalcPointAccelerationNoQDDot", "") {
   // floating base
   base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
   base_body_id = model->AddBody (0, SpatialTransform(), 
@@ -364,9 +346,9 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
   //	cout << "world_accel = " << point_world_acceleration << endl;
 
 
-  CHECK_ARRAY_CLOSE (humans_point_position.data(), point_world_position.data(), 3, TEST_PREC);
-  CHECK_ARRAY_CLOSE (humans_point_velocity.data(), point_world_velocity.data(), 3, TEST_PREC);
-  CHECK_ARRAY_CLOSE (humans_point_acceleration.data(), point_world_acceleration.data(), 3, TEST_PREC);
+  REQUIRE_THAT (humans_point_position, AllCloseVector(point_world_position, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (humans_point_velocity, AllCloseVector(point_world_velocity, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (humans_point_acceleration, AllCloseVector(point_world_acceleration, TEST_PREC, TEST_PREC));
 }
 
 /** \brief Compares computation of acceleration values for zero q and qdot 
@@ -379,7 +361,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationNoQDDot) {
  * Here we set q and qdot to zero and only take into account values that
  * are dependent on qddot.
  */
-TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
+TEST_CASE_METHOD (FloatingBaseFixture, __FILE__"_TestCalcPointAccelerationOnlyQDDot", "") {
   // floating base
   base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
   base_body_id = model->AddBody (0, SpatialTransform(), 
@@ -447,9 +429,9 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
   //	cout << "world_vel   = " << point_world_velocity << endl;
   //	cout << "world_accel = " << point_world_acceleration << endl;
 
-  CHECK_ARRAY_CLOSE (humans_point_position.data(), point_world_position.data(), 3, TEST_PREC);
-  CHECK_ARRAY_CLOSE (humans_point_velocity.data(), point_world_velocity.data(), 3, TEST_PREC);
-  CHECK_ARRAY_CLOSE (humans_point_acceleration.data(), point_world_acceleration.data(), 3, TEST_PREC);
+  REQUIRE_THAT (humans_point_position, AllCloseVector(point_world_position, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (humans_point_velocity, AllCloseVector(point_world_velocity, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (humans_point_acceleration, AllCloseVector(point_world_acceleration, TEST_PREC, TEST_PREC));
 }
 
 /** \brief Compares computation of acceleration values for zero q and qdot 
@@ -462,7 +444,7 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationOnlyQDDot) {
  * Here we set q and qdot to zero and only take into account values that
  * are dependent on qddot.
  */
-TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFull) {
+TEST_CASE_METHOD (FloatingBaseFixture, __FILE__"_TestCalcPointAccelerationFull", "") {
   // floating base
   base = Body (1., Vector3d (0., 1., 0.), Vector3d (1., 1., 1.));	
   base_body_id = model->AddBody (0, SpatialTransform(), 
@@ -542,9 +524,9 @@ TEST_FIXTURE(FloatingBaseFixture, TestCalcPointAccelerationFull) {
   //	cout << "world_vel   = " << point_world_velocity << endl;
   //	cout << "world_accel = " << point_world_acceleration << endl;
 
-  CHECK_ARRAY_CLOSE (humans_point_position.data(), point_world_position.data(), 3, TEST_PREC);
-  CHECK_ARRAY_CLOSE (humans_point_velocity.data(), point_world_velocity.data(), 3, TEST_PREC);
-  CHECK_ARRAY_CLOSE (humans_point_acceleration.data(), point_world_acceleration.data(), 3, TEST_PREC);
+  REQUIRE_THAT (humans_point_position, AllCloseVector(point_world_position, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (humans_point_velocity, AllCloseVector(point_world_velocity, TEST_PREC, TEST_PREC));
+  REQUIRE_THAT (humans_point_acceleration, AllCloseVector(point_world_acceleration, TEST_PREC, TEST_PREC));
 }
 
 

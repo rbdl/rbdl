@@ -1,6 +1,4 @@
-#define CATCH_CONFIG_RUNNER
-#include "catch.hpp"
-
+#include <UnitTest++.h>
 #include <iostream>
 #include <string>
 
@@ -17,5 +15,5 @@ int main (int argc, char *argv[])
       rbdl_print_version();
   }
 
-  return Catch::Session().run(argc, argv);
+  return UnitTest::RunAllTests ();
 }
