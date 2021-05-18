@@ -151,8 +151,8 @@ The doxygen comments should be written in the header files and not in the
 
 ## Testing
 
-All code contributions must provide unit tests. RBDL uses UnitTest++
-(https://github.com/unittest-cpp/unittest-cpp) as a testing framework. Many
+All code contributions must provide unit tests. RBDL uses Catch2
+(https://github.com/catchorg/Catch2.git) as a testing framework. Many
 small tests that check single features are preferred over large tests that
 test multiple things simultaneously.
 
