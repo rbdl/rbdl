@@ -12,7 +12,7 @@ ENDIF (RBDL_USE_PYTHON_2)
 
 INCLUDE ( UseCython )
 
-FILE( COPY "rbdl.pxd" "crbdl.pxd" "crbdlmuscle.pxd" "ICustomJoint.cpp" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+FILE( COPY "rbdl.pxd" "rbdlmuscle.pyx" "crbdl.pxd" "crbdlmuscle.pxd" "ICustomJoint.cpp" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 FILE( COPY "test_wrapper.py" "test_rbdlmuscle.py" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 #FILE( COPY "rbdl.pyx" "rbdl.pxd" "crbdl.pxd" "ICustomJoint.cpp" "rbdlmuscle.pyx" "crbdlmuscle.pxd" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
@@ -29,13 +29,6 @@ EXECUTE_PROCESS(
 	${CMAKE_CURRENT_SOURCE_DIR}/wrappergen.py
 	${CMAKE_CURRENT_SOURCE_DIR}/rbdl-wrapper.pyx
 	${CMAKE_CURRENT_BINARY_DIR}/rbdl.pyx
-)
-
-EXECUTE_PROCESS(
-	COMMAND ${PYTHON}
-	${CMAKE_CURRENT_SOURCE_DIR}/wrappergen.py
-	${CMAKE_CURRENT_SOURCE_DIR}/rbdlmuscle-wrapper.pyx 
-	${CMAKE_CURRENT_BINARY_DIR}/rbdlmuscle.pyx
 )
 
 
