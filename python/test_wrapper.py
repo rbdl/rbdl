@@ -54,14 +54,17 @@ class SampleModel3R (unittest.TestCase):
       
         self.model = rbdl.Model()
         joint_rot_y = rbdl.Joint.fromJointType ("JointTypeRevoluteY")
-        self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), np.eye(3) *
-                0.05)
+        self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), 
+            np.eye(3) * 0.05)
         self.xtrans = rbdl.SpatialTransform()
         self.xtrans.r = np.array([0., 0., 1.])
         
-        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), joint_rot_y, self.body)
-        self.body_2 = self.model.AppendBody (self.xtrans, joint_rot_y, self.body)
-        self.body_3 = self.model.AppendBody (self.xtrans, joint_rot_y, self.body)
+        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), 
+            joint_rot_y, self.body)
+        self.body_2 = self.model.AppendBody (self.xtrans, joint_rot_y, 
+            self.body)
+        self.body_3 = self.model.AppendBody (self.xtrans, joint_rot_y, 
+            self.body)
 
         self.q = np.zeros (self.model.q_size)
         self.qdot = np.zeros (self.model.qdot_size)
@@ -438,12 +441,14 @@ class FloatingBaseModel (unittest.TestCase):
       
         self.model = rbdl.Model()
         joint_rot_y = rbdl.Joint.fromJointType ("JointTypeFloatingBase")
-        self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), np.eye(3) *
+        self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.5]), 
+            np.eye(3) *
                 0.05)
         self.xtrans = rbdl.SpatialTransform()
         self.xtrans.r = np.array([0., 0., 0.])
         
-        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), joint_rot_y, self.body)
+        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), 
+            joint_rot_y, self.body)
 
         self.q = np.zeros (self.model.q_size)
         self.qdot = np.zeros (self.model.qdot_size)
@@ -505,11 +510,13 @@ class FloatingBaseModel2 (unittest.TestCase):
         self.model = rbdl.Model()
         self.model.gravity = np.array ([0., -9.81, 0.])
         joint_rot_y = rbdl.Joint.fromJointAxes (axis)
-        self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.0]), np.eye(3))
+        self.body = rbdl.Body.fromMassComInertia (1., np.array([0., 0.0, 0.0]), 
+            np.eye(3))
         self.xtrans = rbdl.SpatialTransform()
         self.xtrans.r = np.array([0., 0., 0.])
         
-        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), joint_rot_y, self.body)
+        self.body_1 = self.model.AppendBody (rbdl.SpatialTransform(), 
+            joint_rot_y, self.body)
 
         self.q = np.zeros (self.model.q_size)
         self.qdot = np.zeros (self.model.qdot_size)
@@ -583,14 +590,22 @@ class FloatingBaseModel2 (unittest.TestCase):
 
         constraint_set = rbdl.ConstraintSet()
 
-        i0 = constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([1., 0., 0.]), "ground_x",3);
-        i1 = constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 1., 0.]), "ground_y",4);
-        i2 = constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 0., 1.]), "ground_z",5);
+
+        #Since each of these constraints have different user-defined-id values
+        #the do not get grouped together.
+        i0 = constraint_set.AddContactConstraint (contact_body_id, 
+            contact_point, np.array ([1., 0., 0.]), "ground_x",3);
+        i1 = constraint_set.AddContactConstraint (contact_body_id, 
+            contact_point, np.array ([0., 1., 0.]), "ground_y",4);
+        i2 = constraint_set.AddContactConstraint (contact_body_id, 
+            contact_point, np.array ([0., 0., 1.]), "ground_z",5);
 
         constraint_set.Bind (self.model);
 
-        rbdl.ForwardDynamicsConstraintsDirect (self.model, self.q, self.qdot, self.tau, constraint_set, self.qddot);
-        point_acceleration = rbdl.CalcPointAcceleration (self.model, self.q, self.qdot, self.qddot, contact_body_id, contact_point);
+        rbdl.ForwardDynamicsConstraintsDirect (self.model, self.q, self.qdot, 
+            self.tau, constraint_set, self.qddot);
+        point_acceleration = rbdl.CalcPointAcceleration (self.model, self.q, 
+            self.qdot, self.qddot, contact_body_id, contact_point);
 
         assert_almost_equal( np.array([0., 0., 0.]), point_acceleration)
 
@@ -598,23 +613,23 @@ class FloatingBaseModel2 (unittest.TestCase):
         gId = constraint_set.getGroupIndexByName("ground_x")
         assert_equal(0,gId)
         gId = constraint_set.getGroupIndexByName("ground_y")
-        assert_equal(0,gId)
+        assert_equal(1,gId)
         gId = constraint_set.getGroupIndexByName("ground_z")
-        assert_equal(0,gId)
+        assert_equal(2,gId)
 
         gId = constraint_set.getGroupIndexById(3)
         assert_equal(0,gId)
         gId = constraint_set.getGroupIndexById(4)
-        assert_equal(0,gId)
+        assert_equal(1,gId)
         gId = constraint_set.getGroupIndexById(5)
-        assert_equal(0,gId)
+        assert_equal(2,gId)
 
         gId = constraint_set.getGroupIndexByAssignedId(i0)
         assert_equal(0,gId)
         gId = constraint_set.getGroupIndexByAssignedId(i1)
-        assert_equal(0,gId)
+        assert_equal(1,gId)
         gId = constraint_set.getGroupIndexByAssignedId(i2)
-        assert_equal(0,gId)
+        assert_equal(2,gId)
 
     def test_ForwardDynamicsConstraintsDirectMoving (self):
       
@@ -637,15 +652,20 @@ class FloatingBaseModel2 (unittest.TestCase):
         contact_point = np.array( [0., -1., 0.])
 
         constraint_set = rbdl.ConstraintSet()
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([1., 0., 0.]), "ground_x")
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 1., 0.]), "ground_y")
-        constraint_set.AddContactConstraint (contact_body_id, contact_point, np.array ([0., 0., 1.]), "ground_z")
+        constraint_set.AddContactConstraint (contact_body_id, contact_point, 
+            np.array ([1., 0., 0.]), "ground_x")
+        constraint_set.AddContactConstraint (contact_body_id, contact_point, 
+            np.array ([0., 1., 0.]), "ground_y")
+        constraint_set.AddContactConstraint (contact_body_id, contact_point, 
+            np.array ([0., 0., 1.]), "ground_z")
 
         constraint_set.Bind (self.model)
         
-        rbdl.ForwardDynamicsConstraintsDirect (self.model, self.q, self.qdot, self.tau, constraint_set, self.qddot)
+        rbdl.ForwardDynamicsConstraintsDirect (self.model, self.q, self.qdot, 
+            self.tau, constraint_set, self.qddot)
 
-        point_acceleration = rbdl.CalcPointAcceleration (self.model, self.q, self.qdot, self.qddot, contact_body_id, contact_point);
+        point_acceleration = rbdl.CalcPointAcceleration (self.model, self.q, 
+            self.qdot, self.qddot, contact_body_id, contact_point);
         
         assert_almost_equal( np.array([0., 0., 0.]), point_acceleration)
         
@@ -660,7 +680,8 @@ class FloatingBaseModel2 (unittest.TestCase):
         tau_nonlin = np.zeros(self.model.q_size)
         H = np.zeros( (self.model.q_size, self.model.q_size) )
         
-        rbdl.InverseDynamics (self.model, self.q, self.qdot, self.qddot, self.tau)
+        rbdl.InverseDynamics (self.model, self.q, self.qdot, self.qddot, 
+            self.tau)
         
         rbdl.CompositeRigidBodyAlgorithm (self.model, self.q, H)        
         rbdl.NonlinearEffects (self.model, self.q, self.qdot, tau_nonlin)
@@ -764,17 +785,28 @@ class ConstraintSetTests (unittest.TestCase):
         assert(self.iLink2==12)
 
         self.cs = rbdl.ConstraintSet()
-        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[0,0,0,1,0,0]),False,0.1,"LoopGroundLink1",7)
-        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[0,0,0,0,1,0]),False)
-        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[0,0,0,0,0,1]),False)
-        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[1,0,0,0,0,0]),False)
-        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,rbdl.SpatialVector(0,[0,1,0,0,0,0]),False)
 
-        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[0,0,0,1,0,0]),False,0.1,"LoopLink1Link2",11)
-        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[0,0,0,0,1,0]))
-        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[0,0,0,0,0,1]))
-        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[1,0,0,0,0,0]))
-        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, rbdl.SpatialVector(0,[0,0,1,0,0,0]))
+        self.cg0AssignedId = self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1, 
+            rbdl.SpatialVector(0,[0,0,0,1,0,0]),False,0.1,"LoopGroundLink1",7)
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,
+            rbdl.SpatialVector(0,[0,0,0,0,1,0]),False,0.1,"LoopGroundLink1",7)
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,
+            rbdl.SpatialVector(0,[0,0,0,0,0,1]),False,0.1,"LoopGroundLink1",7)
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,
+            rbdl.SpatialVector(0,[1,0,0,0,0,0]),False,0.1,"LoopGroundLink1",7)
+        self.cs.AddLoopConstraint(0,self.iLink1,Xp1,Xs1,
+            rbdl.SpatialVector(0,[0,1,0,0,0,0]),False,0.1,"LoopGroundLink1",7)
+
+        self.cg1AssignedId = self.cs.AddLoopConstraint( self.iLink1,self.iLink2, Xp2, Xs2, 
+            rbdl.SpatialVector(0,[0,0,0,1,0,0]),False,0.1,"LoopLink1Link2",11)
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, 
+            rbdl.SpatialVector(0,[0,0,0,0,1,0]),False,0.1,"LoopLink1Link2",11)
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, 
+            rbdl.SpatialVector(0,[0,0,0,0,0,1]),False,0.1,"LoopLink1Link2",11)
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, 
+            rbdl.SpatialVector(0,[1,0,0,0,0,0]),False,0.1,"LoopLink1Link2",11)
+        self.cs.AddLoopConstraint( self.iLink1, self.iLink2, Xp2, Xs2, 
+            rbdl.SpatialVector(0,[0,0,1,0,0,0]),False,0.1,"LoopLink1Link2",11)
 
         self.cs.Bind(self.model)
 
@@ -785,20 +817,37 @@ class ConstraintSetTests (unittest.TestCase):
         #Test that the groupIndex accessors work
         gId = self.cs.getGroupIndexByName("LoopGroundLink1")
         assert_equal(0,gId)
+
+        #Note: the Id is the user-defined-id (the last argument in 
+        #Add ... Constraints) functions        
         gId = self.cs.getGroupIndexById(7)
         assert_equal(0,gId)
-        gId = self.cs.getGroupIndexByAssignedId(0)
+        gId = self.cs.getGroupIndexByAssignedId(self.cg0AssignedId)
         assert_equal(0,gId)
         gId = self.cs.getGroupIndexByName("LoopLink1Link2")
         assert_equal(1,gId)
         gId = self.cs.getGroupIndexById(11)
         assert_equal(1,gId)
-        gId = self.cs.getGroupIndexByAssignedId(5)
+        gId = self.cs.getGroupIndexByAssignedId(self.cg1AssignedId)
         assert_equal(1,gId)
 
+        #Note: the assigned-id is the integer that is returned by the 
+        #      Add ... Constraint() function
         testName = self.cs.getGroupName(0)
         assert_equal(testName,"LoopGroundLink1")
 
+        #Note: the group type corresponds to the enum that appears in
+        #Constraints.h line 18 of include/Constraint.h which at the time of
+        #writing is:
+        #
+        #enum ConstraintType {
+        #      ConstraintTypeContact=0,
+        #      ConstraintTypeLoop,
+        #      ConstraintTypeCustom,
+        #      ConstraintTypeLast,
+        #};
+        #
+        #
         gType = self.cs.getGroupType(0)
         assert_equal(gType,1)
 
@@ -820,7 +869,8 @@ class ConstraintSetTests (unittest.TestCase):
         #print("Tau")
         #print(self.tau)
 
-        rbdl.ForwardDynamicsConstraintsDirect(self.model,self.q,self.qd,self.tau,self.cs,self.qdd)
+        rbdl.ForwardDynamicsConstraintsDirect(self.model,self.q,self.qd,
+            self.tau,self.cs,self.qdd)
 
         #print("QDDot")
         #print(self.qdd)
@@ -972,7 +1022,8 @@ class ConstraintSetTests (unittest.TestCase):
         velErr = np.ndarray([5],dtype=float)
         self.cs.calcPositionError(0,self.model,self.q,posErr,True)
         self.cs.calcVelocityError(0,self.model,self.q,self.qd,velErr,True)
-        self.cs.calcBaumgarteStabilizationForces(0,self.model,posErr,velErr,bgStabForce)
+        self.cs.calcBaumgarteStabilizationForces(0,self.model,posErr,velErr,
+            bgStabForce)
 
         for i in range(0,5):
             bgStabForceTest[i] = -2.*bgCoeff[0]*velErr[i] - bgCoeff[1]*bgCoeff[1]*posErr[i]
