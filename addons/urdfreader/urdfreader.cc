@@ -23,6 +23,7 @@
   #define JOINTMAP joints_
   #define PARENT_TRANSFORM parent_to_joint_origin_transform
   #define RPY getRPY
+  #define ROSGUARD
 #else
   #include <urdf/model.h>
   #include <urdf/link.h>
@@ -90,7 +91,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     auto I = root->inertial;
 #else
   if (root->inertial.has_value()) {
-    auto I = root->inertial.value();
+    auto I = &root->inertial.value();
 #endif
     root_inertial_mass = I->mass;
 
@@ -261,79 +262,78 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     // but only if we actually have inertial data
 #ifdef RBDL_USE_ROS_URDF_LIBRARY
     if (urdf_child->inertial) {
-      auto I_child = root->inertial;
+      auto I_child = urdf_child->inertial;
 #else
-      if (urdf_child->inertial.has_value()) {
-        auto I_child = root->inertial.value();
+    if (urdf_child->inertial.has_value()) {
+      auto I_child = &urdf_child->inertial.value();
 #endif
-        link_inertial_mass = I_child->mass;
+      link_inertial_mass = I_child->mass;
 
-        link_inertial_position.set(
-          I_child->origin.position.x,
-          I_child->origin.position.y,
-          I_child->origin.position.z);
-        I_child->origin.rotation.RPY(link_inertial_rpy[0],
-                                     link_inertial_rpy[1],
-                                     link_inertial_rpy[2]);
+      link_inertial_position.set(
+        I_child->origin.position.x,
+        I_child->origin.position.y,
+        I_child->origin.position.z);
+      I_child->origin.rotation.RPY(link_inertial_rpy[0],
+                                   link_inertial_rpy[1],
+                                   link_inertial_rpy[2]);
 
-        link_inertial_inertia(0, 0) = I_child->ixx;
-        link_inertial_inertia(0, 1) = I_child->ixy;
-        link_inertial_inertia(0, 2) = I_child->ixz;
+      link_inertial_inertia(0, 0) = I_child->ixx;
+      link_inertial_inertia(0, 1) = I_child->ixy;
+      link_inertial_inertia(0, 2) = I_child->ixz;
 
-        link_inertial_inertia(1, 0) = I_child->ixy;
-        link_inertial_inertia(1, 1) = I_child->iyy;
-        link_inertial_inertia(1, 2) = I_child->iyz;
+      link_inertial_inertia(1, 0) = I_child->ixy;
+      link_inertial_inertia(1, 1) = I_child->iyy;
+      link_inertial_inertia(1, 2) = I_child->iyz;
 
-        link_inertial_inertia(2, 0) = I_child->ixz;
-        link_inertial_inertia(2, 1) = I_child->iyz;
-        link_inertial_inertia(2, 2) = I_child->izz;
+      link_inertial_inertia(2, 0) = I_child->ixz;
+      link_inertial_inertia(2, 1) = I_child->iyz;
+      link_inertial_inertia(2, 2) = I_child->izz;
 
-        if (link_inertial_rpy != Vector3d(0., 0., 0.)) {
-          ostringstream error_msg;
-          error_msg << "Error while processing body '" << urdf_child->name
-                    << "': rotation of body frames not yet supported."
-                    << " Please rotate the joint frame instead." << endl;
-          throw RBDLFileParseError(error_msg.str());
-        }
-      }
-
-      Body rbdl_body = Body(link_inertial_mass, link_inertial_position,
-                            link_inertial_inertia);
-
-      if (verbose) {
-        cout << "+ Adding Body: " << urdf_child->name << endl;
-        cout << "  parent_id  : " << rbdl_parent_id << endl;
-        cout << "  joint frame: " << rbdl_joint_frame << endl;
-        cout << "  joint dofs : " << rbdl_joint.mDoFCount << endl;
-        for (unsigned int j = 0; j < rbdl_joint.mDoFCount; j++) {
-          cout << "    " << j << ": "
-               << rbdl_joint.mJointAxes[j].transpose() << endl;
-        }
-        cout << "  body inertia: " << endl
-             << rbdl_body.mInertia << endl;
-        cout << "  body mass   : " << rbdl_body.mMass << endl;
-        cout << "  body name   : " << urdf_child->name << endl;
-      }
-
-      if (urdf_joint->type == UrdfJointType::FLOATING) {
-        Matrix3d zero_matrix = Matrix3d::Zero();
-        Body null_body(0., Vector3d::Zero(3), zero_matrix);
-        Joint joint_txtytz(JointTypeTranslationXYZ);
-        string trans_body_name = urdf_child->name + "_Translate";
-        rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame,
-                            joint_txtytz, null_body,
-                            trans_body_name);
-
-        Joint joint_euler_zyx(JointTypeEulerXYZ);
-        rbdl_model->AppendBody(SpatialTransform(), joint_euler_zyx,
-                               rbdl_body, urdf_child->name);
-      } else {
-        rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame, rbdl_joint,
-                            rbdl_body, urdf_child->name);
+      if (link_inertial_rpy != Vector3d(0., 0., 0.)) {
+        ostringstream error_msg;
+        error_msg << "Error while processing body '" << urdf_child->name
+                  << "': rotation of body frames not yet supported."
+                  << " Please rotate the joint frame instead." << endl;
+        throw RBDLFileParseError(error_msg.str());
       }
     }
-  }
 
+    Body rbdl_body = Body(link_inertial_mass, link_inertial_position,
+                            link_inertial_inertia);
+
+    if (verbose) {
+      cout << "+ Adding Body: " << urdf_child->name << endl;
+      cout << "  parent_id  : " << rbdl_parent_id << endl;
+      cout << "  joint frame: " << rbdl_joint_frame << endl;
+      cout << "  joint dofs : " << rbdl_joint.mDoFCount << endl;
+      for (unsigned int j = 0; j < rbdl_joint.mDoFCount; j++) {
+        cout << "    " << j << ": "
+             << rbdl_joint.mJointAxes[j].transpose() << endl;
+      }
+      cout << "  body inertia: " << endl
+           << rbdl_body.mInertia << endl;
+      cout << "  body mass   : " << rbdl_body.mMass << endl;
+      cout << "  body name   : " << urdf_child->name << endl;
+    }
+
+    if (urdf_joint->type == UrdfJointType::FLOATING) {
+      Matrix3d zero_matrix = Matrix3d::Zero();
+      Body null_body(0., Vector3d::Zero(3), zero_matrix);
+      Joint joint_txtytz(JointTypeTranslationXYZ);
+      string trans_body_name = urdf_child->name + "_Translate";
+      rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame,
+                          joint_txtytz, null_body,
+                          trans_body_name);
+
+      Joint joint_euler_zyx(JointTypeEulerXYZ);
+      rbdl_model->AppendBody(SpatialTransform(), joint_euler_zyx,
+                             rbdl_body, urdf_child->name);
+    } else {
+      rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame, rbdl_joint,
+                          rbdl_body, urdf_child->name);
+    }
+  }
+}
 // =============================================================================
 
 RBDL_DLLAPI bool URDFReadFromFile(const char *filename, Model *model,
