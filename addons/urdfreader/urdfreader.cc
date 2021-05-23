@@ -23,7 +23,6 @@
   #define JOINTMAP joints_
   #define PARENT_TRANSFORM parent_to_joint_origin_transform
   #define RPY getRPY
-  #define ROSGUARD
 #else
   #include <urdf/model.h>
   #include <urdf/link.h>
