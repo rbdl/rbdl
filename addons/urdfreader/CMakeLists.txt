@@ -25,7 +25,6 @@ ENDIF ()
 
 IF (RBDL_USE_ROS_URDF_LIBRARY)
 	SET (URDFREADER_DEPENDENCIES
-		rbdl
 		${urdf_LIBRARIES}
 		)
 ELSE()
@@ -35,7 +34,6 @@ ELSE()
 		${URDFREADER_SOURCES}
 		)
 	SET (URDFREADER_DEPENDENCIES
-		rbdl
     urdfparser
 		)
 ENDIF()
@@ -52,6 +50,7 @@ IF (RBDL_BUILD_STATIC)
 
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader-static
 		rbdl-static
+		${URDFREADER_DEPENDENCIES}
 		)
 
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader_util
@@ -71,6 +70,7 @@ ELSE (RBDL_BUILD_STATIC)
   )
 
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader
+    rbdl
 		${URDFREADER_DEPENDENCIES}
 		)
 
