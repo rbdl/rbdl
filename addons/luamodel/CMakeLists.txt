@@ -19,7 +19,7 @@ SET ( LUAMODEL_SOURCES
   )
 
 ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
-
+SET ( LUA_LIBRARIES ${LUA_LIBRARY})
 IF (RBDL_BUILD_STATIC)
   ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
   IF (NOT WIN32)
@@ -38,6 +38,7 @@ IF (RBDL_BUILD_STATIC)
       rbdl_luamodel-static      
       rbdl_muscle-static               
       rbdl-static
+      ${LUA_LIBRARIES} 
     )
 
   ELSE(RBDL_BUILD_ADDON_MUSCLE)
@@ -48,6 +49,8 @@ IF (RBDL_BUILD_STATIC)
     TARGET_LINK_LIBRARIES (rbdl_luamodel_util
       rbdl_luamodel-static      
       rbdl-static
+      ${LUA_LIBRARIES}
+	${LUA_LIBRARY}
     )
   ENDIF(RBDL_BUILD_ADDON_MUSCLE)
 
@@ -90,6 +93,7 @@ ELSE (RBDL_BUILD_STATIC)
   INSTALL (TARGETS rbdl_luamodel rbdl_luamodel_util 
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 ENDIF (RBDL_BUILD_STATIC)
 

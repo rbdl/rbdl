@@ -28,7 +28,7 @@
 /* compatibility defines */
 #ifdef _WIN32
 #define __func__ __FUNCTION__
-#define M_PI 3.1415926535897932384
+//#define M_PI 3.1415926535897932384
 #endif
 
 // Handle portable symbol export.
@@ -70,10 +70,15 @@
 // library define DLLAPI to import or export.
 #  ifdef rbdl_EXPORTS
 #   define RBDL_DLLAPI RBDL_DLLEXPORT
+#  elif rbdl_urdfreader_EXPORTS
+#   define RBDL_DLLAPI RBDL_DLLEXPORT
+#  elif rbdl_luamodel_EXPORTS
+#   define RBDL_DLLAPI RBDL_DLLEXPORT
 #  else
 #   define RBDL_DLLAPI RBDL_DLLIMPORT
 #  endif // RBDL_EXPORTS
 #  define RBDL_LOCAL RBDL_DLLLOCAL
 # endif // RBDL_BUILD_STATIC
+
 
 #endif

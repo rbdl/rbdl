@@ -9,7 +9,7 @@
 
 #include <string>
 #include <exception>
-
+#include "rbdl/rbdl_config.h"
 
 namespace RigidBodyDynamics
 {
@@ -31,7 +31,7 @@ namespace Errors
  * the constructor and call the parent constructor with your error message.
  * 
  */
-class RBDLError : public std::exception
+class RBDL_DLLAPI RBDLError : public std::exception
 {
 protected:
   std::string text;
@@ -49,7 +49,7 @@ public:
  * Example of error thrown in addons/geometry/SmoothSegmentedFunction.cc: 
  * \snippet{lineno} addons/geometry/SmoothSegmentedFunction.cc Invalid Parameter
  */
-class RBDLInvalidParameterError : public RBDLError
+class RBDL_DLLAPI RBDLInvalidParameterError : public RBDLError
 {
 public:
   RBDLInvalidParameterError(std::string text);
@@ -64,7 +64,7 @@ public:
  * Example of error thrown in addons/geometry/SmoothSegmentedFunction.cc: 
  * \snippet{lineno} addons/geometry/SmoothSegmentedFunction.cc Size Mismatch
  */
-class RBDLSizeMismatchError : public RBDLError
+class RBDL_DLLAPI RBDLSizeMismatchError : public RBDLError
 {
 public:
   RBDLSizeMismatchError(std::string text);
@@ -79,7 +79,7 @@ public:
  * Example of error thrown in addons/geometry/SmoothSegmentedFunction.cc: 
  * \snippet{lineno} addons/geometry/SmoothSegmentedFunction.cc Dof Mismatch
  */
-class RBDLDofMismatchError : public RBDLError
+class RBDL_DLLAPI RBDLDofMismatchError : public RBDLError
 {
 public:
   RBDLDofMismatchError(std::string text);
@@ -93,7 +93,7 @@ public:
  * Example of error thrown in addons/muscle/Millard2016TorqueMuscle.cc: 
  * \snippet{lineno} addons/muscle/Millard2016TorqueMuscle.cc Missing Implementation
  */
-class RBDLMissingImplementationError: public RBDLError
+class RBDL_DLLAPI RBDLMissingImplementationError: public RBDLError
 {
 public:
   RBDLMissingImplementationError(std::string text);
@@ -106,7 +106,7 @@ public:
  * Example of error thrown in addons/urdfreader/urdfreader.cc: 
  * \snippet{lineno} addons/urdfreader/urdfreader.cc Invalid File
  */
-class RBDLInvalidFileError : public RBDLError
+class RBDL_DLLAPI RBDLInvalidFileError : public RBDLError
 {
 public:
   RBDLInvalidFileError(std::string text);
@@ -121,7 +121,7 @@ public:
  * Example of error thrown in addons/luamodel/luamodel.cc: 
  * \snippet{lineno} addons/luamodel/luamodel.cc Parse Failed
  */
-class RBDLFileParseError : public RBDLError
+class RBDL_DLLAPI RBDLFileParseError : public RBDLError
 {
 public:
   RBDLFileParseError(std::string text);
