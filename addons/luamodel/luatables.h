@@ -132,7 +132,7 @@ struct RBDL_DLLAPI LuaTableNode {
   template <typename T>
   void set (const T &value);
   template <typename T>
-  T getDefault (const T &default_value);
+  T RBDL_DLLAPI getDefault (const T &default_value);
 
   template <typename T>
   T get()
@@ -185,16 +185,16 @@ bool operator!=(T value, LuaTableNode node)
   return value != (T) node;
 }
 
-template<> bool LuaTableNode::getDefault<bool>(const bool &default_value);
-template<> double LuaTableNode::getDefault<double>(const double &default_value);
-template<> float LuaTableNode::getDefault<float>(const float &default_value);
-template<> std::string LuaTableNode::getDefault<std::string>
+template<> RBDL_DLLAPI bool LuaTableNode::getDefault<bool>(const bool &default_value);
+template<> RBDL_DLLAPI double LuaTableNode::getDefault<double>(const double &default_value);
+template<> RBDL_DLLAPI float LuaTableNode::getDefault<float>(const float &default_value);
+template<>RBDL_DLLAPI  std::string LuaTableNode::getDefault<std::string>
 (const std::string &default_value);
 
-template<> void LuaTableNode::set<bool>(const bool &value);
-template<> void LuaTableNode::set<float>(const float &value);
-template<> void LuaTableNode::set<double>(const double &value);
-template<> void LuaTableNode::set<std::string>(const std::string &value);
+template<> RBDL_DLLAPI void LuaTableNode::set<bool>(const bool &value);
+template<> RBDL_DLLAPI void LuaTableNode::set<float>(const float &value);
+template<> RBDL_DLLAPI void LuaTableNode::set<double>(const double &value);
+template<> RBDL_DLLAPI void LuaTableNode::set<std::string>(const std::string &value);
 
 /// Reference counting Lua state
 struct RBDL_DLLAPI LuaStateRef {

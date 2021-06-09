@@ -30,6 +30,7 @@
 //==============================================================================
 template<>
 RigidBodyDynamics::Math::Vector3d
+RBDL_DLLAPI
 LuaTableNode::getDefault<RigidBodyDynamics::Math::Vector3d>(
     const RigidBodyDynamics::Math::Vector3d &default_value)
 {
@@ -56,6 +57,7 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::Vector3d>(
 //==============================================================================
 template<>
 RigidBodyDynamics::Math::SpatialVector
+RBDL_DLLAPI
 LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialVector>(
   const RigidBodyDynamics::Math::SpatialVector &default_value
 )
@@ -88,6 +90,7 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialVector>(
 //==============================================================================
 template<>
 RigidBodyDynamics::Math::MatrixNd
+RBDL_DLLAPI
 LuaTableNode::getDefault<RigidBodyDynamics::Math::MatrixNd>(
     const RigidBodyDynamics::Math::MatrixNd &default_value)
 {
@@ -113,6 +116,7 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::MatrixNd>(
 //==============================================================================
 template<>
 RigidBodyDynamics::Math::Matrix3d
+RBDL_DLLAPI
 LuaTableNode::getDefault<RigidBodyDynamics::Math::Matrix3d>(
     const RigidBodyDynamics::Math::Matrix3d &default_value)
 {
@@ -153,6 +157,7 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::Matrix3d>(
 //==============================================================================
 template<>
 RigidBodyDynamics::Math::SpatialTransform
+RBDL_DLLAPI
 LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialTransform>(
   const RigidBodyDynamics::Math::SpatialTransform &default_value
 )
@@ -176,6 +181,7 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialTransform>(
 //==============================================================================
 template<>
 RigidBodyDynamics::Joint
+RBDL_DLLAPI
 LuaTableNode::getDefault<RigidBodyDynamics::Joint>(
     const RigidBodyDynamics::Joint &default_value)
 {
@@ -293,6 +299,7 @@ LuaTableNode::getDefault<RigidBodyDynamics::Joint>(
 //==============================================================================
 template<>
 RigidBodyDynamics::Body
+RBDL_DLLAPI
 LuaTableNode::getDefault<RigidBodyDynamics::Body>(
     const RigidBodyDynamics::Body &default_value)
 {
@@ -324,6 +331,7 @@ LuaTableNode::getDefault<RigidBodyDynamics::Body>(
 //==============================================================================
 
 template<> Point
+RBDL_DLLAPI
 LuaTableNode::getDefault<Point>(
   const Point &default_value)
 { 
@@ -347,6 +355,7 @@ LuaTableNode::getDefault<Point>(
 //==============================================================================
 
 template<> MotionCaptureMarker
+RBDL_DLLAPI
 LuaTableNode::getDefault<MotionCaptureMarker>(
   const MotionCaptureMarker &default_value)
 {
@@ -370,6 +379,7 @@ LuaTableNode::getDefault<MotionCaptureMarker>(
 //==============================================================================
 
 template<> LocalFrame
+RBDL_DLLAPI
 LuaTableNode::getDefault<LocalFrame>(
   const LocalFrame &default_value)
 {
@@ -396,8 +406,9 @@ LuaTableNode::getDefault<LocalFrame>(
 //==============================================================================
 
 template<> HumanMetaData
-  LuaTableNode::getDefault<HumanMetaData>(
-                  const HumanMetaData &default_value)
+RBDL_DLLAPI
+LuaTableNode::getDefault<HumanMetaData>(
+  const HumanMetaData &default_value)
 {
   HumanMetaData result = default_value;
 
@@ -417,10 +428,12 @@ template<> HumanMetaData
   return result;
 }
 //==============================================================================
+
 #ifdef RBDL_BUILD_ADDON_MUSCLE
 template<> Millard2016TorqueMuscleConfig
-  LuaTableNode::getDefault<Millard2016TorqueMuscleConfig>(
-                    const Millard2016TorqueMuscleConfig &default_value)
+RBDL_DLLAPI
+LuaTableNode::getDefault<Millard2016TorqueMuscleConfig>(
+  const Millard2016TorqueMuscleConfig &default_value)
 {
   Millard2016TorqueMuscleConfig result = default_value;
 
