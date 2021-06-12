@@ -36,7 +36,7 @@ ADD_EXECUTABLE ( rbdl_balance_tests ${BALANCE_TESTS_SRCS} )
 
 SET_TARGET_PROPERTIES ( rbdl_balance_tests PROPERTIES
 	LINKER_LANGUAGE CXX
-	OUTPUT_NAME runBalanceTests
+	OUTPUT_NAME balance_tests
 	)
 
 SET (RBDL_LIBRARY rbdl)
@@ -54,7 +54,7 @@ OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)
 IF (RUN_AUTOMATIC_TESTS)
 ADD_CUSTOM_COMMAND (TARGET rbdl_balance_tests
 	POST_BUILD
-	COMMAND ./runBalanceTests
+	COMMAND ./balance_tests
 	COMMENT "Running automated addon balance tests..."
 	)
 ENDIF (RUN_AUTOMATIC_TESTS)
