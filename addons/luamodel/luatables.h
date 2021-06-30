@@ -41,7 +41,7 @@ extern "C" {
   struct lua_State;
 }
 
-struct RBDL_DLLAPI LuaKey {
+struct RBDL_ADDON_DLLAPI LuaKey {
   enum Type {
     String,
     Integer
@@ -83,10 +83,10 @@ inline std::ostream& operator<<(std::ostream& output, const LuaKey &key)
   }
   return output;
 }
-struct RBDL_DLLAPI LuaTable;
-struct RBDL_DLLAPI LuaTableNode;
+struct RBDL_ADDON_DLLAPI LuaTable;
+struct RBDL_ADDON_DLLAPI LuaTableNode;
 
-struct RBDL_DLLAPI LuaTableNode {
+struct RBDL_ADDON_DLLAPI LuaTableNode {
   LuaTableNode() :
     parent (NULL),
     luaTable (NULL),
@@ -132,7 +132,7 @@ struct RBDL_DLLAPI LuaTableNode {
   template <typename T>
   void set (const T &value);
   template <typename T>
-  T RBDL_DLLAPI getDefault (const T &default_value);
+  T RBDL_ADDON_DLLAPI getDefault (const T &default_value);
 
   template <typename T>
   T get()
@@ -185,19 +185,18 @@ bool operator!=(T value, LuaTableNode node)
   return value != (T) node;
 }
 
-template<> RBDL_DLLAPI bool LuaTableNode::getDefault<bool>(const bool &default_value);
-template<> RBDL_DLLAPI double LuaTableNode::getDefault<double>(const double &default_value);
-template<> RBDL_DLLAPI float LuaTableNode::getDefault<float>(const float &default_value);
-template<>RBDL_DLLAPI  std::string LuaTableNode::getDefault<std::string>
-(const std::string &default_value);
+template<> RBDL_ADDON_DLLAPI bool LuaTableNode::getDefault<bool>(const bool &default_value);
+template<> RBDL_ADDON_DLLAPI double LuaTableNode::getDefault<double>(const double &default_value);
+template<> RBDL_ADDON_DLLAPI float LuaTableNode::getDefault<float>(const float &default_value);
+template<> RBDL_ADDON_DLLAPI std::string LuaTableNode::getDefault<std::string>(const std::string &default_value);
 
-template<> RBDL_DLLAPI void LuaTableNode::set<bool>(const bool &value);
-template<> RBDL_DLLAPI void LuaTableNode::set<float>(const float &value);
-template<> RBDL_DLLAPI void LuaTableNode::set<double>(const double &value);
-template<> RBDL_DLLAPI void LuaTableNode::set<std::string>(const std::string &value);
+template<> RBDL_ADDON_DLLAPI void LuaTableNode::set<bool>(const bool &value);
+template<> RBDL_ADDON_DLLAPI void LuaTableNode::set<float>(const float &value);
+template<> RBDL_ADDON_DLLAPI void LuaTableNode::set<double>(const double &value);
+template<> RBDL_ADDON_DLLAPI void LuaTableNode::set<std::string>(const std::string &value);
 
 /// Reference counting Lua state
-struct RBDL_DLLAPI LuaStateRef {
+struct RBDL_ADDON_DLLAPI LuaStateRef {
   LuaStateRef () :
     L (NULL),
     count (0),
@@ -221,7 +220,7 @@ struct RBDL_DLLAPI LuaStateRef {
   bool freeOnZeroRefs;
 };
 
-struct RBDL_DLLAPI LuaTable {
+struct RBDL_ADDON_DLLAPI LuaTable {
   LuaTable () :
     filename (""),
     luaStateRef (NULL),

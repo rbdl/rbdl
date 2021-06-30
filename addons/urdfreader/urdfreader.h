@@ -2,6 +2,7 @@
 #define RBDL_URDFREADER_H
 
 #include <rbdl/rbdl_config.h>
+#include <rbdl/rbdl_math.h>
 
 namespace RigidBodyDynamics {
 
@@ -17,7 +18,7 @@ namespace Addons {
    * @param verbose: information will be printed to the command window if this
    *                 is set to true
    */
-  RBDL_DLLAPI bool URDFReadFromFile (const char* filename, Model* model,
+  RBDL_ADDON_DLLAPI bool URDFReadFromFile (const char* filename, Model* model,
                                      bool floating_base, bool verbose = false);
 
   /**
@@ -29,7 +30,7 @@ namespace Addons {
    * @param verbose: information will be printed to the command window if this
    *                 is set to true
    */
-  RBDL_DLLAPI bool URDFReadFromString (const char* model_xml_string,
+  RBDL_ADDON_DLLAPI bool URDFReadFromString (const char* model_xml_string,
                                        Model* model, bool floating_base,
                                        bool verbose = false);
 }

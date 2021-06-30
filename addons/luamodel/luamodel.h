@@ -6,6 +6,8 @@
 #include <vector>
 #include "luastructs.h"
 
+#include <rbdl/rbdl_math.h>
+
 #ifdef RBDL_BUILD_ADDON_MUSCLE
 namespace RigidBodyDynamics{
   namespace Addons{
@@ -271,13 +273,13 @@ namespace Addons {
  * \note See \ref luamodel_introduction for information on how to define the
  * Lua model.
  */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadFromFile (
   const char* filename,
   Model* upd_model,
   bool verbose = false);
 
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 void LuaModelGetCoordinateNames(
       const Model* model,
       std::vector< std::string >& updGeneralizedPositionNames,
@@ -286,10 +288,10 @@ void LuaModelGetCoordinateNames(
 
 /** \brief Reads a model file and returns the names of all constraint sets.
  */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename);
 
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelGetConstraintSetPhases(const char* filename,
     const std::vector<std::string> &constraint_set_names,
     std::vector< unsigned int > &constraint_set_phases);
@@ -305,7 +307,7 @@ bool LuaModelGetConstraintSetPhases(const char* filename,
                   is set to true.
 
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadMotionCaptureMarkers (
       const char* filename,
       const Model* model,
@@ -323,7 +325,7 @@ bool LuaModelReadMotionCaptureMarkers (
                   is set to true.
 
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadPoints (
       const char* filename,
       const Model* model,
@@ -341,7 +343,7 @@ bool LuaModelReadPoints (
                   is set to true.
 
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadLocalFrames (
       const char* filename,
       const Model* model,
@@ -366,7 +368,7 @@ bool LuaModelReadLocalFrames (
  * size. See \ref luamodel_introduction for information on how to define the
  * Lua model.
  */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadFromFileWithConstraints (
   const char* filename,
   Model* upd_model,
@@ -383,7 +385,7 @@ bool LuaModelReadFromFileWithConstraints (
  *
  * \returns true if the model was read successfully.
  */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadFromLuaState (
   lua_State* L,
   Model* model,
@@ -398,7 +400,7 @@ bool LuaModelReadFromLuaState (
       @param verbose: information will be printed to the command window if this
                       is set to true.
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadHumanMetaData(
   const char* filename,
   HumanMetaData &human_meta_data,
@@ -429,7 +431,7 @@ bool LuaModelReadHumanMetaData(
   \returns true if the model and constraint sets were read successfully.
 
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadMillard2016TorqueMuscleSets(
           const char* filename,
           const RigidBodyDynamics::Model *model,
@@ -454,7 +456,7 @@ bool LuaModelReadMillard2016TorqueMuscleSets(
   @param append false: any existing text will be discarded,
                 true: this text will be appended to the file
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteModelHeaderEntries(const char* header_file_name,
                               const RigidBodyDynamics::Model &model,
                               bool append);
@@ -464,7 +466,7 @@ bool LuaModelWriteModelHeaderEntries(const char* header_file_name,
 
   @param header_file_name the name of the header file
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelAddHeaderGuards(const char* header_file_name);
 
 /**
@@ -477,7 +479,7 @@ bool LuaModelAddHeaderGuards(const char* header_file_name);
   @param append false: any existing text will be discarded,
                 true: this text will be appended to the file
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWritePointsHeaderEntries(const char* header_file_name,
                                       const std::vector<Point> &point_set,
                                       bool append);
@@ -493,7 +495,7 @@ bool LuaModelWritePointsHeaderEntries(const char* header_file_name,
   @param append false: any existing text will be discarded,
                 true: this text will be appended to the file
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteMotionCaptureMarkerHeaderEntries(
         const char* header_file_name,
         const std::vector< MotionCaptureMarker > &marker_set,
@@ -510,7 +512,7 @@ bool LuaModelWriteMotionCaptureMarkerHeaderEntries(
   @param append false: any existing text will be discarded,
                 true: this text will be appended to the file
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteLocalFrameHeaderEntries(const char* header_file_name,
                          const std::vector<LocalFrame> &local_frame_set,
                          bool append);
@@ -528,7 +530,7 @@ bool LuaModelWriteLocalFrameHeaderEntries(const char* header_file_name,
   @param append false: any existing text will be discarded,
                 true: this text will be appended to the file
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteConstraintSetHeaderEntries(const char* header_file_name,
        const std::vector< std::string > &constraint_set_names,
        const std::vector<RigidBodyDynamics::ConstraintSet> &constraint_sets,
@@ -548,7 +550,7 @@ bool LuaModelWriteConstraintSetHeaderEntries(const char* header_file_name,
                 true: this text will be appended to the file
 */
 
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteConstraintSetPhaseHeaderEntries(const char* header_file_name,
                          const std::vector< std::string > &constraint_set_names,
                          const std::vector< unsigned int > &constraint_phases,
@@ -565,7 +567,7 @@ bool LuaModelWriteConstraintSetPhaseHeaderEntries(const char* header_file_name,
   @param append false: any existing text will be discarded,
                 true: this text will be appended to the file
 */
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteMillard2016TorqueMuscleHeaderEntries(
     const char* header_file_name,
     const std::vector<RigidBodyDynamics::Addons::Muscle

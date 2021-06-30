@@ -28,7 +28,7 @@
 /* compatibility defines */
 #ifdef _WIN32
 #define __func__ __FUNCTION__
-//#define M_PI 3.1415926535897932384
+#define M_PI 3.1415926535897932384
 #pragma warning(disable:4251) /*no DLL interface for type of member of exported class*/
 #pragma warning(disable:4275) /*no DLL interface for base class of exported class*/
 #endif
@@ -72,12 +72,16 @@
 // library define DLLAPI to import or export.
 #  ifdef rbdl_EXPORTS
 #   define RBDL_DLLAPI RBDL_DLLEXPORT
+#   define RBDL_ADDON_DLLAPI RBDL_DLLIMPORT
 #  elif rbdl_urdfreader_EXPORTS
-#   define RBDL_DLLAPI RBDL_DLLEXPORT
+#   define RBDL_DLLAPI RBDL_DLLIMPORT
+#   define RBDL_ADDON_DLLAPI RBDL_DLLEXPORT
 #  elif rbdl_luamodel_EXPORTS
-#   define RBDL_DLLAPI RBDL_DLLEXPORT
+#   define RBDL_DLLAPI RBDL_DLLIMPORT
+#   define RBDL_ADDON_DLLAPI RBDL_DLLEXPORT
 #  else
 #   define RBDL_DLLAPI RBDL_DLLIMPORT
+#   define RBDL_ADDON_DLLAPI RBDL_DLLIMPORT
 #  endif // RBDL_EXPORTS
 #  define RBDL_LOCAL RBDL_DLLLOCAL
 # endif // RBDL_BUILD_STATIC

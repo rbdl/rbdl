@@ -12,11 +12,11 @@
  * causes the classes in this file not to be explicitly exported. Instead
  * they are already implicitly exported.
  */
-#if defined(WIN32) && defined(rbdl_EXPORTS)
+//#if defined(WIN32) && ( defined(rbdl_EXPORTS) || defined(rbdl_urdfparser_EXPORTS) || defined(rbdl_luamodel_EXPORTS))
 #define RBDL_TEMPLATE_DLLAPI
-#else
-#define RBDL_TEMPLATE_DLLAPI RBDL_DLLAPI
-#endif
+//#else
+//#define RBDL_TEMPLATE_DLLAPI RBDL_DLLAPI
+//#endif
 
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector2d)
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Vector3d)

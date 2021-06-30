@@ -275,7 +275,7 @@ typedef map<string, unsigned int> StringIntMap;
 StringIntMap body_table_id_map;
 
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadFromLuaState (lua_State* L, Model* model, bool verbose)
 {
   assert (model);
@@ -292,7 +292,7 @@ bool LuaModelReadLocalFrames (
       std::vector<LocalFrame>& upd_local_frame_set,
       bool verbose);
 
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadLocalFrames (
       const char* filename,
       const RigidBodyDynamics::Model *model,
@@ -310,7 +310,7 @@ bool LuaModelReadPoints (
       std::vector<Point>& upd_point_set,
       bool verbose);
 
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadPoints (
       const char* filename,
       const RigidBodyDynamics::Model *model,
@@ -322,7 +322,7 @@ bool LuaModelReadPoints (
 }
 
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadFromFile (const char* filename, Model* upd_model, bool verbose)
 {
   if(!upd_model) {
@@ -334,7 +334,7 @@ bool LuaModelReadFromFile (const char* filename, Model* upd_model, bool verbose)
 }
 
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename)
 {
   std::vector<std::string> result;
@@ -364,7 +364,7 @@ std::vector<std::string> LuaModelGetConstraintSetNames(const char* filename)
 }
 
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelGetConstraintSetPhases(const char* filename,
     const std::vector<std::string> &constraint_set_names,
     std::vector< unsigned int > &constraint_set_phases)
@@ -394,7 +394,7 @@ bool LuaModelGetConstraintSetPhases(const char* filename,
 }
 
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelReadFromFileWithConstraints (
   const char* filename,
   Model* model,
@@ -1609,7 +1609,7 @@ bool LuaModelWriteModelHeaderEntries(const char* filename,
   return true;
 }
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWritePointsHeaderEntries(const char* header_file_name,
                                       const std::vector<Point> &point_set,
                                       bool append)
@@ -1646,7 +1646,7 @@ bool LuaModelWritePointsHeaderEntries(const char* header_file_name,
   return true;
 }
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteMotionCaptureMarkerHeaderEntries(
         const char* header_file_name,
         const std::vector< MotionCaptureMarker > &marker_set,
@@ -1685,7 +1685,7 @@ bool LuaModelWriteMotionCaptureMarkerHeaderEntries(
 }
 
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteLocalFrameHeaderEntries(const char* header_file_name,
                          const std::vector<LocalFrame> &local_frame_set,
                          bool append)
@@ -1722,7 +1722,7 @@ bool LuaModelWriteLocalFrameHeaderEntries(const char* header_file_name,
 }
 
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteConstraintSetPhaseHeaderEntries(const char* header_file_name,
                          const std::vector< std::string > &constraint_set_names,
                          const std::vector< unsigned int > &constraint_phases,
@@ -1796,7 +1796,7 @@ bool LuaModelWriteConstraintSetPhaseHeaderEntries(const char* header_file_name,
   return true;
 }
 //==============================================================================
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteConstraintSetHeaderEntries(const char* header_file_name,
        const std::vector< std::string > &constraint_set_names,
        const std::vector<RigidBodyDynamics::ConstraintSet> &constraint_sets,
@@ -1927,7 +1927,7 @@ bool LuaModelWriteConstraintSetHeaderEntries(const char* header_file_name,
 }
 //==============================================================================
 #ifdef RBDL_BUILD_ADDON_MUSCLE
-RBDL_DLLAPI
+RBDL_ADDON_DLLAPI
 bool LuaModelWriteMillard2016TorqueMuscleHeaderEntries(
     const char* header_file_name,
     const std::vector<RigidBodyDynamics::Addons::Muscle

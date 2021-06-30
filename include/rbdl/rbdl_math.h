@@ -33,6 +33,7 @@ typedef RBDLCasadiMath::MX_Xd_dynamic VectorN_t;
 
 #else
 #include <Eigen/Dense>
+#include <Eigen/Core>
 #include <Eigen/StdVector>
 #include <Eigen/QR>
 

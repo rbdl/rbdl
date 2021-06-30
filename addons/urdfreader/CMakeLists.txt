@@ -28,15 +28,19 @@ IF (RBDL_USE_ROS_URDF_LIBRARY)
 		${urdf_LIBRARIES}
 		)
 ELSE()
-  ADD_SUBDIRECTORY(thirdparty)
+  ADD_SUBDIRECTORY(thirdparty)			
   SET(CMAKE_CXX_STANDARD 17)
-	SET (URDFREADER_SOURCES
+	SET (URDFREADER_SOURCES	
 		${URDFREADER_SOURCES}
 		)
 	SET (URDFREADER_DEPENDENCIES
     urdfparser
 		)
 ENDIF()
+
+IF (MSVC)
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive- /std:c++17")
+ENDIF (MSVC)
 
 ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
 
