@@ -15,6 +15,13 @@
 #include "rbdl/Joint.h"
 #include "rbdl/rbdl_errors.h"
 
+#ifdef __APPLE__
+#include "math.h"
+inline void sincos(double x, double * sinp, double * cosp) {
+    return __sincos(x, sinp, cosp);
+}
+#endif
+
 namespace RigidBodyDynamics {
 
 using namespace Math;
@@ -97,17 +104,17 @@ RBDL_DLLAPI void jcalc (
     Vector3d St = model.S[joint_id].block(0,0,3,1);
     Vector3d c = X_J.E * model.mJoints[joint_id].mJointAxes[0].block(3,0,3,1);
     c = St.cross(c);
-    c *= -Jqd * Jqd;    
+    c *= -Jqd * Jqd;
     model.c_J[joint_id] = SpatialVector(0,0,0,c[0],c[1],c[2]);
     model.X_lambda[joint_id] = X_J * model.X_T[joint_id];
   } else if (model.mJoints[joint_id].mDoFCount == 1 &&
       model.mJoints[joint_id].mJointType != JointTypeCustom) {
     SpatialTransform X_J = jcalc_XJ (model, joint_id, q);
-    model.v_J[joint_id] = 
+    model.v_J[joint_id] =
       model.S[joint_id] * qdot[model.mJoints[joint_id].q_index];
     model.X_lambda[joint_id] = X_J * model.X_T[joint_id];
   } else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
-    SpatialTransform X_J = SpatialTransform (model.GetQuaternion (joint_id, q).toMatrix(), 
+    SpatialTransform X_J = SpatialTransform (model.GetQuaternion (joint_id, q).toMatrix(),
           Vector3d (0., 0., 0.));
 
     model.multdof3_S[joint_id](0,0) = 1.;
@@ -154,7 +161,7 @@ RBDL_DLLAPI void jcalc (
     Scalar qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
     Scalar qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-    model.v_J[joint_id] = 
+    model.v_J[joint_id] =
       model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
     model.c_J[joint_id].set(
@@ -195,7 +202,7 @@ RBDL_DLLAPI void jcalc (
     Scalar qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
     Scalar qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-    model.v_J[joint_id] = 
+    model.v_J[joint_id] =
       model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
     model.c_J[joint_id].set(
@@ -236,7 +243,7 @@ RBDL_DLLAPI void jcalc (
     Scalar qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
     Scalar qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-    model.v_J[joint_id] = 
+    model.v_J[joint_id] =
       model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
     model.c_J[joint_id].set(
@@ -280,7 +287,7 @@ RBDL_DLLAPI void jcalc (
     double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
     double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-    model.v_J[joint_id] = 
+    model.v_J[joint_id] =
       model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
     model.c_J[joint_id].set(
@@ -302,7 +309,7 @@ RBDL_DLLAPI void jcalc (
     Scalar qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
     Scalar qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
-    model.v_J[joint_id] = 
+    model.v_J[joint_id] =
       model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
 
     model.c_J[joint_id].set(0., 0., 0., 0., 0., 0.);
@@ -310,7 +317,7 @@ RBDL_DLLAPI void jcalc (
     model.X_lambda[joint_id].r = model.X_T[joint_id].r + model.X_T[joint_id].E.transpose() * Vector3d (q0, q1, q2);
   } else if (model.mJoints[joint_id].mJointType == JointTypeCustom) {
     const Joint &joint = model.mJoints[joint_id];
-    CustomJoint *custom_joint = 
+    CustomJoint *custom_joint =
       model.mCustomJoints[joint.custom_joint_index];
     custom_joint->jcalc (model, joint_id, q, qdot);
   } else {
@@ -339,9 +346,9 @@ RBDL_DLLAPI Math::SpatialTransform jcalc_XJ (
       return Xtrans ( Vector3d (
             model.mJoints[joint_id].mJointAxes[0][3]
             * q[model.mJoints[joint_id].q_index],
-            model.mJoints[joint_id].mJointAxes[0][4] 
+            model.mJoints[joint_id].mJointAxes[0][4]
             * q[model.mJoints[joint_id].q_index],
-            model.mJoints[joint_id].mJointAxes[0][5] 
+            model.mJoints[joint_id].mJointAxes[0][5]
             * q[model.mJoints[joint_id].q_index]
             )
           );
@@ -355,9 +362,9 @@ RBDL_DLLAPI Math::SpatialTransform jcalc_XJ (
       SpatialTransform trans = Xtrans ( Vector3d (
             model.mJoints[joint_id].mJointAxes[0][3]
             * q[model.mJoints[joint_id].q_index],
-            model.mJoints[joint_id].mJointAxes[0][4] 
+            model.mJoints[joint_id].mJointAxes[0][4]
             * q[model.mJoints[joint_id].q_index],
-            model.mJoints[joint_id].mJointAxes[0][5] 
+            model.mJoints[joint_id].mJointAxes[0][5]
             * q[model.mJoints[joint_id].q_index]
             )
           );
@@ -445,15 +452,15 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     SpatialTransform XJ = jcalc_XJ (model, joint_id, q);
     model.X_lambda[joint_id] = XJ * model.X_T[joint_id];
     // Set the joint axis
-    Vector3d trans = XJ.E * model.mJoints[joint_id].mJointAxes[0].block<3, 1>(3,0);
-    
+    Vector3d trans = XJ.E * model.mJoints[joint_id].mJointAxes[0].block(3,0,3,1);
+
     model.S[joint_id] = SpatialVector(model.mJoints[joint_id].mJointAxes[0][0],
            model.mJoints[joint_id].mJointAxes[0][1],
            model.mJoints[joint_id].mJointAxes[0][2],
            trans[0], trans[1], trans[2]);
   } else if (model.mJoints[joint_id].mDoFCount == 1
       && model.mJoints[joint_id].mJointType != JointTypeCustom){
-    model.X_lambda[joint_id] = 
+    model.X_lambda[joint_id] =
       jcalc_XJ (model, joint_id, q) * model.X_T[joint_id];
     model.S[joint_id] = model.mJoints[joint_id].mJointAxes[0];
   } else if (model.mJoints[joint_id].mJointType == JointTypeSpherical) {
@@ -477,7 +484,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     Scalar s2 = sin (q2);
     Scalar c2 = cos (q2);
 
-    model.X_lambda[joint_id] = SpatialTransform ( 
+    model.X_lambda[joint_id] = SpatialTransform (
         Matrix3d(
           c0 * c1, s0 * c1, -s1,
           c0 * s1 * s2 - s0 * c2, s0 * s1 * s2 + c0 * c2, c1 * s2,
@@ -596,7 +603,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     model.multdof3_S[joint_id](5,2) = 1.;
   } else if (model.mJoints[joint_id].mJointType == JointTypeCustom) {
     const Joint &joint = model.mJoints[joint_id];
-    CustomJoint *custom_joint 
+    CustomJoint *custom_joint
       = model.mCustomJoints[joint.custom_joint_index];
 
     custom_joint->jcalc_X_lambda_S (model, joint_id, q);
