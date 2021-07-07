@@ -1662,9 +1662,9 @@ RBDL_DLLAPI void CalcCenterOfMass (
     }
   }
 
-  SpatialRigidBodyInertia Itot (0., Vector3d (0., 0., 0.), Matrix3d::Zero(3,3));
-  SpatialVector htot (SpatialVector::Zero(6));
-  SpatialVector hdot_tot (SpatialVector::Zero(6));
+  SpatialRigidBodyInertia Itot (0., Vector3d (0., 0., 0.), Matrix3d::Zero());
+  SpatialVector htot (SpatialVector::Zero());
+  SpatialVector hdot_tot (SpatialVector::Zero());
 
   for (size_t i = model.mBodies.size() - 1; i > 0; i--) {
     unsigned int lambda = model.lambda[i];

@@ -311,6 +311,7 @@ RBDL_DLLAPI
       bool update_kinematics = true
       );
 
+#ifndef RBDL_USE_CASADI_MATH
 /** \brief Computes the inverse kinematics iteratively using a damped Levenberg-Marquardt method (also known as Damped Least Squares method)
  *
  * \param model rigid body model
@@ -416,6 +417,7 @@ RBDL_DLLAPI bool InverseKinematics (
     InverseKinematicsConstraintSet &CS,
     Math::VectorNd &Qres
     );
+#endif
 
 /** @} */
 

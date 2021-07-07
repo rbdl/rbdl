@@ -35,14 +35,23 @@ IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 ENDIF()
 
-# Find and use the system's Eigen3 library
-FIND_PACKAGE (Eigen3 3.0.0)
+OPTION (RBDL_USE_CASADI_MATH "Use the CasADi backend" OFF)
+IF (RBDL_USE_CASADI_MATH)
+    FIND_PACKAGE (Casadi REQUIRED)
+    INCLUDE_DIRECTORIES (
+        ${Casadi_INCLUDE_DIR}
+        ${Casadi_INCLUDE_DIR}/..
+    )
+ELSE (RBDL_USE_CASADI_MATH)
+    # Find and use the system's Eigen3 library
+    FIND_PACKAGE (Eigen3 3.0.0)
 
-IF (NOT EIGEN3_FOUND)
-	MESSAGE (WARNING "Could not find Eigen3 on your system. Please install it!")
-ENDIF (NOT EIGEN3_FOUND)
+    IF (NOT EIGEN3_FOUND)
+        MESSAGE (WARNING "Could not find Eigen3 on your system. Please install it!")
+    ENDIF (NOT EIGEN3_FOUND)
 
-INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
+    INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
+ENDIF (RBDL_USE_CASADI_MATH)
 
 # Options
 SET (RBDL_BUILD_STATIC_DEFAULT OFF)
@@ -155,6 +164,11 @@ IF (RBDL_BUILD_STATIC)
 			rbdl_urdfreader-static
 			)
   ENDIF (RBDL_BUILD_ADDON_URDFREADER)
+  IF (RBDL_USE_CASADI_MATH)
+      TARGET_LINK_LIBRARIES ( rbdl-static
+                          ${Casadi_LIBRARY}
+                          )
+  ENDIF (RBDL_USE_CASADI_MATH)
 
 	INSTALL (TARGETS rbdl-static
 	  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -166,6 +180,12 @@ ELSE (RBDL_BUILD_STATIC)
 		VERSION ${RBDL_VERSION}
 		SOVERSION ${RBDL_SO_VERSION}
 		)
+
+        IF (RBDL_USE_CASADI_MATH)
+            TARGET_LINK_LIBRARIES ( rbdl
+                ${Casadi_LIBRARY}
+                )
+        ENDIF (RBDL_USE_CASADI_MATH)
 
 	INSTALL (TARGETS rbdl
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -208,6 +228,13 @@ FILE ( GLOB headers
 
 INSTALL ( FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rbdl )
 
+# Setup of CasADi install settings
+IF (RBDL_USE_CASADI_MATH)
+        INSTALL ( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/rbdl/CasadiMath"
+                DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/rbdl
+        )
+ENDIF (RBDL_USE_CASADI_MATH)
+
 # pkg-config
 CONFIGURE_FILE (
   ${CMAKE_CURRENT_SOURCE_DIR}/rbdl.pc.cmake
@@ -217,6 +244,18 @@ INSTALL (
   FILES  ${CMAKE_CURRENT_BINARY_DIR}/rbdl.pc
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
   )
+
+# Prepare share
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  share/RBDLConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/RBDLConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/rbdl/cmake
+)
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/RBDLConfig.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/rbdl/cmake
+)
 
 # Packaging
 SET(CPACK_GENERATOR "DEB")

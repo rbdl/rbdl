@@ -49,7 +49,9 @@ LoopConstraint::LoopConstraint(
 
   T.push_back(constraintAxis);
   dblA = std::numeric_limits<double>::epsilon()*10.;
+#ifndef RBDL_USE_CASADI_MATH
   assert(std::fabs(T[0].norm()-1.0)<= dblA);
+#endif
 
   positionConstraint[0]=positionLevelConstraint;
   velocityConstraint[0]=velocityLevelConstraint;
@@ -355,10 +357,12 @@ void LoopConstraint::
   dblA = 10.0*std::numeric_limits<double>::epsilon();
 
   //Make sure the normal is valid
+#ifndef RBDL_USE_CASADI_MATH
   assert( std::fabs(constraintAxis.norm()-1.) < dblA);
   for(unsigned int i=0; i<sizeOfConstraint;++i){
     assert(std::fabs(T[i].dot(constraintAxis)) <= dblA);
   }
+#endif
 
   T.push_back(constraintAxis);
   positionConstraint.push_back(positionLevelConstraint);

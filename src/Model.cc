@@ -71,7 +71,7 @@ Model::Model()
   f.push_back (zero_spatial);
   SpatialRigidBodyInertia rbi(0.,
                               Vector3d (0., 0., 0.),
-                              Matrix3d::Zero(3,3));
+                              Matrix3d::Zero());
   Ic.push_back (rbi);
   I.push_back(rbi);
   hc.push_back (zero_spatial);
@@ -219,9 +219,18 @@ unsigned int AddBodyMultiDofJoint (
         joint.mJointAxes[j][4],
         joint.mJointAxes[j][5]);
 
+#ifdef RBDL_USE_CASADI_MATH
+      if (rotation.is_zero()) {
+#else
       if (rotation == Vector3d (0., 0., 0.)) {
+#endif
         single_dof_joint = Joint (JointTypePrismatic, translation);
-      } else if (translation == Vector3d (0., 0., 0.)) {
+      }
+#ifdef RBDL_USE_CASADI_MATH
+      if (translation.is_zero()) {
+#else
+      else if (translation == Vector3d (0., 0., 0.)) {
+#endif
         single_dof_joint = Joint (JointTypeRevolute, rotation);
       }
     }
@@ -368,7 +377,7 @@ unsigned int Model::AddBody(
   c_J.push_back (SpatialVector(0., 0., 0., 0., 0., 0.));
 
   // workspace for joints with 3 dof
-  multdof3_S.push_back (Matrix63::Zero(6,3));
+  multdof3_S.push_back (Matrix63::Zero());
   multdof3_U.push_back (Matrix63::Zero());
   multdof3_Dinv.push_back (Matrix3d::Zero());
   multdof3_u.push_back (Vector3d::Zero());
@@ -398,7 +407,7 @@ unsigned int Model::AddBody(
 
   // Dynamic variables
   c.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
-  IA.push_back(SpatialMatrix::Zero(6,6));
+  IA.push_back(SpatialMatrix::Zero());
   pA.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
   U.push_back(SpatialVector(0., 0., 0., 0., 0., 0.));
 

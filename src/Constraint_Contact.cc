@@ -46,7 +46,9 @@ ContactConstraint::ContactConstraint(
 
   T.push_back(groundConstraintUnitVector); 
   dblA = std::numeric_limits<double>::epsilon()*10.;
+#ifndef RBDL_USE_CASADI_MATH
   assert(std::fabs(T[0].norm()-1.0)<= dblA);
+#endif
 
   groundPoint = Math::Vector3dZero;
 
@@ -231,10 +233,12 @@ void ContactConstraint::
   dblA = 10.0*std::numeric_limits<double>::epsilon();
 
   //Make sure the normal is valid
+#ifndef RBDL_USE_CASADI_MATH
   assert( std::fabs(normal.norm()-1.) < dblA);
   for(unsigned int i=0; i<sizeOfConstraint;++i){
     assert(std::fabs(T[i].dot(normal)) <= dblA);
   }
+#endif
 
   T.push_back(normal);
   positionConstraint.push_back(false);

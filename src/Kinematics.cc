@@ -288,12 +288,12 @@ RBDL_DLLAPI void CalcPointJacobian (
         G.block(0,q_index, 3, 1) =
           point_trans.apply(
               model.X_base[j].inverse().apply(
-                model.S[j])).block(3,0,3,1);
+                model.S[j])).block<3, 1>(3,0);
       } else if (model.mJoints[j].mDoFCount == 3) {
         G.block(0, q_index, 3, 3) =
           ((point_trans
             * model.X_base[j].inverse()).toMatrix()
-           * model.multdof3_S[j]).block(3,0,3,3);
+           * model.multdof3_S[j]).block<3, 3>(3,0);
       }
     } else {
       unsigned int k = model.mJoints[j].custom_joint_index;
@@ -350,12 +350,12 @@ RBDL_DLLAPI void CalcPointJacobian6D (
         G.block(0,q_index, 6, 1)
           = point_trans.apply(
               model.X_base[j].inverse().apply(
-                model.S[j])).block(0,0,6,1);
+                model.S[j])).block<6, 1>(0,0);
       } else if (model.mJoints[j].mDoFCount == 3) {
         G.block(0, q_index, 6, 3)
           = ((point_trans
                 * model.X_base[j].inverse()).toMatrix()
-              * model.multdof3_S[j]).block(0,0,6,3);
+              * model.multdof3_S[j]).block<6, 3>(0,0);
       }
     } else {
       unsigned int k = model.mJoints[j].custom_joint_index;
@@ -605,6 +605,7 @@ RBDL_DLLAPI SpatialVector CalcPointAcceleration6D(
       + SpatialVector (0, 0, 0, a_dash[0], a_dash[1], a_dash[2]));
 }
 
+#ifndef RBDL_USE_CASADI_MATH
 RBDL_DLLAPI bool InverseKinematics (
     Model &model,
     const VectorNd &Qinit,
@@ -739,7 +740,7 @@ unsigned int InverseKinematicsConstraintSet::AddPointConstraint(
   body_ids.push_back(body_id);
   body_points.push_back(body_point);
   target_positions.push_back(target_pos);
-  target_orientations.push_back(Matrix3d::Zero(3,3));
+  target_orientations.push_back(Matrix3d::Zero());
   constraint_weight.push_back(weight);
   constraint_row_index.push_back(num_constraints);
   num_constraints = num_constraints + 3;
@@ -757,7 +758,7 @@ unsigned int InverseKinematicsConstraintSet::AddPointConstraintXY(
   body_ids.push_back(body_id);
   body_points.push_back(body_point);
   target_positions.push_back(target_pos);
-  target_orientations.push_back(Matrix3d::Zero(3,3));
+  target_orientations.push_back(Matrix3d::Zero());
   constraint_weight.push_back(weight);
   constraint_row_index.push_back(num_constraints);
   num_constraints = num_constraints + 2;
@@ -775,7 +776,7 @@ unsigned int InverseKinematicsConstraintSet::AddPointConstraintZ(
   body_ids.push_back(body_id);
   body_points.push_back(body_point);
   target_positions.push_back(target_pos);
-  target_orientations.push_back(Matrix3d::Zero(3,3));
+  target_orientations.push_back(Matrix3d::Zero());
   constraint_weight.push_back(weight);
   constraint_row_index.push_back(num_constraints);
   num_constraints = num_constraints + 1;
@@ -792,7 +793,7 @@ unsigned int InverseKinematicsConstraintSet::AddPointConstraintCoMXY(
   body_ids.push_back(body_id);
   body_points.push_back(Vector3d::Zero());
   target_positions.push_back(target_pos);
-  target_orientations.push_back(Matrix3d::Zero(3,3));
+  target_orientations.push_back(Matrix3d::Zero());
   constraint_weight.push_back(weight);
   constraint_row_index.push_back(num_constraints);
   num_constraints = num_constraints + 2;
@@ -1001,6 +1002,5 @@ bool InverseKinematics (
 
   return false;
 }
-
+#endif
 }
-

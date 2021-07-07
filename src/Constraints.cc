@@ -76,9 +76,12 @@ unsigned int ConstraintSet::AddContactConstraint (
     if(contactConstraints[i]->getBodyIds()[0] == body_id) {
       Vector3d pointErr = body_point -
                           contactConstraints[i]->getBodyFrames()[0].r;
-
-      if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100
-         && contactConstraints[i]->getUserDefinedId() == userDefinedId) {
+#ifdef RBDL_USE_CASADI_MATH
+      if(contactConstraints[i]->getUserDefinedId() == userDefinedId) {
+#else
+      if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100 &&
+              contactConstraints[i]->getUserDefinedId() == userDefinedId) {
+#endif
         constraintAppended = true;
         contactConstraints[i]->appendNormalVector(world_normal);
       }
@@ -200,6 +203,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
       //Using this awkward element by element comparison to maintain
       //compatibility with SimpleMath.
+#ifndef RBDL_USE_CASADI_MATH
       for(unsigned int i=0; i<frameErrorPre.r.size(); ++i) {
         if(fabs(frameErrorPre.r[i]) > tol || fabs(frameErrorSuc.r[i]) > tol) {
           framesNumericallyIdentical=false;
@@ -210,6 +214,7 @@ unsigned int ConstraintSet::AddLoopConstraint (
           }
         }
       }
+#endif
 
       if(framesNumericallyIdentical
          && loopConstraints[idx]->getUserDefinedId() == userDefinedId) {
@@ -441,11 +446,9 @@ bool ConstraintSet::Bind (const Model &model)
   W.Identity(model.dof_count, model.dof_count);
 
   // HouseHolderQR crashes if matrix G has more rows than columns.
-  #ifdef RBDL_USE_SIMPLE_MATH
-  GT_qr = SimpleMath::HouseholderQR<Math::MatrixNd> (G.transpose());
-  #else
+#ifndef RBDL_USE_CASADI_MATH
   GT_qr = Eigen::HouseholderQR<Math::MatrixNd> (G.transpose());
-  #endif
+#endif
   GT_qr_Q = MatrixNd::Zero (model.dof_count, model.dof_count);
   Y = MatrixNd::Zero (model.dof_count, G.rows());
   Z = MatrixNd::Zero (model.dof_count, model.dof_count - G.rows());
@@ -684,14 +687,13 @@ void SolveConstrainedSystemDirect (
   LOG << "A = " << std::endl << A << std::endl;
   LOG << "b = " << std::endl << b << std::endl;
 
+#ifdef RBDL_USE_CASADI_MATH
+  auto linsol = casadi::Linsol("linear_solver", "symbolicqr", A.sparsity());
+  x = linsol.solve(A, b);
+#else
   switch (linear_solver) {
   case (LinearSolverPartialPivLU) :
-    #ifdef RBDL_USE_SIMPLE_MATH
-    // SimpleMath does not have a LU solver so just use its QR solver
-    x = A.householderQr().solve(b);
-    #else
     x = A.partialPivLu().solve(b);
-    #endif
     break;
   case (LinearSolverColPivHouseholderQR) :
     x = A.colPivHouseholderQr().solve(b);
@@ -704,6 +706,7 @@ void SolveConstrainedSystemDirect (
     assert (0);
     break;
   }
+#endif
 
   LOG << "x = " << std::endl << x << std::endl;
 }
@@ -739,8 +742,12 @@ void SolveConstrainedSystemRangeSpaceSparse (
   K = Y.transpose() * Y;
 
   a = gamma - Y.transpose() * z;
-
+#ifdef RBDL_USE_CASADI_MATH
+  auto linsol = casadi::Linsol("linear_solver", "symbolicqr", K.sparsity());
+  lambda = linsol.solve(K, a);
+#else
   lambda = K.llt().solve(a);
+#endif
 
   qddot = c + G.transpose() * lambda;
   SparseSolveLTx (model, H, qddot);
@@ -763,14 +770,15 @@ void SolveConstrainedSystemNullSpace (
   Math::LinearSolver &linear_solver
 )
 {
+
+#ifdef RBDL_USE_CASADI_MATH
+    auto GY = G * Y;
+    auto linsol = casadi::Linsol("linear_solver", "symbolicqr", GY.sparsity());
+    qddot_y = linsol.solve(GY, gamma);
+#else
   switch (linear_solver) {
   case (LinearSolverPartialPivLU) :
-    #ifdef RBDL_USE_SIMPLE_MATH
-    // SimpleMath does not have a LU solver so just use its QR solver
-    qddot_y = (G * Y).householderQr().solve (gamma);
-    #else
     qddot_y = (G * Y).partialPivLu().solve (gamma);
-    #endif
     break;
   case (LinearSolverColPivHouseholderQR) :
     qddot_y = (G * Y).colPivHouseholderQr().solve (gamma);
@@ -783,19 +791,25 @@ void SolveConstrainedSystemNullSpace (
     assert (0);
     break;
   }
+#endif
 
+#ifdef RBDL_USE_CASADI_MATH
+    auto ZHZ = (Z.transpose()*H*Z);
+    linsol = casadi::Linsol("linear_solver", "symbolicqr", ZHZ.sparsity());
+    qddot_z = linsol.solve(ZHZ, Z.transpose()*(c - H*Y*qddot_y));
+#else
   qddot_z = (Z.transpose()*H*Z).llt().solve(Z.transpose()*(c - H*Y*qddot_y));
-
+#endif
   qddot = Y * qddot_y + Z * qddot_z;
 
+#ifdef RBDL_USE_CASADI_MATH
+    GY = G * Y;
+    linsol = casadi::Linsol("linear_solver", "symbolicqr", GY.sparsity());
+    lambda = linsol.solve(GY, Y.transpose() * (H * qddot - c));
+#else
   switch (linear_solver) {
   case (LinearSolverPartialPivLU) :
-    #ifdef RBDL_USE_SIMPLE_MATH
-    // SimpleMath does not have a LU solver so just use its QR solver
-    qddot_y = (G * Y).householderQr().solve (gamma);
-    #else
     lambda = (G * Y).partialPivLu().solve (Y.transpose() * (H * qddot - c));
-    #endif
     break;
   case (LinearSolverColPivHouseholderQR) :
     lambda = (G*Y).colPivHouseholderQr().solve (Y.transpose()*(H*qddot - c));
@@ -808,6 +822,7 @@ void SolveConstrainedSystemNullSpace (
     assert (0);
     break;
   }
+#endif
 }
 
 
@@ -930,6 +945,7 @@ void CalcConstrainedSystemVariables (
 }
 
 //==============================================================================
+#ifndef RBDL_USE_CASADI_MATH
 RBDL_DLLAPI
 bool CalcAssemblyQ (
   Model &model,
@@ -1029,6 +1045,7 @@ bool CalcAssemblyQ (
   Q = QInit;
   return false;
 }
+#endif
 
 //==============================================================================
 RBDL_DLLAPI
@@ -1127,6 +1144,7 @@ void ForwardDynamicsConstraintsRangeSpaceSparse (
 }
 
 //==============================================================================
+#ifndef RBDL_USE_CASADI_MATH
 RBDL_DLLAPI
 void ForwardDynamicsConstraintsNullSpace (
   Model &model,
@@ -1144,11 +1162,7 @@ void ForwardDynamicsConstraintsNullSpace (
   CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
 
   CS.GT_qr.compute (CS.G.transpose());
-  #ifdef RBDL_USE_SIMPLE_MATH
-  CS.GT_qr_Q = CS.GT_qr.householderQ();
-  #else
   CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
-  #endif
 
   CS.Y = CS.GT_qr_Q.block (0,0,QDot.rows(), CS.G.rows());
   CS.Z = CS.GT_qr_Q.block (0,CS.G.rows(),QDot.rows(), QDot.rows() - CS.G.rows());
@@ -1157,6 +1171,7 @@ void ForwardDynamicsConstraintsNullSpace (
                                    , CS.force, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z, CS.linear_solver);
 
 }
+#endif
 
 //==============================================================================
 RBDL_DLLAPI
@@ -1215,6 +1230,7 @@ void ComputeConstraintImpulsesRangeSpaceSparse (
 }
 
 //==============================================================================
+#ifndef RBDL_USE_CASADI_MATH
 RBDL_DLLAPI
 void ComputeConstraintImpulsesNullSpace (
   Model &model,
@@ -1243,6 +1259,7 @@ void ComputeConstraintImpulsesNullSpace (
                                    , QDotPlus, CS.impulse, CS.Y, CS.Z, CS.qddot_y, CS.qddot_z
                                    , CS.linear_solver);
 }
+#endif
 
 //==============================================================================
 /** @brief Compute only the effects of external forces on the generalized
@@ -1270,7 +1287,11 @@ void ForwardDynamicsApplyConstraintForces (
     model.IA[i] = model.I[i].toMatrix();;
     model.pA[i] = crossf(model.v[i],model.I[i] * model.v[i]);
 
+#ifdef RBDL_USE_CASADI_MATH
+    {
+#else
     if (CS.f_ext_constraints[i] != SpatialVector::Zero()) {
+#endif
       LOG << "External force (" << i << ") = "
           << model.X_base[i].toMatrixAdjoint() * CS.f_ext_constraints[i]
           << std::endl;
@@ -1301,15 +1322,16 @@ void ForwardDynamicsApplyConstraintForces (
         SpatialVector pa = model.pA[i] + Ia * model.c[i]
                            + model.multdof3_U[i] * model.multdof3_Dinv[i] * model.multdof3_u[i];
 
-        #ifdef EIGEN_CORE_H
+#ifdef RBDL_USE_CASADI_MATH
+        model.IA[lambda] += (model.X_lambda[i].toMatrixTranspose()
+                                       * Ia * model.X_lambda[i].toMatrix());
+        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+#else
         model.IA[lambda].noalias() += (model.X_lambda[i].toMatrixTranspose()
                                        * Ia * model.X_lambda[i].toMatrix());
         model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-        #else
-        model.IA[lambda] += (model.X_lambda[i].toMatrixTranspose()
-                             * Ia * model.X_lambda[i].toMatrix());
-        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-        #endif
+#endif
+
         LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose()
             << std::endl;
       }
@@ -1323,15 +1345,16 @@ void ForwardDynamicsApplyConstraintForces (
                            - model.U[i] * (model.U[i] / model.d[i]).transpose();
         SpatialVector pa =  model.pA[i] + Ia * model.c[i]
                             + model.U[i] * model.u[i] / model.d[i];
-        #ifdef EIGEN_CORE_H
+#ifdef RBDL_USE_CASADI_MATH
+        model.IA[lambda] += (model.X_lambda[i].toMatrixTranspose()
+                                       * Ia * model.X_lambda[i].toMatrix());
+        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+#else
         model.IA[lambda].noalias() += (model.X_lambda[i].toMatrixTranspose()
                                        * Ia * model.X_lambda[i].toMatrix());
         model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-        #else
-        model.IA[lambda] += (model.X_lambda[i].toMatrixTranspose()
-                             * Ia * model.X_lambda[i].toMatrix());
-        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-        #endif
+#endif
+
         LOG << "pA[" << lambda << "] = "
             << model.pA[lambda].transpose() << std::endl;
       }
@@ -1357,20 +1380,22 @@ void ForwardDynamicsApplyConstraintForces (
                                  * model.mCustomJoints[kI]->U.transpose());
 
         SpatialVector pa = model.pA[i] + Ia * model.c[i]
-                           + (   model.mCustomJoints[kI]->U
-                                 * model.mCustomJoints[kI]->Dinv
-                                 * model.mCustomJoints[kI]->u);
-        #ifdef EIGEN_CORE_H
+                           + ( model.mCustomJoints[kI]->U
+                               * model.mCustomJoints[kI]->Dinv
+                               * model.mCustomJoints[kI]->u );
+
+#ifdef RBDL_USE_CASADI_MATH
+        model.IA[lambda] += model.X_lambda[i].toMatrixTranspose()
+                                      * Ia * model.X_lambda[i].toMatrix();
+
+        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
+#else
         model.IA[lambda].noalias() += model.X_lambda[i].toMatrixTranspose()
                                       * Ia * model.X_lambda[i].toMatrix();
 
         model.pA[lambda].noalias() += model.X_lambda[i].applyTranspose(pa);
-        #else
-        model.IA[lambda] += model.X_lambda[i].toMatrixTranspose()
-                            * Ia * model.X_lambda[i].toMatrix();
+#endif
 
-        model.pA[lambda] += model.X_lambda[i].applyTranspose(pa);
-        #endif
         LOG << "pA[" << lambda << "] = " << model.pA[lambda].transpose()
             << std::endl;
       }
@@ -1717,7 +1742,10 @@ void ForwardDynamicsContactsKokkevis (
   LOG << "K = " << std::endl << CS.K << std::endl;
   LOG << "a = " << std::endl << CS.a << std::endl;
 
-  #ifndef RBDL_USE_SIMPLE_MATH
+#ifdef RBDL_USE_CASADI_MATH
+    auto linsol = casadi::Linsol("linear_solver", "symbolicqr", CS.K.sparsity());
+    CS.force = linsol.solve(CS.K, CS.a);
+#else
   switch (CS.linear_solver) {
   case (LinearSolverPartialPivLU) :
     CS.force = CS.K.partialPivLu().solve(CS.a);
@@ -1733,10 +1761,7 @@ void ForwardDynamicsContactsKokkevis (
     assert (0);
     break;
   }
-  #else
-  bool solve_successful = LinSolveGaussElimPivot (CS.K, CS.a, CS.force);
-  assert (solve_successful);
-  #endif
+#endif
 
   LOG << "f = " << CS.force.transpose() << std::endl;
 
@@ -1773,8 +1798,7 @@ void ForwardDynamicsContactsKokkevis (
 
 
 //==============================================================================
-
-#ifndef RBDL_USE_SIMPLE_MATH
+#ifndef RBDL_USE_CASADI_MATH
 RBDL_DLLAPI
 bool isConstrainedSystemFullyActuated(
   Model &model,
@@ -1814,7 +1838,6 @@ bool isConstrainedSystemFullyActuated(
 
 }
 #endif
-#ifndef RBDL_USE_SIMPLE_MATH
 
 RBDL_DLLAPI
 void InverseDynamicsConstraints(
@@ -1900,8 +1923,8 @@ void InverseDynamicsConstraints(
 
 
 }
-#endif
 
+#ifndef RBDL_USE_CASADI_MATH
 RBDL_DLLAPI
 void InverseDynamicsConstraintsRelaxed(
   Model &model,
@@ -1971,11 +1994,7 @@ void InverseDynamicsConstraintsRelaxed(
   CS.GT.block( na, 0,nu, nc) = CS.P*(CS.G.transpose());
 
   CS.GT_qr.compute (CS.GT);
-  #ifdef RBDL_USE_SIMPLE_MATH
-  CS.GT_qr_Q = CS.GT_qr.householderQ();
-  #else
   CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
-  #endif
 
   //GT = [Y  Z] * [ R ]
   //              [ 0 ]
@@ -2049,6 +2068,7 @@ void InverseDynamicsConstraintsRelaxed(
 
 
 }
+#endif
 
 void SolveLinearSystem (
   const MatrixNd& A,
@@ -2061,15 +2081,14 @@ void SolveLinearSystem (
     throw Errors::RBDLSizeMismatchError("Mismatching sizes.\n");
   }
 
+#ifdef RBDL_USE_CASADI_MATH
+  auto linsol = casadi::Linsol("linear_solver", "symbolicqr", A.sparsity());
+  x = linsol.solve(A, b);
+#else
   // Solve the system A*x = b.
   switch (ls) {
   case (LinearSolverPartialPivLU) :
-    #ifdef RBDL_USE_SIMPLE_MATH
-    // SimpleMath does not have a LU solver so just use its QR solver
-    x = A.householderQr().solve(b);
-    #else
     x = A.partialPivLu().solve(b);
-    #endif
     break;
   case (LinearSolverColPivHouseholderQR) :
     x = A.colPivHouseholderQr().solve(b);
@@ -2083,6 +2102,7 @@ void SolveLinearSystem (
     throw Errors::RBDLError(errormsg.str());
     break;
   }
+#endif
 }
 
 //==============================================================================

@@ -163,9 +163,9 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialTransform>(
     LuaTable vector_table = LuaTable::fromLuaState (luaTable->L);
 
     result.r = vector_table["r"].getDefault<RigidBodyDynamics::Math::Vector3d>(
-          RigidBodyDynamics::Math::Vector3d::Zero(3));
+          RigidBodyDynamics::Math::Vector3d::Zero());
     result.E = vector_table["E"].getDefault<RigidBodyDynamics::Math::Matrix3d>(
-          RigidBodyDynamics::Math::Matrix3d::Identity (3,3));
+          RigidBodyDynamics::Math::Matrix3d::Identity ());
   }
 
   stackRestore();
@@ -303,9 +303,9 @@ LuaTableNode::getDefault<RigidBodyDynamics::Body>(
 
     double mass = 0.;
     RigidBodyDynamics::Math::Vector3d com(
-          RigidBodyDynamics::Math::Vector3d::Zero(3));
+          RigidBodyDynamics::Math::Vector3d::Zero());
     RigidBodyDynamics::Math::Matrix3d inertia(
-          RigidBodyDynamics::Math::Matrix3d::Identity(3,3));
+          RigidBodyDynamics::Math::Matrix3d::Identity());
 
     mass = vector_table["mass"];
     com = vector_table["com"]

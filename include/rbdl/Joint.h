@@ -440,7 +440,9 @@ struct RBDL_DLLAPI Joint {
 
     } else if (joint_type == JointTypePrismatic) {
       // make sure we have a unit axis
+#ifndef RBDL_USE_CASADI_MATH
       assert (joint_axis.squaredNorm() == 1.);
+#endif
 
       mJointAxes[0].set (
         0., 0., 0.,
@@ -465,15 +467,31 @@ struct RBDL_DLLAPI Joint {
     mDoFCount = 1;
     mJointAxes = new Math::SpatialVector[mDoFCount];
     mJointAxes[0] = Math::SpatialVector (axis_0);
+    
+    // TODO this has to be properly determined AND test case. Try Matt's dot product idea
+#ifdef RBDL_USE_CASADI_MATH
+    if (!axis_0[0].is_zero()) {
+#else
     if (axis_0 == Math::SpatialVector(1., 0., 0., 0., 0., 0.)) {
+#endif
       mJointType = JointTypeRevoluteX;
+#ifdef RBDL_USE_CASADI_MATH
+    } else if (!axis_0[1].is_zero()) {
+#else
     } else if (axis_0 == Math::SpatialVector(0., 1., 0., 0., 0., 0.)) {
+#endif
       mJointType = JointTypeRevoluteY;
+#ifdef RBDL_USE_CASADI_MATH
+    } else if (!axis_0[2].is_zero()) {
+#else
     } else if (axis_0 == Math::SpatialVector(0., 0., 1., 0., 0., 0.)) {
+#endif
       mJointType = JointTypeRevoluteZ;
-    } else if (axis_0[0] == 0 &&
-               axis_0[1] == 0 &&
-               axis_0[2] == 0) {
+#ifdef RBDL_USE_CASADI_MATH
+    } else if (axis_0[0].is_zero() && axis_0[1].is_zero() && axis_0[2].is_zero()) {
+#else
+    } else if (axis_0[0] == 0. && axis_0[1] == 0. && axis_0[2] == 0.) {
+#endif
       mJointType = JointTypePrismatic;
     } else {
       mJointType = JointTypeHelical;
@@ -662,7 +680,10 @@ struct RBDL_DLLAPI Joint {
    */
   bool validate_spatial_axis (Math::SpatialVector &axis)
   {
-
+#ifdef RBDL_USE_CASADI_MATH
+      // If using casadi, the axes won't be validated
+      return true;
+#else
     bool axis_rotational = false;
     bool axis_translational = false;
 
@@ -686,6 +707,7 @@ struct RBDL_DLLAPI Joint {
     }
 
     return axis_rotational != axis_translational;
+#endif
   }
 
   /// \brief The spatial axes of the joint

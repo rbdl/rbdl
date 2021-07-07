@@ -18,10 +18,14 @@ struct Model;
 
 /** \brief Namespace that contains optional helper functions */
 namespace Utils {
+#ifndef RBDL_USE_CASADI_MATH
 /** \brief Creates a human readable overview of the model. */
 RBDL_DLLAPI std::string GetModelHierarchy (const Model &model);
+#endif
+#ifndef RBDL_USE_CASADI_MATH
 /** \brief Creates a human readable overview of the Degrees of Freedom. */
 RBDL_DLLAPI std::string GetModelDOFOverview (const Model &model);
+#endif
 /** \brief Creates a human readable overview of the locations of all bodies that have names. */
 RBDL_DLLAPI std::string GetNamedBodyOriginsOverview (Model &model);
 
@@ -51,7 +55,7 @@ RBDL_DLLAPI void CalcCenterOfMass (
   const Math::VectorNd &q,
   const Math::VectorNd &qdot,
   const Math::VectorNd *qddot,
-  double &mass,
+  Math::Scalar &mass,
   Math::Vector3d &com,
   Math::Vector3d *com_velocity = NULL,
   Math::Vector3d *com_acceleration = NULL, 
@@ -81,10 +85,10 @@ RBDL_DLLAPI void CalcZeroMomentPoint (
 );
 
 /** \brief Computes the potential energy of the full model. */
-RBDL_DLLAPI double CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics = true);
+RBDL_DLLAPI Math::Scalar CalcPotentialEnergy (Model &model, const Math::VectorNd &q, bool update_kinematics = true);
 
 /** \brief Computes the kinetic energy of the full model. */
-RBDL_DLLAPI double CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics = true);
+RBDL_DLLAPI Math::Scalar CalcKineticEnergy (Model &model, const Math::VectorNd &q, const Math::VectorNd &qdot, bool update_kinematics = true);
 }
 
 }

@@ -245,7 +245,7 @@ struct Human36 {
     Body hand_body = create_body (SegmentHand);
     Body head_body = create_body (SegmentHead);
 
-    Matrix3d zero_matrix (Matrix3d::Zero(3,3));
+    Matrix3d zero_matrix (Matrix3d::Zero());
     Body null_body (0., Vector3d (0., 0., 0.), zero_matrix);
 
     Joint free_flyer (

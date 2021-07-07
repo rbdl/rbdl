@@ -27,20 +27,20 @@ inline Matrix3d VectorCrossMatrix (const Vector3d &vector) {
 struct RBDL_DLLAPI SpatialRigidBodyInertia {
   SpatialRigidBodyInertia() :
     m (0.),
-    h (Vector3d::Zero(3,1)),
+    h (Vector3d::Zero()),
     Ixx (0.), Iyx(0.), Iyy(0.), Izx(0.), Izy(0.), Izz(0.)
   {}
   SpatialRigidBodyInertia (
-      double mass, const Vector3d &com_mass, const Matrix3d &inertia) : 
+      Scalar mass, const Vector3d &com_mass, const Matrix3d &inertia) :
     m (mass), h (com_mass),
     Ixx (inertia(0,0)),
     Iyx (inertia(1,0)), Iyy(inertia(1,1)),
     Izx (inertia(2,0)), Izy(inertia(2,1)), Izz(inertia(2,2))
   { }
-  SpatialRigidBodyInertia (double m, const Vector3d &h,
-      const double &Ixx,
-      const double &Iyx, const double &Iyy,
-      const double &Izx, const double &Izy, const double &Izz
+  SpatialRigidBodyInertia (Scalar m, const Vector3d &h,
+      const Scalar &Ixx,
+      const Scalar &Iyx, const Scalar &Iyy,
+      const Scalar &Izx, const Scalar &Izy, const Scalar &Izz
       ) :
     m (m), h (h),
     Ixx (Ixx),
@@ -90,7 +90,7 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
 
     result.block<3,3>(0,3) = VectorCrossMatrix(h);
     result.block<3,3>(3,0) = - VectorCrossMatrix(h);
-    result.block<3,3>(3,3) = Matrix3d::Identity(3,3) * m;
+    result.block<3,3>(3,3) = Matrix3d::Identity() * m;
 
     return result;
   }
@@ -113,7 +113,7 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
     mat(5,3) =    0.; mat(5,4) =    0.; mat(5,5) =     m;
   }
 
-  static SpatialRigidBodyInertia createFromMassComInertiaC (double mass, const Vector3d &com, const Matrix3d &inertia_C) {
+  static SpatialRigidBodyInertia createFromMassComInertiaC (Scalar mass, const Vector3d &com, const Matrix3d &inertia_C) {
     SpatialRigidBodyInertia result;
     result.m = mass;
     result.h = com * mass;
@@ -128,11 +128,11 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
   }
 
   /// Mass
-  double m;
+  Scalar m;
   /// Coordinates of the center of mass
   Vector3d h;
   /// Inertia expressed at the origin
-  double Ixx, Iyx, Iyy, Izx, Izy, Izz;
+  Scalar Ixx, Iyx, Iyy, Izx, Izy, Izz;
 };
 
 /** \brief Compact representation of spatial transformations.
@@ -144,8 +144,8 @@ struct RBDL_DLLAPI SpatialRigidBodyInertia {
  */
 struct RBDL_DLLAPI SpatialTransform {
   SpatialTransform() :
-    E (Matrix3d::Identity(3,3)),
-    r (Vector3d::Zero(3,1))
+    E (Matrix3d::Identity()),
+    r (Vector3d::Zero())
   {}
   SpatialTransform (const Matrix3d &rotation, const Vector3d &translation) :
     E (rotation),
@@ -253,7 +253,7 @@ struct RBDL_DLLAPI SpatialTransform {
           );
     SpatialMatrix result;
     result.block<3,3>(0,0) = E;
-    result.block<3,3>(0,3) = Matrix3d::Zero(3,3);
+    result.block<3,3>(0,3) = Matrix3d::Zero();
     result.block<3,3>(3,0) = -_Erx;
     result.block<3,3>(3,3) = E;
 
@@ -270,7 +270,7 @@ struct RBDL_DLLAPI SpatialTransform {
     SpatialMatrix result;
     result.block<3,3>(0,0) = E;
     result.block<3,3>(0,3) = -_Erx;
-    result.block<3,3>(3,0) = Matrix3d::Zero(3,3);
+    result.block<3,3>(3,0) = Matrix3d::Zero();
     result.block<3,3>(3,3) = E;
 
     return result;
@@ -286,7 +286,7 @@ struct RBDL_DLLAPI SpatialTransform {
     SpatialMatrix result;
     result.block<3,3>(0,0) = E.transpose();
     result.block<3,3>(0,3) = -_Erx.transpose();
-    result.block<3,3>(3,0) = Matrix3d::Zero(3,3);
+    result.block<3,3>(3,0) = Matrix3d::Zero();
     result.block<3,3>(3,3) = E.transpose();
 
     return result;
@@ -327,8 +327,8 @@ inline std::ostream& operator<<(std::ostream& output, const SpatialTransform &X)
   return output;
 }
 
-inline SpatialTransform Xrot (double angle_rad, const Vector3d &axis) {
-  double s, c;
+inline SpatialTransform Xrot (Scalar angle_rad, const Vector3d &axis) {
+  Scalar s, c;
   s = sin(angle_rad);
   c = cos(angle_rad);
 
@@ -351,8 +351,8 @@ inline SpatialTransform Xrot (double angle_rad, const Vector3d &axis) {
       );
 }
 
-inline SpatialTransform Xrotx (const double &xrot) {
-  double s, c;
+inline SpatialTransform Xrotx (const Scalar &xrot) {
+  Scalar s, c;
   s = sin (xrot);
   c = cos (xrot);
   return SpatialTransform (
@@ -365,8 +365,8 @@ inline SpatialTransform Xrotx (const double &xrot) {
       );
 }
 
-inline SpatialTransform Xroty (const double &yrot) {
-  double s, c;
+inline SpatialTransform Xroty (const Scalar &yrot) {
+  Scalar s, c;
   s = sin (yrot);
   c = cos (yrot);
   return SpatialTransform (
@@ -379,8 +379,8 @@ inline SpatialTransform Xroty (const double &yrot) {
       );
 }
 
-inline SpatialTransform Xrotz (const double &zrot) {
-  double s, c;
+inline SpatialTransform Xrotz (const Scalar &zrot) {
+  Scalar s, c;
   s = sin (zrot);
   c = cos (zrot);
   return SpatialTransform (
@@ -395,7 +395,7 @@ inline SpatialTransform Xrotz (const double &zrot) {
 
 inline SpatialTransform Xtrans (const Vector3d &r) {
   return SpatialTransform (
-      Matrix3d::Identity(3,3),
+      Matrix3d::Identity(),
       r
       );
 }
@@ -439,7 +439,7 @@ inline SpatialVector crossf (const SpatialVector &v1, const SpatialVector &v2) {
       v1[2] * v2[0] - v1[0] * v2[2] + v1[5] * v2[3] - v1[3] * v2[5],
       -v1[1] * v2[0] + v1[0] * v2[1] - v1[4] * v2[3] + v1[3] * v2[4],
       - v1[2] * v2[4] + v1[1] * v2[5],
-      + v1[2] * v2[3] - v1[0] * v2[5],
+        v1[2] * v2[3] - v1[0] * v2[5],
       - v1[1] * v2[3] + v1[0] * v2[4]
       );
 }

@@ -33,6 +33,7 @@ RBDL_DLLAPI Matrix3d Matrix3dZero (
 
 RBDL_DLLAPI SpatialVector SpatialVectorZero ( 0., 0., 0., 0., 0., 0.);
 
+#ifndef RBDL_USE_CASADI_MATH
 RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
   x = VectorNd::Zero(x.size());
 
@@ -55,12 +56,12 @@ RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 
   for (j = 0; j < n; j++) {
     pi = j;
-    double pv = fabs (A(j,pivot[j]));
+    Scalar pv = fabs (A(j,pivot[j]));
 
     // LOG << "j = " << j << " pv = " << pv << std::endl;
     // find the pivot
     for (k = j; k < n; k++) {
-      double pt = fabs (A(j,pivot[k]));
+      Scalar pt = fabs (A(j,pivot[k]));
       if (pt > pv) {
         pv = pt;
         pi = k;
@@ -73,13 +74,13 @@ RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
     }
 
     for (i = j + 1; i < n; i++) {
-      if (fabs(A(j,pivot[j])) <= std::numeric_limits<double>::epsilon()) {
+      if (Scalar(fabs(A(j,pivot[j]))) <= Scalar(std::numeric_limits<double>::epsilon())) {
         std::cerr << "Error: pivoting failed for matrix A = " << std::endl;
         std::cerr << "A = " << std::endl << A << std::endl;
         std::cerr << "b = " << b << std::endl;
       }
       //		assert (fabs(A(j,pivot[j])) > std::numeric_limits<double>::epsilon());
-      double d = A(i,pivot[j])/A(j,pivot[j]);
+      Scalar d = A(i,pivot[j])/A(j,pivot[j]);
 
       b[i] -= b[j] * d;
 
@@ -120,6 +121,7 @@ RBDL_DLLAPI bool LinSolveGaussElimPivot (MatrixNd A, VectorNd b, VectorNd &x) {
 
   return true;
 }
+#endif
 
 RBDL_DLLAPI void SpatialMatrixSetSubmatrix(
     SpatialMatrix &dest, 
@@ -141,16 +143,17 @@ RBDL_DLLAPI void SpatialMatrixSetSubmatrix(
   dest(row*3 + 2,col*3 + 2) = matrix(2,2);
 }
 
+#ifndef RBDL_USE_CASADI_MATH
 RBDL_DLLAPI bool SpatialMatrixCompareEpsilon (
     const SpatialMatrix &matrix_a, 
     const SpatialMatrix &matrix_b, 
-    double epsilon) {
-  assert (epsilon >= 0.);
+    Scalar epsilon) {
+  assert (epsilon >= Scalar(0.));
   unsigned int i, j;
 
   for (i = 0; i < 6; i++) {
     for (j = 0; j < 6; j++) {
-      if (fabs(matrix_a(i,j) - matrix_b(i,j)) >= epsilon) {
+      if (Scalar(fabs(matrix_a(i,j) - matrix_b(i,j))) >= Scalar(epsilon)) {
         std::cerr << "Expected:" 
           << std::endl << matrix_a << std::endl
           << "but was" << std::endl 
@@ -166,12 +169,12 @@ RBDL_DLLAPI bool SpatialMatrixCompareEpsilon (
 RBDL_DLLAPI bool SpatialVectorCompareEpsilon (
     const SpatialVector &vector_a, 
     const SpatialVector &vector_b, 
-    double epsilon) {
-  assert (epsilon >= 0.);
+    Scalar epsilon) {
+  assert (epsilon >= Scalar(0.));
   unsigned int i;
 
   for (i = 0; i < 6; i++) {
-    if (fabs(vector_a[i] - vector_b[i]) >= epsilon) {
+    if (Scalar(fabs(vector_a[i] - vector_b[i])) >= Scalar(epsilon)) {
       std::cerr << "Expected:" 
         << std::endl << vector_a << std::endl
         << "but was" << std::endl 
@@ -182,10 +185,11 @@ RBDL_DLLAPI bool SpatialVectorCompareEpsilon (
 
   return true;
 }
+#endif
 
 RBDL_DLLAPI Matrix3d parallel_axis (
     const Matrix3d &inertia, 
-    double mass, 
+    Scalar mass,
     const Vector3d &com) {
   Matrix3d com_cross = VectorCrossMatrix (com);
 
@@ -203,8 +207,8 @@ RBDL_DLLAPI SpatialMatrix Xtrans_mat (const Vector3d &r) {
       );
 }
 
-RBDL_DLLAPI SpatialMatrix Xrotx_mat (const double &xrot) {
-  double s, c;
+RBDL_DLLAPI SpatialMatrix Xrotx_mat (const Scalar &xrot) {
+  Scalar s, c;
   s = sin (xrot);
   c = cos (xrot);
 
@@ -218,8 +222,8 @@ RBDL_DLLAPI SpatialMatrix Xrotx_mat (const double &xrot) {
       );
 }
 
-RBDL_DLLAPI SpatialMatrix Xroty_mat (const double &yrot) {
-  double s, c;
+RBDL_DLLAPI SpatialMatrix Xroty_mat (const Scalar &yrot) {
+  Scalar s, c;
   s = sin (yrot);
   c = cos (yrot);
 
@@ -233,8 +237,8 @@ RBDL_DLLAPI SpatialMatrix Xroty_mat (const double &yrot) {
       );
 }
 
-RBDL_DLLAPI SpatialMatrix Xrotz_mat (const double &zrot) {
-  double s, c;
+RBDL_DLLAPI SpatialMatrix Xrotz_mat (const Scalar &zrot) {
+  Scalar s, c;
   s = sin (zrot);
   c = cos (zrot);
 
@@ -305,7 +309,7 @@ RBDL_DLLAPI void SparseSolveLx (Model &model, Math::MatrixNd &L, Math::VectorNd 
 }
 
 RBDL_DLLAPI void SparseSolveLTx (Model &model, Math::MatrixNd &L, Math::VectorNd &x) {
-  for (int i = model.qdot_size; i > 0; i--) {
+  for (unsigned int i = model.qdot_size; i > 0; i--) {
     x[i - 1] = x[i - 1] / L(i - 1,i - 1);
     unsigned int j = model.lambda_q[i];
     while (j != 0) {
