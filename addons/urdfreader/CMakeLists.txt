@@ -42,7 +42,9 @@ IF (MSVC)
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive- /std:c++17")
 ENDIF (MSVC)
 
+IF(RBDL_BUILD_EXECUTABLES)
 ADD_EXECUTABLE (rbdl_urdfreader_util rbdl_urdfreader_util.cc)
+ENDIF(RBDL_BUILD_EXECUTABLES)
 
 IF (RBDL_BUILD_STATIC)
 	ADD_LIBRARY ( rbdl_urdfreader-static STATIC ${URDFREADER_SOURCES} )
@@ -57,10 +59,12 @@ IF (RBDL_BUILD_STATIC)
 		${URDFREADER_DEPENDENCIES}
 		)
 
+  IF(RBDL_BUILD_EXECUTABLES)
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader_util
 		rbdl_urdfreader-static
 		rbdl-static
 		)
+  ENDIF(RBDL_BUILD_EXECUTABLES)
 
 	INSTALL (TARGETS rbdl_urdfreader-static rbdl_urdfreader_util
 		  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -78,9 +82,11 @@ ELSE (RBDL_BUILD_STATIC)
 		${URDFREADER_DEPENDENCIES}
 		)
 
+  IF(RBDL_BUILD_EXECUTABLES)
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader_util
 		rbdl_urdfreader
 		)
+  ENDIF(RBDL_BUILD_EXECUTABLES)
 
 	INSTALL (TARGETS rbdl_urdfreader rbdl_urdfreader_util
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

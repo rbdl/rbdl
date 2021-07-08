@@ -76,6 +76,9 @@
 #  elif rbdl_urdfreader_EXPORTS
 #   define RBDL_DLLAPI RBDL_DLLIMPORT
 #   define RBDL_ADDON_DLLAPI RBDL_DLLEXPORT
+#  elif rbdl_geometry_EXPORTS
+#   define RBDL_DLLAPI RBDL_DLLIMPORT
+#   define RBDL_ADDON_DLLAPI RBDL_DLLEXPORT
 #  elif rbdl_luamodel_EXPORTS
 #   define RBDL_DLLAPI RBDL_DLLIMPORT
 #   define RBDL_ADDON_DLLAPI RBDL_DLLEXPORT

@@ -18,7 +18,10 @@ SET ( LUAMODEL_SOURCES
   luatables.cc
   )
 
+IF(RBDL_BUILD_EXECUTABLES)
 ADD_EXECUTABLE (rbdl_luamodel_util rbdl_luamodel_util.cc)
+ENDIF(RBDL_BUILD_EXECUTABLES)
+
 SET ( LUA_LIBRARIES ${LUA_LIBRARY}) 
 IF (RBDL_BUILD_STATIC)
   ADD_LIBRARY ( rbdl_luamodel-static STATIC ${LUAMODEL_SOURCES} )
@@ -46,11 +49,13 @@ IF (RBDL_BUILD_STATIC)
       rbdl-static
       ${LUA_LIBRARIES}
     )
+    IF(RBDL_BUILD_EXECUTABLES)
     TARGET_LINK_LIBRARIES (rbdl_luamodel_util
       rbdl_luamodel-static      
       rbdl-static
       ${LUA_LIBRARIES}
-	${LUA_LIBRARY}
+	    ${LUA_LIBRARY}
+    ENDIF(RBDL_BUILD_EXECUTABLES)
     )
   ENDIF(RBDL_BUILD_ADDON_MUSCLE)
 
@@ -72,11 +77,13 @@ ELSE (RBDL_BUILD_STATIC)
       rbdl
       ${LUA_LIBRARIES}
     )
+    IF(RBDL_BUILD_EXECUTABLES)
     TARGET_LINK_LIBRARIES (rbdl_luamodel_util
       rbdl_luamodel
       rbdl_muscle            
       rbdl
     )
+    ENDIF(RBDL_BUILD_EXECUTABLES)
   ELSE(RBDL_BUILD_ADDON_MUSCLE)
     TARGET_LINK_LIBRARIES (rbdl_luamodel
       rbdl
