@@ -64,9 +64,14 @@ IF (RBDL_BUILD_STATIC)
 		rbdl_urdfreader-static
 		rbdl-static
 		)
+
+	INSTALL (TARGETS rbdl_urdfreader_util
+		  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	)
   ENDIF(RBDL_BUILD_EXECUTABLES)
 
-	INSTALL (TARGETS rbdl_urdfreader-static rbdl_urdfreader_util
+	INSTALL (TARGETS rbdl_urdfreader-static
 		  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	)
