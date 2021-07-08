@@ -89,7 +89,7 @@ public:
     }
 
     void resize(unsigned int newI, unsigned int newJ = 1){
-        casadi::MX::reshape(*this, newI, newJ);
+        *this = casadi::MX(newI, newJ);
     }
 
     unsigned int rows() const {
