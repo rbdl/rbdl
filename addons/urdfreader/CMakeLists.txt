@@ -92,14 +92,11 @@ ELSE (RBDL_BUILD_STATIC)
 	TARGET_LINK_LIBRARIES (rbdl_urdfreader_util
 		rbdl_urdfreader
 		)
-<<<<<<< HEAD
 	INSTALL (TARGETS rbdl_urdfreader_util
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		)
-=======
->>>>>>> 41da625 (add flag to disable building of executables)
   ENDIF(RBDL_BUILD_EXECUTABLES)
 
 	INSTALL (TARGETS rbdl_urdfreader
