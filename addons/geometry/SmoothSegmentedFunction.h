@@ -39,8 +39,7 @@
 #include "SegmentedQuinticBezierToolkit.h"
 #include <vector>
 #include <rbdl/rbdl_math.h>
-
-
+#include <rbdl/rbdl_config.h>
 
   /**
   This class contains the quintic Bezier curves, x(u) and y(u), that have been
@@ -87,6 +86,7 @@ namespace RigidBodyDynamics {
   namespace Addons {
   namespace Geometry{
 
+  RBDL_ADDON_DLLAPI
   class SmoothSegmentedFunction : public Function_<double>
   {
    
