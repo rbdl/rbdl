@@ -174,7 +174,8 @@ namespace RigidBodyDynamics {
   namespace Addons {
   namespace Geometry{
 
-class RBDL_ADDON_DLLAPI SegmentedQuinticBezierToolkit
+RBDL_ADDON_DLLAPI
+class SegmentedQuinticBezierToolkit
 {
 
 

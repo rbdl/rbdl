@@ -106,6 +106,7 @@ static int      NUM_SAMPLE_PTS  = 100;
 
     N.B. These costs are dependent on SegmentedQuinticBezierToolkit
 */
+RBDL_ADDON_DLLAPI
 SmoothSegmentedFunction::
 SmoothSegmentedFunction(
   const RigidBodyDynamics::Math::MatrixNd& mX,
