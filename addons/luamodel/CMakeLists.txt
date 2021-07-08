@@ -55,10 +55,6 @@ IF (RBDL_BUILD_STATIC)
       rbdl-static
       ${LUA_LIBRARIES}
 	    ${LUA_LIBRARY}
-<<<<<<< HEAD
-=======
-    ENDIF(RBDL_BUILD_EXECUTABLES)
->>>>>>> 41da625 (add flag to disable building of executables)
     )
     ENDIF(RBDL_BUILD_EXECUTABLES)
   ENDIF(RBDL_BUILD_ADDON_MUSCLE)
