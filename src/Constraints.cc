@@ -77,7 +77,7 @@ unsigned int ConstraintSet::AddContactConstraint (
       Vector3d pointErr = body_point -
                           contactConstraints[i]->getBodyFrames()[0].r;
 #ifdef RBDL_USE_CASADI_MATH
-      if(contactConstraints[i]->getUserDefinedId() == userDefinedId) {
+      if(pointErr.is_zero() && contactConstraints[i]->getUserDefinedId() == userDefinedId) {
 #else
       if(pointErr.norm() < std::numeric_limits<double>::epsilon()*100 &&
               contactConstraints[i]->getUserDefinedId() == userDefinedId) {
