@@ -19,7 +19,7 @@
   typedef urdf::JointSharedPtr JointPtr;
   typedef urdf::ModelInterfaceSharedPtr ModelPtr;
   typedef urdf::Joint UrdfJointType;
-    
+
   #define LINKMAP links_
   #define JOINTMAP joints_
   #define PARENT_TRANSFORM parent_to_joint_origin_transform
