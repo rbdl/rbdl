@@ -16,7 +16,7 @@
 #include "rbdl/rbdl_errors.h"
 
 #ifdef __APPLE__
-#include "math.h"
+#include <cmath>
 inline void sincos(double x, double * sinp, double * cosp) {
     return __sincos(x, sinp, cosp);
 }
