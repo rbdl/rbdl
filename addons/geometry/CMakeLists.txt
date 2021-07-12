@@ -75,5 +75,5 @@ FILE ( GLOB headers
 
 INSTALL ( FILES ${GEOMETRY_HEADERS} 
 	DESTINATION 
-	${CMAKE_INSTALL_INCLUDEDIR}/rbdl/addons/geometry 
+	${CMAKE_INSTALL_INCLUDEDIR}/rbdl/rbdl/addons/geometry
 	)

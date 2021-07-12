@@ -127,5 +127,5 @@ FILE ( GLOB headers
 
 INSTALL ( FILES ${headers} 
   DESTINATION 
-  ${CMAKE_INSTALL_INCLUDEDIR}/rbdl/addons/luamodel 
+  ${CMAKE_INSTALL_INCLUDEDIR}/rbdl/rbdl/addons/luamodel
   )

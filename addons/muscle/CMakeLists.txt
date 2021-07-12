@@ -135,5 +135,5 @@ FILE ( GLOB headers
 
 INSTALL ( FILES ${MUSCLE_HEADERS} 
   DESTINATION 
-  ${CMAKE_INSTALL_INCLUDEDIR}/rbdl/addons/muscle
+  ${CMAKE_INSTALL_INCLUDEDIR}/rbdl/rbdl/addons/muscle
 )
