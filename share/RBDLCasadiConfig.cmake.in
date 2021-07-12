@@ -1,0 +1,251 @@
+set(RBDLCasadi_VERSION @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@)
+
+IF(CUSTOM_RBDLCasadi_PATH)
+
+  FIND_PATH (RBDLCasadi_INCLUDE_DIR rbdl/rbdl.h
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/include/rbdl-casadi
+    NO_DEFAULT_PATH
+    )
+
+  FIND_LIBRARY (RBDLCasadi_LIBRARY rbdl-casadi
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/lib
+    NO_DEFAULT_PATH
+    )
+
+  FIND_PATH (RBDLCasadi_LUAMODEL_INCLUDE_DIR rbdl/addons/luamodel/luamodel.h
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/include/rbdl-casadi
+    NO_DEFAULT_PATH
+    )
+
+  FIND_LIBRARY (RBDLCasadi_LUAMODEL_LIBRARY rbdl_luamodel-casadi
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/lib
+    NO_DEFAULT_PATH
+    )
+
+  FIND_PATH (RBDLCasadi_URDFREADER_INCLUDE_DIR rbdl/addons/urdfreader/urdfreader.h
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/include/rbdl-casadi
+    NO_DEFAULT_PATH
+    )
+
+
+  FIND_LIBRARY (RBDLCasadi_URDFREADER_LIBRARY rbdl_urdfreader-casadi
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/lib
+    NO_DEFAULT_PATH
+    )
+
+
+  FIND_PATH (RBDLCasadi_MUSCLE_INCLUDE_DIR rbdl/addons/muscle/muscle.h
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/include/rbdl-casadi
+    NO_DEFAULT_PATH
+    )
+
+
+  FIND_LIBRARY (RBDLCasadi_MUSCLE_LIBRARY rbdl_muscle-casadi
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/lib
+    NO_DEFAULT_PATH
+    )
+
+  FIND_PATH (RBDLCasadi_GEOMETRY_INCLUDE_DIR rbdl/addons/geometry/geometry.h
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/include/rbdl-casadi
+    NO_DEFAULT_PATH
+    )
+
+  FIND_LIBRARY (RBDLCasadi_GEOMETRY_LIBRARY rbdl_geometry-casadi
+    PATHS
+    ${CUSTOM_RBDLCasadi_PATH}/lib
+    NO_DEFAULT_PATH
+    )
+
+ELSE(CUSTOM_RBDLCasadi_PATH)
+  FIND_PATH (RBDLCasadi_INCLUDE_DIR rbdl/rbdl.h
+    HINTS
+    $ENV{HOME}/local/include
+    $ENV{RBDLCasadi_PATH}/src
+    $ENV{RBDLCasadi_PATH}/include
+    $ENV{RBDLCasadi_INCLUDE_PATH}
+    /usr/local/include
+    /usr/include
+    /usr/include/rbdl-casadi
+    /usr/local/include/rbdl-casadi
+    )
+
+  FIND_LIBRARY (RBDLCasadi_LIBRARY rbdl-casadi
+    PATHS
+    $ENV{HOME}/local/lib
+    $ENV{HOME}/local/lib/x86_64-linux-gnu
+    $ENV{RBDLCasadi_PATH}/lib
+    $ENV{RBDLCasadi_LIBRARY_PATH}
+    /usr/local/lib
+    /usr/local/lib/x86_64-linux-gnu
+    /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    )
+
+  FIND_PATH (RBDLCasadi_LUAMODEL_INCLUDE_DIR rbdl/addons/luamodel/luamodel.h
+    HINTS
+    $ENV{HOME}/local/include
+    $ENV{RBDLCasadi_PATH}/src
+    $ENV{RBDLCasadi_PATH}/include
+    $ENV{RBDLCasadi_INCLUDE_PATH}
+    /usr/include/rbdl-casadi
+    /usr/local/include/rbdl-casadi
+    /usr/local/include
+    /usr/include
+    )
+
+  FIND_LIBRARY (RBDLCasadi_LUAMODEL_LIBRARY rbdl_luamodel-casadi
+    PATHS
+    $ENV{HOME}/local/lib
+    $ENV{HOME}/local/lib/x86_64-linux-gnu
+    $ENV{RBDLCasadi_PATH}
+    $ENV{RBDLCasadi_LIBRARY_PATH}
+    /usr/local/lib
+    /usr/local/lib/x86_64-linux-gnu
+    /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    )
+
+  FIND_PATH (RBDLCasadi_URDFREADER_INCLUDE_DIR rbdl/addons/urdfreader/urdfreader.h
+    HINTS
+    $ENV{HOME}/local/include
+    $ENV{RBDLCasadi_PATH}/src
+    $ENV{RBDLCasadi_PATH}/include
+    $ENV{RBDLCasadi_INCLUDE_PATH}
+    /usr/local/include
+    /usr/local/include/rbdl-casadi
+    /usr/include
+    /usr/include/rbdl-casadi
+    )
+
+  FIND_LIBRARY (RBDLCasadi_URDFREADER_LIBRARY rbdl_urdfreader-casadi
+    PATHS
+    $ENV{HOME}/local/lib
+    $ENV{HOME}/local/lib/x86_64-linux-gnu
+    $ENV{RBDLCasadi_PATH}
+    $ENV{RBDLCasadi_LIBRARY_PATH}
+    /usr/local/lib
+    /usr/local/lib/x86_64-linux-gnu
+    /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    )
+
+
+  FIND_PATH (RBDLCasadi_MUSCLE_INCLUDE_DIR rbdl/addons/muscle/muscle.h
+    HINTS
+    $ENV{HOME}/local/include
+    $ENV{RBDLCasadi_PATH}/src
+    $ENV{RBDLCasadi_PATH}/include
+    $ENV{RBDLCasadi_INCLUDE_PATH}
+    ${RBDLCasadi_INCLUDE_DIR}
+    /usr/local/include
+    /usr/local/include/rbdl-casadi
+    /usr/include
+    /usr/include/rbdl-casadi
+    )
+
+  FIND_LIBRARY (RBDLCasadi_MUSCLE_LIBRARY rbdl_muscle-casadi
+    PATHS
+    $ENV{HOME}/local/lib
+    $ENV{HOME}/local/lib/x86_64-linux-gnu
+    $ENV{RBDLCasadi_PATH}
+    $ENV{RBDLCasadi_LIBRARY_PATH}
+    /usr/local/lib
+    /usr/local/lib/x86_64-linux-gnu
+    /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    )
+
+  FIND_PATH (RBDLCasadi_GEOMETRY_INCLUDE_DIR rbdl/addons/geometry/geometry.h
+    HINTS
+    $ENV{HOME}/local/include
+    $ENV{RBDLCasadi_PATH}/src
+    $ENV{RBDLCasadi_PATH}/include
+    $ENV{RBDLCasadi_INCLUDE_PATH}
+    ${RBDLCasadi_INCLUDE_DIR}
+    /usr/local/include
+    /usr/local/include/rbdl-casadi
+    /usr/include
+    /usr/include/rbdl-casadi
+    )
+
+  FIND_LIBRARY (RBDLCasadi_GEOMETRY_LIBRARY rbdl_geometry-casadi
+    PATHS
+    $ENV{HOME}/local/lib
+    $ENV{HOME}/local/lib/x86_64-linux-gnu
+    $ENV{RBDLCasadi_PATH}
+    $ENV{RBDLCasadi_LIBRARY_PATH}
+    /usr/local/lib
+    /usr/local/lib/x86_64-linux-gnu
+    /usr/lib
+    /usr/lib/x86_64-linux-gnu
+    )
+ENDIF(CUSTOM_RBDLCasadi_PATH)
+
+IF (RBDLCasadi_INCLUDE_DIR AND RBDLCasadi_LIBRARY)
+  SET (RBDLCasadi_FOUND TRUE)
+ELSE(RBDLCasadi_INCLUDE_DIR AND RBDLCasadi_LIBRARY)
+  IF(RBDLCasadi_FIND_REQUIRED)
+    MESSAGE (SEND_ERROR " Could not find RBDL.")
+    MESSAGE (SEND_ERROR " Try setting CUSTOM_RBDLCasadi_PATH in FindRBDL.cmake force CMake to use the desired directory.")
+  ELSE(RBDLCasadi_FIND_REQUIRED)
+    MESSAGE (STATUS " Could not find RBDL.")
+    MESSAGE (STATUS " Try setting CUSTOM_RBDLCasadi_PATH in FindRBDL.cmake force CMake to use the desired directory.")
+  ENDIF(RBDLCasadi_FIND_REQUIRED)
+ENDIF (RBDLCasadi_INCLUDE_DIR AND RBDLCasadi_LIBRARY)
+
+
+IF (RBDLCasadi_LUAMODEL_LIBRARY AND RBDLCasadi_LUAMODEL_INCLUDE_DIR)
+  SET (RBDLCasadi_LUAMODEL_FOUND TRUE)
+ENDIF (RBDLCasadi_LUAMODEL_LIBRARY AND RBDLCasadi_LUAMODEL_INCLUDE_DIR)
+
+IF (RBDLCasadi_URDFREADER_LIBRARY AND RBDLCasadi_URDFREADER_INCLUDE_DIR)
+  SET (RBDLCasadi_URDFREADER_FOUND TRUE)
+ENDIF (RBDLCasadi_URDFREADER_LIBRARY AND RBDLCasadi_URDFREADER_INCLUDE_DIR)
+
+IF (RBDLCasadi_MUSCLE_LIBRARY AND RBDLCasadi_MUSCLE_INCLUDE_DIR)
+  SET (RBDLCasadi_MUSCLE_FOUND TRUE)
+ENDIF (RBDLCasadi_MUSCLE_LIBRARY AND RBDLCasadi_MUSCLE_INCLUDE_DIR)
+
+IF (RBDLCasadi_GEOMETRY_LIBRARY AND RBDLCasadi_GEOMETRY_INCLUDE_DIR)
+  SET (RBDLCasadi_GEOMETRY_FOUND TRUE)
+ENDIF (RBDLCasadi_GEOMETRY_LIBRARY AND RBDLCasadi_GEOMETRY_INCLUDE_DIR)
+
+
+IF (RBDLCasadi_FOUND)
+   IF (NOT RBDLCasadi_FIND_QUIETLY)
+      MESSAGE(STATUS "Found RBDL: ${RBDLCasadi_LIBRARY}")
+   ENDIF (NOT RBDLCasadi_FIND_QUIETLY)
+
+   foreach ( COMPONENT ${RBDLCasadi_FIND_COMPONENTS} )
+     IF (RBDLCasadi_${COMPONENT}_FOUND)
+       IF (NOT RBDLCasadi_FIND_QUIETLY)
+         MESSAGE(STATUS "Found RBDL ${COMPONENT}: ${RBDLCasadi_${COMPONENT}_LIBRARY}")
+       ENDIF (NOT RBDLCasadi_FIND_QUIETLY)
+     ELSE (RBDLCasadi_${COMPONENT}_FOUND)
+       MESSAGE(ERROR " Could not find RBDL ${COMPONENT}")
+     ENDIF (RBDLCasadi_${COMPONENT}_FOUND)
+   endforeach ( COMPONENT )
+
+ENDIF (RBDLCasadi_FOUND)
+
+MARK_AS_ADVANCED (
+  RBDLCasadi_INCLUDE_DIR
+  RBDLCasadi_LIBRARY
+  RBDLCasadi_LUAMODEL_INCLUDE_DIR
+  RBDLCasadi_LUAMODEL_LIBRARY
+  RBDLCasadi_URDFREADER_INCLUDE_DIR
+  RBDLCasadi_URDFREADER_LIBRARY
+  RBDLCasadi_MUSCLE_INCLUDE_DIR
+  RBDLCasadi_MUSCLE_LIBRARY
+  RBDLCasadi_GEOMETRY_INCLUDE_DIR
+  RBDLCasadi_GEOMETRY_LIBRARY
+  )

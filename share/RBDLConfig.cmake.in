@@ -4,7 +4,7 @@ IF(CUSTOM_RBDL_PATH)
 
   FIND_PATH (RBDL_INCLUDE_DIR rbdl/rbdl.h
     PATHS
-    ${CUSTOM_RBDL_PATH}/include
+    ${CUSTOM_RBDL_PATH}/include/rbdl
     NO_DEFAULT_PATH
     )
 
@@ -16,7 +16,7 @@ IF(CUSTOM_RBDL_PATH)
 
   FIND_PATH (RBDL_LUAMODEL_INCLUDE_DIR rbdl/addons/luamodel/luamodel.h
     PATHS
-    ${CUSTOM_RBDL_PATH}/include
+    ${CUSTOM_RBDL_PATH}/include/rbdl
     NO_DEFAULT_PATH
     )
 
@@ -28,7 +28,7 @@ IF(CUSTOM_RBDL_PATH)
 
   FIND_PATH (RBDL_URDFREADER_INCLUDE_DIR rbdl/addons/urdfreader/urdfreader.h
     PATHS
-    ${CUSTOM_RBDL_PATH}/include
+    ${CUSTOM_RBDL_PATH}/include/rbdl
     NO_DEFAULT_PATH
     )
 
@@ -42,7 +42,7 @@ IF(CUSTOM_RBDL_PATH)
 
   FIND_PATH (RBDL_MUSCLE_INCLUDE_DIR rbdl/addons/muscle/muscle.h
     PATHS
-    ${CUSTOM_RBDL_PATH}/include
+    ${CUSTOM_RBDL_PATH}/include/rbdl
     NO_DEFAULT_PATH
     )
 
@@ -55,7 +55,7 @@ IF(CUSTOM_RBDL_PATH)
 
   FIND_PATH (RBDL_GEOMETRY_INCLUDE_DIR rbdl/addons/geometry/geometry.h
     PATHS
-    ${CUSTOM_RBDL_PATH}/include
+    ${CUSTOM_RBDL_PATH}/include/rbdl
     NO_DEFAULT_PATH
     )
 
@@ -74,6 +74,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_INCLUDE_PATH}
     /usr/local/include
     /usr/include
+    /usr/include/rbdl
+    /usr/local/include/rbdl
     )
 
   FIND_LIBRARY (RBDL_LIBRARY rbdl
@@ -94,6 +96,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/src
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
+    /usr/include/rbdl
+    /usr/local/include/rbdl
     /usr/local/include
     /usr/include
     )
@@ -117,7 +121,9 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
     /usr/local/include
+    /usr/local/include/rbdl
     /usr/include
+    /usr/include/rbdl
     )
 
   FIND_LIBRARY (RBDL_URDFREADER_LIBRARY rbdl_urdfreader
@@ -139,8 +145,11 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/src
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
+    ${RBDL_INCLUDE_DIR}
     /usr/local/include
+    /usr/local/include/rbdl
     /usr/include
+    /usr/include/rbdl
     )
 
   FIND_LIBRARY (RBDL_MUSCLE_LIBRARY rbdl_muscle
@@ -161,8 +170,11 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/src
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
+    ${RBDL_INCLUDE_DIR}
     /usr/local/include
+    /usr/local/include/rbdl
     /usr/include
+    /usr/include/rbdl
     )
 
   FIND_LIBRARY (RBDL_GEOMETRY_LIBRARY rbdl_geometry
