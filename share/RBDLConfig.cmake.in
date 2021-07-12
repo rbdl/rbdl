@@ -72,6 +72,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/src
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
+    ${CMAKE_INSTALL_PREFIX}/include/rbdl
+    ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl
     /usr/local/include
     /usr/include
     /usr/include/rbdl
@@ -84,6 +86,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{HOME}/local/lib/x86_64-linux-gnu
     $ENV{RBDL_PATH}/lib
     $ENV{RBDL_LIBRARY_PATH}
+    ${CMAKE_INSTALL_PREFIX}/lib
+    ${CMAKE_INSTALL_PREFIX}/Library/lib
     /usr/local/lib
     /usr/local/lib/x86_64-linux-gnu
     /usr/lib
@@ -96,6 +100,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/src
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
+    ${CMAKE_INSTALL_PREFIX}/include/rbdl
+    ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl
     /usr/include/rbdl
     /usr/local/include/rbdl
     /usr/local/include
@@ -108,6 +114,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{HOME}/local/lib/x86_64-linux-gnu
     $ENV{RBDL_PATH}
     $ENV{RBDL_LIBRARY_PATH}
+    ${CMAKE_INSTALL_PREFIX}/lib
+    ${CMAKE_INSTALL_PREFIX}/Library/lib
     /usr/local/lib
     /usr/local/lib/x86_64-linux-gnu
     /usr/lib
@@ -120,6 +128,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/src
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
+    ${CMAKE_INSTALL_PREFIX}/include/rbdl
+    ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl
     /usr/local/include
     /usr/local/include/rbdl
     /usr/include
@@ -132,6 +142,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{HOME}/local/lib/x86_64-linux-gnu
     $ENV{RBDL_PATH}
     $ENV{RBDL_LIBRARY_PATH}
+    ${CMAKE_INSTALL_PREFIX}/lib
+    ${CMAKE_INSTALL_PREFIX}/Library/lib
     /usr/local/lib
     /usr/local/lib/x86_64-linux-gnu
     /usr/lib
@@ -145,7 +157,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/src
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
-    ${RBDL_INCLUDE_DIR}
+    ${CMAKE_INSTALL_PREFIX}/include/rbdl
+    ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl
     /usr/local/include
     /usr/local/include/rbdl
     /usr/include
@@ -158,6 +171,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{HOME}/local/lib/x86_64-linux-gnu
     $ENV{RBDL_PATH}
     $ENV{RBDL_LIBRARY_PATH}
+    ${CMAKE_INSTALL_PREFIX}/lib
+    ${CMAKE_INSTALL_PREFIX}/Library/lib
     /usr/local/lib
     /usr/local/lib/x86_64-linux-gnu
     /usr/lib
@@ -170,7 +185,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{RBDL_PATH}/src
     $ENV{RBDL_PATH}/include
     $ENV{RBDL_INCLUDE_PATH}
-    ${RBDL_INCLUDE_DIR}
+    ${CMAKE_INSTALL_PREFIX}/include/rbdl
+    ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl
     /usr/local/include
     /usr/local/include/rbdl
     /usr/include
@@ -183,6 +199,8 @@ ELSE(CUSTOM_RBDL_PATH)
     $ENV{HOME}/local/lib/x86_64-linux-gnu
     $ENV{RBDL_PATH}
     $ENV{RBDL_LIBRARY_PATH}
+    ${CMAKE_INSTALL_PREFIX}/lib
+    ${CMAKE_INSTALL_PREFIX}/Library/lib
     /usr/local/lib
     /usr/local/lib/x86_64-linux-gnu
     /usr/lib
