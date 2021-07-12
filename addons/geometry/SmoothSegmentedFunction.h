@@ -86,8 +86,7 @@ namespace RigidBodyDynamics {
   namespace Addons {
   namespace Geometry{
 
-  RBDL_ADDON_DLLAPI
-  class SmoothSegmentedFunction : public Function_<double>
+  class RBDL_ADDON_DLLAPI SmoothSegmentedFunction : public Function_<double>
   {
    
 
