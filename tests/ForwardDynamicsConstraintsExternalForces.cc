@@ -178,7 +178,7 @@ TEST_CASE(__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest"
   }
 
   ForwardDynamicsConstraintsDirect(dba.model,dba.q,dba.qd,
-                                   dba.tau,dba.cs,dba.qdd,&fext_dba);
+                                   dba.tau,dba.cs,dba.qdd,true,&fext_dba);
   SpatialVector a010c =
       CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
                           dba.idB1,Vector3d(0.,0.,0.),true);
@@ -197,7 +197,7 @@ TEST_CASE(__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest"
 
   ForwardDynamicsConstraintsNullSpace(
         dba.model,dba.q,dba.qd,
-        dba.tau,dba.cs,dba.qdd,&fext_dba);
+        dba.tau,dba.cs,dba.qdd,true,&fext_dba);
 
   a010c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
                           dba.idB1,Vector3d(0.,0.,0.),true);
@@ -215,7 +215,7 @@ TEST_CASE(__FILE__"_ForwardDynamicsConstraintsWithExternalForcesCorrectnessTest"
 
   ForwardDynamicsConstraintsRangeSpaceSparse(
         dba.model,dba.q,dba.qd,
-        dba.tau,dba.cs,dba.qdd, &fext_dba);
+        dba.tau,dba.cs,dba.qdd,true,&fext_dba);
   a010c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
                           dba.idB1,Vector3d(0.,0.,0.),true);
   a020c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,

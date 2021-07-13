@@ -1083,6 +1083,7 @@ void CalcConstrainedSystemVariables (
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
   ConstraintSet &CSOutput,
+  bool update_kinematics = true,
   std::vector<Math::SpatialVector> *f_ext = NULL
 );
 
@@ -1195,6 +1196,7 @@ void ForwardDynamicsConstraintsDirect (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDotOutput,
+  bool update_kinematics = true,
   std::vector<Math::SpatialVector> *f_ext = NULL
 );
 
@@ -1206,6 +1208,7 @@ void ForwardDynamicsConstraintsRangeSpaceSparse (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDotOutput,
+  bool update_kinematics = true,
   std::vector<Math::SpatialVector> *f_ext = NULL
 );
 
@@ -1218,6 +1221,7 @@ void ForwardDynamicsConstraintsNullSpace (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDotOutput,
+  bool update_kinematics = true,
   std::vector<Math::SpatialVector> *f_ext = NULL
 );
 #endif
@@ -1551,6 +1555,7 @@ void InverseDynamicsConstraintsRelaxed(
     ConstraintSet &CS,
     Math::VectorNd &QDDotOutput,
     Math::VectorNd &TauOutput,
+    bool update_kinematics=true,
     std::vector<Math::SpatialVector> *f_ext  = NULL);
 #endif
 /**
@@ -1714,6 +1719,7 @@ void InverseDynamicsConstraints(
     ConstraintSet &CS,
     Math::VectorNd &QDDotOutput,
     Math::VectorNd &TauOutput,
+    bool update_kinematics=true,
     std::vector<Math::SpatialVector> *f_ext  = NULL);
 
 #ifndef RBDL_USE_CASADI_MATH
@@ -1744,6 +1750,7 @@ bool isConstrainedSystemFullyActuated(
     const Math::VectorNd &Q,
     const Math::VectorNd &QDot,
     ConstraintSet &CS,
+    bool update_kinematics=true,
     std::vector<Math::SpatialVector> *f_ext  = NULL);
 #endif
 

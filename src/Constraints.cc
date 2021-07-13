@@ -894,9 +894,15 @@ void CalcConstrainedSystemVariables (
   const Math::VectorNd &QDot,
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext
 )
 {
+  // Compute G
+  if(update_kinematics){
+    UpdateKinematicsCustom(model, &Q, NULL, NULL);
+  }
+
   // Compute C
   NonlinearEffects(model, Q, QDot, CS.C, f_ext);
   assert(CS.H.cols() == model.dof_count && CS.H.rows() == model.dof_count);
@@ -905,12 +911,6 @@ void CalcConstrainedSystemVariables (
   CS.H.setZero();
   CompositeRigidBodyAlgorithm(model, Q, CS.H, false);
 
-  // Compute G
-  // We have to update model.X_base as they are not automatically computed
-  // by NonlinearEffects()
-  for (unsigned int i = 1; i < model.mBodies.size(); i++) {
-    model.X_base[i] = model.X_lambda[i] * model.X_base[model.lambda[i]];
-  }
   CalcConstraintsJacobian (model, Q, CS, CS.G, false);
 
   // Compute position error for Baumgarte Stabilization.
@@ -1100,12 +1100,14 @@ void ForwardDynamicsConstraintsDirect (
   const VectorNd &Tau,
   ConstraintSet &CS,
   VectorNd &QDDot,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext
 )
 {
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
+  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, update_kinematics, 
+                                  f_ext);
 
   SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma
                                 , CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
@@ -1130,10 +1132,12 @@ void ForwardDynamicsConstraintsRangeSpaceSparse (
   const Math::VectorNd &Tau,
   ConstraintSet &CS,
   Math::VectorNd &QDDot,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext)
 {
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
+  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, update_kinematics,
+                                  f_ext);
 
   SolveConstrainedSystemRangeSpaceSparse (model, CS.H, CS.G, Tau - CS.C
                                           , CS.gamma, QDDot, CS.force, CS.K, CS.a, CS.linear_solver);
@@ -1149,13 +1153,15 @@ void ForwardDynamicsConstraintsNullSpace (
   const VectorNd &Tau,
   ConstraintSet &CS,
   VectorNd &QDDot,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext
 )
 {
 
   LOG << "-------- " << __func__ << " --------" << std::endl;
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
+  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, update_kinematics, 
+                                  f_ext);
 
   CS.GT_qr.compute (CS.G.transpose());
   CS.GT_qr.householderQ().evalTo (CS.GT_qr_Q);
@@ -1801,6 +1807,7 @@ bool isConstrainedSystemFullyActuated(
   const Math::VectorNd &Q,
   const Math::VectorNd &QDot,
   ConstraintSet &CS,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext)
 {
 
@@ -1816,7 +1823,7 @@ bool isConstrainedSystemFullyActuated(
 
 
   CalcConstrainedSystemVariables(model,Q,QDot,VectorNd::Zero(QDot.rows()),CS,
-                                 f_ext);
+                                 update_kinematics, f_ext);
 
   CS.GPT = CS.G*CS.P.transpose();
 
@@ -1844,6 +1851,7 @@ void InverseDynamicsConstraints(
   ConstraintSet &CS,
   Math::VectorNd &QDDotOutput,
   Math::VectorNd &TauOutput,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext)
 {
 
@@ -1862,7 +1870,8 @@ void InverseDynamicsConstraints(
   unsigned int nu = n-na;
 
   TauOutput.setZero();
-  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,f_ext);
+  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,update_kinematics,
+                                f_ext);
 
   // This implementation follows the projected KKT system described in
   // Eqn. 5.20 of Henning Koch's thesis work. Note that this will fail
@@ -1930,6 +1939,7 @@ void InverseDynamicsConstraintsRelaxed(
   ConstraintSet &CS,
   Math::VectorNd &QDDotOutput,
   Math::VectorNd &TauOutput,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext)
 {
   LOG << "-------- " << __func__ << " --------" << std::endl;
@@ -1944,7 +1954,8 @@ void InverseDynamicsConstraintsRelaxed(
   assert(QDDotOutput.size()     == model.dof_count);
 
   TauOutput.setZero();
-  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,f_ext);
+  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,update_kinematics,
+                                f_ext);
 
   unsigned int n  = unsigned(    CS.H.rows());
   unsigned int nc = unsigned( CS.name.size());
