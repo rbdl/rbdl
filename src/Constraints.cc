@@ -91,10 +91,8 @@ unsigned int ConstraintSet::AddContactConstraint (
   if(constraintAppended == false) {
 
     contactConstraints.push_back(
-                std::make_shared<ContactConstraint>(
-                    body_id,body_point, world_normal, constraint_name,userDefinedId
-                    )
-                );
+                std::shared_ptr<ContactConstraint>(
+                    new ContactConstraint(body_id,body_point, world_normal, constraint_name,userDefinedId)));
     unsigned int idx = unsigned(contactConstraints.size()-1);
     contactConstraints[idx]->addToConstraintSet(insertAtRowInG);
     constraints.emplace_back(contactConstraints[idx]);
