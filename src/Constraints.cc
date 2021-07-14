@@ -225,15 +225,12 @@ unsigned int ConstraintSet::AddLoopConstraint (
 
   if(constraintAppended==false) {
 
-    LoopConstraint loopCon( idPredecessor, idSuccessor,
-                            XPredecessor,  XSuccessor,
-                            constraintAxisInPredecessor,
-                            enableBaumgarteStabilization,
-                            stabilizationTimeConstant,
-                            constraintName,
-                            userDefinedId);
-
-    loopConstraints.push_back(std::make_shared<LoopConstraint>(loopCon));
+    loopConstraints.push_back(
+                std::shared_ptr<LoopConstraint>(
+                    new LoopConstraint(
+                        idPredecessor, idSuccessor,XPredecessor, XSuccessor,
+                        constraintAxisInPredecessor, enableBaumgarteStabilization,
+                        stabilizationTimeConstant,constraintName,userDefinedId)));
     idx = unsigned(loopConstraints.size()-1);
     loopConstraints[idx]->addToConstraintSet(insertAtRowInG);
     constraints.emplace_back(loopConstraints[idx]);
