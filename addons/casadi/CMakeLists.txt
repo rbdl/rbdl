@@ -114,9 +114,9 @@ include(CMakePackageConfigHelpers)
 configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/share/RBDLCasadiConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/RBDLCasadiConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/rbdl/cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/RBDL/cmake
 )
 INSTALL (
   FILES  ${CMAKE_CURRENT_BINARY_DIR}/RBDLCasadiConfig.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RBDLCasadi/
   )

@@ -237,11 +237,11 @@ include(CMakePackageConfigHelpers)
 configure_package_config_file(
   share/RBDLConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/RBDLConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/rbdl/cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/RBDL/cmake
 )
 INSTALL (
   FILES  ${CMAKE_CURRENT_BINARY_DIR}/RBDLConfig.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RBDL/
   )
 
 # Packaging
