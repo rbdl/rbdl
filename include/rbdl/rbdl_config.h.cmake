@@ -67,6 +67,7 @@
 // extra information.
 #  define RBDL_DLLAPI
 #  define RBDL_LOCAL
+#  define RBDL_ADDON_DLLAPI
 # else
 // Depending on whether one is building or using the
 // library define DLLAPI to import or export.
