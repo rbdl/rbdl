@@ -233,15 +233,20 @@ INSTALL (
   )
 
 # Prepare share
+if(WIN32 AND NOT CYGWIN)
+  set(CMAKE_SHARE_DIR cmake/RBDL)
+else()
+  set(CMAKE_SHARE_DIR lib/cmake/RBDL)
+endif()
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
   share/RBDLConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/RBDLConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/RBDL/cmake
+  INSTALL_DESTINATION ${CMAKE_SHARE_DIR}
 )
 INSTALL (
   FILES  ${CMAKE_CURRENT_BINARY_DIR}/RBDLConfig.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RBDL/
+  DESTINATION ${CMAKE_SHARE_DIR}
   )
 
 # Packaging

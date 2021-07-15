@@ -110,13 +110,18 @@ INSTALL (
   )
 
 # Prepare share
+if(WIN32 AND NOT CYGWIN)
+  set(CMAKE_SHARE_DIR cmake/RBDLCasadi)
+else()
+  set(CMAKE_SHARE_DIR lib/cmake/RBDLCasadi)
+endif()
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
   ${CMAKE_SOURCE_DIR}/share/RBDLCasadiConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/RBDLCasadiConfig.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/RBDL/cmake
+  INSTALL_DESTINATION ${CMAKE_SHARE_DIR}
 )
 INSTALL (
   FILES  ${CMAKE_CURRENT_BINARY_DIR}/RBDLCasadiConfig.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RBDLCasadi/
+  DESTINATION ${CMAKE_SHARE_DIR}
   )
