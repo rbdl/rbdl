@@ -111,7 +111,7 @@ INSTALL (
 
 # Prepare share
 if(WIN32 AND NOT CYGWIN)
-  set(CMAKE_SHARE_DIR cmake/RBDLCasadi)
+  set(CMAKE_SHARE_DIR cmake)
 else()
   set(CMAKE_SHARE_DIR lib/cmake/RBDLCasadi)
 endif()
