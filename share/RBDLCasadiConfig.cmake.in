@@ -74,8 +74,6 @@ ELSE(CUSTOM_RBDLCasadi_PATH)
     $ENV{RBDLCasadi_INCLUDE_PATH}
     ${CMAKE_INSTALL_PREFIX}/include/rbdl-casadi
     ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl-casadi
-    /usr/local/include
-    /usr/include
     /usr/include/rbdl-casadi
     /usr/local/include/rbdl-casadi
     )
@@ -104,8 +102,6 @@ ELSE(CUSTOM_RBDLCasadi_PATH)
     ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl-casadi
     /usr/include/rbdl-casadi
     /usr/local/include/rbdl-casadi
-    /usr/local/include
-    /usr/include
     )
 
   FIND_LIBRARY (RBDLCasadi_LUAMODEL_LIBRARY rbdl_luamodel-casadi
@@ -130,9 +126,7 @@ ELSE(CUSTOM_RBDLCasadi_PATH)
     $ENV{RBDLCasadi_INCLUDE_PATH}
     ${CMAKE_INSTALL_PREFIX}/include/rbdl-casadi
     ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl-casadi
-    /usr/local/include
     /usr/local/include/rbdl-casadi
-    /usr/include
     /usr/include/rbdl-casadi
     )
 
@@ -159,9 +153,7 @@ ELSE(CUSTOM_RBDLCasadi_PATH)
     $ENV{RBDLCasadi_INCLUDE_PATH}
     ${CMAKE_INSTALL_PREFIX}/include/rbdl-casadi
     ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl-casadi
-    /usr/local/include
     /usr/local/include/rbdl-casadi
-    /usr/include
     /usr/include/rbdl-casadi
     )
 
@@ -187,9 +179,7 @@ ELSE(CUSTOM_RBDLCasadi_PATH)
     $ENV{RBDLCasadi_INCLUDE_PATH}
     ${CMAKE_INSTALL_PREFIX}/include/rbdl-casadi
     ${CMAKE_INSTALL_PREFIX}/Library/include/rbdl-casadi
-    /usr/local/include
     /usr/local/include/rbdl-casadi
-    /usr/include
     /usr/include/rbdl-casadi
     )
 
