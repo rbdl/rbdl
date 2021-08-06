@@ -35,8 +35,15 @@ To create the documentation simply run
 which will generate the documentation in the subdirectory ./doc/html. The main page will then
 be located in ./doc/html/index.html.
 
-Getting RBDL
-============
+VCPKG package manager (for Windows, Linux and Mac)
+==================================================
+As of 08-2021 `rbdl-orb` is part of microsofts vcpkg, a tool to manage c++ dependencies on all major operating systems.
+The luamodel and urdfmodel addon are installed via vcpkg as well, other addons may be added in the future as well.
+
+Install vcpkg by making a local clone from its GitHub repo [https://github.com/Microsoft/vcpkg](https://github.com/Microsoft/vcpkg). Then run the vcpkg-bootstrapper script to set it up. For detailed installation instructions, see [Install vcpkg](https://docs.microsoft.com/en-us/cpp/build/install-vcpkg). To integrate vcpkg with your Visual Studio or Visual Studio Code development environment, see [Integrate vcpkg](https://docs.microsoft.com/en-us/cpp/build/integrate-vcpkg). Then, to use vcpkg to install or update a library, see [Manage libraries with vcpkg](https://docs.microsoft.com/en-us/cpp/build/manage-libraries-with-vcpkg). For more information about vcpkg commands, see [vcpkg command-line reference](https://docs.microsoft.com/en-us/cpp/build/vcpkg-command-line-reference).
+
+Building RBDL from Source
+=========================
 
 The official rbdl-orb git repository can be cloned from
 ```
