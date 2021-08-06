@@ -21,6 +21,14 @@ inline void sincos(double x, double * sinp, double * cosp) {
 }
 #endif
 
+#if _MSC_VER
+#include <cmath>
+inline void sincos(double x, double * sinp, double * cosp) {
+    *sinp = sin(x);
+    *cosp = cos(x);
+}
+#endif
+
 namespace RigidBodyDynamics {
 
 using namespace Math;
