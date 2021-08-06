@@ -34,10 +34,18 @@
  *
  * All development takes place on GitHub and you can follow RBDL's
  * development and obtain code here:<br>
- *   <a href="https://github.com/rbdl/rbdl">https://github.com/rbdl/rbdl</a>
+ *   <a href="https://github.com/orb-hd/rbdl-orb">https://github.com/orb-hd/rbdl-orb</a>
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>13 August 2021: New release 3.1.0:
+ *   <ul>
+ *     <li> Added support for rbdl-casadi, as an additional version of the rbdl library.
+ *     It may be installed on the system in parallel to rbdl.</li>
+ *     <li> Added system install of cmake config files, so that projects building on rbdl do not
+ *     need to provide their own FindRBDL.cmake files anymore.</li>
+ *   </ul>
+ * </li>
  * <li>02 May 2018: New release 2.6.0:
  *   <ul>
  *     <li> Added support for closed-loop models by replacing Contacts API by a new

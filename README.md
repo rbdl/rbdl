@@ -206,10 +206,10 @@ at which point you will see full list of build options for RBDL. We recommend th
   - Install Ipopt. One of the easier ways to do this is to follow these instructions from [Ipopt's online documentation](https://www.coin-or.org/Ipopt/documentation/node12.html#SECTION00042300000000000000) which guides you through the process. Instructions to build the code appear in the README located in the Ipopt folder
   - Configure RBDL's cmake file with these flags set to 'On'
   ```
-          RBDL_BUILD_ADDON_GEOMETRY        ON                                           
-          RBDL_BUILD_ADDON_LUAMODEL        ON                                           
-          RBDL_BUILD_ADDON_MUSCLE          ON                                          
-          RBDL_BUILD_ADDON_MUSCLE_FITTING  ON  
+          RBDL_BUILD_ADDON_GEOMETRY        ON
+          RBDL_BUILD_ADDON_LUAMODEL        ON
+          RBDL_BUILD_ADDON_MUSCLE          ON
+          RBDL_BUILD_ADDON_MUSCLE_FITTING  ON
   ```
     
   - Set the CUSTOM_IPOPT_PATH to the main Ipopt directory.
