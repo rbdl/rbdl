@@ -623,6 +623,7 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             ConstraintSet &CS,
             double* qddot_out_ptr,
             double* tau_ptr,
+            bool update_kinematics,
             vector[SpatialVector] *f_ext
             )
 
@@ -634,6 +635,7 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             ConstraintSet &CS,
             double* qddot_out_ptr,
             double* tau_ptr,
+            bool update_kinematics,
             vector[SpatialVector] *f_ext
             )
 
@@ -642,6 +644,7 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
             const double* q_ptr,
             const double* qdot_ptr,
             ConstraintSet &CS,
+            bool update_kinematics,
             vector[SpatialVector] *f_ext
             )
 
@@ -691,6 +694,7 @@ cdef extern from "rbdl_ptr_functions.h" namespace "RigidBodyDynamics":
            const double* tau_ptr,
            ConstraintSet &CS,
            double* qddot_ptr,
+           bool update_kinematics,
            vector[SpatialVector] *f_ext
            )
 

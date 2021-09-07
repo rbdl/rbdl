@@ -537,6 +537,7 @@ void InverseDynamicsConstraintsPtr (
   ConstraintSet &CS,
   const double *qddot_out_ptr,
   const double *tau_ptr,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext
 )
 {
@@ -556,7 +557,7 @@ void InverseDynamicsConstraintsPtr (
   VectorNdRef TauOutput = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
 
   TauOutput.setZero();
-  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,f_ext);
+  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,update_kinematics,f_ext);
 
   // This implementation follows the projected KKT system described in
   // Eqn. 5.20 of Henning Koch's thesis work. Note that this will fail
@@ -619,6 +620,7 @@ void InverseDynamicsConstraintsRelaxedPtr(
   ConstraintSet &CS,
   const double *qddot_out_ptr,
   const double *tau_ptr,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext)
 {
   LOG << "-------- " << __func__ << " --------" << std::endl;
@@ -631,7 +633,7 @@ void InverseDynamicsConstraintsRelaxedPtr(
   VectorNdRef TauOutput = VectorFromPtr(const_cast<double*>(tau_ptr), model.qdot_size);
 
   TauOutput.setZero();
-  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,f_ext);
+  CalcConstrainedSystemVariables(model,Q,QDot,TauOutput,CS,update_kinematics,f_ext);
 
   unsigned int n  = unsigned(    CS.H.rows());
   unsigned int nc = unsigned( CS.name.size());
@@ -749,6 +751,7 @@ bool isConstrainedSystemFullyActuated (
         const double* q_ptr,
         const double* qdot_ptr,
         ConstraintSet& CS,
+        bool update_kinematics,
         std::vector<Math::SpatialVector> *f_ext){
   LOG << "-------- " << __func__ << " ------" << std::endl;
 
@@ -763,7 +766,7 @@ bool isConstrainedSystemFullyActuated (
   VectorNdRef QDot = VectorFromPtr(const_cast<double*>(qdot_ptr), model.qdot_size);
 
   CalcConstrainedSystemVariables(model,Q,QDot,VectorNd::Zero(QDot.rows()),CS,
-                                 f_ext);
+                                 update_kinematics, f_ext);
 
   CS.GPT = CS.G*CS.P.transpose();
 
@@ -1583,6 +1586,7 @@ RBDL_DLLAPI void ForwardDynamicsConstraintsDirectPtr (
   const double *tau_ptr,
   ConstraintSet &CS,
   const double *qddot_ptr,
+  bool update_kinematics,
   std::vector<Math::SpatialVector> *f_ext
 )
 {
@@ -1597,7 +1601,7 @@ RBDL_DLLAPI void ForwardDynamicsConstraintsDirectPtr (
   VectorNdRef&& Tau = VectorFromPtr(const_cast<double*>(tau_ptr), model.q_size);
 
 
-  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, f_ext);
+  CalcConstrainedSystemVariables (model, Q, QDot, Tau, CS, update_kinematics, f_ext);
 
   SolveConstrainedSystemDirect (CS.H, CS.G, Tau - CS.C, CS.gamma,
                                 CS.force, CS.A, CS.b, CS.x, CS.linear_solver);
