@@ -2343,13 +2343,13 @@ def CalcCenterOfMass (Model model,
         angular_momentum[2] = c_ang_momentum_ptr.data()[2]
         del c_ang_momentum_ptr
     
-    if qddot and com_acceleration is not None:
+    if qddot is not None and com_acceleration is not None:
         com_acceleration[0] = c_com_acc_ptr.data()[0]
         com_acceleration[1] = c_com_acc_ptr.data()[1]
         com_acceleration[2] = c_com_acc_ptr.data()[2]
         del c_com_acc_ptr
     
-    if qddot and change_of_angular_momentum is not None:
+    if qddot is not None and change_of_angular_momentum is not None:
         change_of_angular_momentum[0] = c_change_ang_momentum_ptr.data()[0]
         change_of_angular_momentum[1] = c_change_ang_momentum_ptr.data()[1]
         change_of_angular_momentum[2] = c_change_ang_momentum_ptr.data()[2]
