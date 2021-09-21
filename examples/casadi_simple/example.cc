@@ -12,6 +12,12 @@
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
+casadi::MX fd(Model& model, const VectorNd& Q, const VectorNd& Qdot, const VectorNd& Tau){
+    VectorNd Qddot(model.dof_count);
+    ForwardDynamics (model, Q, Qdot, Tau, Qddot);
+    return Qddot;
+}
+
 int main (int argc, char* argv[]) {
 	rbdl_check_api_version (RBDL_API_VERSION);
 
@@ -49,14 +55,17 @@ int main (int argc, char* argv[]) {
 	
 	body_c_id = model->AddBody(body_b_id, Xtrans(Vector3d(0., 1., 0.)), joint_c, body_c);
 
-	VectorNd Q = VectorNd::Zero (model->dof_count);
-	VectorNd QDot = VectorNd::Zero (model->dof_count);
-	VectorNd Tau = VectorNd::Zero (model->dof_count);
-	VectorNd QDDot = VectorNd::Zero (model->dof_count);
+    auto Q_sym = VectorNd::sym ("Q", model->dof_count);
+    auto QDot_sym = VectorNd::sym ("QDot", model->dof_count);
+    auto Tau_sym = VectorNd::sym ("Tau", model->dof_count);
+    casadi::Function fd_fun = casadi::Function("fd_fun", {Q_sym, QDot_sym, Tau_sym}, {fd (*model, Q_sym, QDot_sym, Tau_sym)}, {"Q", "QDot", "Tau"}, {"QDDot"});
 
- 	ForwardDynamics (*model, Q, QDot, Tau, QDDot);
+    auto Q = casadi::DM::zeros (model->dof_count);
+    auto QDot = casadi::DM::zeros (model->dof_count);
+    auto Tau = casadi::DM::zeros (model->dof_count);
+    casadi::DM QDDot = fd_fun(casadi::DMDict{ {"Q", Q}, {"QDot", QDot}, {"Tau", Tau} }).at("QDDot");
 
-	std::cout << QDDot.transpose() << std::endl;
+    std::cout << QDDot << std::endl;
 
 	delete model;
 
