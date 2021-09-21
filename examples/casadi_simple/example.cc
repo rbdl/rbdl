@@ -58,7 +58,7 @@ int main (int argc, char* argv[]) {
 	auto Q_sym = VectorNd::sym ("Q", model->dof_count);
 	auto QDot_sym = VectorNd::sym ("QDot", model->dof_count);
 	auto Tau_sym = VectorNd::sym ("Tau", model->dof_count);
-	casadi::Function fd_fun = casadi::Function("fd_fun", {Q_sym, QDot_sym, Tau_sym}, {fd (*model, Q_sym, QDot_sym, Tau_sym)}, {"Q", "QDot", "Tau"}, {"QDDot"});
+	casadi::Function fd_fun = casadi::Function("fd_fun", {Q_sym, QDot_sym, Tau_sym}, {fd (*model, Q_sym, QDot_sym, Tau_sym)}, {"Q", "QDot", "Tau"}, {"QDDot"}).expand();
 
 	auto Q = casadi::DM::zeros (model->dof_count);
 	auto QDot = casadi::DM::zeros (model->dof_count);
