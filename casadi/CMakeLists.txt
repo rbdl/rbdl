@@ -49,9 +49,9 @@ IF (RBDL_BUILD_STATIC)
 	  ${CMAKE_CURRENT_BINARY_DIR}/include
   )
 
-  IF (NOT MSVC)
+  IF (NOT WIN32)
     SET_TARGET_PROPERTIES ( rbdl-casadi-static PROPERTIES PREFIX "lib")
-  ENDIF (NOT MSVC)
+  ENDIF (NOT WIN32)
   SET_TARGET_PROPERTIES ( rbdl-casadi-static PROPERTIES OUTPUT_NAME "rbdl-casadi")
 
   TARGET_LINK_LIBRARIES ( rbdl-casadi-static
