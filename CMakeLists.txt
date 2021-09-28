@@ -70,6 +70,7 @@ OPTION (RBDL_BUILD_ADDON_MUSCLE_FITTING "Build muscle library fitting functions 
 OPTION (RBDL_BUILD_EXECUTABLES "Build addon executables, disable this if you only want to build the libraries." ON)
 OPTION (RBDL_USE_PYTHON_2 "Use python 2 instead of python 3" OFF)
 OPTION (RBDL_USE_CASADI_MATH "Use the CasADi backend" OFF)
+OPTION (RBDL_VCPKG_BUILD "Building RBDL in vcpkg environment" OFF)
 
 
 # Find and use the system's Eigen3 library
@@ -237,7 +238,7 @@ INSTALL (
   )
 
 # Prepare share
-if(WIN32 AND NOT CYGWIN)
+if(WIN32 AND NOT CYGWIN AND NOT RBDL_VCPKG_BUILD)
   set(CMAKE_SHARE_DIR cmake)
 else()
   set(CMAKE_SHARE_DIR lib/cmake/RBDL)
