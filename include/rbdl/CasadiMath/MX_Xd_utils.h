@@ -354,6 +354,9 @@ inline MX_Xd_scalar tan(const MX_Xd_scalar& x){
 inline MX_Xd_scalar atan2(const MX_Xd_scalar& x, const MX_Xd_scalar& y){
     return casadi::MX::atan2(x,y);
 }
+inline MX_Xd_scalar tanh(const MX_Xd_scalar& x){
+    return casadi::MX::tanh(x);
+}
 inline bool isnan(const casadi::MX& x){
     return !x.is_regular();
 }
