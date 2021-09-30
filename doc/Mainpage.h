@@ -38,6 +38,11 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>30 September 2021: New release 3.1.3:
+ *   <ul>
+ *     <li> Casadi Math Backend added support for tanh function. </li>
+ *   </ul>
+ * </li>
  * <li>13 August 2021: New release 3.1.0:
  *   <ul>
  *     <li> Added support for rbdl-casadi, as an additional version of the rbdl library.
