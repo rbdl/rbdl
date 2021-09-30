@@ -21,7 +21,7 @@ inline void sincos(double x, double * sinp, double * cosp) {
 }
 #endif
 
-#if _MSC_VER
+#if _MSC_VER || defined(__QNX__)
 #include <cmath>
 inline void sincos(double x, double * sinp, double * cosp) {
     *sinp = sin(x);
