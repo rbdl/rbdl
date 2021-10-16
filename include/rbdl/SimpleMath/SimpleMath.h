@@ -87,7 +87,7 @@ class ColPivHouseholderQR;
 template <typename Derived, typename ScalarType, int Rows, int Cols>
 struct MatrixBase {
   typedef MatrixBase<Derived, ScalarType, Rows, Cols> MatrixType;
-  typedef ScalarType Scalar;
+  typedef ScalarType value_type;
 
   enum {
     RowsAtCompileTime = Rows,
@@ -163,7 +163,7 @@ struct MatrixBase {
     return !(operator==(other));
   }
 
-  CommaInitializer<Derived> operator<< (const Scalar& value) {
+  CommaInitializer<Derived> operator<< (const value_type& value) {
     return CommaInitializer<Derived> (*(static_cast<Derived*>(this)), value);
   }
 
@@ -203,7 +203,7 @@ struct MatrixBase {
   }
 
   template <typename OtherDerived>
-  Derived operator*=(const MatrixBase<OtherDerived, typename OtherDerived:: Scalar, OtherDerived::RowsAtCompileTime, OtherDerived::ColsAtCompileTime> &other) {
+  Derived operator*=(const MatrixBase<OtherDerived, typename OtherDerived:: value_type, OtherDerived::RowsAtCompileTime, OtherDerived::ColsAtCompileTime> &other) {
     Derived copy (*static_cast<const Derived*>(this));
     this->setZero();
     for (size_t i = 0; i < rows(); i++) {
@@ -498,11 +498,7 @@ struct MatrixBase {
   ScalarType norm() const {
     return static_cast<ScalarType>(std::sqrt(squaredNorm()));
   }
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> SimpleMath: renamed underlying real typedef for compatibility with Eigen.
   // TODO: separate functions for float or ScalarType matrices
   Derived normalized() const {
     Derived result (*this);
@@ -726,7 +722,7 @@ struct MatrixBase {
 
     for (size_t i = 0; i < NumRows; i++) {
       for (size_t j = 0; j < NumCols; j++) {
-        result(i,j) = (static_cast<Scalar>(rand()) / static_cast<Scalar>(RAND_MAX)) * 2.0 - 1.0;
+        result(i,j) = (static_cast<value_type>(rand()) / static_cast<value_type>(RAND_MAX)) * 2.0 - 1.0;
       }
     }
 
@@ -824,15 +820,15 @@ struct Storage {
   inline size_t cols() const { return NumCols; }
 
   void resize(int UNUSED(num_rows), int UNUSED(num_cols)) {
-    // Resizing of fixed size matrices not allowed
-#ifndef NDEBUG
-    if (num_rows != NumRows || num_cols != NumCols) {
-      std::cout << "Error: trying to resize fixed matrix from "
-        << NumRows << ", " << NumCols << " to "
-        << num_rows << ", " << num_cols << "." << std::endl;
-    }
-#endif
-    assert (num_rows == NumRows && num_cols == NumCols);
+  // Resizing of fixed size matrices not allowed
+  #ifndef NDEBUG
+      if (num_rows != NumRows || num_cols != NumCols) {
+        std::cout << "Error: trying to resize fixed matrix from "
+          << NumRows << ", " << NumCols << " to "
+          << num_rows << ", " << num_cols << "." << std::endl;
+      }
+  #endif
+      assert (num_rows == NumRows && num_cols == NumCols);
   }
 
   inline ScalarType& coeff(int row_index, int col_index) {
@@ -1234,6 +1230,12 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
       return *this;
     }
 
+  Matrix& operator+=(const ScalarType& scalar) {
+    assert (rows() == 1 && cols() == 1 && "Error: matrix dimensions do not match!");
+    this->operator()(0,0) += scalar;
+    return *this;
+  }
+
   template <typename OtherDerived>
     Matrix& operator-=(const OtherDerived& other) {
       assert (rows() == other.rows() && cols() == other.cols() && "Error: matrix dimensions do not match!");
@@ -1244,6 +1246,12 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
       }
       return *this;
     }
+
+  Matrix& operator-=(const ScalarType& scalar) {
+    assert (rows() == 1 && cols() == 1 && "Error: matrix dimensions do not match!");
+    this->operator()(0,0) -= scalar;
+    return *this;
+  }
 
   inline ScalarType& operator()(const size_t& i, const size_t& j) {
     return mStorage.coeff(i, j);
@@ -1276,7 +1284,7 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
 //
 template <typename Derived>
 struct CommaInitializer {
-  typedef typename Derived::Scalar Scalar;
+  typedef typename Derived::value_type value_type;
 
   private:
     CommaInitializer() {}
@@ -1288,11 +1296,7 @@ struct CommaInitializer {
 
   public:
 
-<<<<<<< HEAD
   CommaInitializer(Derived &matrix, const value_type &value) :
-=======
-  CommaInitializer(Derived &matrix, const Scalar &value) :
->>>>>>> SimpleMath: renamed underlying real typedef for compatibility with Eigen.
     mParentMatrix(&matrix),
     mRowIndex(0),
     mColIndex(0),
@@ -1324,7 +1328,7 @@ struct CommaInitializer {
     }
   }
 
-  CommaInitializer<Derived> operator, (const Scalar &value) {
+  CommaInitializer<Derived> operator, (const value_type &value) {
     mColIndex++;
     if (mColIndex >= mParentMatrix->cols()) {
       mRowIndex++;
@@ -1465,6 +1469,17 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
     return *this;
   }
 
+  template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
+  Block& operator+=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
+        this->operator()(i,j) += other(i,j);
+      }
+    }
+
+    return *this;
+  }
+
 
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Matrix<ScalarType, NumRows, OtherCols> operator*(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) const {
@@ -1524,20 +1539,20 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
 template <typename Derived>
 class LLT {
 public:
-    typedef typename Derived::Scalar Scalar;
-    typedef MatrixBase<Derived, Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef typename Derived::value_type value_type;
+    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
 
     LLT() :
             mIsFactorized(false)
     {}
 
 private:
-    typedef Matrix<Scalar> VectorXd;
-    typedef Matrix<Scalar> MatrixXXd;
-    typedef Matrix<Scalar, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<value_type> VectorXd;
+    typedef Matrix<value_type> MatrixXXd;
+    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
 
     bool mIsFactorized;
-    Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> mQ;
+    Matrix<value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> mQ;
     Derived mL;
 
 public:
@@ -1606,13 +1621,13 @@ public:
     Derived inverse() const {
         assert (mIsFactorized);
 
-        VectorXd rhs_temp = VectorXd::Zero(mQ.cols());
-        MatrixXXd result (mQ.cols(), mQ.cols());
+        VectorXd rhs_temp = VectorXd::Zero(mL.cols());
+        MatrixXXd result (mL.cols(), mL.cols());
 
-        for (unsigned int i = 0; i < mQ.cols(); i++) {
+        for (unsigned int i = 0; i < mL.cols(); i++) {
             rhs_temp[i] = 1.;
 
-            result.block(0, i, mQ.cols(), 1) = solve(rhs_temp);
+            result.block(0, i, mL.cols(), 1) = solve(rhs_temp);
 
             rhs_temp[i] = 0.;
         }
@@ -1631,16 +1646,16 @@ public:
 template <typename Derived>
 class PartialPivLU {
 public:
-    typedef typename Derived::Scalar Scalar;
-    typedef MatrixBase<Derived, Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef typename Derived::value_type value_type;
+    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
     PartialPivLU() :
             mIsFactorized(false)
     {}
 private:
-    typedef Matrix<Scalar> VectorXd;
-    typedef Matrix<Scalar> MatrixXXd;
-    typedef Matrix<Scalar, Derived::RowsAtCompileTime, 1> ColumnVector;
-    typedef Matrix<Scalar, 1, Derived::ColsAtCompileTime> RowVector;
+    typedef Matrix<value_type> VectorXd;
+    typedef Matrix<value_type> MatrixXXd;
+    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<value_type, 1, Derived::ColsAtCompileTime> RowVector;
     bool mIsFactorized;
     unsigned int *mPermutations = nullptr;
     Derived mLU;
@@ -1809,20 +1824,20 @@ public:
 template <typename Derived>
 class HouseholderQR {
 public:
-    typedef typename Derived::Scalar Scalar;
-    typedef MatrixBase<Derived, Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef typename Derived::value_type value_type;
+    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
 
     HouseholderQR() :
             mIsFactorized(false)
     {}
 
 private:
-    typedef Matrix<Scalar> VectorXd;
-    typedef Matrix<Scalar> MatrixXXd;
-    typedef Matrix<Scalar, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<value_type> VectorXd;
+    typedef Matrix<value_type> MatrixXXd;
+    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
 
     bool mIsFactorized;
-    Matrix<Scalar, Derived::RowsAtCompileTime, Derived::RowsAtCompileTime> mQ;
+    Matrix<value_type, Derived::RowsAtCompileTime, Derived::RowsAtCompileTime> mQ;
     Derived mR;
 
 public:
@@ -1843,7 +1858,7 @@ public:
             MatrixXXd current_block = mR.block(i,i, block_rows, block_cols);
             VectorXd column = current_block.block(0, 0, block_rows, 1);
 
-            Scalar alpha = - column.norm();
+            value_type alpha = - column.norm();
             if (current_block(0,0) < 0) {
                 alpha = - alpha;
             }
@@ -1879,21 +1894,15 @@ public:
       ColumnVector y = mQ.transpose() * rhs;
       ColumnVector x = ColumnVector::Zero(mR.cols());
 
-<<<<<<< HEAD
       unsigned int ncols = mR.cols();
       for (unsigned int i = ncols - 1; i != 0; i--) {
         value_type z = y[i];
-=======
-      int ncols = mR.cols();
-      for (int i = ncols - 1; i >= 0; i--) {
-        Scalar z = y[i];
->>>>>>> SimpleMath: renamed underlying real typedef for compatibility with Eigen.
 
         for (unsigned int j = i + 1; j < ncols; j++) {
           z = z - x[j] * mR(i,j);
         }
 
-        if (fabs(mR(i,i)) < std::numeric_limits<Scalar>::epsilon() * 10) {
+        if (fabs(mR(i,i)) < std::numeric_limits<value_type>::epsilon() * 10) {
           std::cerr << "HouseholderQR: Cannot back-substitute as diagonal element is near zero:" << fabs(mR(i,i))<< std::endl;
           abort();
         }
@@ -1920,7 +1929,7 @@ public:
 
         return result;
     }
-    Matrix<Scalar> householderQ () const {
+    Matrix<value_type> householderQ () const {
         return mQ;
     }
     Derived matrixR () const {
@@ -1931,21 +1940,21 @@ public:
 template <typename Derived>
 class ColPivHouseholderQR {
 public:
-    typedef typename Derived::Scalar Scalar;
-    typedef MatrixBase<Derived, Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
+    typedef typename Derived::value_type value_type;
+    typedef MatrixBase<Derived, value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> MatrixType;
 
 
 private:
-    typedef Matrix<Scalar> VectorXd;
-    typedef Matrix<Scalar> MatrixXXd;
-    typedef Matrix<Scalar, Derived::RowsAtCompileTime, 1> ColumnVector;
+    typedef Matrix<value_type> VectorXd;
+    typedef Matrix<value_type> MatrixXXd;
+    typedef Matrix<value_type, Derived::RowsAtCompileTime, 1> ColumnVector;
 
     bool mIsFactorized;
-    Matrix<Scalar, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> mQ;
+    Matrix<value_type, Derived::RowsAtCompileTime, Derived::ColsAtCompileTime> mQ;
     Derived mR;
 
     unsigned int *mPermutations;
-    Scalar mThreshold;
+    value_type mThreshold;
     unsigned int mRank;
 
 public:
@@ -1980,7 +1989,7 @@ public:
     ColPivHouseholderQR(const MatrixType &matrix) :
             mIsFactorized(false),
             mQ(matrix.rows(), matrix.rows()),
-            mThreshold (std::numeric_limits<Scalar>::epsilon() * matrix.cols()) {
+            mThreshold (std::numeric_limits<value_type>::epsilon() * matrix.cols()) {
         mPermutations = new unsigned int [matrix.cols()];
         for (unsigned int i = 0; i < matrix.cols(); i++) {
             mPermutations[i] = i;
@@ -1991,7 +2000,7 @@ public:
         delete[] mPermutations;
     }
 
-    ColPivHouseholderQR& setThreshold (const Scalar& threshold) {
+    ColPivHouseholderQR& setThreshold (const value_type& threshold) {
         mThreshold = threshold;
 
         return *this;
@@ -2006,7 +2015,7 @@ public:
 
         // find and swap the column with the highest norm
         unsigned int col_index_norm_max = i;
-        Scalar col_norm_max = VectorXd(mR.block(i, i, block_rows, 1)).squaredNorm();
+        value_type col_norm_max = VectorXd(mR.block(i,i, block_rows, 1)).squaredNorm();
 
         for (unsigned int j = i + 1; j < mR.cols(); j++) {
           VectorXd column = mR.block(i, j, block_rows, 1);
@@ -2036,7 +2045,7 @@ public:
         MatrixXXd current_block = mR.block(i,i, block_rows, block_cols);
         VectorXd column = current_block.block(0, 0, block_rows, 1);
 
-        Scalar alpha = - column.norm();
+        value_type alpha = - column.norm();
         if (current_block(0,0) < 0) {
           alpha = - alpha;
         }
@@ -2047,7 +2056,7 @@ public:
         MatrixXXd Q (MatrixXXd::Identity(mR.rows(), mR.rows()));
 
         Q.block(i, i, block_rows, block_rows) = MatrixXXd (Q.block(i, i, block_rows, block_rows))
-          - (v * v.transpose()) / (v.squaredNorm() * static_cast<Scalar>(0.5));
+          - (v * v.transpose()) / (v.squaredNorm() * static_cast<value_type>(0.5));
 
         mR = Q * mR;
 
@@ -2073,13 +2082,13 @@ public:
     ColumnVector x = ColumnVector::Zero(mR.cols());
 
     for (int i = mR.cols() - 1; i >= 0; --i) {
-      Scalar z = y[i];
+      value_type z = y[i];
 
       for (unsigned int j = i + 1; j < mR.cols(); j++) {
         z = z - x[mPermutations[j]] * mR(i,j);
       }
 
-      if (fabs(mR(i,i)) < std::numeric_limits<Scalar>::epsilon() * 10) {
+      if (fabs(mR(i,i)) < std::numeric_limits<value_type>::epsilon() * 10) {
         std::cerr << "HouseholderQR: Cannot back-substitute as diagonal element is near zero:" << fabs(mR(i,i))<< std::endl;
         abort();
       }
@@ -2107,13 +2116,13 @@ public:
         return result;
     }
 
-    Matrix<Scalar> householderQ () const {
+    Matrix<value_type> householderQ () const {
         return mQ;
     }
     Derived matrixR () const {
         return mR;
     }
-    Matrix<Scalar> matrixP () const {
+    Matrix<value_type> matrixP () const {
         MatrixXXd P = MatrixXXd::Identity(mR.cols(), mR.cols());
         MatrixXXd identity = MatrixXXd::Identity(mR.cols(), mR.cols());
         for (unsigned int i = 0; i < mR.cols(); i++) {
@@ -2123,7 +2132,7 @@ public:
     }
 
     unsigned int rank() const {
-        Scalar abs_threshold = fabs(mR(0, 0)) * mThreshold;
+        value_type abs_threshold = fabs(mR(0,0)) * mThreshold;
 
         for (unsigned int i = 1; i < mR.cols(); i++) {
             if (fabs(mR(i,i)) < abs_threshold)
@@ -2338,25 +2347,32 @@ class Quaternion : public Vector4f {
 
     Quaternion slerp (float alpha, const Quaternion &quat) const {
       // check whether one of the two has 0 length
-      float s = sqrt (squaredNorm() * quat.squaredNorm());
-
-      // division by 0.f is unhealthy!
-      assert (s != 0.f);
-
-      float angle = acos (dot(quat) / s);
-      if (angle == 0.f || std::isnan(angle)) {
+      double cos_half_theta = this->dot(quat);
+      if (fabs(cos_half_theta >= 1.0)) {
         return *this;
       }
-      assert(!std::isnan(angle));
 
-      float d = 1.f / sinf (angle);
-      float p0 = sinf ((1.f - alpha) * angle);
-      float p1 = sinf (alpha * angle);
+      double half_theta = acos(cos_half_theta);
+      double sin_half_theta = sqrt(1.0 - cos_half_theta * cos_half_theta);
 
-      if (dot (quat) < 0.f) {
-        return Quaternion( ((*this) * p0 - quat * p1) * d);
+      if (fabs(sin_half_theta) < 0.00001) {
+        return Quaternion (
+            ((*this)[0] * 0.5 + quat[0] * 0.5),
+            ((*this)[1] * 0.5 + quat[1] * 0.5),
+            ((*this)[2] * 0.5 + quat[2] * 0.5),
+            ((*this)[3] * 0.5 + quat[3] * 0.5)
+        );
       }
-      return Quaternion( ((*this) * p0 + quat * p1) * d);
+
+      double ratio_a = sin((1 - alpha) * half_theta) / sin_half_theta;
+      double ratio_b = sin(alpha * half_theta) / sin_half_theta;
+
+      return Quaternion (
+          ((*this)[0] * ratio_a + quat[0] * ratio_b),
+          ((*this)[1] * ratio_a + quat[1] * ratio_b),
+          ((*this)[2] * ratio_a + quat[2] * ratio_b),
+          ((*this)[3] * ratio_a + quat[3] * ratio_b)
+      );
     }
 
     Matrix44f toGLMatrix() const {
@@ -2396,12 +2412,75 @@ class Quaternion : public Vector4f {
     }
 
     static Quaternion fromMatrix (const Matrix33f &mat) {
-      float w = sqrt (1.f + mat(0,0) + mat(1,1) + mat(2,2)) * 0.5f;
-      return Quaternion (
-          (mat(2,1) - mat(1,2)) / (w * 4.f),
-          (mat(0,2) - mat(2,0)) / (w * 4.f),
-          (mat(1,0) - mat(0,1)) / (w * 4.f),
-          w);
+      float tr = mat(0,0) + mat(1,1) + mat(2,2);
+      if (tr > 0) {
+        float w = sqrt (1.f + tr) * 0.5;
+        return Quaternion (
+            (mat(1,2) - mat(2,1)) / (w * 4.),
+            (mat(2,0) - mat(0,2)) / (w * 4.),
+            (mat(0,1) - mat(1,0)) / (w * 4.),
+            w);
+      } else if ((mat(0,0) > mat(1,1)) && (mat(0,0) > mat(2,2))) {
+        float x = sqrt(1.0 + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5;
+        return Quaternion(
+            x,
+            (mat(1,0) + mat(0,1)) / (x * 4.),
+            (mat(2,0) + mat(0,2)) / (x * 4.),
+            (mat(1,2) - mat(2,1)) / (x * 4.)
+        );
+      } else if (mat(1,1) > mat(2,2)) {
+        float y = sqrt(1.0 + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5;
+        return Quaternion(
+            (mat(1,0) + mat(0,1)) / (y * 4.),
+            y,
+            (mat(2,1) + mat(1,2)) / (y * 4.),
+            (mat(2,0) - mat(0,2)) / (y * 4.)
+        );
+      } else {
+        float z = sqrt(1.0 + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5;
+        return Quaternion(
+            (mat(2,0) + mat(0,2)) / (z * 4.),
+            (mat(2,1) + mat(1,2)) / (z * 4.),
+            z,
+            (mat(0,1) - mat(1,0)) / (z * 4.)
+        );
+      }
+    }
+
+    static Quaternion fromMatrixN (const Matrix33f &mat) {
+      float tr = mat(0,0) + mat(1,1) + mat(2,2);
+      if (tr > 0) {
+        float w = sqrt (1.f + tr) * 0.5;
+        return Quaternion (
+            (mat(1,2) - mat(2,1)) / (w * 4.),
+            (mat(2,0) - mat(0,2)) / (w * 4.),
+            (mat(0,1) - mat(1,0)) / (w * 4.),
+            w);
+      } else if ((mat(0,0) > mat(1,1)) && (mat(0,0) > mat(2,2))) {
+        float x = sqrt(1.0 + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5;
+        return Quaternion(
+            x,
+            (mat(1,0) + mat(0,1)) / (x * 4.),
+            (mat(2,0) + mat(0,2)) / (x * 4.),
+            (mat(1,2) - mat(2,1)) / (x * 4.)
+        );
+      } else if (mat(1,1) > mat(2,2)) {
+        float y = sqrt(1.0 + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5;
+        return Quaternion(
+            (mat(1,0) + mat(0,1)) / (y * 4.),
+            y,
+            (mat(2,1) + mat(1,2)) / (y * 4.),
+            (mat(2,0) - mat(0,2)) / (y * 4.)
+        );
+      } else {
+        float z = sqrt(1.0 + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5;
+        return Quaternion(
+            (mat(2,0) + mat(0,2)) / (z * 4.),
+            (mat(2,1) + mat(1,2)) / (z * 4.),
+            z,
+            (mat(0,1) - mat(1,0)) / (z * 4.)
+        );
+      }
     }
 
     static Quaternion fromAxisAngle (const Vector3f &axis, double angle_rad) {
