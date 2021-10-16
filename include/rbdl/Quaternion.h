@@ -66,27 +66,34 @@ class Quaternion : public Vector4d {
           );
     }
 
-    Quaternion slerp (double alpha, const Quaternion &quat) const {
+    Quaternion slerp (double alpha, Quaternion quat) const {
       // check whether one of the two has 0 length
-      double s = std::sqrt (squaredNorm() * quat.squaredNorm());
-
-      // division by 0.f is unhealthy!
-      assert (s != 0.);
-
-      double angle = acos (dot(quat) / s);
-      if (angle == 0. || std::isnan(angle)) {
+      double cos_half_theta = this->dot(quat);
+      if (fabs(cos_half_theta >= 1.0)) {
         return *this;
       }
-      assert(!std::isnan(angle));
 
-      double d = 1. / std::sin (angle);
-      double p0 = std::sin ((1. - alpha) * angle);
-      double p1 = std::sin (alpha * angle);
+      double half_theta = acos(cos_half_theta);
+      double sin_half_theta = sqrt(1.0 - cos_half_theta * cos_half_theta);
 
-      if (dot (quat) < 0.) {
-        return Quaternion( ((*this) * p0 - quat * p1) * d);
+      if (fabs(sin_half_theta) < 0.00001) {
+        return Quaternion (
+            ((*this)[0] * 0.5 + quat[0] * 0.5),
+            ((*this)[1] * 0.5 + quat[1] * 0.5),
+            ((*this)[2] * 0.5 + quat[2] * 0.5),
+            ((*this)[3] * 0.5 + quat[3] * 0.5)
+            );
       }
-      return Quaternion( ((*this) * p0 + quat * p1) * d);
+
+      double ratio_a = sin((1 - alpha) * half_theta) / sin_half_theta;
+      double ratio_b = sin(alpha * half_theta) / sin_half_theta;
+
+      return Quaternion (
+          ((*this)[0] * ratio_a + quat[0] * ratio_b),
+          ((*this)[1] * ratio_a + quat[1] * ratio_b),
+          ((*this)[2] * ratio_a + quat[2] * ratio_b),
+          ((*this)[3] * ratio_a + quat[3] * ratio_b)
+      );
     }
 
     static Quaternion fromAxisAngle (const Vector3d &axis, double angle_rad) {
@@ -101,18 +108,45 @@ class Quaternion : public Vector4d {
     }
 
     static Quaternion fromMatrix (const Matrix3d &mat) {
-      double w = std::sqrt (1. + mat(0,0) + mat(1,1) + mat(2,2)) * 0.5;
-      return Quaternion (
-          (mat(1,2) - mat(2,1)) / (w * 4.),
-          (mat(2,0) - mat(0,2)) / (w * 4.),
-          (mat(0,1) - mat(1,0)) / (w * 4.),
-          w);
+      float tr = mat(0,0) + mat(1,1) + mat(2,2);
+      if (tr > 0) {
+        float w = sqrt (1.f + tr) * 0.5;
+        return Quaternion (
+            (mat(2,1) - mat(1,2)) / (w * 4.),
+            (mat(0,2) - mat(2,0)) / (w * 4.),
+            (mat(1,0) - mat(0,1)) / (w * 4.),
+            w);
+      } else if ((mat(0,0) > mat(1,1)) && (mat(0,0) > mat(2,2))) {
+        float x = sqrt(1.0 + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5;
+        return Quaternion(
+            x,
+            (mat(0,1) + mat(1,0)) / (x * 4.),
+            (mat(0,2) + mat(2,0)) / (x * 4.),
+            (mat(2,1) - mat(1,2)) / (x * 4.)
+        );
+      } else if (mat(1,1) > mat(2,2)) {
+        float y = sqrt(1.0 + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5;
+        return Quaternion(
+            (mat(0,1) + mat(1,0)) / (y * 4.),
+            y,
+            (mat(1,2) + mat(2,1)) / (y * 4.),
+            (mat(0,2) - mat(2,0)) / (y * 4.)
+        );
+      } else {
+        float z = sqrt(1.0 + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5;
+        return Quaternion(
+            (mat(0,2) + mat(2,0)) / (z * 4.),
+            (mat(1,2) + mat(2,1)) / (z * 4.),
+            z,
+            (mat(1,0) - mat(0,1)) / (z * 4.)
+            );
+      }
     }
 
     static Quaternion fromZYXAngles (const Vector3d &zyx_angles) {
       return Quaternion::fromAxisAngle (Vector3d (0., 0., 1.), zyx_angles[0])
         * Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), zyx_angles[1])
-        * Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), zyx_angles[2]); 
+        * Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), zyx_angles[2]);
     }
 
     static Quaternion fromYXZAngles (const Vector3d &yxz_angles) {
@@ -122,7 +156,7 @@ class Quaternion : public Vector4d {
     }
 
     static Quaternion fromXYZAngles (const Vector3d &xyz_angles) {
-      return Quaternion::fromAxisAngle (Vector3d (0., 0., 01.), xyz_angles[2]) 
+      return Quaternion::fromAxisAngle (Vector3d (0., 0., 01.), xyz_angles[2])
         * Quaternion::fromAxisAngle (Vector3d (0., 1., 0.), xyz_angles[1])
         * Quaternion::fromAxisAngle (Vector3d (1., 0., 0.), xyz_angles[0]);
     }
