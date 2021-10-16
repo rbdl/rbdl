@@ -54,3 +54,26 @@ TEST_CASE(__FILE__"_GaussElimPivot", "") {
 
   REQUIRE_THAT (test_result, AllCloseVector(x));
 }
+
+TEST_CASE(__FILE__"_QuaternionSlerpNegativeCosHalfTheta", "") {
+	ClearLogOutput();
+
+	Quaternion q1 (-0.518934,0.561432,-0.074923,0.640225);
+	Quaternion q2 (0.54702,-0.564195,0.078871,-0.613379);
+
+	Quaternion s = q1.slerp (0.2021, q2);
+        Quaternion q_ref (0.0068865, 0.406762, -0.000610507, 0.913655);
+
+        REQUIRE_THAT (s, AllCloseVector(q_ref));
+}
+
+TEST_CASE(__FILE__"_QuaternionFromMatrixSingularity", "") {
+	ClearLogOutput();
+	Matrix3d m;
+	m << -1., 0, 0, 0, 1, 0, 0, 0, -1;
+
+	Quaternion q = Quaternion::fromMatrix(m);
+        Quaternion q_ref (0., 1., 0., 0.);
+
+        REQUIRE_THAT (q, AllCloseVector(q_ref));
+}
