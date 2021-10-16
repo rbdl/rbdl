@@ -820,15 +820,15 @@ struct Storage {
   inline size_t cols() const { return NumCols; }
 
   void resize(int UNUSED(num_rows), int UNUSED(num_cols)) {
-    // Resizing of fixed size matrices not allowed
-#ifndef NDEBUG
-    if (num_rows != NumRows || num_cols != NumCols) {
-      std::cout << "Error: trying to resize fixed matrix from "
-        << NumRows << ", " << NumCols << " to "
-        << num_rows << ", " << num_cols << "." << std::endl;
-    }
-#endif
-    assert (num_rows == NumRows && num_cols == NumCols);
+  // Resizing of fixed size matrices not allowed
+  #ifndef NDEBUG
+      if (num_rows != NumRows || num_cols != NumCols) {
+        std::cout << "Error: trying to resize fixed matrix from "
+          << NumRows << ", " << NumCols << " to "
+          << num_rows << ", " << num_cols << "." << std::endl;
+      }
+  #endif
+      assert (num_rows == NumRows && num_cols == NumCols);
   }
 
   inline ScalarType& coeff(int row_index, int col_index) {
@@ -1230,6 +1230,12 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
       return *this;
     }
 
+  Matrix& operator+=(const ScalarType& scalar) {
+    assert (rows() == 1 && cols() == 1 && "Error: matrix dimensions do not match!");
+    this->operator()(0,0) += scalar;
+    return *this;
+  }
+
   template <typename OtherDerived>
     Matrix& operator-=(const OtherDerived& other) {
       assert (rows() == other.rows() && cols() == other.cols() && "Error: matrix dimensions do not match!");
@@ -1240,6 +1246,12 @@ struct Matrix : public MatrixBase<Matrix<ScalarType, NumRows, NumCols>, ScalarTy
       }
       return *this;
     }
+
+  Matrix& operator-=(const ScalarType& scalar) {
+    assert (rows() == 1 && cols() == 1 && "Error: matrix dimensions do not match!");
+    this->operator()(0,0) -= scalar;
+    return *this;
+  }
 
   inline ScalarType& operator()(const size_t& i, const size_t& j) {
     return mStorage.coeff(i, j);
@@ -1457,6 +1469,17 @@ struct Block : public MatrixBase<Block<Derived, ScalarType, NumRows, NumCols>, S
     return *this;
   }
 
+  template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
+  Block& operator+=(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) {
+    for (size_t i = 0; i < rows(); i++) {
+      for (size_t j = 0; j < cols(); j++) {
+        this->operator()(i,j) += other(i,j);
+      }
+    }
+
+    return *this;
+  }
+
 
   template <typename OtherDerived, typename OtherScalarType, int OtherRows, int OtherCols>
   Matrix<ScalarType, NumRows, OtherCols> operator*(const MatrixBase<OtherDerived, OtherScalarType, OtherRows, OtherCols>& other) const {
@@ -1598,13 +1621,13 @@ public:
     Derived inverse() const {
         assert (mIsFactorized);
 
-        VectorXd rhs_temp = VectorXd::Zero(mQ.cols());
-        MatrixXXd result (mQ.cols(), mQ.cols());
+        VectorXd rhs_temp = VectorXd::Zero(mL.cols());
+        MatrixXXd result (mL.cols(), mL.cols());
 
-        for (unsigned int i = 0; i < mQ.cols(); i++) {
+        for (unsigned int i = 0; i < mL.cols(); i++) {
             rhs_temp[i] = 1.;
 
-            result.block(0, i, mQ.cols(), 1) = solve(rhs_temp);
+            result.block(0, i, mL.cols(), 1) = solve(rhs_temp);
 
             rhs_temp[i] = 0.;
         }
@@ -1992,7 +2015,7 @@ public:
 
         // find and swap the column with the highest norm
         unsigned int col_index_norm_max = i;
-        value_type col_norm_max = VectorXd(mR.block(i, i, block_rows, 1)).squaredNorm();
+        value_type col_norm_max = VectorXd(mR.block(i,i, block_rows, 1)).squaredNorm();
 
         for (unsigned int j = i + 1; j < mR.cols(); j++) {
           VectorXd column = mR.block(i, j, block_rows, 1);
@@ -2109,7 +2132,7 @@ public:
     }
 
     unsigned int rank() const {
-        value_type abs_threshold = fabs(mR(0, 0)) * mThreshold;
+        value_type abs_threshold = fabs(mR(0,0)) * mThreshold;
 
         for (unsigned int i = 1; i < mR.cols(); i++) {
             if (fabs(mR(i,i)) < abs_threshold)
@@ -2393,33 +2416,69 @@ class Quaternion : public Vector4f {
       if (tr > 0) {
         float w = sqrt (1.f + tr) * 0.5;
         return Quaternion (
-            (mat(2,1) - mat(1,2)) / (w * 4.),
-            (mat(0,2) - mat(2,0)) / (w * 4.),
-            (mat(1,0) - mat(0,1)) / (w * 4.),
+            (mat(1,2) - mat(2,1)) / (w * 4.),
+            (mat(2,0) - mat(0,2)) / (w * 4.),
+            (mat(0,1) - mat(1,0)) / (w * 4.),
             w);
       } else if ((mat(0,0) > mat(1,1)) && (mat(0,0) > mat(2,2))) {
         float x = sqrt(1.0 + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5;
         return Quaternion(
             x,
-            (mat(0,1) + mat(1,0)) / (x * 4.),
-            (mat(0,2) + mat(2,0)) / (x * 4.),
-            (mat(2,1) - mat(1,2)) / (x * 4.)
+            (mat(1,0) + mat(0,1)) / (x * 4.),
+            (mat(2,0) + mat(0,2)) / (x * 4.),
+            (mat(1,2) - mat(2,1)) / (x * 4.)
         );
       } else if (mat(1,1) > mat(2,2)) {
         float y = sqrt(1.0 + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5;
         return Quaternion(
-            (mat(0,1) + mat(1,0)) / (y * 4.),
+            (mat(1,0) + mat(0,1)) / (y * 4.),
             y,
-            (mat(1,2) + mat(2,1)) / (y * 4.),
-            (mat(0,2) - mat(2,0)) / (y * 4.)
+            (mat(2,1) + mat(1,2)) / (y * 4.),
+            (mat(2,0) - mat(0,2)) / (y * 4.)
         );
       } else {
         float z = sqrt(1.0 + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5;
         return Quaternion(
-            (mat(0,2) + mat(2,0)) / (z * 4.),
-            (mat(1,2) + mat(2,1)) / (z * 4.),
+            (mat(2,0) + mat(0,2)) / (z * 4.),
+            (mat(2,1) + mat(1,2)) / (z * 4.),
             z,
-            (mat(1,0) - mat(0,1)) / (z * 4.)
+            (mat(0,1) - mat(1,0)) / (z * 4.)
+        );
+      }
+    }
+
+    static Quaternion fromMatrixN (const Matrix33f &mat) {
+      float tr = mat(0,0) + mat(1,1) + mat(2,2);
+      if (tr > 0) {
+        float w = sqrt (1.f + tr) * 0.5;
+        return Quaternion (
+            (mat(1,2) - mat(2,1)) / (w * 4.),
+            (mat(2,0) - mat(0,2)) / (w * 4.),
+            (mat(0,1) - mat(1,0)) / (w * 4.),
+            w);
+      } else if ((mat(0,0) > mat(1,1)) && (mat(0,0) > mat(2,2))) {
+        float x = sqrt(1.0 + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5;
+        return Quaternion(
+            x,
+            (mat(1,0) + mat(0,1)) / (x * 4.),
+            (mat(2,0) + mat(0,2)) / (x * 4.),
+            (mat(1,2) - mat(2,1)) / (x * 4.)
+        );
+      } else if (mat(1,1) > mat(2,2)) {
+        float y = sqrt(1.0 + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5;
+        return Quaternion(
+            (mat(1,0) + mat(0,1)) / (y * 4.),
+            y,
+            (mat(2,1) + mat(1,2)) / (y * 4.),
+            (mat(2,0) - mat(0,2)) / (y * 4.)
+        );
+      } else {
+        float z = sqrt(1.0 + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5;
+        return Quaternion(
+            (mat(2,0) + mat(0,2)) / (z * 4.),
+            (mat(2,1) + mat(1,2)) / (z * 4.),
+            z,
+            (mat(0,1) - mat(1,0)) / (z * 4.)
         );
       }
     }
