@@ -1,0 +1,11 @@
+bin
+build
+lib
+thirdparty
+.vscode
+.project
+.cproject
+.pydevproject
+.settings
+doc/doxygen
+doc.i
