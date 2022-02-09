@@ -247,9 +247,9 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
       urdf_joint->PARENT_TRANSFORM.position.y,
       urdf_joint->PARENT_TRANSFORM.position.z);
      SpatialTransform rbdl_joint_frame =
-       Xrotz(joint_rpy[2])
+       Xrotx(joint_rpy[0])
        * Xroty(joint_rpy[1])
-       * Xrotx(joint_rpy[0])
+       * Xrotz(joint_rpy[2])
        * Xtrans(joint_translation);
      //rbdl_joint_frame = Xtrans(joint_translation);
 
