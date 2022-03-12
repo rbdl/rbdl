@@ -73,8 +73,8 @@ class Quaternion : public Vector4d {
         return *this;
       }
 
-      double half_theta = acos(cos_half_theta);
-      double sin_half_theta = sqrt(1.0 - cos_half_theta * cos_half_theta);
+      double half_theta = std::acos(cos_half_theta);
+      double sin_half_theta = std::sqrt(1.0 - cos_half_theta * cos_half_theta);
 
       if (fabs(sin_half_theta) < 0.00001) {
         return Quaternion (
@@ -85,8 +85,8 @@ class Quaternion : public Vector4d {
             );
       }
 
-      double ratio_a = sin((1 - alpha) * half_theta) / sin_half_theta;
-      double ratio_b = sin(alpha * half_theta) / sin_half_theta;
+      double ratio_a = std::sin((1 - alpha) * half_theta) / sin_half_theta;
+      double ratio_b = std::sin(alpha * half_theta) / sin_half_theta;
 
       return Quaternion (
           ((*this)[0] * ratio_a + quat[0] * ratio_b),
@@ -110,14 +110,14 @@ class Quaternion : public Vector4d {
     static Quaternion fromMatrix (const Matrix3d &mat) {
       float tr = mat(0,0) + mat(1,1) + mat(2,2);
       if (tr > 0) {
-        float w = sqrt (1.f + tr) * 0.5;
+        float w = std::sqrt(1.f + tr) * 0.5;
         return Quaternion (
             (mat(1,2) - mat(2,1)) / (w * 4.),
             (mat(2,0) - mat(0,2)) / (w * 4.),
             (mat(0,1) - mat(1,0)) / (w * 4.),
             w);
       } else if ((mat(0,0) > mat(1,1)) && (mat(0,0) > mat(2,2))) {
-        float x = sqrt(1.0 + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5;
+        float x = std::sqrt(1.0 + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5;
         return Quaternion(
             x,
             (mat(1,0) + mat(0,1)) / (x * 4.),
@@ -125,7 +125,7 @@ class Quaternion : public Vector4d {
             (mat(1,2) - mat(2,1)) / (x * 4.)
         );
       } else if (mat(1,1) > mat(2,2)) {
-        float y = sqrt(1.0 + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5;
+        float y = std::sqrt(1.0 + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5;
         return Quaternion(
             (mat(1,0) + mat(0,1)) / (y * 4.),
             y,
@@ -133,7 +133,7 @@ class Quaternion : public Vector4d {
             (mat(2,0) - mat(0,2)) / (y * 4.)
         );
       } else {
-        float z = sqrt(1.0 + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5;
+        float z = std::sqrt(1.0 + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5;
         return Quaternion(
             (mat(2,0) + mat(0,2)) / (z * 4.),
             (mat(2,1) + mat(1,2)) / (z * 4.),
