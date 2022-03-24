@@ -264,6 +264,9 @@ struct RBDL_DLLAPI Model {
   /// \brief Human readable names for the bodies
   std::map<std::string, unsigned int> mBodyNameMap;
 
+  /// \brief Human readable names for the joints
+  std::map<std::string, unsigned int> mJointNameMap;
+
   /** \brief Connects a given body to the model
    *
    * When adding a body there are basically informations required:
@@ -357,6 +360,42 @@ struct RBDL_DLLAPI Model {
 
     while (iter != mBodyNameMap.end()) {
       if (iter->second == body_id)
+        return iter->first;
+
+      iter++;
+    }
+
+    return "";
+  }
+
+  /** \brief Returns the id of a joint created by the urdf reader extension.
+   * 
+   * Joint created by AddBody() have no name, so cannot be queried.
+   *
+   * Joints can be given a human readable name. This function allows to
+   * resolve its name to the numeric id.
+   *
+   * \note Instead of querying this function repeatedly, it might be
+   * advisable to query it once and reuse the returned id.
+   *
+   * \returns the id of the joint or \c std::numeric_limits\<unsigned 
+   *          int\>::max() if the id was not found.
+   */
+  unsigned int GetJointId (const char *joint_name) const {
+    if (mJointNameMap.count(joint_name) == 0) {
+      return std::numeric_limits<unsigned int>::max();
+    }
+
+    return mJointNameMap.find(joint_name)->second;
+  }
+
+  /** \brief Returns the name of a joint for a given joint id */
+  std::string GetJointName (unsigned int joint_id) const {
+    std::map<std::string, unsigned int>::const_iterator iter 
+      = mJointNameMap.begin();
+
+    while (iter != mJointNameMap.end()) {
+      if (iter->second == joint_id)
         return iter->first;
 
       iter++;

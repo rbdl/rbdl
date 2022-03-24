@@ -282,6 +282,8 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
     } else {
       rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, rbdl_joint, rbdl_body, urdf_child->name);
     }
+
+    rbdl_model->mJointNameMap[joint_names[j]] = j;
   }
 
   return true;

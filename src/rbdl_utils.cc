@@ -52,17 +52,32 @@ string get_body_name (const RigidBodyDynamics::Model &model, unsigned int body_i
   return model.GetBodyName(body_id);
 }
 
+string get_joint_name (const RigidBodyDynamics::Model &model, unsigned int body_id) {
+  if (model.mBodies[body_id].mIsVirtual) {
+    // if there is not a unique child we do not know what to do...
+    if (model.mu[body_id].size() != 1)
+      return "";
+
+    return get_joint_name (model, model.mu[body_id][0]);
+  }
+
+  return model.GetJointName(body_id);
+}
+
+
 RBDL_DLLAPI std::string GetModelDOFOverview (const Model &model) {
   stringstream result ("");
+
+  result << "index: body name, joint name, joint type" << endl;
 
   unsigned int q_index = 0;
   for (unsigned int i = 1; i < model.mBodies.size(); i++) {
     if (model.mJoints[i].mDoFCount == 1) {
-      result << setfill(' ') << setw(3) << q_index << ": " << get_body_name(model, i) << "_" << get_dof_name (model.S[i]) << endl;
+      result << setfill(' ') << setw(3) << q_index << ": " << get_body_name(model, i) << ", " << get_joint_name(model, i) << ", " << get_dof_name (model.S[i]) << endl;
       q_index++;
     } else {
       for (unsigned int j = 0; j < model.mJoints[i].mDoFCount; j++) {
-        result << setfill(' ') << setw(3) << q_index << ": " << get_body_name(model, i) << "_" << get_dof_name (model.mJoints[i].mJointAxes[j]) << endl;
+        result << setfill(' ') << setw(3) << q_index << ": " << get_body_name(model, i) << ", " << get_joint_name(model, i) << ", " << get_dof_name (model.mJoints[i].mJointAxes[j]) << endl;
         q_index++;
       }
     }
