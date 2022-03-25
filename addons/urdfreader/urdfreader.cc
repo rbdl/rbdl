@@ -153,6 +153,7 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
   }
 
   unsigned int j;
+  unsigned int last_joint_size = 0;
   for (j = 0; j < joint_names.size(); j++) {
     JointPtr urdf_joint = joint_map[joint_names[j]];
     LinkPtr urdf_parent = link_map[urdf_joint->parent_link_name];
@@ -283,7 +284,12 @@ bool construct_model (Model* rbdl_model, ModelPtr urdf_model, bool floating_base
       rbdl_model->AddBody (rbdl_parent_id, rbdl_joint_frame, rbdl_joint, rbdl_body, urdf_child->name);
     }
 
-    rbdl_model->mJointNameMap[joint_names[j]] = j;
+    // Check if AddBody() created a new joint. Fixed joints are not added to mJoints.
+    unsigned int joint_size = rbdl_model->mJoints.size();
+    if (joint_size > last_joint_size){
+      rbdl_model->mJointNameMap[joint_names[j]] = joint_size - 1;
+      last_joint_size = joint_size;
+    }
   }
 
   return true;
