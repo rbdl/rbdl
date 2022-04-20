@@ -55,7 +55,7 @@ The official rbdl-orb git repository can be cloned from
 To make sure all submodules are correctly downloaded, clone the repository recursively!
 
 ```
-git clone --recurive https://github.com/ORB-HD/rbdl-orb
+git clone --recursive https://github.com/ORB-HD/rbdl-orb
 ```
 
 Upgrading from an older version of RBDL
