@@ -17,10 +17,6 @@ using namespace std;
 using namespace RigidBodyDynamics;
 using namespace RigidBodyDynamics::Math;
 
-
-
-const double TEST_PREC = 1.0e-12;
-
 struct ScrewJoint1DofFixedBase {
   ScrewJoint1DofFixedBase() {
     using namespace RigidBodyDynamics;
@@ -77,7 +73,7 @@ TEST_CASE_METHOD (ScrewJoint1DofFixedBase, __FILE__"_UpdateKinematics", "") {
 
   SpatialVector a0(model->a[roller]);
   SpatialVector v0(model->v[roller]);
-  
+
   q[0] = 1+2*epsilon;
   qdot[0] = 2;
   qddot[0] = 0;
@@ -88,7 +84,6 @@ TEST_CASE_METHOD (ScrewJoint1DofFixedBase, __FILE__"_UpdateKinematics", "") {
   v0 /= epsilon;
   
   REQUIRE_THAT (a0, AllCloseVector(v0, 1e-5, 1e-5)); //finite diff vs. analytical derivative
-
 }
 
 TEST_CASE_METHOD (ScrewJoint1DofFixedBase, __FILE__"_Jacobians", "") {
@@ -103,6 +98,7 @@ TEST_CASE_METHOD (ScrewJoint1DofFixedBase, __FILE__"_Jacobians", "") {
 
   refPtBaseCoord = CalcBodyToBaseCoordinates(*model, q, roller, refPt);
 
+
   REQUIRE_THAT (Vector3d(1+cos(1), sin(1), 3), AllCloseVector(refPtBaseCoord));
   
   CalcPointJacobian(*model, q, roller, refPt, GrefPt);
@@ -110,6 +106,6 @@ TEST_CASE_METHOD (ScrewJoint1DofFixedBase, __FILE__"_Jacobians", "") {
   Gexpected(0,0) = 1 - sin(1);
   Gexpected(1,0) = cos(1);
   Gexpected(2,0) = 0;
-  
+
   REQUIRE_THAT (Gexpected, AllCloseMatrix(GrefPt));
 }

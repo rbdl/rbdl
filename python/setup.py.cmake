@@ -11,18 +11,20 @@ import sys
 import numpy as np
 
 if not os.path.exists('rbdl.so'):
-	print("""The setup.py script should be executed from the build directory.""")
-	sys.exit(1)
+    print("""The setup.py script should be executed from the build directory.""")
+    sys.exit(1)
 
 lib_path = get_python_lib()[5:]
 
 setup(
-	name='rbdl',
-	author='Felix Richter',
-	author_email='orb@felixrichter.tech',
-	description='Python wrapper for RBDL - the Rigid Body Dynamics Library',
-	license='zlib',
-	version='${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}',
-	url='http://rbdl.bitbucket.org/',
-	data_files = [(lib_path, ["rbdl.so"])],
+    name='rbdl',
+    author='Martin Felis',
+    author_email='martin@fysx.org',
+    description='Python wrapper for RBDL - the Rigid Body Dynamics Library',
+    license='zlib',
+    version='${RBDL_VERSION_MAJOR}.${RBDL_VERSION_MINOR}.${RBDL_VERSION_PATCH}',
+    url='https://rbdl.github.io/',
+    cmdclass={'build_ext': build_ext},
+    ext_modules=cythonize(ext_modules),
+  	data_files = [(lib_path, ["rbdl.so"])],
 )
