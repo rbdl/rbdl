@@ -2727,26 +2727,7 @@ TEST_CASE(__FILE__"_ConstraintCorrectnessTest", "") {
 
   //2. Set the pendulum modelled using absolute coordinates to the
   //   equivalent state as the pendulum modelled using joint
-  //   coordinates. Next
-
-  /*
-  dba.q[0]  = dbj.q[0];
-  dba.q[1]  = r020[0];
-  dba.q[2]  = r020[1];
-  dba.q[3]  = r020[2];
-  dba.q[4]  = 0;
-  dba.q[5]  = 0;
-  dba.q[6]  = dbj.q[0]+dbj.q[1];
-
-  dba.qd[0]  = dbj.qd[0];
-  dba.qd[1]  = v020[0];
-  dba.qd[2]  = v020[1];
-  dba.qd[3]  = v020[2];
-  dba.qd[4]  = 0;
-  dba.qd[5]  = 0;
-  dba.qd[6]  = dbj.qd[0]+dbj.qd[1];
-  */
-
+  //   coordinates. 
 
   dba.q[0]  = r010[0];
   dba.q[1]  = r010[1];
@@ -2812,7 +2793,6 @@ TEST_CASE(__FILE__"_ConstraintCorrectnessTest", "") {
     CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
 
-  /*
   ForwardDynamicsConstraintsNullSpace(dba.model,dba.q,dba.qd,
                                    dba.tau,dba.cs,dba.qdd);
   a010c = CalcPointAcceleration6D(dba.model,dba.q,dba.qd,dba.qdd,
@@ -2828,7 +2808,6 @@ TEST_CASE(__FILE__"_ConstraintCorrectnessTest", "") {
     CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
 
-  bool here=true;
 
   ForwardDynamicsConstraintsRangeSpaceSparse(dba.model,dba.q,dba.qd,
                                              dba.tau,dba.cs,dba.qdd);
@@ -2844,5 +2823,5 @@ TEST_CASE(__FILE__"_ConstraintCorrectnessTest", "") {
     CHECK_THAT(a020[i],IsClose(a020c[i],TEST_PREC, TEST_PREC));
     CHECK_THAT(a030[i],IsClose(a030c[i],TEST_PREC, TEST_PREC));
   }
-  */
+  
 }

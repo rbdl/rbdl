@@ -138,7 +138,7 @@ TEST_CASE( __FILE__"_TestExtendedConstraintFunctionsContact ", ""){
   VectorNd qd = VectorNd::Zero(model.dof_count);
   VectorNd qdd = VectorNd::Zero(model.dof_count);
 
-  VectorNd weights = VectorNd::Ones(model.dof_count);
+  VectorNd weights = VectorNd::Constant(model.dof_count,1.);
 
   //CalcAssemblyQ(model,qInit,cs,q,weights); ContactConstraints not defined at position level  
   CalcAssemblyQDot(model,q,qdInit,cs,qd,weights);

@@ -9,9 +9,11 @@
 // INCLUDES
 //==============================================================================
 
-#include <UnitTest++.h>
+#define CATCH_CONFIG_MAIN
 #include "rbdl/rbdl.h"
-#include "balance.h"
+
+#include "../balance.h"
+#include "rbdl_tests.h"
 
 #include <ctime>
 #include <string>
@@ -45,7 +47,7 @@ static double   TOLERANCE_BIG    = TOLERANCE*1000;
 // Sloot LH, Millard M, Werner C, Mombaur K. Slow but Steady: Similar 
 // Sit-to-Stand Balance at Seat-Off in Older vs. Younger Adults. Frontiers in 
 // sports and active living. 2020;2.
-TEST(NumericalTestFootPlacementEstimator){
+TEST_CASE(__FILE__"_NumericalTestFootPlacementEstimator",""){
 
 
 
@@ -206,56 +208,56 @@ TEST(NumericalTestFootPlacementEstimator){
     
   //Compare the numerical solution to the one produced from the matlab 
   //implementation made for Sloot et al. (calc3DFootPlacementEstimatorInfo.m)
-  CHECK_ARRAY_CLOSE(fpeInfo.k.data(),      k.data(),  3, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(fpeInfo.r0C0.data(),r0C0.data(),  3, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(fpeInfo.v0C0.data(),v0C0.data(),  3, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(fpeInfo.HC0.data(),  HC0.data(),  3, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(fpeInfo.JC0.data(),  JC0.data(),  9, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(fpeInfo.w0C0.data(),w0C0.data(),  3, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(fpeInfo.r0P0.data(),r0P0.data(),  3, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(fpeInfo.HP0.data(),  HP0.data(),  3, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(fpeInfo.n.data(),      n.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_THAT(fpeInfo.k,    AllCloseVector(    k,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT(fpeInfo.r0C0, AllCloseVector( r0C0,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT(fpeInfo.v0C0, AllCloseVector( v0C0,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT( fpeInfo.HC0, AllCloseVector(  HC0,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT( fpeInfo.JC0, AllCloseMatrix(  JC0,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT(fpeInfo.w0C0, AllCloseVector( w0C0,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT(fpeInfo.r0P0, AllCloseVector( r0P0,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT( fpeInfo.HP0, AllCloseVector(  HP0,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT(   fpeInfo.n, AllCloseVector(    n,  TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
 
-  CHECK( fabs(fpeInfo.h - h ) <= TEST_PREC_NEAR_EPS );
-  CHECK( fabs(fpeInfo.v0C0u - v0C0u ) <= TEST_PREC_NEAR_EPS );
-  CHECK( fabs(fpeInfo.v0C0k - v0C0k ) <= TEST_PREC_NEAR_EPS );
-  CHECK( fabs(fpeInfo.nJC0n - J     ) <= TEST_PREC_NEAR_EPS );
+  REQUIRE( fabs(fpeInfo.h - h )         <= TEST_PREC_NEAR_EPS );
+  REQUIRE( fabs(fpeInfo.v0C0u - v0C0u ) <= TEST_PREC_NEAR_EPS );
+  REQUIRE( fabs(fpeInfo.v0C0k - v0C0k ) <= TEST_PREC_NEAR_EPS );
+  REQUIRE( fabs(fpeInfo.nJC0n - J     ) <= TEST_PREC_NEAR_EPS );
 
 
-  CHECK( fabs(fpeInfo.f)        <= TOLERANCE*(mass*g)   );
-  CHECK( fabs(fpeInfo.phi-phi ) <= TOLERANCE            );
-  CHECK( fabs(fpeInfo.projectionError-projectionError) <= TEST_PREC_NEAR_EPS );
-  CHECK( fabs(fpeInfo.E - E) < TOLERANCE*(mass*g));
+  REQUIRE( fabs(fpeInfo.f)        <= TOLERANCE*(mass*g)   );
+  REQUIRE( fabs(fpeInfo.phi-phi ) <= TOLERANCE            );
+  REQUIRE( fabs(fpeInfo.projectionError-projectionError) <= TEST_PREC_NEAR_EPS );
+  REQUIRE( fabs(fpeInfo.E - E) < TOLERANCE*(mass*g));
 
-  CHECK_ARRAY_CLOSE(fpeInfo.r0F0.data(), r0F0.data(), 3, TOLERANCE_MEDIUM );
-
+  CHECK_THAT(fpeInfo.r0F0, AllCloseVector(r0F0, TOLERANCE_MEDIUM, TOLERANCE_MEDIUM) );
 
   //Derivative check
-  CHECK( fabs( fpeInfo.Df_Dphi     - Df_Dphi    ) <= TOLERANCE_BIG);
-  CHECK( fabs( fpeInfo.Df_Dw0C0n   - Df_Dw0C0n  ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Df_Dh       - Df_Dh      ) <= TOLERANCE_BIG);
-  CHECK( fabs( fpeInfo.Df_Dv0C0u   - Df_Dv0C0u  ) <= TOLERANCE_BIG);
-  CHECK( fabs( fpeInfo.Df_Dv0C0k   - Df_Dv0C0k  ) <= TOLERANCE_BIG);
-  CHECK( fabs( fpeInfo.Df_DnJC0n   - Df_DJ      ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Df_Dm       - Df_Dm      ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Df_Dg       - Df_Dg      ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_Dl       - Ds_Dl      ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_DnJC0n   - Ds_DJ      ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_DE       - Ds_DE      ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_Dv0C0u   - Ds_Dv0C0u  ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_Dv0C0k   - Ds_Dv0C0k  ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Ds_Dw0C0n   - Ds_Dw0C0n  ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_Dl     - Dphi_Dl    ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_DnJC0n - Dphi_DJ    ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_DE     - Dphi_DE    ) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_Dv0C0u - Dphi_Dv0C0u) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_Dv0C0k - Dphi_Dv0C0k) <= TOLERANCE_MEDIUM);
-  CHECK( fabs( fpeInfo.Dphi_Dw0C0n - Dphi_Dw0C0n) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Df_Dphi     - Df_Dphi    ) <= TOLERANCE_BIG);
+  REQUIRE( fabs( fpeInfo.Df_Dw0C0n   - Df_Dw0C0n  ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Df_Dh       - Df_Dh      ) <= TOLERANCE_BIG);
+  REQUIRE( fabs( fpeInfo.Df_Dv0C0u   - Df_Dv0C0u  ) <= TOLERANCE_BIG);
+  REQUIRE( fabs( fpeInfo.Df_Dv0C0k   - Df_Dv0C0k  ) <= TOLERANCE_BIG);
+  REQUIRE( fabs( fpeInfo.Df_DnJC0n   - Df_DJ      ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Df_Dm       - Df_Dm      ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Df_Dg       - Df_Dg      ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Ds_Dl       - Ds_Dl      ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Ds_DnJC0n   - Ds_DJ      ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Ds_DE       - Ds_DE      ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Ds_Dv0C0u   - Ds_Dv0C0u  ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Ds_Dv0C0k   - Ds_Dv0C0k  ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Ds_Dw0C0n   - Ds_Dw0C0n  ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Dphi_Dl     - Dphi_Dl    ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Dphi_DnJC0n - Dphi_DJ    ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Dphi_DE     - Dphi_DE    ) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Dphi_Dv0C0u - Dphi_Dv0C0u) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Dphi_Dv0C0k - Dphi_Dv0C0k) <= TOLERANCE_MEDIUM);
+  REQUIRE( fabs( fpeInfo.Dphi_Dw0C0n - Dphi_Dw0C0n) <= TOLERANCE_MEDIUM);
 
 
 }
 
-TEST(InertiaCalculations){
+TEST_CASE(__FILE__"_InertiaCalculations","")
+{
 
   //Approach:
   //Make a system that consists of two bodies with the mass and inertia
@@ -348,13 +350,10 @@ TEST(InertiaCalculations){
   Matrix3d I0Test =
       model.X_base[idB1].E*fpeInfo.JC0*model.X_base[idB1].E.transpose();
 
-  CHECK_ARRAY_CLOSE(I0Test.data(),            I0.data(),  9, TEST_PREC_NEAR_EPS);
-  CHECK_ARRAY_CLOSE(  r0C0.data(),  fpeInfo.r0C0.data(),  3, TEST_PREC_NEAR_EPS);
+  CHECK_THAT(I0Test, AllCloseMatrix(          I0, TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
+  CHECK_THAT(  r0C0, AllCloseVector(fpeInfo.r0C0, TEST_PREC_NEAR_EPS, TEST_PREC_NEAR_EPS));
 
 
 }
 
-int main (int argc, char *argv[])
-{
-    return UnitTest::RunAllTests ();
-}
+

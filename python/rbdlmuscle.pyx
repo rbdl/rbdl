@@ -1,4 +1,4 @@
-#cython: boundscheck=False, embedsignature=True
+#cython: c_string_type=unicode, c_string_encoding=default, boundscheck=False, embedsignature=True
 
 import numpy as np
 cimport numpy as np
@@ -54,7 +54,7 @@ cdef class SmoothSegmentedFunction:
           double x0 = 0, double x1 = 0, double y0 = 0, double y1 =0,
           double dydx0 = 0, 
           double dydx1 = 0, 
-          string name = "", 
+          string name = b"", 
           uintptr_t address=0):
         if address == 0:
             self.free_on_dealloc = True
@@ -582,7 +582,7 @@ cdef class Millard2016TorqueMuscle:
           double jointAngleOffsetRelativeToDoxygenFigures = 1., 
           double signOfJointAngleRelativeToDoxygenFigures = 1., 
           double signOfJointTorqueToDoxygenFigures = 1., 
-          string name = "empty", 
+          string name = b"empty", 
           uintptr_t address=0):
         if address == 0:
             self.free_on_dealloc = True
@@ -593,7 +593,7 @@ cdef class Millard2016TorqueMuscle:
                 #if not isinstance(dataSet, DataSet):
                 #     raise TypeError('dataSet must be an instance of DataSet Enum')
                 if subjectInfo is None:
-                    print "Warning: dataset, but no subject info specified, using default constructor"
+                    print ("Warning: dataset, but no subject info specified, using default constructor")
                     self.thisptr = new crbdlmuscle.Millard2016TorqueMuscle()
                 else:
                     if dataSet == DataSet.Anderson2007:
