@@ -1,4 +1,4 @@
-RBDL ORB - Rigid Body Dynamics Library
+RBDL - Rigid Body Dynamics Library
 Copyright (c) 2018-2022 Martin Felis <martin@fysx.org> Felix Richter <felix.richter@informatik.uni-heidelberg.de>
 
 Introduction

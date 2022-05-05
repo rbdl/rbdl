@@ -171,7 +171,5 @@ The following steps are advised when working on a new feature for RBDL:
 ## Debugging
 
 * Todo: mention logging facility
-* Todo: mention SimpleMath as a fast-compiling (but slower runtime) linear
-algebra package.
 
 
