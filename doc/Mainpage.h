@@ -34,10 +34,15 @@
  *
  * All development takes place on GitHub and you can follow RBDL's
  * development and obtain code here:<br>
- *   <a href="https://github.com/orb-hd/rbdl-orb">https://github.com/orb-hd/rbdl-orb</a>
+ *   <a href="https://github.com/rbdl/rbdl">https://github.com/rbdl/rbdl</a>
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>05. Mai 2022: New release 3.2.0:
+ *   <ul>
+ *     <li> Merging RBDL and RBDL-ORB </li>
+ *   </ul>
+ * <\li>
  * <li>30 September 2021: New release 3.1.3:
  *   <ul>
  *     <li> Casadi Math Backend added support for tanh function. </li>

@@ -1,5 +1,5 @@
-RBDL ORB - Rigid Body Dynamics Library (ORB Version)
-Copyright (c) 2018-2021 Felix Richter <felix.richter@informatik.uni-heidelberg.de>
+RBDL ORB - Rigid Body Dynamics Library
+Copyright (c) 2018-2022 Martin Felis <martin@fysx.org> Felix Richter <felix.richter@informatik.uni-heidelberg.de>
 
 Introduction
 ============
@@ -17,10 +17,6 @@ The code was originally developed by Martin Felis <martin@fysx.org> at the resea
 [Institute of Computer Engineering](https://www.ziti.uni-heidelberg.de/ziti/en/) at [Heidelberg
 University](http://www.uni-heidelberg.de). The code closely follows the notation used in Roy
 Featherstone's book "Rigid Body Dynamics Algorithm".
-
-This repository contains the version of RBDL that is maintained by the members
-of the ORB research group. 
-
 
 Documentation
 =============
@@ -45,9 +41,9 @@ Install vcpkg by making a local clone from its GitHub repo [https://github.com/M
 Building RBDL from Source
 =========================
 
-The official rbdl-orb git repository can be cloned from
+The official rbdl git repository can be cloned from
 ```
-    https://github.com/ORB-HD/rbdl-orb
+    https://github.com/rbdl/rbdl
 ```
 
 (See [https://git-scm.com/downloads/guis/](https://git-scm.com/downloads/guis/) for git clients.)
@@ -55,7 +51,7 @@ The official rbdl-orb git repository can be cloned from
 To make sure all submodules are correctly downloaded, clone the repository recursively!
 
 ```
-git clone --recursive https://github.com/ORB-HD/rbdl-orb
+git clone --recursive https://github.com/rbdl/rbdl
 ```
 
 Upgrading from an older version of RBDL
@@ -343,4 +339,4 @@ Acknowledgements
 
 Work on this library was originally funded by the [Heidelberg Graduate School of Mathematical and Computational Methods for the Sciences (HGS)](http://hgs.iwr.uni-heidelberg.de/hgs.mathcomp/), and the European FP7 projects [ECHORD](http://echord.eu) (grant number 231143) and [Koroibot](http://koroibot.eu) (grant number 611909).
 
-Work on the geometry and muscle addons was completed by Matthew Millard. Financial support from Deutsche Forschungs Gemeinschaft grant no. MI 2109/1-1 and from the European Commission within the H2020 project Spexor (GA 687662) is gratefully acknowledged.
+Work on the geometry and muscle addons was completed by Matthew Millard <matthew.millard@inspo.uni-stuttgart.de>. Financial support from Deutsche Forschungs Gemeinschaft grant no. MI 2109/1-1 and from the European Commission within the H2020 project Spexor (GA 687662) is gratefully acknowledged.
