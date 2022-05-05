@@ -253,7 +253,7 @@ int main (int argc, char* argv[]) {
         //
         //    Homework: After reading Featherstone & Orin Sec. 3.4, go and have a look
         //              at the fields in the ConstraintSet struct in 
-        //              rbdl-orb/include/rbdl/Constraints.h
+        //              include/rbdl/Constraints.h
         //
         //              At the same time, open the doxygen for RBDL and read the sections
         //              on Constraints and ConstraintSets        

@@ -30,11 +30,9 @@ In addition, there are also a set of deep-dive examples of the tools and backgro
 # Getting started
 
 1. Install 
-  - RBDL: https://github.com/ORB-HD/rbdl-orb
+  - RBDL: https://github.com/rbdl/rbdl
     - Note: All optional dependencies are required to go through these examples except those related to the muscle addon's muscle-fitting option.  
-  - Meshup: https://github.com/ORB-HD/MeshUp
-  - Puppeteer: https://github.com/ORB-HD/puppeteer
-  -      
+  - RBDL-Toolkit: https://github.com/orb-hd/rbdl-toolkit
 2. Each example contains a README.md which contains instructions to run the example, a tour through the code, and literature references (when appropriate, and sparingly used).
 
 If you are trying RBDL for the first time, consider going through the deep-dive examples first (pendulum, constrainedDoublePendulum, bouncingBall, walkingInverseDynamicsWithPython) as these examples have a great deal of documentation to help you get the examples running.

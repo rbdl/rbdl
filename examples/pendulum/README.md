@@ -202,7 +202,7 @@ What skills do I need to develop with CMake?
   2h. Tell CMake what libraries are used at runtime. Here the pendulum makes
       use of 4 libraries (.so files on Ubuntu): the library of the pendulum,
       the main rbdl library, the rbdl-lua library, and the lua libraries. 
-      If you open /orbGitHubCode/rbdl-orb-release-install/lib you can see
+      If you open `<rbdl-install-dir>/lib` you can see
       the various libraries that were made during the build process
 
   librbdl_geometry.so        

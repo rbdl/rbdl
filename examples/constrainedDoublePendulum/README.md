@@ -125,8 +125,7 @@ in the x-axis direction
   can easily access this information.
 
   <strong>Homework</strong>: After reading Featherstone & Orin Sec. 3.4, go and have a look
-  at the fields in the ConstraintSet struct in 
-  rbdl-orb/include/rbdl/Constraints.h
+  at the fields in the ConstraintSet struct in include/rbdl/Constraints.h
 
   At the same time, open the doxygen for RBDL and read the sections
   on Constraints and ConstraintSets
