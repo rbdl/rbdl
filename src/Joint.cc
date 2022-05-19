@@ -17,14 +17,14 @@
 
 #ifdef __APPLE__
 #include <cmath>
-inline void sincos(double x, double * sinp, double * cosp) {
+inline void sincos(Scalar x, Scalar * sinp, Scalar * cosp) {
     return __sincos(x, sinp, cosp);
 }
 #endif
 
 #if _MSC_VER || defined(__QNX__)
 #include <cmath>
-inline void sincos(double x, double * sinp, double * cosp) {
+inline void sincos(Scalar x, Scalar * sinp, Scalar * cosp) {
     *sinp = sin(x);
     *cosp = cos(x);
 }
@@ -44,7 +44,7 @@ RBDL_DLLAPI void jcalc (
   assert (joint_id > 0);
 
   if (model.mJoints[joint_id].mJointType == JointTypeRevoluteX) {
-    double s, c;
+    Scalar s, c;
     sincos (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
@@ -64,7 +64,7 @@ RBDL_DLLAPI void jcalc (
 
     model.v_J[joint_id][0] = qdot[model.mJoints[joint_id].q_index];
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteY) {
-    double s, c;
+    Scalar s, c;
     sincos (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
@@ -84,7 +84,7 @@ RBDL_DLLAPI void jcalc (
 
     model.v_J[joint_id][1] = qdot[model.mJoints[joint_id].q_index];
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
-    double s, c;
+    Scalar s, c;
     sincos (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
@@ -262,16 +262,16 @@ RBDL_DLLAPI void jcalc (
         );
     model.X_lambda[joint_id] = X_J * model.X_T[joint_id];
   } else if (model.mJoints[joint_id].mJointType == JointTypeEulerZXY) {
-    double q0 = q[model.mJoints[joint_id].q_index];
-    double q1 = q[model.mJoints[joint_id].q_index + 1];
-    double q2 = q[model.mJoints[joint_id].q_index + 2];
+    Scalar q0 = q[model.mJoints[joint_id].q_index];
+    Scalar q1 = q[model.mJoints[joint_id].q_index + 1];
+    Scalar q2 = q[model.mJoints[joint_id].q_index + 2];
 
-    double s0 = sin (q0);
-    double c0 = cos (q0);
-    double s1 = sin (q1);
-    double c1 = cos (q1);
-    double s2 = sin (q2);
-    double c2 = cos (q2);
+    Scalar s0 = sin (q0);
+    Scalar c0 = cos (q0);
+    Scalar s1 = sin (q1);
+    Scalar c1 = cos (q1);
+    Scalar s2 = sin (q2);
+    Scalar c2 = cos (q2);
 
     model.X_lambda[joint_id] = SpatialTransform (
         Matrix3d(
@@ -291,9 +291,9 @@ RBDL_DLLAPI void jcalc (
     model.multdof3_S[joint_id](2,0) = c1 * c2;
     model.multdof3_S[joint_id](2,1) = s2;
 
-    double qdot0 = qdot[model.mJoints[joint_id].q_index];
-    double qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
-    double qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
+    Scalar qdot0 = qdot[model.mJoints[joint_id].q_index];
+    Scalar qdot1 = qdot[model.mJoints[joint_id].q_index + 1];
+    Scalar qdot2 = qdot[model.mJoints[joint_id].q_index + 2];
 
     model.v_J[joint_id] =
       model.multdof3_S[joint_id] * Vector3d (qdot0, qdot1, qdot2);
@@ -397,7 +397,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
   assert (joint_id > 0);
 
   if (model.mJoints[joint_id].mJointType == JointTypeRevoluteX) {
-    double s, c;
+    Scalar s, c;
     sincos (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
@@ -417,7 +417,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
 
     model.S[joint_id][0] = 1.0;
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteY) {
-    double s, c;
+    Scalar s, c;
     sincos (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
@@ -437,7 +437,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
 
     model.S[joint_id][1] = 1.;
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
-    double s, c;
+    Scalar s, c;
     sincos (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
@@ -568,16 +568,16 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     model.multdof3_S[joint_id](2,0) = -s1;
     model.multdof3_S[joint_id](2,2) = 1.;
   } else if (model.mJoints[joint_id].mJointType == JointTypeEulerZXY ) {
-    double q0 = q[model.mJoints[joint_id].q_index];
-    double q1 = q[model.mJoints[joint_id].q_index + 1];
-    double q2 = q[model.mJoints[joint_id].q_index + 2];
+    Scalar q0 = q[model.mJoints[joint_id].q_index];
+    Scalar q1 = q[model.mJoints[joint_id].q_index + 1];
+    Scalar q2 = q[model.mJoints[joint_id].q_index + 2];
 
-    double s0 = sin (q0);
-    double c0 = cos (q0);
-    double s1 = sin (q1);
-    double c1 = cos (q1);
-    double s2 = sin (q2);
-    double c2 = cos (q2);
+    Scalar s0 = sin (q0);
+    Scalar c0 = cos (q0);
+    Scalar s1 = sin (q1);
+    Scalar c1 = cos (q1);
+    Scalar s2 = sin (q2);
+    Scalar c2 = cos (q2);
 
     model.X_lambda[joint_id] = SpatialTransform (
         Matrix3d(
