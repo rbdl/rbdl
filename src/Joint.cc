@@ -9,25 +9,37 @@
 #include <limits>
 #include <assert.h>
 
+#include "rbdl/rbdl_config.h"
 #include "rbdl/Logging.h"
 
 #include "rbdl/Model.h"
 #include "rbdl/Joint.h"
 #include "rbdl/rbdl_errors.h"
+#include "rbdl/rbdl_math.h"
+
+
+#ifdef RBDL_USE_CASADI_MATH
+
+inline void sincosp(RBDLCasadiMath::MX_Xd_scalar x, RBDLCasadiMath::MX_Xd_scalar* sinp, RBDLCasadiMath::MX_Xd_scalar* cosp) {
+    *sinp = std::sin(x);
+    *cosp = std::cos(x);
+}
+
+#else
+#include <cmath>
 
 #ifdef __APPLE__
-#include <cmath>
-inline void sincos(Scalar x, Scalar * sinp, Scalar * cosp) {
+inline void sincosp(RigidBodyDynamics::Math::Scalar x, RigidBodyDynamics::Math::Scalar* sinp, RigidBodyDynamics::Math::Scalar* cosp) {
     return __sincos(x, sinp, cosp);
 }
-#endif
+#else
 
-#if _MSC_VER || defined(__QNX__)
-#include <cmath>
-inline void sincos(Scalar x, Scalar * sinp, Scalar * cosp) {
+inline void sincosp(RigidBodyDynamics::Math::Scalar x, RigidBodyDynamics::Math::Scalar* sinp, RigidBodyDynamics::Math::Scalar* cosp) {
     *sinp = sin(x);
     *cosp = cos(x);
 }
+#endif
+
 #endif
 
 namespace RigidBodyDynamics {
@@ -45,7 +57,7 @@ RBDL_DLLAPI void jcalc (
 
   if (model.mJoints[joint_id].mJointType == JointTypeRevoluteX) {
     Scalar s, c;
-    sincos (q[model.mJoints[joint_id].q_index], &s, &c);
+    sincosp (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
         model.X_T[joint_id].E(0, 0),
@@ -65,7 +77,7 @@ RBDL_DLLAPI void jcalc (
     model.v_J[joint_id][0] = qdot[model.mJoints[joint_id].q_index];
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteY) {
     Scalar s, c;
-    sincos (q[model.mJoints[joint_id].q_index], &s, &c);
+    sincosp (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
         c * model.X_T[joint_id].E(0, 0) + -s * model.X_T[joint_id].E(2, 0),
@@ -85,7 +97,7 @@ RBDL_DLLAPI void jcalc (
     model.v_J[joint_id][1] = qdot[model.mJoints[joint_id].q_index];
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
     Scalar s, c;
-    sincos (q[model.mJoints[joint_id].q_index], &s, &c);
+    sincosp (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
          c * model.X_T[joint_id].E(0, 0) + s * model.X_T[joint_id].E(1, 0),
@@ -398,7 +410,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
 
   if (model.mJoints[joint_id].mJointType == JointTypeRevoluteX) {
     Scalar s, c;
-    sincos (q[model.mJoints[joint_id].q_index], &s, &c);
+    sincosp (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
         model.X_T[joint_id].E(0, 0),
@@ -418,7 +430,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     model.S[joint_id][0] = 1.0;
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteY) {
     Scalar s, c;
-    sincos (q[model.mJoints[joint_id].q_index], &s, &c);
+    sincosp (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
         c * model.X_T[joint_id].E(0, 0) + -s * model.X_T[joint_id].E(2, 0),
@@ -438,7 +450,7 @@ RBDL_DLLAPI void jcalc_X_lambda_S (
     model.S[joint_id][1] = 1.;
   } else if (model.mJoints[joint_id].mJointType == JointTypeRevoluteZ) {
     Scalar s, c;
-    sincos (q[model.mJoints[joint_id].q_index], &s, &c);
+    sincosp (q[model.mJoints[joint_id].q_index], &s, &c);
 
     model.X_lambda[joint_id].E = Matrix3d (
          c * model.X_T[joint_id].E(0, 0) + s * model.X_T[joint_id].E(1, 0),

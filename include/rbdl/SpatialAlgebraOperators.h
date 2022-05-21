@@ -9,7 +9,7 @@
 #define RBDL_SPATIALALGEBRAOPERATORS_H
 
 #include <iostream>
-#include <cmath>
+//#include <cmath>
 
 namespace RigidBodyDynamics {
 

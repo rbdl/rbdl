@@ -9,7 +9,7 @@
 #define RBDL_MATHUTILS_H
 
 #include <assert.h>
-#include <cmath>
+//#include <cmath>
 
 #include "rbdl/rbdl_math.h"
 

@@ -8,7 +8,7 @@
 #ifndef RBDL_QUATERNION_H
 #define RBDL_QUATERNION_H
 
-#include <cmath>
+//#include <cmath>
 #include <assert.h>
 
 namespace RigidBodyDynamics {
