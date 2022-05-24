@@ -304,6 +304,12 @@ inline MX_Xd_scalar operator*(
         ) {
     return casadi::MX::times(me, other);
 }
+inline MX_Xd_scalar operator*(
+        const MX_Xd_scalar& other,
+        const MX_Xd_SubMatrix& me
+        ) {
+    return casadi::MX::times(me, other);
+}
 
 inline MX_Xd_scalar operator+(
         double other,
