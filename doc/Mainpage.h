@@ -42,7 +42,7 @@
  *   <ul>
  *     <li> Merging RBDL and RBDL-ORB </li>
  *   </ul>
- * <\li>
+ * </li>
  * <li>30 September 2021: New release 3.1.3:
  *   <ul>
  *     <li> Casadi Math Backend added support for tanh function. </li>
