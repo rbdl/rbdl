@@ -703,7 +703,16 @@ cdef extern from "rbdl_loadmodel.cc":
            Model* model,
            bool floating_base,
            bool verbose)
+
+cdef extern from "rbdl/rbdl_utils.h" namespace "RigidBodyDynamics::Utils":
+    cdef void CalcZeroMomentPoint (Model& model,
+	    const VectorNd &q,
+	    const VectorNd &qdot,
+	    const VectorNd &qddot,
+ 	    Vector3d* zmp,
+	    const Vector3d &normal,
+	    const Vector3d &point,
+            bool update_kinematics)
      
-        
         
   
