@@ -2,6 +2,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 FIND_PACKAGE (Casadi REQUIRED)
 
+add_definitions(-DRBDL_USE_CASADI_MATH)
+
 IF (RBDL_STORE_VERSION)
 	# Set versioning information that can be queried during runtime
 	EXECUTE_PROCESS(COMMAND "git" "rev-parse" "HEAD"

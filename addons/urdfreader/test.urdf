@@ -1,0 +1,27 @@
+<robot name="myrobot">
+  <link name="Mbase_link">
+    <inertial>
+      <origin rpy="0.00000 0.00000 0.00000" xyz="0.0 0.0 0.0"/>
+      <mass value="0.01"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+  <link name="arm_left_1_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.1 -0.05 0.2"/>
+      <mass value="1.5"/>
+      <inertia ixx="0.003" ixy="-0.000004" ixz="-0.0002" iyy="0.003" iyz="0.000003" izz="0.001"/>
+    </inertial>
+
+  </link>
+  <joint name="arm_left_1_joint" type="revolute">
+    <parent link="Mbase_link"/>
+    <child link="arm_left_1_link"/>
+
+    <origin rpy="1.57079632679 0.1 1.57079632679" xyz="0.0 0.0 0.0"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1" lower="-0.785398163397" upper="3.14159265359" velocity="2.7"/>
+
+
+  </joint>
+ </robot>
