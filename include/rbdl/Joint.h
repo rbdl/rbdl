@@ -481,25 +481,31 @@ struct RBDL_DLLAPI Joint {
     
     // TODO this has to be properly determined AND test case. Try Matt's dot product idea
 #ifdef RBDL_USE_CASADI_MATH
-    if (!axis_0[0].is_zero()) {
+    if (fabs(fabs(casadi::MX::evalf(axis_0[0])) - 1.0).scalar() <
+	std::numeric_limits<double>::epsilon()) {
 #else
     if (axis_0 == Math::SpatialVector(1., 0., 0., 0., 0., 0.)) {
 #endif
       mJointType = JointTypeRevoluteX;
 #ifdef RBDL_USE_CASADI_MATH
-    } else if (!axis_0[1].is_zero()) {
+    } else if (fabs(fabs(casadi::MX::evalf(axis_0[1])) - 1.0).scalar() <
+	       std::numeric_limits<double>::epsilon()){
 #else
     } else if (axis_0 == Math::SpatialVector(0., 1., 0., 0., 0., 0.)) {
 #endif
       mJointType = JointTypeRevoluteY;
 #ifdef RBDL_USE_CASADI_MATH
-    } else if (!axis_0[2].is_zero()) {
+    } else if (fabs(fabs(casadi::MX::evalf(axis_0[2])) - 1.0).scalar() <
+	       std::numeric_limits<double>::epsilon())  {
 #else
     } else if (axis_0 == Math::SpatialVector(0., 0., 1., 0., 0., 0.)) {
 #endif
       mJointType = JointTypeRevoluteZ;
 #ifdef RBDL_USE_CASADI_MATH
-    } else if (axis_0[0].is_zero() && axis_0[1].is_zero() && axis_0[2].is_zero()) {
+    } else if (
+	       fabs(casadi::MX::evalf(axis_0[0]).scalar() < std::numeric_limits<double>::epsilon()) &&
+	       fabs(casadi::MX::evalf(axis_0[1]).scalar() < std::numeric_limits<double>::epsilon()) &&
+	       fabs(casadi::MX::evalf(axis_0[2]).scalar() < std::numeric_limits<double>::epsilon())) {
 #else
     } else if (axis_0[0] == 0. && axis_0[1] == 0. && axis_0[2] == 0.) {
 #endif

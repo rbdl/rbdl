@@ -43,10 +43,15 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::Vector3d>(
       throw RigidBodyDynamics::Errors::RBDLFileParseError(
             "LuaModel Error: invalid 3d vector!");
     }
-
+    #ifdef RBDL_USE_CASADI_MATH
+    result[0] = vector_table[1].getDefault(0.0);
+    result[1] = vector_table[2].getDefault(0.0);
+    result[2] = vector_table[3].getDefault(0.0);
+    #else
     result[0] = vector_table[1];
     result[1] = vector_table[2];
     result[2] = vector_table[3];
+    #endif
   }
 
   stackRestore();
@@ -73,13 +78,21 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::SpatialVector>(
             "LuaModel Error: invalid 6d vector!");
     }
   //! [Parse Failed]
-
+    #ifdef RBDL_USE_CASADI_MATH
+    result[0] = vector_table[1].getDefault(0.0);
+    result[1] = vector_table[2].getDefault(0.0);
+    result[2] = vector_table[3].getDefault(0.0);
+    result[3] = vector_table[4].getDefault(0.0);
+    result[4] = vector_table[5].getDefault(0.0);
+    result[5] = vector_table[6].getDefault(0.0);
+    #else
     result[0] = vector_table[1];
     result[1] = vector_table[2];
     result[2] = vector_table[3];
     result[3] = vector_table[4];
     result[4] = vector_table[5];
     result[5] = vector_table[6];
+    #endif
   }
 
   stackRestore();
@@ -104,7 +117,11 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::MatrixNd>(
 
     for(int r=0; r<int(vector_table.length()); ++r) {
       for(int c=0; c<int(vector_table[1].length()); ++c) {
+	#ifdef RBDL_USE_CASADI_MATH
+	result(r,c) = vector_table[r+1][c+1].getDefault(0.0);
+	#else
         result(r,c) = vector_table[r+1][c+1];
+	#endif
       }
     }
   }
@@ -136,7 +153,20 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::Matrix3d>(
       throw RigidBodyDynamics::Errors::RBDLFileParseError(
             "LuaModel Error: invalid 3d matrix!");
     }
+    #ifdef RBDL_USE_CASADI_MATH
+    result(0,0) = vector_table[1][1].getDefault(0.0);
+    result(0,1) = vector_table[1][2].getDefault(0.0);
+    result(0,2) = vector_table[1][3].getDefault(0.0);
 
+    result(1,0) = vector_table[2][1].getDefault(0.0);
+    result(1,1) = vector_table[2][2].getDefault(0.0);
+    result(1,2) = vector_table[2][3].getDefault(0.0);
+
+    result(2,0) = vector_table[3][1].getDefault(0.0);
+    result(2,1) = vector_table[3][2].getDefault(0.0);
+    result(2,2) = vector_table[3][3].getDefault(0.0);
+
+    #else
     result(0,0) = vector_table[1][1];
     result(0,1) = vector_table[1][2];
     result(0,2) = vector_table[1][3];
@@ -148,6 +178,7 @@ LuaTableNode::getDefault<RigidBodyDynamics::Math::Matrix3d>(
     result(2,0) = vector_table[3][1];
     result(2,1) = vector_table[3][2];
     result(2,2) = vector_table[3][3];
+    #endif
   }
 
   stackRestore();

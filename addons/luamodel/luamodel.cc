@@ -1437,18 +1437,31 @@ void LuaModelGetCoordinateNames(
       dof = model->mJoints[idJoint].mDoFCount;
       axisIndex=6;
       for(unsigned int j=0; j<6;++j){
-        if( fabs( fabs(model->mJoints[idJoint].mJointAxes[0][j])-1.)
+	#ifdef RBDL_USE_CASADI_MATH
+        if( fabs( fabs(casadi::MX::evalf(model->mJoints[idJoint].mJointAxes[0][j])-1.).scalar())
             < std::numeric_limits<double>::epsilon() ){
           axisIndex=j;
         }
+	#else
+	if( fabs( fabs(model->mJoints[idJoint].mJointAxes[0][j])-1.)
+            < std::numeric_limits<double>::epsilon() ){
+          axisIndex=j;
+        }
+	#endif
       }
       if(axisIndex == 6){
         axisType= std::to_string(axisIndex);
       }else{
         axisType = AxisMap[ axisIndex ].name;
+	#ifdef RBDL_USE_CASADI_MATH
+	if(casadi::MX::evalf(model->mJoints[idJoint].mJointAxes[0][axisIndex]).scalar() < 0.){
+	  axisType.append("N");
+	}
+	#else
         if(model->mJoints[idJoint].mJointAxes[0][axisIndex] < 0.){
           axisType.append("N");
         }
+	#endif
       }
       for(unsigned int i=0; i<model->mJoints[idJoint].mDoFCount;++i){
 

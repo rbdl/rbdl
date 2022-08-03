@@ -112,7 +112,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     root_inertial_inertia(2, 1) = I->iyz;
     root_inertial_inertia(2, 2) = I->izz;
 
-    if (root_inertial_mass == 0. && root_inertial_inertia != Matrix3d::Zero()) {
+    if (root_inertial_mass == 0. && (I->ixx !=0 || I->ixy!=0 || I-> ixz != 0 || I->iyy != 0 || I->iyz !=0 || I->izz != 0 )) {
       std::ostringstream error_msg;
       error_msg << "Error creating rbdl model! Urdf root link ("
                 << root->name
@@ -196,7 +196,8 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     // determine where to add the current joint and child body
     unsigned int rbdl_parent_id = 0;
 
-    rbdl_parent_id = rbdl_model->GetBodyId (urdf_parent->name.c_str());
+    rbdl_parent_id = rbdl_model->GetBodyId(urdf_parent->name.c_str());
+
 
     if (rbdl_parent_id == std::numeric_limits<unsigned int>::max()) {
       ostringstream error_msg;
@@ -210,20 +211,11 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     Joint rbdl_joint;
     if (urdf_joint->type == UrdfJointType::REVOLUTE ||
         urdf_joint->type == UrdfJointType::CONTINUOUS) {
-      Vector3d axis (urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
-
-      if (fabs(axis.dot(Vector3d (1., 0., 0.)) - 1.0) < std::numeric_limits<double>::epsilon()) {
-        rbdl_joint = Joint(JointTypeRevoluteX);
-      } else if (fabs(axis.dot(Vector3d (0., 1., 0.)) - 1.0) < std::numeric_limits<double>::epsilon()) {
-        rbdl_joint = Joint(JointTypeRevoluteY);
-      } else if (fabs(axis.dot(Vector3d (0., 0., 1.)) - 1.0) < std::numeric_limits<double>::epsilon()) {
-        rbdl_joint = Joint(JointTypeRevoluteZ);
-      } else {
-        rbdl_joint = Joint(JointTypeRevolute, axis);
-      }
+      rbdl_joint = Joint(SpatialVector(urdf_joint->axis.x, urdf_joint->axis.y,
+                                       urdf_joint->axis.z, 0., 0., 0.));
     } else if (urdf_joint->type == UrdfJointType::PRISMATIC) {
-      Vector3d axis (urdf_joint->axis.x, urdf_joint->axis.y, urdf_joint->axis.z);
-      rbdl_joint = Joint (JointTypePrismatic, axis);
+      rbdl_joint = Joint(SpatialVector(0., 0., 0., urdf_joint->axis.x,
+                                       urdf_joint->axis.y, urdf_joint->axis.z));
     } else if (urdf_joint->type == UrdfJointType::FIXED) {
       rbdl_joint = Joint(JointTypeFixed);
     } else if (urdf_joint->type == UrdfJointType::FLOATING) {
@@ -245,10 +237,12 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     }
 
     // compute the joint transformation
+    urdf::Vector3 joint_rpy_temp;
     Vector3d joint_rpy;
     Vector3d joint_translation;
-    urdf_joint->PARENT_TRANSFORM.rotation.RPY(joint_rpy[0],
-                                              joint_rpy[1], joint_rpy[2]);
+    urdf_joint->PARENT_TRANSFORM.rotation.RPY(joint_rpy_temp.x,
+                                              joint_rpy_temp.y, joint_rpy_temp.z);
+    joint_rpy.set(joint_rpy_temp.x, joint_rpy_temp.y, joint_rpy_temp.z);
     joint_translation.set(
       urdf_joint->PARENT_TRANSFORM.position.x,
       urdf_joint->PARENT_TRANSFORM.position.y,
@@ -261,8 +255,9 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
      //rbdl_joint_frame = Xtrans(joint_translation);
 
     // assemble the body
+     urdf::Vector3 link_inertial_rpy_temp;
     Vector3d link_inertial_position;
-    Vector3d link_inertial_rpy;
+    Vector3d link_inertial_rpy;    
     Matrix3d link_inertial_inertia = Matrix3d::Zero();
     double link_inertial_mass = 0.;
 
@@ -280,9 +275,10 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
         I_child->origin.position.x,
         I_child->origin.position.y,
         I_child->origin.position.z);
-      I_child->origin.rotation.RPY(link_inertial_rpy[0],
-                                   link_inertial_rpy[1],
-                                   link_inertial_rpy[2]);
+      I_child->origin.rotation.RPY(link_inertial_rpy_temp.x,
+                                   link_inertial_rpy_temp.y,
+                                   link_inertial_rpy_temp.z);
+      link_inertial_rpy.set(link_inertial_rpy_temp.x, link_inertial_rpy_temp.y, link_inertial_rpy_temp.z);
 
       link_inertial_inertia(0, 0) = I_child->ixx;
       link_inertial_inertia(0, 1) = I_child->ixy;
@@ -296,7 +292,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
       link_inertial_inertia(2, 1) = I_child->iyz;
       link_inertial_inertia(2, 2) = I_child->izz;
 
-      if (link_inertial_rpy != Vector3d(0., 0., 0.)) {
+      if (link_inertial_rpy_temp.x != 0 || link_inertial_rpy_temp.y != 0 || link_inertial_rpy_temp.z != 0 ) {
         ostringstream error_msg;
         error_msg << "Error while processing body '" << urdf_child->name
                   << "': rotation of body frames not yet supported."
@@ -325,7 +321,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
 
     if (urdf_joint->type == UrdfJointType::FLOATING) {
       Matrix3d zero_matrix = Matrix3d::Zero();
-      Body null_body(0., Vector3d::Zero(3), zero_matrix);
+      Body null_body(0., Vector3d::Zero(), zero_matrix);
       Joint joint_txtytz(JointTypeTranslationXYZ);
       string trans_body_name = urdf_child->name + "_Translate";
       rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame,
