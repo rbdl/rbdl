@@ -2,8 +2,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 FIND_PACKAGE (Casadi REQUIRED)
 
-add_definitions(-DRBDL_USE_CASADI_MATH)
-
 IF (RBDL_STORE_VERSION)
 	# Set versioning information that can be queried during runtime
 	EXECUTE_PROCESS(COMMAND "git" "rev-parse" "HEAD"
@@ -39,6 +37,10 @@ SET ( RBDL_CASADI_SOURCES
 	${CMAKE_SOURCE_DIR}/src/Joint.cc
 	${CMAKE_SOURCE_DIR}/src/Model.cc
 	${CMAKE_SOURCE_DIR}/src/Kinematics.cc
+)
+
+SET ( RBDL_CASADI_INCLUDE_DIR
+  ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 IF (RBDL_BUILD_STATIC)
@@ -89,6 +91,22 @@ ELSE (RBDL_BUILD_STATIC)
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 		)
 ENDIF (RBDL_BUILD_STATIC)
+
+# Addons
+IF (RBDL_BUILD_ADDON_URDFREADER)
+  ADD_SUBDIRECTORY ( addons/urdfreader )
+  #IF(RBDL_BUILD_TESTS)
+  #  ADD_SUBDIRECTORY ( addons/urdfreader/tests )
+  #ENDIF(RBDL_BUILD_TESTS)
+ENDIF (RBDL_BUILD_ADDON_URDFREADER)
+
+IF (RBDL_BUILD_ADDON_LUAMODEL)
+  ADD_SUBDIRECTORY ( addons/luamodel )
+  #IF(RBDL_BUILD_TESTS)
+  #  ADD_SUBDIRECTORY ( addons/luamodel/tests )
+  #ENDIF(RBDL_BUILD_TESTS)
+ENDIF (RBDL_BUILD_ADDON_LUAMODEL)
+
 
 # Setup of CasADi install settings
 FILE ( GLOB headers
