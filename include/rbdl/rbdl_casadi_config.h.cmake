@@ -14,8 +14,11 @@
 #cmakedefine RBDL_BUILD_COMMIT "@RBDL_BUILD_COMMIT@"
 #cmakedefine RBDL_BUILD_TYPE "@RBDL_BUILD_TYPE@"
 #cmakedefine RBDL_BUILD_BRANCH "@RBDL_BUILD_BRANCH@"
-#cmakedefine RBDL_BUILD_ADDON_MUSCLE_FITTING
-#cmakedefine RBDL_BUILD_ADDON_MUSCLE
+
+// disable these two until muscle addon is ported to casadi
+//#cmakedefine RBDL_BUILD_ADDON_MUSCLE_FITTING
+//#cmakedefine RBDL_BUILD_ADDON_MUSCLE
+
 #cmakedefine RBDL_BUILD_COMPILER_ID "@RBDL_BUILD_COMPILER_ID@"
 #cmakedefine RBDL_BUILD_COMPILER_VERSION "@RBDL_BUILD_COMPILER_VERSION@"
 #cmakedefine RBDL_BUILD_ADDON_LUAMODEL
