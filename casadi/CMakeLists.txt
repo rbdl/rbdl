@@ -2,6 +2,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 FIND_PACKAGE (Casadi REQUIRED)
 
+SET (RBDL_USE_CASADI_MATH ON)
+
 IF (RBDL_STORE_VERSION)
 	# Set versioning information that can be queried during runtime
 	EXECUTE_PROCESS(COMMAND "git" "rev-parse" "HEAD"
@@ -41,7 +43,8 @@ SET ( RBDL_CASADI_SOURCES
 
 SET ( RBDL_CASADI_INCLUDE_DIR
   ${CMAKE_CURRENT_BINARY_DIR}/include
-)
+  )
+
 
 IF (RBDL_BUILD_STATIC)
   ADD_LIBRARY ( rbdl-casadi-static STATIC ${RBDL_CASADI_SOURCES} )

@@ -17,6 +17,7 @@ ELSE()
 		)
 ENDIF()
 
+SET(CMAKE_CXX_STANDARD 17)
 SET ( URDFREADER_CASADI_SOURCES
 	${CMAKE_SOURCE_DIR}/addons/urdfreader/urdfreader.cc
 )

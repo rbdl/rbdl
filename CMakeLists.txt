@@ -66,7 +66,7 @@ OPTION (RBDL_BUILD_ADDON_MUSCLE_FITTING "Build muscle library fitting functions 
 OPTION (RBDL_BUILD_ADDON_BALANCE "Build balance library" OFF)
 OPTION (RBDL_BUILD_EXECUTABLES "Build addon executables, disable this if you only want to build the libraries." ON)
 OPTION (RBDL_USE_PYTHON_2 "Use python 2 instead of python 3" OFF)
-OPTION (RBDL_USE_CASADI_MATH "Use the CasADi backend" OFF)
+OPTION (RBDL_BUILD_CASADI "Use the CasADi backend" OFF)
 OPTION (RBDL_VCPKG_BUILD "Building RBDL in vcpkg environment" OFF)
 
 
@@ -91,9 +91,9 @@ IF (RBDL_BUILD_ADDON_BENCHMARK)
   ADD_SUBDIRECTORY ( addons/benchmark )
 ENDIF (RBDL_BUILD_ADDON_BENCHMARK)
 
-IF (RBDL_USE_CASADI_MATH)
+IF (RBDL_BUILD_CASADI)
   ADD_SUBDIRECTORY( casadi )
-ENDIF (RBDL_USE_CASADI_MATH)
+ENDIF (RBDL_BUILD_CASADI)
 
 IF(RBDL_BUILD_ADDON_MUSCLE)
   SET(RBDL_BUILD_ADDON_GEOMETRY ON CACHE BOOL "Build the geometry library" FORCE)
@@ -171,11 +171,11 @@ IF (RBDL_BUILD_STATIC)
 			rbdl_urdfreader-static
 			)
   ENDIF (RBDL_BUILD_ADDON_URDFREADER)
-  IF (RBDL_USE_CASADI_MATH)
+  IF (RBDL_BUILD_CASADI)
       TARGET_LINK_LIBRARIES ( rbdl-static
                           ${Casadi_LIBRARY}
                           )
-  ENDIF (RBDL_USE_CASADI_MATH)
+  ENDIF (RBDL_BUILD_CASADI)
 
 	INSTALL (TARGETS rbdl-static
 	  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -194,11 +194,11 @@ ELSE (RBDL_BUILD_STATIC)
 		SOVERSION ${RBDL_SO_VERSION}
 		)
 
-        IF (RBDL_USE_CASADI_MATH)
+        IF (RBDL_BUILD_CASADI)
             TARGET_LINK_LIBRARIES ( rbdl
                 ${Casadi_LIBRARY}
                 )
-        ENDIF (RBDL_USE_CASADI_MATH)
+        ENDIF (RBDL_BUILD_CASADI)
 
 	INSTALL (TARGETS rbdl
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
