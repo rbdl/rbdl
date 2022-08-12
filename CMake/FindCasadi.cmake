@@ -14,6 +14,7 @@ find_path (Casadi_INCLUDE_DIR "casadi.hpp"
     PATHS
     ${CMAKE_INSTALL_PREFIX}/include/casadi
     ${CMAKE_INSTALL_PREFIX}/Library/include/casadi
+    /usr/local/include/casadi
     /usr/include/casadi
 )
 find_library (Casadi_LIBRARY NAMES casadi 

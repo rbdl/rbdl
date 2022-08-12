@@ -237,7 +237,10 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     }
 
     // compute the joint transformation
-    urdf::Vector3 joint_rpy_temp;
+    // Temp variable used for compatability between urdf functions
+    // and potential Casadi symbolics.
+    urdf::Vector3 joint_rpy_temp; 
+
     Vector3d joint_rpy;
     Vector3d joint_translation;
     urdf_joint->PARENT_TRANSFORM.rotation.RPY(joint_rpy_temp.x,
