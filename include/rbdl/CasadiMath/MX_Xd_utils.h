@@ -342,6 +342,9 @@ using namespace RBDLCasadiMath;
 inline MX_Xd_scalar sqrt(const MX_Xd_scalar& x){
     return casadi::MX::sqrt(x);
 }
+inline MX_Xd_scalar log(const MX_Xd_scalar& x){
+    return casadi::MX::log(x);
+}
 inline MX_Xd_scalar sin(const MX_Xd_scalar& x){
     return casadi::MX::sin(x);
 }
