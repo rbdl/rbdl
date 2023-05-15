@@ -91,6 +91,79 @@ Joint get_rbdl_joint(const JointPtr &urdf_joint)
   return rbdl_joint;
 }
 
+Body get_rbdl_body(const LinkPtr &urdf_link, bool is_root_link)
+{
+  // assemble the body
+  urdf::Vector3 link_inertial_rpy_temp;
+  Vector3d link_inertial_position;
+  Vector3d link_inertial_rpy;
+  Matrix3d link_inertial_inertia = Matrix3d::Zero();
+  double link_inertial_mass = 0.;
+
+
+  // but only if we actually have inertial data
+#ifdef RBDL_USE_ROS_URDF_LIBRARY
+  if (urdf_link->inertial) {
+    auto I = urdf_child->inertial;
+#else
+  if (urdf_link->inertial.has_value()) {
+    auto I = &urdf_link->inertial.value();
+#endif
+    link_inertial_mass = I->mass;
+
+    link_inertial_position.set(
+      I->origin.position.x,
+      I->origin.position.y,
+      I->origin.position.z);
+
+    if(!is_root_link)
+    {
+      I->origin.rotation.RPY(link_inertial_rpy_temp.x,
+                                 link_inertial_rpy_temp.y,
+                                 link_inertial_rpy_temp.z);
+      link_inertial_rpy.set(link_inertial_rpy_temp.x, link_inertial_rpy_temp.y, link_inertial_rpy_temp.z);
+    }
+
+    link_inertial_inertia(0, 0) = I->ixx;
+    link_inertial_inertia(0, 1) = I->ixy;
+    link_inertial_inertia(0, 2) = I->ixz;
+
+    link_inertial_inertia(1, 0) = I->ixy;
+    link_inertial_inertia(1, 1) = I->iyy;
+    link_inertial_inertia(1, 2) = I->iyz;
+
+    link_inertial_inertia(2, 0) = I->ixz;
+    link_inertial_inertia(2, 1) = I->iyz;
+    link_inertial_inertia(2, 2) = I->izz;
+
+    if(is_root_link)
+    {
+      if (link_inertial_mass == 0. && (I->ixx !=0 || I->ixy!=0 || I-> ixz != 0 || I->iyy != 0 || I->iyz !=0 || I->izz != 0 )) {
+        std::ostringstream error_msg;
+        error_msg << "Error creating rbdl model! Urdf root link ("
+                  << urdf_link->name
+                  << ") has inertial but no mass!";
+        throw RBDLFileParseError(error_msg.str());
+      }
+    }
+    else
+    {
+      if (link_inertial_rpy_temp.x != 0 || link_inertial_rpy_temp.y != 0 || link_inertial_rpy_temp.z != 0 ) {
+        ostringstream error_msg;
+        error_msg << "Error while processing body '" << urdf_link->name
+                  << "': rotation of body frames not yet supported."
+                  << " Please rotate the joint frame instead." << endl;
+        throw RBDLFileParseError(error_msg.str());
+      }
+    }
+  }
+
+  Body rbdl_body = Body(link_inertial_mass, link_inertial_position,
+                          link_inertial_inertia);
+
+  return rbdl_body;
+}
+
 void construct_model(Model *rbdl_model, ModelPtr urdf_model,
                      bool floating_base, bool verbose) {
 
@@ -112,51 +185,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
 
   // add the root body
   ConstLinkPtr root = urdf_model->getRoot();
-  Vector3d root_inertial_position;
-  Matrix3d root_inertial_inertia;
-  double root_inertial_mass;
-
-  Body root_link = Body();
-
-#ifdef RBDL_USE_ROS_URDF_LIBRARY
-  if (root->inertial != nullptr) {
-    auto I = root->inertial;
-#else
-  if (root->inertial.has_value()) {
-    auto I = &root->inertial.value();
-#endif
-    root_inertial_mass = I->mass;
-
-    root_inertial_position.set(
-      I->origin.position.x,
-      I->origin.position.y,
-      I->origin.position.z);
-
-    root_inertial_inertia(0, 0) = I->ixx;
-    root_inertial_inertia(0, 1) = I->ixy;
-    root_inertial_inertia(0, 2) = I->ixz;
-
-    root_inertial_inertia(1, 0) = I->ixy;
-    root_inertial_inertia(1, 1) = I->iyy;
-    root_inertial_inertia(1, 2) = I->iyz;
-
-    root_inertial_inertia(2, 0) = I->ixz;
-    root_inertial_inertia(2, 1) = I->iyz;
-    root_inertial_inertia(2, 2) = I->izz;
-
-    if (root_inertial_mass == 0. && (I->ixx !=0 || I->ixy!=0 || I-> ixz != 0 || I->iyy != 0 || I->iyz !=0 || I->izz != 0 )) {
-      std::ostringstream error_msg;
-      error_msg << "Error creating rbdl model! Urdf root link ("
-                << root->name
-                << ") has inertial but no mass!";
-      throw RBDLFileParseError(error_msg.str());
-    }
-
-    root_link.mMass = root_inertial_mass;
-    root_link.mInertia = root_inertial_inertia;
-    root_link.mCenterOfMass = root_inertial_position;
-  }
-
+  Body root_link = get_rbdl_body(root, true);
 
   Joint root_joint(JointTypeFixed);
   if (floating_base) {
@@ -264,54 +293,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
      //rbdl_joint_frame = Xtrans(joint_translation);
 
     // assemble the body
-     urdf::Vector3 link_inertial_rpy_temp;
-    Vector3d link_inertial_position;
-    Vector3d link_inertial_rpy;    
-    Matrix3d link_inertial_inertia = Matrix3d::Zero();
-    double link_inertial_mass = 0.;
-
-    // but only if we actually have inertial data
-#ifdef RBDL_USE_ROS_URDF_LIBRARY
-    if (urdf_child->inertial) {
-      auto I_child = urdf_child->inertial;
-#else
-    if (urdf_child->inertial.has_value()) {
-      auto I_child = &urdf_child->inertial.value();
-#endif
-      link_inertial_mass = I_child->mass;
-
-      link_inertial_position.set(
-        I_child->origin.position.x,
-        I_child->origin.position.y,
-        I_child->origin.position.z);
-      I_child->origin.rotation.RPY(link_inertial_rpy_temp.x,
-                                   link_inertial_rpy_temp.y,
-                                   link_inertial_rpy_temp.z);
-      link_inertial_rpy.set(link_inertial_rpy_temp.x, link_inertial_rpy_temp.y, link_inertial_rpy_temp.z);
-
-      link_inertial_inertia(0, 0) = I_child->ixx;
-      link_inertial_inertia(0, 1) = I_child->ixy;
-      link_inertial_inertia(0, 2) = I_child->ixz;
-
-      link_inertial_inertia(1, 0) = I_child->ixy;
-      link_inertial_inertia(1, 1) = I_child->iyy;
-      link_inertial_inertia(1, 2) = I_child->iyz;
-
-      link_inertial_inertia(2, 0) = I_child->ixz;
-      link_inertial_inertia(2, 1) = I_child->iyz;
-      link_inertial_inertia(2, 2) = I_child->izz;
-
-      if (link_inertial_rpy_temp.x != 0 || link_inertial_rpy_temp.y != 0 || link_inertial_rpy_temp.z != 0 ) {
-        ostringstream error_msg;
-        error_msg << "Error while processing body '" << urdf_child->name
-                  << "': rotation of body frames not yet supported."
-                  << " Please rotate the joint frame instead." << endl;
-        throw RBDLFileParseError(error_msg.str());
-      }
-    }
-
-    Body rbdl_body = Body(link_inertial_mass, link_inertial_position,
-                            link_inertial_inertia);
+    Body rbdl_body = get_rbdl_body(urdf_child, false);
 
     if (verbose) {
       cout << "+ Adding Body: " << urdf_child->name << endl;
