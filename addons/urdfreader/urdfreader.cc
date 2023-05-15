@@ -164,6 +164,92 @@ Body get_rbdl_body(const LinkPtr &urdf_link, bool is_root_link)
   return rbdl_body;
 }
 
+void add_joints_to_rbdl_model(Model *rbdl_model, const URDFLinkMap &link_map,
+                              const URDFJointMap &joint_map,
+                              const vector<string> &joint_names, bool verbose)
+{
+  unsigned int j;
+  for (j = 0; j < joint_names.size(); j++) {
+    JointPtr urdf_joint = joint_map.at(joint_names.at(j));
+    LinkPtr urdf_parent = link_map.at(urdf_joint->parent_link_name);
+    LinkPtr urdf_child = link_map.at(urdf_joint->child_link_name);
+
+    // determine where to add the current joint and child body
+    unsigned int rbdl_parent_id = 0;
+
+    rbdl_parent_id = rbdl_model->GetBodyId(urdf_parent->name.c_str());
+
+
+    if (rbdl_parent_id == std::numeric_limits<unsigned int>::max()) {
+      ostringstream error_msg;
+      error_msg << "Error while processing joint '" << urdf_joint->name
+                << "': parent link '" << urdf_parent->name
+                << "' could not be found." << endl;
+      throw RBDLFileParseError(error_msg.str());
+    }
+
+    // create the joint
+    Joint rbdl_joint = get_rbdl_joint(urdf_joint);
+
+    // compute the joint transformation
+    // Temp variable used for compatability between urdf functions
+    // and potential Casadi symbolics.
+    urdf::Vector3 joint_rpy_temp;
+
+    Vector3d joint_rpy;
+    Vector3d joint_translation;
+    urdf_joint->PARENT_TRANSFORM.rotation.RPY(joint_rpy_temp.x,
+                                              joint_rpy_temp.y, joint_rpy_temp.z);
+    joint_rpy.set(joint_rpy_temp.x, joint_rpy_temp.y, joint_rpy_temp.z);
+    joint_translation.set(
+      urdf_joint->PARENT_TRANSFORM.position.x,
+      urdf_joint->PARENT_TRANSFORM.position.y,
+      urdf_joint->PARENT_TRANSFORM.position.z);
+     SpatialTransform rbdl_joint_frame =
+       Xrotx(joint_rpy[0])
+       * Xroty(joint_rpy[1])
+       * Xrotz(joint_rpy[2])
+       * Xtrans(joint_translation);
+     //rbdl_joint_frame = Xtrans(joint_translation);
+
+    // assemble the body
+    Body rbdl_body = get_rbdl_body(urdf_child, false);
+
+    if (verbose) {
+      cout << "+ Adding Body: " << urdf_child->name << endl;
+      cout << "  parent_id  : " << rbdl_parent_id << endl;
+      cout << "  joint names: " << joint_names[j] << endl;
+      cout << "  joint frame: " << rbdl_joint_frame << endl;
+      cout << "  joint dofs : " << rbdl_joint.mDoFCount << endl;
+      for (unsigned int j = 0; j < rbdl_joint.mDoFCount; j++) {
+        cout << "    " << j << ": "
+             << rbdl_joint.mJointAxes[j].transpose() << endl;
+      }
+      cout << "  body inertia: " << endl
+           << rbdl_body.mInertia << endl;
+      cout << "  body mass   : " << rbdl_body.mMass << endl;
+      cout << "  body name   : " << urdf_child->name << endl;
+    }
+
+    if (urdf_joint->type == UrdfJointType::FLOATING) {
+      Matrix3d zero_matrix = Matrix3d::Zero();
+      Body null_body(0., Vector3d::Zero(), zero_matrix);
+      Joint joint_txtytz(JointTypeTranslationXYZ);
+      string trans_body_name = urdf_child->name + "_Translate";
+      rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame,
+                          joint_txtytz, null_body,
+                          trans_body_name);
+
+      Joint joint_euler_zyx(JointTypeEulerXYZ);
+      rbdl_model->AppendBody(SpatialTransform(), joint_euler_zyx,
+                             rbdl_body, urdf_child->name);
+    } else {
+      rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame, rbdl_joint,
+                          rbdl_body, urdf_child->name);
+    }
+  }
+}
+
 void construct_model(Model *rbdl_model, ModelPtr urdf_model,
                      bool floating_base, bool verbose) {
 
@@ -248,85 +334,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     }
   }
 
-  unsigned int j;
-  for (j = 0; j < joint_names.size(); j++) {
-    JointPtr urdf_joint = joint_map[joint_names[j]];
-    LinkPtr urdf_parent = link_map[urdf_joint->parent_link_name];
-    LinkPtr urdf_child = link_map[urdf_joint->child_link_name];
-
-    // determine where to add the current joint and child body
-    unsigned int rbdl_parent_id = 0;
-
-    rbdl_parent_id = rbdl_model->GetBodyId(urdf_parent->name.c_str());
-
-
-    if (rbdl_parent_id == std::numeric_limits<unsigned int>::max()) {
-      ostringstream error_msg;
-      error_msg << "Error while processing joint '" << urdf_joint->name
-                << "': parent link '" << urdf_parent->name
-                << "' could not be found." << endl;
-      throw RBDLFileParseError(error_msg.str());
-    }
-
-    // create the joint
-    Joint rbdl_joint = get_rbdl_joint(urdf_joint);
-
-    // compute the joint transformation
-    // Temp variable used for compatability between urdf functions
-    // and potential Casadi symbolics.
-    urdf::Vector3 joint_rpy_temp; 
-
-    Vector3d joint_rpy;
-    Vector3d joint_translation;
-    urdf_joint->PARENT_TRANSFORM.rotation.RPY(joint_rpy_temp.x,
-                                              joint_rpy_temp.y, joint_rpy_temp.z);
-    joint_rpy.set(joint_rpy_temp.x, joint_rpy_temp.y, joint_rpy_temp.z);
-    joint_translation.set(
-      urdf_joint->PARENT_TRANSFORM.position.x,
-      urdf_joint->PARENT_TRANSFORM.position.y,
-      urdf_joint->PARENT_TRANSFORM.position.z);
-     SpatialTransform rbdl_joint_frame =
-       Xrotx(joint_rpy[0])
-       * Xroty(joint_rpy[1])
-       * Xrotz(joint_rpy[2])
-       * Xtrans(joint_translation);
-     //rbdl_joint_frame = Xtrans(joint_translation);
-
-    // assemble the body
-    Body rbdl_body = get_rbdl_body(urdf_child, false);
-
-    if (verbose) {
-      cout << "+ Adding Body: " << urdf_child->name << endl;
-      cout << "  parent_id  : " << rbdl_parent_id << endl;
-      cout << "  joint frame: " << rbdl_joint_frame << endl;
-      cout << "  joint dofs : " << rbdl_joint.mDoFCount << endl;
-      for (unsigned int j = 0; j < rbdl_joint.mDoFCount; j++) {
-        cout << "    " << j << ": "
-             << rbdl_joint.mJointAxes[j].transpose() << endl;
-      }
-      cout << "  body inertia: " << endl
-           << rbdl_body.mInertia << endl;
-      cout << "  body mass   : " << rbdl_body.mMass << endl;
-      cout << "  body name   : " << urdf_child->name << endl;
-    }
-
-    if (urdf_joint->type == UrdfJointType::FLOATING) {
-      Matrix3d zero_matrix = Matrix3d::Zero();
-      Body null_body(0., Vector3d::Zero(), zero_matrix);
-      Joint joint_txtytz(JointTypeTranslationXYZ);
-      string trans_body_name = urdf_child->name + "_Translate";
-      rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame,
-                          joint_txtytz, null_body,
-                          trans_body_name);
-
-      Joint joint_euler_zyx(JointTypeEulerXYZ);
-      rbdl_model->AppendBody(SpatialTransform(), joint_euler_zyx,
-                             rbdl_body, urdf_child->name);
-    } else {
-      rbdl_model->AddBody(rbdl_parent_id, rbdl_joint_frame, rbdl_joint,
-                          rbdl_body, urdf_child->name);
-    }
-  }
+  add_joints_to_rbdl_model(rbdl_model, link_map, joint_map, joint_names, verbose);
 }
 // =============================================================================
 
