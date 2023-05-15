@@ -59,6 +59,38 @@ namespace RigidBodyDynamics
 
 // =============================================================================
 
+Joint get_rbdl_joint(const JointPtr &urdf_joint)
+{
+  Joint rbdl_joint;
+  if (urdf_joint->type == UrdfJointType::REVOLUTE ||
+      urdf_joint->type == UrdfJointType::CONTINUOUS) {
+    rbdl_joint = Joint(SpatialVector(urdf_joint->axis.x, urdf_joint->axis.y,
+                                     urdf_joint->axis.z, 0., 0., 0.));
+  } else if (urdf_joint->type == UrdfJointType::PRISMATIC) {
+    rbdl_joint = Joint(SpatialVector(0., 0., 0., urdf_joint->axis.x,
+                                     urdf_joint->axis.y, urdf_joint->axis.z));
+  } else if (urdf_joint->type == UrdfJointType::FIXED) {
+    rbdl_joint = Joint(JointTypeFixed);
+  } else if (urdf_joint->type == UrdfJointType::FLOATING) {
+    // todo: what order of DoF should be used?
+    rbdl_joint = Joint(
+      SpatialVector(0., 0., 0., 1., 0., 0.),
+      SpatialVector(0., 0., 0., 0., 1., 0.),
+      SpatialVector(0., 0., 0., 0., 0., 1.),
+      SpatialVector(1., 0., 0., 0., 0., 0.),
+      SpatialVector(0., 1., 0., 0., 0., 0.),
+      SpatialVector(0., 0., 1., 0., 0., 0.));
+  } else if (urdf_joint->type == UrdfJointType::PLANAR) {
+    // todo: which two directions should be used that are perpendicular
+    // to the specified axis?
+    ostringstream error_msg;
+    error_msg << "Error while processing joint '" << urdf_joint->name
+              << "': planar joints not yet supported!" << endl;
+    throw RBDLFileParseError(error_msg.str());
+  }
+  return rbdl_joint;
+}
+
 void construct_model(Model *rbdl_model, ModelPtr urdf_model,
                      bool floating_base, bool verbose) {
 
@@ -208,33 +240,7 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     }
 
     // create the joint
-    Joint rbdl_joint;
-    if (urdf_joint->type == UrdfJointType::REVOLUTE ||
-        urdf_joint->type == UrdfJointType::CONTINUOUS) {
-      rbdl_joint = Joint(SpatialVector(urdf_joint->axis.x, urdf_joint->axis.y,
-                                       urdf_joint->axis.z, 0., 0., 0.));
-    } else if (urdf_joint->type == UrdfJointType::PRISMATIC) {
-      rbdl_joint = Joint(SpatialVector(0., 0., 0., urdf_joint->axis.x,
-                                       urdf_joint->axis.y, urdf_joint->axis.z));
-    } else if (urdf_joint->type == UrdfJointType::FIXED) {
-      rbdl_joint = Joint(JointTypeFixed);
-    } else if (urdf_joint->type == UrdfJointType::FLOATING) {
-      // todo: what order of DoF should be used?
-      rbdl_joint = Joint(
-        SpatialVector(0., 0., 0., 1., 0., 0.),
-        SpatialVector(0., 0., 0., 0., 1., 0.),
-        SpatialVector(0., 0., 0., 0., 0., 1.),
-        SpatialVector(1., 0., 0., 0., 0., 0.),
-        SpatialVector(0., 1., 0., 0., 0., 0.),
-        SpatialVector(0., 0., 1., 0., 0., 0.));
-    } else if (urdf_joint->type == UrdfJointType::PLANAR) {
-      // todo: which two directions should be used that are perpendicular
-      // to the specified axis?
-      ostringstream error_msg;
-      error_msg << "Error while processing joint '" << urdf_joint->name
-                << "': planar joints not yet supported!" << endl;
-      throw RBDLFileParseError(error_msg.str());
-    }
+    Joint rbdl_joint = get_rbdl_joint(urdf_joint);
 
     // compute the joint transformation
     // Temp variable used for compatability between urdf functions
