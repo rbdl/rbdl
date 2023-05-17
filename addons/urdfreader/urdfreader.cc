@@ -475,7 +475,54 @@ RBDL_ADDON_DLLAPI bool URDFReadFromString(const char *model_xml_string,
     model->gravity.set(0., 0., -9.81);
 
     return true;
+}
+
+RBDL_ADDON_DLLAPI bool PartialURDFReadFromFile(const char *filename,
+                                               Model *model,
+                                               const std::string &root_link,
+                                               const std::vector<std::string> &tip_links,
+                                               bool floating_base, bool verbose)
+{
+  ifstream model_file(filename);
+  if (!model_file) {
+    cerr << "Error opening file '" << filename << "'." << endl;
+    abort();
   }
+
+  // reserve memory for the contents of the file
+  string model_xml_string;
+  model_file.seekg(0, std::ios::end);
+  model_xml_string.reserve(model_file.tellg());
+  model_file.seekg(0, std::ios::beg);
+  model_xml_string.assign((std::istreambuf_iterator<char>(model_file)),
+                          std::istreambuf_iterator<char>());
+
+  model_file.close();
+
+  return PartialURDFReadFromString(model_xml_string.c_str(), model, root_link, tip_links, floating_base,
+                            verbose);
+}
+
+RBDL_ADDON_DLLAPI bool PartialURDFReadFromString(const char *model_xml_string,
+                                                 Model *model,
+                                                 const std::string &root_link,
+                                                 const std::vector<std::string> &tip_links,
+                                                 bool floating_base, bool verbose)
+{
+  assert(model);
+
+#ifdef RBDL_USE_ROS_URDF_LIBRARY
+  ModelPtr urdf_model = urdf::parseURDF(model_xml_string);
+#else
+  ModelPtr urdf_model = urdf::UrdfModel::fromUrdfStr(model_xml_string);
+#endif
+
+  construct_partial_model(model, urdf_model, root_link, tip_links, floating_base, verbose);
+
+  model->gravity.set(0., 0., -9.81);
+
+  return true;
+}
 
 } // namespace Addons
 
