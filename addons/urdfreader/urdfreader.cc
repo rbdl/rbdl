@@ -338,6 +338,100 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
 }
 // =============================================================================
 
+void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
+                             const string &root_link, const vector<string> &tip_links,
+                             bool floating_base, bool verbose) {
+    LinkPtr urdf_root_link;
+
+    URDFLinkMap link_map = urdf_model->LINKMAP;
+    URDFJointMap joint_map = urdf_model->JOINTMAP;
+
+    vector<string> joint_names;
+
+    // Holds the links that we are processing in our depth first traversal
+    // with the top element being the current link.
+    stack<LinkPtr> link_stack;
+    // Holds the child joint index of the current link
+    stack<int> joint_index_stack;
+
+    // add the bodies in a depth-first order of the model tree
+    link_stack.push(link_map[(urdf_model->getLink(root_link)->name)]);
+
+    // add the root body
+    ConstLinkPtr root = urdf_model->getLink(root_link);
+    Body root_link_body = get_rbdl_body(root, true);
+
+    Joint root_joint(JointTypeFixed);
+    if (floating_base) {
+      root_joint = JointTypeFloatingBase;
+    }
+
+    SpatialTransform root_joint_frame = SpatialTransform();
+
+    if (verbose) {
+      cout << "+ Adding Root Body " << endl;
+      cout << "  joint frame: " << root_joint_frame << endl;
+      if (floating_base) {
+        cout << "  joint type : floating" << endl;
+      } else {
+        cout << "  joint type : fixed" << endl;
+      }
+      cout << "  body inertia: " << endl
+           << root_link_body.mInertia << endl;
+      cout << "  body mass   : " << root_link_body.mMass << endl;
+      cout << "  body name   : " << root->name << endl;
+    }
+
+    rbdl_model->AppendBody(root_joint_frame,
+                           root_joint,
+                           root_link_body,
+                           root->name);
+
+    // depth first traversal: push the first child onto our joint_index_stack
+    joint_index_stack.push(0);
+
+    for(const std::string &tip_link : tip_links)
+    {
+        vector<string> local_joint_names;
+        string parent_link = tip_link;
+        vector<string> links_verbose;
+        while(parent_link.compare(root_link) != 0)
+        {
+          ostringstream verbose_string;
+          local_joint_names.push_back(link_map[parent_link]->parent_joint->name);
+          if(!link_map[parent_link]->getParent()){
+            ostringstream error_msg;
+            error_msg << "Error while processing tip link '" << tip_link
+                      << "' as reached root link is '" << parent_link
+                      << "', couldn't find desired root link '"
+                      << root_link << "' in the tree"  << endl;
+            throw RBDLFileParseError(error_msg.str());
+          }
+          parent_link = link_map[parent_link]->getParent()->name;
+          if (verbose) {
+          verbose_string << "joint '" << link_map[parent_link]->parent_joint->name
+                         << "' child link '"
+                         << link_map[parent_link]->parent_joint->child_link_name
+                         << "' type = " << link_map[parent_link]->parent_joint->type << endl;
+          links_verbose.push_back(verbose_string.str());
+          }
+        }
+        reverse(local_joint_names.begin(), local_joint_names.end());
+        reverse(links_verbose.begin(), links_verbose.end());
+        joint_names.insert(joint_names.end(), local_joint_names.begin(), local_joint_names.end());
+        if(verbose)
+        {
+          for (unsigned int i = 0; i < links_verbose.size(); i++) {
+          for (unsigned int j = 0; j < i; j++) {
+            cout << "  ";
+          }
+            cout << links_verbose[i];
+          }
+        }
+    }
+    add_joints_to_rbdl_model(rbdl_model, link_map, joint_map, joint_names, verbose);
+}
+
 RBDL_ADDON_DLLAPI bool URDFReadFromFile(const char *filename, Model *model,
                                         bool floating_base, bool verbose)
 {
