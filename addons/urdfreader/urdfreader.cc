@@ -277,7 +277,7 @@ void add_joints_to_rbdl_model(Model *rbdl_model, const URDFLinkMap &link_map,
 }
 
 void construct_model(Model *rbdl_model, ModelPtr urdf_model,
-                     bool floating_base, bool verbose) {
+                     const string &root_link, bool floating_base, bool verbose) {
 
   LinkPtr urdf_root_link;
 
@@ -293,11 +293,11 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
   stack<int> joint_index_stack;
 
   // add the bodies in a depth-first order of the model tree
-  link_stack.push(link_map[(urdf_model->getRoot()->name)]);
+  link_stack.push(link_map[root_link]);
 
   // add the root body
-  ConstLinkPtr root = urdf_model->getRoot();
-  Body root_link = get_rbdl_body(root, true);
+  ConstLinkPtr root = urdf_model->getLink(root_link);
+  Body root_link_body = get_rbdl_body(root, true);
 
   Joint root_joint(JointTypeFixed);
   if (floating_base) {
@@ -315,14 +315,14 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
       cout << "  joint type : fixed" << endl;
     }
     cout << "  body inertia: " << endl
-         << root_link.mInertia << endl;
-    cout << "  body mass   : " << root_link.mMass << endl;
+         << root_link_body.mInertia << endl;
+    cout << "  body mass   : " << root_link_body.mMass << endl;
     cout << "  body name   : " << root->name << endl;
   }
 
   rbdl_model->AppendBody(root_joint_frame,
                          root_joint,
-                         root_link,
+                         root_link_body,
                          root->name);
 
   // depth first traversal: push the first child onto our joint_index_stack
@@ -489,7 +489,8 @@ RBDL_ADDON_DLLAPI bool URDFReadFromString(const char *model_xml_string,
     ModelPtr urdf_model = urdf::UrdfModel::fromUrdfStr(model_xml_string);
 #endif
 
-    construct_model(model, urdf_model, floating_base, verbose);
+    construct_model(model, urdf_model, urdf_model->getRoot()->name,
+                    floating_base, verbose);
 
     model->gravity.set(0., 0., -9.81);
 
@@ -524,8 +525,13 @@ RBDL_ADDON_DLLAPI bool PartialURDFReadFromString(
   ModelPtr urdf_model = urdf::UrdfModel::fromUrdfStr(model_xml_string);
 #endif
 
-  construct_partial_model(model, urdf_model, root_link, tip_links,
-                          floating_base, verbose);
+  if(tip_links.empty()){
+      construct_model(model, urdf_model, root_link, floating_base, verbose);
+  }
+  else{
+      construct_partial_model(model, urdf_model, root_link, tip_links,
+                              floating_base, verbose);
+  }
 
   model->gravity.set(0., 0., -9.81);
 
