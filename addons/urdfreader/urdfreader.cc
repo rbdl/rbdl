@@ -292,6 +292,13 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
   // Holds the child joint index of the current link
   stack<int> joint_index_stack;
 
+  // Check if the parsed root link is a valid one or not
+  if(link_map.count(root_link) == 0){
+    ostringstream error_msg;
+    error_msg << "Error the parsed root link: '" << root_link
+              << "' could not be found." << endl;
+    throw RBDLFileParseError(error_msg.str());
+  }
   // add the bodies in a depth-first order of the model tree
   link_stack.push(link_map[root_link]);
 
@@ -382,6 +389,18 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
     // Holds the child joint index of the current link
     stack<int> joint_index_stack;
 
+    // Check if the parsed root link and tip links are valid or not
+    if(link_map.count(root_link) == 0){
+      ostringstream error_msg;
+      error_msg << "Error the parsed root link: '" << root_link
+                << "' could not be found." << endl;
+      throw RBDLFileParseError(error_msg.str());
+    }
+    if(tip_links.empty()){
+      ostringstream error_msg;
+      error_msg << "Error the parsed tip links cannot be empty!" << endl;
+      throw RBDLFileParseError(error_msg.str());
+    }
     // add the bodies in a depth-first order of the model tree
     link_stack.push(link_map[(urdf_model->getLink(root_link)->name)]);
 
