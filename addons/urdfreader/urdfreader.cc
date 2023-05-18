@@ -59,6 +59,27 @@ namespace RigidBodyDynamics
 
 // =============================================================================
 
+std::string get_model_xml_string_from_file(const char *filename)
+{
+  ifstream model_file(filename);
+  if (!model_file) {
+    ostringstream error_msg;
+    error_msg << "Error opening file '" << filename << "'." << endl;
+    throw RBDLFileParseError(error_msg.str());
+  }
+
+  // reserve memory for the contents of the file
+  string model_xml_string;
+  model_file.seekg(0, std::ios::end);
+  model_xml_string.reserve(model_file.tellg());
+  model_file.seekg(0, std::ios::beg);
+  model_xml_string.assign((std::istreambuf_iterator<char>(model_file)),
+                          std::istreambuf_iterator<char>());
+
+  model_file.close();
+  return model_xml_string;
+}
+
 Joint get_rbdl_joint(const JointPtr &urdf_joint)
 {
   Joint rbdl_joint;
@@ -435,21 +456,7 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
 RBDL_ADDON_DLLAPI bool URDFReadFromFile(const char *filename, Model *model,
                                         bool floating_base, bool verbose)
 {
-  ifstream model_file(filename);
-  if (!model_file) {
-    cerr << "Error opening file '" << filename << "'." << endl;
-    abort();
-  }
-
-  // reserve memory for the contents of the file
-  string model_xml_string;
-  model_file.seekg(0, std::ios::end);
-  model_xml_string.reserve(model_file.tellg());
-  model_file.seekg(0, std::ios::beg);
-  model_xml_string.assign((std::istreambuf_iterator<char>(model_file)),
-                          std::istreambuf_iterator<char>());
-
-  model_file.close();
+  const string model_xml_string = get_model_xml_string_from_file(filename);
 
   return URDFReadFromString(model_xml_string.c_str(), model, floating_base,
                             verbose);
@@ -483,21 +490,7 @@ RBDL_ADDON_DLLAPI bool PartialURDFReadFromFile(const char *filename,
                                                const std::vector<std::string> &tip_links,
                                                bool floating_base, bool verbose)
 {
-  ifstream model_file(filename);
-  if (!model_file) {
-    cerr << "Error opening file '" << filename << "'." << endl;
-    abort();
-  }
-
-  // reserve memory for the contents of the file
-  string model_xml_string;
-  model_file.seekg(0, std::ios::end);
-  model_xml_string.reserve(model_file.tellg());
-  model_file.seekg(0, std::ios::beg);
-  model_xml_string.assign((std::istreambuf_iterator<char>(model_file)),
-                          std::istreambuf_iterator<char>());
-
-  model_file.close();
+  const string model_xml_string = get_model_xml_string_from_file(filename);
 
   return PartialURDFReadFromString(model_xml_string.c_str(), model, root_link, tip_links, floating_base,
                             verbose);
