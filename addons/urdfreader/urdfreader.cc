@@ -137,12 +137,13 @@ Body get_rbdl_body(const LinkPtr &urdf_link, bool is_root_link)
       I->origin.position.y,
       I->origin.position.z);
 
-    if(!is_root_link)
-    {
+    if(!is_root_link){
       I->origin.rotation.RPY(link_inertial_rpy_temp.x,
-                                 link_inertial_rpy_temp.y,
-                                 link_inertial_rpy_temp.z);
-      link_inertial_rpy.set(link_inertial_rpy_temp.x, link_inertial_rpy_temp.y, link_inertial_rpy_temp.z);
+                             link_inertial_rpy_temp.y,
+                             link_inertial_rpy_temp.z);
+      link_inertial_rpy.set(link_inertial_rpy_temp.x,
+                            link_inertial_rpy_temp.y,
+                            link_inertial_rpy_temp.z);
     }
 
     link_inertial_inertia(0, 0) = I->ixx;
@@ -159,7 +160,9 @@ Body get_rbdl_body(const LinkPtr &urdf_link, bool is_root_link)
 
     if(is_root_link)
     {
-      if (link_inertial_mass == 0. && (I->ixx !=0 || I->ixy!=0 || I-> ixz != 0 || I->iyy != 0 || I->iyz !=0 || I->izz != 0 )) {
+      if (link_inertial_mass == 0.
+          && (I->ixx != 0 || I->ixy != 0 || I->ixz != 0 || I->iyy != 0
+              || I->iyz != 0 || I->izz != 0)) {
         std::ostringstream error_msg;
         error_msg << "Error creating rbdl model! Urdf root link ("
                   << urdf_link->name
@@ -169,7 +172,8 @@ Body get_rbdl_body(const LinkPtr &urdf_link, bool is_root_link)
     }
     else
     {
-      if (link_inertial_rpy_temp.x != 0 || link_inertial_rpy_temp.y != 0 || link_inertial_rpy_temp.z != 0 ) {
+      if (link_inertial_rpy_temp.x != 0 || link_inertial_rpy_temp.y != 0
+          || link_inertial_rpy_temp.z != 0) {
         ostringstream error_msg;
         error_msg << "Error while processing body '" << urdf_link->name
                   << "': rotation of body frames not yet supported."
@@ -220,7 +224,8 @@ void add_joints_to_rbdl_model(Model *rbdl_model, const URDFLinkMap &link_map,
     Vector3d joint_rpy;
     Vector3d joint_translation;
     urdf_joint->PARENT_TRANSFORM.rotation.RPY(joint_rpy_temp.x,
-                                              joint_rpy_temp.y, joint_rpy_temp.z);
+                                              joint_rpy_temp.y,
+                                              joint_rpy_temp.z);
     joint_rpy.set(joint_rpy_temp.x, joint_rpy_temp.y, joint_rpy_temp.z);
     joint_translation.set(
       urdf_joint->PARENT_TRANSFORM.position.x,
@@ -355,12 +360,14 @@ void construct_model(Model *rbdl_model, ModelPtr urdf_model,
     }
   }
 
-  add_joints_to_rbdl_model(rbdl_model, link_map, joint_map, joint_names, verbose);
+  add_joints_to_rbdl_model(rbdl_model, link_map, joint_map, joint_names,
+                           verbose);
 }
 // =============================================================================
 
 void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
-                             const string &root_link, const vector<string> &tip_links,
+                             const string &root_link,
+                             const vector<string> &tip_links,
                              bool floating_base, bool verbose) {
     LinkPtr urdf_root_link;
 
@@ -419,8 +426,9 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
         while(parent_link.compare(root_link) != 0)
         {
           ostringstream verbose_string;
-          local_joint_names.push_back(link_map[parent_link]->parent_joint->name);
-          if(!link_map[parent_link]->getParent()){
+          local_joint_names.push_back(
+              link_map[parent_link]->parent_joint->name);
+          if (!link_map[parent_link]->getParent()) {
             ostringstream error_msg;
             error_msg << "Error while processing tip link '" << tip_link
                       << "' as reached root link is '" << parent_link
@@ -430,16 +438,19 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
           }
           parent_link = link_map[parent_link]->getParent()->name;
           if (verbose) {
-          verbose_string << "joint '" << link_map[parent_link]->parent_joint->name
-                         << "' child link '"
-                         << link_map[parent_link]->parent_joint->child_link_name
-                         << "' type = " << link_map[parent_link]->parent_joint->type << endl;
-          links_verbose.push_back(verbose_string.str());
+            verbose_string
+                << "joint '" << link_map[parent_link]->parent_joint->name
+                << "' child link '"
+                << link_map[parent_link]->parent_joint->child_link_name
+                << "' type = " << link_map[parent_link]->parent_joint->type
+                << endl;
+            links_verbose.push_back(verbose_string.str());
           }
         }
         reverse(local_joint_names.begin(), local_joint_names.end());
         reverse(links_verbose.begin(), links_verbose.end());
-        joint_names.insert(joint_names.end(), local_joint_names.begin(), local_joint_names.end());
+        joint_names.insert(joint_names.end(), local_joint_names.begin(),
+                           local_joint_names.end());
         if(verbose)
         {
           for (unsigned int i = 0; i < links_verbose.size(); i++) {
@@ -450,7 +461,8 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
           }
         }
     }
-    add_joints_to_rbdl_model(rbdl_model, link_map, joint_map, joint_names, verbose);
+    add_joints_to_rbdl_model(rbdl_model, link_map, joint_map, joint_names,
+                             verbose);
 }
 
 RBDL_ADDON_DLLAPI bool URDFReadFromFile(const char *filename, Model *model,
@@ -484,24 +496,26 @@ RBDL_ADDON_DLLAPI bool URDFReadFromString(const char *model_xml_string,
     return true;
 }
 
-RBDL_ADDON_DLLAPI bool PartialURDFReadFromFile(const char *filename,
-                                               Model *model,
-                                               const std::string &root_link,
-                                               const std::vector<std::string> &tip_links,
-                                               bool floating_base, bool verbose)
-{
+RBDL_ADDON_DLLAPI bool PartialURDFReadFromFile(
+    const char *filename,
+    Model *model,
+    const std::string &root_link,
+    const std::vector<std::string> &tip_links,
+    bool floating_base,
+    bool verbose) {
   const string model_xml_string = get_model_xml_string_from_file(filename);
 
-  return PartialURDFReadFromString(model_xml_string.c_str(), model, root_link, tip_links, floating_base,
-                            verbose);
+  return PartialURDFReadFromString(model_xml_string.c_str(), model, root_link,
+                                   tip_links, floating_base, verbose);
 }
 
-RBDL_ADDON_DLLAPI bool PartialURDFReadFromString(const char *model_xml_string,
-                                                 Model *model,
-                                                 const std::string &root_link,
-                                                 const std::vector<std::string> &tip_links,
-                                                 bool floating_base, bool verbose)
-{
+RBDL_ADDON_DLLAPI bool PartialURDFReadFromString(
+    const char *model_xml_string,
+    Model *model,
+    const std::string &root_link,
+    const std::vector<std::string> &tip_links,
+    bool floating_base,
+    bool verbose) {
   assert(model);
 
 #ifdef RBDL_USE_ROS_URDF_LIBRARY
@@ -510,7 +524,8 @@ RBDL_ADDON_DLLAPI bool PartialURDFReadFromString(const char *model_xml_string,
   ModelPtr urdf_model = urdf::UrdfModel::fromUrdfStr(model_xml_string);
 #endif
 
-  construct_partial_model(model, urdf_model, root_link, tip_links, floating_base, verbose);
+  construct_partial_model(model, urdf_model, root_link, tip_links,
+                          floating_base, verbose);
 
   model->gravity.set(0., 0., -9.81);
 
