@@ -199,7 +199,9 @@ struct RBDL_DLLAPI Body {
     LOG << "new_com  = " << new_com.transpose() << std::endl;
     LOG << "new_inertia  = " << std::endl << new_inertia << std::endl;
 
-    *this = Body (new_mass, new_com, new_inertia);
+    mMass = new_mass;
+    mCenterOfMass = new_com;
+    mInertia = new_inertia;
   }
 
   ~Body() {};
