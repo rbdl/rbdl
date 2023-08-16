@@ -30,13 +30,19 @@ struct RBDL_DLLAPI Body {
     mMass (0.),
     mCenterOfMass (0., 0., 0.),
     mInertia (Math::Matrix3d::Zero()),
-    mIsVirtual (false)
+    mIsVirtual (false),
+    mInitialMass(mMass),
+    mInitialCenterOfMass(mCenterOfMass),
+    mInitialInertia(mInertia)
   { };
   Body(const Body &body) :
     mMass (body.mMass),
     mCenterOfMass (body.mCenterOfMass),
     mInertia (body.mInertia),
-    mIsVirtual (body.mIsVirtual)
+    mIsVirtual (body.mIsVirtual),
+    mInitialMass(mMass),
+    mInitialCenterOfMass(mCenterOfMass),
+    mInitialInertia(mInertia)
   {};
   Body& operator= (const Body &body)
   {
@@ -45,6 +51,9 @@ struct RBDL_DLLAPI Body {
       mInertia = body.mInertia;
       mCenterOfMass = body.mCenterOfMass;
       mIsVirtual = body.mIsVirtual;
+      mInitialMass = body.mInitialMass;
+      mInitialCenterOfMass = body.mInitialCenterOfMass;
+      mInitialInertia = body.mInitialInertia;
     }
 
     return *this;
@@ -66,13 +75,16 @@ struct RBDL_DLLAPI Body {
       const Math::Vector3d &gyration_radii) :
     mMass (mass),
     mCenterOfMass(com),
-    mIsVirtual (false)
+    mIsVirtual (false),
+    mInitialMass(mMass),
+    mInitialCenterOfMass(mCenterOfMass)
   {
     mInertia = Math::Matrix3d (
                  gyration_radii[0], 0., 0.,
                  0., gyration_radii[1], 0.,
                  0., 0., gyration_radii[2]
                );
+    mInitialInertia = mInertia;
   }
 
   /** \brief Constructs a body from mass, center of mass, and a 3x3 inertia matrix
@@ -92,7 +104,10 @@ struct RBDL_DLLAPI Body {
     mMass (mass),
     mCenterOfMass(com),
     mInertia (inertia_C),
-    mIsVirtual (false) { }
+    mIsVirtual (false),
+    mInitialMass(mMass),
+    mInitialCenterOfMass(mCenterOfMass),
+    mInitialInertia(mInertia) { }
 
   /** \brief Joins inertial parameters of two bodies to create a composite
    * body.
@@ -197,6 +212,18 @@ struct RBDL_DLLAPI Body {
   Math::Matrix3d mInertia;
 
   bool mIsVirtual;
+
+  /// The following members are used to save the original values of the Body and
+  /// are not updated when a fixed body is attached to this body
+  /// \brief The mass of the body not taking in account any fixed body attached to this
+  /// body
+  double mInitialMass;
+  /// \brief The position of the center of mass in body coordinates not taking in account
+  /// any fixed body attached to this body
+  Math::Vector3d mInitialCenterOfMass;
+  /// \brief Inertia matrix at the center of mass not taking in account any fixed body
+  /// attached to this body
+  Math::Matrix3d mInitialInertia;
 };
 
 /** \brief Keeps the information of a body and how it is attached to another body.
