@@ -508,3 +508,19 @@ unsigned int Model::AddBodyCustomJoint (
   return body_id;
 }
 
+void Model::updateInertiaMatrixForBody(const unsigned int id)
+{
+  unsigned int body_id(id);
+  if(IsFixedBodyId(id))
+  {
+    body_id = mFixedBodies[id - fixed_body_discriminator].mMovableParent;
+  }
+
+  const Body &body(mBodies[body_id]);
+  Math::SpatialRigidBodyInertia rbi =
+      Math::SpatialRigidBodyInertia::createFromMassComInertiaC(
+          body.mMass, body.mCenterOfMass, body.mInertia);
+  Ic[id] = rbi;
+  I[id] = rbi;
+}
+
