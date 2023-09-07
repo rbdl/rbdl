@@ -205,9 +205,7 @@ struct RBDL_DLLAPI Body {
     LOG << "new_com  = " << new_com.transpose() << std::endl;
     LOG << "new_inertia  = " << std::endl << new_inertia << std::endl;
 
-    mMass = new_mass;
-    mCenterOfMass = new_com;
-    mInertia = new_inertia;
+    *this = Body (new_mass, new_com, new_inertia);
   }
 
   /**
@@ -273,9 +271,7 @@ struct RBDL_DLLAPI Body {
         inertia_substracted - new_mass * Math::VectorCrossMatrix(new_com) *
                                   Math::VectorCrossMatrix(new_com).transpose();
 
-    mMass = new_mass;
-    mCenterOfMass = new_com;
-    mInertia = new_inertia;
+    *this = Body (new_mass, new_com, new_inertia);
   }
 
   ~Body() {};
