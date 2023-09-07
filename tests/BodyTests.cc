@@ -260,3 +260,122 @@ TEST_CASE (__FILE__"_TestBodyConstructorCopySpatialRigidBodyInertia", "" ) {
   CHECK_THAT (rbi.toMatrix(),
               AllCloseMatrix(rbi_from_matrix.toMatrix(), TEST_PREC, TEST_PREC));
 }
+
+TEST_CASE (__FILE__"_TestBodySeparateBody", "" ) {
+  Body body_init(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
+  const double mass_init = body_init.mMass;
+  const Math::Matrix3d inertia_init = body_init.mInertia;
+  const Math::Vector3d com_init = body_init.mCenterOfMass;
+
+  Body fixedbody_1(0.7, Vector3d (1.1, 0.8, 1.6), Vector3d (1.5, 1.2, 1.3));
+  Body fixedbody_2(0.4, Vector3d (0.7, 1.2, 0.9), Vector3d (0.6,0.7,0.2));
+  Math::SpatialTransform body1_transform(Matrix3d::Identity(), Vector3d::Zero());
+  Math::SpatialTransform body2_transform(Matrix3d::Identity(), Vector3d::Zero());
+
+  body_init.Join(body1_transform, fixedbody_1);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_1.mMass) < TEST_PREC));
+
+  const double mass_joined_1 = body_init.mMass;
+  const Math::Matrix3d inertia_joined_1 = body_init.mInertia;
+  const Math::Vector3d com_joined_1 = body_init.mCenterOfMass;
+  body_init.Join(body2_transform, fixedbody_2);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_1.mMass + fixedbody_2.mMass) < TEST_PREC));
+
+  body_init.Separate(body2_transform, fixedbody_2);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_1.mMass) < TEST_PREC));
+  CHECK_THAT(body_init.mInertia, AllCloseMatrix(inertia_joined_1, TEST_PREC, TEST_PREC));
+  CHECK_THAT(body_init.mCenterOfMass, AllCloseVector(com_joined_1, TEST_PREC, TEST_PREC));
+
+
+  body_init.Separate(body1_transform, fixedbody_1);
+
+  CHECK(fabs(body_init.mMass - (mass_init) < TEST_PREC));
+  CHECK_THAT(body_init.mInertia, AllCloseMatrix(inertia_init, TEST_PREC, TEST_PREC));
+  CHECK_THAT(body_init.mCenterOfMass, AllCloseVector(com_init, TEST_PREC, TEST_PREC));
+
+}
+
+
+TEST_CASE (__FILE__"_TestBodySeparateBodyWithTransform", "" ) {
+  Body body_init(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
+  const double mass_init = body_init.mMass;
+  const Math::Matrix3d inertia_init = body_init.mInertia;
+  const Math::Vector3d com_init = body_init.mCenterOfMass;
+
+  Body fixedbody_1(0.7, Vector3d (1.1, 0.8, 1.6), Vector3d (1.5, 1.2, 1.3));
+  Body fixedbody_2(0.4, Vector3d (0.7, 1.2, 0.9), Vector3d (0.6,0.7,0.2));
+  Math::SpatialTransform body1_transform(
+      (Xrotx(M_PI * 0.5) * Xroty(-M_PI * 0.7) * Xrotz(M_PI * 0.1)).E, Vector3d(1.1, 0.6, -0.8));
+  Math::SpatialTransform body2_transform(
+        (Xrotx(-M_PI * 0.6) * Xroty(-M_PI * 0.2) * Xrotz(M_PI * 0.9)).E, Vector3d(-0.3, 0.1, 1.8));
+
+  body_init.Join(body1_transform, fixedbody_1);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_1.mMass) < TEST_PREC));
+
+  const double mass_joined_1 = body_init.mMass;
+  const Math::Matrix3d inertia_joined_1 = body_init.mInertia;
+  const Math::Vector3d com_joined_1 = body_init.mCenterOfMass;
+  body_init.Join(body2_transform, fixedbody_2);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_1.mMass + fixedbody_2.mMass) < TEST_PREC));
+
+  body_init.Separate(body2_transform, fixedbody_2);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_1.mMass) < TEST_PREC));
+  CHECK_THAT(body_init.mInertia, AllCloseMatrix(inertia_joined_1, TEST_PREC, TEST_PREC));
+  CHECK_THAT(body_init.mCenterOfMass, AllCloseVector(com_joined_1, TEST_PREC, TEST_PREC));
+
+
+  body_init.Separate(body1_transform, fixedbody_1);
+
+  CHECK(fabs(body_init.mMass - (mass_init) < TEST_PREC));
+  CHECK_THAT(body_init.mInertia, AllCloseMatrix(inertia_init, TEST_PREC, TEST_PREC));
+  CHECK_THAT(body_init.mCenterOfMass, AllCloseVector(com_init, TEST_PREC, TEST_PREC));
+
+}
+
+TEST_CASE (__FILE__"_TestBodySeparateBodyWithTransformChangeOrder", "" ) {
+  Body body_init(1.1, Vector3d (1.5, 1.2, 1.3), Vector3d (1.4, 2., 3.));
+  const double mass_init = body_init.mMass;
+  const Math::Matrix3d inertia_init = body_init.mInertia;
+  const Math::Vector3d com_init = body_init.mCenterOfMass;
+
+  Body fixedbody_1(0.7, Vector3d (1.1, 0.8, 1.6), Vector3d (1.5, 1.2, 1.3));
+  Body fixedbody_2(0.4, Vector3d (0.7, 1.2, 0.9), Vector3d (0.6,0.7,0.2));
+  Math::SpatialTransform body1_transform(
+      (Xrotx(M_PI * 0.5) * Xroty(-M_PI * 0.7) * Xrotz(M_PI * 0.1)).E, Vector3d(1.1, 0.6, -0.8));
+  Math::SpatialTransform body2_transform(
+        (Xrotx(-M_PI * 0.6) * Xroty(-M_PI * 0.2) * Xrotz(M_PI * 0.9)).E, Vector3d(-0.3, 0.1, 1.8));
+
+  // create a body with only body_init and fixedbody_2 to check the values after joining and separating fixedbody_1
+  Body body_init_2(body_init);
+  body_init_2.Join(body2_transform, fixedbody_2);
+  CHECK(fabs(body_init_2.mMass - (mass_init + fixedbody_2.mMass) < TEST_PREC));
+
+
+  // Join fixedbody 1 and 2 in body init
+  body_init.Join(body1_transform, fixedbody_1);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_1.mMass) < TEST_PREC));
+
+  body_init.Join(body2_transform, fixedbody_2);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_1.mMass + fixedbody_2.mMass) < TEST_PREC));
+
+  body_init.Separate(body1_transform, fixedbody_1);
+
+  CHECK(fabs(body_init.mMass - (mass_init + fixedbody_2.mMass) < TEST_PREC));
+  CHECK_THAT(body_init.mInertia, AllCloseMatrix(body_init_2.mInertia, TEST_PREC, TEST_PREC));
+  CHECK_THAT(body_init.mCenterOfMass, AllCloseVector(body_init_2.mCenterOfMass, TEST_PREC, TEST_PREC));
+
+
+  body_init.Separate(body2_transform, fixedbody_2);
+
+  CHECK(fabs(body_init.mMass - (mass_init) < TEST_PREC));
+  CHECK_THAT(body_init.mInertia, AllCloseMatrix(inertia_init, TEST_PREC, TEST_PREC));
+  CHECK_THAT(body_init.mCenterOfMass, AllCloseVector(com_init, TEST_PREC, TEST_PREC));
+}
