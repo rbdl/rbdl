@@ -524,3 +524,64 @@ void Model::updateInertiaMatrixForBody(const unsigned int id)
   I[id] = rbi;
 }
 
+
+void Model::setBodyMass(const unsigned int id, const double mass)
+{
+  if(IsFixedBodyId(id))
+  {
+    mFixedBodies[id - fixed_body_discriminator].mMass = mass;
+  }
+  else
+  {
+    mBodies[id].mMass = mass;
+  }
+  updateInertiaMatrixForBody(id);
+}
+
+
+void Model::setBodyInertia(const unsigned int id, const Math::Matrix3d &inertia)
+{
+  if(IsFixedBodyId(id))
+  {
+    mFixedBodies[id - fixed_body_discriminator].mInertia = inertia;
+  }
+  else
+  {
+    mBodies[id].mInertia = inertia;
+  }
+  updateInertiaMatrixForBody(id);
+}
+
+
+void Model::setBodyCenterOfMass(const unsigned int id, const Math::Vector3d &com)
+{
+  if(IsFixedBodyId(id))
+  {
+    mFixedBodies[id - fixed_body_discriminator].mCenterOfMass = com;
+  }
+  else
+  {
+    mBodies[id].mCenterOfMass = com;
+  }
+  updateInertiaMatrixForBody(id);
+}
+
+
+void Model::setBodyInertialParameters(const unsigned int id, const double mass,
+                               const Math::Matrix3d &inertia, const Math::Vector3d &com)
+{
+  if(IsFixedBodyId(id))
+  {
+    mFixedBodies[id - fixed_body_discriminator].mMass = mass;
+    mFixedBodies[id - fixed_body_discriminator].mInertia = inertia;
+    mFixedBodies[id - fixed_body_discriminator].mCenterOfMass = com;
+  }
+  else
+  {
+    mBodies[id].mMass = mass;
+    mBodies[id].mInertia = inertia;
+    mBodies[id].mCenterOfMass = com;
+  }
+  updateInertiaMatrixForBody(id);
+}
+
