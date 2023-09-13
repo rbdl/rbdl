@@ -520,8 +520,8 @@ void Model::updateInertiaMatrixForBody(const unsigned int id)
   Math::SpatialRigidBodyInertia rbi =
       Math::SpatialRigidBodyInertia::createFromMassComInertiaC(
           body.mMass, body.mCenterOfMass, body.mInertia);
-  Ic[id] = rbi;
-  I[id] = rbi;
+  Ic[body_id] = rbi;
+  I[body_id] = rbi;
 }
 
 
@@ -529,7 +529,15 @@ void Model::setBodyMass(const unsigned int id, const double mass)
 {
   if(IsFixedBodyId(id))
   {
-    mFixedBodies[id - fixed_body_discriminator].mMass = mass;
+    // The inertial parameters of the fixed body have already been merged in the parent body,
+    // in order to update correctly the parent body we need to first
+    // remove the inertial effects of the fixed body from his parent body
+    // Then update the fixed body inertia
+    // Finally, merge it again in the parent body
+    FixedBody& fixedbody(mFixedBodies[id - fixed_body_discriminator]);
+    mBodies[fixedbody.mMovableParent].Separate(fixedbody.mParentTransform, fixedbody.toBody());
+    fixedbody.mMass = mass;
+    mBodies[fixedbody.mMovableParent].Join(fixedbody.mParentTransform, fixedbody.toBody());
   }
   else
   {
@@ -543,7 +551,15 @@ void Model::setBodyInertia(const unsigned int id, const Math::Matrix3d &inertia)
 {
   if(IsFixedBodyId(id))
   {
-    mFixedBodies[id - fixed_body_discriminator].mInertia = inertia;
+    // The inertial parameters of the fixed body have already been merged in the parent body,
+    // in order to update correctly the parent body we need to first
+    // remove the inertial effects of the fixed body from his parent body
+    // Then update the fixed body inertia
+    // Finally, merge it again in the parent body
+    FixedBody& fixedbody(mFixedBodies[id - fixed_body_discriminator]);
+    mBodies[fixedbody.mMovableParent].Separate(fixedbody.mParentTransform, fixedbody.toBody());
+    fixedbody.mInertia = inertia;
+    mBodies[fixedbody.mMovableParent].Join(fixedbody.mParentTransform, fixedbody.toBody());
   }
   else
   {
@@ -557,7 +573,15 @@ void Model::setBodyCenterOfMass(const unsigned int id, const Math::Vector3d &com
 {
   if(IsFixedBodyId(id))
   {
-    mFixedBodies[id - fixed_body_discriminator].mCenterOfMass = com;
+    // The inertial parameters of the fixed body have already been merged in the parent body,
+    // in order to update correctly the parent body we need to first
+    // remove the inertial effects of the fixed body from his parent body
+    // Then update the fixed body inertia
+    // Finally, merge it again in the parent body
+    FixedBody& fixedbody(mFixedBodies[id - fixed_body_discriminator]);
+    mBodies[fixedbody.mMovableParent].Separate(fixedbody.mParentTransform, fixedbody.toBody());
+    fixedbody.mCenterOfMass = com;
+    mBodies[fixedbody.mMovableParent].Join(fixedbody.mParentTransform, fixedbody.toBody());
   }
   else
   {
@@ -572,9 +596,17 @@ void Model::setBodyInertialParameters(const unsigned int id, const double mass,
 {
   if(IsFixedBodyId(id))
   {
-    mFixedBodies[id - fixed_body_discriminator].mMass = mass;
-    mFixedBodies[id - fixed_body_discriminator].mInertia = inertia;
-    mFixedBodies[id - fixed_body_discriminator].mCenterOfMass = com;
+    // The inertial parameters of the fixed body have already been merged in the parent body,
+    // in order to update correctly the parent body we need to first
+    // remove the inertial effects of the fixed body from his parent body
+    // Then update the fixed body inertia
+    // Finally, merge it again in the parent body
+    FixedBody& fixedbody(mFixedBodies[id - fixed_body_discriminator]);
+    mBodies[fixedbody.mMovableParent].Separate(fixedbody.mParentTransform, fixedbody.toBody());
+    fixedbody.mMass = mass;
+    fixedbody.mInertia = inertia;
+    fixedbody.mCenterOfMass = com;
+    mBodies[fixedbody.mMovableParent].Join(fixedbody.mParentTransform, fixedbody.toBody());
   }
   else
   {
