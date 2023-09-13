@@ -714,3 +714,94 @@ TEST_CASE (__FILE__"_TestAddFixedBodyToRoot", "") {
 
 }
 
+TEST_CASE (__FILE__"_TestUpdateBodyInertiaParameters", "") {
+  // create a model with a floating base and 2 revolute joints
+  Model model;
+  Body body_root;
+  Joint float_base_joint (JointTypeFloatingBase);
+  model.AppendBody (SpatialTransform(), float_base_joint, body_root);
+
+  // floating base joint type add 3 bodies
+  CHECK (3 == model.mBodies.size());
+
+  Body body1 (1., Vector3d (1., 1., 1.), Vector3d (1., 1., 1.));
+  const unsigned int id_body_1 = model.AppendBody (Xrotx (45 * M_PI / 180), JointTypeRevoluteX, body1, "body1");
+  Body body2(0.4, Vector3d (0.7, 1.2, 0.9), Vector3d (0.6,0.7,0.2));
+  const unsigned int id_body_2 = model.AppendBody (Xroty (90 * M_PI / 180), JointTypeRevoluteY, body2, "body2");
+  const Matrix3d inertia_body_2_init(body2.mInertia);
+  CHECK (5 == model.mBodies.size());
+  CHECK (0 == model.mFixedBodies.size());
+  CHECK (5 == model.Ic.size());
+  CHECK (5 == model.I.size());
+
+// == operator not implemented for SpatialInertia ...
+//  for(unsigned int i = 0 ; i < 5 ; ++i)
+//  {
+//    CHECK(model.Ic[i] == model.I[i]);
+//  }
+
+  // check that inertia parameters for the first three bodies are all at 0
+  for(unsigned int i = 0 ; i < 3 ; ++i)
+  {
+    CHECK(0 == model.Ic[i].m);
+    CHECK(0 == model.Ic[i].Ixx);
+    CHECK(0 == model.Ic[i].Iyx);
+    CHECK(0 == model.Ic[i].Iyy);
+    CHECK(0 == model.Ic[i].Izx);
+    CHECK(0 == model.Ic[i].Izy);
+    CHECK(0 == model.Ic[i].Izz);
+    CHECK_THAT(Vector3d::Zero(), AllCloseVector(model.Ic[0].h));
+  }
+
+  CHECK(fabs(1. - model.Ic[3].m) < TEST_PREC);
+  CHECK(fabs(3. - model.Ic[3].Ixx) < TEST_PREC);
+  CHECK(fabs(-1. - model.Ic[3].Iyx) < TEST_PREC);
+  CHECK(fabs(3. - model.Ic[3].Iyy) < TEST_PREC);
+  CHECK(fabs(-1. - model.Ic[3].Izx) < TEST_PREC);
+  CHECK(fabs(-1. - model.Ic[3].Izy) < TEST_PREC);
+  CHECK(fabs(3. - model.Ic[3].Izz) < TEST_PREC);
+  CHECK_THAT(Vector3d (1., 1., 1.), AllCloseVector(model.Ic[3].h));
+
+  CHECK(fabs(0.4 - model.Ic[4].m) < TEST_PREC);
+  CHECK(fabs(1.5 - model.Ic[4].Ixx) < TEST_PREC);
+  CHECK(fabs(-0.336 - model.Ic[4].Iyx) < TEST_PREC);
+  CHECK(fabs(1.22 - model.Ic[4].Iyy) < TEST_PREC);
+  CHECK(fabs(-0.252 - model.Ic[4].Izx) < TEST_PREC);
+  CHECK(fabs(-0.432 - model.Ic[4].Izy) < TEST_PREC);
+  CHECK(fabs(0.972 - model.Ic[4].Izz) < TEST_PREC);
+  CHECK_THAT(Vector3d (0.7, 1.2, 0.9) * 0.4, AllCloseVector(model.Ic[4].h));
+
+  // update inertia parameters of body 2 and check if the Ic matrix is correctly updated
+  model.setBodyMass(id_body_2, 1.6);
+  CHECK(fabs(1.6 - model.mBodies[id_body_2].mMass) < TEST_PREC);
+  CHECK(fabs(1.6 - model.Ic[id_body_2].m) < TEST_PREC);
+  CHECK_THAT(Vector3d (0.7, 1.2, 0.9) * 1.6, AllCloseVector(model.Ic[id_body_2].h));
+
+  model.setBodyCenterOfMass(id_body_2, Vector3d(1.2, 0.6, -0.7));
+  CHECK_THAT(Vector3d (1.2, 0.6, -0.7), AllCloseVector(model.mBodies[id_body_2].mCenterOfMass));
+  CHECK_THAT(Vector3d (1.2, 0.6, -0.7) * 1.6, AllCloseVector(model.Ic[id_body_2].h));
+
+  model.setBodyInertia(id_body_2, Matrix3d::Identity());
+  CHECK_THAT(Matrix3d::Identity(), AllCloseMatrix(model.mBodies[id_body_2].mInertia));
+  Math::SpatialRigidBodyInertia rbi =
+      Math::SpatialRigidBodyInertia::createFromMassComInertiaC(
+          model.mBodies[id_body_2].mMass, model.mBodies[id_body_2].mCenterOfMass, model.mBodies[id_body_2].mInertia);
+  CHECK(fabs(rbi.Ixx - model.Ic[id_body_2].Ixx) < TEST_PREC);
+  CHECK(fabs(rbi.Iyx - model.Ic[id_body_2].Iyx) < TEST_PREC);
+  CHECK(fabs(rbi.Iyy - model.Ic[id_body_2].Iyy) < TEST_PREC);
+  CHECK(fabs(rbi.Izx - model.Ic[id_body_2].Izx) < TEST_PREC);
+  CHECK(fabs(rbi.Izy - model.Ic[id_body_2].Izy) < TEST_PREC);
+  CHECK(fabs(rbi.Izz - model.Ic[id_body_2].Izz) < TEST_PREC);
+
+  model.setBodyInertialParameters(id_body_2, 0.4, inertia_body_2_init ,Vector3d(0.7, 1.2, 0.9));
+  CHECK(fabs(0.4 - model.Ic[id_body_2].m) < TEST_PREC);
+  CHECK(fabs(1.5 - model.Ic[id_body_2].Ixx) < TEST_PREC);
+  CHECK(fabs(-0.336 - model.Ic[id_body_2].Iyx) < TEST_PREC);
+  CHECK(fabs(1.22 - model.Ic[id_body_2].Iyy) < TEST_PREC);
+  CHECK(fabs(-0.252 - model.Ic[id_body_2].Izx) < TEST_PREC);
+  CHECK(fabs(-0.432 - model.Ic[id_body_2].Izy) < TEST_PREC);
+  CHECK(fabs(0.972 - model.Ic[id_body_2].Izz) < TEST_PREC);
+  CHECK_THAT(Vector3d (0.7, 1.2, 0.9) * 0.4, AllCloseVector(model.Ic[4].h));
+
+}
+
