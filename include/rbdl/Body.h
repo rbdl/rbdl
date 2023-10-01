@@ -104,7 +104,7 @@ struct RBDL_DLLAPI Body {
    * @param initial_body
    * @return the inertia of initial body transformed
    */
-  static Math::Matrix3d transformInertiaToBodyFrame(const Math::SpatialTransform &transform,
+  static Math::Matrix3d TransformInertiaToBodyFrame(const Math::SpatialTransform &transform,
                                                     const Body &initial_body)
   {
     Math::Vector3d initial_com = transform.E.transpose() * initial_body.mCenterOfMass +
@@ -189,7 +189,7 @@ struct RBDL_DLLAPI Body {
       Math::SpatialRigidBodyInertia::createFromMassComInertiaC (mMass, mCenterOfMass,
           mInertia);
 
-    Math::Matrix3d inertia_other_com_rotated_this_origin = transformInertiaToBodyFrame(transform, other_body);
+    Math::Matrix3d inertia_other_com_rotated_this_origin = TransformInertiaToBodyFrame(transform, other_body);
 
     // 4. Sum the two inertias
     Math::Matrix3d inertia_summed = Math::Matrix3d (this_rbi.toMatrix().block<3,3>
@@ -259,7 +259,7 @@ struct RBDL_DLLAPI Body {
         Math::SpatialRigidBodyInertia::createFromMassComInertiaC(mMass, mCenterOfMass, mInertia);
 
     Math::Matrix3d inertia_other_com_rotated_this_origin =
-        transformInertiaToBodyFrame(transform, other_body);
+        TransformInertiaToBodyFrame(transform, other_body);
 
     // 4. Substract the two inertias
     Math::Matrix3d inertia_substracted = Math::Matrix3d(this_rbi.toMatrix().block<3, 3>(0, 0)) -
@@ -318,7 +318,7 @@ struct RBDL_DLLAPI FixedBody {
     return fbody;
   }
 
-  Body toBody()
+  Body ToBody()
   {
     return Body(mMass, mCenterOfMass, mInertia);
   }

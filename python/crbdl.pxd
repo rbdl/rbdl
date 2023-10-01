@@ -239,19 +239,18 @@ cdef extern from "<rbdl/Model.h>" namespace "RigidBodyDynamics":
                 unsigned int body_id,
                 const Quaternion &quat,
                 VectorNd &q)
-
-        void updateInertiaMatrixForBody(
+        void UpdateInertiaMatrixForBody(
           const unsigned int body_id)
-        void setBodyMass(
+        void SetBodyMass(
           const unsigned int id,
           const double mass)
-        void setBodyInertia(
+        void SetBodyInertia(
           const unsigned int id,
           const Matrix3d &inertia)
-        void setBodyCenterOfMass(
+        void SetBodyCenterOfMass(
           const unsigned int id,
           const Vector3d &com)
-        void setBodyInertialParameters(
+        void SetBodyInertialParameters(
           const unsigned int id,
           const double mass,
           const Matrix3d &inertia,

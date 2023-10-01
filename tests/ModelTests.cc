@@ -772,16 +772,16 @@ TEST_CASE (__FILE__"_TestUpdateBodyInertiaParameters", "") {
   CHECK_THAT(Vector3d (0.7, 1.2, 0.9) * 0.4, AllCloseVector(model.Ic[4].h));
 
   // update inertia parameters of body 2 and check if the Ic matrix is correctly updated
-  model.setBodyMass(id_body_2, 1.6);
+  model.SetBodyMass(id_body_2, 1.6);
   CHECK(fabs(1.6 - model.mBodies[id_body_2].mMass) < TEST_PREC);
   CHECK(fabs(1.6 - model.I[id_body_2].m) < TEST_PREC);
   CHECK_THAT(Vector3d (0.7, 1.2, 0.9) * 1.6, AllCloseVector(model.Ic[id_body_2].h));
 
-  model.setBodyCenterOfMass(id_body_2, Vector3d(1.2, 0.6, -0.7));
+  model.SetBodyCenterOfMass(id_body_2, Vector3d(1.2, 0.6, -0.7));
   CHECK_THAT(Vector3d (1.2, 0.6, -0.7), AllCloseVector(model.mBodies[id_body_2].mCenterOfMass));
   CHECK_THAT(Vector3d (1.2, 0.6, -0.7) * 1.6, AllCloseVector(model.Ic[id_body_2].h));
 
-  model.setBodyInertia(id_body_2, Matrix3d::Identity());
+  model.SetBodyInertia(id_body_2, Matrix3d::Identity());
   CHECK_THAT(Matrix3d::Identity(), AllCloseMatrix(model.mBodies[id_body_2].mInertia));
   Math::SpatialRigidBodyInertia rbi =
       Math::SpatialRigidBodyInertia::createFromMassComInertiaC(
@@ -793,7 +793,7 @@ TEST_CASE (__FILE__"_TestUpdateBodyInertiaParameters", "") {
   CHECK(fabs(rbi.Izy - model.I[id_body_2].Izy) < TEST_PREC);
   CHECK(fabs(rbi.Izz - model.I[id_body_2].Izz) < TEST_PREC);
 
-  model.setBodyInertialParameters(id_body_2, 0.4, inertia_body_2_init ,Vector3d(0.7, 1.2, 0.9));
+  model.SetBodyInertialParameters(id_body_2, 0.4, inertia_body_2_init ,Vector3d(0.7, 1.2, 0.9));
   CHECK(fabs(0.4 - model.I[id_body_2].m) < TEST_PREC);
   CHECK(fabs(1.5 - model.I[id_body_2].Ixx) < TEST_PREC);
   CHECK(fabs(-0.336 - model.I[id_body_2].Iyx) < TEST_PREC);
@@ -843,7 +843,7 @@ TEST_CASE (__FILE__"_TestUpdateFixedBodyInertiaParameters", "") {
   // 2) the mass of the merged body 1 is updated
   // 3) the Inertia matrix at id_body_1 is updated
 
-  model.setBodyMass(id_fixedbody_2, 1.6);
+  model.SetBodyMass(id_fixedbody_2, 1.6);
   double total_mass = body1.mMass + 1.6 + body3.mMass;
   CHECK(fabs(1.6 - model.mFixedBodies[id_fixedbody_2 - model.fixed_body_discriminator].mMass) <
         TEST_PREC);
@@ -854,7 +854,7 @@ TEST_CASE (__FILE__"_TestUpdateFixedBodyInertiaParameters", "") {
   Matrix3d inertia_body1_merged = model.mBodies[id_body_1].mInertia;
 
 
-  model.setBodyCenterOfMass(id_fixedbody_2, Vector3d(1., 1., 1.));
+  model.SetBodyCenterOfMass(id_fixedbody_2, Vector3d(1., 1., 1.));
   CHECK_THAT(Vector3d(1., 1., 1.),
              AllCloseVector(
                  model.mFixedBodies[id_fixedbody_2 - model.fixed_body_discriminator].mCenterOfMass));
@@ -871,7 +871,7 @@ TEST_CASE (__FILE__"_TestUpdateFixedBodyInertiaParameters", "") {
   CHECK(fabs(rbi.Izz - model.I[id_body_1].Izz) < TEST_PREC);
   CHECK_THAT(rbi.h, AllCloseVector(model.I[id_body_1].h));
 
-  model.setBodyInertia(id_fixedbody_2, Matrix3d::Identity());
+  model.SetBodyInertia(id_fixedbody_2, Matrix3d::Identity());
   CHECK_THAT(Matrix3d::Identity(),
              AllCloseMatrix(
                  model.mFixedBodies[id_fixedbody_2 - model.fixed_body_discriminator].mInertia));
@@ -889,7 +889,7 @@ TEST_CASE (__FILE__"_TestUpdateFixedBodyInertiaParameters", "") {
 
 
   // put back initial values:
-  model.setBodyInertialParameters(id_fixedbody_2, 0.4, inertia_body_2_init ,Vector3d(0.7, 1.2, 0.9));
+  model.SetBodyInertialParameters(id_fixedbody_2, 0.4, inertia_body_2_init ,Vector3d(0.7, 1.2, 0.9));
   CHECK(fabs(0.4 - model.mFixedBodies[id_fixedbody_2 - model.fixed_body_discriminator].mMass) < TEST_PREC);
   CHECK_THAT(Vector3d(0.7, 1.2, 0.9),
              AllCloseVector(
