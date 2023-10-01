@@ -1416,6 +1416,38 @@ cdef class Model:
     def IsFixedBodyId (self, index):
         return self.thisptr.IsFixedBodyId(index)
 
+    def updateInertiaMatrixForBody(self, index):
+        return self.thisptr.updateInertiaMatrixForBody(index)
+
+    def setBodyMass(self,
+                    unsigned int body_id,
+                    mass):
+        return self.thisptr.setBodyMass(body_id, mass)
+
+    def setBodyInertia(self,
+                       unsigned int body_id,
+                       np.ndarray[double, ndim=3, mode="c"] inertia
+                       ):
+      inertia_wrap = Matrix3d.fromPythonArray(inertia)
+      return self.thisptr.setBodyInertia(body_id, (<Matrix3d>inertia_wrap).thisptr[0])
+
+    def setBodyCenterOfMass(self,
+                            unsigned int body_id,
+                            np.ndarray[double, ndim=1, mode="c"] com):
+      com_wrap = Vector3d.fromPythonArray(com)
+      return self.thisptr.setBodyCenterOfMass(body_id, (<Vector3d>com_wrap).thisptr[0])
+
+    def setBodyInertialParameters(self,
+                                  unsigned int body_id,
+                                  mass,
+                                  np.ndarray[double, ndim=3, mode="c"] inertia,
+                                  np.ndarray[double, ndim=1, mode="c"] com):
+      inertia_wrap = Matrix3d.fromPythonArray(inertia)
+      com_wrap = Vector3d.fromPythonArray(com)
+      return self.thisptr.setBodyInertialParameters(body_id, mass, (<Matrix3d>inertia_wrap).thisptr[0], (<Vector3d>com_wrap).thisptr[0])
+
+
+
     property dof_count:
         def __get__ (self):
             return self.thisptr.dof_count
