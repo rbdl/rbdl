@@ -5,7 +5,7 @@ PROJECT (pendulumDynamics)
 #        write your own CMakeLists.txt files insert you own version number 
 #        of CMake here.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10)
 
 #2c. Assign the names of the programs/libraries that you wish to build
 #    to a list called 'TARGETS'

@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED ( VERSION 2.6 )
+CMAKE_MINIMUM_REQUIRED ( VERSION 3.10)
 
 PROJECT( "constrainedDoublePendulumForwardDynamics" CXX C )
 SET(CUSTOM_RBDL_PATH "" CACHE PATH "Path to specific RBDL Installation")
