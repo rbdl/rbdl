@@ -8,6 +8,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2.0.0
+    - name: Install Build dependencies
+      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev
     - name: Build project
       uses: nicledomaS/cmake_build_action@v1.4
       with:
