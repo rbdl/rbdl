@@ -9,10 +9,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2.0.0
     - name: Install Build dependencies
-      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev
+      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev catch2
     - name: Build project
       uses: nicledomaS/cmake_build_action@v1.4
       with:
+        cmake_args: -DRBDL_BUILD_ADDON_LUAMODEL=ON;-DRBDL_BUILD_ADDON_URDFREADER=ON;-DRBDL_BUILD_ADDON_GEOMETRY=ON;-DRBDL_BUILD_ADDON_BALANCE=ON
         submodule_update: ON
         run_tests: ON
-        unit_test_build: -Dtest=ON
+        unit_test_build: -DRBDL_BUILD_TESTS=ON
