@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   ubuntu-build:
+    name: Build and Test RBDL + Addons
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -15,5 +16,9 @@ jobs:
       with:
         cmake_args: -DRBDL_BUILD_ADDON_LUAMODEL=ON;-DRBDL_BUILD_ADDON_URDFREADER=ON;-DRBDL_BUILD_ADDON_GEOMETRY=ON;-DRBDL_BUILD_ADDON_BALANCE=ON
         submodule_update: ON
-        run_tests: ON
+        run_tests: OFF
         unit_test_build: -DRBDL_BUILD_TESTS=ON
+    - run: mkdir junit-reports
+    - name: Run RBDL Core Test Suite
+      run: ./build/tests/rbdl_tests -r junit > junit-reports/TEST-RBDL-CORE.xml
+    - uses: mikepenz/action-junit-report@v4
