@@ -21,4 +21,12 @@ jobs:
     - run: mkdir junit-reports
     - name: Run RBDL Core Test Suite
       run: ./build/tests/rbdl_tests -r junit > junit-reports/TEST-RBDL-CORE.xml
+    - name: Run RBDL Balance Addon Test Suite
+      run: ./build/addons/balance/tests/balance_tests -r junit > junit-reports/TEST-RBDL-BALANCE.xml
+    - name: Run RBDL Geometry Addon Test Suite
+      run: ./build/addons/geometry/tests/geometry_tests -r junit > junit-reports/TEST-RBDL-GEOMETRY.xml
+    - name: Run RBDL URDF-Reader Addon Test Suite
+      run: ./build/addons/urdfreader/tests/rbdl_urdf_tests -r junit > junit-reports/TEST-RBDL-URDF.xml
+    - name: Run RBDL LuaModel-Reader Addon Test Suite
+      run: ./build/addons/luamodel/tests/luamodel_tests -r junit > junit-reports/TEST-RBDL-LUAMODEL.xml
     - uses: mikepenz/action-junit-report@v4
