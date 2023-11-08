@@ -3,18 +3,18 @@ name: C/C++ CI
 on: [push, pull_request]
 
 jobs:
-  ubuntu-build:
+  build-all-eigen:
     name: Build and Test RBDL + Addons
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v2.0.0
     - name: Install Build dependencies
-      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev catch2
+      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev catch2 coinor-libipopt-dev
     - name: Build project
       uses: nicledomaS/cmake_build_action@v1.4
       with:
-        cmake_args: -DRBDL_BUILD_ADDON_LUAMODEL=ON;-DRBDL_BUILD_ADDON_URDFREADER=ON;-DRBDL_BUILD_ADDON_GEOMETRY=ON;-DRBDL_BUILD_ADDON_BALANCE=ON
+        cmake_args: -DRBDL_BUILD_ADDON_LUAMODEL=ON;-DRBDL_BUILD_ADDON_URDFREADER=ON;-DRBDL_BUILD_ADDON_GEOMETRY=ON;-DRBDL_BUILD_ADDON_BALANCE=ON;-DRBDL_BUILD_ADDON_MUSCLE=ON;-DRBDL_BUILD_ADDON_MUSCLE_FITTING=ON
         submodule_update: ON
         run_tests: OFF
         unit_test_build: -DRBDL_BUILD_TESTS=ON
@@ -29,4 +29,6 @@ jobs:
       run: ./build/addons/urdfreader/tests/rbdl_urdf_tests -r junit > junit-reports/TEST-RBDL-URDF.xml
     - name: Run RBDL LuaModel-Reader Addon Test Suite
       run: ./build/addons/luamodel/tests/luamodel_tests -r junit > junit-reports/TEST-RBDL-LUAMODEL.xml
+    - name: Run RBDL Muscle Addon Test Suite
+      run: ./build/addons/muscle/tests/muscle_tests -r junit > junit-reports/TEST-RBDL-MUSLE.xml
     - uses: mikepenz/action-junit-report@v4
