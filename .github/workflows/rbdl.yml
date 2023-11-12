@@ -8,16 +8,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.0.0
+      uses: actions/checkout@v4.1.1
+      with:
+        submodules: true
     - name: Install Build dependencies
       run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev catch2 coinor-libipopt-dev
     - name: Build project
-      uses: nicledomaS/cmake_build_action@v1.4
+      uses: threeal/cmake-action@v1.3.0
       with:
-        cmake_args: -DRBDL_BUILD_ADDON_LUAMODEL=ON;-DRBDL_BUILD_ADDON_URDFREADER=ON;-DRBDL_BUILD_ADDON_GEOMETRY=ON;-DRBDL_BUILD_ADDON_BALANCE=ON;-DRBDL_BUILD_ADDON_MUSCLE=ON;-DRBDL_BUILD_ADDON_MUSCLE_FITTING=ON
-        submodule_update: ON
-        run_tests: OFF
-        unit_test_build: -DRBDL_BUILD_TESTS=ON
+        options: RBDL_BUILD_ADDON_LUAMODEL=ON RBDL_BUILD_ADDON_URDFREADER=ON RBDL_BUILD_ADDON_GEOMETRY=ON RBDL_BUILD_ADDON_BALANCE=ON RBDL_BUILD_ADDON_MUSCLE=ON RBDL_BUILD_ADDON_MUSCLE_FITTING=ON RBDL_BUILD_TESTS=ON
+        cxx-flags: -DHAVE_CSTDDEF
+        run-build: true
     - run: mkdir junit-reports
     - name: Run RBDL Core Test Suite
       run: ./build/tests/rbdl_tests -r junit > junit-reports/TEST-RBDL-CORE.xml
