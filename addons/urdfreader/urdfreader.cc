@@ -112,7 +112,7 @@ Joint get_rbdl_joint(const JointPtr &urdf_joint)
   return rbdl_joint;
 }
 
-Body get_rbdl_body(const LinkPtr &urdf_link, bool is_root_link)
+Body get_rbdl_body(ConstLinkPtr &urdf_link, bool is_root_link)
 {
   // assemble the body
   urdf::Vector3 link_inertial_rpy_temp;
@@ -125,7 +125,7 @@ Body get_rbdl_body(const LinkPtr &urdf_link, bool is_root_link)
   // but only if we actually have inertial data
 #ifdef RBDL_USE_ROS_URDF_LIBRARY
   if (urdf_link->inertial) {
-    auto I = urdf_child->inertial;
+    auto I = urdf_link->inertial;
 #else
   if (urdf_link->inertial.has_value()) {
     auto I = &urdf_link->inertial.value();

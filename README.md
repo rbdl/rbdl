@@ -222,6 +222,18 @@ at which point you will see full list of build options for RBDL. We recommend th
   - 
   - Millard M, Emonds AL, Harant M, Mombaur K. A reduced muscle model and planar musculoskeletal model fit for the simulation of whole-body movements. Journal of biomechanics. 2019 Apr 10.
 
+## Linux: ROS 1 (Noetic) 
+
+1. If you are facing build issues in Ubuntu 20.04 system which has ROS Noetic already installed.
+run the following command
+``` 
+     sudo apt install -y ros-noetic-urdf
+```
+Because,by default, the ros urdf library is used to parse the urdf model when you are building this library in a Ubuntu system with ROS Noetic. 
+So, ros urdf library needs to be installed before building this library.
+ 
+Note:- It is tested with Ubuntu 20.04 system and ROS1 Noetic version only. It might not work with other ROS1 versions (other than Noetic) and ROS2. 
+
 ## Windows
 
 Although RBDL can be installed on Windows, none of the ORB members currently
