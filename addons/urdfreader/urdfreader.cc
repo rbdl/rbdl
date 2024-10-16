@@ -449,6 +449,12 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
         vector<string> local_joint_names;
         string parent_link = tip_link;
         vector<string> links_verbose;
+        if (link_map.count(tip_link) == 0) {
+          ostringstream error_msg;
+          error_msg << "Error while processing tip link '" << tip_link
+                    << "': tip link could not be found in the model." << endl;
+          throw RBDLFileParseError(error_msg.str());
+        }
         while(parent_link.compare(root_link) != 0)
         {
           ostringstream verbose_string;
@@ -466,7 +472,7 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
               link_map[parent_link]->parent_joint->name);
           }
           parent_link = link_map[parent_link]->getParent()->name;
-          if (verbose) {
+          if (verbose && link_map[parent_link]->parent_joint) {
             verbose_string
                 << "joint '" << link_map[parent_link]->parent_joint->name
                 << "' child link '"
