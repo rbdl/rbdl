@@ -241,6 +241,14 @@ void add_joints_to_rbdl_model(Model *rbdl_model, const URDFLinkMap &link_map,
     // assemble the body
     Body rbdl_body = get_rbdl_body(urdf_child, false);
 
+    if(rbdl_model->mBodyNameMap.find(urdf_child->name) != rbdl_model->mBodyNameMap.end())
+    {
+      if (verbose) {
+        cout << "+ Skipping Add Body: " << urdf_child->name << endl;
+      }
+      continue;
+    }
+
     if (verbose) {
       cout << "+ Adding Body: " << urdf_child->name << endl;
       cout << "  parent_id  : " << rbdl_parent_id << endl;
@@ -381,8 +389,6 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
     URDFLinkMap link_map = urdf_model->LINKMAP;
     URDFJointMap joint_map = urdf_model->JOINTMAP;
 
-    vector<string> joint_names;
-
     // Holds the links that we are processing in our depth first traversal
     // with the top element being the current link.
     stack<LinkPtr> link_stack;
@@ -402,7 +408,7 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
       throw RBDLFileParseError(error_msg.str());
     }
     // add the bodies in a depth-first order of the model tree
-    link_stack.push(link_map[(urdf_model->getLink(root_link)->name)]);
+    link_stack.push(link_map[root_link]);
 
     // add the root body
     ConstLinkPtr root = urdf_model->getLink(root_link);
@@ -439,21 +445,25 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
 
     for(const std::string &tip_link : tip_links)
     {
+        vector<string> joint_names;
         vector<string> local_joint_names;
         string parent_link = tip_link;
         vector<string> links_verbose;
         while(parent_link.compare(root_link) != 0)
         {
           ostringstream verbose_string;
-          local_joint_names.push_back(
-              link_map[parent_link]->parent_joint->name);
-          if (!link_map[parent_link]->getParent()) {
+          if (!(link_map[parent_link] && link_map[parent_link]->getParent() && 
+              link_map[parent_link]->parent_joint) ) {
             ostringstream error_msg;
             error_msg << "Error while processing tip link '" << tip_link
                       << "' as reached root link is '" << parent_link
                       << "', couldn't find desired root link '"
                       << root_link << "' in the tree"  << endl;
             throw RBDLFileParseError(error_msg.str());
+          }
+          else{
+          local_joint_names.push_back(
+              link_map[parent_link]->parent_joint->name);
           }
           parent_link = link_map[parent_link]->getParent()->name;
           if (verbose) {
@@ -479,9 +489,9 @@ void construct_partial_model(Model *rbdl_model, ModelPtr urdf_model,
             cout << links_verbose[i];
           }
         }
+        add_joints_to_rbdl_model(rbdl_model, link_map, joint_map, joint_names,
+                                verbose);
     }
-    add_joints_to_rbdl_model(rbdl_model, link_map, joint_map, joint_names,
-                             verbose);
 }
 
 RBDL_ADDON_DLLAPI bool URDFReadFromFile(const char *filename, Model *model,
