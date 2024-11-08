@@ -148,3 +148,38 @@ TEST_CASE(__FILE__"_CenterOfMass_WithPartial", ""){
   CHECK_THAT(gripper_model.mBodies.front().mMass, IsClose(0.90276,TEST_PREC,
                                                           TEST_PREC));
 }
+
+TEST_CASE(__FILE__"_CenterOfMass_WithPartialDualTipLinks", ""){
+  // Checks model COM against known values
+  Model model;
+  std::string modelFile = rbdlSourcePath;
+  modelFile.append("/tiago_dual-test.urdf");
+  bool modelLoaded = PartialURDFReadFromFile(modelFile.c_str(), &model,
+                                             "base_link",
+                                             {"arm_left_tool_link", "arm_right_tool_link"},
+                                             false, true);
+  CHECK(modelLoaded);
+  CHECK(model.q_size == 15);
+  CHECK(model.qdot_size == 15);
+  CHECK(model.mBodies.size() == 16);
+  VectorNd q_zero (VectorNd::Zero (model.q_size));
+  VectorNd qdot_zero (VectorNd::Zero (model.qdot_size));
+  RigidBodyDynamics::UpdateKinematics (model, q_zero, qdot_zero, qdot_zero);
+
+
+  SpatialRigidBodyInertia rbi_base = model.X_base[1].apply(model.I[1]);
+  Vector3d body_com = rbi_base.h / rbi_base.m;
+  CHECK_THAT(body_com.transpose()[0], IsClose(0.10561,TEST_PREC,TEST_PREC));
+  CHECK_THAT(body_com.transpose()[1], IsClose(-0.00116,TEST_PREC,TEST_PREC));
+  CHECK_THAT(body_com.transpose()[2], IsClose(-0.96334,TEST_PREC,TEST_PREC));
+
+  Vector3d model_com;
+  double mass;
+  RigidBodyDynamics::Utils::CalcCenterOfMass (model, q_zero, qdot_zero,
+                          NULL, mass, model_com);
+  CHECK_THAT(model_com[0], IsClose(-0.0414875904,TEST_PREC,TEST_PREC));
+  CHECK_THAT(model_com[1], IsClose(-0.0003694522,TEST_PREC,TEST_PREC));
+  CHECK_THAT(model_com[2], IsClose(0.6004499934,TEST_PREC,TEST_PREC));
+
+  CHECK_THAT(mass, IsClose(25.6646010822,TEST_PREC, TEST_PREC));
+}
