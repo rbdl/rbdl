@@ -77,6 +77,10 @@ IF (NOT EIGEN3_FOUND)
     MESSAGE (WARNING "Could not find Eigen3 on your system. Please install it!")
 ENDIF (NOT EIGEN3_FOUND)
 
+if(NOT DEFINED EIGEN3_INCLUDE_DIR OR EIGEN3_INCLUDE_DIR STREQUAL "")
+    # Modern CMake does not set INCLUDE_DIR, so make it retro-compatible
+    get_target_property(EIGEN3_INCLUDE_DIR Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
+endif()
 INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
 
 # Addons
