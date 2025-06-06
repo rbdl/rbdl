@@ -372,7 +372,7 @@ struct RBDL_DLLAPI Model {
 
   /** \brief Checks whether the body is rigidly attached to another body.
   */
-  bool IsFixedBodyId (unsigned int body_id)
+  bool IsFixedBodyId (unsigned int body_id) const
   {
     if (body_id >= fixed_body_discriminator
         && body_id < std::numeric_limits<unsigned int>::max()
@@ -382,7 +382,7 @@ struct RBDL_DLLAPI Model {
     return false;
   }
 
-  bool IsBodyId (unsigned int id)
+  bool IsBodyId (unsigned int id) const
   {
     if (id > 0 && id < mBodies.size()) {
       return true;
@@ -403,7 +403,7 @@ struct RBDL_DLLAPI Model {
    * freedom. This function returns the id of the actual
    * non-virtual parent body.
    */
-  unsigned int GetParentBodyId (unsigned int id)
+  unsigned int GetParentBodyId (unsigned int id) const
   {
     if (id >= fixed_body_discriminator) {
       return mFixedBodies[id - fixed_body_discriminator].mMovableParent;
@@ -421,7 +421,7 @@ struct RBDL_DLLAPI Model {
   /** Returns the joint frame transformtion, i.e. the second argument to
     Model::AddBody().
     */
-  Math::SpatialTransform GetJointFrame (unsigned int id)
+  Math::SpatialTransform GetJointFrame (unsigned int id) const
   {
     if (id >= fixed_body_discriminator) {
       return mFixedBodies[id - fixed_body_discriminator].mParentTransform;
