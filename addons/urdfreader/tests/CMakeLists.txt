@@ -9,7 +9,7 @@ SET ( RBDL_URDF_TESTS_VERSION
 )
 
 PROJECT (RBDL_URDF_TESTS VERSION ${RBDL_URDF_TESTS_VERSION})
-FIND_PACKAGE(Catch2 REQUIRED)
+FIND_PACKAGE(Catch2 3 REQUIRED)
 INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR}/include
                      ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/urdfparser/include  
                      ${CMAKE_SOURCE_DIR}/tests
@@ -33,6 +33,7 @@ SET (RBDL_URDFREADER_LIBRARY rbdl_urdfreader)
 TARGET_LINK_LIBRARIES(rbdl_urdf_tests
   ${RBDL_LIBRARY}
   ${RBDL_URDFREADER_LIBRARY}
+  Catch2::Catch2WithMain
   )
 # OPTION (RUN_AUTOMATIC_TESTS "Perform automatic tests after compilation?" OFF)
 # IF (RUN_AUTOMATIC_TESTS)
