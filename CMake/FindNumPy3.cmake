@@ -5,7 +5,9 @@
 
 #cmake_minimum_required(VERSION 2.6)
 
-set(PYTHON_EXECUTABLE "python3")
+if(NOT PYTHON_EXECUTABLE)
+  set(PYTHON_EXECUTABLE "python3")
+endif()
 
 if (PYTHON_EXECUTABLE)
   # Find out the include path
