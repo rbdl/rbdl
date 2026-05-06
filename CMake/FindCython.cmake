@@ -24,8 +24,18 @@
 
 # Use the Cython executable that lives next to the Python executable
 # if it is a local installation.
-find_package( PythonInterp )
-if( PYTHONINTERP_FOUND )
+if( NOT PYTHON_EXECUTABLE )
+  if( NOT CMAKE_VERSION VERSION_LESS 3.12.0 )
+    find_package( Python COMPONENTS Interpreter QUIET )
+    if( Python_Interpreter_FOUND )
+      set( PYTHON_EXECUTABLE ${Python_EXECUTABLE} )
+    endif()
+  else()
+    find_package( PythonInterp QUIET )
+  endif()
+endif()
+
+if( PYTHON_EXECUTABLE )
   get_filename_component( _python_path ${PYTHON_EXECUTABLE} PATH )
   find_program( CYTHON_EXECUTABLE
     NAMES cython cython.bat cython3
