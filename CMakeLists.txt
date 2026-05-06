@@ -70,8 +70,16 @@ OPTION (RBDL_BUILD_CASADI "Use the CasADi backend" OFF)
 OPTION (RBDL_VCPKG_BUILD "Building RBDL in vcpkg environment" OFF)
 
 
-# Find and use the system's Eigen3 library
-FIND_PACKAGE (Eigen3 3.0.0)
+# Find and use the system's Eigen library.
+SET (RBDL_EIGEN_MIN_VERSION 3.0.0 CACHE STRING "Minimum Eigen version required by RBDL")
+FIND_PACKAGE (Eigen3 ${RBDL_EIGEN_MIN_VERSION} QUIET)
+
+IF (TARGET Eigen3::Eigen)
+  GET_TARGET_PROPERTY (EIGEN3_INCLUDE_DIR Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
+  SET (EIGEN3_FOUND TRUE)
+ELSEIF (EIGEN3_INCLUDE_DIR AND EXISTS "${EIGEN3_INCLUDE_DIR}/Eigen/Core")
+  SET (EIGEN3_FOUND TRUE)
+ENDIF()
 
 IF (NOT EIGEN3_FOUND)
     MESSAGE (WARNING "Could not find Eigen3 on your system. Please install it!")
