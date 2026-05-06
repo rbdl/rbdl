@@ -1,39 +1,57 @@
-SET (IPOPT_FOUND FALSE)
+find_package (Ipopt CONFIG QUIET)
 
+if (Ipopt_FOUND AND NOT IPOPT_FOUND)
+  foreach (_ipopt_target Ipopt::ipopt ipopt::ipopt ipopt)
+    if (TARGET ${_ipopt_target})
+      set (IPOPT_LIBRARY ${_ipopt_target})
+      if (NOT IPOPT_INCLUDE_DIR)
+        get_target_property (IPOPT_INCLUDE_DIR ${_ipopt_target} INTERFACE_INCLUDE_DIRECTORIES)
+      endif()
+    endif()
+  endforeach()
 
-UNSET( IPOPT_INCLUDE_DIR              CACHE)   
-UNSET( IPOPT_LIBRARY                  CACHE)    
+  if (NOT IPOPT_INCLUDE_DIR AND Ipopt_INCLUDE_DIRS)
+    list (GET Ipopt_INCLUDE_DIRS 0 IPOPT_INCLUDE_DIR)
+  endif()
+  if (NOT IPOPT_LIBRARY AND Ipopt_LIBRARIES)
+    list (GET Ipopt_LIBRARIES 0 IPOPT_LIBRARY)
+  endif()
+endif()
 
-FIND_PATH (IPOPT_INCLUDE_DIR coin/IpTNLP.hpp
-  PATHS 
+find_package (PkgConfig QUIET)
+if (PKG_CONFIG_FOUND)
+  pkg_check_modules (IPOPT_PC QUIET ipopt)
+endif()
+
+find_path (IPOPT_INCLUDE_DIR IpTNLP.hpp
+  HINTS
+  ${IPOPT_PC_INCLUDE_DIRS}
+  PATHS
   ${CUSTOM_IPOPT_PATH}/include
+  PATH_SUFFIXES
+  coin
+  coin-or
   )
 
-FIND_LIBRARY (IPOPT_LIBRARY ipopt
+find_library (IPOPT_LIBRARY ipopt
+  HINTS
+  ${IPOPT_PC_LIBRARY_DIRS}
   PATHS
   ${CUSTOM_IPOPT_PATH}/lib
   )
 
-IF (IPOPT_INCLUDE_DIR AND IPOPT_LIBRARY)
-  SET (IPOPT_FOUND TRUE)
-ELSE(IPOPT_INCLUDE_DIR AND IPOPT_LIBRARY)
-  IF(IPOPT_FIND_REQUIRED)
-    MESSAGE (SEND_ERROR " Could not find IPOPT.")
-    MESSAGE (SEND_ERROR " Try setting CUSTOM_IPOPT_PATH in FindIPOPT.cmake force CMake to use the desired directory.")
-  ELSE(IPOPT_FIND_REQUIRED)
-    MESSAGE (STATUS " Could not find IPOPT.")
-    MESSAGE (STATUS " Try setting CUSTOM_IPOPT_PATH in FindIPOPT.cmake force CMake to use the desired directory.")
-  ENDIF(IPOPT_FIND_REQUIRED)
-ENDIF (IPOPT_INCLUDE_DIR AND IPOPT_LIBRARY)
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args (IPOPT DEFAULT_MSG
+  IPOPT_LIBRARY
+  IPOPT_INCLUDE_DIR
+  )
 
-IF (IPOPT_FOUND)
-   IF (NOT IPOPT_FIND_QUIETLY)
-      MESSAGE(STATUS "Found IPOPT: ${IPOPT_LIBRARY}")
-   ENDIF (NOT IPOPT_FIND_QUIETLY)
+if (IPOPT_FOUND)
+  set (IPOPT_LIBRARIES ${IPOPT_LIBRARY})
+  set (IPOPT_INCLUDE_DIRS ${IPOPT_INCLUDE_DIR})
+endif()
 
-ENDIF (IPOPT_FOUND)
-
-MARK_AS_ADVANCED (
+mark_as_advanced (
   IPOPT_INCLUDE_DIR
   IPOPT_LIBRARY
   )

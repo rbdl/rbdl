@@ -1,88 +1,93 @@
-# - Try to find URDF
+# - Try to find URDF dependencies
 #
-#
 
-SET (URDF_FOUND FALSE)
-SET (CONSOLE_BRIDGE_FOUND FALSE)
-SET (URDFDOM_HEADERS_FOUND FALSE)
-SET (URDFDOM_FOUND FALSE)
+find_package (PkgConfig QUIET)
+if (PKG_CONFIG_FOUND)
+  pkg_check_modules (CONSOLE_BRIDGE_PC QUIET console_bridge)
+  pkg_check_modules (URDFDOM_HEADERS_PC QUIET urdfdom_headers)
+  pkg_check_modules (URDFDOM_PC QUIET urdfdom)
+endif()
 
-FIND_PATH (CONSOLE_BRIDGE_DIR console_bridge/console.h
-	/usr/local/include
-	/usr/include
-	)
+find_path (CONSOLE_BRIDGE_DIR console_bridge/console.h
+  HINTS
+  ${CONSOLE_BRIDGE_PC_INCLUDE_DIRS}
+  PATHS
+  /usr/local/include
+  /usr/include
+  )
 
-FIND_LIBRARY (CONSOLE_BRIDGE_LIBRARY NAMES console_bridge PATHS
-	/usr/local/include
-	/usr/include
-	)
+find_library (CONSOLE_BRIDGE_LIBRARY NAMES console_bridge
+  HINTS
+  ${CONSOLE_BRIDGE_PC_LIBRARY_DIRS}
+  PATHS
+  /usr/local/lib
+  /usr/lib
+  )
 
-FIND_PATH (URDFDOM_HEADERS_DIR urdf_model/model.h
-	/usr/local/include
-	/usr/include
-	)
+find_path (URDFDOM_HEADERS_DIR urdf_model/model.h
+  HINTS
+  ${URDFDOM_HEADERS_PC_INCLUDE_DIRS}
+  ${URDFDOM_PC_INCLUDE_DIRS}
+  PATHS
+  /usr/local/include
+  /usr/include
+  )
 
-FIND_PATH (URDFDOM_DIR urdf_parser/urdf_parser.h
-	/usr/local/include
-	/usr/include
-	)
+find_path (URDFDOM_DIR urdf_parser/urdf_parser.h
+  HINTS
+  ${URDFDOM_PC_INCLUDE_DIRS}
+  PATHS
+  /usr/local/include
+  /usr/include
+  )
 
-FIND_LIBRARY (URDFDOM_MODEL_LIBRARY NAMES urdfdom_model PATHS
-	/usr/local/include
-	/usr/include
-	)
+find_library (URDFDOM_MODEL_LIBRARY NAMES urdfdom_model
+  HINTS
+  ${URDFDOM_PC_LIBRARY_DIRS}
+  PATHS
+  /usr/local/lib
+  /usr/lib
+  )
 
-FIND_LIBRARY (URDFDOM_WORLD_LIBRARY NAMES urdfdom_world PATHS
- 	/usr/local/include
- 	/usr/include
- 	)
+find_library (URDFDOM_WORLD_LIBRARY NAMES urdfdom_world
+  HINTS
+  ${URDFDOM_PC_LIBRARY_DIRS}
+  PATHS
+  /usr/local/lib
+  /usr/lib
+  )
 
-IF (NOT CONSOLE_BRIDGE_DIR OR NOT CONSOLE_BRIDGE_LIBRARY)
-	MESSAGE(ERROR "Could not find URDF: console_bridge not found")
-ELSE (NOT CONSOLE_BRIDGE_DIR OR NOT CONSOLE_BRIDGE_LIBRARY)
-	SET (CONSOLE_BRIDGE_FOUND TRUE)
-ENDIF (NOT CONSOLE_BRIDGE_DIR OR NOT CONSOLE_BRIDGE_LIBRARY)
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args (URDF DEFAULT_MSG
+  CONSOLE_BRIDGE_DIR
+  CONSOLE_BRIDGE_LIBRARY
+  URDFDOM_HEADERS_DIR
+  URDFDOM_DIR
+  URDFDOM_MODEL_LIBRARY
+  URDFDOM_WORLD_LIBRARY
+  )
 
-IF (NOT URDFDOM_HEADERS_DIR)
-	MESSAGE(ERROR "Could not find URDF: urdfdom_headers not found")
-ELSE (NOT URDFDOM_HEADERS_DIR)
-	SET (URDFDOM_HEADERS_FOUND TRUE)
-ENDIF (NOT URDFDOM_HEADERS_DIR)
+if (URDF_FOUND)
+  set (CONSOLE_BRIDGE_FOUND TRUE)
+  set (URDFDOM_HEADERS_FOUND TRUE)
+  set (URDFDOM_FOUND TRUE)
+  set (URDF_INCLUDE_DIRS
+    ${CONSOLE_BRIDGE_DIR}
+    ${URDFDOM_HEADERS_DIR}
+    ${URDFDOM_DIR}
+    )
+  set (URDF_LIBRARIES
+    ${CONSOLE_BRIDGE_LIBRARY}
+    ${URDFDOM_WORLD_LIBRARY}
+    ${URDFDOM_MODEL_LIBRARY}
+    )
+endif()
 
-IF (NOT URDFDOM_DIR OR NOT URDFDOM_MODEL_LIBRARY OR NOT URDFDOM_WORLD_LIBRARY)
-	MESSAGE(ERROR "Could not find URDF: urdfdom_model or urdfdom_world library not found")
-ELSE (NOT URDFDOM_DIR OR NOT URDFDOM_MODEL_LIBRARY OR NOT URDFDOM_WORLD_LIBRARY)
-	SET (URDFDOM_FOUND TRUE)
-ENDIF (NOT URDFDOM_DIR OR NOT URDFDOM_MODEL_LIBRARY OR NOT URDFDOM_WORLD_LIBRARY)
-
-IF (CONSOLE_BRIDGE_FOUND AND URDFDOM_HEADERS_FOUND AND URDFDOM_FOUND)
-	SET (URDF_FOUND TRUE)
-ENDIF (CONSOLE_BRIDGE_FOUND AND URDFDOM_HEADERS_FOUND AND URDFDOM_FOUND)
-
-IF (URDF_FOUND)
-   IF (NOT URDF_FIND_QUIETLY)
-		 MESSAGE(STATUS "Found URDF console_bridge: ${CONSOLE_BRIDGE_LIBRARY}")
-		 MESSAGE(STATUS "Found URDF urdfdom_headers: ${URDFDOM_HEADERS_DIR}")
-		 MESSAGE(STATUS "Found URDF urdfdom: ${URDFDOM_LIBRARY}")
-  ENDIF (NOT URDF_FIND_QUIETLY)
-	SET (URDF_INCLUDE_DIRS
-		${CONSOLE_BRIDGE_DIR}
-		${URDFDOM_HEADERS_DIR}
-		${URDFDOM_DIR}
-		)
-	SET (URDF_LIBRARIES
-		${CONSOLE_BRIDGE_LIBRARY}
-		${URDFDOM_WORLD_LIBRARY}
-		${URDFDOM_MODEL_LIBRARY}
-		)
-	MESSAGE (STATUS "URDF Libraries: ${URDF_LIBRARIES}")
-ELSE (URDF_FOUND)
-   IF (URDF_FIND_REQUIRED)
-      MESSAGE(FATAL_ERROR "Could not find URDF")
-   ENDIF (URDF_FIND_REQUIRED)
-ENDIF (URDF_FOUND)
-
-MARK_AS_ADVANCED (
-	${URDF_INCLUDE_DIRS}
-	${URDF_LIBRARIES}
-	)
+mark_as_advanced (
+  CONSOLE_BRIDGE_DIR
+  CONSOLE_BRIDGE_LIBRARY
+  URDFDOM_HEADERS_DIR
+  URDFDOM_DIR
+  URDFDOM_MODEL_LIBRARY
+  URDFDOM_WORLD_LIBRARY
+  )

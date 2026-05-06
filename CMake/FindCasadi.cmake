@@ -10,7 +10,37 @@ if (Casadi_INCLUDE_DIR)
   set (Casadi_FIND_QUIETLY TRUE)
 endif (Casadi_INCLUDE_DIR)
 
-find_path (Casadi_INCLUDE_DIR "casadi.hpp" 
+find_package (Casadi CONFIG QUIET)
+if (NOT Casadi_FOUND)
+  find_package (casadi CONFIG QUIET)
+  if (casadi_FOUND)
+    set (Casadi_FOUND TRUE)
+  endif()
+endif()
+
+foreach (_casadi_target Casadi::casadi casadi::casadi casadi)
+  if (TARGET ${_casadi_target})
+    set (Casadi_LIBRARY ${_casadi_target})
+    if (NOT Casadi_INCLUDE_DIR)
+      get_target_property (Casadi_INCLUDE_DIR ${_casadi_target} INTERFACE_INCLUDE_DIRECTORIES)
+    endif()
+  endif()
+endforeach()
+
+if (NOT Casadi_INCLUDE_DIR AND Casadi_INCLUDE_DIRS)
+  list (GET Casadi_INCLUDE_DIRS 0 Casadi_INCLUDE_DIR)
+endif()
+if (NOT Casadi_INCLUDE_DIR AND casadi_INCLUDE_DIRS)
+  list (GET casadi_INCLUDE_DIRS 0 Casadi_INCLUDE_DIR)
+endif()
+if (NOT Casadi_LIBRARY AND Casadi_LIBRARIES)
+  list (GET Casadi_LIBRARIES 0 Casadi_LIBRARY)
+endif()
+if (NOT Casadi_LIBRARY AND casadi_LIBRARIES)
+  list (GET casadi_LIBRARIES 0 Casadi_LIBRARY)
+endif()
+
+find_path (Casadi_INCLUDE_DIR "casadi.hpp"
     PATHS
     ${CMAKE_INSTALL_PREFIX}/include/casadi
     ${CMAKE_INSTALL_PREFIX}/Library/include/casadi
@@ -29,6 +59,5 @@ find_package_handle_standard_args (Casadi DEFAULT_MSG
     Casadi_LIBRARY
     Casadi_INCLUDE_DIR
 )
-
 
 
