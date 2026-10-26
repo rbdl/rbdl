@@ -15,7 +15,7 @@ SET ( RBDL_ADDON_MUSCLE_TESTS_VERSION
 PROJECT (RBDL_MUSCLE_TESTS VERSION ${RBDL_ADDON_MUSCLE_TESTS_VERSION})
 
 # Look for catch2
-FIND_PACKAGE(Catch2 REQUIRED)
+FIND_PACKAGE(Catch2 3 REQUIRED)
 # on unix systems add /usr/local/include to include dirs
 # this was added since macos homebrew installs many things there but macos
 # does not automatically search their, and on linux systems this does not hurt
@@ -102,12 +102,14 @@ ENDIF (RBDL_BUILD_STATIC)
 
 IF (RBDL_BUILD_ADDON_MUSCLE_FITTING)
 TARGET_LINK_LIBRARIES ( rbdl_muscle_tests
+  Catch2::Catch2WithMain
   ${RBDL_LIBRARY}
   ${IPOPT_LIBRARY}
   )
 
 ELSE (RBDL_BUILD_ADDON_MUSCLE_FITTING)
 TARGET_LINK_LIBRARIES ( rbdl_muscle_tests
+  Catch2::Catch2WithMain
   ${RBDL_LIBRARY}
 )
 ENDIF (RBDL_BUILD_ADDON_MUSCLE_FITTING)  

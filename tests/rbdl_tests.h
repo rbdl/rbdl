@@ -3,11 +3,11 @@
 
 #include <cmath>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_all.hpp"
 #include "rbdl/rbdl_math.h"
 
 template <typename T>
-struct IsCloseMatcher : Catch::MatcherBase<T> {
+struct IsCloseMatcher : Catch::Matchers::MatcherBase<T> {
   IsCloseMatcher(
       T const& comparator,
       double atol = 1.0e-8,
@@ -15,7 +15,7 @@ struct IsCloseMatcher : Catch::MatcherBase<T> {
       : m_comparator(comparator), m_atol(atol), m_rtol(rtol) {}
 
   bool match(T const& v) const override {
-    using namespace Catch::Matchers::Floating;
+    //using namespace Catch::Matchers::Floating;
     if (std::abs(v - m_comparator)
         > (m_atol + m_rtol * std::abs(m_comparator))) {
       return false;
@@ -38,7 +38,7 @@ IsClose(T const& comparator, double atol = 1.0e-8, double rtol = 1.0e-5) {
 }
 
 template <typename T>
-struct AllCloseVectorMatcher : Catch::MatcherBase<T> {
+struct AllCloseVectorMatcher : Catch::Matchers::MatcherBase<T> {
   AllCloseVectorMatcher(
       T const& comparator,
       double atol = 1.0e-8,
@@ -46,7 +46,7 @@ struct AllCloseVectorMatcher : Catch::MatcherBase<T> {
       : m_comparator(comparator), m_atol(atol), m_rtol(rtol) {}
 
   bool match(T const& v) const override {
-    using namespace Catch::Matchers::Floating;
+    //using namespace Catch::Matchers::Floating;
     if (m_comparator.size() != v.size()) {
       return false;
     }
@@ -75,7 +75,7 @@ AllCloseVectorMatcher<T> AllCloseVector(
 }
 
 template <typename T>
-struct AllCloseMatrixMatcher : Catch::MatcherBase<T> {
+struct AllCloseMatrixMatcher : Catch::Matchers::MatcherBase<T> {
   AllCloseMatrixMatcher(
       T const& comparator,
       double atol = 1.0e-8,
