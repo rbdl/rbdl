@@ -31,12 +31,13 @@ IF(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   SET_PROPERTY(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 ENDIF()
 
+SET(CMAKE_CXX_STANDARD 17)
+
 IF (MSVC)
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive- /std:c++17")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /permissive-")
 ENDIF (MSVC)
 
 IF(APPLE)
-  SET(CMAKE_CXX_STANDARD 17)
   INCLUDE_DIRECTORIES("/usr/local/include")
 ENDIF(APPLE)
 
@@ -70,13 +71,20 @@ OPTION (RBDL_BUILD_CASADI "Use the CasADi backend" OFF)
 OPTION (RBDL_VCPKG_BUILD "Building RBDL in vcpkg environment" OFF)
 
 
-# Find and use the system's Eigen3 library
-FIND_PACKAGE (Eigen3 3.0.0)
+# Find and use the system's Eigen3 library. No version is requested because the
+# Eigen config files only accept their own major version (3.x vs 5.x)
+FIND_PACKAGE (Eigen3 CONFIG)
 
-IF (NOT EIGEN3_FOUND)
+IF (NOT Eigen3_FOUND)
     MESSAGE (WARNING "Could not find Eigen3 on your system. Please install it!")
-ENDIF (NOT EIGEN3_FOUND)
+ELSEIF (Eigen3_VERSION VERSION_LESS 3.3)
+    MESSAGE (WARNING "Eigen3 ${Eigen3_VERSION} found, but at least 3.3 is required")
+ENDIF ()
 
+if(TARGET Eigen3::Eigen AND (NOT DEFINED EIGEN3_INCLUDE_DIR OR EIGEN3_INCLUDE_DIR STREQUAL ""))
+    # Modern CMake does not set INCLUDE_DIR, so make it retro-compatible
+    get_target_property(EIGEN3_INCLUDE_DIR Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
+endif()
 INCLUDE_DIRECTORIES (${EIGEN3_INCLUDE_DIR})
 
 # Addons

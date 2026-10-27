@@ -72,7 +72,25 @@ set( CYTHON_FLAGS "" CACHE STRING
 mark_as_advanced( CYTHON_ANNOTATE CYTHON_NO_DOCSTRINGS CYTHON_FLAGS )
 
 find_package( Cython REQUIRED )
-find_package( PythonLibs REQUIRED )
+
+if( NOT PYTHON_INCLUDE_DIRS OR NOT PYTHONLIBS_VERSION_STRING )
+  if( NOT CMAKE_VERSION VERSION_LESS 3.12.0 )
+    find_package( Python COMPONENTS Interpreter Development REQUIRED )
+    set( PYTHON_EXECUTABLE ${Python_EXECUTABLE} )
+    set( PYTHON_INCLUDE_DIRS ${Python_INCLUDE_DIRS} )
+    set( PYTHON_LIBRARIES ${Python_LIBRARIES} )
+    set( PYTHONLIBS_VERSION_STRING ${Python_VERSION} )
+    if( Python_SOABI )
+      set( PYTHON_EXTENSION_MODULE_SUFFIX ".${Python_SOABI}${CMAKE_SHARED_MODULE_SUFFIX}" )
+    endif()
+  else()
+    find_package( PythonLibs REQUIRED )
+  endif()
+endif()
+
+if( NOT PYTHON_EXTENSION_MODULE_SUFFIX )
+  set( PYTHON_EXTENSION_MODULE_SUFFIX ${CMAKE_SHARED_MODULE_SUFFIX} )
+endif()
 
 set( CYTHON_CXX_EXTENSION "cxx" )
 set( CYTHON_C_EXTENSION "c" )
@@ -249,7 +267,11 @@ function( cython_add_module _name )
   endforeach()
   compile_pyx( ${_name} generated_file ${pyx_module_sources} )
   include_directories( ${PYTHON_INCLUDE_DIRS} )
-  python_add_module( ${_name} ${generated_file} ${other_module_sources} )
+  add_library( ${_name} MODULE ${generated_file} ${other_module_sources} )
+  set_target_properties( ${_name} PROPERTIES
+    PREFIX ""
+    SUFFIX "${PYTHON_EXTENSION_MODULE_SUFFIX}"
+    )
   if( APPLE )
     set_target_properties( ${_name} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup" )
   else()

@@ -57,11 +57,11 @@ def parse_line (line_str):
     # remove comments
     line_str = line_str.split("#")[0]
 
-    wrapper_line_str_match = re.search ("%VectorWrapper(\S*)\s*\((.*)\).*%", line_str)
+    wrapper_line_str_match = re.search (r"%VectorWrapper(\S*)\s*\((.*)\).*%", line_str)
     if (wrapper_line_str_match):
         command = wrapper_line_str_match.group(1)
         arg_str = wrapper_line_str_match.group(2)
-        arg_match = re.findall("(\s*(\S*)\s*=\s*(\w*)\s*,?)", arg_str)
+        arg_match = re.findall(r"(\s*(\S*)\s*=\s*(\w*)\s*,?)", arg_str)
         if len(arg_match) > 0:
             for arg in arg_match:
                 if len(arg) != 3:

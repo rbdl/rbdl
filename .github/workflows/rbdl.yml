@@ -33,8 +33,8 @@ jobs:
     - name: Run RBDL Muscle Addon Test Suite
       run: ./build/addons/muscle/tests/muscle_tests -r junit > junit-reports/TEST-RBDL-MUSLE.xml
     - uses: mikepenz/action-junit-report@v4
-  build-casadi:
-    name: Build RBDL Casadi + Addons
+  build-python:
+    name: Build and Test RBDL with python bindings
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -42,20 +42,39 @@ jobs:
       with:
         submodules: true
     - name: Install Build dependencies
-      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev catch2 coinor-libipopt-dev liblapack-dev jq curl tar
-    - name: Download Casadi source code
-      run: |
-        curl -L $(curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "X-Github-Api-Version: 2022-11-28" https://api.github.com/repos/casadi/casadi/releases/latest | jq -r ' .assets[] | select(.content_type == "application/x-gtar") | .browser_download_url' ) | tar --strip-components=1 -zx -C casadi
-    - name: Build Casadi
+      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev catch2 coinor-libipopt-dev cython3 python3-numpy python3-scipy python3-matplotlib
+    - name: Build RBDL
       uses: threeal/cmake-action@v1.3.0
       with:
-        source-dir: casadi
-        build-dir: casadi-build
-        options: WITH_IPOPT=ON
+        options: RBDL_BUILD_ADDON_LUAMODEL=ON RBDL_BUILD_ADDON_URDFREADER=ON RBDL_BUILD_ADDON_GEOMETRY=ON RBDL_BUILD_ADDON_BALANCE=ON RBDL_BUILD_ADDON_MUSCLE=ON RBDL_BUILD_ADDON_MUSCLE_FITTING=ON RBDL_BUILD_PYTHON_WRAPPER=ON
         cxx-flags: -DHAVE_CSTDDEF
         run-build: true
-    - name: Install Casadi
-      run: cd casadi-build && sudo make install
+  build-casadi:
+    name: Build RBDL Casadi + Addons
+    runs-on: ubuntu-26.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+      with:
+        submodules: true
+    - name: Install Build dependencies
+      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev catch2 coinor-libipopt-dev liblapack-dev casadi libcasadi-dev
+    - name: Build RBDL Casadi
+      uses: threeal/cmake-action@v1.3.0
+      with:
+        options: RBDL_BUILD_ADDON_LUAMODEL=ON RBDL_BUILD_ADDON_URDFREADER=ON RBDL_BUILD_ADDON_GEOMETRY=ON RBDL_BUILD_ADDON_BALANCE=ON RBDL_BUILD_TESTS=ON RBDL_BUILD_CASADI=ON
+        cxx-flags: -DHAVE_CSTDDEF
+        run-build: true
+  build-casadi-python:
+    name: Build RBDL Casadi + Addons
+    runs-on: ubuntu-26.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+      with:
+        submodules: true
+    - name: Install Build dependencies
+      run: sudo apt-get install libeigen3-dev libboost-all-dev lua5.1 liblua5.1-0-dev catch2 coinor-libipopt-dev liblapack-dev casadi libcasadi-dev cython3 python3-numpy python3-scipy python3-matplotlib
     - name: Build RBDL Casadi
       uses: threeal/cmake-action@v1.3.0
       with:

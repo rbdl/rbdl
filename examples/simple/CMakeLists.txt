@@ -10,7 +10,11 @@ LIST( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} )
 SET(CUSTOM_RBDL_PATH "" CACHE PATH "Path to specific RBDL Installation")
 # Search for the RBDL include directory and library
 FIND_PACKAGE (RBDL REQUIRED)
-FIND_PACKAGE (Eigen3 3.0.0 REQUIRED)
+FIND_PACKAGE (Eigen3 CONFIG REQUIRED)
+IF (TARGET Eigen3::Eigen AND NOT EIGEN3_INCLUDE_DIR)
+  # Eigen 5 no longer sets EIGEN3_INCLUDE_DIR, so make it retro-compatible
+  GET_TARGET_PROPERTY (EIGEN3_INCLUDE_DIR Eigen3::Eigen INTERFACE_INCLUDE_DIRECTORIES)
+ENDIF ()
 
 # Add the include directory to the include paths
 INCLUDE_DIRECTORIES ( ${RBDL_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR} )
