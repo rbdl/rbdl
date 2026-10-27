@@ -20,10 +20,9 @@ LIST(REMOVE_DUPLICATES TARGETS)
 
 #    2d. Add the folder 'CMake' & 'CMake/Modules' to be included: these contain
 #        project-specific CMake files. If you open the folder 'CMake' you 
-#        should find two files which have been written to find Eigen3 and 
-#        RBDL with the following names.
+#        should find a file which has been written to find RBDL. Eigen3 is
+#        found through the CMake config files it installs.
 #
-#          FindEigen3.cmake  
 #          FindRBDL.cmake
 
 LIST( APPEND CMAKE_MODULE_PATH
@@ -70,9 +69,9 @@ FIND_PACKAGE (Lua51 REQUIRED)
 #        )        
 #
 #        The variables RBDL_INCLUDE_DIR and EIGEN3_INCLUDE_DIR are variables
-#        that are set by the CMake/FindRBDL.cmake and CMake/FindEigen3.cmake 
-#        files. To know what variables you have to work with you need to open
-#        these files and have a look at them.
+#        that are set by the CMake/FindRBDL.cmake file and by the Eigen3
+#        CMake config files. To know what variables you have to work with you
+#        need to open these files and have a look at them.
 #
 #        The variable BOOST_INC_DIR is manually set, and hardcoded to /usr/local.
 #        While this is quick and easy to do it is not recommended: the person
