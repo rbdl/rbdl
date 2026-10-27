@@ -42,7 +42,7 @@ typedef Eigen::Ref<Eigen::VectorXd> VectorNdRef;
 
 RBDL_DLLAPI inline VectorNdRef VectorFromPtr (double *ptr, unsigned int n)
 {
-  #ifdef EIGEN_CORE_H
+  #ifndef RBDL_USE_CASADI_MATH
   return Eigen::Map<VectorNd> (ptr, n, 1);
   #else
   std::ostringstream errormsg;
@@ -55,7 +55,7 @@ RBDL_DLLAPI inline VectorNdRef VectorFromPtr (double *ptr, unsigned int n)
 RBDL_DLLAPI inline MatrixNdRef MatrixFromPtr (double *ptr, unsigned int rows,
     unsigned int cols, bool row_major = true)
 {
-  #ifdef EIGEN_CORE_H
+  #ifndef RBDL_USE_CASADI_MATH
   #ifdef PTR_DATA_ROW_MAJOR
   return Eigen::Map<MatrixNdRowMaj> (ptr, rows, cols);
   #else
