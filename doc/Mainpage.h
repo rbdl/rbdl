@@ -38,6 +38,24 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>23 August 2024: New release 3.3.1:
+ *   <ul>
+ *     <li> Working CI for RBDL and RBDL-Casadi </li>
+ *     <li> Bugfixes in urdfreader.cc (multiple tip links, tip link check) </li>
+ *   </ul>
+ * </li>
+ * <li>01 October 2023: New release 3.3.0:
+ *   <ul>
+ *     <li> Updated Body Inertial Properties API </li>
+ *     <li> Partial URDF model loading </li>
+ *   </ul>
+ * </li>
+ * <li>16 August 2022: New release 3.2.1:
+ *   <ul>
+ *     <li> CasADi support for LuaModel and URDFReader </li>
+ *     <li> Added logarithm to the CasADi math definitions </li>
+ *   </ul>
+ * </li>
  * <li>05. Mai 2022: New release 3.2.0:
  *   <ul>
  *     <li> Merging RBDL and RBDL-ORB </li>
@@ -54,6 +72,20 @@
  *     It may be installed on the system in parallel to rbdl.</li>
  *     <li> Added system install of cmake config files, so that projects building on rbdl do not
  *     need to provide their own FindRBDL.cmake files anymore.</li>
+ *   </ul>
+ * </li>
+ * <li>24 September 2019: New release 3.0.0:
+ *   <ul>
+ *     <li> Rbdl and it's fork RBDL-ORB where reunited </li>
+ *     <li> Replaced aborting behaviour with actual error handling by
+ *       providing an error base class and more specific error types derived
+ *       from it (contributed by Felix Richter) </li>
+ *     <li> Removed the SimpleMath library to reduce code complexity
+ *       (contributed by Felix Richter) </li>
+ *     <li> Refactored the constraint system to be polymorphic
+ *       (contributed by Matthew J. Millard) </li>
+ *     <li> Python wrapper updated to support Python 3 (and Python 2) and the
+ *       API was extended to include the muscle addon functionality </li>
  *   </ul>
  * </li>
  * <li>02 May 2018: New release 2.6.0:
