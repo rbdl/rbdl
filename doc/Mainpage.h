@@ -38,6 +38,24 @@
  *
  * \section recent_changes Recent Changes
  * <ul>
+ * <li>28 October 2026: New release 3.4.0:
+ *   <ul>
+ *     <li> Compatibility with Eigen 5.0.0 (required by newer distributions
+ *       such as Ubuntu 26.04). Eigen 3.3 is now the minimum requirement. </li>
+ *     <li> The whole project, including the Python wrapper, now builds with
+ *       C++17 as the standard (the wrapper previously forced C++11). </li>
+ *     <li> Python wrapper: modernized CMake Python/Cython discovery, removed
+ *       legacy compiler settings, and fixed invalid escape sequence warnings
+ *       in the wrapper generator. CI now builds the Python wrapper as well. </li>
+ *     <li> URDFReader: fixed partial model loading when using multiple tip
+ *       links and a segmentation fault when a tip link does not exist in the
+ *       link map. </li>
+ *     <li> Some Model class methods (IsBodyId(), IsFixedBodyId(),
+ *       GetParentBodyId(), GetJointFrame()) are now const. </li>
+ *     <li> Updated the testing framework to Catch2 v3 and modernized the
+ *       CMake Eigen3/CasADi package detection. </li>
+ *   </ul>
+ * </li>
  * <li>23 August 2024: New release 3.3.1:
  *   <ul>
  *     <li> Working CI for RBDL and RBDL-Casadi </li>
