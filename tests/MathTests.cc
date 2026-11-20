@@ -3,6 +3,13 @@
 #include "rbdl/Logging.h"
 #include "rbdl/rbdl_math.h"
 #include "rbdl/rbdl_mathutils.h"
+
+// The bundled SimpleMath header only compiles with NDEBUG defined: its
+// debug-only Storage::resize() block references parameter names that the
+// UNUSED macro renames. Guard the float quaternion coverage accordingly.
+#ifdef NDEBUG
+#include "rbdl/SimpleMath/SimpleMath.h"
+#endif
 #include <iostream>
 
 const double TEST_PREC = 1.0e-14;
@@ -107,3 +114,107 @@ TEST (SpatialMatrix_Multiplication) {
 
   CHECK_ARRAY_CLOSE (correct_result.data(), test_result.data(), 6 * 6, TEST_PREC);
 }
+
+TEST (QuaternionFromMatrixExactHalfTurn) {
+  // Regression test: the trace-only implementation divided by w = 0 for
+  // exact 180-degree rotations and returned NaNs.
+  Matrix3d half_turns[3];
+  half_turns[0] = Matrix3d::Identity();
+  half_turns[0](1,1) = -1.;
+  half_turns[0](2,2) = -1.;
+  half_turns[1] = Matrix3d::Identity();
+  half_turns[1](0,0) = -1.;
+  half_turns[1](2,2) = -1.;
+  half_turns[2] = Matrix3d::Identity();
+  half_turns[2](0,0) = -1.;
+  half_turns[2](1,1) = -1.;
+  for (int i = 0; i < 3; i++) {
+    Quaternion q = Quaternion::fromMatrix (half_turns[i]);
+    CHECK (q.allFinite());
+    CHECK_ARRAY_CLOSE (half_turns[i].data(), q.toMatrix().data(), 9,
+                       TEST_PREC);
+  }
+}
+
+TEST (QuaternionFromMatrixRoundtrip) {
+  // fromMatrix must invert toMatrix, including for rotations with negative
+  // trace, exact half turns, and tiny offsets around half turns, and keep
+  // the w >= 0 hemisphere.
+  for (int i = 0; i < 100; i++) {
+    Vector3d axis = Vector3d (
+        std::sin (i * 1.7), std::cos (i * 0.9), std::sin (i * 0.3 + 1.));
+    double angle = M_PI * (i % 11) / 10.0;
+    Quaternion q = Quaternion::fromAxisAngle (axis, angle);
+    Quaternion r = Quaternion::fromMatrix (q.toMatrix());
+    CHECK (r.allFinite());
+    CHECK_ARRAY_CLOSE (q.toMatrix().data(), r.toMatrix().data(), 9,
+                       TEST_PREC);
+    CHECK (r[3] >= 0.);
+  }
+  for (int i = 0; i < 10; i++) {
+    Vector3d axis = Vector3d (
+        std::sin (i * 2.3 + 0.5), std::cos (i * 1.1),
+        std::sin (i * 0.7 + 2.));
+    double offsets[3] = {-1e-8, 0., 1e-8};
+    for (int j = 0; j < 3; j++) {
+      Quaternion q = Quaternion::fromAxisAngle (axis, M_PI + offsets[j]);
+      Quaternion r = Quaternion::fromMatrix (q.toMatrix());
+      CHECK (r.allFinite());
+      CHECK_ARRAY_CLOSE (q.toMatrix().data(), r.toMatrix().data(), 9,
+                         TEST_PREC);
+      CHECK (r[3] >= 0.);
+    }
+  }
+}
+
+#ifdef NDEBUG
+TEST (SimpleMathQuaternionFromMatrixHalfTurn) {
+  // Same coverage for the float SimpleMath::GL::Quaternion variant, which
+  // uses the transpose (standard) sign convention.
+  SimpleMath::Matrix<float, 3, 3> half_turns[3];
+  for (int i = 0; i < 3; i++) {
+    half_turns[i] = SimpleMath::Matrix<float, 3, 3>::Identity();
+    half_turns[i]((i + 1) % 3, (i + 1) % 3) = -1.f;
+    half_turns[i]((i + 2) % 3, (i + 2) % 3) = -1.f;
+  }
+  for (int i = 0; i < 3; i++) {
+    SimpleMath::GL::Quaternion q =
+        SimpleMath::GL::Quaternion::fromMatrix (half_turns[i]);
+    for (int k = 0; k < 4; k++) {
+      CHECK (std::isfinite (q[k]));
+    }
+    SimpleMath::Matrix<float, 3, 3> r = q.toMatrix();
+    for (int a = 0; a < 3; a++) {
+      for (int b = 0; b < 3; b++) {
+        CHECK_CLOSE (half_turns[i](a,b), r(a,b), 1.0e-5);
+      }
+    }
+  }
+  float offsets[3] = {-1e-3f, 0.f, 1e-3f};
+  for (int i = 0; i < 5; i++) {
+    SimpleMath::Matrix<float, 3, 1> axis;
+    axis[0] = std::sin (i * 2.3f + 0.5f);
+    axis[1] = std::cos (i * 1.1f);
+    axis[2] = std::sin (i * 0.7f + 2.f);
+    for (int j = 0; j < 3; j++) {
+      SimpleMath::GL::Quaternion q = SimpleMath::GL::Quaternion (
+          axis[0] * std::sin ((M_PI + offsets[j]) * 0.5) / axis.norm(),
+          axis[1] * std::sin ((M_PI + offsets[j]) * 0.5) / axis.norm(),
+          axis[2] * std::sin ((M_PI + offsets[j]) * 0.5) / axis.norm(),
+          std::cos ((M_PI + offsets[j]) * 0.5));
+      SimpleMath::GL::Quaternion r =
+          SimpleMath::GL::Quaternion::fromMatrix (q.toMatrix());
+      for (int k = 0; k < 4; k++) {
+        CHECK (std::isfinite (r[k]));
+      }
+      CHECK (r[3] >= 0.f);
+      SimpleMath::Matrix<float, 3, 3> m = r.toMatrix(), mq = q.toMatrix();
+      for (int a = 0; a < 3; a++) {
+        for (int b = 0; b < 3; b++) {
+          CHECK_CLOSE (mq(a,b), m(a,b), 1.0e-4);
+        }
+      }
+    }
+  }
+}
+#endif  // NDEBUG
