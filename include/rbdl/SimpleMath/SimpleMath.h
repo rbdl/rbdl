@@ -2382,12 +2382,43 @@ class Quaternion : public Vector4f {
     }
 
     static Quaternion fromMatrix (const Matrix33f &mat) {
-      float w = sqrt (1.f + mat(0,0) + mat(1,1) + mat(2,2)) * 0.5f;
-      return Quaternion (
-          (mat(2,1) - mat(1,2)) / (w * 4.f),
-          (mat(0,2) - mat(2,0)) / (w * 4.f),
-          (mat(1,0) - mat(0,1)) / (w * 4.f),
-          w);
+      float trace = mat(0,0) + mat(1,1) + mat(2,2);
+      Quaternion q;
+      if (trace > 0.f) {
+        float w = sqrt (1.f + trace) * 0.5f;
+        q = Quaternion (
+            (mat(2,1) - mat(1,2)) / (w * 4.f),
+            (mat(0,2) - mat(2,0)) / (w * 4.f),
+            (mat(1,0) - mat(0,1)) / (w * 4.f),
+            w);
+      } else if (mat(0,0) > mat(1,1) && mat(0,0) > mat(2,2)) {
+        float x = sqrt (1.f + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5f;
+        q = Quaternion (
+            x,
+            (mat(0,1) + mat(1,0)) / (x * 4.f),
+            (mat(0,2) + mat(2,0)) / (x * 4.f),
+            (mat(2,1) - mat(1,2)) / (x * 4.f));
+      } else if (mat(1,1) > mat(2,2)) {
+        float y = sqrt (1.f + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5f;
+        q = Quaternion (
+            (mat(0,1) + mat(1,0)) / (y * 4.f),
+            y,
+            (mat(1,2) + mat(2,1)) / (y * 4.f),
+            (mat(0,2) - mat(2,0)) / (y * 4.f));
+      } else {
+        float z = sqrt (1.f + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5f;
+        q = Quaternion (
+            (mat(0,2) + mat(2,0)) / (z * 4.f),
+            (mat(1,2) + mat(2,1)) / (z * 4.f),
+            z,
+            (mat(1,0) - mat(0,1)) / (z * 4.f));
+      }
+      // Keep the w >= 0 hemisphere that the previous trace-only
+      // implementation returned for all well-conditioned inputs.
+      if (q[3] < 0.f) {
+        q = q * (-1.f);
+      }
+      return q;
     }
 
     static Quaternion fromAxisAngle (const Vector3f &axis, double angle_rad) {
