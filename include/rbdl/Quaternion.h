@@ -101,12 +101,43 @@ class Quaternion : public Vector4d {
     }
 
     static Quaternion fromMatrix (const Matrix3d &mat) {
-      double w = std::sqrt (1. + mat(0,0) + mat(1,1) + mat(2,2)) * 0.5;
-      return Quaternion (
-          (mat(1,2) - mat(2,1)) / (w * 4.),
-          (mat(2,0) - mat(0,2)) / (w * 4.),
-          (mat(0,1) - mat(1,0)) / (w * 4.),
-          w);
+      double trace = mat(0,0) + mat(1,1) + mat(2,2);
+      Quaternion q;
+      if (trace > 0.) {
+        double w = std::sqrt (1. + trace) * 0.5;
+        q = Quaternion (
+            (mat(1,2) - mat(2,1)) / (w * 4.),
+            (mat(2,0) - mat(0,2)) / (w * 4.),
+            (mat(0,1) - mat(1,0)) / (w * 4.),
+            w);
+      } else if (mat(0,0) > mat(1,1) && mat(0,0) > mat(2,2)) {
+        double x = std::sqrt (1. + mat(0,0) - mat(1,1) - mat(2,2)) * 0.5;
+        q = Quaternion (
+            x,
+            (mat(0,1) + mat(1,0)) / (x * 4.),
+            (mat(0,2) + mat(2,0)) / (x * 4.),
+            (mat(1,2) - mat(2,1)) / (x * 4.));
+      } else if (mat(1,1) > mat(2,2)) {
+        double y = std::sqrt (1. + mat(1,1) - mat(0,0) - mat(2,2)) * 0.5;
+        q = Quaternion (
+            (mat(0,1) + mat(1,0)) / (y * 4.),
+            y,
+            (mat(1,2) + mat(2,1)) / (y * 4.),
+            (mat(2,0) - mat(0,2)) / (y * 4.));
+      } else {
+        double z = std::sqrt (1. + mat(2,2) - mat(0,0) - mat(1,1)) * 0.5;
+        q = Quaternion (
+            (mat(0,2) + mat(2,0)) / (z * 4.),
+            (mat(1,2) + mat(2,1)) / (z * 4.),
+            z,
+            (mat(0,1) - mat(1,0)) / (z * 4.));
+      }
+      // Keep the w >= 0 hemisphere that the previous trace-only
+      // implementation returned for all well-conditioned inputs.
+      if (q[3] < 0.) {
+        q = q * (-1.);
+      }
+      return q;
     }
 
     static Quaternion fromZYXAngles (const Vector3d &zyx_angles) {
